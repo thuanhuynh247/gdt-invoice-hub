@@ -781,7 +781,7 @@ def api_get_local_invoices():
 @invoices_blueprint.get("/api/invoices/local/export-excel")
 @roles_required("admin", "auditor")
 def api_export_local_excel():
-    """Export the local audited database to an Excel workbook download."""
+    """Export the local audited database to an Excel workbook download, filtered by active corporate taxpayer profile."""
 
     unauthorized = _ensure_logged_in()
     if unauthorized:
@@ -789,7 +789,10 @@ def api_export_local_excel():
 
     try:
         from invoices.service import get_local_invoices
-        invoices = get_local_invoices()
+        mst = request.args.get("taxpayer_mst") or session.get("active_taxpayer_mst")
+        if mst == "all" or not mst:
+            mst = None
+        invoices = get_local_invoices(mst)
         workbook_bytes = generate_local_excel_workbook(invoices)
     except Exception as error:
         return jsonify({"error": str(error)}), 500
@@ -807,15 +810,18 @@ def api_export_local_excel():
 
 @invoices_blueprint.get("/api/invoices/local/items")
 def api_search_local_items():
-    """Global search across line items of locally imported invoices."""
+    """Global search across line items of locally imported invoices, filtered by active corporate taxpayer profile."""
 
     unauthorized = _ensure_logged_in()
     if unauthorized:
         return unauthorized
 
     q = request.args.get("q", "").strip()
+    mst = request.args.get("taxpayer_mst") or session.get("active_taxpayer_mst")
+    if mst == "all" or not mst:
+        mst = None
     from invoices.service import search_local_items
-    return jsonify({"items": search_local_items(q)})
+    return jsonify({"items": search_local_items(q, mst)})
 
 
 @invoices_blueprint.delete("/api/invoices/local/clear")

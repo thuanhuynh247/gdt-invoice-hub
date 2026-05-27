@@ -118,6 +118,59 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
     -webkit-text-fill-color: transparent;
 }
 
+/* Premium Corporate Taxpayer Switcher styling */
+.navbar-mst-selector-wrapper {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-card);
+    padding: 0.2rem 0.6rem;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] .navbar-mst-selector-wrapper {
+    background: rgba(15, 23, 42, 0.03);
+}
+
+.navbar-mst-selector-wrapper:hover {
+    border-color: var(--primary-accent);
+    box-shadow: 0 0 10px rgba(62, 207, 142, 0.15);
+}
+
+.navbar-mst-selector-wrapper i {
+    color: var(--primary-accent);
+    font-size: 0.95rem;
+    filter: drop-shadow(0 0 4px var(--primary-accent-soft));
+}
+
+#globalTaxpayerSelector {
+    border: none !important;
+    background: transparent !important;
+    color: var(--text-primary) !important;
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 0 1.8rem 0 0.5rem !important;
+    outline: none !important;
+    box-shadow: none !important;
+    cursor: pointer;
+    min-height: auto !important;
+    height: 28px !important;
+    border-radius: 0 !important;
+}
+
+[data-theme="dark"] #globalTaxpayerSelector option {
+    background-color: #171717;
+    color: #ededed;
+}
+
+[data-theme="light"] #globalTaxpayerSelector option {
+    background-color: #ffffff;
+    color: #1e293b;
+}
+
 .glass-card {
     background: var(--bg-card);
     backdrop-filter: blur(12px);
@@ -125,6 +178,17 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
     border: 1px solid var(--border-card);
     border-radius: 1.2rem;
     box-shadow: var(--shadow-premium);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--primary-accent) !important;
+    box-shadow: 0 10px 30px -5px rgba(62, 207, 142, 0.15), var(--shadow-premium);
+}
+
+[data-theme="dark"] .glass-card:hover {
+    box-shadow: 0 0 25px rgba(62, 207, 142, 0.2), var(--shadow-premium);
 }
 
 .hero-panel {

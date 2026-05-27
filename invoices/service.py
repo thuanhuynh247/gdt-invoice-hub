@@ -1190,14 +1190,14 @@ def import_xml_invoice(xml_bytes: bytes, filename: str, duplicate_strategy: str 
 
 
 
-def search_local_items(query: str) -> list[dict]:
-    """Search for items in all locally stored invoices matching the query."""
+def search_local_items(query: str, taxpayer_mst: str = None) -> list[dict]:
+    """Search for items in all locally stored invoices matching the query, optionally filtering by taxpayer_mst."""
 
     if not query:
         return []
 
     query_lower = query.lower().strip()
-    invoices = get_local_invoices()
+    invoices = get_local_invoices(taxpayer_mst)
     results = []
 
     for inv in invoices:

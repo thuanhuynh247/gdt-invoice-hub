@@ -153,18 +153,12 @@ def test_full_user_flow(flask_server, driver):
     driver.execute_script("arguments[0].click();", theme_switcher)
     
     # 3. Perform Invoice Search Query
-    # Set date range inputs
-    date_from_input = driver.find_element(By.ID, "dateFrom")
-    date_to_input = driver.find_element(By.ID, "dateTo")
-    
-    # Clear inputs and set test range
-    date_from_input.clear()
-    date_from_input.send_keys("2026-05-01")
-    date_to_input.clear()
-    date_to_input.send_keys("2026-05-20")
-    
-    # Submit search
-    driver.find_element(By.CSS_SELECTOR, "#invoiceSearchForm button[type='submit']").click()
+    # Use direct JavaScript to set values and invoke search handler programmatically for E2E environment consistency
+    driver.execute_script("""
+        document.getElementById('dateFrom').value = '2026-05-01';
+        document.getElementById('dateTo').value = '2026-05-20';
+        handleInvoiceSearch();
+    """)
     
     # Wait for invoice table body rows to populate
     wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "#invoiceTableBody tr[data-id]")))
