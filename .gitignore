@@ -1,0 +1,27 @@
+# Flask/Python environment
+venv/
+.venv/
+ENV/
+env/
+*.pyc
+__pycache__/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local databases and instance files
+instance/
+*.db
+data/
+
+# Application configuration & secrets
+.env
+.env.local
+
+# Operating System files
+.DS_Store
+Thumbs.db
+
+# Chrome Temporary Profiles
+.chrome_user_data_*
+chromedriver/

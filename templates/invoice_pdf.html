@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hóa Đơn Điện Tử - {{ invoice.id }}</title>
+    <!-- Google Fonts: Outfit & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap Icons CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        :root {
+            --invoice-primary: #8b0000; /* Deep red for official border */
+            --invoice-dark: #1e293b;
+            --invoice-secondary: #475569;
+            --invoice-border: #cbd5e1;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--invoice-dark);
+            background-color: #f8fafc;
+            margin: 0;
+            padding: 20px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        /* Invoice Container */
+        .invoice-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 40px;
+            border: 2px solid var(--invoice-primary);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            position: relative;
+            border-radius: 4px;
+        }
+
+        /* Watermark Background */
+        .invoice-container::before {
+            content: "GDT INVOICE HUB";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-35deg);
+            font-size: 70px;
+            font-weight: 800;
+            color: rgba(139, 0, 0, 0.03);
+            pointer-events: none;
+            white-space: nowrap;
+            letter-spacing: 0.1em;
+        }
+
+        /* Control bar at top */
+        .control-bar {
+            max-width: 800px;
+            margin: 0 auto 20px auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-print {
+            background-color: var(--invoice-primary);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 4px;
+            font-family: 'Outfit', sans-serif;
+            box-shadow: 0 2px 8px rgba(139, 0, 0, 0.25);
+        }
+
+        .btn-print:hover {
+            opacity: 0.9;
+        }
+
+        .btn-back {
+            background-color: #e2e8f0;
+            color: #475569;
+            text-decoration: none;
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 4px;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        /* Header Layout */
+        .invoice-header {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            border-bottom: 2px double var(--invoice-primary);
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+            gap: 20px;
+        }
+
+        .header-title-box h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--invoice-primary);
+            margin: 0 0 5px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .header-title-box p {
+            margin: 0;
+            color: var(--invoice-secondary);
+            font-size: 12px;
+        }
+
+        .header-meta-box {
+            text-align: right;
+            font-size: 12px;
+        }
+
+        .header-meta-box div {
+            margin-bottom: 3px;
+        }
+
+        .header-meta-box strong {
+            color: var(--invoice-primary);
+        }
+
+        /* Main Invoice Title Block */
+        .invoice-title-block {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .invoice-title-block h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--invoice-primary);
+            margin: 0 0 4px 0;
+            letter-spacing: 0.05em;
+        }
+
+        .invoice-title-block p {
+            margin: 0;
+            font-style: italic;
+            color: var(--invoice-secondary);
+        }
+
+        /* Party Details Boxes */
+        .party-section {
+            border: 1px solid var(--invoice-border);
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 20px;
+            background: #fafaf9;
+        }
+
+        .party-section-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--invoice-primary);
+            margin: 0 0 10px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--invoice-border);
+            padding-bottom: 5px;
+        }
+
+        .info-row {
+            display: grid;
+            grid-template-columns: 140px 1fr;
+            margin-bottom: 6px;
+        }
+
+        .info-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .info-label {
+            color: var(--invoice-secondary);
+            font-weight: 500;
+        }
+
+        .info-value {
+            font-weight: 600;
+        }
+
+        /* Line Items Table */
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .items-table th {
+            background-color: #fafaf9;
+            border: 1px solid var(--invoice-border);
+            padding: 10px 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 11px;
+            color: var(--invoice-primary);
+            text-align: center;
+        }
+
+        .items-table td {
+            border: 1px solid var(--invoice-border);
+            padding: 10px 8px;
+        }
+
+        .col-center {
+            text-align: center;
+        }
+
+        .col-right {
+            text-align: right;
+        }
+
+        .font-semibold {
+            font-weight: 600;
+        }
+
+        /* Calculation Summary block */
+        .summary-block {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            margin-bottom: 30px;
+            gap: 20px;
+        }
+
+        .amount-words-box {
+            border: 1px dashed var(--invoice-border);
+            padding: 15px;
+            border-radius: 4px;
+            background: #fffdfb;
+            align-self: start;
+        }
+
+        .words-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--invoice-secondary);
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .words-value {
+            font-weight: 600;
+            color: var(--invoice-primary);
+            font-style: italic;
+        }
+
+        .calc-box {
+            border: 1px solid var(--invoice-border);
+            border-radius: 4px;
+            padding: 15px;
+            background: #fafaf9;
+        }
+
+        .calc-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .calc-row:last-child {
+            margin-bottom: 0;
+            padding-top: 8px;
+            border-top: 1px solid var(--invoice-border);
+        }
+
+        .calc-label {
+            color: var(--invoice-secondary);
+        }
+
+        .calc-val {
+            font-weight: 600;
+        }
+
+        .calc-val-total {
+            font-size: 16px;
+            color: var(--invoice-primary);
+            font-weight: 800;
+        }
+
+        /* Signatures block */
+        .signatures-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            margin-top: 40px;
+            text-align: center;
+            gap: 40px;
+        }
+
+        .sign-title {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 13px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .sign-sub {
+            font-size: 11px;
+            color: var(--invoice-secondary);
+            font-style: italic;
+            margin-bottom: 15px;
+        }
+
+        /* Red digital signature stamp */
+        .digi-stamp {
+            border: 3px double #d62828;
+            background-color: rgba(214, 40, 40, 0.03);
+            border-radius: 8px;
+            color: #d62828;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px 18px;
+            font-weight: 700;
+            font-size: 10px;
+            line-height: 1.4;
+            max-width: 250px;
+            margin: 10px auto;
+            position: relative;
+            transform: rotate(-1deg);
+            box-shadow: 0 4px 8px rgba(214, 40, 40, 0.05);
+        }
+
+        .digi-stamp-logo {
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .digi-stamp-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid rgba(214, 40, 40, 0.3);
+            padding-bottom: 3px;
+            margin-bottom: 5px;
+            width: 100%;
+        }
+
+        /* Print Media Target overrides */
+        @media print {
+            body {
+                background-color: #fff;
+                padding: 0;
+            }
+
+            .control-bar {
+                display: none;
+            }
+
+            .invoice-container {
+                box-shadow: none;
+                border: 2px solid var(--invoice-primary);
+                padding: 30px;
+                max-width: 100%;
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="control-bar">
+        <a href="javascript:window.close();" class="btn-back"><i class="bi bi-arrow-left"></i> Đóng Cửa Sổ</a>
+        <button onclick="window.print();" class="btn-print"><i class="bi bi-printer"></i> In Hóa Đơn (PDF)</button>
+    </div>
+
+    <div class="invoice-container">
+        
+        <!-- Header -->
+        <div class="invoice-header">
+            <div class="header-title-box">
+                <h1>{{ seller.name }}</h1>
+                <p>Địa chỉ: {{ seller.address }}</p>
+                <p>Điện thoại: {{ seller.phone or '1900 8888' }}</p>
+            </div>
+            <div class="header-meta-box">
+                <div>Mẫu số: <strong>1C26TBA</strong></div>
+                <div>Ký hiệu: <strong>1C26{{ invoice.id.split('-')[1] if '-' in invoice.id else 'TBA' }}</strong></div>
+                <div>Số: <strong style="font-size: 14px;">{{ invoice.id.split('-')[-1] if '-' in invoice.id else '0000001' }}</strong></div>
+            </div>
+        </div>
+
+        <!-- Main Title -->
+        <div class="invoice-title-block">
+            <h2>HÓA ĐƠN GIÁ TRỊ GIA TĂNG</h2>
+            <p>(Bản thể hiện của hóa đơn điện tử gốc)</p>
+            <p style="font-size: 11px; margin-top: 3px;">Ngày {{ invoice.date.split('-')[2] }} tháng {{ invoice.date.split('-')[1] }} năm {{ invoice.date.split('-')[0] }}</p>
+        </div>
+
+        <!-- Seller Section -->
+        <div class="party-section">
+            <h3 class="party-section-title">Đơn vị bán hàng (Seller)</h3>
+            <div class="info-row">
+                <span class="info-label">Tên đơn vị:</span>
+                <span class="info-value">{{ seller.name }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Mã số thuế:</span>
+                <span class="info-value" style="letter-spacing: 0.1em; color: var(--invoice-primary);">{{ seller.mst }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Địa chỉ:</span>
+                <span class="info-value">{{ seller.address }}</span>
+            </div>
+        </div>
+
+        <!-- Buyer Section -->
+        <div class="party-section">
+            <h3 class="party-section-title">Đơn vị mua hàng (Buyer)</h3>
+            <div class="info-row">
+                <span class="info-label">Tên đơn vị:</span>
+                <span class="info-value">{{ buyer.name }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Mã số thuế:</span>
+                <span class="info-value" style="letter-spacing: 0.1em;">{{ buyer.mst }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Địa chỉ:</span>
+                <span class="info-value">{{ buyer.address }}</span>
+            </div>
+        </div>
+
+        <!-- Items Table -->
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th style="width: 5%;">STT</th>
+                    <th style="width: 45%;">Tên hàng hóa, dịch vụ</th>
+                    <th style="width: 10%;">ĐVT</th>
+                    <th style="width: 10%;">SL</th>
+                    <th style="width: 15%;">Đơn giá (đ)</th>
+                    <th style="width: 15%;">Thành tiền (đ)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in line_items %}
+                <tr>
+                    <td class="col-center">{{ loop.index }}</td>
+                    <td class="font-semibold">{{ item.item_name }}</td>
+                    <td class="col-center">Cái</td>
+                    <td class="col-center">{{ item.quantity }}</td>
+                    <td class="col-right">{{ "{:,.0f}".format(item.unit_price) if item.unit_price is number else item.unit_price }}</td>
+                    <td class="col-right font-semibold">{{ "{:,.0f}".format(item.amount_before_tax) if item.amount_before_tax is number else item.amount_before_tax }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="col-center" style="color: var(--invoice-secondary); py-4;">Không có danh sách hàng hóa chi tiết.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Calculations & Signatures Summary -->
+        <div class="summary-block">
+            <div class="amount-words-box">
+                <div class="words-title">Số tiền viết bằng chữ:</div>
+                <div class="words-value" id="amountWordsText">Đang chuyển đổi tiền bằng chữ...</div>
+            </div>
+            <div class="calc-box">
+                <div class="calc-row">
+                    <span class="calc-label">Cộng tiền hàng:</span>
+                    <span class="calc-val">{{ "{:,.0f}".format(sum_before_tax) if sum_before_tax is number else sum_before_tax }} đ</span>
+                </div>
+                <div class="calc-row">
+                    <span class="calc-label">Thuế suất & tiền thuế:</span>
+                    <span class="calc-val">
+                        {% if line_items %}
+                        {{ line_items[0].tax_rate }} ({{ "{:,.0f}".format(sum_tax) if sum_tax is number else sum_tax }} đ)
+                        {% else %}
+                        10% (0 đ)
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="calc-row">
+                    <strong class="calc-label" style="color: var(--invoice-primary);">Tổng cộng thanh toán:</strong>
+                    <strong class="calc-val-total">{{ "{:,.0f}".format(total_payable) if total_payable is number else total_payable }} đ</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Signatures -->
+        <div class="signatures-section">
+            <div>
+                <div class="sign-title">Người mua hàng</div>
+                <div class="sign-sub">(Ký, ghi rõ họ tên)</div>
+                <div style="height: 60px;"></div>
+                <div class="font-semibold" style="color: var(--invoice-secondary);">Xác nhận qua mạng</div>
+            </div>
+            <div>
+                <div class="sign-title">Người bán hàng</div>
+                <div class="sign-sub">(Ký, đóng dấu điện tử)</div>
+                
+                <!-- Digital Stamp -->
+                <div class="digi-stamp">
+                    <span class="digi-stamp-logo"><i class="bi bi-shield-check"></i></span>
+                    <span class="digi-stamp-title">Ký Số Xác Thực</span>
+                    <span>Ký bởi: {{ seller.name }}</span>
+                    <span>MST: {{ seller.mst }}</span>
+                    <span>Ngày ký: {{ invoice.date }}</span>
+                    <span style="color: #38bdf8; font-size: 9px; margin-top: 3px; display: inline-flex; align-items: center; gap: 4px;"><i class="bi bi-patch-check-fill"></i> Hóa đơn hợp lệ GDT</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // A clean client-side helper to write Vietnamese Currency Words for premium look
+        function convertNumberToVietnameseWords(amount) {
+            if (amount <= 0) return "Không đồng";
+            
+            const units = ["", "một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín"];
+            const places = ["", "nghìn", "triệu", "tỷ", "nghìn tỷ", "triệu tỷ"];
+            
+            let words = "";
+            let numStr = Math.floor(amount).toString();
+            
+            // Format to chunks of 3
+            while (numStr.length % 3 !== 0) {
+                numStr = "0" + numStr;
+            }
+            
+            let chunks = [];
+            for (let i = 0; i < numStr.length; i += 3) {
+                chunks.push(numStr.substr(i, 3));
+            }
+            
+            chunks.reverse(); // read from units up
+            
+            for (let i = 0; i < chunks.length; i++) {
+                let chunk = chunks[i];
+                if (chunk === "000") continue;
+                
+                let chunkWords = "";
+                let hundreds = parseInt(chunk[0]);
+                let tens = parseInt(chunk[1]);
+                let ones = parseInt(chunk[2]);
+                
+                if (hundreds > 0 || chunkWords !== "") {
+                    chunkWords += units[hundreds] + " trăm ";
+                }
+                
+                if (tens > 0) {
+                    if (tens === 1) {
+                        chunkWords += "mười ";
+                    } else {
+                        chunkWords += units[tens] + " mươi ";
+                    }
+                } else if (hundreds > 0 && ones > 0) {
+                    chunkWords += "lẻ ";
+                }
+                
+                if (ones > 0) {
+                    if (ones === 1 && tens > 1) {
+                        chunkWords += "mốt";
+                    } else if (ones === 5 && tens > 0) {
+                        chunkWords += "lăm";
+                    } else {
+                        chunkWords += units[ones];
+                    }
+                }
+                
+                chunkWords = chunkWords.trim();
+                if (chunkWords !== "") {
+                    words = chunkWords + " " + places[i] + " " + words;
+                }
+            }
+            
+            words = words.trim().replace(/\s+/g, " ");
+            return words.charAt(0).toUpperCase() + words.slice(1) + " đồng chẵn./.";
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const payable = {{ total_payable }};
+            const wordsBox = document.getElementById("amountWordsText");
+            if (wordsBox) {
+                wordsBox.textContent = convertNumberToVietnameseWords(payable);
+            }
+        });
+    </script>
+</body>
+</html>

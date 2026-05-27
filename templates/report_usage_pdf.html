@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Báo cáo tình hình sử dụng hóa đơn BC26</title>
+    <style>
+        @page {
+            size: a4 portrait;
+            margin: 1.2cm;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            color: #1e293b;
+            font-size: 9px;
+            line-height: 1.4;
+        }
+        .header-table {
+            width: 100%;
+            border-bottom: 2px solid #8b0000;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+        }
+        .title-section {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .title-main {
+            font-family: 'Arial-Bold', sans-serif;
+            font-weight: bold;
+            font-size: 14px;
+            color: #8b0000;
+            text-transform: uppercase;
+        }
+        .title-sub {
+            font-style: italic;
+            color: #475569;
+            font-size: 10px;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        .data-table th {
+            font-family: 'Arial-Bold', sans-serif;
+            font-weight: bold;
+            background-color: #f8fafc;
+            color: #8b0000;
+            border: 1px solid #cbd5e1;
+            padding: 6px 4px;
+            text-align: center;
+            font-size: 9px;
+        }
+        .data-table td {
+            border: 1px solid #cbd5e1;
+            padding: 6px 4px;
+            vertical-align: middle;
+        }
+        .bold-text {
+            font-family: 'Arial-Bold', sans-serif;
+            font-weight: bold;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .text-right {
+            text-align: right;
+        }
+        .footer-table {
+            width: 100%;
+            margin-top: 25px;
+        }
+        .footer-table td {
+            width: 50%;
+            text-align: center;
+            vertical-align: top;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <table class="header-table">
+        <tr>
+            <td>
+                <div class="bold-text" style="font-size: 11px; color: #8b0000;">CONG TY CO PHAN CONG NGHE GDT INVOICE HUB</div>
+                <div>MST: 0109999999</div>
+                <div>Địa chỉ: Toa nha Technopark, Gia Lam, TP. Ha Noi</div>
+            </td>
+            <td style="text-align: right; vertical-align: bottom;">
+                <div>Mẫu báo cáo: <span class="bold-text">BC26/AC</span></div>
+                <div>Ngày lập: {{ date_now }}</div>
+            </td>
+        </tr>
+    </table>
+
+    <!-- Main Title -->
+    <div class="title-section">
+        <div class="title-main">BÁO CÁO TÌNH HÌNH SỬ DỤNG HÓA ĐƠN (KỲ BC26)</div>
+        <div class="title-sub">
+            Khoảng thời gian: Từ {{ from_date }} đến {{ to_date }} | Hướng hóa đơn: {{ 'Mua vào (Nhận)' if direction == 'purchase' else 'Bán ra (Phát hành)' }}
+        </div>
+    </div>
+
+    <!-- Data Table -->
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th style="width: 15%;">Ký hiệu hóa đơn</th>
+                <th style="width: 12%;">Số bắt đầu</th>
+                <th style="width: 12%;">Số kết thúc</th>
+                <th style="width: 12%;">Tổng sử dụng</th>
+                <th style="width: 12%;">Số hoạt động</th>
+                <th style="width: 12%;">Số đã hủy</th>
+                <th style="width: 25%;">Danh sách số hóa đơn hủy</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in report %}
+            <tr>
+                <td class="text-center bold-text">{{ r.symbol }}</td>
+                <td class="text-center">{{ r.start_number }}</td>
+                <td class="text-center">{{ r.end_number }}</td>
+                <td class="text-center bold-text" style="color: #0284c7;">{{ r.total_used }}</td>
+                <td class="text-center bold-text" style="color: #16a34a;">{{ r.active_count }}</td>
+                <td class="text-center bold-text" style="color: #dc2626;">{{ r.cancelled_count }}</td>
+                <td class="text-center" style="font-size: 8px; color: #475569;">{{ r.cancelled_numbers or '-' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Signatures -->
+    <table class="footer-table">
+        <tr>
+            <td>
+                <div class="bold-text" style="text-transform: uppercase;">Người Lập Biểu</div>
+                <div style="font-style: italic; color: #475569; font-size: 8px; margin-bottom: 20px;">(Ký, ghi rõ họ tên)</div>
+                <div style="height: 40px;"></div>
+            </td>
+            <td>
+                <div class="bold-text" style="text-transform: uppercase;">Người Đại Diện Theo Pháp Luật</div>
+                <div style="font-style: italic; color: #475569; font-size: 8px; margin-bottom: 20px;">(Ký, đóng dấu, ghi rõ họ tên)</div>
+                <div style="height: 40px;"></div>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
