@@ -1701,6 +1701,7 @@ document.addEventListener("DOMContentLoaded", () => {
         checkUserRoleAndEnforce().then(() => {
             loadTaxpayerProfiles();
             initializeTaxpayerProfilesEvents();
+            initializeFctEvents();
             initRealtimeSyncSSE();
         });
     }
@@ -4120,4 +4121,175 @@ function applyRolePermissions(role) {
         const viewPrintInvoiceBtn = document.getElementById("btnViewPrintInvoice");
         if (viewPrintInvoiceBtn) viewPrintInvoiceBtn.style.display = "none";
     }
+}
+
+
+// ── Foreign Contractor Tax (FCT/NTNN) Management ───────────────────────────
+function initializeFctEvents() {
+    const periodType = document.getElementById("fctPeriodType");
+    const form = document.getElementById("fctDeclarationForm");
+    const exportBtn = document.getElementById("btnExportFctExcel");
+    const fctTab = document.getElementById("fct-tab");
+
+    if (periodType) {
+        populateFctPeriods();
+        periodType.addEventListener("change", populateFctPeriods);
+    }
+
+    if (form) {
+        form.addEventListener("submit", (e) => {
+            e.preventDefault();
+            loadFctDeclarationData();
+        });
+    }
+
+    if (exportBtn) {
+        exportBtn.addEventListener("click", () => {
+            exportFctExcel();
+        });
+    }
+
+    if (fctTab) {
+        fctTab.addEventListener("shown.bs.tab", () => {
+            loadFctDeclarationData();
+        });
+    }
+}
+
+function populateFctPeriods() {
+    const type = document.getElementById("fctPeriodType")?.value || "monthly";
+    const select = document.getElementById("fctPeriodValue");
+    const label = document.getElementById("fctPeriodValueLabel");
+    if (!select) return;
+    select.innerHTML = "";
+    if (type === "monthly") {
+        if (label) label.textContent = "Tháng Kê Khai";
+        for (let i = 1; i <= 12; i++) {
+            const opt = document.createElement("option");
+            const val = i < 10 ? `0${i}` : `${i}`;
+            opt.value = val;
+            opt.textContent = `Tháng ${i}`;
+            if (i === new Date().getMonth() + 1) opt.selected = true;
+            select.appendChild(opt);
+        }
+    } else {
+        if (label) label.textContent = "Quý Kê Khai";
+        for (let i = 1; i <= 4; i++) {
+            const opt = document.createElement("option");
+            opt.value = i.toString();
+            opt.textContent = `Quý ${i}`;
+            if (i === Math.floor(new Date().getMonth() / 3) + 1) opt.selected = true;
+            select.appendChild(opt);
+        }
+    }
+}
+
+async function loadFctDeclarationData() {
+    const btn = document.getElementById("btnLoadFctData");
+    const btnText = document.getElementById("btnLoadFctText");
+    const tbody = document.getElementById("fctTableBody");
+    const tfoot = document.getElementById("fctTableFoot");
+
+    if (btn && btnText) {
+        btn.disabled = true;
+        btnText.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang phân tích...';
+    }
+
+    try {
+        const type = document.getElementById("fctPeriodType").value;
+        const val = document.getElementById("fctPeriodValue").value;
+        const year = document.getElementById("fctYear").value;
+
+        const data = await apiCall(`/api/reports/fct-declaration?period_type=${type}&period_value=${val}&year=${year}`);
+        
+        if (!data || !data.success) {
+            throw new Error(data?.error || "Không thể tải báo cáo.");
+        }
+
+        // 1. Summaries
+        animateNumber(document.getElementById("fctVatPayable"), data.total_vat_withheld, true);
+        animateNumber(document.getElementById("fctCitPayable"), data.total_cit_withheld, true);
+        animateNumber(document.getElementById("fctTotalPayable"), data.total_fct_payable, true);
+        
+        // 2. Count badge
+        const countBadge = document.getElementById("fctInvoicesCount");
+        if (countBadge) countBadge.textContent = data.fct_invoices.length;
+
+        // 3. Populate main 01/NTNN grid
+        if (tbody) {
+            if (data.fct_invoices.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="9" class="text-center text-secondary py-4">
+                            <i class="bi bi-info-circle d-block mb-2" style="font-size: 1.5rem;"></i>
+                            Không phát hiện hóa đơn dịch vụ số xuyên quốc gia nào trong kỳ này.
+                        </td>
+                    </tr>
+                `;
+                tfoot?.classList.add("d-none");
+            } else {
+                tbody.innerHTML = data.fct_invoices.map((inv, idx) => `
+                    <tr>
+                        <td class="text-center text-secondary font-monospace">${idx + 1}</td>
+                        <td class="fw-semibold text-white">${inv.seller_name}</td>
+                        <td class="text-center font-monospace small">${inv.seller_mst || "-"}</td>
+                        <td><span class="badge bg-secondary-subtle text-secondary small">${inv.category}</span></td>
+                        <td class="text-end fw-medium">${inv.amount.toLocaleString("vi-VN")} ₫</td>
+                        <td class="text-center text-secondary">${(inv.vat_rate * 100).toFixed(0)}%</td>
+                        <td class="text-end text-warning fw-medium">${inv.vat_withheld.toLocaleString("vi-VN")} ₫</td>
+                        <td class="text-center text-secondary">${(inv.cit_rate * 100).toFixed(0)}%</td>
+                        <td class="text-end text-danger fw-medium">${inv.cit_withheld.toLocaleString("vi-VN")} ₫</td>
+                    </tr>
+                `).join("");
+
+                // Totals row
+                document.getElementById("fctTotalRevenue").textContent = data.total_revenue.toLocaleString("vi-VN") + " ₫";
+                document.getElementById("fctTotalVat").textContent = data.total_vat_withheld.toLocaleString("vi-VN") + " ₫";
+                document.getElementById("fctTotalCit").textContent = data.total_cit_withheld.toLocaleString("vi-VN") + " ₫";
+                tfoot?.classList.remove("d-none");
+            }
+        }
+
+        // 4. Detailed detected list
+        const invoicesList = document.getElementById("fctInvoicesList");
+        if (invoicesList) {
+            if (data.fct_invoices.length === 0) {
+                invoicesList.innerHTML = '<div class="text-center text-secondary py-4 small">Không phát hiện hóa đơn nào.</div>';
+            } else {
+                invoicesList.innerHTML = data.fct_invoices.map(inv => `
+                    <div class="p-3 mb-2 rounded border border-secondary border-opacity-10 bg-black bg-opacity-20 d-flex flex-column gap-2 hover-scale-sm transition-all">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <span class="fw-bold text-primary-accent" style="font-size: 0.9rem;">${inv.seller_name}</span>
+                            <span class="badge bg-success-subtle text-success small font-monospace">HĐ #${inv.number}</span>
+                        </div>
+                        <div class="d-flex justify-content-between text-secondary small">
+                            <span>Ngày lập: ${inv.date}</span>
+                            <span class="fw-semibold text-white">${inv.amount.toLocaleString("vi-VN")} ₫</span>
+                        </div>
+                        <div class="border-top border-secondary border-opacity-10 pt-2 mt-1 d-flex justify-content-between align-items-center small">
+                            <span class="text-muted"><i class="bi bi-tag-fill me-1"></i>${inv.category}</span>
+                            <span class="fw-bold text-success-accent">Thuế: ${(inv.fct_total).toLocaleString("vi-VN")} ₫</span>
+                        </div>
+                    </div>
+                `).join("");
+            }
+        }
+
+    } catch (error) {
+        renderAlert("Lỗi phân tích FCT: " + error.message, "danger");
+    } finally {
+        if (btn && btnText) {
+            btn.disabled = false;
+            btnText.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Phân Tích & Tính Thuế NTNN';
+        }
+    }
+}
+
+function exportFctExcel() {
+    const type = document.getElementById("fctPeriodType").value;
+    const val = document.getElementById("fctPeriodValue").value;
+    const year = document.getElementById("fctYear").value;
+
+    const url = `/api/reports/fct-declaration/export-excel?period_type=${type}&period_value=${val}&year=${year}`;
+    window.location.href = url;
 }

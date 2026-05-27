@@ -39,6 +39,11 @@
         </button>
     </li>
     <li class="nav-item" role="presentation">
+        <button class="nav-link" id="fct-tab" data-bs-toggle="tab" data-bs-target="#fct-content" type="button" role="tab" aria-controls="fct-content" aria-selected="false">
+            <i class="bi bi-globe2"></i> Thuế Nhà Thầu NTNN
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
         <button class="nav-link" id="analytics-pro-tab" data-bs-toggle="tab" data-bs-target="#analytics-pro-content" type="button" role="tab" aria-controls="analytics-pro-content" aria-selected="false">
             <i class="bi bi-graph-up-arrow"></i> Analytics Pro
         </button>
@@ -1600,6 +1605,146 @@
                     <i class="bi bi-send-fill text-white"></i>
                 </button>
             </form>
+        </div>
+    </div>
+</div>
+
+<!-- ================================================================== -->
+<!-- Tab: Foreign Contractor Tax (FCT/NTNN)                              -->
+<!-- ================================================================== -->
+<div class="tab-pane fade" id="fct-content" role="tabpanel" aria-labelledby="fct-tab">
+    <!-- Control panel bar -->
+    <section class="glass-card p-4 mb-4">
+        <h3 class="h5 fw-bold mb-3 d-flex align-items-center gap-2">
+            <i class="bi bi-globe2 text-primary-accent"></i> Kê Khai & Kiểm Toán Thuế Nhà Thầu Nước Ngoài (FCT/NTNN)
+        </h3>
+        <p class="text-secondary small">Tự động phát hiện các hóa đơn dịch vụ số xuyên quốc gia từ các tập đoàn công nghệ lớn (Google, Meta, AWS, Microsoft, Zoom...) để tính toán và dự thảo tờ khai Thuế Nhà Thầu Mẫu số 01/NTNN theo Thông tư 103/2014/TT-BTC.</p>
+        
+        <form id="fctDeclarationForm" class="row g-3 align-items-end mt-2">
+            <div class="col-md-3">
+                <label class="form-label fw-medium small mb-1" for="fctPeriodType">Kỳ Kê Khai</label>
+                <select class="form-select custom-select" id="fctPeriodType">
+                    <option value="monthly" selected>Kê khai theo Tháng</option>
+                    <option value="quarterly">Kê khai theo Quý</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-medium small mb-1" for="fctPeriodValue" id="fctPeriodValueLabel">Tháng Kê Khai</label>
+                <select class="form-select custom-select" id="fctPeriodValue">
+                    <!-- Will be populated dynamically -->
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-medium small mb-1" for="fctYear">Năm Kê Khai</label>
+                <input type="number" class="form-control custom-input" id="fctYear" value="2026" min="2020" max="2100">
+            </div>
+            <div class="col-md-3 d-grid">
+                <button type="submit" class="btn btn-primary-accent" id="btnLoadFctData" style="min-height: 44px;">
+                    <span id="btnLoadFctText"><i class="bi bi-arrow-clockwise"></i> Phân Tích & Tính Thuế NTNN</span>
+                </button>
+            </div>
+        </form>
+    </section>
+
+    <!-- Main Workspace: Split View -->
+    <div class="row g-4 mb-4">
+        <!-- Left: Tờ Khai 01/NTNN Grid -->
+        <div class="col-lg-8">
+            <div class="glass-card p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="h5 fw-bold mb-0 text-white d-flex align-items-center gap-2">
+                        <i class="bi bi-file-earmark-spreadsheet text-success"></i> Tờ Khai Thuế Nhà Thầu Nước Ngoài (Mẫu số 01/NTNN)
+                    </h4>
+                    <button type="button" class="btn btn-outline-success btn-sm px-3" id="btnExportFctExcel" style="border-radius: 0.5rem;">
+                        <i class="bi bi-file-earmark-excel"></i> Xuất Tờ Khai Excel
+                    </button>
+                </div>
+                <div class="table-responsive custom-table-wrapper border border-secondary border-opacity-10 rounded">
+                    <table class="table align-middle table-bordered custom-table mb-0" id="fctDeclarationTable" style="border: 1px solid var(--border-color); font-size: 0.85rem;">
+                        <thead>
+                            <tr style="background: rgba(255,255,255,0.02);">
+                                <th style="width: 50px;" class="text-center">STT</th>
+                                <th>Tên Nhà thầu nước ngoài</th>
+                                <th style="width: 100px;" class="text-center">MST</th>
+                                <th>Nội dung dịch vụ</th>
+                                <th style="width: 130px;" class="text-end">Doanh thu tính thuế (₫)</th>
+                                <th style="width: 80px;" class="text-center">Tỷ lệ GTGT</th>
+                                <th style="width: 110px;" class="text-end">Thuế GTGT (₫)</th>
+                                <th style="width: 80px;" class="text-center">Tỷ lệ TNDN</th>
+                                <th style="width: 110px;" class="text-end">Thuế TNDN (₫)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="fctTableBody">
+                            <tr>
+                                <td colspan="9" class="text-center text-secondary py-4">Nhấp nút "Phân Tích & Tính Thuế NTNN" để bắt đầu nạp dữ liệu.</td>
+                            </tr>
+                        </tbody>
+                        <tfoot id="fctTableFoot" class="d-none">
+                            <tr style="background: rgba(16, 185, 129, 0.05); font-weight: bold;">
+                                <td colspan="4" class="text-center text-success">TỔNG CỘNG</td>
+                                <td class="text-end text-white" id="fctTotalRevenue">0 ₫</td>
+                                <td></td>
+                                <td class="text-end text-warning" id="fctTotalVat">0 ₫</td>
+                                <td></td>
+                                <td class="text-end text-danger" id="fctTotalCit">0 ₫</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Summary & Invoices List -->
+        <div class="col-lg-4">
+            <div class="d-flex flex-column gap-4 h-100">
+                <!-- Withholding Tax Aggregates -->
+                <div class="glass-card p-4">
+                    <h4 class="h6 fw-bold mb-3 text-secondary uppercase tracking-wider">TÓM TẮT NGHĨA VỤ THUẾ NTNN</h4>
+                    
+                    <div class="d-flex flex-column gap-3">
+                        <div class="p-3 rounded border border-secondary border-opacity-10 bg-black bg-opacity-20 d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-secondary d-block">Thuế GTGT Khấu Trừ</small>
+                                <span class="fw-bold text-warning" id="fctVatPayable" style="font-size: 1.2rem;">0 ₫</span>
+                            </div>
+                            <div class="rounded-circle bg-warning bg-opacity-10 text-warning d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                <i class="bi bi-wallet2"></i>
+                            </div>
+                        </div>
+
+                        <div class="p-3 rounded border border-secondary border-opacity-10 bg-black bg-opacity-20 d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-secondary d-block">Thuế TNDN Khấu Trừ</small>
+                                <span class="fw-bold text-danger" id="fctCitPayable" style="font-size: 1.2rem;">0 ₫</span>
+                            </div>
+                            <div class="rounded-circle bg-danger bg-opacity-10 text-danger d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                <i class="bi bi-cash-coin"></i>
+                            </div>
+                        </div>
+
+                        <div class="p-3 rounded border border-success border-opacity-20 bg-success bg-opacity-5 d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-success d-block">Tổng Thuế NTNN Phải Nộp</small>
+                                <span class="fw-bold text-success" id="fctTotalPayable" style="font-size: 1.4rem;">0 ₫</span>
+                            </div>
+                            <div class="rounded-circle bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                                <i class="bi bi-shield-check"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Digital Giant Invoices Detected -->
+                <div class="glass-card p-4 flex-grow-1 d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="h6 fw-bold mb-0 text-secondary uppercase tracking-wider">HÓA ĐƠN NHÀ THẦU PHÁT HIỆN</h4>
+                        <span class="badge bg-primary-accent fw-bold px-2 py-1" id="fctInvoicesCount">0</span>
+                    </div>
+                    <div class="flex-grow-1 overflow-y-auto" style="max-height: 300px;" id="fctInvoicesList">
+                        <div class="text-center text-secondary py-4 small">Chưa có dữ liệu hóa đơn nhà thầu.</div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>

@@ -2902,4 +2902,376 @@ def api_post_invoice_to_erp(invoice_id):
         }), 400
 
 
+def classify_fct_item(item_name: str, seller_name: str) -> tuple[str, float, float]:
+    """
+    Classify transaction based on Circular 103/2014/TT-BTC for e-commerce and digital services.
+    Returns: (Category, VAT_rate, CIT_rate)
+    """
+    name = (item_name or "").lower() + " " + (seller_name or "").lower()
+    
+    # 1. Digital Advertising (e.g. Google Ads, Meta Ads)
+    if any(k in name for k in ["ads", "quảng cáo", "quang cao", "marketing", "facebook ads", "google ads", "adwords"]):
+        return "Dịch vụ Quảng cáo trực tuyến (Online Advertising)", 0.05, 0.05
+        
+    # 2. Cloud & Hosting (e.g. AWS, Azure)
+    if any(k in name for k in ["cloud", "hosting", "aws", "amazon web services", "azure", "server", "vps", "lưu trữ", "digitalocean"]):
+        return "Dịch vụ Điện toán đám mây & Lưu trữ (Cloud & Hosting)", 0.05, 0.05
+        
+    # 3. Software License / SaaS (VAT Exempt under VN Tax Law, CIT 5%)
+    if any(k in name for k in ["phần mềm", "phan mem", "software", "license", "bản quyền", "ban quyen", "zoom", "slack", "subscription"]):
+        return "Bản quyền & Phần mềm SaaS (Software & License)", 0.00, 0.05
+        
+    # Default fallback (General Digital Services)
+    return "Thương mại điện tử & Dịch vụ số khác", 0.05, 0.05
+
+
+def generate_fct_excel(fct_data: dict) -> bytes:
+    """Generate a highly polished Excel sheet conforming to Mẫu số 01/NTNN layout."""
+    import openpyxl
+    from openpyxl import Workbook
+    from export.formatter import auto_adjust_column_widths, HEADER_FILL, MED_RISK_FILL, OK_FILL
+
+    workbook = Workbook()
+    ws = workbook.active
+    ws.title = "Tờ khai 01-NTNN"
+    ws.views.sheetView[0].showGridLines = True
+
+    # Title Banner
+    ws.append(["TỜ KHAI THUẾ NHÀ THẦU NƯỚC NGOÀI (Mẫu số 01/NTNN)"])
+    ws.merge_cells("A1:I1")
+    title_cell = ws["A1"]
+    title_cell.font = openpyxl.styles.Font(size=14, bold=True, color="FFFFFF")
+    title_cell.fill = HEADER_FILL
+    title_cell.alignment = openpyxl.styles.Alignment(horizontal="center", vertical="center")
+    ws.row_dimensions[1].height = 40
+
+    # Period Info
+    period_str = f"Tháng {fct_data['period_value']}" if fct_data['period_type'] == "monthly" else f"Quý {fct_data['period_value']}"
+    ws.append([f"Kỳ kê khai: {period_str} năm {fct_data['year']}", "", "", "", "", "", "", "", datetime.now().strftime("%d/%m/%Y %H:%M:%S")])
+    ws.merge_cells("A2:H2")
+    ws["A2"].font = openpyxl.styles.Font(italic=True, color="555555")
+    ws["I2"].alignment = openpyxl.styles.Alignment(horizontal="right")
+    ws.append([])  # Blank row
+
+    # Headers
+    headers = [
+        "STT",
+        "Tên Nhà thầu nước ngoài",
+        "Mã số thuế",
+        "Nội dung dịch vụ",
+        "Doanh thu tính thuế (₫)",
+        "Tỷ lệ GTGT (%)",
+        "Thuế GTGT phải nộp (₫)",
+        "Tỷ lệ TNDN (%)",
+        "Thuế TNDN phải nộp (₫)",
+    ]
+    ws.append(headers)
+    
+    # Format Headers
+    for col_idx in range(1, 10):
+        cell = ws.cell(row=4, column=col_idx)
+        cell.fill = HEADER_FILL
+        cell.font = openpyxl.styles.Font(color="FFFFFF", bold=True)
+        cell.alignment = openpyxl.styles.Alignment(horizontal="center", vertical="center", wrap_text=True)
+    ws.row_dimensions[4].height = 30
+
+    # Data Rows
+    invoices = fct_data.get("fct_invoices", [])
+    for idx, inv in enumerate(invoices, 1):
+        row = [
+            idx,
+            inv["seller_name"],
+            inv["seller_mst"],
+            inv["category"],
+            inv["amount"],
+            f"{inv['vat_rate'] * 100}%",
+            inv["vat_withheld"],
+            f"{inv['cit_rate'] * 100}%",
+            inv["cit_withheld"]
+        ]
+        ws.append(row)
+        
+        # Zebra styling
+        row_cells = ws[ws.max_row]
+        for cell in row_cells:
+            cell.fill = OK_FILL if idx % 2 == 0 else openpyxl.styles.PatternFill(start_color="FFFFFF", end_color="FFFFFF", fill_type="solid")
+            cell.font = openpyxl.styles.Font(size=10)
+
+    # Total Row
+    ws.append([
+        "TỔNG CỘNG", "", "", "",
+        fct_data["total_revenue"],
+        "",
+        fct_data["total_vat_withheld"],
+        "",
+        fct_data["total_cit_withheld"]
+    ])
+    ws.merge_cells(f"A{ws.max_row}:D{ws.max_row}")
+    
+    for col_idx in range(1, 10):
+        cell = ws.cell(row=ws.max_row, column=col_idx)
+        cell.font = openpyxl.styles.Font(bold=True, size=11, color="1F4E78")
+        cell.fill = MED_RISK_FILL
+    ws.row_dimensions[ws.max_row].height = 24
+
+    # Alignments & Formats
+    for row in range(5, ws.max_row + 1):
+        ws[f"A{row}"].alignment = openpyxl.styles.Alignment(horizontal="center")
+        ws[f"C{row}"].alignment = openpyxl.styles.Alignment(horizontal="center")
+        ws[f"F{row}"].alignment = openpyxl.styles.Alignment(horizontal="center")
+        ws[f"H{row}"].alignment = openpyxl.styles.Alignment(horizontal="center")
+        
+        for col_idx in [5, 7, 9]:
+            cell = ws.cell(row=row, column=col_idx)
+            cell.number_format = '#,##0 "VND"'
+            cell.alignment = openpyxl.styles.Alignment(horizontal="right")
+
+    auto_adjust_column_widths(ws)
+
+    output = BytesIO()
+    workbook.save(output)
+    output.seek(0)
+    return output.getvalue()
+
+
+@invoices_blueprint.get("/api/reports/fct-declaration")
+def api_reports_fct_declaration():
+    """
+    Generate a draft of the Vietnamese Foreign Contractor Tax (FCT) Return Mẫu 01/NTNN.
+    Identifies foreign e-commerce/digital giant suppliers and calculates withholding VAT/CIT.
+    """
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    try:
+        period_type = request.args.get("period_type", "monthly")
+        period_value = request.args.get("period_value", "")
+        year = request.args.get("year", datetime.now().strftime("%Y"))
+
+        if not period_value:
+            now = datetime.now()
+            if period_type == "quarterly":
+                period_value = str((now.month - 1) // 3 + 1)
+            else:
+                period_value = f"{now.month:02d}"
+
+        if period_type == "monthly" and len(period_value) == 1:
+            period_value = f"0{period_value}"
+
+        from invoices.models import Invoice
+
+        query = Invoice.query.filter(Invoice.is_cancelled == False, Invoice.invoice_type == "purchase")
+
+        # Apply date filters
+        if period_type == "quarterly":
+            try:
+                q = int(period_value)
+            except ValueError:
+                q = 1
+            if q == 1:
+                months = ["01", "02", "03"]
+            elif q == 2:
+                months = ["04", "05", "06"]
+            elif q == 3:
+                months = ["07", "08", "09"]
+            else:
+                months = ["10", "11", "12"]
+            
+            from sqlalchemy import or_
+            filters = [Invoice.date.like(f"{year}-{m}-%") for m in months]
+            query = query.filter(or_(*filters))
+        else:
+            query = query.filter(Invoice.date.like(f"{year}-{period_value}-%"))
+
+        invoices = query.all()
+
+        fct_invoices = []
+        total_revenue = 0.0
+        total_vat_withheld = 0.0
+        total_cit_withheld = 0.0
+
+        for inv in invoices:
+            seller_mst = (inv.seller_mst or "").strip()
+            seller_name = (inv.seller_name or "").strip()
+            
+            # Match 900xxxxxxx or digital giants names
+            is_fct = (
+                seller_mst.startswith("900") or
+                any(k in seller_name.lower() for k in ["google", "facebook", "meta", "amazon", "aws", "netflix", "zoom", "slack", "microsoft", "github", "digitalocean"])
+            )
+            
+            if not is_fct:
+                continue
+
+            amount = inv.amount_before_tax or 0.0
+            category = "Thương mại điện tử & Dịch vụ số khác"
+            vat_rate = 0.05
+            cit_rate = 0.05
+            
+            if inv.items and len(inv.items) > 0:
+                first_item = inv.items[0].item_name
+                category, vat_rate, cit_rate = classify_fct_item(first_item, seller_name)
+            else:
+                category, vat_rate, cit_rate = classify_fct_item("", seller_name)
+
+            vat_withheld = amount * vat_rate
+            cit_withheld = amount * cit_rate
+            fct_total = vat_withheld + cit_withheld
+
+            fct_invoices.append({
+                "id": inv.id,
+                "number": inv.number or "Không số",
+                "date": inv.date or "Không ngày",
+                "seller_name": seller_name,
+                "seller_mst": seller_mst,
+                "category": category,
+                "amount": amount,
+                "vat_rate": vat_rate,
+                "vat_withheld": vat_withheld,
+                "cit_rate": cit_rate,
+                "cit_withheld": cit_withheld,
+                "fct_total": fct_total
+            })
+
+            total_revenue += amount
+            total_vat_withheld += vat_withheld
+            total_cit_withheld += cit_withheld
+
+        return jsonify({
+            "success": True,
+            "period_type": period_type,
+            "period_value": period_value,
+            "year": year,
+            "total_revenue": total_revenue,
+            "total_vat_withheld": total_vat_withheld,
+            "total_cit_withheld": total_cit_withheld,
+            "total_fct_payable": total_vat_withheld + total_cit_withheld,
+            "fct_invoices": fct_invoices
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.get("/api/reports/fct-declaration/export-excel")
+def api_reports_fct_declaration_export_excel():
+    """Export the Mẫu 01/NTNN draft to a beautifully formatted Excel spreadsheet."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    try:
+        period_type = request.args.get("period_type", "monthly")
+        period_value = request.args.get("period_value", "")
+        year = request.args.get("year", datetime.now().strftime("%Y"))
+
+        if not period_value:
+            now = datetime.now()
+            if period_type == "quarterly":
+                period_value = str((now.month - 1) // 3 + 1)
+            else:
+                period_value = f"{now.month:02d}"
+
+        if period_type == "monthly" and len(period_value) == 1:
+            period_value = f"0{period_value}"
+
+        from invoices.models import Invoice
+        query = Invoice.query.filter(Invoice.is_cancelled == False, Invoice.invoice_type == "purchase")
+
+        if period_type == "quarterly":
+            try:
+                q = int(period_value)
+            except ValueError:
+                q = 1
+            if q == 1:
+                months = ["01", "02", "03"]
+            elif q == 2:
+                months = ["04", "05", "06"]
+            elif q == 3:
+                months = ["07", "08", "09"]
+            else:
+                months = ["10", "11", "12"]
+            
+            from sqlalchemy import or_
+            filters = [Invoice.date.like(f"{year}-{m}-%") for m in months]
+            query = query.filter(or_(*filters))
+        else:
+            query = query.filter(Invoice.date.like(f"{year}-{period_value}-%"))
+
+        invoices = query.all()
+
+        fct_invoices = []
+        total_revenue = 0.0
+        total_vat_withheld = 0.0
+        total_cit_withheld = 0.0
+
+        for inv in invoices:
+            seller_mst = (inv.seller_mst or "").strip()
+            seller_name = (inv.seller_name or "").strip()
+            
+            is_fct = (
+                seller_mst.startswith("900") or
+                any(k in seller_name.lower() for k in ["google", "facebook", "meta", "amazon", "aws", "netflix", "zoom", "slack", "microsoft", "github", "digitalocean"])
+            )
+            
+            if not is_fct:
+                continue
+
+            amount = inv.amount_before_tax or 0.0
+            category = "Thương mại điện tử & Dịch vụ số khác"
+            vat_rate = 0.05
+            cit_rate = 0.05
+            
+            if inv.items and len(inv.items) > 0:
+                first_item = inv.items[0].item_name
+                category, vat_rate, cit_rate = classify_fct_item(first_item, seller_name)
+            else:
+                category, vat_rate, cit_rate = classify_fct_item("", seller_name)
+
+            vat_withheld = amount * vat_rate
+            cit_withheld = amount * cit_rate
+            fct_total = vat_withheld + cit_withheld
+
+            fct_invoices.append({
+                "seller_name": seller_name,
+                "seller_mst": seller_mst,
+                "category": category,
+                "amount": amount,
+                "vat_rate": vat_rate,
+                "vat_withheld": vat_withheld,
+                "cit_rate": cit_rate,
+                "cit_withheld": cit_withheld,
+                "fct_total": fct_total
+            })
+
+            total_revenue += amount
+            total_vat_withheld += vat_withheld
+            total_cit_withheld += cit_withheld
+
+        fct_data = {
+            "period_type": period_type,
+            "period_value": period_value,
+            "year": year,
+            "total_revenue": total_revenue,
+            "total_vat_withheld": total_vat_withheld,
+            "total_cit_withheld": total_cit_withheld,
+            "total_fct_payable": total_vat_withheld + total_cit_withheld,
+            "fct_invoices": fct_invoices
+        }
+
+        excel_bytes = generate_fct_excel(fct_data)
+        
+        filename = f"ToKhai_01NTNN_{year}_{period_value}.xlsx"
+        return send_file(
+            BytesIO(excel_bytes),
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            as_attachment=True,
+            download_name=filename
+        )
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 
