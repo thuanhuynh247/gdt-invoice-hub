@@ -17,6 +17,28 @@ logger = logging.getLogger(__name__)
 
 TAX_REGULATIONS = [
     {
+        "id": "vat_law_48_2024",
+        "title": "Luật Thuế GTGT số 48/2024/QH15 (Hiệu lực từ 01/07/2025)",
+        "content": (
+            "Luật Thuế giá trị gia tăng số 48/2024/QH15 ban hành ngày 29/11/2024 có hiệu lực thi hành từ ngày 01/07/2025. Các thay đổi chính bao gồm:\n"
+            "1. Khấu trừ thuế nộp thay đối với nhà cung cấp nước ngoài (NCCNN): Bổ sung quy định rõ ràng về trách nhiệm của các bên (sàn thương mại điện tử, cổng thanh toán hoặc ngân hàng thương mại) trong việc khấu trừ và nộp thay thuế GTGT đối với dịch vụ số/e-commerce của nhà cung cấp nước ngoài (như Google, Meta, AWS, Microsoft, Zoom) không có cơ sở thường trú tại Việt Nam.\n"
+            "2. Điều kiện khấu trừ đầu vào bắt buộc không dùng tiền mặt: Ngưỡng bắt buộc thanh toán không dùng tiền mặt đối với giao dịch mua vào để được khấu trừ thuế GTGT được hạ xuống còn từ 5 triệu đồng trở lên (thay vì ngưỡng 20 triệu đồng trước đây).\n"
+            "3. Sửa đổi điều kiện hoàn thuế đối với dự án đầu tư và doanh nghiệp xuất khẩu để tránh trục lợi thuế, quy định chặt chẽ hồ sơ và quy trình hậu kiểm."
+        ),
+        "keywords": ["luật 48", "luat 48", "2024/qh15", "48/2024", "luật mới", "luat moi", "1/7/2025", "01/07/2025", "nhà cung cấp nước ngoài", "nccnn", "nhà thầu", "nha thau", "thuế nhà thầu", "thương mại điện tử", "sàn giao dịch", "google", "meta", "aws", "microsoft"]
+    },
+    {
+        "id": "vat_law_149_2025",
+        "title": "Luật sửa đổi bổ sung Luật Thuế GTGT số 149/2025/QH15 (Hiệu lực từ 01/01/2026)",
+        "content": (
+            "Luật số 149/2025/QH15 được Quốc hội thông qua ngày 11/12/2025 và có hiệu lực thi hành từ ngày 01/01/2026. Đây là luật cực kỳ quan trọng sửa đổi, bổ sung trực tiếp Luật Thuế GTGT 48/2024/QH15. Các sửa đổi bao gồm:\n"
+            "1. Nâng ngưỡng doanh thu hàng năm không chịu thuế GTGT của hộ, cá nhân kinh doanh: Nâng mức doanh thu tối thiểu không thuộc diện chịu thuế GTGT từ 200 triệu đồng/năm (theo Luật 48) lên hẳn 500 triệu đồng/năm. Hộ và cá nhân kinh doanh có doanh thu dưới 500 triệu đồng/năm sẽ hoàn toàn không phải nộp thuế GTGT và thuế TNCN.\n"
+            "2. Khôi phục miễn thuế GTGT khâu thương mại đối với nông sản thô: Khôi phục việc miễn thuế GTGT đối với sản phẩm trồng trọt, chăn nuôi, thủy sản chưa chế biến thành sản phẩm khác hoặc chỉ qua sơ chế thông thường ở khâu thương mại (mua bán thương mại trung gian). Việc này giúp giảm chi phí sản xuất thức ăn chăn nuôi, dược liệu, phân bón và thúc đẩy nông nghiệp sản xuất.\n"
+            "3. Sửa đổi, bổ sung thuế suất đối với một số nhóm phế phẩm, phụ phẩm, phế liệu thu hồi từ quá trình chế biến và đơn giản hóa thủ tục hoàn thuế xuất khẩu."
+        ),
+        "keywords": ["luật 149", "luat 149", "149/2025", "149/2025/qh15", "sửa đổi 48", "sua doi 48", "500 triệu", "500 trieu", "nửa tỷ", "doanh thu hộ kinh doanh", "hộ kinh doanh", "cá nhân kinh doanh", "nông sản", "nong san", "thức ăn chăn nuôi", "dược liệu", "thủy sản", "chăn nuôi", "trồng trọt", "khâu thương mại", "khau thuong mai"]
+    },
+    {
         "id": "vat_deduction_general",
         "title": "Điều kiện khấu trừ thuế GTGT đầu vào (Thông tư 219/2013/TT-BTC Điều 15)",
         "content": (
