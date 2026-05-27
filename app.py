@@ -100,6 +100,10 @@ def create_app() -> Flask:
     app.register_blueprint(auth_blueprint)
     app.register_blueprint(invoices_blueprint)
 
+    # Apply cybersecurity hardening headers (CSP, Clickjacking prevention, MIME protection)
+    from auth.security import apply_security_headers
+    apply_security_headers(app)
+
 
     if not app.config.get("TESTING") and os.getenv("TESTING") != "True":
         from auth.captcha import start_captcha_prefetch_worker

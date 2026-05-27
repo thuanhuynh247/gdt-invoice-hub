@@ -10,6 +10,7 @@ from auth.captcha import fetch_captcha_payload, pop_prefetched_captcha
 from auth.captcha_solver import solve_captcha_from_svg
 from auth.crypto import encrypt_password, decrypt_password
 from auth.service import AuthenticationError, authenticate_user, logout_user
+from auth.security import rate_limit
 
 
 
@@ -37,6 +38,7 @@ def login_page():
 
 
 @auth_blueprint.get("/api/auth/captcha")
+@rate_limit(limit=30, window=60)
 def auth_captcha():
     """Return captcha SVG and store the captcha key and cookies in session."""
 
@@ -68,6 +70,7 @@ def auth_captcha():
 
 
 @auth_blueprint.post("/api/auth/login")
+@rate_limit(limit=10, window=60)
 def api_login():
     """Accept login credentials and create a local authenticated session."""
 
