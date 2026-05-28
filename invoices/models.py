@@ -314,6 +314,7 @@ class AIChatSession(db.Model):
             "id": self.id,
             "title": self.title,
             "created_at": self.created_at,
+            "updated_at": self.created_at,
             "messages": [msg.to_dict() for msg in self.messages]
         }
 
@@ -341,6 +342,29 @@ class AIChatMessage(db.Model):
         }
 
 
+class TaxRegulationChunk(db.Model):
+    """Storage for dynamically ingested tax regulation PDF text chunks."""
+
+    __tablename__ = "tax_regulation_chunk"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    document_source = db.Column(db.String(255), nullable=False)
+    page_number = db.Column(db.Integer, nullable=False)
+    effective_date = db.Column(db.String(20), nullable=True)  # YYYY-MM-DD
+    chunk_content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.String(50), nullable=False)
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "document_source": self.document_source,
+            "page_number": self.page_number,
+            "effective_date": self.effective_date or "",
+            "chunk_content": self.chunk_content,
+            "created_at": self.created_at,
+        }
+
+
 class BlacklistedMST(db.Model):
     """High-risk/blacklisted tax codes (MST) for tax evasion prevention."""
 
@@ -355,6 +379,108 @@ class BlacklistedMST(db.Model):
             "mst": self.mst,
             "reason": self.reason or "",
             "blacklisted_at": self.blacklisted_at or "",
+        }
+
+
+class GDTSyncLog(db.Model):
+    """Execution log tracker for the background GDT synchronization daemon."""
+
+    __tablename__ = "gdt_sync_log"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    taxpayer_mst = db.Column(
+        db.String(20),
+        db.ForeignKey("taxpayer_profile.mst"),
+        nullable=False,
+    )
+    triggered_at = db.Column(db.String(50), nullable=False)
+    status = db.Column(db.String(20), nullable=False)  # 'success', 'failed', 'partial'
+    invoices_fetched = db.Column(db.Integer, default=0)
+    captcha_attempts = db.Column(db.Integer, default=0)
+    captcha_failures = db.Column(db.Integer, default=0)
+    error_message = db.Column(db.Text, nullable=True)
+    elapsed_seconds = db.Column(db.Float, nullable=False, default=0.0)
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "taxpayer_mst": self.taxpayer_mst,
+            "triggered_at": self.triggered_at,
+            "status": self.status,
+            "invoices_fetched": self.invoices_fetched,
+            "captcha_attempts": self.captcha_attempts,
+            "captcha_failures": self.captcha_failures,
+            "error_message": self.error_message,
+            "elapsed_seconds": self.elapsed_seconds,
+        }
+
+class BankTransaction(db.Model):
+    """Stores parsed bank statement rows for reconciliation against invoices."""
+
+    __tablename__ = "bank_transaction"
+
+    id = db.Column(db.String(50), primary_key=True)
+    taxpayer_mst = db.Column(
+        db.String(20),
+        db.ForeignKey("taxpayer_profile.mst", ondelete="CASCADE"),
+        nullable=True,
+    )
+    bank_name = db.Column(db.String(50), nullable=False)
+    account_number = db.Column(db.String(50), nullable=True)
+    transaction_date = db.Column(db.String(20), nullable=False)
+    reference_number = db.Column(db.String(100), nullable=True)
+    description = db.Column(db.Text, nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    status = db.Column(db.String(20), nullable=False, default="unreconciled")  # 'unreconciled', 'matched', 'adjusted'
+    matched_invoice_id = db.Column(
+        db.String(100),
+        db.ForeignKey("invoice.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    confidence_score = db.Column(db.Float, default=0.0)
+    imported_at = db.Column(db.String(30), nullable=False)
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "taxpayer_mst": self.taxpayer_mst or "",
+            "bank_name": self.bank_name,
+            "account_number": self.account_number or "",
+            "transaction_date": self.transaction_date,
+            "reference_number": self.reference_number or "",
+            "description": self.description,
+            "amount": self.amount,
+            "status": self.status,
+            "matched_invoice_id": self.matched_invoice_id or "",
+            "confidence_score": self.confidence_score,
+            "imported_at": self.imported_at,
+        }
+
+
+class AuditBlock(db.Model):
+    """A cryptographic ledger block for tamper-proof tax audit trails."""
+
+    __tablename__ = "audit_ledger"
+
+    block_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    timestamp = db.Column(db.String(30), nullable=False)
+    action_type = db.Column(db.String(50), nullable=False)  # 'INVOICE_IMPORT', 'SIGNATURE_VERIFY', 'LEDGER_POST'
+    mst = db.Column(db.String(20), nullable=False)
+    payload_hash = db.Column(db.String(64), nullable=False)
+    prev_block_hash = db.Column(db.String(64), nullable=False)
+    block_hash = db.Column(db.String(64), nullable=False, unique=True)
+    signature = db.Column(db.Text, nullable=True)
+
+    def to_dict(self) -> dict:
+        return {
+            "block_id": self.block_id,
+            "timestamp": self.timestamp,
+            "action_type": self.action_type,
+            "mst": self.mst,
+            "payload_hash": self.payload_hash,
+            "prev_block_hash": self.prev_block_hash,
+            "block_hash": self.block_hash,
+            "signature": self.signature,
         }
 
 

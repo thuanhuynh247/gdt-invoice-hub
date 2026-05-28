@@ -1702,6 +1702,7 @@ document.addEventListener("DOMContentLoaded", () => {
             loadTaxpayerProfiles();
             initializeTaxpayerProfilesEvents();
             initializeFctEvents();
+            initializeVatRefundEvents();
             initRealtimeSyncSSE();
         });
     }
@@ -2497,6 +2498,9 @@ async function loadSettingsData() {
         const teleChatEl = document.getElementById("settingsTelegramChatId");
         if (teleChatEl) teleChatEl.value = settings.telegram_chat_id || "";
 
+        const autoDunningEl = document.getElementById("settingsAutoDunningEnabled");
+        if (autoDunningEl) autoDunningEl.checked = !!settings.auto_dunning_enabled;
+
         toggleWeekdayVisibility();
         toggleAiProviderFields();
         toggleTelegramFields();
@@ -2591,7 +2595,8 @@ async function handleSaveSettings() {
         audit_agent_schedule_time: document.getElementById("settingsAuditAgentScheduleTime") ? document.getElementById("settingsAuditAgentScheduleTime").value : "23:00",
         telegram_enabled: document.getElementById("settingsTelegramEnabled") ? document.getElementById("settingsTelegramEnabled").checked : false,
         telegram_bot_token: document.getElementById("settingsTelegramBotToken") ? document.getElementById("settingsTelegramBotToken").value : "",
-        telegram_chat_id: document.getElementById("settingsTelegramChatId") ? document.getElementById("settingsTelegramChatId").value : ""
+        telegram_chat_id: document.getElementById("settingsTelegramChatId") ? document.getElementById("settingsTelegramChatId").value : "",
+        auto_dunning_enabled: document.getElementById("settingsAutoDunningEnabled") ? document.getElementById("settingsAutoDunningEnabled").checked : false
     };
 
     try {
@@ -3028,25 +3033,26 @@ async function loadChatSessions() {
     if (!sessionSelect) return;
 
     try {
-        const data = await apiCall("/api/ai/chat/sessions");
-        if (data && data.sessions) {
-            if (data.sessions.length === 0) {
+        const rawData = await apiCall("/api/ai/chat/sessions");
+        const sessions = (rawData && rawData.sessions) ? rawData.sessions : (Array.isArray(rawData) ? rawData : []);
+        if (sessions) {
+            if (sessions.length === 0) {
                 sessionSelect.innerHTML = '<option value="">-- Chưa có phiên chat nào --</option>';
                 currentChatSessionId = null;
                 clearChatMessagesView();
                 return;
             }
 
-            sessionSelect.innerHTML = data.sessions.map(s => {
+            sessionSelect.innerHTML = sessions.map(s => {
                 const dateStr = new Date(s.updated_at).toLocaleString("vi-VN", { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' });
                 return `<option value="${s.id}">${s.title} (${dateStr})</option>`;
             }).join("");
 
             // Keep selection or pick first
-            if (currentChatSessionId && data.sessions.some(s => s.id === currentChatSessionId)) {
+            if (currentChatSessionId && sessions.some(s => s.id === currentChatSessionId)) {
                 sessionSelect.value = currentChatSessionId;
             } else {
-                currentChatSessionId = data.sessions[0].id;
+                currentChatSessionId = sessions[0].id;
                 sessionSelect.value = currentChatSessionId;
                 selectChatSession(currentChatSessionId);
             }
@@ -3067,8 +3073,9 @@ async function selectChatSession(sessionId) {
     emptyState.classList.add("d-none");
 
     try {
-        const data = await apiCall("/api/ai/chat/sessions");
-        const session = data.sessions.find(s => s.id === sessionId);
+        const rawData = await apiCall("/api/ai/chat/sessions");
+        const sessions = (rawData && rawData.sessions) ? rawData.sessions : (Array.isArray(rawData) ? rawData : []);
+        const session = sessions.find(s => s.id === sessionId);
         if (session) {
             messagesContainer.innerHTML = "";
             if (session.messages && session.messages.length > 0) {
@@ -3949,6 +3956,11 @@ async function handleSwitchTaxpayerProfile(mst) {
             if (document.getElementById("settings-content") && document.getElementById("settings-content").classList.contains("show")) {
                 loadTaxpayerProfiles();
             }
+            
+            // If VAT Refund page is active, reload
+            if (document.getElementById("vat-refund-content") && document.getElementById("vat-refund-content").classList.contains("show")) {
+                loadVATRefundData();
+            }
             renderAlert(`Đã chuyển sang doanh nghiệp: ${mst === "all" ? "Tất cả" : mst}`, "success");
         }
     } catch (error) {
@@ -4293,3 +4305,609 @@ function exportFctExcel() {
     const url = `/api/reports/fct-declaration/export-excel?period_type=${type}&period_value=${val}&year=${year}`;
     window.location.href = url;
 }
+
+/* ================================================================== */
+/* v4.2.0 VAT Refund (Hoàn Thuế GTGT) UI Module                       */
+/* ================================================================== --> */
+function initializeVatRefundEvents() {
+    const vatRefundTab = document.getElementById("vat-refund-tab");
+    vatRefundTab?.addEventListener("shown.bs.tab", () => {
+        loadVATRefundData();
+    });
+
+    document.getElementById("btnRefreshVatRefund")?.addEventListener("click", loadVATRefundData);
+
+    // Bind export button triggers
+    document.getElementById("btnExportMau01Word")?.addEventListener("click", () => {
+        const text = document.getElementById("refundMau01Content").textContent;
+        exportVATRefundDossier(text, "doc", "dossier");
+    });
+    
+    document.getElementById("btnExportMau01Pdf")?.addEventListener("click", () => {
+        const text = document.getElementById("refundMau01Content").textContent;
+        exportVATRefundDossier(text, "pdf", "dossier");
+    });
+    
+    document.getElementById("btnExportJustificationWord")?.addEventListener("click", () => {
+        const text = document.getElementById("refundJustificationContent").textContent;
+        exportVATRefundDossier(text, "doc", "justification");
+    });
+    
+    document.getElementById("btnExportJustificationPdf")?.addEventListener("click", () => {
+        const text = document.getElementById("refundJustificationContent").textContent;
+        exportVATRefundDossier(text, "pdf", "justification");
+    });
+}
+
+async function loadVATRefundData() {
+    const mst = window.activeTaxpayerMst;
+    
+    // UI Selectors
+    const statusText = document.getElementById("refundStatusText");
+    const statusSubtext = document.getElementById("refundStatusSubtext");
+    const statusIcon = document.getElementById("refundStatusIcon");
+    const complianceRating = document.getElementById("refundComplianceRating");
+    const mstBadge = document.getElementById("refundMSTBadge");
+    
+    const exportRatioVal = document.getElementById("refundExportRatioVal");
+    const exportRatioProgress = document.getElementById("refundExportRatioProgress");
+    const ruleRatioIcon = document.getElementById("ruleRatioIcon");
+    
+    const eligibleVatVal = document.getElementById("refundEligibleVatVal");
+    const eligibleVatProgress = document.getElementById("refundEligibleVatProgress");
+    const ruleVatIcon = document.getElementById("ruleVatIcon");
+    
+    const riskText = document.getElementById("refundRiskText");
+    const ruleRiskIcon = document.getElementById("ruleRiskIcon");
+    
+    const mau01Content = document.getElementById("refundMau01Content");
+    const justificationContent = document.getElementById("refundJustificationContent");
+    const excludedList = document.getElementById("refundExcludedList");
+    const excludedCountSpan = document.getElementById("excludedCount");
+    
+    // Reset/Loading state
+    if (mstBadge) mstBadge.textContent = `MST: ${mst || "Chưa chọn"}`;
+    if (statusText) statusText.textContent = "Đang thẩm định...";
+    if (statusSubtext) statusSubtext.textContent = "Hệ thống đang kiểm toán và lập hồ sơ...";
+    if (mau01Content) mau01Content.textContent = "Đang tải hồ sơ...";
+    if (justificationContent) justificationContent.textContent = "Đang chạy AI lập luận phòng vệ...";
+    if (excludedList) excludedList.innerHTML = '<div class="text-center text-secondary py-4 small">Đang phân tích...</div>';
+    
+    if (!mst || mst === "all") {
+        if (statusText) statusText.textContent = "Chưa chọn MST";
+        if (statusSubtext) statusSubtext.textContent = "Vui lòng chọn một Mã Số Thuế cụ thể ở góc trên Navbar để thẩm định.";
+        if (statusIcon) statusIcon.innerHTML = '<i class="bi bi-exclamation-circle text-warning"></i>';
+        if (mau01Content) mau01Content.textContent = "Chưa chọn Mã Số Thuế.";
+        if (justificationContent) justificationContent.textContent = "Chưa chọn Mã Số Thuế.";
+        if (excludedList) excludedList.innerHTML = '<div class="text-center text-secondary py-4 small">Vui lòng chọn một Mã Số Thuế cụ thể.</div>';
+        return;
+    }
+    
+    try {
+        // 1. Fetch Eligibility Analysis
+        const data = await apiCall(`/api/reports/vat-refund-eligibility?mst=${mst}`);
+        if (!data || data.error) {
+            throw new Error(data?.error || "Lỗi tải dữ liệu hoàn thuế.");
+        }
+        
+        // 2. Render Status Card
+        if (data.is_eligible) {
+            statusText.textContent = "ĐỦ ĐIỀU KIỆN HOÀN THUẾ";
+            statusSubtext.textContent = "Đầu vào đạt trên 300 triệu VND & tỷ lệ xuất khẩu đạt trên 10%.";
+            statusIcon.innerHTML = '<i class="bi bi-shield-check text-success-accent"></i>';
+            document.getElementById("refundEligibilityCard")?.classList.add("border-glow-active");
+            document.getElementById("refundEligibilityCard")?.classList.remove("border-glow-warning");
+        } else {
+            statusText.textContent = "CHƯA ĐỦ ĐIỀU KIỆN";
+            statusSubtext.textContent = "Cần tích lũy đủ 300 triệu VND VAT đầu vào hợp lệ và đạt tỷ lệ xuất khẩu 10%.";
+            statusIcon.innerHTML = '<i class="bi bi-shield-x text-warning"></i>';
+            document.getElementById("refundEligibilityCard")?.classList.remove("border-glow-active");
+            document.getElementById("refundEligibilityCard")?.classList.add("border-glow-warning");
+        }
+        
+        if (complianceRating) {
+            complianceRating.textContent = `Rating: ${data.status}`;
+            complianceRating.className = `badge py-1 px-2 ${data.status === "Safe" ? "bg-success" : data.status === "Caution" ? "bg-warning text-dark" : "bg-danger"}`;
+        }
+        
+        // 3. Render Progress & Checklist
+        const exportPct = (data.metrics.export_ratio * 100).toFixed(2);
+        if (exportRatioVal) exportRatioVal.textContent = `${exportPct}%`;
+        if (exportRatioProgress) {
+            exportRatioProgress.style.width = `${Math.min(exportPct * 5, 100)}%`;
+            exportRatioProgress.className = `progress-bar ${data.metrics.export_ratio >= 0.1 ? "bg-success-accent" : "bg-warning"}`;
+        }
+        if (ruleRatioIcon) {
+            ruleRatioIcon.className = `bi ${data.metrics.export_ratio >= 0.1 ? "bi-check-circle-fill text-success" : "bi-x-circle-fill text-danger"}`;
+        }
+        
+        if (eligibleVatVal) eligibleVatVal.textContent = `${data.metrics.eligible_input_vat.toLocaleString("vi-VN")} ₫`;
+        if (eligibleVatProgress) {
+            const vatPct = (data.metrics.eligible_input_vat / 300000000 * 100).toFixed(0);
+            eligibleVatProgress.style.width = `${Math.min(vatPct, 100)}%`;
+            eligibleVatProgress.className = `progress-bar ${data.metrics.eligible_input_vat >= 300000000 ? "bg-success-accent" : "bg-warning"}`;
+        }
+        if (ruleVatIcon) {
+            ruleVatIcon.className = `bi ${data.metrics.eligible_input_vat >= 300000000 ? "bi-check-circle-fill text-success" : "bi-x-circle-fill text-danger"}`;
+        }
+        
+        if (riskText) {
+            riskText.textContent = data.status;
+            riskText.className = `badge ${data.status === "Safe" ? "bg-success" : data.status === "Caution" ? "bg-warning text-dark" : "bg-danger"}`;
+        }
+        if (ruleRiskIcon) {
+            ruleRiskIcon.className = `bi ${data.status === "Safe" ? "bi-check-circle-fill text-success" : data.status === "Caution" ? "bi-exclamation-triangle-fill text-warning" : "bi-x-circle-fill text-danger"}`;
+        }
+        
+        // 4. Populate Excluded Invoices
+        const ineligibles = data.ineligible_invoices || [];
+        if (excludedCountSpan) excludedCountSpan.textContent = ineligibles.length;
+        if (excludedList) {
+            if (ineligibles.length === 0) {
+                excludedList.innerHTML = '<div class="text-center text-secondary py-4 small"><i class="bi bi-check-circle text-success d-block mb-1"></i>Không có hóa đơn đầu vào nào bị loại bỏ khỏi hồ sơ hoàn thuế.</div>';
+            } else {
+                excludedList.innerHTML = ineligibles.map(inv => `
+                    <div class="p-3 mb-2 rounded border border-danger border-opacity-10 bg-black bg-opacity-20 d-flex flex-column gap-1">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <span class="fw-bold text-white small">${inv.seller_name}</span>
+                            <span class="badge bg-danger-subtle text-danger font-monospace small">HĐ #${inv.number}</span>
+                        </div>
+                        <div class="d-flex justify-content-between text-secondary small" style="font-size: 0.8rem;">
+                            <span>Ngày: ${inv.date}</span>
+                            <span class="fw-semibold text-danger">Tiền thuế: ${inv.tax_amount.toLocaleString("vi-VN")} ₫</span>
+                        </div>
+                        <div class="text-warning small mt-1" style="font-size: 0.75rem;">
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i>Lý do loại trừ: ${inv.warning}
+                        </div>
+                    </div>
+                `).join("");
+            }
+        }
+        
+        // 5. Fetch Compiled Dossier Templates
+        const dossierRes = await apiCall("/api/reports/vat-refund-eligibility/dossier", {
+            method: "POST",
+            body: JSON.stringify({ mst: mst })
+        });
+        
+        if (dossierRes && dossierRes.status === "success") {
+            if (mau01Content) mau01Content.textContent = dossierRes.mau_01_ht;
+            if (justificationContent) justificationContent.textContent = dossierRes.justification_letter;
+        } else {
+            if (mau01Content) mau01Content.textContent = "Không thể biên soạn tờ khai Mẫu 01/HT.";
+            if (justificationContent) justificationContent.textContent = "Không thể biên soạn Báo cáo giải trình.";
+        }
+        
+    } catch (error) {
+        renderAlert("Lỗi thẩm định hoàn thuế: " + error.message, "danger");
+        if (statusText) statusText.textContent = "Lỗi hệ thống";
+        if (mau01Content) mau01Content.textContent = "Đã xảy ra lỗi khi tải dữ liệu.";
+        if (justificationContent) justificationContent.textContent = "Đã xảy ra lỗi khi biên soạn báo cáo.";
+        if (excludedList) excludedList.innerHTML = `<div class="text-center text-danger py-4 small">${error.message}</div>`;
+    }
+}
+
+async function exportVATRefundDossier(content, format, type) {
+    try {
+        const response = await fetch("/api/reports/vat-refund-eligibility/dossier/export", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                content: content,
+                format: format,
+                type: type
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        
+        const timestamp = new Date().toISOString().slice(0, 10);
+        const filename = type === "dossier" 
+            ? `Mau01_HT_HoanThue_${window.activeTaxpayerMst}_${timestamp}.${format}`
+            : `AI_BaoCaoPhanTichRuiRo_${window.activeTaxpayerMst}_${timestamp}.${format}`;
+            
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        
+        renderAlert(`Xuất hồ sơ ${format.toUpperCase()} thành công!`, "success");
+    } catch (error) {
+        renderAlert("Không thể tải tệp xuất khẩu: " + error.message, "danger");
+    }
+}
+
+/* ================================================================== */
+/* v5.0.0 Bank Reconciliation (Đối Chiếu Ngân Hàng) UI Module          */
+/* ================================================================== */
+let activeSelectedTx = null;
+
+function initializeBankReconcileEvents() {
+    const reconcileTab = document.getElementById("bank-reconcile-tab");
+    if (!reconcileTab) return;
+
+    reconcileTab.addEventListener("shown.bs.tab", () => {
+        loadBankTransactions();
+        loadOutstandingInvoicesForReconcile();
+    });
+
+    document.getElementById("btnRefreshReconciliation")?.addEventListener("click", () => {
+        loadBankTransactions();
+        loadOutstandingInvoicesForReconcile();
+    });
+
+    document.getElementById("reconcileFilterStatus")?.addEventListener("change", () => {
+        loadBankTransactions();
+    });
+
+    // Form file submit
+    document.getElementById("bankStatementUploadForm")?.addEventListener("submit", handleBankStatementUpload);
+
+    // AI Reconcile trigger
+    document.getElementById("btnAutoReconcile")?.addEventListener("click", triggerAutoReconcileAI);
+
+    // Manual match confirm
+    document.getElementById("btnConfirmManualMatch")?.addEventListener("click", submitManualMatchOverride);
+
+    // Drag and Drop listeners
+    initializeReconcileDragAndDrop();
+}
+
+function initializeReconcileDragAndDrop() {
+    const dragZone = document.getElementById("bankDragZone");
+    const fileInput = document.getElementById("bankFileInput");
+    const fileNameDisplay = document.getElementById("bankFileNameDisplay");
+
+    if (!dragZone || !fileInput) return;
+
+    dragZone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dragZone.style.borderColor = "var(--primary-accent)";
+        dragZone.style.background = "rgba(46, 196, 182, 0.08)";
+    });
+
+    ["dragleave", "dragend"].forEach(type => {
+        dragZone.addEventListener(type, () => {
+            dragZone.style.borderColor = "rgba(255, 255, 255, 0.15)";
+            dragZone.style.background = "rgba(0,0,0,0.25)";
+        });
+    });
+
+    dragZone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dragZone.style.borderColor = "rgba(255, 255, 255, 0.15)";
+        dragZone.style.background = "rgba(0,0,0,0.25)";
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            fileInput.files = files;
+            fileNameDisplay.textContent = files[0].name;
+            fileNameDisplay.className = "text-success fw-bold d-block";
+        }
+    });
+
+    fileInput.addEventListener("change", () => {
+        if (fileInput.files.length > 0) {
+            fileNameDisplay.textContent = fileInput.files[0].name;
+            fileNameDisplay.className = "text-success fw-bold d-block";
+        }
+    });
+}
+
+async function handleBankStatementUpload(event) {
+    event.preventDefault();
+    const fileInput = document.getElementById("bankFileInput");
+    const bankSelect = document.getElementById("reconcileBankSelect");
+    const accountNum = document.getElementById("reconcileAccountNum");
+    const uploadBtn = document.getElementById("btnUploadBankStatement");
+
+    if (!fileInput || fileInput.files.length === 0) {
+        renderAlert("Vui lòng kéo thả hoặc chọn tệp sổ phụ trước khi tải lên.", "warning");
+        return;
+    }
+
+    const file = fileInput.files[0];
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("bank_name", bankSelect.value);
+    formData.append("account_number", accountNum.value || "");
+    formData.append("mst", window.activeTaxpayerMst || "0109998887");
+
+    const originalText = uploadBtn.innerHTML;
+    uploadBtn.disabled = true;
+    uploadBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang phân tích sổ phụ...';
+
+    try {
+        const response = await fetch("/api/bank/reconcile/upload", {
+            method: "POST",
+            body: formData
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.error || "Không thể phân tích dữ liệu sổ phụ.");
+        }
+
+        renderAlert(`Nhập thành công sổ phụ: Đã đọc ${data.records_parsed || 0} giao dịch giao dịch và ghi nhận thành công!`, "success");
+        
+        // Reset file display
+        document.getElementById("bankFileNameDisplay").textContent = "Kéo thả tệp Sổ Phụ (.xlsx, .csv) vào đây";
+        document.getElementById("bankFileNameDisplay").className = "text-white fw-medium d-block";
+        fileInput.value = "";
+
+        // Reload data tables
+        await loadBankTransactions();
+    } catch (error) {
+        renderAlert(`Lỗi phân tích sổ phụ: ${error.message}`, "danger");
+    } finally {
+        uploadBtn.disabled = false;
+        uploadBtn.innerHTML = originalText;
+    }
+}
+
+async function loadBankTransactions() {
+    const tbody = document.getElementById("bankTransactionsTableBody");
+    if (!tbody) return;
+
+    const filterStatus = document.getElementById("reconcileFilterStatus")?.value || "unreconciled";
+    const mst = window.activeTaxpayerMst || "0109998887";
+
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Đang tải danh sách giao dịch sổ phụ...</td></tr>';
+
+    try {
+        const response = await fetch(`/api/bank/reconcile/transactions?mst=${mst}&status=${filterStatus}`);
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || "Không thể tải danh sách giao dịch.");
+        }
+
+        const txs = data || [];
+        if (txs.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="text-center text-secondary py-5">
+                        <div class="empty-state">
+                            <span class="empty-icon"><i class="bi bi-bank"></i></span>
+                            <p class="mb-0">Không tìm thấy giao dịch nào khớp với bộ lọc.</p>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        tbody.innerHTML = txs.map(tx => {
+            const dateStr = new Date(tx.transaction_date).toLocaleDateString("vi-VN");
+            const amtClass = tx.amount > 0 ? "text-success fw-bold" : "text-danger";
+            const amtVal = Math.abs(tx.amount);
+            
+            const isReconciled = tx.status === "matched";
+            const badgeClass = isReconciled 
+                ? "bg-success-subtle text-success" 
+                : "bg-warning-subtle text-warning";
+            const badgeText = isReconciled 
+                ? `<span class="badge ${badgeClass} small"><i class="bi bi-check-circle-fill"></i> Đã khớp</span>` 
+                : `<span class="badge ${badgeClass} small"><i class="bi bi-hourglass-split"></i> Chờ khớp</span>`;
+
+            return `
+                <tr data-id="${tx.id}" style="cursor: pointer;" class="bank-tx-row ${activeSelectedTx && activeSelectedTx.id === tx.id ? 'bg-white bg-opacity-10' : ''}">
+                    <td class="small font-monospace text-nowrap">${dateStr}</td>
+                    <td class="small font-monospace text-secondary">${tx.reference_number || tx.id.slice(0, 8)}</td>
+                    <td>
+                        <div class="fw-semibold text-white small">${tx.description}</div>
+                    </td>
+                    <td class="text-end ${amtClass}">${Number(amtVal).toLocaleString("vi-VN")} ₫</td>
+                    <td class="text-center">${badgeText}</td>
+                </tr>
+            `;
+        }).join("");
+
+        // Bind row selection events for manual match
+        tbody.querySelectorAll("tr").forEach(row => {
+            row.addEventListener("click", () => {
+                const txId = row.getAttribute("data-id");
+                const selectedTx = txs.find(t => t.id === txId);
+                
+                // Highlight select row
+                tbody.querySelectorAll("tr").forEach(r => r.classList.remove("bg-white", "bg-opacity-10"));
+                row.classList.add("bg-white", "bg-opacity-10");
+                
+                openManualMatchPanel(selectedTx);
+            });
+        });
+
+    } catch (error) {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">Lỗi: ${error.message}</td></tr>`;
+    }
+}
+
+async function loadOutstandingInvoicesForReconcile() {
+    const select = document.getElementById("manualMatchInvoiceSelect");
+    if (!select) return;
+
+    try {
+        const response = await fetch("/api/invoices/local");
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || "Không thể tải danh sách hóa đơn.");
+        }
+
+        const invoices = data.invoices || [];
+        // Filter invoices that are not fully reconciled or not paid (just listing all active ones for manual override)
+        if (invoices.length === 0) {
+            select.innerHTML = '<option value="">-- Không có hóa đơn trong kho --</option>';
+            return;
+        }
+
+        select.innerHTML = '<option value="">-- Chọn Hóa Đơn --</option>';
+        invoices.forEach(inv => {
+            const opt = document.createElement("option");
+            opt.value = inv.id;
+            opt.textContent = `[${inv.number}] - ${inv.seller_name} - ${Number(inv.total_amount).toLocaleString("vi-VN")} ₫`;
+            select.appendChild(opt);
+        });
+
+    } catch (error) {
+        select.innerHTML = `<option value="">Lỗi: ${error.message}</option>`;
+    }
+}
+
+function openManualMatchPanel(tx) {
+    activeSelectedTx = tx;
+    const panel = document.getElementById("manualMatchPanel");
+    const label = document.getElementById("selectedTxLabel");
+
+    if (!panel || !label) return;
+
+    panel.style.display = "block";
+    const amount = Math.abs(tx.amount);
+    label.innerHTML = `
+        <span class="text-white">GD: <strong>${tx.description}</strong></span><br>
+        <span class="text-secondary small">Mã: ${tx.reference_number || tx.id} | Số tiền: <strong>${Number(amount).toLocaleString("vi-VN")} ₫</strong></span>
+    `;
+}
+
+async function submitManualMatchOverride() {
+    const invoiceSelect = document.getElementById("manualMatchInvoiceSelect");
+    const confirmBtn = document.getElementById("btnConfirmManualMatch");
+
+    if (!activeSelectedTx) {
+        renderAlert("Vui lòng chọn một giao dịch sổ phụ ngân hàng trước.", "warning");
+        return;
+    }
+
+    if (!invoiceSelect || !invoiceSelect.value) {
+        renderAlert("Vui lòng chọn một hóa đơn để đối khớp thủ công.", "warning");
+        return;
+    }
+
+    const payload = {
+        transaction_id: activeSelectedTx.id,
+        invoice_id: invoiceSelect.value,
+        match_reason: "Manual operator override"
+    };
+
+    const originalText = confirmBtn.innerHTML;
+    confirmBtn.disabled = true;
+    confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+
+    try {
+        const response = await fetch("/api/bank/reconcile/manual", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.error || "Không thể thực hiện khớp thủ công.");
+        }
+
+        renderAlert("Đối khớp giao dịch thành công bằng quyền can thiệp thủ công!", "success");
+        
+        // Clear manual panel
+        document.getElementById("manualMatchPanel").style.display = "none";
+        activeSelectedTx = null;
+
+        // Reload data
+        await loadBankTransactions();
+    } catch (error) {
+        renderAlert(`Lỗi đối khớp: ${error.message}`, "danger");
+    } finally {
+        confirmBtn.disabled = false;
+        confirmBtn.innerHTML = originalText;
+    }
+}
+
+async function triggerAutoReconcileAI() {
+    const btn = document.getElementById("btnAutoReconcile");
+    const logBody = document.getElementById("reconcileResultsLogBody");
+    const mst = window.activeTaxpayerMst || "0109998887";
+
+    if (!btn || !logBody) return;
+
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang chạy đối khớp tự động...';
+
+    logBody.innerHTML = '<tr><td colspan="3" class="text-center py-4"><div class="spinner-border spinner-border-sm text-success" role="status"></div> Trí tuệ AI đang quét chuỗi và phonetic...</td></tr>';
+
+    try {
+        const response = await fetch("/api/bank/reconcile/auto", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ mst: mst })
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.error || "Không thể chạy động cơ AI đối chiếu.");
+        }
+
+        const matches = data.details || [];
+        
+        if (matches.length === 0) {
+            logBody.innerHTML = `
+                <tr>
+                    <td colspan="3" class="text-center text-secondary py-4">
+                        Không tìm thấy cặp giao dịch & hóa đơn nào đủ độ tin cậy để khớp tự động trong đợt này.
+                    </td>
+                </tr>
+            `;
+            renderAlert("AI hoàn thành phân tích: Không phát hiện thêm cặp đối khớp tự động nào.", "info");
+            return;
+        }
+
+        // Render matched logs beautifully
+        logBody.innerHTML = matches.map(match => {
+            const scoreClass = match.confidence.includes("100") || parseInt(match.confidence) >= 85 ? "text-success" : "text-warning";
+            const scoreBadge = `<strong class="${scoreClass}">${match.confidence}</strong>`;
+            
+            return `
+                <tr class="fade-in">
+                    <td>
+                        <div class="fw-semibold text-white small">${match.description}</div>
+                        <span class="text-muted" style="font-size:0.75rem;">${Number(Math.abs(match.amount)).toLocaleString("vi-VN")} ₫</span>
+                    </td>
+                    <td>
+                        <span class="badge bg-primary-subtle text-primary small">Số HĐ: #${match.invoice_number}</span>
+                    </td>
+                    <td class="text-end">${scoreBadge}</td>
+                </tr>
+            `;
+        }).join("");
+
+        renderAlert(`AI đã đối khớp tự động thành công ${matches.length} giao dịch với độ tin cậy tuyệt đối!`, "success");
+
+        // Reload the left table
+        await loadBankTransactions();
+    } catch (error) {
+        logBody.innerHTML = `<tr><td colspan="3" class="text-center text-danger py-4">Lỗi: ${error.message}</td></tr>`;
+        renderAlert(`Lỗi đối khớp AI: ${error.message}`, "danger");
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+}
+
+// Bind to startup DOM events
+document.addEventListener("DOMContentLoaded", () => {
+    initializeBankReconcileEvents();
+});
+

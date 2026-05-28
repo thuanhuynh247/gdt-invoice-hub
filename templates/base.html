@@ -27,6 +27,17 @@
                 <span class="logo-accent"><i class="bi bi-lightning-charge-fill"></i></span>
                 <span class="logo-text">GDT Invoice Hub</span>
             </a>
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-4 d-none d-lg-flex">
+                <li class="nav-item">
+                    <a class="nav-link {% if request.path == '/invoices' %}active{% endif %}" href="{{ url_for('invoices.invoices_page') }}"><i class="bi bi-receipt"></i> Tra cứu Hóa đơn</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.path == '/issue-invoice' %}active{% endif %}" href="{{ url_for('invoices.issue_invoice_page') }}"><i class="bi bi-file-earmark-plus"></i> Phát hành Hóa đơn</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.path == '/cashflow' %}active{% endif %}" href="{{ url_for('invoices.cashflow_page') }}"><i class="bi bi-graph-up-arrow"></i> Dự báo Dòng tiền</a>
+                </li>
+            </ul>
             <div class="d-flex align-items-center gap-3">
                 {% if logged_in %}
                 <div class="navbar-mst-selector-wrapper">
@@ -61,5 +72,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/sse_sync.js') }}"></script>
 </body>
 </html>

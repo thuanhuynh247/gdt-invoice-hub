@@ -1179,3 +1179,37 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
 }
 
 
+/* Version 8.0.0 Styles: Batch Import & KPI Dashboard */
+.drag-drop-zone {
+    border: 2px dashed var(--border-card) !important;
+    border-radius: 12px;
+    background: var(--glass-bg);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.drag-drop-zone.hover, .drag-drop-zone:hover {
+    border-color: var(--primary-accent) !important;
+    background: var(--primary-accent-soft) !important;
+}
+
+.kpi-card {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+}
+
+.kpi-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15) !important;
+}
+
+.kpi-chart-path {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+    animation: drawLine 2.5s ease-out forwards;
+}
+
+@keyframes drawLine {
+    to {
+        stroke-dashoffset: 0;
+    }
+}

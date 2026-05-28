@@ -173,6 +173,12 @@ def get_invoice_by_id(invoice_id: str) -> dict | None:
 
 def download_invoice_xml(invoice_id: str) -> bytes:
     """Generate a simple XML payload for mock invoice downloads."""
+    
+    # Fast path: check if local XML file exists in data/invoices_xml
+    local_xml_path = os.path.join(XML_DIR, f"invoice_{invoice_id}.xml")
+    if os.path.exists(local_xml_path):
+        with open(local_xml_path, "rb") as f:
+            return f.read()
 
     if not current_app.config["GDT_USE_MOCK"]:
         jwt_token = current_app.config.get("CURRENT_JWT")

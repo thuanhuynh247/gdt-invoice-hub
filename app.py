@@ -77,6 +77,29 @@ def create_app() -> Flask:
             if "expense_category" not in columns_item:
                 db.session.execute(db.text("ALTER TABLE line_item ADD COLUMN expense_category VARCHAR(100) NULL;"))
                 db.session.commit()
+
+            # Live migration check for bank_transaction table
+            res_bank = db.session.execute(db.text("PRAGMA table_info(bank_transaction);")).fetchall()
+            if res_bank:
+                columns_bank = [r[1] for r in res_bank]
+                if "taxpayer_mst" not in columns_bank:
+                    db.session.execute(db.text("ALTER TABLE bank_transaction ADD COLUMN taxpayer_mst VARCHAR(20) NULL;"))
+                    db.session.commit()
+                if "bank_name" not in columns_bank:
+                    db.session.execute(db.text("ALTER TABLE bank_transaction ADD COLUMN bank_name VARCHAR(50) NULL;"))
+                    db.session.commit()
+                if "account_number" not in columns_bank:
+                    db.session.execute(db.text("ALTER TABLE bank_transaction ADD COLUMN account_number VARCHAR(50) NULL;"))
+                    db.session.commit()
+                if "reference_number" not in columns_bank:
+                    db.session.execute(db.text("ALTER TABLE bank_transaction ADD COLUMN reference_number VARCHAR(100) NULL;"))
+                    db.session.commit()
+                if "status" not in columns_bank:
+                    db.session.execute(db.text("ALTER TABLE bank_transaction ADD COLUMN status VARCHAR(20) DEFAULT 'unreconciled';"))
+                    db.session.commit()
+                if "imported_at" not in columns_bank:
+                    db.session.execute(db.text("ALTER TABLE bank_transaction ADD COLUMN imported_at VARCHAR(30) NULL;"))
+                    db.session.commit()
         except Exception as e:
             app.logger.warning(f"Database migration check failed: {e}")
             db.session.rollback()
@@ -112,6 +135,13 @@ def create_app() -> Flask:
         from invoices.scheduler import start_scheduler_worker
         start_scheduler_worker(app)
 
+        from invoices.ai_service import start_dynamic_pdf_ingestion_thread
+        start_dynamic_pdf_ingestion_thread(app)
+
+        from invoices.sync_daemon import GDTSyncDaemon
+        # Start the sync daemon with a fast 1-minute interval for demo purposes
+        daemon = GDTSyncDaemon(app, interval_minutes=1)
+        daemon.start()
     @app.get("/")
     def index():
         """Redirect users to the appropriate landing page."""

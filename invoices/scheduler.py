@@ -67,7 +67,8 @@ DEFAULT_SETTINGS = {
     "last_realtime_sync_run": "",
     "webhook_enabled": False,
     "webhook_url": "",
-    "webhook_secret": ""
+    "webhook_secret": "",
+    "auto_dunning_enabled": False
 }
 
 
@@ -399,6 +400,14 @@ class SchedulerThread(threading.Thread):
                 self.app.logger.error(f"Scheduled report execution failed: {e}")
                 add_scheduler_log("FAILED", f"Lỗi chạy báo cáo: {str(e)}")
 
+            # Execute automated dunning (US-063)
+            if settings.get("auto_dunning_enabled", False):
+                try:
+                    self.execute_auto_dunning(settings, now)
+                except Exception as e:
+                    self.app.logger.error(f"Auto-dunning execution failed: {e}")
+                    add_scheduler_log("FAILED", f"Lỗi nhắc nợ tự động: {str(e)}")
+
 
     def execute_scheduled_report(self, settings: dict, run_time: datetime):
         """Fetch invoices for the preceding period, compile to Excel, and email."""
@@ -531,6 +540,13 @@ class SchedulerThread(threading.Thread):
 
         # Dispatch the email report
         self.send_report_email(settings, date_from, date_to, all_invoices, total_buy, total_sell, excel_data)
+
+        # Dispatch Telegram/Zalo Summary
+        if settings.get("telegram_enabled", False):
+            try:
+                self.send_telegram_summary(settings, date_from, date_to)
+            except Exception as tg_e:
+                self.app.logger.error(f"Failed to send Telegram summary: {tg_e}")
 
         # Append audit log entry
         add_scheduler_log(
@@ -1047,6 +1063,150 @@ class SchedulerThread(threading.Thread):
                 self.app.logger.info(f"Email compliance alert sent for invoice {invoice.id}")
             except Exception as ex:
                 self.app.logger.error(f"Failed to send Email compliance alert: {ex}")
+
+    def execute_auto_dunning(self, settings: dict, run_time):
+        """Find overdue invoices exactly 3, 7, 15 days overdue and send dunning emails (US-063)."""
+        from extensions import db
+        from invoices.models import Invoice
+        from auth.crypto import decrypt_password
+        from datetime import timedelta
+        
+        today = run_time.date()
+        target_dates = [
+            today - timedelta(days=3),
+            today - timedelta(days=7),
+            today - timedelta(days=15)
+        ]
+        target_date_strs = [d.isoformat() for d in target_dates]
+        
+        # Only process sold invoices missing payment
+        invoices = db.session.query(Invoice).filter(
+            Invoice.invoice_type == "sold",
+            Invoice.is_cancelled == False,
+            Invoice.paid_date == None,
+            Invoice.due_date.in_(target_date_strs)
+        ).all()
+        
+        if not invoices:
+            return
+            
+        smtp_host = settings.get("smtp_host", "smtp.gmail.com")
+        smtp_port = int(settings.get("smtp_port", 587))
+        smtp_user = settings.get("smtp_username", "")
+        smtp_pass_enc = settings.get("smtp_password", "")
+        smtp_use_tls = str(settings.get("smtp_use_tls", "True")).lower() == "true"
+        
+        if not smtp_user or not smtp_pass_enc:
+            self.app.logger.warning("SMTP credentials missing for auto-dunning.")
+            return
+            
+        try:
+            smtp_pass = decrypt_password(smtp_pass_enc)
+        except Exception:
+            self.app.logger.warning("Failed to decrypt SMTP credentials for auto-dunning.")
+            return
+            
+        import smtplib
+        from email.mime.text import MIMEText
+        from email.mime.multipart import MIMEMultipart
+        
+        for inv in invoices:
+            try:
+                # Calculate how many days overdue
+                from datetime import date as _date
+                due = _date.fromisoformat(inv.due_date)
+                days_overdue = (today - due).days
+                
+                # Mockup recipient (normally we would look up buyer_email from a CRM or Contacts table)
+                recipient = settings.get("recipient_email")
+                if not recipient:
+                    continue
+                    
+                subject = f"[Nhắc nợ] Hóa đơn {inv.symbol}-{inv.number} đã quá hạn {days_overdue} ngày"
+                body = (
+                    f"Kính gửi {inv.buyer_name},\n\n"
+                    f"Hệ thống tự động thông báo hóa đơn {inv.symbol}-{inv.number} (Mã tra cứu: {inv.id}) "
+                    f"trị giá {inv.total_amount:,.0f} VNĐ đã quá hạn thanh toán {days_overdue} ngày "
+                    f"(Hạn chót: {inv.due_date}).\n\n"
+                    f"Vui lòng đối chiếu và thanh toán sớm nhất có thể.\n\n"
+                    f"Trân trọng,\nHệ thống Kế toán."
+                )
+                
+                msg = MIMEMultipart()
+                msg["From"] = smtp_user
+                msg["To"] = recipient
+                msg["Subject"] = subject
+                msg.attach(MIMEText(body, "plain", "utf-8"))
+                
+                self.send_smtp_message(smtp_host, smtp_port, smtp_user, smtp_pass, smtp_use_tls, recipient, msg)
+                self.app.logger.info(f"Auto-dunning email sent for invoice {inv.id} (Overdue {days_overdue} days)")
+            except Exception as e:
+                self.app.logger.error(f"Failed to send dunning for {inv.id}: {e}")
+
+    def send_telegram_summary(self, settings: dict, date_from, date_to):
+        """Send a comprehensive markdown summary to Telegram/Zalo group (US-058)."""
+        import requests
+        from extensions import db
+        from invoices.models import Invoice, BankTransaction
+        
+        bot_token = settings.get("telegram_bot_token")
+        chat_id = settings.get("telegram_chat_id")
+        
+        if not bot_token or not chat_id:
+            return
+            
+        date_from_str = date_from.isoformat()
+        date_to_str = date_to.isoformat()
+        
+        # Query 1: Total Input VAT (mua vào)
+        input_vat = db.session.query(db.func.sum(Invoice.tax_amount)).filter(
+            Invoice.invoice_type == 'purchase',
+            Invoice.date >= date_from_str,
+            Invoice.date <= date_to_str
+        ).scalar() or 0
+        
+        # Query 2: High-risk invoices (T-Score < 70)
+        high_risk_count = db.session.query(Invoice).filter(
+            Invoice.date >= date_from_str,
+            Invoice.date <= date_to_str,
+            Invoice.t_score < 70
+        ).count()
+        
+        # Query 3: Un-reconciled bank transactions
+        unreconciled_count = db.session.query(BankTransaction).filter(
+            BankTransaction.invoice_id == None,
+            BankTransaction.date >= date_from_str,
+            BankTransaction.date <= date_to_str
+        ).count()
+        
+        # Query 4: FCT (Foreign Contractor Tax) pending
+        # Simple mockup for foreign contractor tax detection (seller mst length condition or empty)
+        fct_count = db.session.query(Invoice).filter(
+            Invoice.invoice_type == 'purchase',
+            Invoice.date >= date_from_str,
+            Invoice.date <= date_to_str,
+            db.or_(Invoice.seller_mst == None, db.func.length(Invoice.seller_mst) < 10)
+        ).count()
+        
+        message = f"📊 *BÁO CÁO KẾ TOÁN ĐỊNH KỲ*\n"
+        message += f"🕒 {date_from.strftime('%d/%m/%Y')} - {date_to.strftime('%d/%m/%Y')}\n\n"
+        message += f"🔹 *Tổng VAT đầu vào dự kiến:* {input_vat:,.0f} VNĐ\n"
+        message += f"⚠️ *Hóa đơn rủi ro cao (T-Score < 70):* {high_risk_count} hóa đơn\n"
+        message += f"🏦 *Giao dịch ngân hàng chưa khớp:* {unreconciled_count} GD\n"
+        message += f"🌐 *Hóa đơn Nhà thầu nước ngoài (FCT):* {fct_count} hóa đơn\n\n"
+        message += f"Truy cập GDT Hub để xem chi tiết và đối chiếu!"
+        
+        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        payload = {
+            "chat_id": chat_id,
+            "text": message,
+            "parse_mode": "Markdown"
+        }
+        try:
+            requests.post(url, json=payload, timeout=10)
+            self.app.logger.info("Sent Telegram summary successfully.")
+        except Exception as e:
+            self.app.logger.error(f"Failed to send Telegram summary: {e}")
 
 
 def start_scheduler_worker(app) -> None:

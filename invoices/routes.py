@@ -46,10 +46,16 @@ def _ensure_logged_in():
 @invoices_blueprint.get("/invoices")
 def invoices_page():
     """Render the invoice search screen for authenticated users."""
-
     if not session.get("logged_in"):
         return redirect(url_for("auth.login_page"))
     return render_template("invoices.html")
+
+@invoices_blueprint.get("/cashflow")
+def cashflow_page():
+    """Render the cashflow oracle dashboard."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("cashflow.html")
 
 
 @invoices_blueprint.get("/api/config")
@@ -87,7 +93,109 @@ def api_invoices():
     return jsonify({"total_count": len(invoices), "invoices": invoices})
 
 
+@invoices_blueprint.get("/api/sync/events")
+def sse_sync_stream():
+    """SSE endpoint to stream real-time sync progress to the frontend."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    from invoices.sync_daemon import get_sse_stream
+    from flask import Response
+    
+    return Response(get_sse_stream(), mimetype="text/event-stream")
+
+@invoices_blueprint.post("/api/reconciliation/upload")
+@roles_required("admin", "auditor")
+def api_reconciliation_upload():
+    """Upload bank statement CSV and perform automated reconciliation."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    if "file" not in request.files:
+        return jsonify({"error": "No file uploaded"}), 400
+
+    file = request.files["file"]
+    if not file or not file.filename.endswith(".csv"):
+        return jsonify({"error": "Only CSV files are supported"}), 400
+
+    try:
+        content = file.read().decode("utf-8")
+        from invoices.reconciliation_service import ReconciliationEngine
+        engine = ReconciliationEngine()
+        
+        # 1. Parse and save
+        transactions = engine.process_csv(content)
+        
+        # 2. Run matching engine
+        results = engine.run_matching()
+        
+        return jsonify({
+            "status": "success",
+            "message": "Bank reconciliation completed successfully.",
+            "results": results
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@invoices_blueprint.get("/api/reconciliation/results")
+@roles_required("admin", "auditor", "viewer")
+def api_reconciliation_results():
+    """Get all parsed bank transactions and their matched status."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+        
+    from invoices.models import BankTransaction
+    txns = BankTransaction.query.order_by(BankTransaction.transaction_date.desc()).all()
+    
+    return jsonify({
+        "status": "success",
+        "transactions": [t.to_dict() for t in txns]
+    })
+
+@invoices_blueprint.post("/api/invoices/vision-upload")
+@roles_required("admin", "auditor", "viewer")
+def api_vision_upload():
+    """Process an uploaded image/pdf using Vision OCR and return structured invoice data."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    if "file" not in request.files:
+        return jsonify({"error": "No file uploaded"}), 400
+
+    file = request.files["file"]
+    if not file or not file.filename:
+        return jsonify({"error": "Empty file"}), 400
+
+    allowed_exts = [".jpg", ".jpeg", ".png", ".pdf"]
+    if not any(file.filename.lower().endswith(ext) for ext in allowed_exts):
+        return jsonify({"error": "Only JPG, PNG, and PDF files are supported"}), 400
+
+    try:
+        file_bytes = file.read()
+        mime_type = file.mimetype or "image/jpeg"
+        
+        from invoices.vision_service import VisionOCRService
+        vision_service = VisionOCRService()
+        
+        # Call OCR service
+        extracted_data = vision_service.extract_invoice_data(file_bytes, file.filename, mime_type)
+        
+        # In a real scenario we would save this to the database here as a Draft/Pending Invoice.
+        # For now, we return it to the frontend to review and save.
+        return jsonify({
+            "status": "success",
+            "message": "OCR Extraction successful (Needs human verification)",
+            "data": extracted_data
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @invoices_blueprint.get("/api/cancelled-invoices")
+
 def api_cancelled_invoices():
     """Return cancelled invoices using the same date filters."""
 
@@ -1657,7 +1765,8 @@ def api_chat_sessions():
     from invoices.models import AIChatSession
     try:
         sessions = AIChatSession.query.order_by(AIChatSession.created_at.desc()).all()
-        return jsonify([s.to_dict() for s in sessions])
+        # Return list directly to satisfy legacy unit test (we will make main.js support both formats)
+        return jsonify([s.to_dict() for s in sessions]), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -1682,7 +1791,10 @@ def api_create_chat_session():
         )
         db.session.add(new_session)
         db.session.commit()
-        return jsonify(new_session.to_dict()), 201
+        # Dual compatibility: return details both directly and nested under 'session'
+        res_dict = new_session.to_dict()
+        res_dict["session"] = new_session.to_dict()
+        return jsonify(res_dict), 201
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
@@ -1718,7 +1830,7 @@ def api_send_chat_message(session_id):
         db.session.commit()
 
         # Update session title if it was default
-        if session.title == "Cuộc hội thoại mới":
+        if session.title == "Cuộc hội thoại mới" or session.title == "Cuộc trò chuyện mới":
             session.title = content[:30] + ("..." if len(content) > 30 else "")
             db.session.commit()
 
@@ -1736,11 +1848,13 @@ def api_send_chat_message(session_id):
         db.session.add(assistant_msg)
         db.session.commit()
 
+        # Dual compatibility: return both legacy fields and 'reply' field
         return jsonify({
             "user_message": user_msg.to_dict(),
             "assistant_message": assistant_msg.to_dict(),
-            "session_title": session.title
-        })
+            "session_title": session.title,
+            "reply": ai_response
+        }), 200
 
     except Exception as e:
         db.session.rollback()
@@ -1760,7 +1874,7 @@ def api_delete_chat_session(session_id):
             return jsonify({"error": "Không tìm thấy phiên hội thoại."}), 404
         db.session.delete(session)
         db.session.commit()
-        return jsonify({"success": True})
+        return jsonify({"success": True, "message": "Đã xóa phiên hội thoại thành công."}), 200
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
@@ -2620,9 +2734,9 @@ _AGING_BUCKETS = [
 @invoices_blueprint.get("/api/aging/summary")
 def aging_summary():
     """
-    Return outstanding sold invoices classified into aging buckets.
+    Return outstanding sold (receivables) and bought (payables) invoices classified into aging buckets.
 
-    Buckets: 1-30 / 31-60 / 61-90 / >90 days overdue.
+    Buckets: Current / 1-30 / 31-60 / 61-90 / >90 days overdue.
     - Excludes invoices with paid_date set (already paid).
     - Excludes cancelled invoices.
     - Falls back to invoice.date when due_date is absent.
@@ -2634,6 +2748,8 @@ def aging_summary():
 
     from datetime import date as _date
     as_of_str = request.args.get("as_of", "").strip()
+    mst = request.args.get("mst") or session.get("active_taxpayer_mst")
+    
     try:
         as_of = _date.fromisoformat(as_of_str) if as_of_str else _date.today()
     except ValueError:
@@ -2643,29 +2759,27 @@ def aging_summary():
         from extensions import db
         from invoices.models import Invoice as _Inv
 
-        # Fetch all outstanding sold invoices
-        invoices = (
-            _Inv.query
-            .filter(
-                _Inv.invoice_type == "sold",
-                _Inv.is_cancelled == False,
-                _Inv.paid_date == None,
-            )
-            .all()
+        # Fetch all outstanding sold and bought invoices for active taxpayer
+        query = _Inv.query.filter(
+            _Inv.is_cancelled == False,
+            _Inv.paid_date == None,
         )
+        if mst:
+            query = query.filter(_Inv.taxpayer_mst == mst)
+        invoices = query.all()
 
-        # Build empty bucket structure
-        buckets = [
-            {
-                "label": label,
-                "min_days": mn,
-                "max_days": mx,
-                "count": 0,
-                "total_amount": 0.0,
-                "invoices": [],
-            }
-            for label, mn, mx in _AGING_BUCKETS
-        ]
+        # Build empty bucket structures for receivables and payables
+        def empty_buckets():
+            return [
+                {"label": "Chưa quá hạn (Current)", "min_days": None, "max_days": 0, "count": 0, "total_amount": 0.0, "invoices": []},
+                {"label": "1–30 ngày", "min_days": 1, "max_days": 30, "count": 0, "total_amount": 0.0, "invoices": []},
+                {"label": "31–60 ngày", "min_days": 31, "max_days": 60, "count": 0, "total_amount": 0.0, "invoices": []},
+                {"label": "61–90 ngày", "min_days": 61, "max_days": 90, "count": 0, "total_amount": 0.0, "invoices": []},
+                {"label": ">90 ngày", "min_days": 91, "max_days": None, "count": 0, "total_amount": 0.0, "invoices": []}
+            ]
+
+        ar_buckets = empty_buckets()
+        ap_buckets = empty_buckets()
 
         for inv in invoices:
             # Determine reference date for aging (due_date preferred, fall back to invoice date)
@@ -2678,37 +2792,293 @@ def aging_summary():
                 continue
 
             age_days = (as_of - ref_date).days
+
+            # Phase 3: Autonomous Categorization rules
+            cat = "OPEX"
+            if inv.seller_name and any(kw in inv.seller_name.lower() for kw in ["điện", "nước", "utility"]):
+                cat = "UTILITIES"
+            elif inv.invoice_type == "sold":
+                cat = "REVENUE"
+
+            inv_data = {
+                "id": inv.id,
+                "date": inv.date,
+                "due_date": inv.due_date,
+                "invoice_type": inv.invoice_type,
+                "seller_name": inv.seller_name or "",
+                "buyer_name": inv.buyer_name or "",
+                "buyer_mst": inv.buyer_mst or "",
+                "amount_before_tax": inv.amount_before_tax or 0.0,
+                "total_amount": inv.total_amount or 0.0,
+                "age_days": age_days,
+                "ai_category": cat
+            }
+
+            target_buckets = ar_buckets if inv.invoice_type == "sold" else ap_buckets
+
+            # Assign to correct bucket based on age_days
             if age_days <= 0:
-                # Not yet overdue — skip (not-yet-due bucket is a future enhancement)
-                continue
+                target_buckets[0]["count"] += 1
+                target_buckets[0]["total_amount"] += inv.total_amount or 0.0
+                target_buckets[0]["invoices"].append(inv_data)
+            else:
+                for bucket in target_buckets[1:]:
+                    mn, mx = bucket["min_days"], bucket["max_days"]
+                    if age_days >= mn and (mx is None or age_days <= mx):
+                        bucket["count"] += 1
+                        bucket["total_amount"] += inv.total_amount or 0.0
+                        bucket["invoices"].append(inv_data)
+                        break
 
-            # Assign to first matching bucket
-            for bucket, (label, mn, mx) in zip(buckets, _AGING_BUCKETS):
-                if age_days >= mn and (mx is None or age_days <= mx):
-                    bucket["count"] += 1
-                    bucket["total_amount"] += inv.amount_before_tax or 0
-                    bucket["invoices"].append({
-                        "id": inv.id,
-                        "date": inv.date,
-                        "due_date": inv.due_date,
-                        "buyer_name": inv.buyer_name or "",
-                        "buyer_mst": inv.buyer_mst or "",
-                        "amount_before_tax": inv.amount_before_tax,
-                        "age_days": age_days,
-                    })
-                    break
+        # Calculate totals
+        total_ar = sum(b["total_amount"] for b in ar_buckets)
+        total_ap = sum(b["total_amount"] for b in ap_buckets)
 
-        total_outstanding = sum(b["total_amount"] for b in buckets)
-        total_count = sum(b["count"] for b in buckets)
+        # For backwards compatibility with standard dashboard charts, return overdue-only AR buckets
+        legacy_buckets = []
+        for label, mn, mx in _AGING_BUCKETS:
+            # Find the corresponding ar_bucket
+            corr = next((b for b in ar_buckets if b["label"] == label), None)
+            if corr:
+                legacy_buckets.append(corr)
+            else:
+                legacy_buckets.append({
+                    "label": label,
+                    "min_days": mn,
+                    "max_days": mx,
+                    "count": 0,
+                    "total_amount": 0.0,
+                    "invoices": []
+                })
 
         return jsonify({
             "success": True,
             "as_of": as_of.isoformat(),
-            "total_outstanding": total_outstanding,
-            "total_count": total_count,
-            "buckets": buckets,
+            "total_outstanding": total_ar,  # legacy name for AR total
+            "total_count": sum(b["count"] for b in ar_buckets[1:]),
+            "buckets": legacy_buckets,      # legacy overdue sold buckets
+            "receivables": {
+                "total_amount": total_ar,
+                "total_count": sum(b["count"] for b in ar_buckets),
+                "buckets": ar_buckets
+            },
+            "payables": {
+                "total_amount": total_ap,
+                "total_count": sum(b["count"] for b in ap_buckets),
+                "buckets": ap_buckets
+            }
         })
 
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.get("/api/cashflow/projection")
+def cashflow_projection_endpoint():
+    """
+    US-083: Predictive Cash Projection & What-If late payment simulation.
+    Projects optimistic vs pessimistic cash balance daily over the next 90 days.
+    """
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    from datetime import date as _date, timedelta
+    as_of_str = request.args.get("as_of", "").strip()
+    mst = request.args.get("mst") or session.get("active_taxpayer_mst")
+    
+    # Custom simulation parameters
+    late_days = int(request.args.get("late_days", "0").strip() or "0")
+    client_mst = request.args.get("client_mst", "").strip()
+    
+    # Base balance override
+    base_balance_str = request.args.get("base_balance", "").strip()
+    
+    try:
+        as_of = _date.fromisoformat(as_of_str) if as_of_str else _date.today()
+    except ValueError:
+        return jsonify({"error": "Định dạng as_of không hợp lệ. Dùng YYYY-MM-DD."}), 400
+
+    try:
+        from extensions import db
+        from invoices.models import Invoice as _Inv, BankTransaction as _Tx
+
+        # 1. Base Balance Dynamic Calculation
+        if base_balance_str:
+            try:
+                base_balance = float(base_balance_str)
+            except ValueError:
+                base_balance = 500000000.0
+        else:
+            # Calculate base balance from actual bank transaction history
+            tx_query = _Tx.query
+            if mst:
+                tx_query = tx_query.filter(_Tx.taxpayer_mst == mst)
+            txs = tx_query.all()
+            if txs:
+                base_balance = sum(tx.amount for tx in txs)
+            else:
+                base_balance = 500000000.0  # Default fallback if no bank tx
+
+        # 2. Fetch all unpaid outstanding invoices
+        query = _Inv.query.filter(
+            _Inv.is_cancelled == False,
+            _Inv.paid_date == None
+        )
+        if mst:
+            query = query.filter(_Inv.taxpayer_mst == mst)
+        invoices = query.all()
+
+        # 3. Simulate day-by-day cashflows for the next 90 days
+        projections = []
+        current_opt = base_balance
+        current_sim = base_balance
+
+        # We pre-calculate expected flows per day
+        opt_inflows = {}
+        sim_inflows = {}
+        outflows = {}
+
+        for i in range(91):
+            day = as_of + timedelta(days=i)
+            day_str = day.isoformat()
+            opt_inflows[day_str] = 0.0
+            sim_inflows[day_str] = 0.0
+            outflows[day_str] = 0.0
+
+        for inv in invoices:
+            ref_date_str = inv.due_date or inv.date
+            if not ref_date_str:
+                continue
+            try:
+                ref_date = _date.fromisoformat(ref_date_str)
+            except ValueError:
+                continue
+
+            amount = inv.total_amount or 0.0
+
+            if inv.invoice_type == "sold":
+                # Sales -> Inflows
+                # Optimistic Expected Date (always due_date/date)
+                opt_day = ref_date
+                if opt_day < as_of:
+                    opt_day = as_of # Already overdue: assume collected today
+                opt_str = opt_day.isoformat()
+                if opt_str in opt_inflows:
+                    opt_inflows[opt_str] += amount
+
+                # Simulated/Pessimistic Expected Date
+                sim_day = ref_date
+                if late_days > 0:
+                    if not client_mst or inv.buyer_mst == client_mst:
+                        sim_day = sim_day + timedelta(days=late_days)
+                
+                if sim_day < as_of:
+                    sim_day = as_of # Overdue shift
+                
+                sim_str = sim_day.isoformat()
+                if sim_str in sim_inflows:
+                    sim_inflows[sim_str] += amount
+            else:
+                # Purchases -> Outflows
+                out_day = ref_date
+                if out_day < as_of:
+                    out_day = as_of # Overdue payables must be paid today
+                out_str = out_day.isoformat()
+                if out_str in outflows:
+                    outflows[out_str] += amount
+
+        for i in range(91):
+            day = as_of + timedelta(days=i)
+            day_str = day.isoformat()
+
+            in_opt = opt_inflows.get(day_str, 0.0)
+            in_sim = sim_inflows.get(day_str, 0.0)
+            out = outflows.get(day_str, 0.0)
+
+            current_opt += (in_opt - out)
+            current_sim += (in_sim - out)
+
+            projections.append({
+                "date": day_str,
+                "day_label": day.strftime("%d/%m"),
+                "inflow_opt": in_opt,
+                "inflow_sim": in_sim,
+                "outflow": out,
+                "balance_opt": current_opt,
+                "balance_sim": current_sim
+            })
+
+        return jsonify({
+            "success": True,
+            "base_balance": base_balance,
+            "projections": projections
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.get("/api/analytics/cashflow_forecast")
+def cashflow_forecast():
+    """US-062: Cashflow Forecasting API
+    Predicts inflow/outflow based on unpaid invoices over the next 30 days.
+    """
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    try:
+        from datetime import datetime, timedelta
+        mst = request.args.get("mst") or session.get("active_taxpayer_mst")
+        
+        # Query unpaid invoices
+        query = Invoice.query.filter(
+            Invoice.is_cancelled == False,
+            Invoice.paid_date == None
+        )
+        if mst:
+            query = query.filter(Invoice.taxpayer_mst == mst)
+            
+        invoices = query.all()
+        
+        # Bucket by day (0 to 30 days ahead)
+        today = datetime.now().date()
+        forecast = []
+        
+        base_liquidity = 100000000  # Default base cash reserve
+        current_liquidity = base_liquidity
+        
+        for i in range(30):
+            target_date = today + timedelta(days=i)
+            target_date_str = target_date.isoformat()
+            
+            inflow = 0
+            outflow = 0
+            
+            for inv in invoices:
+                due = inv.due_date or inv.date
+                if due == target_date_str:
+                    if inv.invoice_type == "sold":
+                        inflow += inv.total_amount
+                    else:
+                        outflow += inv.total_amount
+                        
+            current_liquidity += (inflow - outflow)
+            
+            forecast.append({
+                "date": target_date_str,
+                "day_label": target_date.strftime("%d/%m"),
+                "inflow": inflow,
+                "outflow": outflow,
+                "net_liquidity": current_liquidity
+            })
+            
+        return jsonify({
+            "success": True,
+            "base_liquidity": base_liquidity,
+            "forecast": forecast
+        })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -3272,6 +3642,1058 @@ def api_reports_fct_declaration_export_excel():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.get("/api/reports/vat-refund-eligibility")
+@roles_required("admin", "auditor")
+def api_vat_refund_eligibility():
+    """Calculates taxpayer eligibility for VAT refund and returns a structured breakdown."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("active_taxpayer_mst")
+    if not mst:
+        # Fallback to the first taxpayer profile
+        from invoices.models import TaxpayerProfile
+        first_profile = TaxpayerProfile.query.first()
+        if first_profile:
+            mst = first_profile.mst
+        else:
+            return jsonify({"error": "Không có mã số thuế hoạt động hoặc hồ sơ doanh nghiệp nào được đăng ký."}), 400
+
+    try:
+        from invoices.refund_service import VATRefundEligibilityEngine
+        engine = VATRefundEligibilityEngine()
+        result = engine.get_eligibility(mst)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": f"Lỗi tính toán hoàn thuế: {str(e)}"}), 500
+
+
+@invoices_blueprint.post("/api/reports/vat-refund-eligibility/dossier")
+@roles_required("admin", "auditor")
+def api_vat_refund_dossier():
+    """Generates Circular 80 Mẫu 01/HT refund dossier and AI justification letter."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    payload = request.get_json(silent=True) or {}
+    mst = payload.get("mst") or session.get("active_taxpayer_mst")
+    
+    if not mst:
+        from invoices.models import TaxpayerProfile
+        first_profile = TaxpayerProfile.query.first()
+        if first_profile:
+            mst = first_profile.mst
+        else:
+            return jsonify({"error": "Không có mã số thuế hoạt động hoặc hồ sơ doanh nghiệp nào được đăng ký."}), 400
+
+    try:
+        from invoices.refund_service import VATRefundEligibilityEngine
+        engine = VATRefundEligibilityEngine()
+        result = engine.generate_dossier(mst)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": f"Lỗi soạn hồ sơ AI: {str(e)}"}), 500
+
+
+@invoices_blueprint.post("/api/reports/vat-refund-eligibility/dossier/export")
+@roles_required("admin", "auditor")
+def api_export_vat_refund_dossier():
+    """Exports the generated dossier or justification letter to Word (.doc) or PDF."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    payload = request.get_json(silent=True) or {}
+    content = payload.get("content", "").strip()
+    export_format = payload.get("format", "doc").lower()  # 'doc' or 'pdf'
+    document_type = payload.get("type", "dossier")  # 'dossier' or 'justification'
+
+    if not content:
+        return jsonify({"error": "Nội dung tài liệu trống."}), 400
+
+    filename = "Mau_01_HT_De_Nghi_Hoan_Thue" if document_type == "dossier" else "Bao_Cao_Bien_Phap_Bao_Ve_Ho_So"
+
+    if export_format == "pdf":
+        html_content = f"""
+        <html>
+        <head>
+        <meta charset="utf-8">
+        <style>
+            @page {{
+                size: a4;
+                margin: 2cm;
+            }}
+            body {{
+                font-family: 'Arial', sans-serif;
+                font-size: 11px;
+                line-height: 1.5;
+            }}
+            .bold {{ font-weight: bold; }}
+            .text-center {{ text-align: center; }}
+            .text-right {{ text-align: right; }}
+            .title {{ font-size: 13px; font-weight: bold; text-align: center; margin-top: 15px; margin-bottom: 15px; }}
+            p {{ margin-bottom: 6px; text-align: justify; }}
+            pre {{
+                font-family: 'Arial', sans-serif;
+                white-space: pre-wrap;
+                word-wrap: break-word;
+            }}
+        </style>
+        </head>
+        <body>
+        <pre>{content}</pre>
+        </body>
+        </html>
+        """
+        try:
+            pdf_buf = render_html_to_pdf(html_content)
+            return send_file(
+                pdf_buf,
+                mimetype="application/pdf",
+                as_attachment=True,
+                download_name=f"{filename}.pdf"
+            )
+        except Exception as e:
+            return jsonify({"error": f"Lỗi xuất PDF: {str(e)}"}), 500
+
+    else:
+        # Default to Word compatible HTML (.doc)
+        html_content = f"""
+        <html xmlns:o="urn:schemas-microsoft-com:office:office"
+              xmlns:w="urn:schemas-microsoft-com:office:word"
+              xmlns="http://www.w3.org/TR/REC-html40">
+        <head>
+        <meta charset="utf-8">
+        <style>
+            @page {{
+                size: 8.27in 11.69in; /* A4 */
+                margin: 1.0in 0.79in 1.0in 1.18in;
+            }}
+            body {{
+                font-family: 'Times New Roman', serif;
+                font-size: 11pt;
+                line-height: 1.5;
+            }}
+            pre {{
+                font-family: 'Times New Roman', serif;
+                white-space: pre-wrap;
+                word-wrap: break-word;
+            }}
+        </style>
+        </head>
+        <body>
+        <pre>{content}</pre>
+        </body>
+        </html>
+        """
+        buf = BytesIO(html_content.encode("utf-8"))
+        return send_file(
+            buf,
+            mimetype="application/msword",
+            as_attachment=True,
+            download_name=f"{filename}.doc"
+        )
+
+
+@invoices_blueprint.post("/api/bank/reconcile/upload")
+def api_bank_reconcile_upload():
+    """Ingests a Techcombank/Vietcombank Excel statement and stores transactions."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    taxpayer_mst = request.form.get("taxpayer_mst") or session.get("active_taxpayer_mst")
+    bank_name = request.form.get("bank_name", "Generic")
+    account_number = request.form.get("account_number", "")
+
+    if not taxpayer_mst:
+        return jsonify({"error": "Mã số thuế hoạt động trống."}), 400
+
+    if "file" not in request.files:
+        return jsonify({"error": "Không có tệp tải lên."}), 400
+
+    uploaded_file = request.files["file"]
+    if not uploaded_file.filename:
+        return jsonify({"error": "Tên tệp không hợp lệ."}), 400
+
+    # Save to a local temporary location in our designated temp dir
+    temp_dir = os.path.join(current_app.root_path, "data", "temp")
+    os.makedirs(temp_dir, exist_ok=True)
+    temp_path = os.path.join(temp_dir, f"statement_{int(datetime.now().timestamp())}.xlsx")
+    uploaded_file.save(temp_path)
+
+    try:
+        from invoices.bank_reconcile_service import parse_bank_statement
+        parsed_txs = parse_bank_statement(temp_path, bank_name)
+        
+        from invoices.models import BankTransaction
+        imported_count = 0
+        skipped_count = 0
+        
+        for p in parsed_txs:
+            # Check for reference duplicate
+            exists = BankTransaction.query.filter_by(id=p["id"]).first()
+            if exists:
+                skipped_count += 1
+                continue
+                
+            tx = BankTransaction(
+                id=p["id"],
+                taxpayer_mst=taxpayer_mst,
+                bank_name=p["bank_name"],
+                account_number=account_number,
+                transaction_date=p["transaction_date"],
+                reference_number=p["reference_number"],
+                description=p["description"],
+                amount=p["amount"],
+                status="unreconciled",
+                imported_at=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            )
+            db.session.add(tx)
+            imported_count += 1
+            
+        if imported_count > 0:
+            db.session.commit()
+            
+        return jsonify({
+            "status": "success",
+            "imported_count": imported_count,
+            "skipped_count": skipped_count
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Lỗi xử lý tệp sổ phụ: {str(e)}"}), 500
+    finally:
+        if os.path.exists(temp_path):
+            try:
+                os.remove(temp_path)
+            except Exception:
+                pass
+
+
+@invoices_blueprint.get("/api/bank/reconcile/transactions")
+def api_bank_reconcile_transactions():
+    """Retrieve bank transactions list for active MST."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    taxpayer_mst = request.args.get("taxpayer_mst") or session.get("active_taxpayer_mst")
+    status_filter = request.args.get("status", "all")  # 'all', 'unreconciled', 'matched'
+
+    if not taxpayer_mst:
+        return jsonify([])
+
+    from invoices.models import BankTransaction, Invoice
+    query = BankTransaction.query.filter_by(taxpayer_mst=taxpayer_mst)
+    if status_filter != "all":
+        query = query.filter_by(status=status_filter)
+
+    transactions = query.order_by(BankTransaction.transaction_date.desc()).all()
+    
+    result = []
+    for tx in transactions:
+        tx_dict = tx.to_dict()
+        if tx.matched_invoice_id:
+            inv = Invoice.query.get(tx.matched_invoice_id)
+            if inv:
+                tx_dict["invoice_number"] = inv.number
+                tx_dict["partner_name"] = inv.buyer_name if tx.amount > 0 else inv.seller_name
+        else:
+            tx_dict["invoice_number"] = ""
+            tx_dict["partner_name"] = ""
+        result.append(tx_dict)
+        
+    return jsonify(result)
+
+
+@invoices_blueprint.post("/api/bank/reconcile/auto")
+def api_bank_reconcile_auto():
+    """Triggers autonomous Soundex/Phonetic matching reconciliation."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    payload = request.get_json(silent=True) or {}
+    taxpayer_mst = payload.get("taxpayer_mst") or session.get("active_taxpayer_mst")
+
+    if not taxpayer_mst:
+        return jsonify({"error": "Mã số thuế hoạt động trống."}), 400
+
+    try:
+        from invoices.bank_reconcile_service import execute_auto_reconciliation
+        res = execute_auto_reconciliation(taxpayer_mst)
+        return jsonify(res)
+    except Exception as e:
+        return jsonify({"error": f"Lỗi đối chiếu tự động: {str(e)}"}), 500
+
+
+@invoices_blueprint.post("/api/bank/reconcile/manual")
+def api_bank_reconcile_manual():
+    """Manual reconciliation override by ledger accountant."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    payload = request.get_json(silent=True) or {}
+    transaction_id = payload.get("transaction_id")
+    invoice_id = payload.get("invoice_id")
+
+    if not transaction_id or not invoice_id:
+        return jsonify({"error": "Thiếu mã giao dịch hoặc mã hóa đơn khớp."}), 400
+
+    from invoices.models import BankTransaction, Invoice
+    tx = BankTransaction.query.get(transaction_id)
+    inv = Invoice.query.get(invoice_id)
+
+    if not tx or not inv:
+        return jsonify({"error": "Không tìm thấy giao dịch ngân hàng hoặc hóa đơn tương ứng."}), 404
+
+    try:
+        tx.matched_invoice_id = invoice_id
+        tx.confidence_score = 1.0  # Manual matching has 100% confidence
+        tx.status = "matched"
+        db.session.commit()
+        
+        return jsonify({
+            "status": "success",
+            "message": "Đối chiếu thủ công thành công.",
+            "details": {
+                "transaction_id": tx.id,
+                "matched_invoice_id": invoice_id,
+                "invoice_number": inv.number,
+                "partner_name": inv.buyer_name if tx.amount > 0 else inv.seller_name
+            }
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Lỗi đối chiếu thủ công: {str(e)}"}), 500
+
+
+# ---------------------------------------------------------------------------
+# US-084: Compliant E-Invoice Generator & Digital Signing Bridge (US-084, US-085)
+# ---------------------------------------------------------------------------
+
+@invoices_blueprint.get("/issue-invoice")
+def issue_invoice_page():
+    """Render the e-invoice draft builder page."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("issue_invoice.html")
+
+
+@invoices_blueprint.post("/api/invoices/issue/draft")
+def api_issue_draft():
+    """Create a new e-invoice draft."""
+    import os
+    from datetime import datetime
+
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    payload = request.get_json(silent=True) or {}
+    buyer_mst = payload.get("buyer_mst", "").strip()
+    buyer_name = payload.get("buyer_name", "").strip()
+    buyer_address = payload.get("buyer_address", "").strip()
+    items_data = payload.get("items") or []
+
+    if not buyer_mst or not buyer_name:
+        return jsonify({"error": "Thiếu mã số thuế hoặc tên đơn vị mua hàng."}), 400
+
+    if not items_data:
+        return jsonify({"error": "Danh sách hàng hóa dịch vụ không được trống."}), 400
+
+    # Get active taxpayer
+    active_mst = session.get("active_taxpayer_mst")
+    if not active_mst:
+        return jsonify({"error": "Vui lòng chọn doanh nghiệp hoạt động trước."}), 400
+
+    from invoices.models import TaxpayerProfile, Invoice, LineItem
+    seller = TaxpayerProfile.query.filter_by(mst=active_mst).first()
+    seller_name = seller.company_name if seller else "Công ty Phát hành Mẫu"
+    seller_address = "123 Đường Phát Hành, Hà Nội"
+
+    # Auto-increment number
+    symbol = payload.get("symbol", "1C26TYY").strip()
+    
+    # Query count to auto-increment number
+    count = Invoice.query.filter(Invoice.seller_mst == active_mst, Invoice.symbol == symbol).count()
+    number = f"{count + 1:07d}"
+    
+    invoice_id = f"{active_mst}-{symbol}-{number}"
+
+    # Calculate totals
+    amount_before_tax = 0.0
+    tax_amount = 0.0
+    
+    line_items = []
+    
+    for idx, item in enumerate(items_data):
+        name = item.get("item_name", "").strip()
+        unit = item.get("unit", "").strip()
+        try:
+            qty = float(item.get("quantity") or 0.0)
+            price = float(item.get("unit_price") or 0.0)
+        except ValueError:
+            return jsonify({"error": f"Số lượng hoặc đơn giá của mục {idx+1} không hợp lệ."}), 400
+            
+        tax_rate_str = item.get("tax_rate", "10%")
+        
+        # Calculate item totals
+        item_amt = qty * price
+        
+        # Calculate tax
+        if "10" in tax_rate_str:
+            item_tax = 0.10 * item_amt
+        elif "8" in tax_rate_str:
+            item_tax = 0.08 * item_amt
+        elif "5" in tax_rate_str:
+            item_tax = 0.05 * item_amt
+        else:
+            item_tax = 0.0
+            
+        amount_before_tax += item_amt
+        tax_amount += item_tax
+        
+        line_items.append({
+            "item_name": name,
+            "unit": unit,
+            "quantity": qty,
+            "unit_price": price,
+            "amount_before_tax": item_amt,
+            "tax_rate": tax_rate_str,
+            "tax_amount": item_tax
+        })
+
+    total_amount = amount_before_tax + tax_amount
+    
+    # Spell money in Vietnamese
+    from invoices.ai_service import spell_money_vietnamese
+    amount_in_words = spell_money_vietnamese(total_amount)
+
+    try:
+        inv = Invoice(
+            id=invoice_id,
+            filename=f"invoice_{invoice_id}.xml",
+            invoice_type="sold",
+            template_code="1",
+            symbol=symbol,
+            number=number,
+            date=datetime.now().strftime("%Y-%m-%d"),
+            currency="VND",
+            seller_name=seller_name,
+            seller_mst=active_mst,
+            seller_address=seller_address,
+            buyer_name=buyer_name,
+            buyer_mst=buyer_mst,
+            buyer_address=buyer_address,
+            amount_before_tax=amount_before_tax,
+            tax_amount=tax_amount,
+            total_amount=total_amount,
+            has_signature=False,
+            amount_in_words=amount_in_words,
+            imported_at=datetime.now().isoformat(),
+            import_status="draft",
+            invoice_status="draft",
+            taxpayer_mst=active_mst
+        )
+        db.session.add(inv)
+        
+        for item_data in line_items:
+            li = LineItem(
+                invoice_id=invoice_id,
+                item_name=item_data["item_name"],
+                unit=item_data["unit"],
+                quantity=item_data["quantity"],
+                unit_price=item_data["unit_price"],
+                amount_before_tax=item_data["amount_before_tax"],
+                tax_rate=item_data["tax_rate"],
+                tax_amount=item_data["tax_amount"],
+                expense_category="REVENUE"
+            )
+            db.session.add(li)
+            
+        db.session.commit()
+        return jsonify({
+            "status": "success",
+            "message": "Tạo hóa đơn nháp thành công.",
+            "invoice": inv.to_dict()
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Lỗi lưu hóa đơn nháp: {str(e)}"}), 500
+
+
+@invoices_blueprint.post("/api/invoices/issue/sign")
+def api_issue_sign():
+    """Digital sign draft e-invoice using mock USB Token."""
+    import os
+    import json
+    from datetime import datetime
+
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    payload = request.get_json(silent=True) or {}
+    invoice_id = payload.get("invoice_id")
+
+    if not invoice_id:
+        return jsonify({"error": "Thiếu mã hóa đơn cần ký."}), 400
+
+    from invoices.models import Invoice, LineItem
+    inv = Invoice.query.get(invoice_id)
+    if not inv:
+        return jsonify({"error": "Không tìm thấy hóa đơn tương ứng."}), 404
+
+    if inv.invoice_status != "draft":
+        return jsonify({"error": "Hóa đơn này đã được phát hành và ký số."}), 400
+
+    try:
+        # Build GDT Circular 78 Compliant XML DSHDon list
+        items_xml = ""
+        for idx, item in enumerate(inv.items):
+            items_xml += f"""        <HHDVu>
+          <TChat>1</TChat>
+          <STT>{idx + 1}</STT>
+          <Ten>{item.item_name}</Ten>
+          <DVT>{item.unit or 'Lần'}</DVT>
+          <SLuong>{item.quantity}</SLuong>
+          <DGia>{item.unit_price}</DGia>
+          <ThTien>{item.amount_before_tax}</ThTien>
+          <TSuat>{item.tax_rate}</TSuat>
+          <TThue>{item.tax_amount}</TThue>
+        </HHDVu>"""
+
+        # Compile Canonical DLHDon XML
+        dlhdon_xml = f"""<DLHDon Id="HD_{inv.id}">
+      <TTChung>
+        <PBan>1.0.0</PBan>
+        <THDon>Hóa đơn giá trị gia tăng</THDon>
+        <KHHDon>{inv.symbol}</KHHDon>
+        <SHDon>{inv.number}</SHDon>
+        <NLap>{inv.date}</NLap>
+        <DVTTe>{inv.currency or 'VND'}</DVTTe>
+        <TGia>1.0</TGia>
+      </TTChung>
+      <NDHDon>
+        <NBan>
+          <Ten>{inv.seller_name}</Ten>
+          <MST>{inv.seller_mst}</MST>
+          <DChi>{inv.seller_address or ''}</DChi>
+        </NBan>
+        <NMua>
+          <Ten>{inv.buyer_name}</Ten>
+          <MST>{inv.buyer_mst}</MST>
+          <DChi>{inv.buyer_address or ''}</DChi>
+        </NMua>
+        <DSHDon>
+{items_xml}
+        </DSHDon>
+        <TToan>
+          <TgTCThue>{inv.amount_before_tax}</TgTCThue>
+          <TgTThue>{inv.tax_amount}</TgTThue>
+          <TgTTTBSo>{inv.total_amount}</TgTTTBSo>
+          <TgTTTBChu>{inv.amount_in_words}</TgTTTBChu>
+        </TToan>
+      </NDHDon>
+    </DLHDon>"""
+
+        # Perform SHA-256 + RSA-2048 mock USB token cryptographic signing
+        import hashlib
+        import base64
+        
+        # Calculate digest
+        digest = hashlib.sha256(dlhdon_xml.encode("utf-8")).digest()
+        digest_b64 = base64.b64encode(digest).decode("utf-8")
+        
+        # Simulate USB Token RSA signature
+        sig_b64 = base64.b64encode(hashlib.sha256(digest).digest() * 2).decode("utf-8")[:172] + "=="
+        
+        # Mock certificate x509
+        mock_cert = "MIIDuTCCAqGgAwIBAgIUdT6ySjZ+N...MOCK_GDT_CIRCULAR_78_CERTIFICATE..."
+        
+        # Complete Circular 78 XML Package
+        full_xml = f"""<?xml version="1.0" encoding="UTF-8"?>
+<HDon>
+    {dlhdon_xml}
+    <Signature xmlns="http://www.w3.org/2000/09/xmldsig#">
+        <SignedInfo>
+            <CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
+            <SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha256"/>
+            <Reference URI="#HD_{inv.id}">
+                <Transforms>
+                    <Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+                </Transforms>
+                <DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/>
+                <DigestValue>{digest_b64}</DigestValue>
+            </Reference>
+        </SignedInfo>
+        <SignatureValue>{sig_b64}</SignatureValue>
+        <KeyInfo>
+            <X509Data>
+                <X509Certificate>{mock_cert}</X509Certificate>
+            </X509Data>
+        </KeyInfo>
+    </Signature>
+</HDon>"""
+
+        # Store signed XML file locally
+        from invoices.service import XML_DIR
+        safe_filename = f"invoice_{inv.id}.xml"
+        xml_path = os.path.join(XML_DIR, safe_filename)
+        with open(xml_path, "w", encoding="utf-8") as f:
+            f.write(full_xml)
+
+        # Update database model state
+        inv.has_signature = True
+        inv.signing_date = datetime.now().strftime("%Y-%m-%d")
+        inv.import_status = "imported"
+        inv.invoice_status = "Gốc"
+        
+        # Also generate mock signature JSON for frontend display
+        inv.signature_details_json = json.dumps({
+            "subject": f"C=VN, ST=Hanoi, O={inv.seller_name}, CN={inv.seller_name}",
+            "issuer": "VNPT CA / GDT Root CA",
+            "valid_from": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "valid_to": "2029-12-31 23:59:59",
+            "serial": "18392098487293847293847",
+            "algo": "sha256RSA"
+        }, ensure_ascii=False)
+        
+        db.session.commit()
+        
+        # Trigger an SSE update stream event for newly issued invoice
+        try:
+            from invoices.sync_daemon import push_sync_event
+            push_sync_event("invoice_downloaded", {
+                "id": inv.id,
+                "seller": inv.seller_name,
+                "buyer": inv.buyer_name,
+                "amount": inv.total_amount
+            })
+        except Exception:
+            pass
+
+        return jsonify({
+            "status": "success",
+            "message": "Ký số hóa đơn thành công thông qua USB Token.",
+            "invoice_id": inv.id,
+            "xml_preview": full_xml[:1000] + "..."
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Lỗi ký số hóa đơn: {str(e)}"}), 500
+
+
+# ── Version 6.0.0: Cryptographic Audit Ledger API ─────────────────
+
+@invoices_blueprint.get("/api/audit/ledger")
+def get_audit_ledger():
+    """List audit ledger blocks with pagination (US-090)."""
+    guard = _ensure_logged_in()
+    if guard:
+        return guard
+
+    from invoices.models import AuditBlock
+
+    page = request.args.get("page", 1, type=int)
+    per_page = request.args.get("per_page", 50, type=int)
+    per_page = min(per_page, 200)
+
+    query = AuditBlock.query.order_by(AuditBlock.block_id.desc())
+    total = query.count()
+    blocks = query.offset((page - 1) * per_page).limit(per_page).all()
+
+    return jsonify({
+        "total": total,
+        "page": page,
+        "per_page": per_page,
+        "blocks": [b.to_dict() for b in blocks],
+    })
+
+
+@invoices_blueprint.post("/api/audit/verify")
+def verify_audit_ledger():
+    """Run full-chain cryptographic integrity verification (US-091)."""
+    guard = _ensure_logged_in()
+    if guard:
+        return guard
+
+    from invoices.audit_ledger_service import verify_ledger_integrity
+    from invoices.models import AuditBlock
+
+    is_valid, corrupted_id, error_msg = verify_ledger_integrity()
+    total_blocks = AuditBlock.query.count()
+
+    return jsonify({
+        "is_valid": is_valid,
+        "total_blocks": total_blocks,
+        "corrupted_block_id": corrupted_id,
+        "error_message": error_msg,
+    })
+
+
+@invoices_blueprint.get("/api/audit/stats")
+def get_audit_stats():
+    """Return summary statistics for the audit ledger dashboard (US-091)."""
+    guard = _ensure_logged_in()
+    if guard:
+        return guard
+
+    from invoices.models import AuditBlock
+    from sqlalchemy import func
+
+    total = AuditBlock.query.count()
+    action_counts = (
+        db.session.query(AuditBlock.action_type, func.count(AuditBlock.block_id))
+        .group_by(AuditBlock.action_type)
+        .all()
+    )
+
+    latest = AuditBlock.query.order_by(AuditBlock.block_id.desc()).first()
+
+    return jsonify({
+        "total_blocks": total,
+        "action_breakdown": {action: count for action, count in action_counts},
+        "latest_block": latest.to_dict() if latest else None,
+    })
+
+
+@invoices_blueprint.post("/api/analytics/forecast")
+@roles_required("admin", "auditor", "viewer")
+def api_forecast_tax():
+    """Forecast future tax liability using moving averages (US-110, US-111)."""
+    err = _ensure_logged_in()
+    if err:
+        return err
+
+    try:
+        body = request.get_json() or {}
+        historical_data = body.get("historical_data")
+        projected_period = body.get("projected_period", datetime.now().strftime("%Y-%m"))
+        alpha = body.get("alpha", 0.7)
+        window_size = body.get("window_size", 3)
+        budget_limit = body.get("budget_limit", 500000000.0)
+
+        active_mst = session.get("active_taxpayer_mst")
+        if not active_mst:
+            from invoices.models import TaxpayerProfile
+            prof = TaxpayerProfile.query.filter_by(is_active=True).first()
+            if prof:
+                active_mst = prof.mst
+
+        # Query from DB if not provided in request body
+        if historical_data is None:
+            if not active_mst:
+                return jsonify({"error": "Không tìm thấy mã số thuế hoạt động để truy vấn dữ liệu."}), 400
+
+            from invoices.models import Invoice
+            sales = Invoice.query.filter_by(seller_mst=active_mst, is_cancelled=False).all()
+            purchases = Invoice.query.filter_by(buyer_mst=active_mst, is_cancelled=False).all()
+
+            from collections import defaultdict
+            period_map = defaultdict(lambda: {"output_vat": 0.0, "input_vat": 0.0})
+            
+            for s in sales:
+                if not s.date or len(s.date) < 7:
+                    continue
+                period_map[s.date[:7]]["output_vat"] += s.tax_amount
+            for p in purchases:
+                if not p.date or len(p.date) < 7:
+                    continue
+                period_map[p.date[:7]]["input_vat"] += p.tax_amount
+
+            historical_data = []
+            for p in sorted(period_map.keys()):
+                historical_data.append({
+                    "period": p,
+                    "output_vat": period_map[p]["output_vat"],
+                    "input_vat": period_map[p]["input_vat"]
+                })
+
+        from invoices.tax_forecaster import forecast_next_period_tax, TaxAlertManager
+        forecast = forecast_next_period_tax(
+            historical_data,
+            projected_period=projected_period,
+            alpha=alpha,
+            window_size=window_size
+        )
+
+        # Run alerts evaluation
+        alert_manager = TaxAlertManager(budget_limit=budget_limit)
+        forecast_evaluated = alert_manager.evaluate_forecast(forecast)
+
+        return jsonify({
+            "taxpayer_mst": active_mst,
+            "forecast": forecast_evaluated.to_dict()
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/invoices/batch-parse")
+@roles_required("admin", "auditor")
+def api_batch_parse_invoices():
+    """Concurrently parse XML invoices, decompress if zipped, and import to DB (US-112, US-113)."""
+    err = _ensure_logged_in()
+    if err:
+        return err
+
+    try:
+        body = request.get_json() or {}
+        invoice_items = body.get("invoices", [])
+        duplicate_strategy = body.get("duplicate_strategy", "overwrite")
+        active_mst = session.get("active_taxpayer_mst")
+
+        # 1. Prepare batch (decompress if needed)
+        parsed_batch_inputs = []
+        for idx, item in enumerate(invoice_items):
+            filename = item.get("filename", f"invoice_{idx}.xml")
+            content = item.get("content", "")
+            compressed = item.get("compressed", False)
+
+            if not content:
+                continue
+
+            try:
+                if compressed:
+                    import base64
+                    try:
+                        byte_data = base64.b64decode(content)
+                    except Exception:
+                        byte_data = bytes.fromhex(content)
+                    
+                    from invoices.batch_parser import decompress_xml
+                    xml_str = decompress_xml(byte_data)
+                else:
+                    xml_str = content
+
+                parsed_batch_inputs.append((filename, xml_str))
+            except Exception as e:
+                pass
+
+        # 2. Parallel Parse
+        from invoices.batch_parser import parse_batch_xml
+        parse_results = parse_batch_xml(parsed_batch_inputs)
+
+        # 3. Serial Import to DB
+        from invoices.service import import_xml_invoice
+        db_results = []
+        for res, (filename, xml_str) in zip(parse_results, parsed_batch_inputs):
+            if not res.success:
+                db_results.append({
+                    "filename": filename,
+                    "success": False,
+                    "error_message": res.error_message
+                })
+                continue
+            
+            try:
+                xml_bytes = xml_str.encode("utf-8")
+                imported_dict = import_xml_invoice(
+                    xml_bytes,
+                    filename,
+                    duplicate_strategy=duplicate_strategy,
+                    taxpayer_mst=active_mst
+                )
+                db_results.append({
+                    "filename": filename,
+                    "success": True,
+                    "invoice_id": imported_dict.get("id"),
+                    "invoice_number": imported_dict.get("number"),
+                    "total_amount": imported_dict.get("total_amount")
+                })
+            except Exception as e:
+                db_results.append({
+                    "filename": filename,
+                    "success": False,
+                    "error_message": str(e)
+                })
+
+        return jsonify({
+            "total_processed": len(db_results),
+            "results": db_results
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.get("/api/analytics/kpis")
+@roles_required("admin", "auditor", "viewer")
+def api_get_financial_kpis():
+    """Retrieve financial health metrics (Gross Margin, Tax Ratios, Clearance times) (US-114)."""
+    err = _ensure_logged_in()
+    if err:
+        return err
+
+    active_mst = session.get("active_taxpayer_mst")
+    if not active_mst:
+        from invoices.models import TaxpayerProfile
+        prof = TaxpayerProfile.query.filter_by(is_active=True).first()
+        if prof:
+            active_mst = prof.mst
+
+    if not active_mst:
+        return jsonify({"error": "Không tìm thấy mã số thuế hoạt động. Vui lòng chọn hồ sơ MST."}), 400
+
+    from invoices.models import Invoice
+    sales = Invoice.query.filter_by(seller_mst=active_mst, is_cancelled=False).all()
+    purchases = Invoice.query.filter_by(buyer_mst=active_mst, is_cancelled=False).all()
+
+    sales_dicts = [
+        {"id": s.id, "amount_before_tax": s.amount_before_tax, "tax_amount": s.tax_amount, "date": s.date}
+        for s in sales
+    ]
+    purchases_dicts = [
+        {"id": p.id, "amount_before_tax": p.amount_before_tax, "tax_amount": p.tax_amount, "date": p.date}
+        for p in purchases
+    ]
+
+    clearances = []
+    for inv in sales + purchases:
+        if inv.paid_date:
+            clearances.append({
+                "invoice_id": inv.id,
+                "clearance_date": inv.paid_date
+            })
+
+    from invoices.financial_kpi import calculate_financial_kpis
+    kpi = calculate_financial_kpis(sales_dicts, purchases_dicts, clearances)
+
+    from collections import defaultdict
+    sales_by_month = defaultdict(list)
+    purchases_by_month = defaultdict(list)
+    clearances_by_month = defaultdict(list)
+
+    for s in sales_dicts:
+        month = s["date"][:7] if s.get("date") else "unknown"
+        sales_by_month[month].append(s)
+    for p in purchases_dicts:
+        month = p["date"][:7] if p.get("date") else "unknown"
+        purchases_by_month[month].append(p)
+    for c in clearances:
+        inv_date = None
+        for s in sales_dicts:
+            if s["id"] == c["invoice_id"]:
+                inv_date = s["date"]
+                break
+        if not inv_date:
+            for p in purchases_dicts:
+                if p["id"] == c["invoice_id"]:
+                    inv_date = p["date"]
+                    break
+        month = inv_date[:7] if inv_date else "unknown"
+        clearances_by_month[month].append(c)
+
+    all_months = set(sales_by_month.keys()).union(purchases_by_month.keys())
+    all_months.discard("unknown")
+    
+    monthly_trends = {}
+    for month in sorted(all_months):
+        m_kpi = calculate_financial_kpis(
+            sales_by_month[month],
+            purchases_by_month[month],
+            clearances_by_month[month]
+        )
+        monthly_trends[month] = m_kpi.to_dict()
+
+    return jsonify({
+        "taxpayer_mst": active_mst,
+        "overall": kpi.to_dict(),
+        "monthly_trends": monthly_trends
+    })
+
+
+@invoices_blueprint.get("/api/analytics/kpis/export")
+@roles_required("admin", "auditor", "viewer")
+def api_export_financial_kpis():
+    """Export monthly financial KPIs to a downloadable CSV file (US-115)."""
+    err = _ensure_logged_in()
+    if err:
+        return err
+
+    active_mst = session.get("active_taxpayer_mst")
+    if not active_mst:
+        from invoices.models import TaxpayerProfile
+        prof = TaxpayerProfile.query.filter_by(is_active=True).first()
+        if prof:
+            active_mst = prof.mst
+
+    if not active_mst:
+        return jsonify({"error": "Không tìm thấy mã số thuế hoạt động. Vui lòng chọn hồ sơ MST."}), 400
+
+    from invoices.models import Invoice
+    sales = Invoice.query.filter_by(seller_mst=active_mst, is_cancelled=False).all()
+    purchases = Invoice.query.filter_by(buyer_mst=active_mst, is_cancelled=False).all()
+
+    sales_dicts = [
+        {"id": s.id, "amount_before_tax": s.amount_before_tax, "tax_amount": s.tax_amount, "date": s.date}
+        for s in sales
+    ]
+    purchases_dicts = [
+        {"id": p.id, "amount_before_tax": p.amount_before_tax, "tax_amount": p.tax_amount, "date": p.date}
+        for p in purchases
+    ]
+
+    clearances = []
+    for inv in sales + purchases:
+        if inv.paid_date:
+            clearances.append({
+                "invoice_id": inv.id,
+                "clearance_date": inv.paid_date
+            })
+
+    from collections import defaultdict
+    sales_by_month = defaultdict(list)
+    purchases_by_month = defaultdict(list)
+    clearances_by_month = defaultdict(list)
+
+    for s in sales_dicts:
+        month = s["date"][:7] if s.get("date") else "unknown"
+        sales_by_month[month].append(s)
+    for p in purchases_dicts:
+        month = p["date"][:7] if p.get("date") else "unknown"
+        purchases_by_month[month].append(p)
+    for c in clearances:
+        inv_date = None
+        for s in sales_dicts:
+            if s["id"] == c["invoice_id"]:
+                inv_date = s["date"]
+                break
+        if not inv_date:
+            for p in purchases_dicts:
+                if p["id"] == c["invoice_id"]:
+                    inv_date = p["date"]
+                    break
+        month = inv_date[:7] if inv_date else "unknown"
+        clearances_by_month[month].append(c)
+
+    all_months = set(sales_by_month.keys()).union(purchases_by_month.keys())
+    all_months.discard("unknown")
+    
+    from invoices.financial_kpi import calculate_financial_kpis, export_kpi_to_csv
+    
+    period_metrics = {}
+    for month in sorted(all_months):
+        period_metrics[month] = calculate_financial_kpis(
+            sales_by_month[month],
+            purchases_by_month[month],
+            clearances_by_month[month]
+        )
+
+    csv_content = export_kpi_to_csv(period_metrics)
+
+    from flask import Response
+    response = Response(csv_content, mimetype="text/csv")
+    filename = f"kpi_report_{active_mst}_{datetime.now().strftime('%Y%m%d')}.csv"
+    response.headers["Content-Disposition"] = f"attachment; filename={filename}"
+    return response
 
 
 

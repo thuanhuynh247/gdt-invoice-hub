@@ -1,0 +1,561 @@
+{% extends "base.html" %}
+{% block title %}Intelligent Cashflow Oracle - meInvoice{% endblock %}
+
+{% block content %}
+<style>
+    /* Glassmorphism Design Token Extensions */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 16px;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    [data-theme="dark"] .glass-card {
+        background: rgba(30, 41, 59, 0.45);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    }
+
+    .glass-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.08);
+        border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    /* Glow variations */
+    .glow-gold {
+        position: relative;
+    }
+    .glow-gold::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 16px;
+        box-shadow: 0 0 15px rgba(217, 119, 6, 0.2);
+        opacity: 0.8;
+        z-index: -1;
+        pointer-events: none;
+    }
+
+    .glow-ruby {
+        position: relative;
+    }
+    .glow-ruby::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 16px;
+        box-shadow: 0 0 15px rgba(225, 29, 72, 0.2);
+        opacity: 0.8;
+        z-index: -1;
+        pointer-events: none;
+    }
+
+    .glow-emerald {
+        position: relative;
+    }
+    .glow-emerald::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 16px;
+        box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+        opacity: 0.8;
+        z-index: -1;
+        pointer-events: none;
+    }
+
+    .scenario-badge {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 4px 10px;
+        border-radius: 9999px;
+    }
+</style>
+
+<div class="mb-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+    <div>
+        <h1 class="h3 fw-bold mb-1 bg-gradient bg-clip-text text-transparent" style="background-image: linear-gradient(45deg, #10b981, #3b82f6);">
+            Intelligent Cashflow Oracle
+        </h1>
+        <p class="text-secondary mb-0">Phân tích tuổi nợ & Giả định kịch bản dự báo dòng tiền AI (90 Ngày).</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <button class="btn btn-outline-primary btn-sm rounded-pill shadow-sm px-3" onclick="exportCashflowData()">
+            <i class="bi bi-download me-1"></i> Xuất Báo cáo CSV
+        </button>
+    </div>
+</div>
+
+<!-- Overview Stats Grid -->
+<div class="row g-4 mb-4">
+    <!-- AR (Receivables) - Glowing Gold -->
+    <div class="col-md-4">
+        <div class="card h-100 border-0 glass-card glow-gold">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <p class="text-muted small fw-semibold mb-0">Phải Thu Khách Hàng (AR)</p>
+                    <span class="badge text-bg-warning bg-opacity-10 text-warning px-2.5 py-1">Kỳ Hạn</span>
+                </div>
+                <h3 class="fw-bold text-warning mb-1" id="expectedInflow">0 ₫</h3>
+                <p class="text-secondary small mb-0" id="arCountLabel">Đang tải...</p>
+            </div>
+            <div class="position-absolute bottom-0 end-0 p-3 opacity-10">
+                <i class="bi bi-arrow-down-left-circle-fill fs-1 text-warning"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- AP (Payables) - Glowing Ruby -->
+    <div class="col-md-4">
+        <div class="card h-100 border-0 glass-card glow-ruby">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <p class="text-muted small fw-semibold mb-0">Phải Trả Nhà Cung Cấp (AP)</p>
+                    <span class="badge text-bg-danger bg-opacity-10 text-danger px-2.5 py-1">Kỳ Hạn</span>
+                </div>
+                <h3 class="fw-bold text-danger mb-1" id="expectedOutflow">0 ₫</h3>
+                <p class="text-secondary small mb-0" id="apCountLabel">Đang tải...</p>
+            </div>
+            <div class="position-absolute bottom-0 end-0 p-3 opacity-10">
+                <i class="bi bi-arrow-up-right-circle-fill fs-1 text-danger"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Projected Ending Balance - Glowing Emerald -->
+    <div class="col-md-4">
+        <div class="card h-100 border-0 glass-card glow-emerald">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <p class="text-muted small fw-semibold mb-0">Dự Kiến Số Dư Cuối Kỳ (90D)</p>
+                    <span class="badge text-bg-success bg-opacity-10 text-success px-2.5 py-1">Khả Dụng</span>
+                </div>
+                <h3 class="fw-bold text-success mb-1" id="netLiquidity">0 ₫</h3>
+                <p class="text-secondary small mb-0" id="baseBalanceLabel">Số dư ban đầu: 0 ₫</p>
+            </div>
+            <div class="position-absolute bottom-0 end-0 p-3 opacity-10">
+                <i class="bi bi-wallet2 fs-1 text-success"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Charts & What-If Panel -->
+<div class="row g-4 mb-4">
+    <!-- Chart Section -->
+    <div class="col-lg-8">
+        <div class="card border-0 glass-card h-100">
+            <div class="card-header bg-transparent border-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0">Dự báo Dòng tiền & Xu thế Thanh khoản (90 Ngày)</h5>
+                <div class="d-flex gap-2">
+                    <span class="scenario-badge text-bg-success bg-opacity-15 text-success">Lạc quan (0D trễ)</span>
+                    <span class="scenario-badge text-bg-warning bg-opacity-15 text-warning">Kịch bản giả định</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div style="height: 350px; position: relative;">
+                    <canvas id="cashflowChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interactive Scenario Simulator (What-If Control Panel) -->
+    <div class="col-lg-4">
+        <div class="card border-0 glass-card h-100">
+            <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                <h5 class="fw-bold mb-0"><i class="bi bi-sliders me-2 text-primary"></i>Kịch bản Giả định</h5>
+                <p class="text-secondary small mb-0">Mô phỏng tình huống chậm thanh toán từ đối tác khách hàng.</p>
+            </div>
+            <div class="card-body d-flex flex-column justify-content-between gap-4">
+                <div>
+                    <!-- Delay slider -->
+                    <div class="mb-4">
+                        <label for="lateDaysSlider" class="form-label d-flex justify-content-between small fw-semibold text-secondary">
+                            <span>Số ngày chậm thanh toán:</span>
+                            <span class="text-warning fw-bold" id="lateDaysVal">15 ngày</span>
+                        </label>
+                        <input type="range" class="form-range" min="0" max="90" step="5" value="15" id="lateDaysSlider" oninput="updateLateDaysLabel(this.value)">
+                        <div class="d-flex justify-content-between text-muted small px-1">
+                            <span>0D (Đúng Hạn)</span>
+                            <span>45D</span>
+                            <span>90D (Nợ Xấu)</span>
+                        </div>
+                    </div>
+
+                    <!-- Client Target filter -->
+                    <div class="mb-4">
+                        <label for="clientMstInput" class="form-label small fw-semibold text-secondary">Áp dụng cho Đối tác cụ thể (MST):</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text"><i class="bi bi-people"></i></span>
+                            <input type="text" class="form-control" id="clientMstInput" placeholder="Nhập MST khách hàng (e.g. 0109998887) hoặc bỏ trống để áp dụng tất cả">
+                        </div>
+                        <div class="form-text text-muted small">Nếu bỏ trống, hệ thống sẽ tự động trì hoãn toàn bộ doanh thu Phải Thu (AR) để phân tích kịch bản xấu nhất.</div>
+                    </div>
+
+                    <!-- Base balance override -->
+                    <div class="mb-3">
+                        <label for="baseBalanceInput" class="form-label small fw-semibold text-secondary">Số dư ngân hàng ban đầu (VNĐ):</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text">₫</span>
+                            <input type="number" class="form-control" id="baseBalanceInput" placeholder="Tự động tính từ số phụ ngân hàng">
+                        </div>
+                        <div class="form-text text-muted small">Bỏ trống để tự động lấy từ tổng số phụ ngân hàng đã đối soát thực tế.</div>
+                    </div>
+                </div>
+
+                <div class="d-grid mt-auto">
+                    <button class="btn btn-primary rounded-pill shadow-sm" onclick="runProjection()">
+                        <i class="bi bi-cpu me-1"></i> Chạy Giả định Dự báo
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Aging Table & List -->
+    <div class="col-lg-6">
+        <div class="card border-0 glass-card h-100">
+            <div class="card-header bg-transparent border-bottom pt-4 pb-3">
+                <h5 class="fw-bold mb-0">Cơ cấu Tuổi nợ Chi tiết (AR/AP Aging Report)</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light text-muted small uppercase">
+                            <tr>
+                                <th class="ps-4 py-3">Khoảng tuổi nợ</th>
+                                <th class="py-3 text-end">Phải thu (AR)</th>
+                                <th class="py-3 text-end">Phải trả (AP)</th>
+                                <th class="pe-4 py-3 text-end">Ròng (Net)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="agingBreakdownBody">
+                            <tr><td colspan="4" class="text-center py-4 text-muted">Đang phân tích cấu trúc...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interactive Chart Aging Structure -->
+    <div class="col-lg-6">
+        <div class="card border-0 glass-card h-100">
+            <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                <h5 class="fw-bold mb-0">Tỷ lệ Phân phối Tuổi nợ (Receivables & Payables Overdue)</h5>
+            </div>
+            <div class="card-body">
+                <div style="height: 250px; position: relative;">
+                    <canvas id="agingBarChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- AI Categorization & Outflow Warnings -->
+<div class="card border-0 glass-card mb-5">
+    <div class="card-header bg-transparent border-bottom pt-4 pb-3 d-flex justify-content-between align-items-center">
+        <h5 class="fw-bold mb-0">Khoản mục & Cảnh báo Dòng tiền thông minh (AI Cashflow Auditor)</h5>
+        <span class="badge text-bg-info bg-opacity-10 text-info px-3 py-1.5 rounded-pill"><i class="bi bi-lightbulb me-1"></i>AI Engine Active</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light text-muted small uppercase">
+                    <tr>
+                        <th class="ps-4 py-3">Đối tác (Khách hàng / NCC)</th>
+                        <th class="py-3">MST</th>
+                        <th class="py-3">Loại</th>
+                        <th class="py-3">Danh mục AI</th>
+                        <th class="py-3 text-end">Số ngày quá hạn</th>
+                        <th class="pe-4 py-3 text-end">Giá trị giao dịch</th>
+                    </tr>
+                </thead>
+                <tbody id="aiAuditorTableBody">
+                    <tr><td colspan="6" class="text-center py-5 text-muted">Đang quét dòng tiền hóa đơn...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+let cashflowChartInstance = null;
+let agingChartInstance = null;
+let latestProjectionData = null;
+
+document.addEventListener('DOMContentLoaded', async () => {
+    // Initial Run
+    await runProjection();
+});
+
+function updateLateDaysLabel(val) {
+    document.getElementById('lateDaysVal').textContent = val === '0' ? 'Đúng hạn (0 ngày)' : val + ' ngày';
+}
+
+async function runProjection() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const textColor = isDark ? '#adb5bd' : '#6c757d';
+    const gridColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)';
+
+    const lateDays = document.getElementById('lateDaysSlider').value;
+    const clientMst = document.getElementById('clientMstInput').value.trim();
+    const baseBalance = document.getElementById('baseBalanceInput').value.trim();
+
+    // 1. Fetch Aging and AI Auditor Analysis
+    try {
+        const agingResp = await fetch('/api/aging/summary');
+        const agingData = await agingResp.json();
+        
+        if (agingData.success) {
+            // Fill Statistics Cards
+            document.getElementById('expectedInflow').textContent = agingData.receivables.total_amount.toLocaleString() + ' ₫';
+            document.getElementById('expectedOutflow').textContent = agingData.payables.total_amount.toLocaleString() + ' ₫';
+            
+            document.getElementById('arCountLabel').textContent = `Tổng cộng ${agingData.receivables.total_count} hóa đơn Phải thu`;
+            document.getElementById('apCountLabel').textContent = `Tổng cộng ${agingData.payables.total_count} hóa đơn Phải trả`;
+
+            // Fill Aging breakdown table
+            const arBuckets = agingData.receivables.buckets;
+            const apBuckets = agingData.payables.buckets;
+            const tableBody = document.getElementById('agingBreakdownBody');
+            tableBody.innerHTML = '';
+
+            for (let i = 0; i < arBuckets.length; i++) {
+                const label = arBuckets[i].label;
+                const arVal = arBuckets[i].total_amount;
+                const apVal = apBuckets[i].total_amount;
+                const netVal = arVal - apVal;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="ps-4 py-3 fw-semibold text-secondary small">${label}</td>
+                    <td class="py-3 text-end text-warning font-monospace">${arVal.toLocaleString()} ₫</td>
+                    <td class="py-3 text-end text-danger font-monospace">${apVal.toLocaleString()} ₫</td>
+                    <td class="pe-4 py-3 text-end font-monospace fw-bold ${netVal >= 0 ? 'text-success' : 'text-danger'}">${(netVal >= 0 ? '+' : '')}${netVal.toLocaleString()} ₫</td>
+                `;
+                tableBody.appendChild(tr);
+            }
+
+            // Fill AI Auditor table with list of invoices
+            const auditorBody = document.getElementById('aiAuditorTableBody');
+            auditorBody.innerHTML = '';
+            
+            let allInvoices = [];
+            arBuckets.forEach(b => b.invoices.forEach(inv => allInvoices.push(inv)));
+            apBuckets.forEach(b => b.invoices.forEach(inv => allInvoices.push(inv)));
+
+            // Sort by age_days descending to show critical overdue first
+            allInvoices.sort((a, b) => b.age_days - a.age_days);
+
+            allInvoices.forEach(inv => {
+                const tr = document.createElement('tr');
+                let badgeClass = inv.invoice_type === 'sold' ? 'text-bg-warning bg-opacity-10 text-warning' : 'text-bg-danger bg-opacity-10 text-danger';
+                let typeLabel = inv.invoice_type === 'sold' ? 'Phải thu (AR)' : 'Phải trả (AP)';
+                
+                let catBadge = 'text-bg-secondary';
+                if (inv.ai_category === 'UTILITIES') catBadge = 'text-bg-info';
+                else if (inv.ai_category === 'REVENUE') catBadge = 'text-bg-success';
+
+                tr.innerHTML = `
+                    <td class="ps-4 py-3 fw-semibold">${inv.invoice_type === 'sold' ? inv.buyer_name : inv.seller_name}</td>
+                    <td class="py-3 text-muted small">${inv.invoice_type === 'sold' ? inv.buyer_mst : (inv.seller_mst || 'N/A')}</td>
+                    <td class="py-3"><span class="badge ${badgeClass}">${typeLabel}</span></td>
+                    <td class="py-3"><span class="badge ${catBadge} bg-opacity-10 text-dark-emphasis">${inv.ai_category}</span></td>
+                    <td class="py-3 text-end font-monospace ${inv.age_days > 0 ? 'text-danger fw-bold' : 'text-muted'}">${inv.age_days > 0 ? inv.age_days + ' ngày quá hạn' : 'Chưa quá hạn'}</td>
+                    <td class="pe-4 py-3 text-end font-monospace fw-bold">${inv.total_amount.toLocaleString()} ₫</td>
+                `;
+                auditorBody.appendChild(tr);
+            });
+
+            if (allInvoices.length === 0) {
+                auditorBody.innerHTML = '<tr><td colspan="6" class="text-center py-5 text-muted">Tuyệt vời! Không có hóa đơn nào quá hạn cần đối soát cảnh báo.</td></tr>';
+            }
+
+            // Draw Aging Distribution Chart
+            const agingLabels = arBuckets.map(b => b.label);
+            const arAmounts = arBuckets.map(b => b.total_amount);
+            const apAmounts = apBuckets.map(b => b.total_amount);
+
+            if (agingChartInstance) {
+                agingChartInstance.destroy();
+            }
+
+            const ctxAging = document.getElementById('agingBarChart').getContext('2d');
+            agingChartInstance = new Chart(ctxAging, {
+                type: 'bar',
+                data: {
+                    labels: agingLabels,
+                    datasets: [
+                        {
+                            label: 'Phải Thu (AR)',
+                            data: arAmounts,
+                            backgroundColor: 'rgba(245, 158, 11, 0.7)',
+                            borderColor: 'rgb(245, 158, 11)',
+                            borderWidth: 1,
+                            borderRadius: 4
+                        },
+                        {
+                            label: 'Phải Trả (AP)',
+                            data: apAmounts,
+                            backgroundColor: 'rgba(239, 68, 68, 0.7)',
+                            borderColor: 'rgb(239, 68, 68)',
+                            borderWidth: 1,
+                            borderRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: textColor } } },
+                    scales: {
+                        y: { 
+                            beginAtZero: true, 
+                            grid: { color: gridColor },
+                            ticks: { color: textColor }
+                        },
+                        x: { 
+                            grid: { display: false },
+                            ticks: { color: textColor }
+                        }
+                    }
+                }
+            });
+        }
+    } catch (e) {
+        console.error("Failed to fetch aging breakdown summary", e);
+    }
+
+    // 2. Fetch Cashflow Forecasting Projections
+    try {
+        let queryUrl = `/api/cashflow/projection?late_days=${lateDays}`;
+        if (clientMst) queryUrl += `&client_mst=${clientMst}`;
+        if (baseBalance) queryUrl += `&base_balance=${baseBalance}`;
+
+        const forecastResp = await fetch(queryUrl);
+        const forecastData = await forecastResp.json();
+        
+        if (forecastData.success && forecastData.projections) {
+            latestProjectionData = forecastData;
+
+            // Fill starting and ending cashflow values
+            const baseVal = forecastData.base_balance;
+            document.getElementById('baseBalanceLabel').textContent = `Số dư ban đầu: ${baseVal.toLocaleString()} ₫`;
+            
+            const lastProj = forecastData.projections[forecastData.projections.length - 1];
+            document.getElementById('netLiquidity').textContent = lastProj.balance_sim.toLocaleString() + ' ₫';
+
+            const days = forecastData.projections.map(f => f.day_label);
+            const optBalances = forecastData.projections.map(f => f.balance_opt);
+            const simBalances = forecastData.projections.map(f => f.balance_sim);
+
+            if (cashflowChartInstance) {
+                cashflowChartInstance.destroy();
+            }
+
+            const ctxCashflow = document.getElementById('cashflowChart').getContext('2d');
+            cashflowChartInstance = new Chart(ctxCashflow, {
+                type: 'line',
+                data: {
+                    labels: days,
+                    datasets: [
+                        {
+                            label: 'Lạc quan (Đúng hạn)',
+                            data: optBalances,
+                            borderColor: 'rgb(16, 185, 129)',
+                            backgroundColor: 'rgba(16, 185, 129, 0.05)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.3
+                        },
+                        {
+                            label: 'Giả định (Chậm thanh toán)',
+                            data: simBalances,
+                            borderColor: 'rgb(245, 158, 11)',
+                            backgroundColor: 'rgba(245, 158, 11, 0.05)',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            fill: true,
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { labels: { color: textColor } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) label += ': ';
+                                    if (context.raw !== null) {
+                                        label += context.raw.toLocaleString() + ' ₫';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { 
+                            grid: { color: gridColor },
+                            ticks: { color: textColor }
+                        },
+                        x: { 
+                            grid: { display: false },
+                            ticks: { 
+                                color: textColor,
+                                maxTicksLimit: 12
+                            }
+                        }
+                    },
+                    elements: { point: { radius: 1, hitRadius: 10, hoverRadius: 4 } }
+                }
+            });
+        }
+    } catch (e) {
+        console.error("Failed to load cashflow projection data", e);
+    }
+}
+
+function exportCashflowData() {
+    if (!latestProjectionData || !latestProjectionData.projections) {
+        alert("Không có dữ liệu dự báo để xuất!");
+        return;
+    }
+
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "Date,Day,Optimistic Balance (VND),Simulated Balance (VND),Opt Inflow (VND),Sim Inflow (VND),Outflow (VND)\n";
+
+    latestProjectionData.projections.forEach(f => {
+        csvContent += `${f.date},${f.day_label},${f.balance_opt},${f.balance_sim},${f.inflow_opt},${f.inflow_sim},${f.outflow}\n`;
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `cashflow_projection_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+</script>
+{% endblock %}

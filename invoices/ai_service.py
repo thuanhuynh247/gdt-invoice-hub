@@ -96,6 +96,33 @@ TAX_REGULATIONS = [
 def get_tax_rag_context(query: str) -> str:
     if not query:
         return ""
+    
+    from extensions import db
+    try:
+        # Clean query to prevent SQLite FTS5 special character syntax errors
+        import re
+        clean_q = re.sub(r'[^\w\s\d]', ' ', query).strip()
+        if not clean_q:
+            clean_q = query
+            
+        sql = """
+            SELECT chunk_content, document_source, page_number
+            FROM tax_regulation_fts
+            WHERE tax_regulation_fts MATCH :q
+            ORDER BY bm25(tax_regulation_fts) ASC
+            LIMIT 3;
+        """
+        res = db.session.execute(db.text(sql), {"q": clean_q}).fetchall()
+        
+        if res:
+            matches = []
+            for row in res:
+                content, source, page = row
+                matches.append(f"### [{source} - Trang {page}]\n{content}")
+            return "\n\n".join(matches)
+    except Exception as e:
+        logger.warning(f"FTS5 dynamic RAG lookup failed: {e}. Falling back to keyword dictionary.")
+        
     q_lower = query.lower()
     matches = []
     for reg in TAX_REGULATIONS:
@@ -109,6 +136,150 @@ def get_tax_rag_context(query: str) -> str:
         f"### {TAX_REGULATIONS[0]['title']}\n{TAX_REGULATIONS[0]['content']}\n\n"
         f"### {TAX_REGULATIONS[2]['title']}\n{TAX_REGULATIONS[2]['content']}"
     )
+
+
+def init_fts5_tables():
+    """Create the SQLite FTS5 virtual table for full-text search indexing."""
+    from extensions import db
+    try:
+        db.session.execute(db.text("""
+            CREATE VIRTUAL TABLE IF NOT EXISTS tax_regulation_fts USING fts5(
+                chunk_id UNINDEXED,
+                chunk_content,
+                document_source,
+                page_number
+            );
+        """))
+        db.session.commit()
+        logger.info("SQLite FTS5 virtual table successfully initialized.")
+    except Exception as e:
+        logger.error(f"FTS5 virtual table creation failed: {e}")
+        db.session.rollback()
+
+
+def parse_and_chunk_pdf(filename: str) -> list[dict]:
+    """Parse local PDF document using pypdf and slice it into clean semantic paragraph chunks."""
+    import os
+    if not os.path.exists(filename):
+        logger.warning(f"PDF document for dynamic ingestion not found: {filename}")
+        return []
+
+    from pypdf import PdfReader
+    chunks = []
+    try:
+        reader = PdfReader(filename)
+        effective_date = "2025-07-01" if "48" in filename else "2026-01-01"
+        
+        for page_idx, page in enumerate(reader.pages):
+            text = page.extract_text()
+            if not text:
+                continue
+            
+            # Clean up Vietnamese text spaces and blank lines
+            lines = [line.strip() for line in text.split("\n") if line.strip()]
+            full_text = " ".join(lines)
+            
+            # Split page text into small semantic paragraphs of ~150-250 words
+            words = full_text.split(" ")
+            current_chunk = []
+            word_count = 0
+            
+            for w in words:
+                current_chunk.append(w)
+                word_count += 1
+                if word_count >= 180 and w.endswith((".", ":", ";")):
+                    chunk_str = " ".join(current_chunk).strip()
+                    if chunk_str:
+                        chunks.append({
+                            "document_source": os.path.basename(filename),
+                            "page_number": page_idx + 1,
+                            "effective_date": effective_date,
+                            "chunk_content": chunk_str
+                        })
+                    current_chunk = []
+                    word_count = 0
+            
+            if current_chunk:
+                chunk_str = " ".join(current_chunk).strip()
+                if chunk_str:
+                    chunks.append({
+                        "document_source": os.path.basename(filename),
+                        "page_number": page_idx + 1,
+                        "effective_date": effective_date,
+                        "chunk_content": chunk_str
+                    })
+    except Exception as e:
+        logger.error(f"Failed to parse PDF file {filename}: {e}")
+        
+    return chunks
+
+
+def run_dynamic_pdf_ingestion(app):
+    """Background startup worker to scan, extract, and ingest workspace PDFs into FTS5 index."""
+    import os
+    with app.app_context():
+        from extensions import db
+        from invoices.models import TaxRegulationChunk
+        
+        init_fts5_tables()
+        
+        pdf_files = ["luat48.pdf", "luat149.signed.pdf"]
+        ingested_any = False
+        
+        for filename in pdf_files:
+            try:
+                base_name = os.path.basename(filename)
+                existing_count = TaxRegulationChunk.query.filter_by(document_source=base_name).count()
+                
+                # Deduplication: skip if already indexed in database
+                if existing_count > 0:
+                    logger.info(f"PDF {filename} is already ingested ({existing_count} chunks in database). Skipping.")
+                    continue
+                
+                logger.info(f"Starting dynamic text extraction for {filename}...")
+                chunks = parse_and_chunk_pdf(filename)
+                
+                if not chunks:
+                    logger.warning(f"No text extracted from PDF {filename}")
+                    continue
+                
+                now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                for c in chunks:
+                    db_chunk = TaxRegulationChunk(
+                        document_source=c["document_source"],
+                        page_number=c["page_number"],
+                        effective_date=c["effective_date"],
+                        chunk_content=c["chunk_content"],
+                        created_at=now_str
+                    )
+                    db.session.add(db_chunk)
+                
+                db.session.commit()
+                
+                # Copy chunks directly to FTS5 virtual table
+                all_chunks = TaxRegulationChunk.query.filter_by(document_source=base_name).all()
+                for c in all_chunks:
+                    db.session.execute(
+                        db.text("INSERT INTO tax_regulation_fts (chunk_id, chunk_content, document_source, page_number) VALUES (:cid, :content, :source, :page);"),
+                        {"cid": c.id, "content": c.chunk_content, "source": c.document_source, "page": c.page_number}
+                    )
+                db.session.commit()
+                
+                logger.info(f"Ingested {filename}: {len(chunks)} chunks registered in dynamic search FTS5 index.")
+                ingested_any = True
+            except Exception as e:
+                logger.error(f"Ingestion worker failed for PDF {filename}: {e}")
+                db.session.rollback()
+                
+        if ingested_any:
+            logger.info("Dynamic PDF RAG Ingestion background worker finished successfully.")
+
+
+def start_dynamic_pdf_ingestion_thread(app):
+    """Spawns an asynchronous daemon thread to handle background PDF parsing on startup."""
+    import threading
+    t = threading.Thread(target=run_dynamic_pdf_ingestion, args=(app,), daemon=True)
+    t.start()
 
 
 class AIComplianceAuditor:
@@ -493,7 +664,7 @@ class AIComplianceAuditor:
                     has_cash_risk = True
                 elif "suspicious" in w_type or "mst" in w_type:
                     has_mst_risk = True
-                elif "timing" in w_type or "date" in w_type:
+                elif "timing" in w_type or "time" in w_type or "date" in w_type:
                     has_timing_risk = True
                 elif "price" in w_type:
                     has_price_risk = True
@@ -565,9 +736,37 @@ class AIComplianceAuditor:
             logger.info("AI Compliance Auditor disabled. Generating high-fidelity rules-based explanation letter fallback.")
             return generate_local_fallback()
 
+        # Build a focused RAG query from the invoice's risk warnings for legal context retrieval
+        rag_query_parts = []
+        for audit_res in invoice.ai_audit_results:
+            w_type = audit_res.warning_type.lower()
+            if "cash" in w_type:
+                rag_query_parts.append("khấu trừ thuế GTGT thanh toán tiền mặt chuyển khoản ngân hàng")
+            elif "suspicious" in w_type or "mst" in w_type:
+                rag_query_parts.append("hóa đơn nhà cung cấp rủi ro mã số thuế nghi ngờ")
+            elif "timing" in w_type or "date" in w_type:
+                rag_query_parts.append("thời điểm lập hóa đơn ký số điện tử")
+            elif "price" in w_type:
+                rag_query_parts.append("đơn giá hàng hóa biến động bất thường chuyển giá")
+        if not rag_query_parts:
+            rag_query_parts.append("điều kiện khấu trừ thuế GTGT đầu vào hóa đơn hợp lệ")
+
+        rag_legal_context = get_tax_rag_context(" ".join(rag_query_parts))
+
         system_prompt = (
             "Bạn là Kế toán trưởng kiêm Chuyên gia tư vấn thuế và pháp lý doanh nghiệp chuyên nghiệp (Senior Tax Compliance Consultant / CFO) tại Việt Nam.\n"
             "Nhiệm vụ của bạn là soạn thảo một Công văn giải trình chính thức bằng tiếng Việt gửi Cơ quan Thuế (Cục Thuế/Chi cục Thuế) để bảo vệ quyền lợi được khấu trừ thuế GTGT đầu vào và tính hợp lệ của chi phí được trừ khi tính thuế TNDN đối với hóa đơn mua vào đang bị nghi ngờ rủi ro.\n\n"
+        )
+
+        if rag_legal_context:
+            system_prompt += (
+                "--- QUY ĐỊNH PHÁP LUẬT LIÊN QUAN (Nguồn: Cơ sở dữ liệu RAG Luật Thuế GTGT) ---\n"
+                f"{rag_legal_context}\n\n"
+                "Hãy sử dụng các quy định trên để dẫn chiếu chính xác trong phần lập luận giải trình. "
+                "Trích dẫn cụ thể Điều, Khoản, tên Luật/Thông tư/Nghị định từ tài liệu RAG.\n\n"
+            )
+
+        system_prompt += (
             "Công văn giải trình phải được viết cực kỳ chuyên nghiệp, đúng thể thức văn bản hành chính Việt Nam theo Nghị định 30/2020/NĐ-CP và Thông tư 80/2021/TT-BTC, có cấu trúc chặt chẽ gồm:\n"
             "1. Tiêu ngữ chuẩn: 'CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM' viết hoa, in đậm, căn giữa. Bên dưới là dòng 'Độc lập - Tự do - Hạnh phúc' viết thường, in đậm, căn giữa, có gạch chân.\n"
             "2. Địa danh và ngày tháng năm làm văn bản giải trình.\n"
