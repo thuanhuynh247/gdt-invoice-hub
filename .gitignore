@@ -12,7 +12,8 @@ htmlcov/
 # Local databases and instance files
 instance/
 *.db
-data/
+data/*
+!data/schemas/
 
 # Application configuration & secrets
 .env

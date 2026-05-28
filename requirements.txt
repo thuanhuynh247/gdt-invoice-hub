@@ -12,3 +12,5 @@ reportlab==4.5.1
 lxml==6.1.1
 cryptography==42.0.5
 Flask-SQLAlchemy==3.1.1
+xhtml2pdf>=0.2.16
+pypdf>=4.0.0
