@@ -1407,6 +1407,8 @@ def api_export_mitigation_letter(invoice_id):
 
     filename = f"Giai_trinh_hoa_don_{invoice_id}"
 
+    formatted_letter = letter_text.replace('\n', '<br>')
+
     if export_format == "pdf":
         html_content = f"""
         <html>
@@ -1431,7 +1433,7 @@ def api_export_mitigation_letter(invoice_id):
         </style>
         </head>
         <body>
-        {letter_text.replace('\n', '<br>')}
+        {formatted_letter}
         </body>
         </html>
         """
@@ -1487,7 +1489,7 @@ def api_export_mitigation_letter(invoice_id):
         </style>
         </head>
         <body>
-        {letter_text.replace('\n', '<br>')}
+        {formatted_letter}
         </body>
         </html>
         """
