@@ -129,7 +129,22 @@ def test_import_blacklisted_invoice_warning(app):
         db.session.add(blacklist_item)
         db.session.commit()
 
-        # Import XML
+        # 1. Verify hard block when blacklist_filter_enabled is True
+        from invoices.scheduler import save_scheduler_settings
+        save_scheduler_settings({
+            "blacklist_filter_enabled": True,
+            "signature_filter_enabled": False
+        })
+        
+        with pytest.raises(ValueError) as excinfo:
+            import_xml_invoice(xml_data.encode("utf-8"), "fraud.xml")
+        assert "DANH SÁCH ĐEN" in str(excinfo.value)
+
+        # 2. Verify soft warning and import when blacklist_filter_enabled is False
+        save_scheduler_settings({
+            "blacklist_filter_enabled": False,
+            "signature_filter_enabled": False
+        })
         res = import_xml_invoice(xml_data.encode("utf-8"), "fraud.xml")
         
         # Verify warnings and T-Score

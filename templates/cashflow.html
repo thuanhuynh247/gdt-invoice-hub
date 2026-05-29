@@ -3,30 +3,7 @@
 
 {% block content %}
 <style>
-    /* Glassmorphism Design Token Extensions */
-    .glass-card {
-        background: rgba(255, 255, 255, 0.08);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        border-radius: 16px;
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    
-    [data-theme="dark"] .glass-card {
-        background: rgba(30, 41, 59, 0.45);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-    }
-
-    .glass-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.08);
-        border-color: rgba(255, 255, 255, 0.25);
-    }
-
-    /* Glow variations */
+    /* Glow variations using Wise styling tokens */
     .glow-gold {
         position: relative;
     }
@@ -34,8 +11,8 @@
         content: '';
         position: absolute;
         inset: 0;
-        border-radius: 16px;
-        box-shadow: 0 0 15px rgba(217, 119, 6, 0.2);
+        border-radius: 28px;
+        box-shadow: 0 0 15px var(--primary-accent-soft);
         opacity: 0.8;
         z-index: -1;
         pointer-events: none;
@@ -48,8 +25,8 @@
         content: '';
         position: absolute;
         inset: 0;
-        border-radius: 16px;
-        box-shadow: 0 0 15px rgba(225, 29, 72, 0.2);
+        border-radius: 28px;
+        box-shadow: 0 0 15px rgba(225, 29, 72, 0.15);
         opacity: 0.8;
         z-index: -1;
         pointer-events: none;
@@ -62,8 +39,8 @@
         content: '';
         position: absolute;
         inset: 0;
-        border-radius: 16px;
-        box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+        border-radius: 28px;
+        box-shadow: 0 0 15px var(--primary-accent-soft);
         opacity: 0.8;
         z-index: -1;
         pointer-events: none;
@@ -75,20 +52,20 @@
         text-transform: uppercase;
         letter-spacing: 0.05em;
         padding: 4px 10px;
-        border-radius: 9999px;
+        border-radius: 9999px; /* Wise Pill */
     }
 </style>
 
 <div class="mb-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
     <div>
-        <h1 class="h3 fw-bold mb-1 bg-gradient bg-clip-text text-transparent" style="background-image: linear-gradient(45deg, #10b981, #3b82f6);">
+        <h1 class="h3 fw-bold mb-1" style="color: var(--text-primary);">
             Intelligent Cashflow Oracle
         </h1>
         <p class="text-secondary mb-0">Phân tích tuổi nợ & Giả định kịch bản dự báo dòng tiền AI (90 Ngày).</p>
     </div>
     <div class="d-flex align-items-center gap-2">
-        <button class="btn btn-outline-primary btn-sm rounded-pill shadow-sm px-3" onclick="exportCashflowData()">
-            <i class="bi bi-download me-1"></i> Xuất Báo cáo CSV
+        <button class="btn btn-outline-excel btn-sm px-3" onclick="exportCashflowData()">
+            <i class="bi bi-download me-1" aria-hidden="true"></i> Xuất Báo cáo CSV
         </button>
     </div>
 </div>
@@ -104,10 +81,10 @@
                     <span class="badge text-bg-warning bg-opacity-10 text-warning px-2.5 py-1">Kỳ Hạn</span>
                 </div>
                 <h3 class="fw-bold text-warning mb-1" id="expectedInflow">0 ₫</h3>
-                <p class="text-secondary small mb-0" id="arCountLabel">Đang tải...</p>
+                <p class="text-secondary small mb-0" id="arCountLabel">Đang tải…</p>
             </div>
             <div class="position-absolute bottom-0 end-0 p-3 opacity-10">
-                <i class="bi bi-arrow-down-left-circle-fill fs-1 text-warning"></i>
+                <i class="bi bi-arrow-down-left-circle-fill fs-1 text-warning" aria-hidden="true"></i>
             </div>
         </div>
     </div>
@@ -121,10 +98,10 @@
                     <span class="badge text-bg-danger bg-opacity-10 text-danger px-2.5 py-1">Kỳ Hạn</span>
                 </div>
                 <h3 class="fw-bold text-danger mb-1" id="expectedOutflow">0 ₫</h3>
-                <p class="text-secondary small mb-0" id="apCountLabel">Đang tải...</p>
+                <p class="text-secondary small mb-0" id="apCountLabel">Đang tải…</p>
             </div>
             <div class="position-absolute bottom-0 end-0 p-3 opacity-10">
-                <i class="bi bi-arrow-up-right-circle-fill fs-1 text-danger"></i>
+                <i class="bi bi-arrow-up-right-circle-fill fs-1 text-danger" aria-hidden="true"></i>
             </div>
         </div>
     </div>
@@ -141,7 +118,7 @@
                 <p class="text-secondary small mb-0" id="baseBalanceLabel">Số dư ban đầu: 0 ₫</p>
             </div>
             <div class="position-absolute bottom-0 end-0 p-3 opacity-10">
-                <i class="bi bi-wallet2 fs-1 text-success"></i>
+                <i class="bi bi-wallet2 fs-1 text-success" aria-hidden="true"></i>
             </div>
         </div>
     </div>
@@ -171,7 +148,7 @@
     <div class="col-lg-4">
         <div class="card border-0 glass-card h-100">
             <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                <h5 class="fw-bold mb-0"><i class="bi bi-sliders me-2 text-primary"></i>Kịch bản Giả định</h5>
+                <h5 class="fw-bold mb-0"><i class="bi bi-sliders me-2 text-primary" aria-hidden="true"></i>Kịch bản Giả định</h5>
                 <p class="text-secondary small mb-0">Mô phỏng tình huống chậm thanh toán từ đối tác khách hàng.</p>
             </div>
             <div class="card-body d-flex flex-column justify-content-between gap-4">
@@ -194,8 +171,8 @@
                     <div class="mb-4">
                         <label for="clientMstInput" class="form-label small fw-semibold text-secondary">Áp dụng cho Đối tác cụ thể (MST):</label>
                         <div class="input-group input-group-sm">
-                            <span class="input-group-text"><i class="bi bi-people"></i></span>
-                            <input type="text" class="form-control" id="clientMstInput" placeholder="Nhập MST khách hàng (e.g. 0109998887) hoặc bỏ trống để áp dụng tất cả">
+                            <span class="input-group-text"><i class="bi bi-people" aria-hidden="true"></i></span>
+                            <input type="text" class="form-control" id="clientMstInput" autocomplete="off" placeholder="Nhập MST khách hàng (e.g. 0109998887) hoặc bỏ trống để áp dụng tất cả">
                         </div>
                         <div class="form-text text-muted small">Nếu bỏ trống, hệ thống sẽ tự động trì hoãn toàn bộ doanh thu Phải Thu (AR) để phân tích kịch bản xấu nhất.</div>
                     </div>
@@ -205,15 +182,15 @@
                         <label for="baseBalanceInput" class="form-label small fw-semibold text-secondary">Số dư ngân hàng ban đầu (VNĐ):</label>
                         <div class="input-group input-group-sm">
                             <span class="input-group-text">₫</span>
-                            <input type="number" class="form-control" id="baseBalanceInput" placeholder="Tự động tính từ số phụ ngân hàng">
+                            <input type="number" class="form-control" id="baseBalanceInput" autocomplete="off" placeholder="Tự động tính từ số phụ ngân hàng">
                         </div>
                         <div class="form-text text-muted small">Bỏ trống để tự động lấy từ tổng số phụ ngân hàng đã đối soát thực tế.</div>
                     </div>
                 </div>
 
                 <div class="d-grid mt-auto">
-                    <button class="btn btn-primary rounded-pill shadow-sm" onclick="runProjection()">
-                        <i class="bi bi-cpu me-1"></i> Chạy Giả định Dự báo
+                    <button class="btn btn-primary-accent rounded-pill shadow-sm" onclick="runProjection()">
+                        <i class="bi bi-cpu me-1" aria-hidden="true"></i> Chạy Giả định Dự báo
                     </button>
                 </div>
             </div>
@@ -267,7 +244,7 @@
 <div class="card border-0 glass-card mb-5">
     <div class="card-header bg-transparent border-bottom pt-4 pb-3 d-flex justify-content-between align-items-center">
         <h5 class="fw-bold mb-0">Khoản mục & Cảnh báo Dòng tiền thông minh (AI Cashflow Auditor)</h5>
-        <span class="badge text-bg-info bg-opacity-10 text-info px-3 py-1.5 rounded-pill"><i class="bi bi-lightbulb me-1"></i>AI Engine Active</span>
+        <span class="badge text-bg-info bg-opacity-10 text-info px-3 py-1.5 rounded-pill"><i class="bi bi-lightbulb me-1" aria-hidden="true"></i>AI Engine Active</span>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">

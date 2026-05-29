@@ -9,6 +9,15 @@ import pytest
 from extensions import db
 from invoices.models import TaxpayerProfile, Invoice
 
+@pytest.fixture(autouse=True)
+def disable_security_filters(app):
+    with app.app_context():
+        from invoices.scheduler import save_scheduler_settings
+        save_scheduler_settings({
+            "signature_filter_enabled": False,
+            "blacklist_filter_enabled": False
+        })
+
 
 @pytest.fixture
 def seeded_taxpayer_profile(app):

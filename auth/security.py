@@ -137,8 +137,8 @@ def apply_security_headers(app: Flask) -> None:
         csp_policies = [
             "default-src 'self'",
             "script-src 'self' 'unsafe-inline' 'unsafe-eval' cdn.tailwindcss.com cdn.jsdelivr.net",
-            "style-src 'self' 'unsafe-inline' fonts.googleapis.com cdn.tailwindcss.com",
-            "font-src 'self' data: fonts.gstatic.com",
+            "style-src 'self' 'unsafe-inline' fonts.googleapis.com cdn.tailwindcss.com cdn.jsdelivr.net",
+            "font-src 'self' data: fonts.gstatic.com cdn.jsdelivr.net",
             "img-src 'self' data: api.qrserver.com",
             "connect-src 'self' https://api.qrserver.com",
             "frame-ancestors 'none'"

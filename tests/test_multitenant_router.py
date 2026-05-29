@@ -226,3 +226,91 @@ class TestEncryptedBackup:
                 key=b"0123456789abcdef0123456789abcdef",
                 base_dir=tenant_dir,
             )
+
+
+class TestTenantSQLAlchemyRouting:
+    """Test dynamic routing session with SQLAlchemy."""
+
+    def test_session_routing_to_tenant_db(self, app):
+        """Verify that db.session correctly routes queries to tenant database when session has tax_code."""
+        from extensions import db
+        from invoices.models import Invoice
+        from invoices.multitenant_service import get_tenant_db_path
+        import os
+
+        mst = "777888999"
+        db_path = get_tenant_db_path(mst).replace('\\', '/')
+        if os.path.exists(db_path):
+            os.unlink(db_path)
+
+        # 1. Run in main app context with no tax_code in session (default db)
+        with app.test_request_context():
+            # Ensure tables are created in default database
+            db.create_all()
+            
+            # Clear out any existing invoices in main db
+            db.session.query(Invoice).delete()
+            db.session.commit()
+
+            # Insert invoice into main db
+            inv_main = Invoice(
+                id="INV-MAIN-001",
+                filename="main.xml",
+                seller_name="Seller Main",
+                seller_mst="111",
+                buyer_name="Buyer Main",
+                buyer_mst="222",
+                total_amount=100.0,
+                date="2026-05-29",
+                imported_at="2026-05-29"
+            )
+            db.session.add(inv_main)
+            db.session.commit()
+
+            # Query should return main invoice
+            invoices = db.session.query(Invoice).all()
+            assert len(invoices) == 1
+            assert invoices[0].id == "INV-MAIN-001"
+
+        # 2. Run with tax_code in session (routes to tenant database)
+        from flask import session
+        with app.test_request_context():
+            session["tax_code"] = mst
+
+            # This query should route to the tenant DB, boot it up, and return empty list (isolated)
+            invoices = db.session.query(Invoice).all()
+            assert len(invoices) == 0
+
+            # Insert tenant invoice
+            inv_tenant = Invoice(
+                id="INV-TENANT-777",
+                filename="tenant.xml",
+                seller_name="Seller Tenant",
+                seller_mst="777",
+                buyer_name="Buyer Tenant",
+                buyer_mst="888",
+                total_amount=200.0,
+                date="2026-05-29",
+                imported_at="2026-05-29"
+            )
+            db.session.add(inv_tenant)
+            db.session.commit()
+
+            # Verify query returns only the tenant invoice
+            invoices = db.session.query(Invoice).all()
+            assert len(invoices) == 1
+            assert invoices[0].id == "INV-TENANT-777"
+
+        # 3. Verify main db still has only its own invoice (complete isolation)
+        with app.test_request_context():
+            # session does not have tax_code here
+            invoices = db.session.query(Invoice).all()
+            assert len(invoices) == 1
+            assert invoices[0].id == "INV-MAIN-001"
+
+        # Cleanup
+        if os.path.exists(db_path):
+            try:
+                os.unlink(db_path)
+            except Exception:
+                pass

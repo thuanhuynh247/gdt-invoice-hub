@@ -33,7 +33,10 @@ def create_app() -> Flask:
     with app.app_context():
         import os
         os.makedirs(os.path.join(app.root_path, "data"), exist_ok=True)
+        import invoices.models
         db.create_all()
+        from invoices.event_streamer import setup_webhook_delivery_bridge
+        setup_webhook_delivery_bridge()
         try:
             # Live migration check to add missing columns dynamically
             res = db.session.execute(db.text("PRAGMA table_info(invoice);")).fetchall()

@@ -2501,6 +2501,12 @@ async function loadSettingsData() {
         const autoDunningEl = document.getElementById("settingsAutoDunningEnabled");
         if (autoDunningEl) autoDunningEl.checked = !!settings.auto_dunning_enabled;
 
+        const signatureFilterEl = document.getElementById("settingsSignatureFilterEnabled");
+        if (signatureFilterEl) signatureFilterEl.checked = settings.signature_filter_enabled !== false;
+        
+        const blacklistFilterEl = document.getElementById("settingsBlacklistFilterEnabled");
+        if (blacklistFilterEl) blacklistFilterEl.checked = settings.blacklist_filter_enabled !== false;
+
         toggleWeekdayVisibility();
         toggleAiProviderFields();
         toggleTelegramFields();
@@ -2596,7 +2602,9 @@ async function handleSaveSettings() {
         telegram_enabled: document.getElementById("settingsTelegramEnabled") ? document.getElementById("settingsTelegramEnabled").checked : false,
         telegram_bot_token: document.getElementById("settingsTelegramBotToken") ? document.getElementById("settingsTelegramBotToken").value : "",
         telegram_chat_id: document.getElementById("settingsTelegramChatId") ? document.getElementById("settingsTelegramChatId").value : "",
-        auto_dunning_enabled: document.getElementById("settingsAutoDunningEnabled") ? document.getElementById("settingsAutoDunningEnabled").checked : false
+        auto_dunning_enabled: document.getElementById("settingsAutoDunningEnabled") ? document.getElementById("settingsAutoDunningEnabled").checked : false,
+        signature_filter_enabled: document.getElementById("settingsSignatureFilterEnabled") ? document.getElementById("settingsSignatureFilterEnabled").checked : true,
+        blacklist_filter_enabled: document.getElementById("settingsBlacklistFilterEnabled") ? document.getElementById("settingsBlacklistFilterEnabled").checked : true
     };
 
     try {
@@ -4909,5 +4917,492 @@ async function triggerAutoReconcileAI() {
 // Bind to startup DOM events
 document.addEventListener("DOMContentLoaded", () => {
     initializeBankReconcileEvents();
+    setupAgentHarnessEvents();
 });
+
+// ==========================================================================
+// AGENT HARNESS MODULE
+// ==========================================================================
+
+const PROVIDER_MODELS = {
+    gemini: [
+        { value: 'gemini-2.5-flash', label: 'gemini-2.5-flash' },
+        { value: 'gemini-2.5-pro', label: 'gemini-2.5-pro' }
+    ],
+    openai: [
+        { value: 'gpt-4o', label: 'gpt-4o' },
+        { value: 'gpt-4o-mini', label: 'gpt-4o-mini' },
+        { value: 'o1-mini', label: 'o1-mini' }
+    ],
+    anthropic: [
+        { value: 'claude-3-5-sonnet-latest', label: 'claude-3-5-sonnet' },
+        { value: 'claude-3-5-haiku-latest', label: 'claude-3-5-haiku' }
+    ]
+};
+
+function updateModelOptions() {
+    const providerSelect = document.getElementById('agentRunProvider');
+    const modelSelect = document.getElementById('agentRunModel');
+    if (!providerSelect || !modelSelect) return;
+
+    const provider = providerSelect.value;
+    const models = PROVIDER_MODELS[provider] || [];
+    
+    modelSelect.innerHTML = models.map(m => `<option value="${m.value}">${m.label}</option>`).join('');
+}
+
+async function loadHarnessSummary() {
+    try {
+        const response = await fetch('/api/harness/summary');
+        if (!response.ok) throw new Error("Failed to load harness summary");
+        
+        const data = await response.json();
+        
+        // Update stats
+        const stats = data.stats || {};
+        document.getElementById('harnessTotalStories').innerText = stats.total_stories || 0;
+        document.getElementById('harnessPlannedStories').innerText = `${stats.stories_by_status?.planned || 0} planned`;
+        document.getElementById('harnessInProgressStories').innerText = stats.stories_by_status?.in_progress || 0;
+        document.getElementById('harnessImplementedStories').innerText = `${stats.stories_by_status?.implemented || 0} completed`;
+        document.getElementById('harnessTotalTraces').innerText = stats.total_traces || 0;
+        document.getElementById('harnessTotalBacklog').innerText = stats.total_backlog || 0;
+        document.getElementById('harnessOpenBacklog').innerText = `${stats.backlog_by_status?.open || 0} open items`;
+
+        // Update counts in tabs
+        document.getElementById('harnessStoriesCount').innerText = data.stories?.length || 0;
+        document.getElementById('harnessDecisionsCount').innerText = data.decisions?.length || 0;
+        document.getElementById('harnessBacklogCount').innerText = data.backlog?.length || 0;
+        document.getElementById('harnessTracesCount').innerText = data.traces?.length || 0;
+
+        // Populate story run selector
+        const runStorySelect = document.getElementById('agentRunStoryId');
+        if (runStorySelect) {
+            const currentSelected = runStorySelect.value;
+            let options = '<option value="">-- Không có Story (Chạy tự do) --</option>';
+            data.stories.forEach(s => {
+                options += `<option value="${s.id}" ${s.id === currentSelected ? 'selected' : ''}>[${s.id}] ${s.title}</option>`;
+            });
+            runStorySelect.innerHTML = options;
+        }
+
+        // Render Stories Table
+        const storiesBody = document.getElementById('harnessStoriesTableBody');
+        if (storiesBody) {
+            if (data.stories.length === 0) {
+                storiesBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Chưa có story nào.</td></tr>';
+            } else {
+                storiesBody.innerHTML = data.stories.map(s => {
+                    let laneBadge = '';
+                    if (s.lane === 'tiny') laneBadge = '<span class="badge bg-info-subtle text-info">Tiny</span>';
+                    else if (s.lane === 'high_risk') laneBadge = '<span class="badge bg-danger-subtle text-danger">High Risk</span>';
+                    else laneBadge = '<span class="badge bg-secondary-subtle text-white">Normal</span>';
+
+                    let statusBadge = '';
+                    if (s.status === 'planned') statusBadge = '<span class="badge bg-warning text-dark">Planned</span>';
+                    else if (s.status === 'in_progress') statusBadge = '<span class="badge bg-primary text-white">In Progress</span>';
+                    else if (s.status === 'implemented') statusBadge = '<span class="badge bg-success text-white">Implemented</span>';
+                    else statusBadge = `<span class="badge bg-secondary text-white">${s.status}</span>`;
+
+                    const proofs = s.proofs || {};
+                    const proofIcons = [];
+                    if (proofs.unit === 1) proofIcons.push('<span class="badge bg-success" title="Unit Test Pass">UT</span>');
+                    if (proofs.integration === 1) proofIcons.push('<span class="badge bg-success" title="Integration Test Pass">INT</span>');
+                    if (proofs.e2e === 1) proofIcons.push('<span class="badge bg-success" title="E2E Test Pass">E2E</span>');
+                    if (proofs.platform === 1) proofIcons.push('<span class="badge bg-success" title="Platform Proof Pass">PL</span>');
+                    const proofHtml = proofIcons.length > 0 ? proofIcons.join(' ') : '<span class="text-muted" style="font-size:0.75rem;">Chưa kiểm</span>';
+
+                    const escapedTitle = s.title.replace(/'/g, "\\'");
+                    const escapedEvidence = (s.evidence || '').replace(/'/g, "\\'");
+                    
+                    return `
+                        <tr>
+                            <td class="font-monospace fw-bold">${s.id}</td>
+                            <td>${s.title}</td>
+                            <td>${laneBadge}</td>
+                            <td>${statusBadge}</td>
+                            <td>${proofHtml}</td>
+                            <td class="text-end">
+                                <button class="btn btn-sm btn-outline-light py-0 px-2" onclick="editStory('${s.id}', '${escapedTitle}', '${s.status}', '${escapedEvidence}', ${proofs.unit || 'null'}, ${proofs.integration || 'null'}, ${proofs.e2e || 'null'}, ${proofs.platform || 'null'})" style="font-size: 0.75rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                                    Cập nhật
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        }
+
+        // Render Decisions Table
+        const decisionsBody = document.getElementById('harnessDecisionsTableBody');
+        if (decisionsBody) {
+            if (data.decisions.length === 0) {
+                decisionsBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Chưa ghi nhận quyết định nào.</td></tr>';
+            } else {
+                decisionsBody.innerHTML = data.decisions.map(d => {
+                    let statusBadge = '';
+                    if (d.status === 'accepted') statusBadge = '<span class="badge bg-success">Accepted</span>';
+                    else if (d.status === 'proposed') statusBadge = '<span class="badge bg-warning text-dark">Proposed</span>';
+                    else if (d.status === 'rejected') statusBadge = '<span class="badge bg-danger">Rejected</span>';
+                    else statusBadge = `<span class="badge bg-secondary">${d.status}</span>`;
+
+                    const dateStr = d.timestamp ? new Date(d.timestamp).toLocaleDateString('vi-VN') : '-';
+                    
+                    return `
+                        <tr>
+                            <td class="font-monospace fw-bold">${d.id}</td>
+                            <td>${d.title}</td>
+                            <td>${statusBadge}</td>
+                            <td class="font-monospace text-muted" style="font-size:0.75rem;">${d.verify_cmd || '-'}</td>
+                            <td>${d.predicted_impact || '-'}</td>
+                            <td>${dateStr}</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        }
+
+        // Render Backlog Table
+        const backlogBody = document.getElementById('harnessBacklogTableBody');
+        if (backlogBody) {
+            if (data.backlog.length === 0) {
+                backlogBody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Chưa có đề xuất backlog nào.</td></tr>';
+            } else {
+                backlogBody.innerHTML = data.backlog.map(b => {
+                    let statusBadge = '';
+                    if (b.status === 'open') statusBadge = '<span class="badge bg-warning text-dark">Open</span>';
+                    else if (b.status === 'accepted') statusBadge = '<span class="badge bg-primary">Accepted</span>';
+                    else if (b.status === 'implemented') statusBadge = '<span class="badge bg-success">Implemented</span>';
+                    else statusBadge = `<span class="badge bg-secondary">${b.status}</span>`;
+
+                    return `
+                        <tr>
+                            <td><strong>${b.title}</strong><br><span class="text-muted" style="font-size:0.7rem;">Phát hiện: ${b.discovered_in || '-'}</span></td>
+                            <td style="max-width: 150px; white-space: normal;">${b.pain_points || '-'}</td>
+                            <td style="max-width: 150px; white-space: normal;">${b.improvement || '-'}</td>
+                            <td>${statusBadge}</td>
+                            <td>${b.positive_impact || '-'}</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        }
+
+        // Render Traces Table
+        const tracesBody = document.getElementById('harnessTracesTableBody');
+        if (tracesBody) {
+            if (data.traces.length === 0) {
+                tracesBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Chưa có dấu vết chạy agent nào.</td></tr>';
+            } else {
+                tracesBody.innerHTML = data.traces.map(t => {
+                    const timeStr = t.timestamp ? new Date(t.timestamp).toLocaleString('vi-VN') : '-';
+                    const outcomeBadge = t.outcome === 'success' 
+                        ? '<span class="badge bg-success">Success</span>' 
+                        : (t.outcome === 'failed' ? '<span class="badge bg-danger">Failed</span>' : `<span class="badge bg-secondary">${t.outcome}</span>`);
+                    
+                    return `
+                        <tr>
+                            <td>${timeStr}</td>
+                            <td style="max-width: 180px; white-space: normal;">${t.command}</td>
+                            <td class="font-monospace">${t.story_id || '-'}</td>
+                            <td class="text-muted">${t.agent_name || '-'}</td>
+                            <td class="font-monospace" style="font-size:0.75rem;">${t.git_commit ? t.git_commit.substring(0,7) : '-'}</td>
+                            <td>${outcomeBadge}</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        }
+    } catch (error) {
+        console.error("Error loading harness summary:", error);
+    }
+}
+
+function editStory(id, title, status, evidence, unit, integration, e2e, platform) {
+    document.getElementById('updateStoryId').value = id;
+    document.getElementById('updateStoryIdTitle').innerText = id;
+    document.getElementById('updateStoryStatus').value = status;
+    document.getElementById('updateStoryEvidence').value = evidence;
+    document.getElementById('updateStoryUnit').value = unit !== null ? unit : '';
+    document.getElementById('updateStoryIntegration').value = integration !== null ? integration : '';
+    document.getElementById('updateStoryE2E').value = e2e !== null ? e2e : '';
+    document.getElementById('updateStoryPlatform').value = platform !== null ? platform : '';
+
+    const modal = new bootstrap.Modal(document.getElementById('updateStoryModal'));
+    modal.show();
+}
+
+function clearConsoleLog() {
+    const consoleLog = document.getElementById('agentConsoleLog');
+    if (consoleLog) {
+        consoleLog.innerHTML = '<div class="text-muted">// Console log cleared.</div>';
+    }
+}
+
+let agentEventSource = null;
+
+function setupAgentHarnessEvents() {
+    // Form Run Agent
+    const runForm = document.getElementById('agentRunForm');
+    if (runForm) {
+        runForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const btn = document.getElementById('btnRunAgent');
+            const btnIcon = document.getElementById('runAgentBtnIcon');
+            const btnText = document.getElementById('runAgentBtnText');
+            const consoleLog = document.getElementById('agentConsoleLog');
+            
+            const storyId = document.getElementById('agentRunStoryId').value;
+            const provider = document.getElementById('agentRunProvider').value;
+            const model = document.getElementById('agentRunModel').value;
+            const goal = document.getElementById('agentRunGoal').value.trim();
+            
+            if (!goal) {
+                renderAlert("Vui lòng nhập mục tiêu cho Agent.", "warning");
+                return;
+            }
+
+            btn.disabled = true;
+            btnIcon.className = 'spinner-border spinner-border-sm';
+            btnText.innerText = 'AGENT ĐANG CHẠY...';
+            
+            consoleLog.innerHTML = '<div class="text-info">[SYSTEM] Khởi tạo kết nối Agent...</div>';
+            
+            // Close any existing connection
+            if (agentEventSource) {
+                agentEventSource.close();
+            }
+            
+            // Start SSE subscription directly, as this executes the agent script
+            const sseUrl = `/api/harness/agent/stream?provider=${encodeURIComponent(provider)}&model=${encodeURIComponent(model)}&goal=${encodeURIComponent(goal)}&story_id=${encodeURIComponent(storyId)}`;
+            
+            agentEventSource = new EventSource(sseUrl);
+            
+            agentEventSource.onmessage = (event) => {
+                let rawData = event.data;
+                let messageText = rawData;
+                
+                try {
+                    const parsed = JSON.parse(rawData);
+                    if (typeof parsed === 'object' && parsed !== null) {
+                        messageText = parsed.message || JSON.stringify(parsed);
+                    } else {
+                        messageText = parsed;
+                    }
+                } catch (err) {
+                    // Plain text
+                }
+                
+                const logLine = document.createElement('div');
+                
+                // Colorize based on contents
+                if (messageText.includes('[ERROR]') || messageText.includes('failed') || messageText.includes('Failed')) {
+                    logLine.className = 'text-danger';
+                } else if (messageText.includes('[SUCCESS]') || messageText.includes('success') || messageText.includes('Success')) {
+                    logLine.className = 'text-success';
+                } else if (messageText.includes('[TOOL]') || messageText.includes('executing')) {
+                    logLine.className = 'text-warning-emphasis';
+                } else if (messageText.startsWith('[SYSTEM]')) {
+                    logLine.className = 'text-info';
+                } else {
+                    logLine.className = 'text-white-50';
+                }
+                
+                logLine.textContent = messageText;
+                consoleLog.appendChild(logLine);
+                consoleLog.scrollTop = consoleLog.scrollHeight;
+
+                if (messageText.includes('[SYSTEM] Process completed successfully.') || messageText.includes('completed')) {
+                    renderAlert('Agent hoàn tất tác vụ thành công!', 'success');
+                }
+            };
+            
+            agentEventSource.onerror = (err) => {
+                // Since SSE auto-reconnects on close, we close it when the stream ends.
+                // We assume connection close/error after activity means completion.
+                console.log("Log stream connection changed state.");
+                
+                btn.disabled = false;
+                btnIcon.className = 'bi bi-cpu';
+                btnText.innerText = 'BẮT ĐẦU AGENT';
+                
+                if (agentEventSource) {
+                    agentEventSource.close();
+                    agentEventSource = null;
+                    const endLine = document.createElement('div');
+                    endLine.className = 'text-muted';
+                    endLine.textContent = '[SYSTEM] Log stream closed.';
+                    consoleLog.appendChild(endLine);
+                    consoleLog.scrollTop = consoleLog.scrollHeight;
+                }
+                loadHarnessSummary();
+            };
+        });
+    }
+
+    // Form Add Story
+    const addStoryForm = document.getElementById('addStoryForm');
+    if (addStoryForm) {
+        addStoryForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const modalEl = document.getElementById('addStoryModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            
+            const payload = {
+                id: document.getElementById('addStoryId').value.trim(),
+                title: document.getElementById('addStoryTitle').value.trim(),
+                lane: document.getElementById('addStoryLane').value,
+                contract_doc: document.getElementById('addStoryContract').value.trim() || null,
+                status: document.getElementById('addStoryStatus').value,
+                notes: document.getElementById('addStoryNotes').value.trim() || null
+            };
+            
+            try {
+                const response = await fetch('/api/harness/story', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || "Cannot save story");
+                
+                renderAlert("Thêm Story thành công!", "success");
+                addStoryForm.reset();
+                modal.hide();
+                loadHarnessSummary();
+            } catch (err) {
+                renderAlert(`Lỗi thêm Story: ${err.message}`, "danger");
+            }
+        });
+    }
+
+    // Form Update Story
+    const updateStoryForm = document.getElementById('updateStoryForm');
+    if (updateStoryForm) {
+        updateStoryForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const modalEl = document.getElementById('updateStoryModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            
+            const storyId = document.getElementById('updateStoryId').value;
+            
+            const valOrNull = (id) => {
+                const val = document.getElementById(id).value;
+                return val === '' ? null : parseInt(val);
+            };
+
+            const payload = {
+                id: storyId,
+                status: document.getElementById('updateStoryStatus').value,
+                evidence: document.getElementById('updateStoryEvidence').value.trim() || null,
+                proofs: {
+                    unit: valOrNull('updateStoryUnit'),
+                    integration: valOrNull('updateStoryIntegration'),
+                    e2e: valOrNull('updateStoryE2E'),
+                    platform: valOrNull('updateStoryPlatform')
+                }
+            };
+            
+            try {
+                const response = await fetch('/api/harness/story/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || "Cannot update story");
+                
+                renderAlert("Cập nhật Story thành công!", "success");
+                updateStoryForm.reset();
+                modal.hide();
+                loadHarnessSummary();
+            } catch (err) {
+                renderAlert(`Lỗi cập nhật Story: ${err.message}`, "danger");
+            }
+        });
+    }
+
+    // Form Add Decision
+    const addDecisionForm = document.getElementById('addDecisionForm');
+    if (addDecisionForm) {
+        addDecisionForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const modalEl = document.getElementById('addDecisionModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            
+            const payload = {
+                id: document.getElementById('addDecisionId').value.trim(),
+                title: document.getElementById('addDecisionTitle').value.trim(),
+                status: document.getElementById('addDecisionStatus').value,
+                doc_path: document.getElementById('addDecisionDoc').value.trim() || null,
+                verify_cmd: document.getElementById('addDecisionVerify').value.trim() || null,
+                predicted_impact: document.getElementById('addDecisionPredicted').value.trim() || null,
+                notes: document.getElementById('addDecisionNotes').value.trim() || null
+            };
+            
+            try {
+                const response = await fetch('/api/harness/decision', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || "Cannot save decision");
+                
+                renderAlert("Thêm Quyết định thành công!", "success");
+                addDecisionForm.reset();
+                modal.hide();
+                loadHarnessSummary();
+            } catch (err) {
+                renderAlert(`Lỗi thêm Quyết định: ${err.message}`, "danger");
+            }
+        });
+    }
+
+    // Form Add Backlog
+    const addBacklogForm = document.getElementById('addBacklogForm');
+    if (addBacklogForm) {
+        addBacklogForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const modalEl = document.getElementById('addBacklogModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            
+            const payload = {
+                title: document.getElementById('addBacklogTitle').value.trim(),
+                discovered_while: document.getElementById('addBacklogDiscovered').value.trim() || null,
+                current_pain: document.getElementById('addBacklogPain').value.trim() || null,
+                suggested_improvement: document.getElementById('addBacklogImprovement').value.trim() || null,
+                risk: document.getElementById('addBacklogRisk').value,
+                status: document.getElementById('addBacklogStatus').value,
+                predicted_impact: document.getElementById('addBacklogImpact').value.trim() || null,
+                notes: document.getElementById('addBacklogNotes').value.trim() || null
+            };
+            
+            try {
+                const response = await fetch('/api/harness/backlog', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || "Cannot save backlog item");
+                
+                renderAlert("Thêm đề xuất Backlog thành công!", "success");
+                addBacklogForm.reset();
+                modal.hide();
+                loadHarnessSummary();
+            } catch (err) {
+                renderAlert(`Lỗi đề xuất Backlog: ${err.message}`, "danger");
+            }
+        });
+    }
+
+    // Hook tab activation
+    const harnessTabEl = document.getElementById('agent-harness-tab');
+    if (harnessTabEl) {
+        harnessTabEl.addEventListener('shown.bs.tab', () => {
+            loadHarnessSummary();
+        });
+    }
+}
 

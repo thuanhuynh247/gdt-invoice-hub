@@ -539,11 +539,150 @@ class AIComplianceAuditor:
                 db.session.commit()
 
                 logger.info(f"AI audit completed for invoice {invoice.id}. Saved {len(created_results)} warnings.")
+                
+                # Automatically generate AI correction proposals based on audit results
+                try:
+                    self.generate_correction_proposals(invoice)
+                except Exception as ex:
+                    logger.error(f"Failed to automatically generate correction proposals: {ex}")
             except Exception as e:
                 db.session.rollback()
                 logger.error(f"Failed to parse LLM response or save results for invoice {invoice.id}: {e}. Response was: {response_text}")
 
         return created_results
+
+    def generate_correction_proposals(self, invoice) -> list:
+        """Analyze invoice audit results and automatically generate draft correction proposals."""
+        from invoices.models import InvoiceCorrectionProposal, AIAuditResult
+        from extensions import db
+        import json
+        from datetime import datetime
+
+        # Remove existing pending proposals to avoid duplication
+        try:
+            InvoiceCorrectionProposal.query.filter_by(invoice_id=invoice.id, status="pending").delete()
+            db.session.commit()
+        except Exception as e:
+            logger.warning(f"Failed to clear existing proposals: {e}")
+            db.session.rollback()
+
+        proposals = []
+        warnings = AIAuditResult.query.filter_by(invoice_id=invoice.id).all()
+        now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        for w in warnings:
+            if w.warning_type == "cash_payment_risk":
+                orig_pm = invoice.payment_method or "TM"
+                p = InvoiceCorrectionProposal(
+                    invoice_id=invoice.id,
+                    taxpayer_mst=invoice.taxpayer_mst,
+                    correction_type="payment_method",
+                    original_value=orig_pm,
+                    proposed_value="CK",
+                    ai_explanation=(
+                        f"Giao dịch có tổng giá trị thanh toán lớn ({invoice.total_amount:,.0f} VND) "
+                        "nhưng phương thức ghi nhận hiện tại là tiền mặt hoặc không rõ ràng. "
+                        "Theo quy định tại Điều 15 Thông tư 219/2013/TT-BTC, bắt buộc phải thanh toán không dùng tiền mặt "
+                        "để được khấu trừ thuế GTGT đầu vào và tính vào chi phí được trừ khi xác định thuế TNDN. "
+                        "AI Auditor đề xuất chuyển sang Chuyển khoản (CK)."
+                    ),
+                    status="pending",
+                    created_at=now_str,
+                    updated_at=now_str
+                )
+                db.session.add(p)
+                proposals.append(p)
+
+            elif w.warning_type == "tax_rate_mismatch":
+                item_name = ""
+                if "Mặt hàng '" in w.explanation:
+                    parts = w.explanation.split("'")
+                    if len(parts) > 1:
+                        item_name = parts[1]
+
+                orig_payload = {"item_name": item_name, "tax_rate": "8%"}
+                prop_payload = {"item_name": item_name, "tax_rate": "10%"}
+
+                p = InvoiceCorrectionProposal(
+                    invoice_id=invoice.id,
+                    taxpayer_mst=invoice.taxpayer_mst,
+                    correction_type="tax_rate",
+                    original_value=json.dumps(orig_payload, ensure_ascii=False),
+                    proposed_value=json.dumps(prop_payload, ensure_ascii=False),
+                    ai_explanation=(
+                        f"Phát hiện rủi ro áp dụng sai mức thuế suất GTGT cho mặt hàng '{item_name}'. "
+                        "Đề xuất điều chỉnh mức thuế suất từ 8% lên 10% theo quy định tại Nghị định 72/2024/NĐ-CP "
+                        "và các thông tư liên quan để tránh bị cơ quan thuế truy thu thuế và xử phạt hành chính khi thanh tra."
+                    ),
+                    status="pending",
+                    created_at=now_str,
+                    updated_at=now_str
+                )
+                db.session.add(p)
+                proposals.append(p)
+
+            elif w.warning_type == "personal_purchase":
+                item_name = ""
+                if "Mặt hàng '" in w.explanation:
+                    parts = w.explanation.split("'")
+                    if len(parts) > 1:
+                        item_name = parts[1]
+
+                orig_payload = {"item_name": item_name, "deductible": True}
+                prop_payload = {"item_name": item_name, "deductible": False}
+
+                p = InvoiceCorrectionProposal(
+                    invoice_id=invoice.id,
+                    taxpayer_mst=invoice.taxpayer_mst,
+                    correction_type="non_deductible_expense",
+                    original_value=json.dumps(orig_payload, ensure_ascii=False),
+                    proposed_value=json.dumps(prop_payload, ensure_ascii=False),
+                    ai_explanation=(
+                        f"Mặt hàng '{item_name}' có tính chất tiêu dùng cá nhân/phúc lợi gia đình không phục vụ "
+                        "hoạt động sản xuất kinh doanh của doanh nghiệp. Đề xuất loại trừ chi phí này khỏi chi phí được trừ "
+                        "khi tính thuế TNDN và không thực hiện khấu trừ thuế GTGT đầu vào theo đúng quy định tại Điều 14 Thông tư 219/2013/TT-BTC."
+                    ),
+                    status="pending",
+                    created_at=now_str,
+                    updated_at=now_str
+                )
+                db.session.add(p)
+                proposals.append(p)
+
+            elif w.warning_type == "price_anomaly":
+                item_name = ""
+                if "Mặt hàng '" in w.explanation:
+                    parts = w.explanation.split("'")
+                    if len(parts) > 1:
+                        item_name = parts[1]
+
+                p = InvoiceCorrectionProposal(
+                    invoice_id=invoice.id,
+                    taxpayer_mst=invoice.taxpayer_mst,
+                    correction_type="price_anomaly_review",
+                    original_value="unverified",
+                    proposed_value="verified_with_contract",
+                    ai_explanation=(
+                        f"Đơn giá của '{item_name}' chênh lệch bất thường so với dữ liệu lịch sử của hệ thống. "
+                        "Đề xuất kiểm tra đối chiếu kỹ với hợp đồng thương mại hoặc báo giá đã duyệt để giải trình biến động giá "
+                        "khi cơ quan thuế thanh tra về tính hợp lý của chi phí đầu vào."
+                    ),
+                    status="pending",
+                    created_at=now_str,
+                    updated_at=now_str
+                )
+                db.session.add(p)
+                proposals.append(p)
+
+        if proposals:
+            try:
+                db.session.commit()
+                logger.info(f"AI Auditor automatically generated {len(proposals)} correction proposals for invoice {invoice.id}.")
+            except Exception as e:
+                db.session.rollback()
+                logger.error(f"Failed to commit correction proposals for invoice {invoice.id}: {e}")
+
+        return proposals
 
     def _call_llm(self, settings: dict, system_prompt: str, user_content: str, response_format_json: bool = False) -> str:
         provider = settings.get("ai_provider", "ollama").lower()
@@ -813,6 +952,76 @@ class AIComplianceAuditor:
             return generate_local_fallback()
 
 
+def apply_correction_proposal(proposal) -> bool:
+    """Apply the approved correction proposal changes to the related invoice and its line items."""
+    from extensions import db
+    from invoices.models import Invoice, LineItem
+    import json
+    from datetime import datetime
+
+    invoice = db.session.get(Invoice, proposal.invoice_id)
+    if not invoice:
+        logger.error(f"Invoice {proposal.invoice_id} not found for correction proposal {proposal.id}")
+        return False
+
+    try:
+        if proposal.correction_type == "payment_method":
+            invoice.payment_method = proposal.proposed_value
+
+        elif proposal.correction_type == "tax_rate":
+            try:
+                proposed_data = json.loads(proposal.proposed_value)
+                item_name = proposed_data.get("item_name", "")
+                tax_rate_str = proposed_data.get("tax_rate", "10%")
+
+                # Find matching line item
+                for item in invoice.items:
+                    if item.item_name.lower() == item_name.lower() or item_name.lower() in item.item_name.lower():
+                        item.tax_rate = tax_rate_str
+                        # Parse the numeric rate from the string (e.g. "10%" → 0.10)
+                        import re
+                        rate_match = re.search(r'(\d+(?:\.\d+)?)', tax_rate_str)
+                        rate_val = float(rate_match.group(1)) / 100.0 if rate_match else 0.10
+
+                        item.tax_amount = item.amount_before_tax * rate_val
+                        break
+
+                # Recalculate invoice totals
+                total_tax = sum(item.tax_amount for item in invoice.items)
+                invoice.tax_amount = total_tax
+                invoice.total_amount = invoice.amount_before_tax + total_tax
+            except Exception as ex:
+                logger.error(f"Failed to apply tax_rate correction: {ex}")
+                return False
+
+        elif proposal.correction_type == "non_deductible_expense":
+            try:
+                proposed_data = json.loads(proposal.proposed_value)
+                item_name = proposed_data.get("item_name", "")
+
+                for item in invoice.items:
+                    if item.item_name.lower() == item_name.lower() or item_name.lower() in item.item_name.lower():
+                        item.expense_category = "Chi phí không được trừ"
+                        break
+            except Exception as ex:
+                logger.error(f"Failed to apply non_deductible_expense correction: {ex}")
+                return False
+
+        elif proposal.correction_type == "price_anomaly_review":
+            # Price anomaly review is purely informational, just mark as approved/reviewed
+            pass
+
+        proposal.status = "approved"
+        proposal.updated_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        db.session.commit()
+        logger.info(f"Successfully applied correction proposal {proposal.id} to invoice {invoice.id}")
+        return True
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Failed to apply correction proposal {proposal.id}: {e}")
+        return False
+
+
 class AIChatAgent:
     """Intelligent conversational agent powered by local LLMs (Gemma-4) for invoice querying."""
 
@@ -935,7 +1144,7 @@ class AIChatAgent:
         # Fetch recent chat history in the session
         history = AIChatMessage.query.filter_by(session_id=session_id).order_by(AIChatMessage.id.asc()).all()
         history_context = ""
-        for msg in history[-5:]:  # Last 5 messages
+        for msg in history[-10:]:  # Last 10 messages
             history_context += f"{'Kế toán' if msg.role == 'user' else 'Trợ lý AI'}: {msg.content}\n"
 
         # 1. Classify intent

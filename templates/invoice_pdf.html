@@ -373,8 +373,8 @@
 <body>
 
     <div class="control-bar">
-        <a href="javascript:window.close();" class="btn-back"><i class="bi bi-arrow-left"></i> Đóng Cửa Sổ</a>
-        <button onclick="window.print();" class="btn-print"><i class="bi bi-printer"></i> In Hóa Đơn (PDF)</button>
+        <a href="javascript:window.close();" class="btn-back"><i class="bi bi-arrow-left" aria-hidden="true"></i> Đóng Cửa Sổ</a>
+        <button onclick="window.print();" class="btn-print"><i class="bi bi-printer" aria-hidden="true"></i> In Hóa Đơn (PDF)</button>
     </div>
 
     <div class="invoice-container">
@@ -506,12 +506,12 @@
                 
                 <!-- Digital Stamp -->
                 <div class="digi-stamp">
-                    <span class="digi-stamp-logo"><i class="bi bi-shield-check"></i></span>
+                    <span class="digi-stamp-logo"><i class="bi bi-shield-check" aria-hidden="true"></i></span>
                     <span class="digi-stamp-title">Ký Số Xác Thực</span>
                     <span>Ký bởi: {{ seller.name }}</span>
                     <span>MST: {{ seller.mst }}</span>
                     <span>Ngày ký: {{ invoice.date }}</span>
-                    <span style="color: #38bdf8; font-size: 9px; margin-top: 3px; display: inline-flex; align-items: center; gap: 4px;"><i class="bi bi-patch-check-fill"></i> Hóa đơn hợp lệ GDT</span>
+                    <span style="color: #38bdf8; font-size: 9px; margin-top: 3px; display: inline-flex; align-items: center; gap: 4px;"><i class="bi bi-patch-check-fill" aria-hidden="true"></i> Hóa đơn hợp lệ GDT</span>
                 </div>
             </div>
         </div>

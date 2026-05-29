@@ -1,6 +1,7 @@
-"""Real-Time Compliance Monitoring & Alert Hub (US-104, US-105).
+"""Real-Time Compliance Monitoring & Alert Hub (US-104, US-105, US-120).
 
-Provides a configurable rule engine for invoice compliance monitoring
+Provides a configurable rule engine for invoice compliance monitoring,
+dynamic Rulebook DSL interpreter with schema validation,
 and multi-channel alert dispatch (webhook, email, in-app notifications).
 """
 
@@ -32,7 +33,7 @@ class ComplianceRule:
 class ComplianceAlert:
     """An alert triggered by a compliance rule."""
     id: int
-    rule_id: int
+    rule_id: Any
     rule_name: str
     severity: str
     message: str
@@ -43,6 +44,99 @@ class ComplianceAlert:
 
     def to_dict(self) -> dict:
         return asdict(self)
+
+
+def validate_rulebook_dsl(rulebook: dict) -> tuple[bool, str | None]:
+    """Validate the rulebook DSL schema structure.
+    
+    Returns (True, None) if valid, or (False, error_message) if invalid.
+    """
+    if not isinstance(rulebook, dict):
+        return False, "Rulebook must be a JSON object"
+    
+    if "rules" not in rulebook:
+        return False, "Rulebook must contain a list of 'rules'"
+    
+    rules = rulebook["rules"]
+    if not isinstance(rules, list):
+        return False, "'rules' must be a JSON array"
+    
+    valid_operators = {">", ">=", "<", "<=", "==", "!=", "in", "contains"}
+    valid_severities = {"info", "warning", "critical"}
+    
+    def validate_expr(expr: dict, is_item: bool = False) -> tuple[bool, str | None]:
+        if not isinstance(expr, dict):
+            return False, f"Expression must be a JSON object, got: {expr}"
+        
+        connectors = {"and", "or", "not", "any_item", "all_items", "field"}
+        keys = set(expr.keys())
+        active_connectors = keys.intersection(connectors)
+        
+        if not active_connectors:
+            return False, f"Expression must contain at least one valid key: {connectors}"
+            
+        if len(active_connectors) > 1:
+            return False, f"Expression cannot combine multiple top-level keys in a single node: {active_connectors}"
+            
+        conn = list(active_connectors)[0]
+        
+        if conn in ("and", "or"):
+            conditions = expr[conn]
+            if not isinstance(conditions, list):
+                return False, f"'{conn}' value must be a list of sub-expressions"
+            for c in conditions:
+                ok, err = validate_expr(c, is_item)
+                if not ok:
+                    return False, err
+                    
+        elif conn == "not":
+            ok, err = validate_expr(expr["not"], is_item)
+            if not ok:
+                return False, err
+                
+        elif conn in ("any_item", "all_items"):
+            if is_item:
+                return False, f"Nested item-level checks '{conn}' are not allowed inside item evaluations"
+            ok, err = validate_expr(expr[conn], is_item=True)
+            if not ok:
+                return False, err
+                
+        elif conn == "field":
+            field_name = expr.get("field")
+            if not isinstance(field_name, str) or not field_name:
+                return False, "comparison must have a non-empty string 'field'"
+            
+            op = expr.get("op")
+            if op not in valid_operators:
+                return False, f"invalid or missing operator 'op': '{op}'. Valid: {valid_operators}"
+                
+            if "value" not in expr:
+                return False, "comparison must specify a 'value'"
+                
+        return True, None
+        
+    for i, rule in enumerate(rules):
+        if not isinstance(rule, dict):
+            return False, f"Rule at index {i} must be a JSON object"
+        
+        for required_key in ("id", "name", "expression"):
+            if required_key not in rule:
+                return False, f"Rule at index {i} is missing required key '{required_key}'"
+                
+        severity = rule.get("severity", "warning")
+        if severity not in valid_severities:
+            return False, f"Rule at index {i} has invalid severity: '{severity}'. Valid: {valid_severities}"
+            
+        channels = rule.get("channels", ["in_app"])
+        if not isinstance(channels, list):
+            return False, f"Rule at index {i} channels must be a list"
+            
+        expression = rule.get("expression")
+        ok, err = validate_expr(expression)
+        if not ok:
+            return False, f"Rule '{rule.get('name')}' has invalid expression: {err}"
+            
+    return True, None
 
 
 class ComplianceEngine:
@@ -62,8 +156,13 @@ class ComplianceEngine:
     def __init__(self):
         self.rules: list[ComplianceRule] = []
         self.alerts: list[ComplianceAlert] = []
+        self.active_rulebook: dict | None = None
         self._alert_counter = 0
         self._dispatch_log: list[dict] = []
+
+    def set_rulebook(self, rulebook: dict):
+        """Set active dynamic DSL rulebook."""
+        self.active_rulebook = rulebook
 
     def add_rule(self, rule: ComplianceRule):
         """Register a compliance rule."""
@@ -78,10 +177,11 @@ class ComplianceEngine:
         return [r for r in self.rules if r.is_active]
 
     def evaluate_invoice(self, invoice: dict) -> list[ComplianceAlert]:
-        """Evaluate a single invoice against all active rules."""
+        """Evaluate a single invoice against all active rules and DSL rulebook."""
         triggered = []
         now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
+        # 1. Evaluate standard rules
         for rule in self.get_active_rules():
             if self._matches_condition(invoice, rule.condition):
                 self._alert_counter += 1
@@ -105,6 +205,36 @@ class ComplianceEngine:
 
                 self.alerts.append(alert)
                 triggered.append(alert)
+
+        # 2. Evaluate dynamic DSL rulebook if active
+        if self.active_rulebook and "rules" in self.active_rulebook:
+            for rule_dict in self.active_rulebook["rules"]:
+                if not rule_dict.get("is_active", True):
+                    continue
+                expr = rule_dict.get("expression")
+                if expr and self._evaluate_expression(invoice, expr):
+                    self._alert_counter += 1
+                    severity = rule_dict.get("severity", "warning")
+                    alert = ComplianceAlert(
+                        id=self._alert_counter,
+                        rule_id=rule_dict.get("id"),
+                        rule_name=rule_dict.get("name"),
+                        severity=severity,
+                        message=self._build_dsl_message(rule_dict, invoice),
+                        invoice_id=invoice.get("id", ""),
+                        dispatched_channels=[],
+                        acknowledged=False,
+                        triggered_at=now,
+                    )
+
+                    channels = rule_dict.get("channels", ["in_app"])
+                    for channel in channels:
+                        success = self._dispatch(channel, alert)
+                        if success:
+                            alert.dispatched_channels.append(channel)
+
+                    self.alerts.append(alert)
+                    triggered.append(alert)
 
         return triggered
 
@@ -155,6 +285,116 @@ class ComplianceEngine:
         except (TypeError, ValueError):
             return False
 
+    def _evaluate_expression(self, invoice: dict, expr: dict) -> bool:
+        """Recursively evaluate a DSL expression against an invoice."""
+        if not isinstance(expr, dict):
+            return False
+
+        # 1. AND connector
+        if "and" in expr:
+            conditions = expr["and"]
+            if not isinstance(conditions, list) or not conditions:
+                return False
+            return all(self._evaluate_expression(invoice, cond) for cond in conditions)
+
+        # 2. OR connector
+        if "or" in expr:
+            conditions = expr["or"]
+            if not isinstance(conditions, list):
+                return False
+            return any(self._evaluate_expression(invoice, cond) for cond in conditions)
+
+        # 3. NOT connector
+        if "not" in expr:
+            return not self._evaluate_expression(invoice, expr["not"])
+
+        # 4. Item-level checks (any_item, all_items)
+        if "any_item" in expr:
+            nested = expr["any_item"]
+            items = invoice.get("items", [])
+            if not isinstance(items, list):
+                return False
+            return any(self._evaluate_item_expression(item, nested) for item in items)
+
+        if "all_items" in expr:
+            nested = expr["all_items"]
+            items = invoice.get("items", [])
+            if not isinstance(items, list) or not items:
+                return False
+            return all(self._evaluate_item_expression(item, nested) for item in items)
+
+        # 5. Direct comparison rule (field, op, value)
+        if "field" in expr:
+            field_name = expr.get("field", "")
+            op_name = expr.get("op", "==")
+            target_value = expr.get("value")
+
+            actual = invoice.get(field_name)
+            if actual is None:
+                return False
+
+            op_func = self.OPERATORS.get(op_name)
+            if op_func is None:
+                return False
+
+            try:
+                if isinstance(target_value, (int, float)) and isinstance(actual, str):
+                    try:
+                        actual = float(actual)
+                    except ValueError:
+                        pass
+                return op_func(actual, target_value)
+            except (TypeError, ValueError):
+                return False
+
+        return False
+
+    def _evaluate_item_expression(self, item: dict, expr: dict) -> bool:
+        """Evaluate a DSL expression against an individual line item."""
+        if not isinstance(expr, dict):
+            return False
+
+        # Nested AND, OR, NOT inside item evaluations
+        if "and" in expr:
+            conditions = expr["and"]
+            if not isinstance(conditions, list) or not conditions:
+                return False
+            return all(self._evaluate_item_expression(item, cond) for cond in conditions)
+
+        if "or" in expr:
+            conditions = expr["or"]
+            if not isinstance(conditions, list):
+                return False
+            return any(self._evaluate_item_expression(item, cond) for cond in conditions)
+
+        if "not" in expr:
+            return not self._evaluate_item_expression(item, expr["not"])
+
+        if "field" in expr:
+            field_name = expr.get("field", "")
+            op_name = expr.get("op", "==")
+            target_value = expr.get("value")
+
+            actual = item.get(field_name)
+            if actual is None:
+                return False
+
+            op_func = self.OPERATORS.get(op_name)
+            if op_func is None:
+                return False
+
+            try:
+                if isinstance(target_value, (int, float)) and isinstance(actual, str):
+                    try:
+                        actual = float(actual)
+                    except ValueError:
+                        pass
+                return op_func(actual, target_value)
+            except (TypeError, ValueError):
+                return False
+
+        return False
+
     def _build_message(self, rule: ComplianceRule, invoice: dict) -> str:
         """Build a human-readable alert message."""
         inv_id = invoice.get("id", "N/A")
@@ -165,6 +405,12 @@ class ComplianceEngine:
             f"[{rule.severity.upper()}] Rule '{rule.name}' triggered on invoice {inv_id}: "
             f"{field_name}={actual_value} (condition: {rule.condition.get('op', '')} {rule.condition.get('value', '')})"
         )
+
+    def _build_dsl_message(self, rule_dict: dict, invoice: dict) -> str:
+        """Build a human-readable alert message for DSL rulebook rules."""
+        inv_id = invoice.get("id", "N/A")
+        severity = rule_dict.get("severity", "warning").upper()
+        return f"[{severity}] DSL Rule '{rule_dict.get('name')}' triggered on invoice {inv_id}"
 
     def _dispatch(self, channel: str, alert: ComplianceAlert) -> bool:
         """Dispatch an alert to a specific channel.
@@ -183,17 +429,14 @@ class ComplianceEngine:
         }
 
         if channel == "webhook":
-            # In production: requests.post(webhook_url, json=payload)
             entry["payload"] = {
                 "event": "compliance_alert",
                 "alert": alert.to_dict(),
             }
         elif channel == "email":
-            # In production: send via SMTP
             entry["subject"] = f"[{alert.severity.upper()}] Compliance Alert: {alert.rule_name}"
             entry["body"] = alert.message
         elif channel == "in_app":
-            # In-app notifications stored in alerts list
             pass
         else:
             entry["success"] = False

@@ -5,7 +5,7 @@
 <section class="hero-panel mb-4">
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
         <div>
-            <p class="eyebrow mb-2"><i class="bi bi-lightning-charge-fill"></i> HỆ THỐNG QUẢN LÝ DOANH NGHIỆP CHUYÊN NGHIỆP</p>
+            <p class="eyebrow mb-2"><i class="bi bi-lightning-charge-fill" aria-hidden="true"></i> HỆ THỐNG QUẢN LÝ DOANH NGHIỆP CHUYÊN NGHIỆP</p>
             <h1 class="page-title mb-1">Cơ Sở Dữ Liệu & Hóa Đơn Điện Tử</h1>
             <p class="page-subtitle mb-0">Hợp nhất phân tích tài chính, danh bạ đối tác và báo cáo tuân thủ thuế BC26.</p>
         </div>
@@ -20,52 +20,57 @@
 <ul class="nav nav-pills custom-pills mb-4" id="mainAppTabs" role="tablist">
     <li class="nav-item" role="presentation">
         <button class="nav-link active" id="invoices-tab" data-bs-toggle="tab" data-bs-target="#invoices-content" type="button" role="tab" aria-controls="invoices-content" aria-selected="true">
-            <i class="bi bi-folder2-open"></i> Quản lý Hóa Đơn
+            <i class="bi bi-folder2-open" aria-hidden="true"></i> Quản lý Hóa Đơn
         </button>
     </li>
     <li class="nav-item" role="presentation">
         <button class="nav-link" id="partners-tab" data-bs-toggle="tab" data-bs-target="#partners-content" type="button" role="tab" aria-controls="partners-content" aria-selected="false">
-            <i class="bi bi-building"></i> Danh bạ Đối tác
+            <i class="bi bi-building" aria-hidden="true"></i> Danh bạ Đối tác
         </button>
     </li>
     <li class="nav-item" role="presentation">
         <button class="nav-link" id="reports-tab" data-bs-toggle="tab" data-bs-target="#reports-content" type="button" role="tab" aria-controls="reports-content" aria-selected="false">
-            <i class="bi bi-clipboard-data"></i> Báo cáo Thuế BC26
+            <i class="bi bi-clipboard-data" aria-hidden="true"></i> Báo cáo Thuế BC26
         </button>
     </li>
     <li class="nav-item" role="presentation">
         <button class="nav-link" id="tax-return-tab" data-bs-toggle="tab" data-bs-target="#tax-return-content" type="button" role="tab" aria-controls="tax-return-content" aria-selected="false">
-            <i class="bi bi-calculator"></i> Tờ Khai & Tối Ưu Thuế
+            <i class="bi bi-calculator" aria-hidden="true"></i> Tờ Khai & Tối Ưu Thuế
         </button>
     </li>
     <li class="nav-item" role="presentation">
         <button class="nav-link" id="fct-tab" data-bs-toggle="tab" data-bs-target="#fct-content" type="button" role="tab" aria-controls="fct-content" aria-selected="false">
-            <i class="bi bi-globe2"></i> Thuế Nhà Thầu NTNN
+            <i class="bi bi-globe2" aria-hidden="true"></i> Thuế Nhà Thầu NTNN
         </button>
     </li>
     <li class="nav-item" role="presentation">
         <button class="nav-link" id="vat-refund-tab" data-bs-toggle="tab" data-bs-target="#vat-refund-content" type="button" role="tab" aria-controls="vat-refund-content" aria-selected="false">
-            <i class="bi bi-wallet2"></i> Hoàn Thuế GTGT Circular 80
+            <i class="bi bi-wallet2" aria-hidden="true"></i> Hoàn Thuế GTGT Circular 80
         </button>
     </li>
     <li class="nav-item" role="presentation">
         <button class="nav-link" id="analytics-pro-tab" data-bs-toggle="tab" data-bs-target="#analytics-pro-content" type="button" role="tab" aria-controls="analytics-pro-content" aria-selected="false">
-            <i class="bi bi-graph-up-arrow"></i> Analytics Pro
+            <i class="bi bi-graph-up-arrow" aria-hidden="true"></i> Analytics Pro
         </button>
     </li>
     <li class="nav-item" role="presentation">
         <button class="nav-link" id="meinvoice-tab" data-bs-toggle="tab" data-bs-target="#meinvoice-content" type="button" role="tab" aria-controls="meinvoice-content" aria-selected="false">
-            <i class="bi bi-cpu"></i> Trí tuệ meInvoice
+            <i class="bi bi-cpu" aria-hidden="true"></i> Trí tuệ meInvoice
         </button>
     </li>
     <li class="nav-item" role="presentation">
         <button class="nav-link" id="bank-reconcile-tab" data-bs-toggle="tab" data-bs-target="#bank-reconcile-content" type="button" role="tab" aria-controls="bank-reconcile-content" aria-selected="false">
-            <i class="bi bi-bank"></i> Đối Chiếu Ngân Hàng
+            <i class="bi bi-bank" aria-hidden="true"></i> Đối Chiếu Ngân Hàng
         </button>
     </li>
     <li class="nav-item" role="presentation">
         <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings-content" type="button" role="tab" aria-controls="settings-content" aria-selected="false">
-            <i class="bi bi-gear"></i> Thiết lập Email & Lịch
+            <i class="bi bi-gear" aria-hidden="true"></i> Thiết lập Email & Lịch
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="agent-harness-tab" data-bs-toggle="tab" data-bs-target="#agent-harness-content" type="button" role="tab" aria-controls="agent-harness-content" aria-selected="false">
+            <i class="bi bi-robot" aria-hidden="true"></i> Agent Harness
         </button>
     </li>
 </ul>
@@ -79,9 +84,9 @@
         <!-- Analytics Dashboard Grid -->
         <section class="dashboard-grid mb-5">
             <div class="row g-4">
-                <!-- Card 1: Tổng chi tiêu -->
-                <div class="col-sm-6 col-lg-3">
-                    <div class="stat-card glass-card">
+                <!-- Card 1: Tổng chi tiêu (Bento Hero) -->
+                <div class="col-sm-12 col-lg-5">
+                    <div class="stat-card glass-card bento-hero">
                         <div class="stat-icon icon-spend">₫</div>
                         <div class="stat-content">
                             <p class="stat-label">Tổng Giá Trị</p>
@@ -97,29 +102,29 @@
                         <div class="stat-content">
                             <p class="stat-label">Tổng Tiền Thuế</p>
                             <h3 class="stat-value" id="statTax">0 ₫</h3>
-                            <p class="stat-subtext">Hệ thống thuế suất tự động</p>
+                            <p class="stat-subtext">Thuế suất tự động</p>
                         </div>
                     </div>
                 </div>
                 <!-- Card 3: Hợp lệ -->
-                <div class="col-sm-6 col-lg-3">
+                <div class="col-sm-6 col-lg-2">
                     <div class="stat-card glass-card">
-                        <div class="stat-icon icon-active"><i class="bi bi-check-circle"></i></div>
+                        <div class="stat-icon icon-active"><i class="bi bi-check-circle" aria-hidden="true"></i></div>
                         <div class="stat-content">
                             <p class="stat-label">Hợp Lệ</p>
                             <h3 class="stat-value text-success" id="statActiveCount">0</h3>
-                            <p class="stat-subtext">Hoạt động bình thường</p>
+                            <p class="stat-subtext">Bình thường</p>
                         </div>
                     </div>
                 </div>
                 <!-- Card 4: Đã Hủy -->
-                <div class="col-sm-6 col-lg-3">
+                <div class="col-sm-6 col-lg-2">
                     <div class="stat-card glass-card">
-                        <div class="stat-icon icon-cancelled"><i class="bi bi-x-circle"></i></div>
+                        <div class="stat-icon icon-cancelled"><i class="bi bi-x-circle" aria-hidden="true"></i></div>
                         <div class="stat-content">
                             <p class="stat-label">Đã Hủy</p>
                             <h3 class="stat-value text-danger" id="statCancelledCount">0</h3>
-                            <p class="stat-subtext">Hủy/thu hồi từ hệ thống</p>
+                            <p class="stat-subtext">Thu hồi</p>
                         </div>
                     </div>
                 </div>
@@ -131,7 +136,7 @@
                 <div class="col-lg-6">
                     <div class="glass-card p-4 h-100 chart-container-wrapper" id="vendorChartWrapper">
                         <h4 class="h6 fw-bold mb-3 d-flex align-items-center gap-2">
-                            <i class="bi bi-building text-primary"></i> Top 5 Nhà Cung Cấp (Theo Doanh Số)
+                            <i class="bi bi-building text-primary" aria-hidden="true"></i> Top 5 Nhà Cung Cấp (Theo Doanh Số)
                         </h4>
                         <div id="topVendorsContainer">
                             <!-- Dynamic SVG chart will render here -->
@@ -142,7 +147,7 @@
                 <div class="col-lg-6">
                     <div class="glass-card p-4 h-100 chart-container-wrapper" id="taxChartWrapper">
                         <h4 class="h6 fw-bold mb-3 d-flex align-items-center gap-2">
-                            <i class="bi bi-bar-chart-line text-success"></i> Phân Bổ Thuế Suất
+                            <i class="bi bi-bar-chart-line text-success" aria-hidden="true"></i> Phân Bổ Thuế Suất
                         </h4>
                         <div id="taxBreakdownContainer">
                             <!-- Dynamic SVG donut and legend will render here -->
@@ -157,30 +162,30 @@
         <!-- Filter & Search Card -->
         <section class="glass-card p-4 mb-4 search-section">
             <form id="invoiceSearchForm" class="row g-4 align-items-end">
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <label class="form-label fw-medium" for="dateFrom">Từ Ngày</label>
-                    <input type="date" class="form-control custom-input" id="dateFrom" required>
+                    <input type="date" class="form-control custom-input w-100" id="dateFrom" required autocomplete="off">
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <label class="form-label fw-medium" for="dateTo">Đến Ngày</label>
-                    <input type="date" class="form-control custom-input" id="dateTo" required>
+                    <input type="date" class="form-control custom-input w-100" id="dateTo" required autocomplete="off">
                 </div>
                 <div class="col-md-2">
                     <label class="form-label fw-medium" for="invoiceDirection">Loại Hóa Đơn</label>
-                    <select class="form-select custom-select" id="invoiceDirection">
+                    <select class="form-select custom-select w-100" id="invoiceDirection">
                         <option value="purchase" selected>Mua Vào</option>
                         <option value="sold">Bán Ra</option>
                     </select>
                 </div>
-                <div class="col-md-2">
-                    <div class="form-check form-switch custom-switch pt-2">
-                        <input class="form-check-input" type="checkbox" id="cancelledOnly">
+                <div class="col-md-2 pb-2">
+                    <div class="form-check form-switch custom-switch">
+                        <input class="form-check-input" type="checkbox" id="cancelledOnly" autocomplete="off">
                         <label class="form-check-label fw-medium" for="cancelledOnly">Chỉ hóa đơn hủy</label>
                     </div>
                 </div>
-                <div class="col-md-2 d-grid gap-2 d-flex justify-content-end">
-                    <button type="submit" class="btn btn-primary-accent btn-search">Tìm Kiếm</button>
-                    <button type="button" class="btn btn-outline-excel" id="exportExcelButton">
+                <div class="col-md-4 d-flex gap-2 justify-content-md-end justify-content-stretch">
+                    <button type="submit" class="btn btn-primary-accent btn-search flex-grow-1 flex-md-grow-0">Tìm Kiếm</button>
+                    <button type="button" class="btn btn-outline-excel flex-grow-1 flex-md-grow-0" id="exportExcelButton">
                         <span>Xuất Excel</span>
                     </button>
                 </div>
@@ -214,7 +219,7 @@
                         <tr>
                             <td colspan="7" class="text-center text-secondary py-5">
                                 <div class="empty-state">
-                                    <span class="empty-icon"><i class="bi bi-folder2-open"></i></span>
+                                    <span class="empty-icon"><i class="bi bi-folder2-open" aria-hidden="true"></i></span>
                                     <p class="mb-0">Chưa có dữ liệu. Vui lòng chọn ngày và bấm nút Tìm Kiếm.</p>
                                 </div>
                             </td>
@@ -239,12 +244,12 @@
                     <div class="btn-group custom-btn-group me-2" role="group" aria-label="Partner view mode">
                         <input type="radio" class="btn-check" name="partnerViewMode" id="viewModeAll" autocomplete="off" checked>
                         <label class="btn btn-outline-primary-accent btn-sm py-1 px-3" for="viewModeAll" style="font-size: 0.85rem; border-radius: 6px 0 0 6px;">
-                            <i class="bi bi-people-fill"></i> Tất Cả Đối Tác
+                            <i class="bi bi-people-fill" aria-hidden="true"></i> Tất Cả Đối Tác
                         </label>
 
                         <input type="radio" class="btn-check" name="partnerViewMode" id="viewModeSummary" autocomplete="off">
                         <label class="btn btn-outline-primary-accent btn-sm py-1 px-3" for="viewModeSummary" style="font-size: 0.85rem; border-radius: 0 6px 6px 0;">
-                            <i class="bi bi-calendar3"></i> Bảng Kê Đầu Vào
+                            <i class="bi bi-calendar3" aria-hidden="true"></i> Bảng Kê Đầu Vào
                         </label>
                     </div>
 
@@ -261,8 +266,8 @@
                         </select>
                     </div>
 
-                    <span class="badge text-bg-custom py-2 px-3" id="partnersCount">Đang cập nhật...</span>
-                    <button type="button" class="btn btn-outline-danger btn-sm py-1" id="btnDownloadPartnersPdf"><i class="bi bi-file-pdf"></i> Xuất PDF</button>
+                    <span class="badge text-bg-custom py-2 px-3" id="partnersCount">Đang cập nhật…</span>
+                    <button type="button" class="btn btn-outline-danger btn-sm py-1" id="btnDownloadPartnersPdf"><i class="bi bi-file-pdf" aria-hidden="true"></i> Xuất PDF</button>
                 </div>
             </div>
             
@@ -284,7 +289,7 @@
                         <tr>
                             <td colspan="7" class="text-center text-secondary py-5">
                                 <div class="empty-state">
-                                    <span class="empty-icon"><i class="bi bi-building"></i></span>
+                                    <span class="empty-icon"><i class="bi bi-building" aria-hidden="true"></i></span>
                                     <p class="mb-0">Vui lòng bấm Tìm kiếm tại tab Hóa đơn để tự động trích xuất danh sách đối tác.</p>
                                 </div>
                             </td>
@@ -299,8 +304,8 @@
                     <!-- Dynamic period aggregation blocks will be injected here -->
                     <div class="text-center text-secondary py-5 glass-card">
                         <div class="empty-state">
-                            <span class="empty-icon"><i class="bi bi-calendar3"></i></span>
-                            <p class="mb-0">Đang truy vấn bảng kê hóa đơn đầu vào theo kỳ...</p>
+                            <span class="empty-icon"><i class="bi bi-calendar3" aria-hidden="true"></i></span>
+                            <p class="mb-0">Đang truy vấn bảng kê hóa đơn đầu vào theo kỳ…</p>
                         </div>
                     </div>
                 </div>
@@ -326,7 +331,7 @@
                             <option value="quarter-2">Quý 2 / 2026</option>
                         </select>
                     </div>
-                    <button type="button" class="btn btn-outline-danger btn-sm" id="btnPrintReport"><i class="bi bi-file-pdf"></i> Xuất PDF</button>
+                    <button type="button" class="btn btn-outline-danger btn-sm" id="btnPrintReport"><i class="bi bi-file-pdf" aria-hidden="true"></i> Xuất PDF</button>
                 </div>
             </div>
 
@@ -351,7 +356,7 @@
                         <tr>
                             <td colspan="7" class="text-center text-secondary py-5">
                                 <div class="empty-state">
-                                    <span class="empty-icon"><i class="bi bi-clipboard-data"></i></span>
+                                    <span class="empty-icon"><i class="bi bi-clipboard-data" aria-hidden="true"></i></span>
                                     <p class="mb-0">Chưa có dữ liệu báo cáo. Nhấp Tìm kiếm hóa đơn để kết xuất tự động.</p>
                                 </div>
                             </td>
@@ -369,14 +374,14 @@
             <div class="col-lg-6">
                 <div class="glass-card p-4 h-100">
                     <h3 class="h5 fw-bold mb-3 d-flex align-items-center gap-2">
-                        <i class="bi bi-cloud-download text-primary-accent"></i> Tải Hàng Loạt Từ Tổng Cục Thuế
+                        <i class="bi bi-cloud-download text-primary-accent" aria-hidden="true"></i> Tải Hàng Loạt Từ Tổng Cục Thuế
                     </h3>
                     <p class="text-secondary small">Tải toàn bộ hóa đơn XML gốc trực tiếp từ Tổng cục Thuế theo tháng và tự động lưu vào kho thông minh cục bộ.</p>
                     
                     <form id="batchDownloadForm" class="row g-3 align-items-end mt-2">
                         <div class="col-sm-4">
                             <label class="form-label fw-medium" for="batchMonth">Tháng Cần Tải</label>
-                            <input type="month" class="form-control custom-input" id="batchMonth" required>
+                            <input type="month" class="form-control custom-input" id="batchMonth" required autocomplete="off">
                         </div>
                         <div class="col-sm-4">
                             <label class="form-label fw-medium" for="batchDirection">Chiều Hóa Đơn</label>
@@ -394,7 +399,7 @@
                         </div>
                         <div class="col-12 d-grid">
                             <button type="submit" class="btn btn-primary-accent" id="btnBatchDownload">
-                                <span><i class="bi bi-download"></i> Tải & Nhập Kho Cục Bộ</span>
+                                <span><i class="bi bi-download" aria-hidden="true"></i> Tải & Nhập Kho Cục Bộ</span>
                             </button>
                         </div>
                     </form>
@@ -406,12 +411,12 @@
                 <div class="glass-card p-4 h-100 d-flex flex-column justify-content-between">
                     <div>
                         <h3 class="h5 fw-bold mb-3 d-flex align-items-center gap-2">
-                            <i class="bi bi-file-earmark-zip text-success"></i> Trích Xuất & Kiểm Tra Hóa Đơn XML/ZIP
+                            <i class="bi bi-file-earmark-zip text-success" aria-hidden="true"></i> Trích Xuất & Kiểm Tra Hóa Đơn XML/ZIP
                         </h3>
                         <p class="text-secondary small mb-2">Kéo thả tệp XML hóa đơn điện tử hoặc tệp ZIP chứa nhiều XML vào đây để hệ thống phân tích và kiểm tra chữ ký số tự động.</p>
                         
                         <div class="d-flex align-items-center gap-2 mb-3">
-                            <label class="form-label fw-semibold small mb-0 text-nowrap" for="uploadDuplicateStrategy"><i class="bi bi-intersect"></i> Xử lý trùng lặp:</label>
+                            <label class="form-label fw-semibold small mb-0 text-nowrap" for="uploadDuplicateStrategy"><i class="bi bi-intersect" aria-hidden="true"></i> Xử lý trùng lặp:</label>
                             <select class="form-select custom-select form-select-sm" id="uploadDuplicateStrategy" style="max-width: 160px; height: 32px; padding: 2px 8px; font-size: 0.8rem;">
                                 <option value="overwrite" selected>Ghi đè (Cập nhật)</option>
                                 <option value="skip">Bỏ qua (Giữ cũ)</option>
@@ -421,11 +426,11 @@
 
                     <div id="dropZone" class="drop-zone">
                         <div class="drop-zone-content">
-                            <span class="drop-zone-icon"><i class="bi bi-cloud-arrow-up"></i></span>
+                            <span class="drop-zone-icon"><i class="bi bi-cloud-arrow-up" aria-hidden="true"></i></span>
                             <p class="mb-1 fw-semibold text-dark">Kéo thả tệp XML / ZIP vào đây</p>
                             <p class="text-secondary small mb-0">Hoặc click để chọn tệp từ máy tính</p>
                         </div>
-                        <input type="file" id="fileInput" class="d-none" multiple accept=".xml,.zip">
+                        <input type="file" id="fileInput" class="d-none" multiple accept=".xml,.zip" autocomplete="off" aria-label="File input">
                     </div>
                 </div>
             </div>
@@ -437,7 +442,7 @@
                 <!-- Card 1: Hợp Lệ -->
                 <div class="col-sm-6 col-lg-3">
                     <div class="stat-card glass-card">
-                        <div class="stat-icon icon-active"><i class="bi bi-check-circle"></i></div>
+                        <div class="stat-icon icon-active"><i class="bi bi-check-circle" aria-hidden="true"></i></div>
                         <div class="stat-content">
                             <p class="stat-label">Hợp Lệ</p>
                             <h3 class="stat-value text-success" id="localActiveCount">0</h3>
@@ -448,7 +453,7 @@
                 <!-- Card 2: Trùng Lặp -->
                 <div class="col-sm-6 col-lg-3">
                     <div class="stat-card glass-card">
-                        <div class="stat-icon icon-warning"><i class="bi bi-exclamation-triangle"></i></div>
+                        <div class="stat-icon icon-warning"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i></div>
                         <div class="stat-content">
                             <p class="stat-label">Trùng Lặp</p>
                             <h3 class="stat-value text-warning" id="localDuplicateCount">0</h3>
@@ -470,7 +475,7 @@
                 <!-- Card 4: MST Rủi Ro -->
                 <div class="col-sm-6 col-lg-3">
                     <div class="stat-card glass-card">
-                        <div class="stat-icon icon-dark"><i class="bi bi-shield-exclamation"></i></div>
+                        <div class="stat-icon icon-dark"><i class="bi bi-shield-exclamation" aria-hidden="true"></i></div>
                         <div class="stat-content">
                             <p class="stat-label">MST Rủi Ro</p>
                             <h3 class="stat-value text-secondary" id="localHighRiskCount">0</h3>
@@ -488,13 +493,13 @@
                 <div class="col-lg-6">
                     <div class="glass-card p-4 h-100 chart-container-wrapper">
                         <h4 class="h5 fw-bold mb-2 text-white d-flex align-items-center gap-2">
-                            <i class="bi bi-shield-check text-success"></i> Phân Bổ Xếp Hạng Tuân Thủ (T-Rating)
+                            <i class="bi bi-shield-check text-success" aria-hidden="true"></i> Phân Bổ Xếp Hạng Tuân Thủ (T-Rating)
                         </h4>
                         <p class="text-secondary small mb-4">Tỷ lệ các cấp độ tuân thủ thuế dựa trên điểm xếp hạng T-Score.</p>
                         <div class="d-flex align-items-center justify-content-center gap-4 flex-wrap" id="tscoreDistributionContainer" style="min-height: 140px;">
                             <div class="text-center text-secondary py-4 w-100">
-                                <i class="bi bi-pie-chart fs-1 mb-2 text-success opacity-55 animate-pulse"></i>
-                                <p class="small mb-0">Đang tải phân tích xếp hạng T-Rating...</p>
+                                <i class="bi bi-pie-chart fs-1 mb-2 text-success opacity-55 animate-pulse" aria-hidden="true"></i>
+                                <p class="small mb-0">Đang tải phân tích xếp hạng T-Rating…</p>
                             </div>
                         </div>
                     </div>
@@ -504,13 +509,13 @@
                 <div class="col-lg-6">
                     <div class="glass-card p-4 h-100 chart-container-wrapper">
                         <h4 class="h5 fw-bold mb-2 text-white d-flex align-items-center gap-2">
-                            <i class="bi bi-bar-chart-line text-info"></i> Phân Phối Điểm Số Rủi Ro (T-Score)
+                            <i class="bi bi-bar-chart-line text-info" aria-hidden="true"></i> Phân Phối Điểm Số Rủi Ro (T-Score)
                         </h4>
                         <p class="text-secondary small mb-4">Số lượng hóa đơn theo thang điểm tuân thủ (Rủi ro thấp đến cao).</p>
                         <div id="tscoreBarChartContainer" class="d-flex align-items-center justify-content-center" style="min-height: 140px; overflow-x: auto;">
                             <div class="text-center text-secondary py-4 w-100">
-                                <i class="bi bi-graph-up fs-1 mb-2 text-info opacity-55 animate-pulse"></i>
-                                <p class="small mb-0">Đang tải phân phối điểm T-Score...</p>
+                                <i class="bi bi-graph-up fs-1 mb-2 text-info opacity-55 animate-pulse" aria-hidden="true"></i>
+                                <p class="small mb-0">Đang tải phân phối điểm T-Score…</p>
                             </div>
                         </div>
                     </div>
@@ -521,12 +526,12 @@
         <!-- Global Search across Line Items -->
         <section class="glass-card p-4 mb-4">
             <h3 class="h5 fw-bold mb-3 d-flex align-items-center gap-2">
-                <i class="bi bi-search text-warning"></i> Tra Cứu Sản Phẩm & Mặt Hàng Thông Minh (Giống MISA)
+                <i class="bi bi-search text-warning" aria-hidden="true"></i> Tra Cứu Sản Phẩm & Mặt Hàng Thông Minh (Giống MISA)
             </h3>
             <p class="text-secondary small">Tìm kiếm tức thời tên sản phẩm, mặt hàng, số lượng, đơn giá và đối tác cung cấp trên toàn bộ kho hóa đơn đã lưu trữ.</p>
             
             <div class="input-group mb-3">
-                <input type="text" class="form-control custom-input" id="itemSearchQuery" placeholder="Nhập tên sản phẩm cần tìm (ví dụ: Laptop, Bàn phím, Dầu, Thép...)...">
+                <input type="text" class="form-control custom-input" id="itemSearchQuery" placeholder="Nhập tên sản phẩm cần tìm (ví dụ: Laptop, Bàn phím, Dầu, Thép…)…" autocomplete="off" aria-label="Nhập tên sản phẩm cần tìm (ví dụ: Laptop, Bàn phím, Dầu, Thép)">
                 <button class="btn btn-primary-accent" type="button" id="btnSearchItems">Tìm kiếm</button>
             </div>
 
@@ -560,10 +565,10 @@
                 </h3>
                 <div class="d-flex gap-2">
                     <button type="button" class="btn btn-primary-accent" id="btnExportLocalExcel">
-                        <span><i class="bi bi-file-earmark-excel"></i> Xuất Excel Kho</span>
+                        <span><i class="bi bi-file-earmark-excel" aria-hidden="true"></i> Xuất Excel Kho</span>
                     </button>
                     <button type="button" class="btn btn-outline-danger" id="btnClearLocalDb">
-                        <span><i class="bi bi-trash3"></i> Làm Sạch Kho Dữ Liệu</span>
+                        <span><i class="bi bi-trash3" aria-hidden="true"></i> Làm Sạch Kho Dữ Liệu</span>
                     </button>
                 </div>
             </div>
@@ -573,8 +578,8 @@
                 <div class="col-md-4">
                     <label class="form-label fw-medium small mb-1" for="localSearchKeyword">Tìm kiếm từ khóa</label>
                     <div class="input-group">
-                        <span class="input-group-text bg-transparent border-end-0 text-secondary"><i class="bi bi-search"></i></span>
-                        <input type="text" class="form-control custom-input border-start-0" id="localSearchKeyword" placeholder="Số hóa đơn, người bán/mua, MST...">
+                        <span class="input-group-text bg-transparent border-end-0 text-secondary"><i class="bi bi-search" aria-hidden="true"></i></span>
+                        <input type="text" class="form-control custom-input border-start-0" id="localSearchKeyword" placeholder="Số hóa đơn, người bán/mua, MST…" autocomplete="off">
                     </div>
                 </div>
                 <div class="col-md-3">
@@ -592,10 +597,10 @@
                 <div class="col-md-5">
                     <label class="form-label fw-medium small mb-1">Dải ngày lập hóa đơn</label>
                     <div class="d-flex align-items-center gap-2">
-                        <input type="date" class="form-control custom-input" id="localFilterDateFrom">
+                        <input type="date" class="form-control custom-input" id="localFilterDateFrom" autocomplete="off" aria-label="Local filter date from">
                         <span class="text-secondary small">đến</span>
-                        <input type="date" class="form-control custom-input" id="localFilterDateTo">
-                        <button type="button" class="btn btn-outline-secondary px-3" id="btnClearLocalFilters" title="Xóa bộ lọc"><i class="bi bi-x-lg"></i></button>
+                        <input type="date" class="form-control custom-input" id="localFilterDateTo" autocomplete="off" aria-label="Local filter date to">
+                        <button type="button" class="btn btn-outline-secondary px-3" id="btnClearLocalFilters" title="Xóa bộ lọc"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
                     </div>
                 </div>
             </div>
@@ -604,14 +609,14 @@
                 <table class="table align-middle custom-table" id="localInvoicesTable">
                     <thead>
                         <tr>
-                            <th class="sortable-header text-nowrap" data-sort="id" style="cursor: pointer;">Mã HĐ <i class="bi bi-arrow-down-up small ms-1 text-muted"></i></th>
-                            <th class="sortable-header text-nowrap" data-sort="date" style="cursor: pointer;">Ngày Lập <i class="bi bi-arrow-down-up small ms-1 text-muted"></i></th>
-                            <th class="sortable-header text-nowrap" data-sort="seller_name" style="cursor: pointer;">Người Bán (MST) <i class="bi bi-arrow-down-up small ms-1 text-muted"></i></th>
-                            <th class="sortable-header text-nowrap" data-sort="buyer_name" style="cursor: pointer;">Người Mua (MST) <i class="bi bi-arrow-down-up small ms-1 text-muted"></i></th>
-                            <th class="sortable-header text-end text-nowrap" data-sort="amount_before_tax" style="cursor: pointer;">Trước Thuế (₫) <i class="bi bi-arrow-down-up small ms-1 text-muted"></i></th>
-                            <th class="sortable-header text-end text-nowrap" data-sort="tax_amount" style="cursor: pointer;">Tiền Thuế (₫) <i class="bi bi-arrow-down-up small ms-1 text-muted"></i></th>
-                            <th class="sortable-header text-end text-nowrap" data-sort="total_amount" style="cursor: pointer;">Tổng Cộng (₫) <i class="bi bi-arrow-down-up small ms-1 text-muted"></i></th>
-                            <th class="sortable-header text-center text-nowrap" data-sort="is_valid" style="cursor: pointer;">Đánh Giá <i class="bi bi-arrow-down-up small ms-1 text-muted"></i></th>
+                            <th class="sortable-header text-nowrap" data-sort="id" style="cursor: pointer;">Mã HĐ <i class="bi bi-arrow-down-up small ms-1 text-muted" aria-hidden="true"></i></th>
+                            <th class="sortable-header text-nowrap" data-sort="date" style="cursor: pointer;">Ngày Lập <i class="bi bi-arrow-down-up small ms-1 text-muted" aria-hidden="true"></i></th>
+                            <th class="sortable-header text-nowrap" data-sort="seller_name" style="cursor: pointer;">Người Bán (MST) <i class="bi bi-arrow-down-up small ms-1 text-muted" aria-hidden="true"></i></th>
+                            <th class="sortable-header text-nowrap" data-sort="buyer_name" style="cursor: pointer;">Người Mua (MST) <i class="bi bi-arrow-down-up small ms-1 text-muted" aria-hidden="true"></i></th>
+                            <th class="sortable-header text-end text-nowrap" data-sort="amount_before_tax" style="cursor: pointer;">Trước Thuế (₫) <i class="bi bi-arrow-down-up small ms-1 text-muted" aria-hidden="true"></i></th>
+                            <th class="sortable-header text-end text-nowrap" data-sort="tax_amount" style="cursor: pointer;">Tiền Thuế (₫) <i class="bi bi-arrow-down-up small ms-1 text-muted" aria-hidden="true"></i></th>
+                            <th class="sortable-header text-end text-nowrap" data-sort="total_amount" style="cursor: pointer;">Tổng Cộng (₫) <i class="bi bi-arrow-down-up small ms-1 text-muted" aria-hidden="true"></i></th>
+                            <th class="sortable-header text-center text-nowrap" data-sort="is_valid" style="cursor: pointer;">Đánh Giá <i class="bi bi-arrow-down-up small ms-1 text-muted" aria-hidden="true"></i></th>
                             <th class="text-center text-nowrap">Hành Động</th>
                         </tr>
                     </thead>
@@ -619,7 +624,7 @@
                         <tr>
                             <td colspan="9" class="text-center text-secondary py-5">
                                 <div class="empty-state">
-                                    <span class="empty-icon"><i class="bi bi-lightning-charge"></i></span>
+                                    <span class="empty-icon"><i class="bi bi-lightning-charge" aria-hidden="true"></i></span>
                                     <p class="mb-0">Kho dữ liệu trống. Hãy kéo thả XML hoặc Tải hàng loạt theo tháng để trích xuất.</p>
                                 </div>
                             </td>
@@ -628,8 +633,6 @@
                 </table>
             </div>
         </section>
-    </div>
-
     </div>
 
     <!-- ================================================================== -->
@@ -642,7 +645,7 @@
             <div class="col-lg-6">
                 <div class="glass-card p-4 h-100">
                     <h3 class="h5 fw-bold mb-3 text-white d-flex align-items-center gap-2">
-                        <i class="bi bi-cloud-arrow-up text-primary-accent"></i> Nhập Sổ Phụ Ngân Hàng
+                        <i class="bi bi-cloud-arrow-up text-primary-accent" aria-hidden="true"></i> Nhập Sổ Phụ Ngân Hàng
                     </h3>
                     <p class="text-secondary small mb-3">Hỗ trợ tự động phân tích định dạng tệp Excel/CSV từ Vietcombank, Techcombank, ACB và sổ phụ đa ngân hàng chuẩn mực.</p>
                     
@@ -657,19 +660,19 @@
                         </div>
                         <div class="col-sm-6">
                             <label class="form-label fw-semibold small mb-1 text-white" for="reconcileAccountNum">Số Tài Khoản</label>
-                            <input type="text" class="form-control custom-input" id="reconcileAccountNum" placeholder="Ví dụ: 1022998887">
+                            <input type="text" class="form-control custom-input" id="reconcileAccountNum" placeholder="Ví dụ: 1022998887" autocomplete="off">
                         </div>
                         <div class="col-12 mt-3">
                             <div class="border border-dashed border-secondary border-opacity-25 rounded p-4 text-center cursor-pointer position-relative hover-border-primary" id="bankDragZone" style="background: rgba(0,0,0,0.25); transition: border-color 0.25s;">
-                                <i class="bi bi-file-earmark-spreadsheet text-success fs-1 mb-2 d-block animate-bounce"></i>
+                                <i class="bi bi-file-earmark-spreadsheet text-success fs-1 mb-2 d-block animate-bounce" aria-hidden="true"></i>
                                 <span class="text-white fw-medium d-block" id="bankFileNameDisplay">Kéo thả tệp Sổ Phụ (.xlsx, .csv) vào đây</span>
                                 <span class="text-secondary small">Hoặc click để chọn từ thư mục</span>
-                                <input type="file" id="bankFileInput" class="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer" accept=".xlsx,.xls,.csv">
+                                <input type="file" id="bankFileInput" class="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer" accept=".xlsx,.xls,.csv" autocomplete="off" aria-label="Bank file input">
                             </div>
                         </div>
                         <div class="col-12 mt-3 d-grid">
                             <button type="submit" class="btn btn-primary-accent" id="btnUploadBankStatement" style="min-height: 44px;">
-                                <i class="bi bi-cloud-upload"></i> Nhập & Phân Tích Sổ Phụ
+                                <i class="bi bi-cloud-upload" aria-hidden="true"></i> Nhập & Phân Tích Sổ Phụ
                             </button>
                         </div>
                     </form>
@@ -681,13 +684,13 @@
                 <div class="glass-card p-4 h-100 d-flex flex-column justify-content-between">
                     <div>
                         <h3 class="h5 fw-bold mb-2 text-white d-flex align-items-center gap-2">
-                            <i class="bi bi-cpu-fill text-success"></i> Công Cụ Khớp Số AI & Soundex
+                            <i class="bi bi-cpu-fill text-success" aria-hidden="true"></i> Công Cụ Khớp Số AI & Soundex
                         </h3>
                         <p class="text-secondary small mb-3">Tự động chuẩn hóa từ ngữ tiếng Việt, giải quyết viết tắt doanh nghiệp (CTY, CP, TNHH) và đối chiếu số tiền theo thuật toán tiệm cận Levenshtein.</p>
                         
                         <div class="p-3 rounded mb-3" style="background: rgba(46, 196, 182, 0.08); border: 1px solid rgba(46, 196, 182, 0.2);">
                             <div class="d-flex align-items-center justify-content-between text-white small mb-1">
-                                <span class="fw-semibold"><i class="bi bi-shield-fill-check"></i> Độ chính xác so khớp</span>
+                                <span class="fw-semibold"><i class="bi bi-shield-fill-check" aria-hidden="true"></i> Độ chính xác so khớp</span>
                                 <span class="fw-bold text-success">Mức độ Cao (~98.6%)</span>
                             </div>
                             <span class="text-secondary small d-block">Trùng mã hóa đơn & Số tiền: Khớp 100%. Trùng tên đối tác & Số tiền: Khớp 85%-95% thông qua Phonetic Soundex.</span>
@@ -696,10 +699,10 @@
                     
                     <div class="d-grid gap-2">
                         <button class="btn btn-success d-flex align-items-center justify-content-center gap-2 glow-btn" id="btnAutoReconcile" style="min-height: 46px; border-radius: 10px;">
-                            <i class="bi bi-play-circle-fill fs-5"></i> <span>Chạy Đối Chiếu AI Tự Động</span>
+                            <i class="bi bi-play-circle-fill fs-5" aria-hidden="true"></i> <span>Chạy Đối Chiếu AI Tự Động</span>
                         </button>
                         <button class="btn btn-outline-light d-flex align-items-center justify-content-center gap-2" id="btnRefreshReconciliation" style="min-height: 40px; border-radius: 10px;">
-                            <i class="bi bi-arrow-clockwise"></i> Tải Lại Danh Sách Giao Dịch
+                            <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Tải Lại Danh Sách Giao Dịch
                         </button>
                     </div>
                 </div>
@@ -740,7 +743,7 @@
                                 <tr>
                                     <td colspan="5" class="text-center text-secondary py-5">
                                         <div class="empty-state">
-                                            <span class="empty-icon"><i class="bi bi-bank"></i></span>
+                                            <span class="empty-icon"><i class="bi bi-bank" aria-hidden="true"></i></span>
                                             <p class="mb-0">Chưa có giao dịch sổ phụ ngân hàng nào. Vui lòng tải lên tệp sổ phụ.</p>
                                         </div>
                                     </td>
@@ -756,19 +759,19 @@
                 <div class="glass-card p-4 h-100 d-flex flex-column justify-content-between">
                     <div>
                         <h3 class="h5 fw-bold mb-3 text-white d-flex align-items-center gap-2">
-                            <i class="bi bi-journals text-primary-accent"></i> Bảng Theo Dõi Khớp Nợ
+                            <i class="bi bi-journals text-primary-accent" aria-hidden="true"></i> Bảng Theo Dõi Khớp Nợ
                         </h3>
                         
                         <!-- Manual matching panel -->
                         <div class="p-3 rounded mb-4" id="manualMatchPanel" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); display: none;">
-                            <h6 class="fw-semibold text-white mb-2 small"><i class="bi bi-pencil-square"></i> Can thiệp thủ công (Giao dịch đang chọn)</h6>
+                            <h6 class="fw-semibold text-white mb-2 small"><i class="bi bi-pencil-square" aria-hidden="true"></i> Can thiệp thủ công (Giao dịch đang chọn)</h6>
                             <p class="text-secondary small mb-3" id="selectedTxLabel">Không có giao dịch nào được chọn.</p>
                             
                             <div class="row g-2 align-items-end">
                                 <div class="col-sm-8">
                                     <label class="form-label fw-medium small mb-1 text-secondary" for="manualMatchInvoiceSelect">Chọn Hóa Đơn Khớp</label>
                                     <select class="form-select custom-select form-select-sm" id="manualMatchInvoiceSelect" style="height: 36px; font-size: 0.8rem;">
-                                        <option value="">Đang tải danh sách hóa đơn...</option>
+                                        <option value="">Đang tải danh sách hóa đơn…</option>
                                     </select>
                                 </div>
                                 <div class="col-sm-4 d-grid">
@@ -791,7 +794,7 @@
                                 <tbody id="reconcileResultsLogBody">
                                     <tr>
                                         <td colspan="3" class="text-center text-secondary py-5">
-                                            <span class="empty-icon"><i class="bi bi-clock-history"></i></span>
+                                            <span class="empty-icon"><i class="bi bi-clock-history" aria-hidden="true"></i></span>
                                             <p class="mb-0 small">Tiến trình và kết quả đối chiếu AI sẽ xuất hiện tại đây.</p>
                                         </td>
                                     </tr>
@@ -801,7 +804,7 @@
                     </div>
 
                     <div class="p-3 rounded mt-3 text-secondary small" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04);">
-                        <i class="bi bi-info-circle-fill text-info"></i> Nhấp chuột vào bất kỳ dòng giao dịch chưa đối chiếu nào bên trái để mở hộp thoại can thiệp thủ công nhanh.
+                        <i class="bi bi-info-circle-fill text-info" aria-hidden="true"></i> Nhấp chuột vào bất kỳ dòng giao dịch chưa đối chiếu nào bên trái để mở hộp thoại can thiệp thủ công nhanh.
                     </div>
                 </div>
             </div>
@@ -816,40 +819,40 @@
             <div class="col-lg-6">
                 <div class="glass-card p-4 mb-4">
                     <h3 class="h5 fw-bold mb-3 d-flex align-items-center gap-2">
-                        <i class="bi bi-envelope-at text-primary-accent"></i> Cấu hình SMTP Email Gửi Báo Cáo
+                        <i class="bi bi-envelope-at text-primary-accent" aria-hidden="true"></i> Cấu hình SMTP Email Gửi Báo Cáo
                     </h3>
-                    <p class="text-secondary small">Cấu hình thông tin tài khoản SMTP gửi email báo cáo (ví dụ: Gmail App Password, Mailgun, SendGrid...).</p>
+                    <p class="text-secondary small">Cấu hình thông tin tài khoản SMTP gửi email báo cáo (ví dụ: Gmail App Password, Mailgun, SendGrid…).</p>
                     
                     <form id="smtpSettingsForm" class="row g-3 mt-1">
                         <div class="col-md-8">
                             <label class="form-label fw-medium small mb-1" for="settingsSmtpHost">SMTP Host</label>
-                            <input type="text" class="form-control custom-input" id="settingsSmtpHost" placeholder="smtp.gmail.com" required>
+                            <input type="text" class="form-control custom-input" id="settingsSmtpHost" placeholder="smtp.gmail.com" required autocomplete="off">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-medium small mb-1" for="settingsSmtpPort">Cổng (Port)</label>
-                            <input type="number" class="form-control custom-input" id="settingsSmtpPort" placeholder="587" required>
+                            <input type="number" class="form-control custom-input" id="settingsSmtpPort" placeholder="587" required autocomplete="off">
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-medium small mb-1" for="settingsSmtpUser">Tên đăng nhập SMTP</label>
-                            <input type="text" class="form-control custom-input" id="settingsSmtpUser" placeholder="your-email@gmail.com" required>
+                            <input type="text" class="form-control custom-input" id="settingsSmtpUser" placeholder="your-email@gmail.com" required autocomplete="username">
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-medium small mb-1" for="settingsSmtpPass">Mật khẩu SMTP</label>
                             <div class="input-group">
-                                <input type="password" class="form-control custom-input border-end-0" id="settingsSmtpPass" required>
+                                <input type="password" class="form-control custom-input border-end-0" id="settingsSmtpPass" required autocomplete="current-password">
                                 <button class="btn btn-outline-secondary border-start-0" type="button" id="toggleSmtpPass" style="border-top-right-radius: 0.75rem; border-bottom-right-radius: 0.75rem;">
-                                    <i class="bi bi-eye"></i>
+                                    <i class="bi bi-eye" aria-hidden="true"></i>
                                 </button>
                             </div>
                         </div>
                         <div class="col-12">
                             <div class="form-check form-switch mt-2">
-                                <input class="form-check-input" type="checkbox" id="settingsSmtpUseTls" checked>
+                                <input class="form-check-input" type="checkbox" id="settingsSmtpUseTls" checked autocomplete="off">
                                 <label class="form-check-label fw-medium small" for="settingsSmtpUseTls">Sử dụng STARTTLS (Bảo mật nâng cao)</label>
                             </div>
                             <div class="col-12 mt-2">
                                 <div class="form-check form-switch custom-switch">
-                                    <input class="form-check-input" type="checkbox" id="settingsAutoDunningEnabled">
+                                    <input class="form-check-input" type="checkbox" id="settingsAutoDunningEnabled" autocomplete="off">
                                     <label class="form-check-label fw-bold text-success" for="settingsAutoDunningEnabled">Kích hoạt tự động nhắc nợ qua Email</label>
                                 </div>
                             </div>
@@ -859,20 +862,20 @@
 
                 <div class="glass-card p-4">
                     <h3 class="h5 fw-bold mb-3 d-flex align-items-center gap-2">
-                        <i class="bi bi-calendar-event text-success"></i> Thiết Lập Lịch & Tài Khoản Thuế GDT
+                        <i class="bi bi-calendar-event text-success" aria-hidden="true"></i> Thiết Lập Lịch & Tài Khoản Thuế GDT
                     </h3>
                     <p class="text-secondary small">Cấu hình thời gian gửi báo cáo tự động và cung cấp thông tin đăng nhập Tổng cục Thuế để tiến trình chạy ngầm có thể xác thực.</p>
                     
                     <form id="schedulerSettingsForm" class="row g-3 mt-1">
                         <div class="col-12">
                             <div class="form-check form-switch mb-3">
-                                <input class="form-check-input" type="checkbox" id="settingsScheduleEnabled">
+                                <input class="form-check-input" type="checkbox" id="settingsScheduleEnabled" autocomplete="off">
                                 <label class="form-check-label fw-bold text-primary-accent" for="settingsScheduleEnabled">Kích hoạt tự động chạy báo cáo định kỳ</label>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-medium small mb-1" for="settingsRecipientEmail">Email nhận báo cáo</label>
-                            <input type="email" class="form-control custom-input" id="settingsRecipientEmail" placeholder="recipient@company.com">
+                            <input type="email" class="form-control custom-input" id="settingsRecipientEmail" placeholder="recipient@company.com" autocomplete="email">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-medium small mb-1" for="settingsScheduleInterval">Chu kỳ báo cáo</label>
@@ -883,7 +886,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-medium small mb-1" for="settingsScheduleTime">Giờ chạy báo cáo</label>
-                            <input type="time" class="form-control custom-input" id="settingsScheduleTime" value="08:00">
+                            <input type="time" class="form-control custom-input" id="settingsScheduleTime" value="08:00" autocomplete="off">
                         </div>
                         <div class="col-md-6" id="weekdaySelectorWrapper" style="display: none;">
                             <label class="form-label fw-medium small mb-1" for="settingsScheduleWeekday">Ngày chạy trong tuần</label>
@@ -901,25 +904,50 @@
                         <!-- GDT tax account info for background session auto-refresh -->
                         <div class="col-md-6 mt-4">
                             <label class="form-label fw-medium small mb-1" for="settingsGdtUser">MST đăng nhập Tổng Cục Thuế</label>
-                            <input type="text" class="form-control custom-input" id="settingsGdtUser" placeholder="Nhập mã số thuế...">
+                            <input type="text" class="form-control custom-input" id="settingsGdtUser" placeholder="Nhập mã số thuế…" autocomplete="username">
                         </div>
                         <div class="col-md-6 mt-4">
                             <label class="form-label fw-medium small mb-1" for="settingsGdtPass">Mật khẩu Tổng Cục Thuế</label>
                             <div class="input-group">
-                                <input type="password" class="form-control custom-input border-end-0" id="settingsGdtPass">
+                                <input type="password" class="form-control custom-input border-end-0" id="settingsGdtPass" autocomplete="current-password">
                                 <button class="btn btn-outline-secondary border-start-0" type="button" id="toggleGdtPass" style="border-top-right-radius: 0.75rem; border-bottom-right-radius: 0.75rem;">
-                                    <i class="bi bi-eye"></i>
+                                    <i class="bi bi-eye" aria-hidden="true"></i>
                                 </button>
                             </div>
                         </div>
                         
                         <div class="col-12 d-flex gap-3 mt-4">
                             <button type="button" class="btn btn-outline-secondary w-50" id="btnTestEmail" style="min-height: 44px; border-radius: 0.75rem;">
-                                <span><i class="bi bi-send-check"></i> Gửi Email Thử</span>
+                                <span><i class="bi bi-send-check" aria-hidden="true"></i> Gửi Email Thử</span>
                             </button>
                             <button type="button" class="btn btn-primary-accent w-50" id="btnSaveSettings" style="min-height: 44px; border-radius: 0.75rem;">
-                                <span><i class="bi bi-check2-square"></i> Lưu Thiết Lập</span>
+                                <span><i class="bi bi-check2-square" aria-hidden="true"></i> Lưu Thiết Lập</span>
                             </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Security Filters & Fraud Prevention Card -->
+                <div class="glass-card p-4 mt-4">
+                    <h3 class="h5 fw-bold mb-3 d-flex align-items-center gap-2">
+                        <i class="bi bi-shield-lock-fill text-danger animate-pulse" aria-hidden="true"></i> Bộ Lọc Bảo Mật & Chống Gian Lận Hóa Đơn
+                    </h3>
+                    <p class="text-secondary small">Cấu hình các bộ lọc chặn cứng gian lận hóa đơn tại cổng import XML để bảo vệ hệ thống khỏi hóa đơn bất hợp pháp hoặc giả mạo.</p>
+                    
+                    <form id="securityFiltersForm" class="row g-3 mt-1">
+                        <div class="col-12">
+                            <div class="form-check form-switch custom-switch mb-2">
+                                <input class="form-check-input" type="checkbox" id="settingsSignatureFilterEnabled" checked autocomplete="off">
+                                <label class="form-check-label fw-bold text-danger" for="settingsSignatureFilterEnabled" style="font-size: 0.95rem;">Chặn cứng hóa đơn lỗi chữ ký số</label>
+                            </div>
+                            <span class="text-secondary small d-block mb-3" style="line-height: 1.4;">Tự động từ chối import nếu hóa đơn không có chữ ký số, chữ ký số không hợp lệ hoặc phát hiện nội dung XML bị thay đổi sau khi ký (tampering).</span>
+                        </div>
+                        <div class="col-12 border-top border-secondary border-opacity-10 pt-3">
+                            <div class="form-check form-switch custom-switch mb-2">
+                                <input class="form-check-input" type="checkbox" id="settingsBlacklistFilterEnabled" checked autocomplete="off">
+                                <label class="form-check-label fw-bold text-danger" for="settingsBlacklistFilterEnabled" style="font-size: 0.95rem;">Chặn cứng hóa đơn từ doanh nghiệp thuộc Danh sách đen</label>
+                            </div>
+                            <span class="text-secondary small d-block" style="line-height: 1.4;">Tự động từ chối import nếu MST người bán nằm trong danh sách đen chặn gian lận của Tổng Cục Thuế hoặc nhóm doanh nghiệp rủi ro cao.</span>
                         </div>
                     </form>
                 </div>
@@ -927,21 +955,21 @@
                 <!-- Real-time Synchronization & Webhooks Card -->
                 <div class="glass-card p-4 mt-4">
                     <h3 class="h5 fw-bold mb-3 d-flex align-items-center gap-2">
-                        <i class="bi bi-lightning-charge-fill text-warning animate-pulse"></i> Đồng Bộ Hóa Thời Gian Thực & Webhooks
+                        <i class="bi bi-lightning-charge-fill text-warning animate-pulse" aria-hidden="true"></i> Đồng Bộ Hóa Thời Gian Thực & Webhooks
                     </h3>
                     <p class="text-secondary small">Cấu hình tác vụ chạy ngầm tự động quét và tải hóa đơn mới từ Tổng cục Thuế theo chu kỳ ngắn, kết hợp phát thông báo hệ thống và gửi Webhooks bảo mật tới ứng dụng bên thứ ba.</p>
                     
                     <form id="realtimeSettingsForm" class="row g-3 mt-1">
                         <div class="col-12">
                             <div class="form-check form-switch mb-2">
-                                <input class="form-check-input" type="checkbox" id="settingsRealtimeSyncEnabled">
+                                <input class="form-check-input" type="checkbox" id="settingsRealtimeSyncEnabled" autocomplete="off">
                                 <label class="form-check-label fw-bold text-warning" for="settingsRealtimeSyncEnabled">Kích hoạt tự động đồng bộ thời gian thực</label>
                             </div>
                         </div>
                         <div class="col-md-12">
                             <label class="form-label fw-medium small mb-1" for="settingsRealtimeSyncInterval">Tần suất đồng bộ (Phút)</label>
                             <div class="input-group">
-                                <input type="number" class="form-control custom-input" id="settingsRealtimeSyncInterval" value="15" min="5" placeholder="15">
+                                <input type="number" class="form-control custom-input" id="settingsRealtimeSyncInterval" value="15" min="5" placeholder="15" autocomplete="off">
                                 <span class="input-group-text bg-transparent text-secondary border-secondary border-opacity-25" style="border-top-right-radius: 0.75rem; border-bottom-right-radius: 0.75rem;">phút / lần</span>
                             </div>
                             <div class="form-text text-secondary" style="font-size: 0.75rem;">Khuyến nghị từ 15-30 phút để tối ưu hiệu năng và tránh bị giới hạn IP bởi GDT.</div>
@@ -950,32 +978,32 @@
                         <!-- Webhook section -->
                         <div class="col-12 border-top border-secondary border-opacity-10 pt-3 mt-3">
                             <h4 class="h6 fw-bold mb-2 text-primary-accent d-flex align-items-center gap-2">
-                                <i class="bi bi-link-45deg"></i> Secure Webhook Endpoint (HMAC-SHA256)
+                                <i class="bi bi-link-45deg" aria-hidden="true"></i> Secure Webhook Endpoint (HMAC-SHA256)
                             </h4>
                         </div>
                         <div class="col-12">
                             <div class="form-check form-switch mb-3">
-                                <input class="form-check-input" type="checkbox" id="settingsWebhookEnabled">
+                                <input class="form-check-input" type="checkbox" id="settingsWebhookEnabled" autocomplete="off">
                                 <label class="form-check-label fw-semibold text-secondary-accent" for="settingsWebhookEnabled">Kích hoạt Webhook khi có hóa đơn mới</label>
                             </div>
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-medium small mb-1" for="settingsWebhookUrl">Webhook URL</label>
-                            <input type="url" class="form-control custom-input" id="settingsWebhookUrl" placeholder="https://api.yourcompany.com/webhooks/invoice">
+                            <input type="url" class="form-control custom-input" id="settingsWebhookUrl" placeholder="https://api.yourcompany.com/webhooks/invoice" autocomplete="off">
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-medium small mb-1" for="settingsWebhookSecret">Webhook Secret (Khóa Ký HMAC)</label>
                             <div class="input-group">
-                                <input type="password" class="form-control custom-input border-end-0" id="settingsWebhookSecret" placeholder="Nhập khóa bí mật để xác thực chữ ký...">
+                                <input type="password" class="form-control custom-input border-end-0" id="settingsWebhookSecret" placeholder="Nhập khóa bí mật để xác thực chữ ký…" autocomplete="off">
                                 <button class="btn btn-outline-secondary border-start-0" type="button" id="toggleWebhookSecret" style="border-top-right-radius: 0.75rem; border-bottom-right-radius: 0.75rem;">
-                                    <i class="bi bi-eye"></i>
+                                    <i class="bi bi-eye" aria-hidden="true"></i>
                                 </button>
                             </div>
                         </div>
                         
                         <div class="col-12 d-flex gap-2 mt-4">
                             <button type="button" class="btn btn-outline-warning w-100" id="btnTriggerRealtimeSync" style="min-height: 44px; border-radius: 0.75rem;">
-                                <span><i class="bi bi-lightning-charge"></i> Kích Hoạt Đồng Bộ Ngay</span>
+                                <span><i class="bi bi-lightning-charge" aria-hidden="true"></i> Kích Hoạt Đồng Bộ Ngay</span>
                             </button>
                         </div>
                     </form>
@@ -987,14 +1015,14 @@
                 <!-- AI Auditing Card -->
                 <div class="glass-card p-4 mb-4">
                     <h3 class="h5 fw-bold mb-3 d-flex align-items-center gap-2">
-                        <i class="bi bi-robot text-primary-accent" style="color: #818cf8 !important;"></i> Cấu Hình Trợ Lý Kiểm Toán AI
+                        <i class="bi bi-robot text-primary-accent" style="color: #818cf8 !important;" aria-hidden="true"></i> Cấu Hình Trợ Lý Kiểm Toán AI
                     </h3>
                     <p class="text-secondary small">Tự động phân tích các mặt hàng trên hóa đơn để cảnh báo chi tiêu cá nhân không được khấu trừ hoặc đơn giá bị nâng khống bất thường.</p>
                     
                     <form id="aiSettingsForm" class="row g-3 mt-1">
                         <div class="col-12">
                             <div class="form-check form-switch mb-2">
-                                <input class="form-check-input" type="checkbox" id="settingsAiEnabled">
+                                <input class="form-check-input" type="checkbox" id="settingsAiEnabled" autocomplete="off">
                                 <label class="form-check-label fw-bold text-primary-accent" for="settingsAiEnabled" style="color: #818cf8 !important;">Kích hoạt trợ lý kiểm toán AI</label>
                             </div>
                         </div>
@@ -1008,64 +1036,64 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-medium small mb-1" for="settingsAiModelName">Tên Model</label>
-                            <input type="text" class="form-control custom-input" id="settingsAiModelName" placeholder="gemma-4">
+                            <input type="text" class="form-control custom-input" id="settingsAiModelName" placeholder="gemma-4" autocomplete="off">
                         </div>
                         <div class="col-12" id="aiOllamaEndpointWrapper">
                             <label class="form-label fw-medium small mb-1" for="settingsAiOllamaEndpoint">Ollama Endpoint URL</label>
-                            <input type="url" class="form-control custom-input" id="settingsAiOllamaEndpoint" placeholder="http://localhost:11434">
+                            <input type="url" class="form-control custom-input" id="settingsAiOllamaEndpoint" placeholder="http://localhost:11434" autocomplete="off">
                         </div>
                         <div class="col-12" id="aiApiKeyWrapper" style="display: none;">
                             <label class="form-label fw-medium small mb-1" for="settingsAiApiKey">API Key</label>
                             <div class="input-group">
-                                <input type="password" class="form-control custom-input border-end-0" id="settingsAiApiKey" placeholder="Nhập API Key bảo mật...">
+                                <input type="password" class="form-control custom-input border-end-0" id="settingsAiApiKey" placeholder="Nhập API Key bảo mật…" autocomplete="off">
                                 <button class="btn btn-outline-secondary border-start-0" type="button" id="toggleAiApiKey" style="border-top-right-radius: 0.75rem; border-bottom-right-radius: 0.75rem;">
-                                    <i class="bi bi-eye"></i>
+                                    <i class="bi bi-eye" aria-hidden="true"></i>
                                 </button>
                             </div>
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-medium small mb-1" for="settingsAiSystemPrompt">Chỉ thị kiểm toán (System Prompt)</label>
-                            <textarea class="form-control custom-input" id="settingsAiSystemPrompt" rows="3" style="font-size: 0.85rem;" placeholder="Nhập hướng dẫn phân loại..."></textarea>
+                            <textarea class="form-control custom-input" id="settingsAiSystemPrompt" rows="3" style="font-size: 0.85rem;" placeholder="Nhập hướng dẫn phân loại…" autocomplete="off"></textarea>
                         </div>
                         
                         <!-- Agent Tự Động & Cảnh Báo -->
                         <div class="col-12 border-top border-secondary border-opacity-10 pt-3 mt-3">
                             <h4 class="h6 fw-bold mb-2 text-success d-flex align-items-center gap-2">
-                                <i class="bi bi-shield-check"></i> Agent Kiểm Toán Tự Động & Telegram
+                                <i class="bi bi-shield-check" aria-hidden="true"></i> Agent Kiểm Toán Tự Động & Telegram
                             </h4>
                         </div>
                         <div class="col-md-6">
                             <div class="form-check form-switch pt-2">
-                                <input class="form-check-input" type="checkbox" id="settingsAuditAgentEnabled">
+                                <input class="form-check-input" type="checkbox" id="settingsAuditAgentEnabled" autocomplete="off">
                                 <label class="form-check-label fw-semibold text-secondary-accent" for="settingsAuditAgentEnabled">Kích hoạt Audit Agent chạy ngầm</label>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-medium small mb-1" for="settingsAuditAgentScheduleTime">Giờ chạy quét hàng ngày</label>
-                            <input type="time" class="form-control custom-input" id="settingsAuditAgentScheduleTime" value="23:00">
+                            <input type="time" class="form-control custom-input" id="settingsAuditAgentScheduleTime" value="23:00" autocomplete="off">
                         </div>
                         <div class="col-12 mt-3">
                             <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" id="settingsTelegramEnabled">
+                                <input class="form-check-input" type="checkbox" id="settingsTelegramEnabled" autocomplete="off">
                                 <label class="form-check-label fw-semibold text-info" for="settingsTelegramEnabled">Gửi cảnh báo hóa đơn rủi ro qua Telegram</label>
                             </div>
                         </div>
                         <div class="col-md-6 mt-2" id="telegramBotTokenWrapper">
                             <label class="form-label fw-medium small mb-1" for="settingsTelegramBotToken">Telegram Bot Token</label>
                             <div class="input-group">
-                                <input type="password" class="form-control custom-input border-end-0" id="settingsTelegramBotToken" placeholder="Nhập bot token...">
+                                <input type="password" class="form-control custom-input border-end-0" id="settingsTelegramBotToken" placeholder="Nhập bot token…" autocomplete="off">
                                 <button class="btn btn-outline-secondary border-start-0" type="button" id="toggleTelegramBotToken" style="border-top-right-radius: 0.75rem; border-bottom-right-radius: 0.75rem;">
-                                    <i class="bi bi-eye"></i>
+                                    <i class="bi bi-eye" aria-hidden="true"></i>
                                 </button>
                             </div>
                         </div>
                         <div class="col-md-6 mt-2" id="telegramChatIdWrapper">
                             <label class="form-label fw-medium small mb-1" for="settingsTelegramChatId">Telegram Chat ID</label>
-                            <input type="text" class="form-control custom-input" id="settingsTelegramChatId" placeholder="Nhập chat/group ID...">
+                            <input type="text" class="form-control custom-input" id="settingsTelegramChatId" placeholder="Nhập chat/group ID…" autocomplete="off">
                         </div>
                         <div class="col-12 d-flex gap-2 mt-4">
                             <button type="button" class="btn btn-outline-secondary w-100" id="btnTestAudit" style="min-height: 44px; border-radius: 0.75rem;">
-                                <span><i class="bi bi-play-circle"></i> Chạy Quét & Kiểm Toán Ngay</span>
+                                <span><i class="bi bi-play-circle" aria-hidden="true"></i> Chạy Quét & Kiểm Toán Ngay</span>
                             </button>
                         </div>
                     </form>
@@ -1074,7 +1102,7 @@
                 <!-- Audit Logs Card -->
                 <div class="glass-card p-4">
                     <h3 class="h5 fw-bold mb-3 d-flex align-items-center gap-2">
-                        <i class="bi bi-clock-history text-warning"></i> Nhật Ký Chạy Báo Cáo Tự Động (Audit Trail)
+                        <i class="bi bi-clock-history text-warning" aria-hidden="true"></i> Nhật Ký Chạy Báo Cáo Tự Động (Audit Trail)
                     </h3>
                     <p class="text-secondary small">Xem danh sách các phiên chạy báo cáo định kỳ ngầm gần nhất và trạng thái phân phát email.</p>
                     
@@ -1101,7 +1129,7 @@
             <div class="col-12 mt-4">
                 <div class="glass-card p-4">
                     <h3 class="h5 fw-bold mb-3 d-flex align-items-center gap-2">
-                        <i class="bi bi-building text-primary-accent" style="color: #818cf8 !important;"></i> Quản Lý Danh Sách Doanh Nghiệp (Multi-MST Profiles)
+                        <i class="bi bi-building text-primary-accent" style="color: #818cf8 !important;" aria-hidden="true"></i> Quản Lý Danh Sách Doanh Nghiệp (Multi-MST Profiles)
                     </h3>
                     <p class="text-secondary small">Thêm mới và quản lý tài khoản tra cứu của các doanh nghiệp khách hàng khác nhau. Hóa đơn tải về sẽ tự động liên kết theo Mã Số Thuế tương ứng.</p>
                     
@@ -1122,7 +1150,7 @@
                                     </thead>
                                     <tbody id="taxpayerProfilesTableBody">
                                         <tr>
-                                            <td colspan="5" class="text-center text-secondary py-5">Đang tải danh sách doanh nghiệp...</td>
+                                            <td colspan="5" class="text-center text-secondary py-5">Đang tải danh sách doanh nghiệp…</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -1135,22 +1163,22 @@
                             <form id="taxpayerProfileForm" class="row g-3">
                                 <div class="col-12">
                                     <label class="form-label fw-medium small mb-1" for="profileMst">Mã số thuế</label>
-                                    <input type="text" class="form-control custom-input" id="profileMst" placeholder="Ví dụ: 0101234567" required>
+                                    <input type="text" class="form-control custom-input" id="profileMst" placeholder="Ví dụ: 0101234567" required autocomplete="organization-tax-id">
                                 </div>
                                 <div class="col-12">
                                     <label class="form-label fw-medium small mb-1" for="profileCompanyName">Tên doanh nghiệp</label>
-                                    <input type="text" class="form-control custom-input" id="profileCompanyName" placeholder="Nhập tên đầy đủ..." required>
+                                    <input type="text" class="form-control custom-input" id="profileCompanyName" placeholder="Nhập tên đầy đủ…" required autocomplete="organization">
                                 </div>
                                 <div class="col-12">
                                     <label class="form-label fw-medium small mb-1" for="profileGdtUser">Tài khoản đăng nhập GDT</label>
-                                    <input type="text" class="form-control custom-input" id="profileGdtUser" placeholder="Nhập tên đăng nhập..." required>
+                                    <input type="text" class="form-control custom-input" id="profileGdtUser" placeholder="Nhập tên đăng nhập…" required autocomplete="username">
                                 </div>
                                 <div class="col-12">
                                     <label class="form-label fw-medium small mb-1" for="profileGdtPass">Mật khẩu Tổng Cục Thuế</label>
                                     <div class="input-group">
-                                        <input type="password" class="form-control custom-input border-end-0" id="profileGdtPass" placeholder="Nhập mật khẩu..." required>
+                                        <input type="password" class="form-control custom-input border-end-0" id="profileGdtPass" placeholder="Nhập mật khẩu…" required autocomplete="current-password">
                                         <button class="btn btn-outline-secondary border-start-0" type="button" id="toggleProfileGdtPass" style="border-top-right-radius: 0.75rem; border-bottom-right-radius: 0.75rem;">
-                                            <i class="bi bi-eye"></i>
+                                            <i class="bi bi-eye" aria-hidden="true"></i>
                                         </button>
                                     </div>
                                 </div>
@@ -1172,7 +1200,7 @@
         <!-- Control panel bar -->
         <section class="glass-card p-4 mb-4">
             <h3 class="h5 fw-bold mb-3 d-flex align-items-center gap-2">
-                <i class="bi bi-calculator text-primary-accent"></i> Kê Khai Thuế GTGT Mẫu 01/GTGT & Tối Ưu Hóa Khấu Trừ Bằng AI
+                <i class="bi bi-calculator text-primary-accent" aria-hidden="true"></i> Kê Khai Thuế GTGT Mẫu 01/GTGT & Tối Ưu Hóa Khấu Trừ Bằng AI
             </h3>
             <p class="text-secondary small">Dự thảo tự động tờ khai thuế giá trị gia tăng mẫu 01/GTGT dựa trên các hóa đơn đầu vào, đầu ra đã trích xuất, kết hợp công cụ tối ưu hóa loại trừ hóa đơn rủi ro cao để bảo vệ doanh nghiệp trước kiểm tra thuế.</p>
             
@@ -1192,11 +1220,11 @@
                 </div>
                 <div class="col-md-3">
                     <label class="form-label fw-medium small mb-1" for="vatYear">Năm Kê Khai</label>
-                    <input type="number" class="form-control custom-input" id="vatYear" value="2026" min="2020" max="2100">
+                    <input type="number" class="form-control custom-input" id="vatYear" value="2026" min="2020" max="2100" autocomplete="off">
                 </div>
                 <div class="col-md-3 d-grid">
                     <button type="submit" class="btn btn-primary-accent" id="btnLoadVatData" style="min-height: 44px;">
-                        <span id="btnLoadVatText"><i class="bi bi-arrow-clockwise"></i> Tải & Phân Tích Số Liệu</span>
+                        <span id="btnLoadVatText"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Tải & Phân Tích Số Liệu</span>
                     </button>
                 </div>
             </form>
@@ -1209,10 +1237,10 @@
                 <div class="glass-card p-4 h-100">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h4 class="h5 fw-bold mb-0 text-white d-flex align-items-center gap-2">
-                            <i class="bi bi-file-earmark-ruled text-success"></i> Tờ Khai Thuế GTGT (Mẫu Số 01/GTGT)
+                            <i class="bi bi-file-earmark-ruled text-success" aria-hidden="true"></i> Tờ Khai Thuế GTGT (Mẫu Số 01/GTGT)
                         </h4>
                         <button type="button" class="btn btn-outline-success btn-sm px-3" id="btnPrintVatDeclaration" style="border-radius: 0.5rem;">
-                            <i class="bi bi-printer"></i> In Tờ Khai
+                            <i class="bi bi-printer" aria-hidden="true"></i> In Tờ Khai
                         </button>
                     </div>
                     <div class="table-responsive custom-table-wrapper border border-secondary border-opacity-10 rounded">
@@ -1228,14 +1256,14 @@
                             <tbody>
                                 <!-- Group 1: Purchases -->
                                 <tr class="table-group-header" style="background: rgba(16, 185, 129, 0.05);">
-                                    <td colspan="4" class="fw-bold text-success"><i class="bi bi-arrow-down-left-circle"></i> A. HÀNG HÓA, DỊCH VỤ MUA VÀO KHÁNH HỘI</td>
+                                    <td colspan="4" class="fw-bold text-success"><i class="bi bi-arrow-down-left-circle" aria-hidden="true"></i> A. HÀNG HÓA, DỊCH VỤ MUA VÀO KHÁNH HỘI</td>
                                 </tr>
                                 <tr>
                                     <td class="text-center fw-bold text-secondary">[21]</td>
                                     <td>Thuế GTGT còn được khấu trừ kỳ trước chuyển sang</td>
                                     <td class="text-end bg-transparent">-</td>
                                     <td>
-                                        <input type="number" class="form-control custom-input text-end py-1 fw-bold text-success" id="indicator21" value="0" style="height: 32px; border-radius: 0.5rem; background: rgba(255,255,255,0.02) !important;">
+                                        <input type="number" class="form-control custom-input text-end py-1 fw-bold text-success" id="indicator21" value="0" style="height: 32px; border-radius: 0.5rem; background: rgba(255,255,255,0.02) !important;" autocomplete="off" aria-label="Indicator21">
                                     </td>
                                 </tr>
                                 <tr>
@@ -1265,7 +1293,7 @@
 
                                 <!-- Group 2: Sales -->
                                 <tr class="table-group-header" style="background: rgba(239, 68, 68, 0.05);">
-                                    <td colspan="4" class="fw-bold text-danger"><i class="bi bi-arrow-up-right-circle"></i> B. HÀNG HÓA, DỊCH VỤ BÁN RA (ĐẦU RA)</td>
+                                    <td colspan="4" class="fw-bold text-danger"><i class="bi bi-arrow-up-right-circle" aria-hidden="true"></i> B. HÀNG HÓA, DỊCH VỤ BÁN RA (ĐẦU RA)</td>
                                 </tr>
                                 <tr>
                                     <td class="text-center fw-bold text-secondary">[26]</td>
@@ -1318,7 +1346,7 @@
 
                                 <!-- Group 3: Balance & Payables -->
                                 <tr class="table-group-header" style="background: rgba(255,255,255,0.04);">
-                                    <td colspan="4" class="fw-bold text-warning"><i class="bi bi-piggy-bank"></i> C. KẾT QUẢ NGHĨA VỤ THUẾ TRONG KỲ</td>
+                                    <td colspan="4" class="fw-bold text-warning"><i class="bi bi-piggy-bank" aria-hidden="true"></i> C. KẾT QUẢ NGHĨA VỤ THUẾ TRONG KỲ</td>
                                 </tr>
                                 <tr style="background: rgba(239, 68, 68, 0.08);">
                                     <td class="text-center fw-bold text-danger">[40]</td>
@@ -1343,7 +1371,7 @@
                 <div class="glass-card p-4 h-100 d-flex flex-column justify-content-between">
                     <div>
                         <h4 class="h5 fw-bold mb-2 text-white d-flex align-items-center gap-2">
-                            <i class="bi bi-shield-check text-primary-accent"></i> Trợ Lý Tối Ưu Khấu Trừ Thuế AI
+                            <i class="bi bi-shield-check text-primary-accent" aria-hidden="true"></i> Trợ Lý Tối Ưu Khấu Trừ Thuế AI
                         </h4>
                         <p class="text-secondary small mb-3">
                             Phát hiện các hóa đơn mua vào có dấu hiệu rủi ro cao về thuế (Chưa ký số, MST ngừng hoạt động, hoặc hóa đơn thanh toán bằng Tiền mặt &ge; 5 triệu VND). Các hóa đơn này đã được AI đề xuất loại trừ khỏi Chỉ tiêu [25] để tránh rủi ro thanh tra. Bạn có thể sử dụng các công tắc dưới đây để ghi đè quyết định nếu có hồ sơ giải trình hợp lệ.
@@ -1358,7 +1386,7 @@
                         <div class="d-flex flex-column gap-3" id="vatDisputedList" style="max-height: 480px; overflow-y: auto; padding-right: 4px;">
                             <!-- Will be populated by JS -->
                             <div class="text-center text-secondary py-5">
-                                <i class="bi bi-emoji-smile fs-1 text-success mb-2"></i>
+                                <i class="bi bi-emoji-smile fs-1 text-success mb-2" aria-hidden="true"></i>
                                 <p class="small mb-0">Tuyệt vời! Không phát hiện hóa đơn đầu vào nào có rủi ro pháp lý cao trong kỳ này.</p>
                             </div>
                         </div>
@@ -1367,7 +1395,7 @@
                     <!-- Footprint recommendation box -->
                     <div class="mt-4 p-3 rounded border border-success border-opacity-20" style="background: rgba(16, 185, 129, 0.05);" id="vatRecommendationBox">
                         <h6 class="fw-bold small text-success mb-1 d-flex align-items-center gap-2">
-                            <i class="bi bi-shield-fill-check"></i> KHUYẾN NGHỊ TUÂN THỦ TỪ TRỢ LÝ AI
+                            <i class="bi bi-shield-fill-check" aria-hidden="true"></i> KHUYẾN NGHỊ TUÂN THỦ TỪ TRỢ LÝ AI
                         </h6>
                         <p class="text-secondary small mb-0" id="vatRecommendationText">
                             Dữ liệu tuân thủ thuế an toàn tuyệt đối. Hãy chuẩn bị các chứng từ thanh toán không dùng tiền mặt (Ủy nhiệm chi) cho các hóa đơn mua vào hợp lệ để hoàn tất hồ sơ quyết toán.
@@ -1382,7 +1410,7 @@
 <div class="offcanvas offcanvas-end glass-drawer" tabindex="-1" id="invoiceDetailsDrawer" aria-labelledby="invoiceDetailsDrawerLabel">
     <div class="offcanvas-header border-bottom">
         <div class="d-flex align-items-center gap-2">
-            <span class="drawer-header-accent"><i class="bi bi-receipt"></i></span>
+            <span class="drawer-header-accent"><i class="bi bi-receipt" aria-hidden="true"></i></span>
             <h5 class="offcanvas-title fw-bold" id="invoiceDetailsDrawerLabel">Chi Tiết Hóa Đơn</h5>
         </div>
         <button type="button" class="btn-close btn-close-custom" data-bs-dismiss="offcanvas" aria-label="Close"></button>
@@ -1407,7 +1435,7 @@
             <!-- Digital Signature Verification Panel inside Drawer -->
             <div id="detSignatureBox" class="mb-4" style="display: none;">
                 <h6 class="fw-bold mb-2 text-info d-flex align-items-center gap-2">
-                    <i class="bi bi-shield-check"></i> XÁC THỰC CHỮ KÝ SỐ (XML-DSIG)
+                    <i class="bi bi-shield-check" aria-hidden="true"></i> XÁC THỰC CHỮ KÝ SỐ (XML-DSIG)
                 </h6>
                 <div id="detSignatureContent" class="p-3 rounded border border-info border-opacity-25" style="background-color: rgba(13, 202, 240, 0.05); font-size: 0.85rem;">
                 </div>
@@ -1416,14 +1444,14 @@
             <!-- AI Compliance Audit Box inside Drawer -->
             <div id="detAiAuditBox" class="mb-4">
                 <h6 class="fw-bold mb-2 d-flex align-items-center justify-content-between" style="color: #a5b4fc !important;">
-                    <span class="d-flex align-items-center gap-2"><i class="bi bi-robot"></i> TRỢ LÝ AI MEINVOICE</span>
+                    <span class="d-flex align-items-center gap-2"><i class="bi bi-robot" aria-hidden="true"></i> TRỢ LÝ AI MEINVOICE</span>
                     <div class="d-flex gap-2 align-items-center">
                         <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none fw-semibold d-flex align-items-center gap-1" id="btnRunAiAudit" style="font-size: 0.8rem; color: #a5b4fc !important;">
-                            <i class="bi bi-play-circle-fill"></i> Kiểm Toán
+                            <i class="bi bi-play-circle-fill" aria-hidden="true"></i> Kiểm Toán
                         </button>
                         <span style="color: rgba(255,255,255,0.2); font-size: 0.8rem;">|</span>
                         <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none fw-semibold d-flex align-items-center gap-1" id="btnRunAiClassification" style="font-size: 0.8rem; color: #10b981 !important;">
-                            <i class="bi bi-tag-fill"></i> Phân Loại
+                            <i class="bi bi-tag-fill" aria-hidden="true"></i> Phân Loại
                         </button>
                     </div>
                 </h6>
@@ -1437,9 +1465,9 @@
             <!-- AI Metadata Repair Box inside Drawer -->
             <div id="detAiRepairBox" class="mb-4">
                 <h6 class="fw-bold mb-2 d-flex align-items-center justify-content-between" style="color: #34d399 !important;">
-                    <span class="d-flex align-items-center gap-2"><i class="bi bi-magic"></i> TỐI ƯU HÓA DỮ LIỆU AI</span>
+                    <span class="d-flex align-items-center gap-2"><i class="bi bi-magic" aria-hidden="true"></i> TỐI ƯU HÓA DỮ LIỆU AI</span>
                     <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none fw-semibold d-flex align-items-center gap-1" id="btnRunAiRepair" style="font-size: 0.8rem; color: #34d399 !important;">
-                        <i class="bi bi-play-circle-fill"></i> Đề xuất Sửa lỗi
+                        <i class="bi bi-play-circle-fill" aria-hidden="true"></i> Đề xuất Sửa lỗi
                     </button>
                 </h6>
                 <div id="detAiRepairContent" class="p-3 rounded border border-secondary border-opacity-25 d-none" style="background-color: rgba(52, 211, 153, 0.08);">
@@ -1500,7 +1528,7 @@
             <!-- Action Buttons inside Drawer -->
             <div class="d-grid gap-2">
                 <button type="button" class="btn btn-primary-accent w-100 py-2 fw-semibold" id="btnViewPrintInvoice">
-                    <i class="bi bi-file-earmark-pdf"></i> Xem Bản In Hóa Đơn (PDF)
+                    <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i> Xem Bản In Hóa Đơn (PDF)
                 </button>
             </div>
         </div>
@@ -1513,12 +1541,12 @@
         <div class="modal-content glass-card border border-secondary border-opacity-25 shadow-lg">
             <div class="modal-header border-bottom-0 pb-0">
                 <h5 class="modal-title fw-bold d-flex align-items-center gap-2" id="downloadProgressModalLabel">
-                    <i class="bi bi-cloud-download text-primary-accent"></i>
+                    <i class="bi bi-cloud-download text-primary-accent" aria-hidden="true"></i>
                     <span>Đang Tải Hóa Đơn Hàng Loạt</span>
                 </h5>
             </div>
             <div class="modal-body py-4">
-                <p class="text-secondary small mb-3" id="downloadProgressText">Đang khởi tạo tiến trình tải từ Tổng Cục Thuế...</p>
+                <p class="text-secondary small mb-3" id="downloadProgressText">Đang khởi tạo tiến trình tải từ Tổng Cục Thuế…</p>
                 <div class="progress mb-3" style="height: 10px; background-color: rgba(255, 255, 255, 0.05); border-radius: 5px; overflow: hidden;">
                     <div class="progress-bar progress-bar-striped progress-bar-animated" id="downloadProgressBar" role="progressbar" style="width: 0%; background-color: var(--primary-accent);" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                 </div>
@@ -1527,7 +1555,7 @@
                     <span class="badge text-bg-success" id="downloadProgressPercent" style="background-color: var(--primary-accent) !important;">0%</span>
                 </div>
                 <div class="alert alert-danger mt-3 d-none" id="downloadProgressError" role="alert" style="background-color: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); color: #f87171;">
-                    <i class="bi bi-exclamation-triangle-fill"></i> <span id="downloadProgressErrorMessage">Có lỗi xảy ra trong quá trình tải.</span>
+                    <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i> <span id="downloadProgressErrorMessage">Có lỗi xảy ra trong quá trình tải.</span>
                 </div>
             </div>
             <div class="modal-footer border-top-0 pt-0">
@@ -1544,27 +1572,27 @@
             <div class="modal-header d-flex align-items-center justify-content-between py-2 px-3 border-bottom border-secondary border-opacity-10" style="background: var(--bg-card);">
                 <div class="d-flex align-items-center gap-3">
                     <div class="d-flex align-items-center gap-2 text-primary-accent">
-                        <i class="bi bi-file-earmark-ruled fs-5"></i>
+                        <i class="bi bi-file-earmark-ruled fs-5" aria-hidden="true"></i>
                         <span class="fw-bold" id="viewerModalLabel" style="font-family: 'Outfit', sans-serif;">Trình Xem Hóa Đơn Mẫu</span>
                     </div>
-                    <span id="viewerStatusBadge" class="badge-audit-ok"><i class="bi bi-check-circle"></i> Hợp lệ</span>
+                    <span id="viewerStatusBadge" class="badge-audit-ok"><i class="bi bi-check-circle" aria-hidden="true"></i> Hợp lệ</span>
                     <span class="text-secondary small d-none d-md-inline" id="viewerInvoiceMetaInfo" style="font-family: var(--font-body); letter-spacing: 0.02em;"></span>
                 </div>
                 <div class="d-flex align-items-center gap-2">
                     <button type="button" class="btn btn-sm btn-primary-accent d-flex align-items-center gap-1 py-1 px-3 fw-semibold" id="btnViewerDownloadXml" style="min-height: 38px; border-radius: 0.75rem;">
-                        <i class="bi bi-filetype-xml"></i> Tải XML
+                        <i class="bi bi-filetype-xml" aria-hidden="true"></i> Tải XML
                     </button>
                     <button type="button" class="btn btn-sm btn-outline-danger d-flex align-items-center gap-1 py-1 px-3 fw-semibold" id="btnViewerDownloadPdf" style="border-radius: 0.75rem; min-height: 38px; border: 1px solid #ef4444 !important; color: #ef4444 !important;">
-                        <i class="bi bi-file-pdf"></i> Tải PDF
+                        <i class="bi bi-file-pdf" aria-hidden="true"></i> Tải PDF
                     </button>
                     <button type="button" class="btn btn-sm btn-outline-success d-flex align-items-center gap-1 py-1 px-3 fw-semibold" id="btnViewerPrint" style="border-radius: 0.75rem; min-height: 38px; border: 1px solid #10b981 !important; color: #10b981 !important;">
-                        <i class="bi bi-printer"></i> In Hóa Đơn
+                        <i class="bi bi-printer" aria-hidden="true"></i> In Hóa Đơn
                     </button>
                     <button type="button" class="btn btn-sm btn-outline-warning d-flex align-items-center gap-1 py-1 px-3 fw-semibold" id="btnViewerMitigationLetter" style="border-radius: 0.75rem; min-height: 38px; border: 1px solid #f59e0b !important; color: #f59e0b !important;">
-                        <i class="bi bi-robot"></i> Soạn Giải Trình AI
+                        <i class="bi bi-robot" aria-hidden="true"></i> Soạn Giải Trình AI
                     </button>
                     <button type="button" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1 py-1 px-3 fw-semibold" id="btnViewerNewTab" title="Mở trong tab mới" style="border-radius: 0.75rem; min-height: 38px; border: 1px solid var(--border-card) !important; color: var(--text-primary) !important;">
-                        <i class="bi bi-box-arrow-up-right"></i> Mở tab mới
+                        <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i> Mở tab mới
                     </button>
                     <button type="button" class="btn-close btn-close-custom ms-2" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -1573,9 +1601,9 @@
                 <!-- Loading indicator overlay -->
                 <div id="viewerLoadingOverlay" class="position-absolute top-50 start-50 translate-middle d-flex flex-column align-items-center gap-2 z-3 bg-dark bg-opacity-75 p-4 rounded-3 shadow-lg text-white" style="transition: opacity 0.3s ease;">
                     <div class="spinner-border text-primary-accent" role="status" style="width: 2.5rem; height: 2.5rem;">
-                        <span class="visually-hidden">Loading...</span>
+                        <span class="visually-hidden">Loading…</span>
                     </div>
-                    <span class="fw-medium small mt-2">Đang dựng bản in hóa đơn điện tử...</span>
+                    <span class="fw-medium small mt-2">Đang dựng bản in hóa đơn điện tử…</span>
                 </div>
                 <!-- PDF HTML iframe -->
                 <iframe id="invoiceViewerIframe" src="about:blank" style="width: 100%; height: 100%; border: none; display: block; background: #fff;" class="opacity-0"></iframe>
@@ -1590,7 +1618,7 @@
         <div class="modal-content glass-card border border-secondary border-opacity-25 shadow-lg">
             <div class="modal-header border-bottom border-secondary border-opacity-10 py-3" style="background: var(--bg-card);">
                 <div class="d-flex align-items-center gap-2">
-                    <span class="text-primary-accent"><i class="bi bi-pencil-square fs-5"></i></span>
+                    <span class="text-primary-accent"><i class="bi bi-pencil-square fs-5" aria-hidden="true"></i></span>
                     <h5 class="modal-title fw-bold" id="adjustInvoiceModalLabel">Điều Chỉnh Hóa Đơn Cục Bộ</h5>
                 </div>
                 <button type="button" class="btn-close btn-close-custom" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -1601,7 +1629,7 @@
                     
                     <div class="col-md-6">
                         <label class="form-label fw-medium small mb-1" for="adjustDate">Ngày Lập Hóa Đơn</label>
-                        <input type="date" class="form-control custom-input" id="adjustDate" required>
+                        <input type="date" class="form-control custom-input" id="adjustDate" required autocomplete="off">
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-medium small mb-1" for="adjustInvoiceStatus">Trạng Trạng Kế Toán (Thuế)</label>
@@ -1615,48 +1643,48 @@
 
                     <div class="col-md-6">
                         <label class="form-label fw-medium small mb-1" for="adjustSellerName">Tên Đơn Vị Bán Hàng</label>
-                        <input type="text" class="form-control custom-input" id="adjustSellerName" required>
+                        <input type="text" class="form-control custom-input" id="adjustSellerName" required autocomplete="organization">
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-medium small mb-1" for="adjustSellerMst">Mã Số Thuế Người Bán</label>
-                        <input type="text" class="form-control custom-input" id="adjustSellerMst" required>
+                        <input type="text" class="form-control custom-input" id="adjustSellerMst" required autocomplete="organization-tax-id">
                     </div>
 
                     <div class="col-md-6">
                         <label class="form-label fw-medium small mb-1" for="adjustBuyerName">Tên Đơn Vị Mua Hàng</label>
-                        <input type="text" class="form-control custom-input" id="adjustBuyerName" required>
+                        <input type="text" class="form-control custom-input" id="adjustBuyerName" required autocomplete="organization">
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-medium small mb-1" for="adjustBuyerMst">Mã Số Thuế Người Mua</label>
-                        <input type="text" class="form-control custom-input" id="adjustBuyerMst" required>
+                        <input type="text" class="form-control custom-input" id="adjustBuyerMst" required autocomplete="organization-tax-id">
                     </div>
 
                     <div class="col-md-4">
                         <label class="form-label fw-medium small mb-1" for="adjustAmountBeforeTax">Tiền Trước Thuế (₫)</label>
-                        <input type="number" step="0.01" class="form-control custom-input" id="adjustAmountBeforeTax" required>
+                        <input type="number" step="0.01" class="form-control custom-input" id="adjustAmountBeforeTax" required autocomplete="off">
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-medium small mb-1" for="adjustTaxAmount">Tiền Thuế GTGT (₫)</label>
-                        <input type="number" step="0.01" class="form-control custom-input" id="adjustTaxAmount" required>
+                        <input type="number" step="0.01" class="form-control custom-input" id="adjustTaxAmount" required autocomplete="off">
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-medium small mb-1" for="adjustTotalAmount">Tổng Cộng Sau Thuế (₫)</label>
-                        <input type="number" step="0.01" class="form-control custom-input" id="adjustTotalAmount" required>
+                        <input type="number" step="0.01" class="form-control custom-input" id="adjustTotalAmount" required autocomplete="off">
                     </div>
 
                     <div class="col-md-6">
                         <label class="form-label fw-medium small mb-1" for="adjustPaymentMethod">Hình Thức Thanh Toán</label>
-                        <input type="text" class="form-control custom-input" id="adjustPaymentMethod" placeholder="TM, CK, TM/CK...">
+                        <input type="text" class="form-control custom-input" id="adjustPaymentMethod" placeholder="TM, CK, TM/CK…" autocomplete="off">
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-medium small mb-1" for="adjustNotes">Ghi Chú Điều Chỉnh</label>
-                        <input type="text" class="form-control custom-input" id="adjustNotes" placeholder="Nhập lý do thay đổi/điều chỉnh...">
+                        <input type="text" class="form-control custom-input" id="adjustNotes" autocomplete="off" placeholder="Nhập lý do thay đổi/điều chỉnh…">
                     </div>
                 </form>
             </div>
             <div class="modal-footer border-top border-secondary border-opacity-10 py-3" style="background: var(--bg-card);">
-                <button type="button" class="btn btn-sm btn-outline-secondary px-3" data-bs-dismiss="modal" style="border-radius: 0.75rem;">Hủy bỏ</button>
-                <button type="button" class="btn btn-sm btn-primary-accent px-4" id="btnSubmitAdjustInvoice" style="border-radius: 0.75rem;">Lưu Thay Đổi</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary px-3" data-bs-dismiss="modal" style="border-radius: 9999px;">Hủy bỏ</button>
+                <button type="button" class="btn btn-sm btn-primary-accent px-4" id="btnSubmitAdjustInvoice" style="border-radius: 9999px;">Lưu Thay Đổi</button>
             </div>
         </div>
     </div>
@@ -1667,7 +1695,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content glass-card border border-secondary border-opacity-25 shadow-lg">
             <div class="modal-header border-bottom border-secondary border-opacity-10 py-3" style="background: var(--bg-card);">
-                <h5 class="modal-title fw-bold text-light d-flex align-items-center gap-2" id="editCategoryModalLabel"><i class="bi bi-tag-fill text-success"></i> Chỉnh Sửa Danh Mục Chi Phí</h5>
+                <h5 class="modal-title fw-bold text-light d-flex align-items-center gap-2" id="editCategoryModalLabel"><i class="bi bi-tag-fill text-success" aria-hidden="true"></i> Chỉnh Sửa Danh Mục Chi Phí</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4 text-light">
@@ -1678,7 +1706,7 @@
                 </div>
                 <div class="mb-3">
                     <label for="editCategorySelector" class="form-label small text-secondary fw-semibold mb-1" style="color: #a5b4fc !important;">DANH MỤC CHI PHÍ</label>
-                    <select class="form-select custom-input bg-dark border-secondary border-opacity-25 text-light" id="editCategorySelector" style="border-radius: 0.75rem;">
+                    <select class="form-select custom-input bg-dark border-secondary border-opacity-25 text-light" id="editCategorySelector" style="border-radius: 9999px;">
                         <option value="Văn phòng phẩm & Thiết bị văn phòng">Văn phòng phẩm & Thiết bị văn phòng</option>
                         <option value="Thiết bị công nghệ & Phần mềm">Thiết bị công nghệ & Phần mềm</option>
                         <option value="Chi phí tiếp khách & Hội nghị">Chi phí tiếp khách & Hội nghị</option>
@@ -1691,8 +1719,8 @@
                 </div>
             </div>
             <div class="modal-footer border-top border-secondary border-opacity-10 py-3" style="background: var(--bg-card);">
-                <button type="button" class="btn btn-sm btn-outline-secondary px-3" data-bs-dismiss="modal" style="border-radius: 0.75rem;">Hủy bỏ</button>
-                <button type="button" class="btn btn-sm btn-success px-4" id="btnSaveCategoryChange" style="border-radius: 0.75rem;">Lưu Thay Đổi</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary px-3" data-bs-dismiss="modal" style="border-radius: 9999px;">Hủy bỏ</button>
+                <button type="button" class="btn btn-sm btn-success px-4" id="btnSaveCategoryChange" style="border-radius: 9999px;">Lưu Thay Đổi</button>
             </div>
         </div>
     </div>
@@ -1704,15 +1732,15 @@
         <div class="modal-content glass-card border border-secondary border-opacity-25 shadow-lg d-flex flex-column" style="height: 85vh; max-height: 90vh;">
             <div class="modal-header d-flex align-items-center justify-content-between py-3 px-4 border-bottom border-secondary border-opacity-10" style="background: var(--bg-card);">
                 <div class="d-flex align-items-center gap-2">
-                    <span class="text-warning"><i class="bi bi-robot fs-4"></i></span>
+                    <span class="text-warning"><i class="bi bi-robot fs-4" aria-hidden="true"></i></span>
                     <h5 class="modal-title fw-bold" id="mitigationLetterModalLabel">Soạn Thảo Giải Trình Thuế AI (Công Văn 30/2020 & 80/2021)</h5>
                 </div>
                 <div class="d-flex align-items-center gap-2">
-                    <button type="button" class="btn btn-sm btn-outline-warning d-flex align-items-center gap-1 py-1 px-3 fw-semibold" id="btnExportMitigationDoc" style="border-radius: 0.75rem; min-height: 38px; border: 1px solid #f59e0b !important; color: #f59e0b !important;">
-                        <i class="bi bi-file-word"></i> Xuất Bản Word (.doc)
+                    <button type="button" class="btn btn-sm btn-outline-warning d-flex align-items-center gap-1 py-1 px-3 fw-semibold" id="btnExportMitigationDoc" style="border-radius: 9999px; min-height: 38px; border: 1px solid #f59e0b !important; color: #f59e0b !important;">
+                        <i class="bi bi-file-word" aria-hidden="true"></i> Xuất Bản Word (.doc)
                     </button>
-                    <button type="button" class="btn btn-sm btn-outline-danger d-flex align-items-center gap-1 py-1 px-3 fw-semibold" id="btnExportMitigationPdf" style="border-radius: 0.75rem; min-height: 38px; border: 1px solid #ef4444 !important; color: #ef4444 !important;">
-                        <i class="bi bi-file-pdf"></i> Xuất Bản PDF (.pdf)
+                    <button type="button" class="btn btn-sm btn-outline-danger d-flex align-items-center gap-1 py-1 px-3 fw-semibold" id="btnExportMitigationPdf" style="border-radius: 9999px; min-height: 38px; border: 1px solid #ef4444 !important; color: #ef4444 !important;">
+                        <i class="bi bi-file-pdf" aria-hidden="true"></i> Xuất Bản PDF (.pdf)
                     </button>
                     <button type="button" class="btn-close btn-close-custom" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -1721,16 +1749,16 @@
                 <!-- Loading indicator overlay -->
                 <div id="mitigationLoadingOverlay" class="d-flex flex-column align-items-center justify-content-center py-5 gap-3 h-100">
                     <div class="spinner-border text-warning" role="status" style="width: 3rem; height: 3rem;">
-                        <span class="visually-hidden">Loading...</span>
+                        <span class="visually-hidden">Loading…</span>
                     </div>
-                    <span class="fw-semibold text-warning">Trợ lý AI đang phân tích rủi ro & soạn thảo công văn giải trình...</span>
+                    <span class="fw-semibold text-warning">Trợ lý AI đang phân tích rủi ro & soạn thảo công văn giải trình…</span>
                     <p class="text-secondary small text-center px-4" style="max-width: 500px;">Quá trình này có thể mất từ 15-30 giây tùy thuộc vào độ phức tạp của hóa đơn và hiệu năng của mô hình ngôn ngữ lớn (Gemma-4).</p>
                 </div>
                 <!-- Content panel -->
                 <div id="mitigationContentPanel" class="d-none h-100 d-flex flex-column">
                     <div class="mb-3 flex-grow-1 d-flex flex-column">
                         <label for="mitigationLetterTextarea" class="form-label fw-bold small text-secondary">Nội dung công văn giải trình (Có thể chỉnh sửa trực tiếp trước khi tải xuống):</label>
-                        <textarea class="form-control custom-input font-monospace flex-grow-1" id="mitigationLetterTextarea" style="min-height: 450px; font-family: 'Times New Roman', serif; font-size: 11.5pt; line-height: 1.6; padding: 20px; border-radius: 0.75rem; background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-card);"></textarea>
+                        <textarea class="form-control custom-input font-monospace flex-grow-1" id="mitigationLetterTextarea" style="min-height: 450px; font-family: 'Times New Roman', serif; font-size: 11.5pt; line-height: 1.6; padding: 20px; border-radius: 12px; background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-card);" autocomplete="off"></textarea>
                     </div>
                 </div>
             </div>
@@ -1741,42 +1769,42 @@
 <!-- Floating AI Chatbot Button & Panel -->
 <div class="position-fixed bottom-0 end-0 p-4" style="z-index: 1050;">
     <!-- Chat Toggle Button -->
-    <button class="btn btn-primary-accent shadow-lg rounded-circle d-flex align-items-center justify-content-center" id="btnToggleAiChat" style="width: 60px; height: 60px; border: 2px solid rgba(255, 255, 255, 0.1);">
-        <i class="bi bi-robot fs-3 text-white"></i>
+    <button class="btn btn-primary-accent shadow-lg rounded-circle d-flex align-items-center justify-content-center" id="btnToggleAiChat" aria-label="Mở khung trò chuyện AI" style="width: 60px; height: 60px; border: 2px solid rgba(255, 255, 255, 0.1);">
+        <i class="bi bi-robot fs-3 text-white" aria-hidden="true"></i>
         <span class="position-absolute top-0 start-100 translate-middle p-2 bg-success border border-light rounded-circle" id="aiChatStatusDot"></span>
     </button>
 
     <!-- Chat Card Panel -->
-    <div class="card glass-card shadow-lg border border-secondary border-opacity-25 d-none animate__animated animate__fadeInUp" id="aiChatCard" style="width: 400px; height: 550px; bottom: 80px; right: 24px; position: absolute; border-radius: 1.25rem; overflow: hidden; display: flex; flex-direction: column; backdrop-filter: blur(24px); background: rgba(17, 24, 39, 0.85);">
+    <div class="card glass-card shadow-lg border border-secondary border-opacity-25 d-none animate__animated animate__fadeInUp" id="aiChatCard" style="border-radius: 1.25rem; overflow: hidden;">
         <!-- Header -->
         <div class="card-header border-bottom border-secondary border-opacity-10 py-3 d-flex align-items-center justify-content-between" style="background: rgba(99, 102, 241, 0.08);">
             <div class="d-flex align-items-center gap-2">
-                <span class="text-primary-accent"><i class="bi bi-chat-left-dots fs-5"></i></span>
+                <span class="text-primary-accent"><i class="bi bi-chat-left-dots fs-5" aria-hidden="true"></i></span>
                 <div>
                     <h6 class="fw-bold mb-0 text-white" style="font-family: 'Outfit', sans-serif; font-size: 0.95rem;">Trợ Lý AI meInvoice</h6>
-                    <span class="text-secondary" style="font-size: 0.7rem;"><i class="bi bi-shield-fill-check"></i> Cục bộ & Bảo mật</span>
+                    <span class="text-secondary" style="font-size: 0.7rem;"><i class="bi bi-shield-fill-check" aria-hidden="true"></i> Cục bộ & Bảo mật</span>
                 </div>
             </div>
             <div class="d-flex align-items-center gap-2">
-                <button type="button" class="btn btn-sm btn-outline-secondary p-1 d-flex align-items-center justify-content-center" id="btnNewChatSession" title="Cuộc hội thoại mới" style="width: 28px; height: 28px; border-radius: 50%; min-height: 28px;"><i class="bi bi-plus-circle"></i></button>
-                <button type="button" class="btn-close btn-close-custom" id="btnCloseAiChat"></button>
+                <button type="button" class="btn btn-sm btn-outline-secondary p-1 d-flex align-items-center justify-content-center" id="btnNewChatSession" title="Cuộc hội thoại mới" aria-label="Cuộc hội thoại mới" style="width: 28px; height: 28px; border-radius: 50%; min-height: 28px;"><i class="bi bi-plus-circle" aria-hidden="true"></i></button>
+                <button type="button" class="btn-close btn-close-custom" id="btnCloseAiChat" aria-label="Đóng Chat AI"></button>
             </div>
         </div>
 
         <!-- Chat Sessions Dropdown -->
         <div class="px-3 py-2 border-bottom border-secondary border-opacity-10 d-flex align-items-center gap-2" style="background: rgba(0,0,0,0.2);">
-            <label class="form-label mb-0 small text-secondary" for="chatSessionSelect" style="white-space: nowrap;"><i class="bi bi-folder"></i> Phiên:</label>
-            <select class="form-select custom-select form-select-sm" id="chatSessionSelect" style="font-size: 0.8rem; padding: 2px 8px; height: 28px;">
-                <option value="">-- Đang tải phiên... --</option>
+            <label class="form-label mb-0 small text-secondary" for="chatSessionSelect" style="white-space: nowrap;"><i class="bi bi-folder" aria-hidden="true"></i> Phiên:</label>
+            <select class="form-select custom-select form-select-sm" id="chatSessionSelect" aria-label="Chọn phiên trò chuyện AI" style="font-size: 0.8rem; padding: 2px 8px; height: 28px;">
+                <option value="">-- Đang tải phiên… --</option>
             </select>
-            <button type="button" class="btn btn-sm btn-link text-danger p-0 ms-auto d-flex align-items-center" id="btnDeleteChatSession" title="Xóa phiên hiện tại" style="min-height: auto;"><i class="bi bi-trash"></i></button>
+            <button type="button" class="btn btn-sm btn-link text-danger p-0 ms-auto d-flex align-items-center" id="btnDeleteChatSession" title="Xóa phiên hiện tại" aria-label="Xóa phiên hiện tại" style="min-height: auto;"><i class="bi bi-trash" aria-hidden="true"></i></button>
         </div>
 
         <!-- Message Body -->
         <div class="card-body p-3 flex-grow-1 d-flex flex-column" id="aiChatBody" style="overflow-y: auto; background: rgba(0,0,0,0.15);">
             <!-- Empty state or greetings -->
             <div class="empty-state my-auto text-center" id="aiChatEmptyState">
-                <span class="empty-icon text-primary-accent" style="font-size: 3rem;"><i class="bi bi-robot"></i></span>
+                <span class="empty-icon text-primary-accent" style="font-size: 3rem;"><i class="bi bi-robot" aria-hidden="true"></i></span>
                 <p class="fw-semibold text-white mb-1">Xin chào!</p>
                 <p class="text-secondary small px-3">Tôi là Trợ lý AI cục bộ (Gemma-4). Hãy hỏi tôi bất kỳ điều gì về kho hóa đơn, thống kê chi phí, hoặc cảnh báo thuế GTGT.</p>
                 <div class="d-flex flex-wrap gap-2 justify-content-center mt-3 px-2">
@@ -1794,9 +1822,9 @@
         <!-- Footer / Input Form -->
         <div class="card-footer p-3 border-top border-secondary border-opacity-10" style="background: rgba(0, 0, 0, 0.2);">
             <form id="aiChatForm" class="d-flex gap-2">
-                <input type="text" class="form-control custom-input py-2" id="aiChatMessageInput" placeholder="Hỏi AI bất kỳ điều gì..." autocomplete="off" required style="border-radius: 0.75rem;">
-                <button type="submit" class="btn btn-primary-accent px-3 d-flex align-items-center justify-content-center" style="border-radius: 0.75rem; min-height: 44px;">
-                    <i class="bi bi-send-fill text-white"></i>
+                <input type="text" class="form-control custom-input py-2" id="aiChatMessageInput" aria-label="Nhập câu hỏi cho Trợ lý AI" placeholder="Hỏi AI bất kỳ điều gì…" autocomplete="off" required style="border-radius: 0.75rem;">
+                <button type="submit" class="btn btn-primary-accent px-3 d-flex align-items-center justify-content-center" aria-label="Gửi câu hỏi" style="border-radius: 9999px; min-height: 44px;">
+                    <i class="bi bi-send-fill text-white" aria-hidden="true"></i>
                 </button>
             </form>
         </div>
@@ -1810,9 +1838,9 @@
     <!-- Control panel bar -->
     <section class="glass-card p-4 mb-4">
         <h3 class="h5 fw-bold mb-3 d-flex align-items-center gap-2">
-            <i class="bi bi-globe2 text-primary-accent"></i> Kê Khai & Kiểm Toán Thuế Nhà Thầu Nước Ngoài (FCT/NTNN)
+            <i class="bi bi-globe2 text-primary-accent" aria-hidden="true"></i> Kê Khai & Kiểm Toán Thuế Nhà Thầu Nước Ngoài (FCT/NTNN)
         </h3>
-        <p class="text-secondary small">Tự động phát hiện các hóa đơn dịch vụ số xuyên quốc gia từ các tập đoàn công nghệ lớn (Google, Meta, AWS, Microsoft, Zoom...) để tính toán và dự thảo tờ khai Thuế Nhà Thầu Mẫu số 01/NTNN theo Thông tư 103/2014/TT-BTC.</p>
+        <p class="text-secondary small">Tự động phát hiện các hóa đơn dịch vụ số xuyên quốc gia từ các tập đoàn công nghệ lớn (Google, Meta, AWS, Microsoft, Zoom…) để tính toán và dự thảo tờ khai Thuế Nhà Thầu Mẫu số 01/NTNN theo Thông tư 103/2014/TT-BTC.</p>
         
         <form id="fctDeclarationForm" class="row g-3 align-items-end mt-2">
             <div class="col-md-3">
@@ -1830,11 +1858,11 @@
             </div>
             <div class="col-md-3">
                 <label class="form-label fw-medium small mb-1" for="fctYear">Năm Kê Khai</label>
-                <input type="number" class="form-control custom-input" id="fctYear" value="2026" min="2020" max="2100">
+                <input type="number" class="form-control custom-input" id="fctYear" value="2026" min="2020" max="2100" autocomplete="off">
             </div>
             <div class="col-md-3 d-grid">
                 <button type="submit" class="btn btn-primary-accent" id="btnLoadFctData" style="min-height: 44px;">
-                    <span id="btnLoadFctText"><i class="bi bi-arrow-clockwise"></i> Phân Tích & Tính Thuế NTNN</span>
+                    <span id="btnLoadFctText"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Phân Tích & Tính Thuế NTNN</span>
                 </button>
             </div>
         </form>
@@ -1847,10 +1875,10 @@
             <div class="glass-card p-4 h-100">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h4 class="h5 fw-bold mb-0 text-white d-flex align-items-center gap-2">
-                        <i class="bi bi-file-earmark-spreadsheet text-success"></i> Tờ Khai Thuế Nhà Thầu Nước Ngoài (Mẫu số 01/NTNN)
+                        <i class="bi bi-file-earmark-spreadsheet text-success" aria-hidden="true"></i> Tờ Khai Thuế Nhà Thầu Nước Ngoài (Mẫu số 01/NTNN)
                     </h4>
                     <button type="button" class="btn btn-outline-success btn-sm px-3" id="btnExportFctExcel" style="border-radius: 0.5rem;">
-                        <i class="bi bi-file-earmark-excel"></i> Xuất Tờ Khai Excel
+                        <i class="bi bi-file-earmark-excel" aria-hidden="true"></i> Xuất Tờ Khai Excel
                     </button>
                 </div>
                 <div class="table-responsive custom-table-wrapper border border-secondary border-opacity-10 rounded">
@@ -1902,7 +1930,7 @@
                                 <span class="fw-bold text-warning" id="fctVatPayable" style="font-size: 1.2rem;">0 ₫</span>
                             </div>
                             <div class="rounded-circle bg-warning bg-opacity-10 text-warning d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                <i class="bi bi-wallet2"></i>
+                                <i class="bi bi-wallet2" aria-hidden="true"></i>
                             </div>
                         </div>
 
@@ -1912,7 +1940,7 @@
                                 <span class="fw-bold text-danger" id="fctCitPayable" style="font-size: 1.2rem;">0 ₫</span>
                             </div>
                             <div class="rounded-circle bg-danger bg-opacity-10 text-danger d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                <i class="bi bi-cash-coin"></i>
+                                <i class="bi bi-cash-coin" aria-hidden="true"></i>
                             </div>
                         </div>
 
@@ -1922,7 +1950,7 @@
                                 <span class="fw-bold text-success" id="fctTotalPayable" style="font-size: 1.4rem;">0 ₫</span>
                             </div>
                             <div class="rounded-circle bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
-                                <i class="bi bi-shield-check"></i>
+                                <i class="bi bi-shield-check" aria-hidden="true"></i>
                             </div>
                         </div>
                     </div>
@@ -1943,8 +1971,6 @@
     </div>
 </div>
 
-</div>
-
 <!-- ================================================================== -->
 <!-- Tab: Hoàn Thuế GTGT Circular 80                                    -->
 <!-- ================================================================== -->
@@ -1954,13 +1980,13 @@
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
             <div>
                 <h3 class="h5 fw-bold mb-2 d-flex align-items-center gap-2">
-                    <i class="bi bi-wallet2 text-primary-accent"></i> Hoàn Thuế GTGT Hàng Xuất Khẩu (Thông tư 80/2021/TT-BTC)
+                    <i class="bi bi-wallet2 text-primary-accent" aria-hidden="true"></i> Hoàn Thuế GTGT Hàng Xuất Khẩu (Thông tư 80/2021/TT-BTC)
                 </h3>
                 <p class="text-secondary small mb-0">Hệ thống phân tích hóa đơn thông minh tự động tách biệt đầu vào đủ điều kiện, thẩm định rủi ro T-Score, đánh giá ngưỡng tối thiểu 300 triệu VND & tỷ lệ xuất khẩu 10%, đồng thời soạn thảo hồ sơ hoàn thuế chuẩn hóa.</p>
             </div>
             <div class="d-flex align-items-center gap-2">
                 <button class="btn btn-outline-light btn-sm d-flex align-items-center gap-2" id="btnRefreshVatRefund" style="border-radius: 0.5rem; min-height: 38px;">
-                    <i class="bi bi-arrow-clockwise"></i> Tải Lại Dữ Liệu
+                    <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Tải Lại Dữ Liệu
                 </button>
             </div>
         </div>
@@ -1979,9 +2005,9 @@
                 <h4 class="h6 text-secondary fw-bold uppercase tracking-wider mb-3">TÌNH TRẠNG HỒ SƠ HOÀN THUẾ</h4>
                 <div class="my-4">
                     <div id="refundStatusIcon" class="mx-auto d-flex align-items-center justify-content-center bg-black bg-opacity-25 rounded-circle mb-3" style="width: 80px; height: 80px; font-size: 2.5rem;">
-                        <i class="bi bi-shield-slash text-muted"></i>
+                        <i class="bi bi-shield-slash text-muted" aria-hidden="true"></i>
                     </div>
-                    <h2 class="h3 fw-bold mb-1" id="refundStatusText">Đang phân tích...</h2>
+                    <h2 class="h3 fw-bold mb-1" id="refundStatusText">Đang phân tích…</h2>
                     <p class="text-secondary small" id="refundStatusSubtext">Chọn mã số thuế hoạt động để bắt đầu thẩm định</p>
                 </div>
             </div>
@@ -1995,7 +2021,7 @@
                     <div class="p-3 rounded bg-black bg-opacity-10 border border-secondary border-opacity-10">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <span class="fw-medium small d-flex align-items-center gap-2">
-                                <i class="bi bi-circle text-muted" id="ruleRatioIcon"></i> Tỷ Lệ Doanh Thu Xuất Khẩu
+                                <i class="bi bi-circle text-muted" id="ruleRatioIcon" aria-hidden="true"></i> Tỷ Lệ Doanh Thu Xuất Khẩu
                             </span>
                             <span class="badge bg-secondary-subtle text-white font-monospace small" id="refundExportRatioVal">0%</span>
                         </div>
@@ -2012,7 +2038,7 @@
                     <div class="p-3 rounded bg-black bg-opacity-10 border border-secondary border-opacity-10">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <span class="fw-medium small d-flex align-items-center gap-2">
-                                <i class="bi bi-circle text-muted" id="ruleVatIcon"></i> Thuế GTGT Đầu Vào Hợp Lệ
+                                <i class="bi bi-circle text-muted" id="ruleVatIcon" aria-hidden="true"></i> Thuế GTGT Đầu Vào Hợp Lệ
                             </span>
                             <span class="badge bg-secondary-subtle text-white font-monospace small" id="refundEligibleVatVal">0 ₫</span>
                         </div>
@@ -2029,7 +2055,7 @@
                     <div class="p-3 rounded bg-black bg-opacity-10 border border-secondary border-opacity-10">
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="fw-medium small d-flex align-items-center gap-2">
-                                <i class="bi bi-circle text-muted" id="ruleRiskIcon"></i> Độ Rủi Ro Đối Tác & Hóa Đơn
+                                <i class="bi bi-circle text-muted" id="ruleRiskIcon" aria-hidden="true"></i> Độ Rủi Ro Đối Tác & Hóa Đơn
                             </span>
                             <span class="badge bg-secondary-subtle text-white small" id="refundRiskText">-</span>
                         </div>
@@ -2051,17 +2077,17 @@
                 <ul class="nav nav-tabs custom-tabs mb-3" id="dossierTabs" role="tablist" style="border-bottom: 1px solid rgba(255,255,255,0.08);">
                     <li class="nav-item" role="presentation">
                         <button class="nav-link active py-2 small fw-semibold" id="mau01-tab" data-bs-toggle="tab" data-bs-target="#mau01-pane" type="button" role="tab" aria-controls="mau01-pane" aria-selected="true" style="background: transparent; border: none; color: #aaa;">
-                            <i class="bi bi-file-earmark-text"></i> Mẫu 01/HT (Circular 80)
+                            <i class="bi bi-file-earmark-text" aria-hidden="true"></i> Mẫu 01/HT (Circular 80)
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link py-2 small fw-semibold" id="justification-tab" data-bs-toggle="tab" data-bs-target="#justification-pane" type="button" role="tab" aria-controls="justification-pane" aria-selected="false" style="background: transparent; border: none; color: #aaa;">
-                            <i class="bi bi-shield-check"></i> Báo Cáo Giải Trình & Phòng Vệ AI
+                            <i class="bi bi-shield-check" aria-hidden="true"></i> Báo Cáo Giải Trình & Phòng Vệ AI
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link py-2 small fw-semibold" id="excluded-invoices-tab" data-bs-toggle="tab" data-bs-target="#excluded-invoices-pane" type="button" role="tab" aria-controls="excluded-invoices-pane" aria-selected="false" style="background: transparent; border: none; color: #aaa;">
-                            <i class="bi bi-slash-circle"></i> Hóa Đơn Bị Loại Trừ (<span id="excludedCount">0</span>)
+                            <i class="bi bi-slash-circle" aria-hidden="true"></i> Hóa Đơn Bị Loại Trừ (<span id="excludedCount">0</span>)
                         </button>
                     </li>
                 </ul>
@@ -2075,10 +2101,10 @@
                         </div>
                         <div class="d-flex justify-content-end gap-2">
                             <button class="btn btn-outline-light btn-sm d-flex align-items-center gap-2" id="btnExportMau01Word" style="border-radius: 0.5rem; min-height: 38px;">
-                                <i class="bi bi-file-earmark-word text-primary"></i> Xuất Tệp Word (.doc)
+                                <i class="bi bi-file-earmark-word text-primary" aria-hidden="true"></i> Xuất Tệp Word (.doc)
                             </button>
                             <button class="btn btn-primary-accent btn-sm d-flex align-items-center gap-2" id="btnExportMau01Pdf" style="border-radius: 0.5rem; min-height: 38px;">
-                                <i class="bi bi-file-earmark-pdf text-danger"></i> Xuất Bản In PDF
+                                <i class="bi bi-file-earmark-pdf text-danger" aria-hidden="true"></i> Xuất Bản In PDF
                             </button>
                         </div>
                     </div>
@@ -2090,10 +2116,10 @@
                         </div>
                         <div class="d-flex justify-content-end gap-2">
                             <button class="btn btn-outline-light btn-sm d-flex align-items-center gap-2" id="btnExportJustificationWord" style="border-radius: 0.5rem; min-height: 38px;">
-                                <i class="bi bi-file-earmark-word text-primary"></i> Xuất Tệp Word (.doc)
+                                <i class="bi bi-file-earmark-word text-primary" aria-hidden="true"></i> Xuất Tệp Word (.doc)
                             </button>
                             <button class="btn btn-primary-accent btn-sm d-flex align-items-center gap-2" id="btnExportJustificationPdf" style="border-radius: 0.5rem; min-height: 38px;">
-                                <i class="bi bi-file-earmark-pdf text-danger"></i> Xuất Bản In PDF
+                                <i class="bi bi-file-earmark-pdf text-danger" aria-hidden="true"></i> Xuất Bản In PDF
                             </button>
                         </div>
                     </div>
@@ -2119,7 +2145,7 @@
     <!-- Section header -->
     <div class="d-flex align-items-center gap-3 mb-4">
       <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,hsl(160 64% 30%),hsl(200 70% 40%));display:flex;align-items:center;justify-content:center;flex-shrink:0">
-        <i class="bi bi-graph-up-arrow text-white fs-5"></i>
+        <i class="bi bi-graph-up-arrow text-white fs-5" aria-hidden="true"></i>
       </div>
       <div>
         <h2 class="fw-bold mb-0" style="font-size:1.25rem">Analytics Pro &mdash; Phân Tích Chuyên Sâu</h2>
@@ -2131,12 +2157,12 @@
     <ul class="nav nav-pills gap-2 mb-4" id="analyticsProSubTabs" role="tablist" style="background:hsl(var(--surface-2));border-radius:12px;padding:6px">
       <li class="nav-item" role="presentation">
         <button class="nav-link active px-3" id="price-trends-sub-tab" data-bs-toggle="pill" data-bs-target="#price-trends-panel" type="button" role="tab">
-          <i class="bi bi-bar-chart-line"></i> Xu Hướng Giá
+          <i class="bi bi-bar-chart-line" aria-hidden="true"></i> Xu Hướng Giá
         </button>
       </li>
       <li class="nav-item" role="presentation">
         <button class="nav-link px-3" id="vat-forecast-sub-tab" data-bs-toggle="pill" data-bs-target="#vat-forecast-panel" type="button" role="tab" onclick="loadVatForecast()">
-          <i class="bi bi-lightning-charge"></i> Dự Báo Thuế GTGT
+          <i class="bi bi-lightning-charge" aria-hidden="true"></i> Dự Báo Thuế GTGT
         </button>
       </li>
     </ul>
@@ -2153,8 +2179,8 @@
           <div class="col-md-5">
             <label class="form-label fw-semibold" style="font-size:.85rem">Tên mặt hàng</label>
             <div class="position-relative">
-              <input type="text" id="priceItemInput" class="form-control" placeholder="Nhập tên mặt hàng..." autocomplete="off"
-                style="background:hsl(var(--surface-2));border:1px solid hsl(var(--border));color:hsl(var(--text));border-radius:10px;min-height:44px">
+              <input type="text" id="priceItemInput" class="form-control" placeholder="Nhập tên mặt hàng…" autocomplete="off"
+                style="background:hsl(var(--surface-2));border:1px solid hsl(var(--border));color:hsl(var(--text));border-radius:10px;min-height:44px" aria-label="Nhập tên mặt hàng">
               <ul id="priceItemSuggestions" class="list-unstyled position-absolute w-100 shadow-lg"
                 style="display:none;top:100%;left:0;z-index:100;background:hsl(var(--surface-3));border:1px solid hsl(var(--border));border-radius:10px;max-height:200px;overflow-y:auto"></ul>
             </div>
@@ -2171,7 +2197,7 @@
           <div class="col-md-3">
             <button onclick="loadPriceTrends()" id="btnLoadPriceTrends" class="btn btn-primary-accent w-100 d-flex align-items-center justify-content-center gap-2"
               style="min-height:44px;border-radius:10px">
-              <i class="bi bi-search"></i> Phân tích
+              <i class="bi bi-search" aria-hidden="true"></i> Phân tích
             </button>
           </div>
         </div>
@@ -2184,7 +2210,7 @@
           <!-- SVG Line Chart -->
           <div class="glass-card p-3 mb-4">
             <h6 class="fw-semibold mb-3" style="font-size:.9rem">
-              <i class="bi bi-graph-up"></i> Biểu Đồ Xu Hướng Đơn Giá Theo Tháng
+              <i class="bi bi-graph-up" aria-hidden="true"></i> Biểu Đồ Xu Hướng Đơn Giá Theo Tháng
             </h6>
             <div style="overflow-x:auto">
               <svg id="priceTrendsSvg" width="100%" style="height:280px;display:block"></svg>
@@ -2195,7 +2221,7 @@
           <!-- Supplier comparison table -->
           <div class="glass-card p-3 mb-4">
             <h6 class="fw-semibold mb-3" style="font-size:.9rem">
-              <i class="bi bi-table"></i> So Sánh Nhà Cung Cấp
+              <i class="bi bi-table" aria-hidden="true"></i> So Sánh Nhà Cung Cấp
             </h6>
             <div style="overflow-x:auto">
               <table class="table table-hover align-middle mb-0" id="supplierCompareTable" style="font-size:.85rem">
@@ -2219,7 +2245,7 @@
           <div id="priceAnomaliesWrap" style="display:none">
             <div class="glass-card p-3" style="border-left:3px solid hsl(38 95% 55%)">
               <h6 class="fw-semibold mb-3" style="color:hsl(38 95% 55%);font-size:.9rem">
-                <i class="bi bi-exclamation-triangle-fill"></i> Cảnh Báo Biến Động Giá Bất Thường (&gt;20% Trung Bình)
+                <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i> Cảnh Báo Biến Động Giá Bất Thường (&gt;20% Trung Bình)
               </h6>
               <div id="priceAnomaliesList"></div>
             </div>
@@ -2228,7 +2254,7 @@
 
         <!-- Empty / loading state -->
         <div id="priceTrendsEmpty" class="text-center py-5 text-muted">
-          <i class="bi bi-bar-chart-line" style="font-size:3rem;opacity:.3"></i>
+          <i class="bi bi-bar-chart-line" style="font-size:3rem;opacity:.3" aria-hidden="true"></i>
           <p class="mt-3 mb-0">Nhập tên mặt hàng và nhấn <strong>Phân tích</strong> để bắt đầu.</p>
         </div>
       </div>
@@ -2257,7 +2283,7 @@
         <!-- Forecast warning -->
         <div id="vatForecastWarning" style="display:none" class="alert d-flex align-items-center gap-2 mb-4"
           style="border-radius:12px;background:hsl(38 95% 55% / .15);border:1px solid hsl(38 95% 55% / .4);color:hsl(38 95% 55%)">
-          <i class="bi bi-exclamation-triangle-fill"></i>
+          <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
           <span id="vatForecastWarningMsg"></span>
         </div>
 
@@ -2265,7 +2291,7 @@
         <div class="glass-card p-3 mb-4" id="vatChartWrap" style="display:none">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h6 class="fw-semibold mb-0" style="font-size:.9rem">
-              <i class="bi bi-bar-chart-fill"></i> Số Thuế GTGT Phải Nộp Theo Tháng
+              <i class="bi bi-bar-chart-fill" aria-hidden="true"></i> Số Thuế GTGT Phải Nộp Theo Tháng
             </h6>
             <div class="d-flex gap-3" style="font-size:.78rem">
               <span><span style="display:inline-block;width:12px;height:12px;background:hsl(160 64% 40%);border-radius:2px;margin-right:4px"></span>Thực tế</span>
@@ -2280,7 +2306,7 @@
         <!-- Monthly detail table -->
         <div class="glass-card p-3" id="vatDetailWrap" style="display:none">
           <h6 class="fw-semibold mb-3" style="font-size:.9rem">
-            <i class="bi bi-table"></i> Chi Tiết Tháng
+            <i class="bi bi-table" aria-hidden="true"></i> Chi Tiết Tháng
           </h6>
           <div style="overflow-x:auto">
             <table class="table table-hover align-middle mb-0" style="font-size:.85rem">
@@ -2299,14 +2325,510 @@
         </div>
 
         <div id="vatForecastEmpty" class="text-center py-5 text-muted">
-          <i class="bi bi-lightning-charge" style="font-size:3rem;opacity:.3"></i>
-          <p class="mt-3 mb-0">Đang tải dữ liệu dự báo...</p>
+          <i class="bi bi-lightning-charge" style="font-size:3rem;opacity:.3" aria-hidden="true"></i>
+          <p class="mt-3 mb-0">Đang tải dữ liệu dự báo…</p>
         </div>
 
       </div>
     </div><!-- /.tab-content -->
-  </div><!-- /.glass-card -->
 </div><!-- /#analytics-pro-content -->
+
+<!-- ================================================================== -->
+<!-- Tab: Agent Harness                                                -->
+<!-- ================================================================== -->
+<div class="tab-pane fade" id="agent-harness-content" role="tabpanel" aria-labelledby="agent-harness-tab">
+    <!-- Header -->
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,hsl(260 64% 30%),hsl(280 70% 40%));display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <i class="bi bi-robot text-white fs-5" aria-hidden="true"></i>
+        </div>
+        <div>
+            <h2 class="fw-bold mb-0" style="font-size:1.25rem">Agent Harness &mdash; Điều Hành & Giám Sát Tác Vụ Tự Chủ</h2>
+            <p class="text-muted mb-0" style="font-size:.85rem">Phân tích rủi ro, thực thi Agent và lưu vết hoạt động trong hệ thống</p>
+        </div>
+    </div>
+
+    <!-- Bento Stats -->
+    <section class="dashboard-grid mb-4">
+        <div class="row g-3">
+            <div class="col-sm-6 col-md-3">
+                <div class="stat-card glass-card">
+                    <div class="stat-icon icon-spend" style="background: hsl(260 50% 50% / .1); color: hsl(260 80% 60%)"><i class="bi bi-journal-check"></i></div>
+                    <div class="stat-content">
+                        <p class="stat-label">Tổng số Stories</p>
+                        <h3 class="stat-value" id="harnessTotalStories">0</h3>
+                        <p class="stat-subtext" id="harnessPlannedStories">0 planned</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-md-3">
+                <div class="stat-card glass-card">
+                    <div class="stat-icon icon-tax" style="background: hsl(38 95% 55% / .1); color: hsl(38 95% 55%)"><i class="bi bi-play-circle"></i></div>
+                    <div class="stat-content">
+                        <p class="stat-label">Stories Đang Làm</p>
+                        <h3 class="stat-value" id="harnessInProgressStories">0</h3>
+                        <p class="stat-subtext" id="harnessImplementedStories">0 implemented</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-md-3">
+                <div class="stat-card glass-card">
+                    <div class="stat-icon icon-active" style="background: hsl(160 64% 40% / .1); color: hsl(160 64% 40%)"><i class="bi bi-bezier2"></i></div>
+                    <div class="stat-content">
+                        <p class="stat-label">Traces Hoạt Động</p>
+                        <h3 class="stat-value" id="harnessTotalTraces">0</h3>
+                        <p class="stat-subtext">Lịch sử chạy agent</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-md-3">
+                <div class="stat-card glass-card">
+                    <div class="stat-icon" style="background: hsl(340 70% 50% / .1); color: hsl(340 85% 60%); width: 48px; height: 48px; border-radius: 12px; display: flex; align-items:center; justify-content:center; font-size:1.35rem"><i class="bi bi-lightbulb"></i></div>
+                    <div class="stat-content">
+                        <p class="stat-label">Backlog Phục Hồi</p>
+                        <h3 class="stat-value" id="harnessTotalBacklog">0</h3>
+                        <p class="stat-subtext" id="harnessOpenBacklog">0 open items</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Workspace Grid -->
+    <div class="row g-4">
+        <!-- Left: Agent runner -->
+        <div class="col-lg-5">
+            <div class="glass-card p-4 h-100 d-flex flex-column" style="min-height:650px;">
+                <h4 class="h6 fw-bold mb-3 text-secondary uppercase tracking-wider">
+                    <i class="bi bi-play-btn-fill"></i> KHỞI CHẠY AGENT TỰ CHỦ
+                </h4>
+
+                <form id="agentRunForm" class="d-flex flex-column gap-3">
+                    <div>
+                        <label class="form-label fw-semibold" style="font-size:.85rem">Chọn Story Mục Tiêu</label>
+                        <select id="agentRunStoryId" class="form-select" style="background:hsl(var(--surface-2));border:1px solid hsl(var(--border));color:hsl(var(--text));border-radius:10px;min-height:44px">
+                            <option value="">-- Không có Story (Chạy tự do) --</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="form-label fw-semibold" style="font-size:.85rem">Nhà Cung Cấp LLM &amp; Mô Hình</label>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <select id="agentRunProvider" class="form-select" onchange="updateModelOptions()" style="background:hsl(var(--surface-2));border:1px solid hsl(var(--border));color:hsl(var(--text));border-radius:10px;min-height:44px">
+                                    <option value="gemini" selected>Gemini API</option>
+                                    <option value="openai">OpenAI API</option>
+                                    <option value="anthropic">Anthropic API</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <select id="agentRunModel" class="form-select" style="background:hsl(var(--surface-2));border:1px solid hsl(var(--border));color:hsl(var(--text));border-radius:10px;min-height:44px">
+                                    <option value="gemini-2.5-flash" selected>gemini-2.5-flash</option>
+                                    <option value="gemini-2.5-pro">gemini-2.5-pro</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="form-label fw-semibold" style="font-size:.85rem">Yêu Cầu / Nhiệm Vụ Cho Agent (Goal)</label>
+                        <textarea id="agentRunGoal" class="form-control" rows="4" placeholder="Ví dụ: Chạy bộ thử nghiệm pytest xem file invoices/routes.py có lỗi cú pháp không..." required style="background:hsl(var(--surface-2));border:1px solid hsl(var(--border));color:hsl(var(--text));border-radius:10px"></textarea>
+                    </div>
+
+                    <button type="submit" id="btnRunAgent" class="btn btn-primary-accent w-100 d-flex align-items-center justify-content-center gap-2" style="min-height:48px;border-radius:10px; font-weight: 600; font-size: .95rem; border: none; box-shadow: 0 0 15px hsl(var(--accent-color) / .3)">
+                        <i class="bi bi-cpu" id="runAgentBtnIcon"></i> <span id="runAgentBtnText">BẮT ĐẦU AGENT</span>
+                    </button>
+                </form>
+
+                <!-- Console Output Log -->
+                <div class="mt-4 flex-grow-1 d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="fw-semibold text-secondary uppercase tracking-wider" style="font-size:.78rem">Console Output Stream</span>
+                        <button class="btn btn-link btn-sm text-secondary p-0" onclick="clearConsoleLog()" style="text-decoration:none; font-size:.78rem">
+                            <i class="bi bi-trash"></i> Xóa log
+                        </button>
+                    </div>
+                    <div id="agentConsoleLog" class="p-3 font-monospace text-white overflow-auto flex-grow-1" style="background: hsl(0 0% 5%); border-radius:12px; height: 350px; font-size: .8rem; line-height: 1.5; border: 1px solid rgba(255,255,255,0.05)">
+                        <div class="text-muted">// Agent Console offline. Ready to launch.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Harness Database Management tabs -->
+        <div class="col-lg-7">
+            <div class="glass-card p-4 h-100 d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="h6 fw-bold mb-0 text-secondary uppercase tracking-wider">
+                        <i class="bi bi-database"></i> DỮ LIỆU HARNESS
+                    </h4>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-light" onclick="loadHarnessSummary()" title="Tải lại dữ liệu">
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <ul class="nav nav-tabs custom-tabs mb-3" id="harnessTabs" role="tablist" style="border-bottom: 1px solid rgba(255,255,255,0.08)">
+                    <li class="nav-item">
+                        <button class="nav-link active py-2 small fw-semibold" id="harness-stories-tab" data-bs-toggle="pill" data-bs-target="#harness-stories-pane" type="button" role="tab" style="background: transparent; border: none; color: #aaa">
+                            Stories (<span id="harnessStoriesCount">0</span>)
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link py-2 small fw-semibold" id="harness-decisions-tab" data-bs-toggle="pill" data-bs-target="#harness-decisions-pane" type="button" role="tab" style="background: transparent; border: none; color: #aaa">
+                            Quyết Định (<span id="harnessDecisionsCount">0</span>)
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link py-2 small fw-semibold" id="harness-backlog-tab" data-bs-toggle="pill" data-bs-target="#harness-backlog-pane" type="button" role="tab" style="background: transparent; border: none; color: #aaa">
+                            Backlog (<span id="harnessBacklogCount">0</span>)
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link py-2 small fw-semibold" id="harness-traces-tab" data-bs-toggle="pill" data-bs-target="#harness-traces-pane" type="button" role="tab" style="background: transparent; border: none; color: #aaa">
+                            Traces Lịch Sử (<span id="harnessTracesCount">0</span>)
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content flex-grow-1 overflow-auto" id="harnessTabsContent" style="max-height: 550px">
+                    <!-- Stories Pane -->
+                    <div class="tab-pane fade show active" id="harness-stories-pane" role="tabpanel">
+                        <div class="d-flex justify-content-end mb-3">
+                            <button class="btn btn-sm btn-primary-accent" data-bs-toggle="modal" data-bs-target="#addStoryModal">
+                                <i class="bi bi-plus-circle"></i> Thêm Story mới
+                            </button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0" style="font-size:.82rem">
+                                <thead>
+                                    <tr style="background:hsl(var(--surface-2))">
+                                        <th>Mã ID</th>
+                                        <th>Tiêu đề</th>
+                                        <th>Risk Lane</th>
+                                        <th>Trạng thái</th>
+                                        <th>Chứng chỉ (Proofs)</th>
+                                        <th class="text-end">Hành động</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="harnessStoriesTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Decisions Pane -->
+                    <div class="tab-pane fade" id="harness-decisions-pane" role="tabpanel">
+                        <div class="d-flex justify-content-end mb-3">
+                            <button class="btn btn-sm btn-primary-accent" data-bs-toggle="modal" data-bs-target="#addDecisionModal">
+                                <i class="bi bi-plus-circle"></i> Ghi nhận Quyết định
+                            </button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0" style="font-size:.82rem">
+                                <thead>
+                                    <tr style="background:hsl(var(--surface-2))">
+                                        <th>Mã ID</th>
+                                        <th>Tiêu đề</th>
+                                        <th>Trạng thái</th>
+                                        <th>Kiểm chứng</th>
+                                        <th>Tác động dự kiến</th>
+                                        <th>Ngày ghi nhận</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="harnessDecisionsTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Backlog Pane -->
+                    <div class="tab-pane fade" id="harness-backlog-pane" role="tabpanel">
+                        <div class="d-flex justify-content-end mb-3">
+                            <button class="btn btn-sm btn-primary-accent" data-bs-toggle="modal" data-bs-target="#addBacklogModal">
+                                <i class="bi bi-plus-circle"></i> Đề xuất Backlog
+                            </button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0" style="font-size:.82rem">
+                                <thead>
+                                    <tr style="background:hsl(var(--surface-2))">
+                                        <th>Mặt hàng/Bối cảnh</th>
+                                        <th>Rủi ro / Pain</th>
+                                        <th>Giải pháp đề xuất</th>
+                                        <th>Trạng thái</th>
+                                        <th>Dự báo tác động</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="harnessBacklogTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Traces Pane -->
+                    <div class="tab-pane fade" id="harness-traces-pane" role="tabpanel">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0" style="font-size:.82rem">
+                                <thead>
+                                    <tr style="background:hsl(var(--surface-2))">
+                                        <th>Thời gian</th>
+                                        <th>Nội dung Tác vụ</th>
+                                        <th>Mã Story</th>
+                                        <th>Agent</th>
+                                        <th>Git Commit</th>
+                                        <th>Kết quả</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="harnessTracesTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================================================================== -->
+<!-- MODALS FOR HARNESS DATA                                            -->
+<!-- ================================================================== -->
+
+<!-- Modal: Thêm Story Mới -->
+<div class="modal fade" id="addStoryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-card border border-light border-opacity-10 text-white" style="background: hsl(var(--surface-3)); border-radius:16px;">
+            <div class="modal-header border-bottom border-light border-opacity-10">
+                <h5 class="modal-title fw-bold text-white"><i class="bi bi-plus-circle-fill"></i> Thêm Story mới</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="addStoryForm">
+                <div class="modal-body d-flex flex-column gap-3">
+                    <div>
+                        <label class="form-label small fw-semibold">Mã ID (vd: story-001)</label>
+                        <input type="text" id="addStoryId" class="form-control text-white" required placeholder="story-xxx" style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px; min-height:38px;">
+                    </div>
+                    <div>
+                        <label class="form-label small fw-semibold">Tiêu đề Story</label>
+                        <input type="text" id="addStoryTitle" class="form-control text-white" required placeholder="Mô tả ngắn về story..." style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px; min-height:38px;">
+                    </div>
+                    <div>
+                        <label class="form-label small fw-semibold">Phân Loại Rủi Ro (Risk Lane)</label>
+                        <select id="addStoryLane" class="form-select text-white" style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px; min-height:38px;">
+                            <option value="tiny">Tiny (Rủi ro cực thấp)</option>
+                            <option value="normal" selected>Normal (Rủi ro trung bình)</option>
+                            <option value="high_risk">High Risk (Chứa các thành phần nguy hiểm)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label small fw-semibold">Liên kết Contract Doc</label>
+                        <input type="text" id="addStoryContract" class="form-control text-white" placeholder="vd: docs/stories/story-001.md" style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px; min-height:38px;">
+                    </div>
+                    <div>
+                        <label class="form-label small fw-semibold">Trạng thái khởi tạo</label>
+                        <select id="addStoryStatus" class="form-select text-white" style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px; min-height:38px;">
+                            <option value="planned" selected>Planned (Lên kế hoạch)</option>
+                            <option value="in_progress">In Progress (Đang thực hiện)</option>
+                            <option value="implemented">Implemented (Hoàn tất)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label small fw-semibold">Ghi chú</label>
+                        <textarea id="addStoryNotes" class="form-control text-white" rows="2" style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px;"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-top border-light border-opacity-10">
+                    <button type="button" class="btn btn-sm btn-outline-light" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-sm btn-primary-accent">Lưu Story</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Cập Nhật Story Status/Proof -->
+<div class="modal fade" id="updateStoryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-card border border-light border-opacity-10 text-white" style="background: hsl(var(--surface-3)); border-radius:16px;">
+            <div class="modal-header border-bottom border-light border-opacity-10">
+                <h5 class="modal-title fw-bold text-white"><i class="bi bi-pencil-fill"></i> Cập nhật Story: <span id="updateStoryIdTitle"></span></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="updateStoryForm">
+                <input type="hidden" id="updateStoryId">
+                <div class="modal-body d-flex flex-column gap-3">
+                    <div>
+                        <label class="form-label small fw-semibold">Trạng thái mới</label>
+                        <select id="updateStoryStatus" class="form-select text-white" style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px; min-height:38px;">
+                            <option value="planned">Planned (Lên kế hoạch)</option>
+                            <option value="in_progress">In Progress (Đang thực hiện)</option>
+                            <option value="implemented">Implemented (Hoàn tất)</option>
+                            <option value="changed">Changed (Thay đổi yêu cầu)</option>
+                            <option value="retired">Retired (Đã rút lui / bỏ qua)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label small fw-semibold">Bằng chứng kiểm thử (Evidence)</label>
+                        <textarea id="updateStoryEvidence" class="form-control text-white" rows="2" placeholder="vd: pass all pytest tests..." style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px;"></textarea>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">Unit Test Proof</label>
+                            <select id="updateStoryUnit" class="form-select text-white" style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px; min-height:38px;">
+                                <option value="">-- Chưa kiểm chứng --</option>
+                                <option value="1">1 - Đã kiểm chứng đạt</option>
+                                <option value="0">0 - Thất bại</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">Integration Proof</label>
+                            <select id="updateStoryIntegration" class="form-select text-white" style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px; min-height:38px;">
+                                <option value="">-- Chưa kiểm chứng --</option>
+                                <option value="1">1 - Đã kiểm chứng đạt</option>
+                                <option value="0">0 - Thất bại</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">E2E Proof</label>
+                            <select id="updateStoryE2E" class="form-select text-white" style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px; min-height:38px;">
+                                <option value="">-- Chưa kiểm chứng --</option>
+                                <option value="1">1 - Đã kiểm chứng đạt</option>
+                                <option value="0">0 - Thất bại</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">Platform Proof</label>
+                            <select id="updateStoryPlatform" class="form-select text-white" style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px; min-height:38px;">
+                                <option value="">-- Chưa kiểm chứng --</option>
+                                <option value="1">1 - Đã kiểm chứng đạt</option>
+                                <option value="0">0 - Thất bại</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top border-light border-opacity-10">
+                    <button type="button" class="btn btn-sm btn-outline-light" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-sm btn-primary-accent">Cập nhật Story</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Ghi nhận Quyết định -->
+<div class="modal fade" id="addDecisionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-card border border-light border-opacity-10 text-white" style="background: hsl(var(--surface-3)); border-radius:16px;">
+            <div class="modal-header border-bottom border-light border-opacity-10">
+                <h5 class="modal-title fw-bold text-white"><i class="bi bi-file-earmark-plus"></i> Ghi nhận Quyết định</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="addDecisionForm">
+                <div class="modal-body d-flex flex-column gap-3">
+                    <div>
+                        <label class="form-label small fw-semibold">Mã Quyết Định (vd: ADR-001)</label>
+                        <input type="text" id="addDecisionId" class="form-control text-white" required placeholder="ADR-xxx" style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px; min-height:38px;">
+                    </div>
+                    <div>
+                        <label class="form-label small fw-semibold">Tiêu đề Quyết Định</label>
+                        <input type="text" id="addDecisionTitle" class="form-control text-white" required placeholder="Tóm tắt quyết định..." style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px; min-height:38px;">
+                    </div>
+                    <div>
+                        <label class="form-label small fw-semibold">Trạng thái</label>
+                        <select id="addDecisionStatus" class="form-select text-white" style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px; min-height:38px;">
+                            <option value="proposed" selected>Proposed (Đề xuất)</option>
+                            <option value="accepted">Accepted (Đồng ý)</option>
+                            <option value="rejected">Rejected (Bị bác bỏ)</option>
+                            <option value="superseded">Superseded (Bị thay thế)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label small fw-semibold">Liên kết ADR Doc Path</label>
+                        <input type="text" id="addDecisionDoc" class="form-control text-white" placeholder="vd: docs/decisions/0001-xxxx.md" style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px; min-height:38px;">
+                    </div>
+                    <div>
+                        <label class="form-label small fw-semibold">Command Kiểm Chứng</label>
+                        <input type="text" id="addDecisionVerify" class="form-control text-white" placeholder="vd: pytest tests/test_xxxx.py" style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px; min-height:38px;">
+                    </div>
+                    <div>
+                        <label class="form-label small fw-semibold">Tác Động Dự Kiến</label>
+                        <input type="text" id="addDecisionPredicted" class="form-control text-white" placeholder="Mô tả tác động kỹ thuật..." style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px; min-height:38px;">
+                    </div>
+                    <div>
+                        <label class="form-label small fw-semibold">Ghi chú</label>
+                        <textarea id="addDecisionNotes" class="form-control text-white" rows="2" style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px;"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-top border-light border-opacity-10">
+                    <button type="button" class="btn btn-sm btn-outline-light" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-sm btn-primary-accent">Lưu Quyết Định</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Đề xuất Backlog Mới -->
+<div class="modal fade" id="addBacklogModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-card border border-light border-opacity-10 text-white" style="background: hsl(var(--surface-3)); border-radius:16px;">
+            <div class="modal-header border-bottom border-light border-opacity-10">
+                <h5 class="modal-title fw-bold text-white"><i class="bi bi-lightbulb-fill"></i> Đề xuất Backlog mới</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="addBacklogForm">
+                <div class="modal-body d-flex flex-column gap-3">
+                    <div>
+                        <label class="form-label small fw-semibold">Tiêu Đề Đề Xuất</label>
+                        <input type="text" id="addBacklogTitle" class="form-control text-white" required placeholder="Vd: Thêm log tập trung khi gọi API..." style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px; min-height:38px;">
+                    </div>
+                    <div>
+                        <label class="form-label small fw-semibold">Phát hiện trong lúc làm tác vụ nào?</label>
+                        <input type="text" id="addBacklogDiscovered" class="form-control text-white" placeholder="vd: Làm story-002" style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px; min-height:38px;">
+                    </div>
+                    <div>
+                        <label class="form-label small fw-semibold">Pain Point / Khó khăn hiện tại</label>
+                        <textarea id="addBacklogPain" class="form-control text-white" rows="2" placeholder="Mô tả khó khăn gặp phải..." style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px;"></textarea>
+                    </div>
+                    <div>
+                        <label class="form-label small fw-semibold">Giải Pháp Cải Tiến Đề Xuất</label>
+                        <textarea id="addBacklogImprovement" class="form-control text-white" rows="2" placeholder="Mô tả hướng giải quyết..." style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px;"></textarea>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">Độ Rủi Ro (Risk Level)</label>
+                            <select id="addBacklogRisk" class="form-select text-white" style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px; min-height:38px;">
+                                <option value="tiny">Tiny (Thấp)</option>
+                                <option value="normal" selected>Normal (Vừa)</option>
+                                <option value="high_risk">High Risk (Cao)</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">Trạng thái</label>
+                            <select id="addBacklogStatus" class="form-select text-white" style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px; min-height:38px;">
+                                <option value="open" selected>Open (Mới đề xuất)</option>
+                                <option value="accepted">Accepted (Đã ghi nhận)</option>
+                                <option value="implemented">Implemented (Đã giải quyết)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="form-label small fw-semibold">Dự kiến Tác Động Tích Cực</label>
+                        <input type="text" id="addBacklogImpact" class="form-control text-white" placeholder="vd: Giảm thời gian kiểm tra lỗi xuống 50%..." style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px; min-height:38px;">
+                    </div>
+                    <div>
+                        <label class="form-label small fw-semibold">Ghi chú</label>
+                        <textarea id="addBacklogNotes" class="form-control text-white" rows="2" style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px;"></textarea>
+                    </div>
+                </div>
+                <div class="modal-body border-top border-light border-opacity-10 d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-light" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-sm btn-primary-accent">Đề Xuất</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 </div><!-- /.tab-content (main) -->
 

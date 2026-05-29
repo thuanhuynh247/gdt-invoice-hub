@@ -58,6 +58,14 @@ def cashflow_page():
     return render_template("cashflow.html")
 
 
+@invoices_blueprint.get("/harness")
+def harness_page():
+    """Render the Harness Agent Control Center."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("harness.html")
+
+
 @invoices_blueprint.get("/api/config")
 def api_config():
     """Return small frontend configuration flags."""
@@ -327,6 +335,17 @@ def api_invoices_stats():
             request.args.get("to", ""),
         )
         direction = request.args.get("direction", "purchase")
+        
+        # Check hybrid stats cache first (US-124)
+        mst = session.get("tax_code")
+        from_str = parsed_from.isoformat()
+        to_str = parsed_to.isoformat()
+        
+        from invoices.stats_cache import get_cached_stats, set_cached_stats
+        cached_result = get_cached_stats(mst, from_str, to_str, direction)
+        if cached_result is not None:
+            return jsonify(cached_result)
+
         current_app.config["CURRENT_JWT"] = session.get("jwt")
         invoices = fetch_invoices(InvoiceQuery(parsed_from, parsed_to, False, direction))
     except DateValidationError as error:
@@ -383,16 +402,20 @@ def api_invoices_stats():
     top_vendors.sort(key=lambda x: x["spend"], reverse=True)
     top_vendors = top_vendors[:5]
 
-    return jsonify(
-        {
-            "total_spend": total_spend,
-            "total_tax": total_tax,
-            "active_count": active_count,
-            "cancelled_count": cancelled_count,
-            "top_vendors": top_vendors,
-            "tax_breakdown": tax_breakdown,
-        }
-    )
+    response_payload = {
+        "total_spend": total_spend,
+        "total_tax": total_tax,
+        "active_count": active_count,
+        "cancelled_count": cancelled_count,
+        "top_vendors": top_vendors,
+        "tax_breakdown": tax_breakdown,
+    }
+    
+    # Store calculated stats in hybrid cache
+    set_cached_stats(mst, from_str, to_str, direction, response_payload)
+
+    return jsonify(response_payload)
+
 
 
 
@@ -1115,7 +1138,9 @@ def api_post_settings():
         "realtime_sync_interval": realtime_interval,
         "webhook_enabled": bool(payload.get("webhook_enabled", False)),
         "webhook_url": payload.get("webhook_url", "").strip(),
-        "webhook_secret": payload.get("webhook_secret", "")
+        "webhook_secret": payload.get("webhook_secret", ""),
+        "signature_filter_enabled": bool(payload.get("signature_filter_enabled", True)),
+        "blacklist_filter_enabled": bool(payload.get("blacklist_filter_enabled", True))
     })
 
     return jsonify({"status": "success", "message": "Đã lưu thiết lập thành công."})
@@ -1362,6 +1387,121 @@ def api_trigger_ai_audit(invoice_id):
         "status": "success",
         "ai_warnings": [w.to_dict() for w in results]
     })
+
+
+@invoices_blueprint.get("/api/invoices/local/<invoice_id>/correction-proposals")
+def api_get_invoice_correction_proposals(invoice_id):
+    """Get all correction proposals for a specific invoice."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    from invoices.models import InvoiceCorrectionProposal
+    proposals = InvoiceCorrectionProposal.query.filter_by(invoice_id=invoice_id).order_by(InvoiceCorrectionProposal.id.desc()).all()
+    return jsonify([p.to_dict() for p in proposals])
+
+
+@invoices_blueprint.get("/api/correction-proposals")
+def api_get_all_correction_proposals():
+    """Get all correction proposals filtered by current taxpayer/tenant MST."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    from invoices.models import InvoiceCorrectionProposal
+    mst = session.get("tax_code")
+    
+    query = InvoiceCorrectionProposal.query
+    if mst:
+        query = query.filter_by(taxpayer_mst=mst)
+        
+    proposals = query.order_by(InvoiceCorrectionProposal.id.desc()).all()
+    return jsonify([p.to_dict() for p in proposals])
+
+
+@invoices_blueprint.post("/api/invoices/local/<invoice_id>/correction-proposals/generate")
+@roles_required("admin", "auditor")
+def api_generate_invoice_correction_proposals(invoice_id):
+    """Manually trigger AI Auditor correction proposals generation."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    from invoices.models import Invoice
+    from invoices.ai_service import AIComplianceAuditor
+
+    invoice = db.session.get(Invoice, invoice_id)
+    if not invoice:
+        return jsonify({"error": "Không tìm thấy hóa đơn cần đề xuất hiệu chỉnh."}), 404
+
+    auditor = AIComplianceAuditor()
+    if not invoice.ai_audited:
+        auditor.audit_invoice(invoice)
+        
+    proposals = auditor.generate_correction_proposals(invoice)
+    return jsonify({
+        "status": "success",
+        "proposals": [p.to_dict() for p in proposals]
+    })
+
+
+@invoices_blueprint.post("/api/correction-proposals/<int:proposal_id>/approve")
+@roles_required("admin", "auditor")
+def api_approve_correction_proposal(proposal_id):
+    """Approve a correction proposal and apply changes directly to the invoice."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    from invoices.models import InvoiceCorrectionProposal
+    from invoices.ai_service import apply_correction_proposal
+
+    proposal = db.session.get(InvoiceCorrectionProposal, proposal_id)
+    if not proposal:
+        return jsonify({"error": "Không tìm thấy đề xuất hiệu chỉnh."}), 404
+
+    if proposal.status != "pending":
+        return jsonify({"error": f"Đề xuất đã ở trạng thái: {proposal.status}. Không thể phê duyệt lại."}), 400
+
+    success = apply_correction_proposal(proposal)
+    if success:
+        return jsonify({
+            "status": "success",
+            "message": "Đã phê duyệt và áp dụng đề xuất hiệu chỉnh thành công.",
+            "proposal": proposal.to_dict()
+        })
+    else:
+        return jsonify({"error": "Thất bại khi áp dụng đề xuất hiệu chỉnh lên hóa đơn."}), 500
+
+
+@invoices_blueprint.post("/api/correction-proposals/<int:proposal_id>/reject")
+@roles_required("admin", "auditor")
+def api_reject_correction_proposal(proposal_id):
+    """Reject a correction proposal."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    from invoices.models import InvoiceCorrectionProposal
+    from datetime import datetime
+
+    proposal = db.session.get(InvoiceCorrectionProposal, proposal_id)
+    if not proposal:
+        return jsonify({"error": "Không tìm thấy đề xuất hiệu chỉnh."}), 404
+
+    if proposal.status != "pending":
+        return jsonify({"error": f"Đề xuất đã ở trạng thái: {proposal.status}. Không thể từ chối."}), 400
+
+    proposal.status = "rejected"
+    proposal.updated_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    db.session.commit()
+
+    return jsonify({
+        "status": "success",
+        "message": "Đã từ chối đề xuất hiệu chỉnh.",
+        "proposal": proposal.to_dict()
+    })
+
 
 
 @invoices_blueprint.post("/api/invoices/local/<invoice_id>/mitigation-letter")
@@ -4696,6 +4836,640 @@ def api_export_financial_kpis():
     filename = f"kpi_report_{active_mst}_{datetime.now().strftime('%Y%m%d')}.csv"
     response.headers["Content-Disposition"] = f"attachment; filename={filename}"
     return response
+
+
+@invoices_blueprint.get("/api/compliance/rulebook")
+@roles_required("admin", "auditor", "viewer")
+def api_get_compliance_rulebook():
+    """Retrieve the currently active compliance rulebook (US-120)."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    import json
+    from invoices.models import ComplianceRulebook
+    active_mst = session.get("taxpayer_mst")
+    
+    rulebook = None
+    if active_mst:
+        rulebook = ComplianceRulebook.query.filter_by(taxpayer_mst=active_mst, is_active=True).first()
+    
+    if not rulebook:
+        rulebook = ComplianceRulebook.query.filter_by(id="rulebook_default").first()
+
+    if not rulebook:
+        default_rulebook_json = {
+            "name": "Default Compliance Rulebook",
+            "rules": [
+                {
+                    "id": "rule_cash_limit",
+                    "name": "Verify cash transactions over 20M limit",
+                    "severity": "critical",
+                    "channels": ["in_app"],
+                    "expression": {
+                        "and": [
+                            {"field": "payment_method", "op": "contains", "value": "Tiền mặt"},
+                            {"field": "total_amount", "op": ">=", "value": 20000000}
+                        ]
+                    }
+                }
+            ]
+        }
+        return jsonify({
+            "status": "success",
+            "rulebook": default_rulebook_json
+        })
+
+    try:
+        data = json.loads(rulebook.rulebook_json)
+    except Exception:
+        data = {}
+
+    return jsonify({
+        "status": "success",
+        "rulebook": data,
+        "updated_at": rulebook.updated_at
+    })
+
+
+@invoices_blueprint.post("/api/compliance/rulebook")
+@roles_required("admin", "auditor")
+def api_update_compliance_rulebook():
+    """Update or upload the active compliance rulebook DSL (US-120)."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    payload = request.get_json(silent=True) or {}
+    rulebook_data = payload.get("rulebook")
+    if not rulebook_data:
+        return jsonify({"error": "Dữ liệu rulebook trống."}), 400
+
+    import json
+    from invoices.compliance_hub import validate_rulebook_dsl
+    ok, err = validate_rulebook_dsl(rulebook_data)
+    if not ok:
+        return jsonify({"error": f"Lỗi cú pháp DSL Rulebook: {err}"}), 400
+
+    from invoices.models import ComplianceRulebook
+    active_mst = session.get("taxpayer_mst")
+    rulebook_id = f"rulebook_{active_mst}" if active_mst else "rulebook_default"
+    
+    rulebook = db.session.get(ComplianceRulebook, rulebook_id)
+    now = datetime.now().isoformat()
+    
+    if not rulebook:
+        rulebook = ComplianceRulebook(
+            id=rulebook_id,
+            taxpayer_mst=active_mst,
+            name=rulebook_data.get("name", "Custom Rulebook"),
+            rulebook_json=json.dumps(rulebook_data, ensure_ascii=False),
+            is_active=True,
+            updated_at=now
+        )
+        db.session.add(rulebook)
+    else:
+        rulebook.name = rulebook_data.get("name", rulebook.name)
+        rulebook.rulebook_json = json.dumps(rulebook_data, ensure_ascii=False)
+        rulebook.updated_at = now
+
+    db.session.commit()
+
+    return jsonify({
+        "status": "success",
+        "message": "Cập nhật DSL Rulebook thành công.",
+        "updated_at": now
+    })
+
+
+@invoices_blueprint.post("/api/compliance/evaluate")
+@roles_required("admin", "auditor", "viewer")
+def api_evaluate_compliance():
+    """Evaluate compliance of specified invoices against the active rulebook (US-120)."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    payload = request.get_json(silent=True) or {}
+    invoice_ids = payload.get("invoice_ids", [])
+    
+    if not invoice_ids:
+        return jsonify({"error": "Danh sách invoice_ids trống."}), 400
+
+    from invoices.models import Invoice, ComplianceRulebook
+    from invoices.compliance_hub import ComplianceEngine
+    import json
+
+    active_mst = session.get("taxpayer_mst")
+    rulebook = None
+    if active_mst:
+        rulebook = ComplianceRulebook.query.filter_by(taxpayer_mst=active_mst, is_active=True).first()
+    if not rulebook:
+        rulebook = ComplianceRulebook.query.filter_by(id="rulebook_default").first()
+
+    engine = ComplianceEngine()
+    if rulebook:
+        try:
+            rulebook_data = json.loads(rulebook.rulebook_json)
+            engine.set_rulebook(rulebook_data)
+        except Exception:
+            pass
+
+    invoices = Invoice.query.filter(Invoice.id.in_(invoice_ids)).all()
+    all_alerts = []
+    
+    for inv in invoices:
+        # Convert invoice model to dictionary format suited for ComplianceEngine
+        inv_dict = inv.to_dict()
+        alerts = engine.evaluate_invoice(inv_dict)
+        all_alerts.extend([a.to_dict() for a in alerts])
+
+    return jsonify({
+        "status": "success",
+        "alerts": all_alerts
+    })
+
+
+@invoices_blueprint.post("/api/compliance/map-ifrs")
+@roles_required("admin", "auditor", "viewer")
+def api_map_ifrs_compliance():
+    """Map invoices to standard IFRS & calculate FCT liabilities dynamically (US-121)."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    payload = request.get_json(silent=True) or {}
+    invoice_ids = payload.get("invoice_ids", [])
+    reporting_currency = payload.get("reporting_currency", "USD").strip().upper()
+    fct_category = payload.get("fct_category", "services").strip().lower()
+
+    if not invoice_ids:
+        return jsonify({"error": "Danh sách invoice_ids trống."}), 400
+
+    from invoices.models import Invoice
+    from invoices.tax_mapping import TaxMappingEngine
+    from dataclasses import asdict
+
+    engine = TaxMappingEngine()
+    invoices = Invoice.query.filter(Invoice.id.in_(invoice_ids)).all()
+    
+    mapped_results = []
+    for inv in invoices:
+        inv_dict = inv.to_dict()
+        mapping = engine.map_to_ifrs(inv_dict, reporting_currency=reporting_currency, fct_category=fct_category)
+        mapped_results.append(asdict(mapping))
+
+    return jsonify({
+        "status": "success",
+        "reporting_currency": reporting_currency,
+        "mapped_invoices": mapped_results
+    })
+
+
+def get_harness_db():
+    import sqlite3
+    import os
+    
+    conn = sqlite3.connect("harness.db", timeout=10.0)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys = ON;")
+    conn.execute("PRAGMA journal_mode = WAL;")
+    
+    # Auto-initialize tables if story table doesn't exist
+    cur = conn.cursor()
+    cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='story';")
+    if not cur.fetchone():
+        conn.execute("""
+        CREATE TABLE IF NOT EXISTS story (
+            id TEXT PRIMARY KEY,
+            title TEXT NOT NULL,
+            risk_lane TEXT NOT NULL,
+            contract_doc TEXT,
+            status TEXT NOT NULL,
+            notes TEXT,
+            unit_proof INTEGER DEFAULT 0,
+            integration_proof INTEGER DEFAULT 0,
+            e2e_proof INTEGER DEFAULT 0,
+            platform_proof INTEGER DEFAULT 0,
+            evidence TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        """)
+        
+        conn.execute("""
+        CREATE TABLE IF NOT EXISTS decision (
+            id TEXT PRIMARY KEY,
+            title TEXT NOT NULL,
+            status TEXT NOT NULL,
+            doc_path TEXT,
+            verify_command TEXT,
+            last_verified_at TIMESTAMP,
+            last_verified_result TEXT,
+            predicted_impact TEXT,
+            actual_outcome TEXT,
+            notes TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        """)
+        
+        conn.execute("""
+        CREATE TABLE IF NOT EXISTS backlog (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            discovered_while TEXT,
+            current_pain TEXT,
+            suggested_improvement TEXT,
+            risk TEXT,
+            status TEXT NOT NULL,
+            predicted_impact TEXT,
+            actual_outcome TEXT,
+            implemented_at TIMESTAMP,
+            notes TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        """)
+        
+        conn.execute("""
+        CREATE TABLE IF NOT EXISTS trace (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            task_summary TEXT NOT NULL,
+            intake_id TEXT,
+            story_id TEXT,
+            agent TEXT,
+            actions_taken TEXT,
+            files_read TEXT,
+            files_changed TEXT,
+            decisions_made TEXT,
+            errors TEXT,
+            outcome TEXT,
+            duration_seconds INTEGER,
+            token_estimate INTEGER,
+            harness_friction TEXT,
+            notes TEXT,
+            git_hash TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        """)
+        conn.commit()
+    return conn
+
+
+@invoices_blueprint.get("/api/harness/summary")
+def api_harness_summary():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    conn = None
+    try:
+        conn = get_harness_db()
+        cur = conn.cursor()
+
+        # Get status counts for stories
+        cur.execute("SELECT status, COUNT(*) as cnt FROM story GROUP BY status")
+        story_status_rows = cur.fetchall()
+        story_status = {r["status"]: r["cnt"] for r in story_status_rows}
+
+        # Get risk lane counts for stories
+        cur.execute("SELECT risk_lane, COUNT(*) as cnt FROM story GROUP BY risk_lane")
+        story_lane_rows = cur.fetchall()
+        story_lane = {r["risk_lane"]: r["cnt"] for r in story_lane_rows}
+
+        # Get decision status counts
+        cur.execute("SELECT status, COUNT(*) as cnt FROM decision GROUP BY status")
+        decision_status_rows = cur.fetchall()
+        decision_status = {r["status"]: r["cnt"] for r in decision_status_rows}
+
+        # Get backlog status counts
+        cur.execute("SELECT status, COUNT(*) as cnt FROM backlog GROUP BY status")
+        backlog_status_rows = cur.fetchall()
+        backlog_status = {r["status"]: r["cnt"] for r in backlog_status_rows}
+
+        # Get trace counts
+        cur.execute("SELECT COUNT(*) as cnt FROM trace")
+        trace_count = cur.fetchone()["cnt"]
+
+        # Fetch all stories
+        cur.execute("SELECT id, title, created_at, risk_lane, contract_doc, status, unit_proof, integration_proof, e2e_proof, platform_proof, evidence, notes FROM story ORDER BY id DESC")
+        stories = [dict(r) for r in cur.fetchall()]
+
+        # Fetch all decisions
+        cur.execute("SELECT id, title, created_at, status, doc_path, verify_command, last_verified_at, last_verified_result, predicted_impact, actual_outcome, notes FROM decision ORDER BY id DESC")
+        decisions = [dict(r) for r in cur.fetchall()]
+
+        # Fetch recent traces (last 30)
+        cur.execute("SELECT id, created_at, task_summary, intake_id, story_id, agent, actions_taken, files_read, files_changed, decisions_made, errors, outcome, duration_seconds, token_estimate, harness_friction, notes, git_hash FROM trace ORDER BY id DESC LIMIT 30")
+        traces = [dict(r) for r in cur.fetchall()]
+
+        # Fetch all backlog items
+        cur.execute("SELECT id, created_at, title, discovered_while, current_pain, suggested_improvement, risk, status, predicted_impact, actual_outcome, implemented_at, notes FROM backlog ORDER BY id DESC")
+        backlog = [dict(r) for r in cur.fetchall()]
+
+        # Build stats struct
+        stats = {
+            "stories": {
+                "total": sum(story_status.values()),
+                "status": story_status,
+                "lanes": story_lane
+            },
+            "decisions": {
+                "total": sum(decision_status.values()),
+                "status": decision_status
+            },
+            "backlog": {
+                "total": sum(backlog_status.values()),
+                "status": backlog_status
+            },
+            "traces": {
+                "total": trace_count
+            }
+        }
+
+        return jsonify({
+            "stats": stats,
+            "stories": stories,
+            "decisions": decisions,
+            "traces": traces,
+            "backlog": backlog
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
+
+
+@invoices_blueprint.post("/api/harness/story")
+def api_harness_story_add():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    conn = None
+    try:
+        body = request.get_json(force=True) or {}
+        story_id = body.get("id", "").strip()
+        title = body.get("title", "").strip()
+        lane = body.get("lane", "normal").strip()
+        contract = (body.get("contract") or body.get("contract_doc") or "").strip()
+        status = body.get("status", "planned").strip()
+        notes = body.get("notes", "").strip()
+
+        if not story_id or not title:
+            return jsonify({"error": "Mã (id) và Tiêu đề (title) là bắt buộc."}), 400
+
+        conn = get_harness_db()
+        cur = conn.cursor()
+        cur.execute(
+            """
+            INSERT INTO story (id, title, risk_lane, contract_doc, status, notes, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
+            """,
+            (story_id, title, lane, contract, status, notes)
+        )
+        conn.commit()
+        return jsonify({"success": True, "message": f"Story {story_id} added successfully."})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
+
+
+@invoices_blueprint.post("/api/harness/story/update")
+def api_harness_story_update():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    conn = None
+    try:
+        body = request.get_json(force=True) or {}
+        story_id = body.get("id", "").strip()
+        status = body.get("status", "planned").strip()
+        evidence = body.get("evidence", "").strip()
+        
+        proofs = body.get("proofs") or {}
+        unit = body.get("unit") if body.get("unit") is not None else proofs.get("unit")
+        integration = body.get("integration") if body.get("integration") is not None else proofs.get("integration")
+        e2e = body.get("e2e") if body.get("e2e") is not None else proofs.get("e2e")
+        platform = body.get("platform") if body.get("platform") is not None else proofs.get("platform")
+
+        if not story_id:
+            return jsonify({"error": "Mã (id) là bắt buộc."}), 400
+
+        # convert potential empty strings or convert type
+        try:
+            unit = int(unit) if unit is not None and str(unit).strip() != "" else None
+        except Exception:
+            unit = None
+        try:
+            integration = int(integration) if integration is not None and str(integration).strip() != "" else None
+        except Exception:
+            integration = None
+        try:
+            e2e = int(e2e) if e2e is not None and str(e2e).strip() != "" else None
+        except Exception:
+            e2e = None
+        try:
+            platform = int(platform) if platform is not None and str(platform).strip() != "" else None
+        except Exception:
+            platform = None
+
+        conn = get_harness_db()
+        cur = conn.cursor()
+        cur.execute(
+            """
+            UPDATE story
+            SET status = ?, evidence = COALESCE(?, evidence),
+                unit_proof = COALESCE(?, unit_proof),
+                integration_proof = COALESCE(?, integration_proof),
+                e2e_proof = COALESCE(?, e2e_proof),
+                platform_proof = COALESCE(?, platform_proof)
+            WHERE id = ?
+            """,
+            (status, evidence, unit, integration, e2e, platform, story_id)
+        )
+        conn.commit()
+        return jsonify({"success": True, "message": f"Story {story_id} updated successfully."})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
+
+
+@invoices_blueprint.post("/api/harness/decision")
+def api_harness_decision_add():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    conn = None
+    try:
+        body = request.get_json(force=True) or {}
+        decision_id = body.get("id", "").strip()
+        title = body.get("title", "").strip()
+        status = body.get("status", "proposed").strip()
+        doc = (body.get("doc") or body.get("doc_path") or "").strip()
+        verify = (body.get("verify") or body.get("verify_command") or body.get("verify_cmd") or "").strip()
+        predicted = (body.get("predicted") or body.get("predicted_impact") or "").strip()
+        notes = body.get("notes", "").strip()
+
+        if not decision_id or not title:
+            return jsonify({"error": "Mã (id) và Tiêu đề (title) là bắt buộc."}), 400
+
+        conn = get_harness_db()
+        cur = conn.cursor()
+        cur.execute(
+            """
+            INSERT INTO decision (id, title, status, doc_path, verify_command, predicted_impact, notes, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
+            """,
+            (decision_id, title, status, doc, verify, predicted, notes)
+        )
+        conn.commit()
+        return jsonify({"success": True, "message": f"Decision {decision_id} recorded successfully."})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
+
+
+@invoices_blueprint.post("/api/harness/backlog")
+def api_harness_backlog_add():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    conn = None
+    try:
+        body = request.get_json(force=True) or {}
+        title = body.get("title", "").strip()
+        discovered_while = body.get("discovered_while", "").strip()
+        current_pain = body.get("current_pain", "").strip()
+        suggested_improvement = body.get("suggested_improvement", "").strip()
+        risk = body.get("risk", "normal").strip()
+        status = body.get("status", "open").strip()
+        predicted_impact = body.get("predicted_impact", "").strip()
+        notes = body.get("notes", "").strip()
+
+        if not title:
+            return jsonify({"error": "Tiêu đề (title) là bắt buộc."}), 400
+
+        conn = get_harness_db()
+        cur = conn.cursor()
+        cur.execute(
+            """
+            INSERT INTO backlog (title, discovered_while, current_pain, suggested_improvement, risk, status, predicted_impact, notes, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+            """,
+            (title, discovered_while, current_pain, suggested_improvement, risk, status, predicted_impact, notes)
+        )
+        conn.commit()
+        return jsonify({"success": True, "message": "Backlog item added successfully."})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
+
+
+@invoices_blueprint.get("/api/harness/agent/stream")
+def api_agent_stream():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    provider = request.args.get("provider", "gemini").strip()
+    model = request.args.get("model", "gemini-2.5-flash").strip()
+    goal = request.args.get("goal", "").strip()
+    story_id = request.args.get("story_id", "").strip()
+
+    if not goal:
+        return jsonify({"error": "Goal is required"}), 400
+
+    from flask import Response
+
+    def generate():
+        import subprocess
+        import os
+        import json
+
+        env = os.environ.copy()
+        env["AGENT_PROVIDER"] = provider
+        env["AGENT_MODEL"] = model
+        env["AGENT_GOAL"] = goal
+        if story_id:
+            env["AGENT_STORY_ID"] = story_id
+
+        cmd = ["node", "scripts/agent-harness/run-agent.js"]
+
+        proc = subprocess.Popen(
+            cmd,
+            env=env,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            bufsize=1
+        )
+
+        while True:
+            line = proc.stdout.readline()
+            if not line:
+                break
+            line_str = line.strip()
+            if line_str:
+                yield f"data: {line_str}\n\n"
+
+        err = proc.stderr.read()
+        if err:
+            try:
+                # Try parsing as JSON error from run-agent.js
+                err_data = json.loads(err.strip())
+                yield f"data: {json.dumps(err_data)}\n\n"
+            except Exception:
+                yield f"data: {json.dumps({'type': 'error', 'message': err.strip()})}\n\n"
+
+        proc.wait()
+
+        if proc.returncode != 0:
+            yield f"data: {json.dumps({'type': 'error', 'message': f'Process exited with code {proc.returncode}'})}\n\n"
+        else:
+            if story_id:
+                try:
+                    git_hash = "unknown"
+                    try:
+                        git_hash = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
+                        status_out = subprocess.check_output(["git", "status", "--porcelain"], text=True).strip()
+                        if status_out:
+                            git_hash += " (dirty)"
+                    except Exception:
+                        pass
+
+                    conn = None
+                    try:
+                        conn = get_harness_db()
+                        cur = conn.cursor()
+                        cur.execute(
+                            """
+                            INSERT INTO trace (task_summary, story_id, agent, outcome, git_hash, created_at, actions_taken, notes)
+                            VALUES (?, ?, ?, 'completed', ?, datetime('now'), ?, ?)
+                            """,
+                            (f"Autonomous Run: {goal[:50]}...", story_id, "SkawldAgent", git_hash, '["run-agent.js"]', f"Goal: {goal}")
+                        )
+                        conn.commit()
+                    finally:
+                        if conn:
+                            conn.close()
+                except Exception as db_err:
+                    print(f"Error logging trace to DB: {db_err}")
+
+    return Response(generate(), mimetype="text/event-stream")
+
+
+
 
 
 

@@ -4,6 +4,17 @@ Covers Partners directory, BC26 Tax usage reporting, and e-Invoice red-template 
 """
 
 from __future__ import annotations
+import pytest
+from extensions import db
+
+@pytest.fixture(autouse=True)
+def disable_security_filters(app):
+    with app.app_context():
+        from invoices.scheduler import save_scheduler_settings
+        save_scheduler_settings({
+            "signature_filter_enabled": False,
+            "blacklist_filter_enabled": False
+        })
 
 
 def test_partners_requires_login(client):

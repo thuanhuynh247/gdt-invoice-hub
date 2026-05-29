@@ -82,6 +82,13 @@ def solve_captcha_from_svg(svg_content: str) -> str:
         # Path data 'd' command starts with M/m followed by coordinates (e.g. M24.98 35.13)
         def get_start_x(path_element) -> float:
             d = path_element.attrib.get('d', '')
+            import re
+            match = re.search(r'[Mm]\s*(-?\d+\.?\d*)', d)
+            if match:
+                try:
+                    return float(match.group(1))
+                except ValueError:
+                    pass
             parts = d.replace(',', ' ').split()
             for i, part in enumerate(parts):
                 if part.upper().startswith('M'):

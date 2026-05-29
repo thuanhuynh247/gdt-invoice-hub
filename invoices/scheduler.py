@@ -68,8 +68,11 @@ DEFAULT_SETTINGS = {
     "webhook_enabled": False,
     "webhook_url": "",
     "webhook_secret": "",
-    "auto_dunning_enabled": False
+    "auto_dunning_enabled": False,
+    "signature_filter_enabled": True,
+    "blacklist_filter_enabled": True
 }
+
 
 
 # Global reference to the scheduler worker

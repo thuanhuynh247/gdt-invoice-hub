@@ -657,15 +657,28 @@ def migrate_legacy_json_to_sqlite() -> None:
 
 
 def get_local_invoices(taxpayer_mst: str | None = None) -> list[dict]:
-    """Read all parsed invoices from the local database, optionally filtering by taxpayer_mst."""
+    """Read all parsed invoices from the local database, merged with zipped cold storage (US-125)."""
     try:
         from extensions import db
         from invoices.models import Invoice
+        from invoices.archiver import InvoiceArchiver
+        
         if taxpayer_mst:
             invoices = Invoice.query.filter_by(taxpayer_mst=taxpayer_mst).all()
         else:
             invoices = Invoice.query.all()
-        return [inv.to_dict() for inv in invoices]
+            
+        live_list = [inv.to_dict() for inv in invoices]
+        cold_list = InvoiceArchiver.get_archived_invoices(taxpayer_mst)
+        
+        seen_ids = {inv["id"] for inv in live_list}
+        merged = list(live_list)
+        for inv in cold_list:
+            if inv["id"] not in seen_ids:
+                merged.append(inv)
+                
+        merged.sort(key=lambda x: x.get("date", ""), reverse=True)
+        return merged
     except Exception as e:
         return []
 
@@ -725,6 +738,13 @@ def _save_local_invoices(invoices: list[dict]) -> None:
                 )
                 db.session.add(item)
         db.session.commit()
+        # Invalidate stats cache on successful invoice storage (US-124)
+        from invoices.stats_cache import invalidate_stats_cache
+        invalidate_stats_cache(None)  # Invalidate global cache
+        for inv_data in invoices:
+            invalidate_stats_cache(inv_data.get("buyer_mst"))
+            invalidate_stats_cache(inv_data.get("seller_mst"))
+            invalidate_stats_cache(inv_data.get("taxpayer_mst"))
     except Exception:
         db.session.rollback()
 
@@ -978,6 +998,43 @@ def import_xml_invoice(xml_bytes: bytes, filename: str, duplicate_strategy: str 
 
     invoice_id = f"{parsed_invoice['seller_mst']}-{parsed_invoice['symbol']}-{parsed_invoice['number']}"
     
+    # Load system settings for security gatekeepers
+    from invoices.scheduler import load_scheduler_settings
+    settings = load_scheduler_settings()
+    
+    signature_filter_enabled = settings.get("signature_filter_enabled", True)
+    blacklist_filter_enabled = settings.get("blacklist_filter_enabled", True)
+
+    seller_mst = parsed_invoice.get("seller_mst", "")
+    
+    # 1. Blacklist check block
+    if blacklist_filter_enabled and seller_mst:
+        from invoices.models import BlacklistedMST
+        blacklisted_record = db.session.get(BlacklistedMST, seller_mst)
+        if blacklisted_record:
+            reason = blacklisted_record.reason or "Không rõ lý do"
+            raise ValueError(f"Hóa đơn bị TỪ CHỐI import do MST người bán ({seller_mst}) nằm trong DANH SÁCH ĐEN chống gian lận thuế (Lý do: {reason}).")
+
+    # 2. Signature verification
+    from invoices.signature_verifier import verify_xml_signature
+    sig_details = verify_xml_signature(
+        xml_bytes,
+        invoice_date_str=parsed_invoice.get("date"),
+        seller_mst=parsed_invoice.get("seller_mst"),
+        seller_name=parsed_invoice.get("seller_name")
+    )
+    
+    if signature_filter_enabled:
+        if not parsed_invoice.get("has_signature"):
+            raise ValueError("Hóa đơn bị TỪ CHỐI import do cấu hình Bộ lọc bảo mật: Hóa đơn hoàn toàn không chứa chữ ký số (Digital Signature).")
+        
+        if not sig_details.get("sig_verified"):
+            sig_err = sig_details.get("sig_error") or "Chữ ký số không hợp lệ hoặc bị lỗi xác thực."
+            raise ValueError(f"Hóa đơn bị TỪ CHỐI import do cấu hình Bộ lọc bảo mật: Chữ ký số không hợp lệ ({sig_err}).")
+            
+        if sig_details.get("sig_tampered_nodes"):
+            raise ValueError("CẢNH BÁO BẢO MẬT: Hóa đơn bị TỪ CHỐI import do phát hiện nội dung XML đã bị THAY ĐỔI hoặc GIẢ MẠO sau khi ký số (Cryptographic Tampering detected).")
+
     # Get existing record if any
     existing_record = db.session.get(Invoice, invoice_id)
 
@@ -999,13 +1056,7 @@ def import_xml_invoice(xml_bytes: bytes, filename: str, duplicate_strategy: str 
     if not schema_valid:
         warnings.append(f"Cấu trúc XSD: {schema_err}")
 
-    from invoices.signature_verifier import verify_xml_signature
-    sig_details = verify_xml_signature(
-        xml_bytes,
-        invoice_date_str=parsed_invoice.get("date"),
-        seller_mst=parsed_invoice.get("seller_mst"),
-        seller_name=parsed_invoice.get("seller_name")
-    )
+    # Generate signature warning messages for UI if not blocked
     if parsed_invoice.get("has_signature"):
         if not sig_details["sig_verified"]:
             err_msg = sig_details.get("sig_error") or "Chữ ký số không hợp lệ."
@@ -1019,6 +1070,7 @@ def import_xml_invoice(xml_bytes: bytes, filename: str, duplicate_strategy: str 
                 warnings.append(f"CRITICAL_SIGNATURE_TAMPER: Đối tượng XML ({node_uri}) đã bị chỉnh sửa sau khi ký số.")
     else:
         warnings.append("Hóa đơn không có chữ ký số hợp lệ.")
+
 
 
     # If it exists and strategy is overwrite, delete it first to ensure clean state (cascade deletes old items)

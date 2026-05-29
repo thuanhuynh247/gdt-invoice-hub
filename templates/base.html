@@ -21,40 +21,48 @@
     </script>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg border-bottom shadow-sm">
+    <nav class="navbar navbar-expand-xl border-bottom shadow-sm">
         <div class="container">
             <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="{{ url_for('index') }}">
-                <span class="logo-accent"><i class="bi bi-lightning-charge-fill"></i></span>
+                <span class="logo-accent"><i class="bi bi-lightning-charge-fill" aria-hidden="true"></i></span>
                 <span class="logo-text">GDT Invoice Hub</span>
             </a>
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-4 d-none d-lg-flex">
-                <li class="nav-item">
-                    <a class="nav-link {% if request.path == '/invoices' %}active{% endif %}" href="{{ url_for('invoices.invoices_page') }}"><i class="bi bi-receipt"></i> Tra cứu Hóa đơn</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if request.path == '/issue-invoice' %}active{% endif %}" href="{{ url_for('invoices.issue_invoice_page') }}"><i class="bi bi-file-earmark-plus"></i> Phát hành Hóa đơn</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if request.path == '/cashflow' %}active{% endif %}" href="{{ url_for('invoices.cashflow_page') }}"><i class="bi bi-graph-up-arrow"></i> Dự báo Dòng tiền</a>
-                </li>
-            </ul>
-            <div class="d-flex align-items-center gap-3">
-                {% if logged_in %}
-                <div class="navbar-mst-selector-wrapper">
-                    <i class="bi bi-building"></i>
-                    <select class="form-select form-select-sm" id="globalTaxpayerSelector">
-                        <option value="">-- Tất cả doanh nghiệp --</option>
-                    </select>
+            <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-xl-0 ms-0 ms-xl-4">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/invoices' %}active{% endif %}" href="{{ url_for('invoices.invoices_page') }}"><i class="bi bi-receipt" aria-hidden="true"></i> Tra cứu Hóa đơn</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/issue-invoice' %}active{% endif %}" href="{{ url_for('invoices.issue_invoice_page') }}"><i class="bi bi-file-earmark-plus" aria-hidden="true"></i> Phát hành Hóa đơn</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/cashflow' %}active{% endif %}" href="{{ url_for('invoices.cashflow_page') }}"><i class="bi bi-graph-up-arrow" aria-hidden="true"></i> Dự báo Dòng tiền</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/harness' %}active{% endif %}" href="{{ url_for('invoices.harness_page') }}"><i class="bi bi-cpu-fill" aria-hidden="true"></i> Harness Agent</a>
+                    </li>
+                </ul>
+                <div class="d-flex flex-column flex-xl-row align-items-start align-items-xl-center gap-3 ms-auto mt-2 mt-xl-0">
+                    {% if logged_in %}
+                    <div class="navbar-mst-selector-wrapper">
+                        <i class="bi bi-building" aria-hidden="true"></i>
+                        <select class="form-select form-select-sm" id="globalTaxpayerSelector" aria-label="Mã số thuế doanh nghiệp">
+                            <option value="">-- Tất cả doanh nghiệp --</option>
+                        </select>
+                    </div>
+                    <span class="user-display">
+                        <span class="user-dot"></span>
+                        Chào, <strong class="user-name">{{ session_username }}</strong>
+                    </span>
+                    <button class="btn btn-logout" id="globalLogoutButton" type="button">Đăng xuất</button>
+                    {% endif %}
+                    <button id="themeSwitcher" class="btn btn-theme-toggle" aria-label="Toggle theme">
+                        <span class="theme-icon"></span>
+                    </button>
                 </div>
-                <span class="user-display d-none d-md-inline-block">
-                    <span class="user-dot"></span>
-                    Chào, <strong class="user-name">{{ session_username }}</strong>
-                </span>
-                <button class="btn btn-logout" id="globalLogoutButton" type="button">Đăng xuất</button>
-                {% endif %}
-                <button id="themeSwitcher" class="btn btn-theme-toggle" aria-label="Toggle theme">
-                    <span class="theme-icon"></span>
-                </button>
             </div>
         </div>
     </nav>

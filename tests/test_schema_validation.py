@@ -87,6 +87,12 @@ def test_import_xml_invoice_with_valid_xsd(app):
         Invoice.query.delete()
         db.session.commit()
 
+        from invoices.scheduler import save_scheduler_settings
+        save_scheduler_settings({
+            "signature_filter_enabled": False,
+            "blacklist_filter_enabled": False
+        })
+
         xml_bytes = VALID_XML_TEMPLATE.encode("utf-8")
         res = import_xml_invoice(xml_bytes, "valid_invoice.xml")
         
@@ -106,6 +112,12 @@ def test_import_xml_invoice_with_invalid_xsd(app):
         # Clear existing
         Invoice.query.delete()
         db.session.commit()
+
+        from invoices.scheduler import save_scheduler_settings
+        save_scheduler_settings({
+            "signature_filter_enabled": False,
+            "blacklist_filter_enabled": False
+        })
 
         xml_bytes = INVALID_XML_TEMPLATE.encode("utf-8")
         # Set template code, symbol, number to make it parse-able by parser fallback

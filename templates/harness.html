@@ -1,0 +1,858 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Hero Header Section -->
+    <div class="col-12">
+        <div class="hero-panel mb-2">
+            <span class="eyebrow"><i class="bi bi-cpu-fill me-1"></i> System Orchestration</span>
+            <h1 class="page-title mt-2">Harness Control Center</h1>
+            <p class="page-subtitle mb-0">Manage stories, architectural decisions, harness backlog items, and trigger autonomous AI agent loops with live telemetry streaming.</p>
+        </div>
+    </div>
+
+    <!-- Stats Section -->
+    <div class="col-12">
+        <div class="row g-3" id="statsGrid">
+            <!-- Story Stats -->
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon icon-active">
+                        <i class="bi bi-kanban"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h4 class="stat-label">Stories</h4>
+                        <div class="stat-value" id="statStoriesTotal">0</div>
+                        <p class="stat-subtext" id="statStoriesSub">0 in progress</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Decision Stats -->
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon icon-tax">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h4 class="stat-label">Decisions</h4>
+                        <div class="stat-value" id="statDecisionsTotal">0</div>
+                        <p class="stat-subtext" id="statDecisionsSub">0 accepted</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Backlog Stats -->
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon icon-spend">
+                        <i class="bi bi-journal-check"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h4 class="stat-label">Backlog</h4>
+                        <div class="stat-value" id="statBacklogTotal">0</div>
+                        <p class="stat-subtext" id="statBacklogSub">0 open items</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Trace Stats -->
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon icon-dark">
+                        <i class="bi bi-activity"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h4 class="stat-label">Traces</h4>
+                        <div class="stat-value" id="statTracesTotal">0</div>
+                        <p class="stat-subtext">Recent execution history</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Workspace Split -->
+    <div class="col-xl-8">
+        <!-- Tab Navigation -->
+        <ul class="nav nav-pills mb-4 gap-2" id="harnessTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="agent-tab" data-bs-toggle="pill" data-bs-target="#tab-agent" type="button" role="tab"><i class="bi bi-play-circle-fill me-1"></i> Autonomous Agent</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="stories-tab" data-bs-toggle="pill" data-bs-target="#tab-stories" type="button" role="tab"><i class="bi bi-layers-half me-1"></i> Stories & Specs</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="decisions-tab" data-bs-toggle="pill" data-bs-target="#tab-decisions" type="button" role="tab"><i class="bi bi-journal-code me-1"></i> Architecture Decisions</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="backlog-tab" data-bs-toggle="pill" data-bs-target="#tab-backlog" type="button" role="tab"><i class="bi bi-clipboard-pulse me-1"></i> Backlog & Friction</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="traces-tab" data-bs-toggle="pill" data-bs-target="#tab-traces" type="button" role="tab"><i class="bi bi-hdd-stack me-1"></i> Traces</button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="harnessTabContent">
+            <!-- 1. Autonomous Agent Run Tab -->
+            <div class="tab-pane fade show active" id="tab-agent" role="tabpanel">
+                <div class="glass-card mb-4">
+                    <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3">
+                        <h3 class="h5 mb-0 fw-bold"><i class="bi bi-terminal-fill me-2 text-success"></i>Agent Configuration</h3>
+                        <div class="search-tip-badge" id="agentStatusBadge" style="display: none;">
+                            <span class="pulse-dot"></span>
+                            <span class="small fw-semibold text-secondary">Agent Running...</span>
+                        </div>
+                    </div>
+
+                    <form id="agentRunForm">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="agentProvider" class="form-label">Provider</label>
+                                <select id="agentProvider" class="form-select custom-select">
+                                    <option value="gemini" selected>Google Gemini (OpenAI compat)</option>
+                                    <option value="openai">OpenAI</option>
+                                    <option value="anthropic">Anthropic Claude</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="agentModel" class="form-label">Model</label>
+                                <select id="agentModel" class="form-select custom-select">
+                                    <option value="gemini-2.5-flash" selected>gemini-2.5-flash</option>
+                                    <option value="gemini-2.5-pro">gemini-2.5-pro</option>
+                                    <option value="gpt-4o">gpt-4o</option>
+                                    <option value="claude-3-5-sonnet-latest">claude-3-5-sonnet</option>
+                                </select>
+                            </div>
+                            <div class="col-md-12">
+                                <label for="agentStoryId" class="form-label">Context Story (Optional)</label>
+                                <select id="agentStoryId" class="form-select custom-select">
+                                    <option value="">-- No Story Context --</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Select Goal Template</label>
+                                <div class="d-flex flex-wrap gap-2 mb-3">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary btn-pill" onclick="applyGoalTemplate('list_files')">List Project Files</button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary btn-pill" onclick="applyGoalTemplate('run_tests')">Run Pytest Suite</button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary btn-pill" onclick="applyGoalTemplate('check_db')">Inspect SQLite Tables</button>
+                                </div>
+                                <label for="agentGoal" class="form-label">Agent Goal</label>
+                                <textarea id="agentGoal" class="form-control custom-input" rows="4" placeholder="Describe the goal for the autonomous agent..."></textarea>
+                            </div>
+                            <div class="col-12 mt-4 text-end">
+                                <button type="submit" class="btn btn-primary-accent" id="btnStartAgent">
+                                    <i class="bi bi-lightning-charge-fill me-1"></i> Activate Autonomous Agent
+                                </button>
+                                <button type="button" class="btn btn-danger btn-pill ms-2" id="btnStopAgent" style="display: none;">
+                                    <i class="bi bi-x-circle-fill me-1"></i> Stop Agent
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Live Stream Console Output -->
+                <div class="glass-card bg-dark text-light border-dark font-monospace" style="border-radius: 16px;">
+                    <div class="d-flex align-items-center justify-content-between mb-3 border-bottom border-secondary pb-2">
+                        <span class="small fw-semibold text-secondary text-uppercase tracking-wider"><i class="bi bi-gpu-card me-1"></i> Live Stream Telemetry</span>
+                        <button class="btn btn-sm btn-outline-secondary py-0 border-secondary px-2 text-secondary" onclick="clearConsole()"><i class="bi bi-trash"></i> Clear</button>
+                    </div>
+                    <div id="agentConsole" class="p-3" style="max-height: 450px; overflow-y: auto; background-color: #0b0c0a; border-radius: 8px; font-size: 0.88rem; line-height: 1.5; color: #a4cfa4;">
+                        <div class="text-secondary">[System] Ready. Configure parameters above and launch the agent run.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Stories & Specs Tab -->
+            <div class="tab-pane fade" id="tab-stories" role="tabpanel">
+                <div class="glass-card mb-4">
+                    <h3 class="h5 mb-4 fw-bold border-bottom pb-3"><i class="bi bi-layers-half me-2"></i>Active Stories</h3>
+                    <div class="table-responsive">
+                        <table class="table custom-table" id="storiesTable">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Title</th>
+                                    <th>Risk Lane</th>
+                                    <th>Status</th>
+                                    <th>Proofs (U/I/E/P)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td colspan="5" class="text-center text-secondary">Loading stories...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Architecture Decisions Tab -->
+            <div class="tab-pane fade" id="tab-decisions" role="tabpanel">
+                <div class="glass-card mb-4">
+                    <h3 class="h5 mb-4 fw-bold border-bottom pb-3"><i class="bi bi-journal-code me-2"></i>Recorded ADRs</h3>
+                    <div class="table-responsive">
+                        <table class="table custom-table" id="decisionsTable">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Title</th>
+                                    <th>Status</th>
+                                    <th>Verify Cmd</th>
+                                    <th>Created At</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td colspan="5" class="text-center text-secondary">Loading decisions...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. Backlog & Friction Tab -->
+            <div class="tab-pane fade" id="tab-backlog" role="tabpanel">
+                <div class="glass-card mb-4">
+                    <h3 class="h5 mb-4 fw-bold border-bottom pb-3"><i class="bi bi-clipboard-pulse me-2"></i>Harness Backlog</h3>
+                    <div class="table-responsive">
+                        <table class="table custom-table" id="backlogTable">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Title</th>
+                                    <th>Risk</th>
+                                    <th>Status</th>
+                                    <th>Discovered In</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td colspan="5" class="text-center text-secondary">Loading backlog...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. Traces Tab -->
+            <div class="tab-pane fade" id="tab-traces" role="tabpanel">
+                <div class="glass-card mb-4">
+                    <h3 class="h5 mb-4 fw-bold border-bottom pb-3"><i class="bi bi-hdd-stack me-2"></i>Execution Traces</h3>
+                    <div class="table-responsive">
+                        <table class="table custom-table" id="tracesTable">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Agent</th>
+                                    <th>Goal Summary</th>
+                                    <th>Story ID</th>
+                                    <th>Outcome</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td colspan="5" class="text-center text-secondary">Loading traces...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Forms -->
+    <div class="col-xl-4">
+        <!-- Contextual action forms -->
+        <div class="glass-card mb-4" id="form-story-add-card">
+            <h3 class="h6 mb-3 fw-bold uppercase tracking-wider text-secondary"><i class="bi bi-plus-square me-2"></i>Register New Story</h3>
+            <form id="addStoryForm">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label for="storyId" class="form-label">Story ID (e.g. STORY-101)</label>
+                        <input type="text" id="storyId" class="form-control custom-input" placeholder="STORY-XXX" required>
+                    </div>
+                    <div class="col-12">
+                        <label for="storyTitle" class="form-label">Story Title</label>
+                        <input type="text" id="storyTitle" class="form-control custom-input" placeholder="Implement feature X..." required>
+                    </div>
+                    <div class="col-6">
+                        <label for="storyLane" class="form-label">Risk Lane</label>
+                        <select id="storyLane" class="form-select custom-select">
+                            <option value="tiny">Tiny</option>
+                            <option value="normal" selected>Normal</option>
+                            <option value="high_risk">High Risk</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label for="storyStatus" class="form-label">Status</label>
+                        <select id="storyStatus" class="form-select custom-select">
+                            <option value="planned" selected>Planned</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="implemented">Implemented</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label for="storyContract" class="form-label">Contract Document</label>
+                        <input type="text" id="storyContract" class="form-control custom-input" placeholder="docs/product/contract.md">
+                    </div>
+                    <div class="col-12">
+                        <label for="storyNotes" class="form-label">Notes</label>
+                        <textarea id="storyNotes" class="form-control custom-input" rows="2" placeholder="Any initial notes..."></textarea>
+                    </div>
+                    <div class="col-12 text-end">
+                        <button type="submit" class="btn btn-sm btn-outline-excel"><i class="bi bi-check-circle"></i> Save Story</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="glass-card mb-4" id="form-decision-add-card">
+            <h3 class="h6 mb-3 fw-bold uppercase tracking-wider text-secondary"><i class="bi bi-file-earmark-code me-2"></i>Record Architecture Decision (ADR)</h3>
+            <form id="addDecisionForm">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label for="decisionId" class="form-label">Decision ID (e.g. ADR-005)</label>
+                        <input type="text" id="decisionId" class="form-control custom-input" placeholder="ADR-XXX" required>
+                    </div>
+                    <div class="col-12">
+                        <label for="decisionTitle" class="form-label">Decision Title</label>
+                        <input type="text" id="decisionTitle" class="form-control custom-input" placeholder="Use SQLite WAL mode..." required>
+                    </div>
+                    <div class="col-12">
+                        <label for="decisionDoc" class="form-label">Document Path</label>
+                        <input type="text" id="decisionDoc" class="form-control custom-input" placeholder="docs/decisions/0005-title.md">
+                    </div>
+                    <div class="col-12">
+                        <label for="decisionVerify" class="form-label">Verification Command</label>
+                        <input type="text" id="decisionVerify" class="form-control custom-input" placeholder="pytest tests/test_db_persistence.py">
+                    </div>
+                    <div class="col-12 text-end">
+                        <button type="submit" class="btn btn-sm btn-outline-excel"><i class="bi bi-check-circle"></i> Save Decision</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="glass-card" id="form-backlog-add-card">
+            <h3 class="h6 mb-3 fw-bold uppercase tracking-wider text-secondary"><i class="bi bi-journal-plus me-2"></i>Propose Backlog Item</h3>
+            <form id="addBacklogForm">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label for="backlogTitle" class="form-label">Backlog Title</label>
+                        <input type="text" id="backlogTitle" class="form-control custom-input" placeholder="Improve exception handling in API..." required>
+                    </div>
+                    <div class="col-12">
+                        <label for="backlogPain" class="form-label">Current Pain Point</label>
+                        <input type="text" id="backlogPain" class="form-control custom-input" placeholder="Locked database blocks testing flow...">
+                    </div>
+                    <div class="col-12">
+                        <label for="backlogSuggestion" class="form-label">Suggested Improvement</label>
+                        <input type="text" id="backlogSuggestion" class="form-control custom-input" placeholder="Apply WAL mode and connection time-out...">
+                    </div>
+                    <div class="col-6">
+                        <label for="backlogRisk" class="form-label">Risk</label>
+                        <select id="backlogRisk" class="form-select custom-select">
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label for="backlogStatus" class="form-label">Status</label>
+                        <select id="backlogStatus" class="form-select custom-select">
+                            <option value="open" selected>Open</option>
+                            <option value="proposed">Proposed</option>
+                        </select>
+                    </div>
+                    <div class="col-12 text-end">
+                        <button type="submit" class="btn btn-sm btn-outline-excel"><i class="bi bi-check-circle"></i> Save Item</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Story Detail Modal -->
+<div class="modal fade" id="storyDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-card p-4 bg-card border-card">
+            <div class="modal-header border-0 p-0 mb-3 justify-content-between">
+                <h5 class="modal-title fw-bold" id="storyModalTitle">Story Details</h5>
+                <button type="button" class="btn-close m-0 btn-close-custom" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <form id="updateStoryStatusForm">
+                    <input type="hidden" id="modalStoryId">
+                    <div class="mb-3">
+                        <label class="form-label">Story ID</label>
+                        <div class="fw-bold fs-5 text-secondary" id="modalStoryIdText">STORY-XXX</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="modalStoryStatus" class="form-label">Execution Status</label>
+                        <select id="modalStoryStatus" class="form-select custom-select">
+                            <option value="planned">Planned</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="implemented">Implemented</option>
+                            <option value="changed">Changed</option>
+                            <option value="retired">Retired</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Validation Matrix Proofs</label>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <div class="form-check form-switch custom-switch">
+                                    <input class="form-check-input" type="checkbox" id="proofUnit">
+                                    <label class="form-check-label ms-2" for="proofUnit">Unit Tests</label>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-check form-switch custom-switch">
+                                    <input class="form-check-input" type="checkbox" id="proofIntegration">
+                                    <label class="form-check-label ms-2" for="proofIntegration">Integration</label>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-check form-switch custom-switch">
+                                    <input class="form-check-input" type="checkbox" id="proofE2e">
+                                    <label class="form-check-label ms-2" for="proofE2e">E2E Tests</label>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-check form-switch custom-switch">
+                                    <input class="form-check-input" type="checkbox" id="proofPlatform">
+                                    <label class="form-check-label ms-2" for="proofPlatform">Platform</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="modalStoryEvidence" class="form-label">Verification Evidence / Proof</label>
+                        <textarea id="modalStoryEvidence" class="form-control custom-input" rows="3" placeholder="Provide test paths or run logs as evidence..."></textarea>
+                    </div>
+                    <div class="text-end mt-4">
+                        <button type="button" class="btn btn-secondary btn-pill" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary-accent"><i class="bi bi-cloud-arrow-up-fill me-1"></i> Update Story</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let activeEventSource = null;
+
+    document.addEventListener("DOMContentLoaded", function() {
+        // Load initial summary data
+        loadHarnessSummary();
+
+        // Setup forms
+        document.getElementById("addStoryForm").addEventListener("submit", handleAddStory);
+        document.getElementById("addDecisionForm").addEventListener("submit", handleAddDecision);
+        document.getElementById("addBacklogForm").addEventListener("submit", handleAddBacklog);
+        document.getElementById("agentRunForm").addEventListener("submit", handleStartAgent);
+        document.getElementById("updateStoryStatusForm").addEventListener("submit", handleUpdateStoryStatus);
+        document.getElementById("btnStopAgent").addEventListener("click", stopAgentRun);
+    });
+
+    function loadHarnessSummary() {
+        fetch("/api/harness/summary")
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    showAppAlert(data.error, "danger");
+                    return;
+                }
+                
+                // Update stats
+                document.getElementById("statStoriesTotal").innerText = data.stats.stories.total;
+                const inProgressStories = data.stats.stories.status.in_progress || 0;
+                document.getElementById("statStoriesSub").innerText = `${inProgressStories} in progress`;
+
+                document.getElementById("statDecisionsTotal").innerText = data.stats.decisions.total;
+                const acceptedDecisions = data.stats.decisions.status.accepted || 0;
+                document.getElementById("statDecisionsSub").innerText = `${acceptedDecisions} accepted`;
+
+                document.getElementById("statBacklogTotal").innerText = data.stats.backlog.total;
+                const openBacklog = data.stats.backlog.status.open || 0;
+                document.getElementById("statBacklogSub").innerText = `${openBacklog} open items`;
+
+                document.getElementById("statTracesTotal").innerText = data.stats.traces.total;
+
+                // Populate context story select dropdown
+                const storySelect = document.getElementById("agentStoryId");
+                storySelect.innerHTML = '<option value="">-- No Story Context --</option>';
+                data.stories.forEach(s => {
+                    const opt = document.createElement("option");
+                    opt.value = s.id;
+                    opt.innerText = `[${s.id}] ${s.title}`;
+                    storySelect.appendChild(opt);
+                });
+
+                // Render tables
+                renderStories(data.stories);
+                renderDecisions(data.decisions);
+                renderBacklog(data.backlog);
+                renderTraces(data.traces);
+            })
+            .catch(err => {
+                console.error("Error loading harness summary:", err);
+                showAppAlert("Không thể tải thông tin Harness Dashboard.", "danger");
+            });
+    }
+
+    function renderStories(stories) {
+        const tbody = document.querySelector("#storiesTable tbody");
+        tbody.innerHTML = "";
+        if (stories.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-secondary">No registered stories yet.</td></tr>';
+            return;
+        }
+        stories.forEach(s => {
+            const tr = document.createElement("tr");
+            tr.onclick = () => openStoryModal(s);
+            
+            const unit = s.unit_proof ? '<span class="badge bg-success-subtle text-success">Unit</span>' : '';
+            const integration = s.integration_proof ? '<span class="badge bg-info-subtle text-info">Integ</span>' : '';
+            const e2e = s.e2e_proof ? '<span class="badge bg-primary-subtle text-primary">E2E</span>' : '';
+            const platform = s.platform_proof ? '<span class="badge bg-warning-subtle text-warning">Plat</span>' : '';
+            const proofs = [unit, integration, e2e, platform].filter(p => p !== '').join(' ') || '<span class="text-secondary small">None</span>';
+
+            tr.innerHTML = `
+                <td><strong class="text-primary">${s.id}</strong></td>
+                <td>${s.title}</td>
+                <td><span class="badge bg-secondary-subtle text-secondary">${s.risk_lane}</span></td>
+                <td><span class="badge ${getStatusBadgeClass(s.status)}">${s.status}</span></td>
+                <td>${proofs}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function renderDecisions(decisions) {
+        const tbody = document.querySelector("#decisionsTable tbody");
+        tbody.innerHTML = "";
+        if (decisions.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-secondary">No architecture decisions recorded.</td></tr>';
+            return;
+        }
+        decisions.forEach(d => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td><strong>${d.id}</strong></td>
+                <td>${d.title}</td>
+                <td><span class="badge ${getStatusBadgeClass(d.status)}">${d.status}</span></td>
+                <td><code class="small text-secondary">${d.verify_command || 'None'}</code></td>
+                <td class="small text-secondary">${new Date(d.created_at).toLocaleDateString()}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function renderBacklog(backlog) {
+        const tbody = document.querySelector("#backlogTable tbody");
+        tbody.innerHTML = "";
+        if (backlog.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-secondary">Backlog queue is empty.</td></tr>';
+            return;
+        }
+        backlog.forEach(b => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td><strong>#${b.id}</strong></td>
+                <td>${b.title}</td>
+                <td><span class="badge bg-warning-subtle text-warning">${b.risk}</span></td>
+                <td><span class="badge ${getStatusBadgeClass(b.status)}">${b.status}</span></td>
+                <td class="small text-secondary">${b.discovered_while || 'Context unknown'}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // Modal Operations
+    function openStoryModal(story) {
+        document.getElementById("modalStoryId").value = story.id;
+        document.getElementById("modalStoryIdText").innerText = story.id;
+        document.getElementById("modalStoryStatus").value = story.status;
+        document.getElementById("modalStoryEvidence").value = story.evidence || "";
+        document.getElementById("proofUnit").checked = !!story.unit_proof;
+        document.getElementById("proofIntegration").checked = !!story.integration_proof;
+        document.getElementById("proofE2e").checked = !!story.e2e_proof;
+        document.getElementById("proofPlatform").checked = !!story.platform_proof;
+
+        const modal = new bootstrap.Modal(document.getElementById("storyDetailModal"));
+        modal.show();
+    }
+
+    function handleUpdateStoryStatus(e) {
+        e.preventDefault();
+        const id = document.getElementById("modalStoryId").value;
+        const status = document.getElementById("modalStoryStatus").value;
+        const evidence = document.getElementById("modalStoryEvidence").value;
+        const proofs = {
+            unit: document.getElementById("proofUnit").checked ? 1 : 0,
+            integration: document.getElementById("proofIntegration").checked ? 1 : 0,
+            e2e: document.getElementById("proofE2e").checked ? 1 : 0,
+            platform: document.getElementById("proofPlatform").checked ? 1 : 0
+        };
+
+        fetch("/api/harness/story/update", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id, status, evidence, proofs })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                showAppAlert(data.error, "danger");
+            } else {
+                showAppAlert(data.message, "success");
+                bootstrap.Modal.getInstance(document.getElementById("storyDetailModal")).hide();
+                loadHarnessSummary();
+            }
+        })
+        .catch(err => {
+            console.error("Error updating story:", err);
+            showAppAlert("Không thể cập nhật Story.", "danger");
+        });
+    }
+
+    // Add Operations
+    function handleAddStory(e) {
+        e.preventDefault();
+        const payload = {
+            id: document.getElementById("storyId").value,
+            title: document.getElementById("storyTitle").value,
+            lane: document.getElementById("storyLane").value,
+            status: document.getElementById("storyStatus").value,
+            contract_doc: document.getElementById("storyContract").value,
+            notes: document.getElementById("storyNotes").value
+        };
+
+        fetch("/api/harness/story", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                showAppAlert(data.error, "danger");
+            } else {
+                showAppAlert(data.message, "success");
+                document.getElementById("addStoryForm").reset();
+                loadHarnessSummary();
+            }
+        })
+        .catch(err => showAppAlert("Không thể lưu Story.", "danger"));
+    }
+
+    function handleAddDecision(e) {
+        e.preventDefault();
+        const payload = {
+            id: document.getElementById("decisionId").value,
+            title: document.getElementById("decisionTitle").value,
+            doc_path: document.getElementById("decisionDoc").value,
+            verify_command: document.getElementById("decisionVerify").value
+        };
+
+        fetch("/api/harness/decision", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                showAppAlert(data.error, "danger");
+            } else {
+                showAppAlert(data.message, "success");
+                document.getElementById("addDecisionForm").reset();
+                loadHarnessSummary();
+            }
+        })
+        .catch(err => showAppAlert("Không thể lưu Quyết định.", "danger"));
+    }
+
+    function handleAddBacklog(e) {
+        e.preventDefault();
+        const payload = {
+            title: document.getElementById("backlogTitle").value,
+            current_pain: document.getElementById("backlogPain").value,
+            suggested_improvement: document.getElementById("backlogSuggestion").value,
+            risk: document.getElementById("backlogRisk").value,
+            status: document.getElementById("backlogStatus").value
+        };
+
+        fetch("/api/harness/backlog", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                showAppAlert(data.error, "danger");
+            } else {
+                showAppAlert(data.message, "success");
+                document.getElementById("addBacklogForm").reset();
+                loadHarnessSummary();
+            }
+        })
+        .catch(err => showAppAlert("Không thể lưu đề xuất Backlog.", "danger"));
+    }
+
+    // Agent Streaming Engine
+    function applyGoalTemplate(type) {
+        const goalEl = document.getElementById("agentGoal");
+        if (type === "list_files") {
+            goalEl.value = "Liệt kê và hiển thị tất cả các tệp tin mã nguồn chính trong dự án. Tập trung vào cấu trúc thư mục của backend Flask và frontend templates.";
+        } else if (type === "run_tests") {
+            goalEl.value = "Chạy kiểm thử pytest đối với file tests/test_agent_harness.py và báo cáo lại kết quả chi tiết từng testcase.";
+        } else if (type === "check_db") {
+            goalEl.value = "Kiểm tra cơ sở dữ liệu SQLite harness.db, liệt kê tên các bảng hiện có và số lượng bản ghi của mỗi bảng.";
+        }
+    }
+
+    function handleStartAgent(e) {
+        e.preventDefault();
+        const provider = document.getElementById("agentProvider").value;
+        const model = document.getElementById("agentModel").value;
+        const storyId = document.getElementById("agentStoryId").value;
+        const goal = document.getElementById("agentGoal").value.trim();
+
+        if (!goal) {
+            showAppAlert("Vui lòng nhập mục tiêu cho Agent.", "warning");
+            return;
+        }
+
+        clearConsole();
+        appendConsoleLine("[System] Gửi yêu cầu khởi động agent...", "secondary");
+
+        // Toggle buttons
+        document.getElementById("btnStartAgent").style.display = "none";
+        document.getElementById("btnStopAgent").style.display = "inline-block";
+        document.getElementById("agentStatusBadge").style.display = "inline-flex";
+
+        const url = `/api/harness/agent/stream?provider=${encodeURIComponent(provider)}&model=${encodeURIComponent(model)}&goal=${encodeURIComponent(goal)}&story_id=${encodeURIComponent(storyId)}`;
+        
+        activeEventSource = new EventSource(url);
+
+        activeEventSource.onmessage = function(event) {
+            try {
+                const data = JSON.parse(event.data);
+                
+                if (data.type === 'status') {
+                    appendConsoleLine(`[Status] ${data.message}`, "info");
+                } else if (data.type === 'event') {
+                    const evt = data.event;
+                    if (evt.type === 'assistant') {
+                        evt.message.content.forEach(c => {
+                            if (c.type === 'text') {
+                                appendConsole(c.text);
+                            }
+                        });
+                    } else if (evt.type === 'call') {
+                        appendConsoleLine(`\n[Calling Tool] ${evt.tool} with args: ${JSON.stringify(evt.args)}`, "warning");
+                    } else if (evt.type === 'result') {
+                        appendConsoleLine(`[Tool Result] ${evt.tool} finished.`, "success");
+                    }
+                } else if (data.type === 'error') {
+                    appendConsoleLine(`\n[Agent Error] ${data.message}`, "danger");
+                    stopAgentRun();
+                }
+            } catch (err) {
+                appendConsoleLine(`\n[SSE Parse Error] ${event.data}`, "danger");
+            }
+        };
+
+        activeEventSource.onerror = function(err) {
+            appendConsoleLine("\n[System] Luồng kết nối SSE bị đóng hoặc lỗi kết nối mạng.", "secondary");
+            stopAgentRun();
+            loadHarnessSummary();
+        };
+    }
+
+    function stopAgentRun() {
+        if (activeEventSource) {
+            activeEventSource.close();
+            activeEventSource = null;
+        }
+        document.getElementById("btnStartAgent").style.display = "inline-block";
+        document.getElementById("btnStopAgent").style.display = "none";
+        document.getElementById("agentStatusBadge").style.display = "none";
+        appendConsoleLine("\n[System] Agent run session ended.", "secondary");
+    }
+
+    // Console helper functions
+    function clearConsole() {
+        const consoleEl = document.getElementById("agentConsole");
+        consoleEl.innerHTML = "";
+    }
+
+    function appendConsole(text) {
+        const consoleEl = document.getElementById("agentConsole");
+        // Escape HTML
+        const span = document.createElement("span");
+        span.innerText = text;
+        consoleEl.appendChild(span);
+        consoleEl.scrollTop = consoleEl.scrollHeight;
+    }
+
+    function appendConsoleLine(text, type = "light") {
+        const consoleEl = document.getElementById("agentConsole");
+        const div = document.createElement("div");
+        div.className = `text-${type} mt-1`;
+        div.innerText = text;
+        consoleEl.appendChild(div);
+        consoleEl.scrollTop = consoleEl.scrollHeight;
+    }
+
+    function showAppAlert(message, type = "info") {
+        const alertRegion = document.getElementById("appAlertRegion");
+        alertRegion.innerHTML = `
+            <div class="alert alert-${type} alert-dismissible fade show border-0 shadow-sm" role="alert" style="border-radius: 12px;">
+                <i class="bi bi-info-circle-fill me-2"></i> ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+        setTimeout(() => {
+            const alert = bootstrap.Alert.getInstance(alertRegion.querySelector(".alert"));
+            if (alert) alert.close();
+        }, 5000);
+    }
+
+    function renderTraces(traces) {
+        const tbody = document.querySelector("#tracesTable tbody");
+        tbody.innerHTML = "";
+        if (traces.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-secondary">No execution traces yet.</td></tr>';
+            return;
+        }
+        traces.forEach(t => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td class="small text-secondary">${new Date(t.created_at).toLocaleString()}</td>
+                <td><span class="badge bg-dark">${t.agent}</span></td>
+                <td class="small">${t.task_summary}</td>
+                <td><span class="badge bg-secondary-subtle text-secondary">${t.story_id || 'None'}</span></td>
+                <td><span class="badge bg-success-subtle text-success">${t.outcome}</span></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+</script>
+
+<style>
+    .btn-pill {
+        border-radius: 9999px !important;
+        font-weight: 600;
+        font-size: 0.8rem !important;
+        padding: 0.35rem 0.9rem !important;
+    }
+    .uppercase {
+        text-transform: uppercase;
+    }
+    .tracking-wider {
+        letter-spacing: 0.08em;
+    }
+</style>
+{% endblock %}
