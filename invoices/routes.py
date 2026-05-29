@@ -5031,6 +5031,7 @@ def get_harness_db():
     import os
     
     conn = sqlite3.connect("harness.db", timeout=10.0)
+    conn.text_factory = lambda x: str(x, encoding="utf-8", errors="replace")
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON;")
     conn.execute("PRAGMA journal_mode = WAL;")
