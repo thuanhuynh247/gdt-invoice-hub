@@ -959,6 +959,13 @@ Project is COMPLETE when:
 - [x] **Tài liệu hóa Context Nghiệp vụ & Kế hoạch Kiểm thử**: Khởi tạo `history/v16_roadmap/CONTEXT.md` (5 quyết định khóa: tờ khai hải quan XML VNACCS, kiểm toán BHXH tỷ lệ đóng 10.5%/21.5%, HTKK-Ready Form 05 XML, mã hóa AES-256, và xác thực TSA RFC-3161) và `history/v16_roadmap/validation.md` (ma trận khả thi & kế hoạch kiểm thử) -> ✅ HOÀN THÀNH
 - [x] **Đăng ký Story trên Hệ thống Harness Database**: Đăng ký thông tin 6 User Story mới (US-190 ~ US-195) vào SQLite `harness.db` ở trạng thái "planned" -> ✅ HOÀN THÀNH
 
+## ⚡ PHẦN 38: LỘ TRÌNH V17 - STATUTORY ACCOUNTING, CORPORATE BANKING RECONCILIATION & MULTI-CHANNEL E-COMMERCE TAX SYNC (2026-05-30)
+- [x] **Thiết lập Lộ trình & Mối quan hệ User Story (Version 17.0.0 Product Roadmap)**: Soạn thảo lộ trình `docs/product/v17_roadmap.md` với 3 trụ cột chiến lược: Quyết toán Báo cáo tài chính & Kiểm tra Sổ cái (VAS Balance Sheet + Ledger integrity), Giấy nộp thuế & Đối soát ngân hàng (Form 711/MB + Bank reconciler), và Đồng bộ hóa đơn & Đối soát doanh thu sàn TMĐT (Shopee/TikTok Shop Sync + Multi-channel tax matcher) -> ✅ HOÀN THÀNH
+- [x] **Tạo Story Files chi tiết (Acceptance Criteria & Validation)**: Xây dựng 6 tệp tin story trong `docs/stories/` (`US-200` đến `US-205`) với đầy đủ hợp đồng sản phẩm, tiêu chí chấp nhận, và kế hoạch kiểm thử -> ✅ HOÀN THÀNH
+- [x] **Tài liệu hóa Context Nghiệp vụ & Kế hoạch Kiểm thử**: Khởi tạo `history/v17_roadmap/CONTEXT.md` (4 quyết định khóa: quy tắc ánh xạ tài khoản VAS, mã tiểu mục nộp ngân sách, ngưỡng tiền mặt 20 triệu VND, và gom nhóm doanh thu lẻ bán ra sàn) và `history/v17_roadmap/validation.md` (ma trận khả thi & kế hoạch kiểm thử) -> ✅ HOÀN THÀNH
+- [x] **Đăng ký Story trên Hệ thống Harness Database**: Đăng ký thông tin 6 User Story mới (US-200 ~ US-205) vào SQLite `harness.db` ở trạng thái "planned" -> ✅ HOÀN THÀNH
+
+
 
 
 
