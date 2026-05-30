@@ -953,6 +953,13 @@ Project is COMPLETE when:
 - [x] **Tài liệu hóa Context Nghiệp vụ & Kế hoạch Kiểm thử**: Khởi tạo `history/v15_roadmap/CONTEXT.md` (5 quyết định khóa: khống chế lãi vay liên kết CIT, lưu trữ JSON cho thẻ XML mở rộng động, SQLite hash chain blockchain mock, chữ ký duyệt đa cấp) và `history/v15_roadmap/validation.md` (ma trận khả thi & kế hoạch kiểm thử) -> ✅ HOÀN THÀNH
 - [x] **Đăng ký Story trên Hệ thống Harness Database**: Đăng ký thông tin 6 User Story mới (US-180 ~ US-185) vào SQLite `harness.db` ở trạng thái "planned" -> ✅ HOÀN THÀNH
 
+## ⚡ PHẦN 37: LỘ TRÌNH V16 - VIETNAMESE E-INVOICE CUSTOMS & IMPORT-EXPORT DUTY AUDIT HUB, PIT & SOCIAL INSURANCE AUDIT ENGINE & SECURE ARCHIVING VAULT (2026-05-30)
+- [x] **Thiết lập Lộ trình & Mối quan hệ User Story (Version 16.0.0 Product Roadmap)**: Soạn thảo lộ trình `docs/product/v16_roadmap.md` với 3 trụ cột chiến lược: Kiểm toán Thuế hải quan & xuất nhập khẩu (Customs XML Parser + Customs-to-Invoice Matcher), Kiểm toán Bảng lương bảo hiểm & thuế TNCN (Payroll & Contract Compliance Engine + Form 05/QTT-TNCN Finalizer), và Kho lưu trữ bảo mật & chữ ký số TSA (Decree 123 Compliant Digital Vault + Long-Term Signature TSA Validator) -> ✅ HOÀN THÀNH
+- [x] **Tạo Story Files chi tiết (Acceptance Criteria & Validation)**: Xây dựng 6 tệp tin story trong `docs/stories/` (`US-190` đến `US-195`) với đầy đủ hợp đồng sản phẩm, tiêu chí chấp nhận, và kế hoạch kiểm thử -> ✅ HOÀN THÀNH
+- [x] **Tài liệu hóa Context Nghiệp vụ & Kế hoạch Kiểm thử**: Khởi tạo `history/v16_roadmap/CONTEXT.md` (5 quyết định khóa: tờ khai hải quan XML VNACCS, kiểm toán BHXH tỷ lệ đóng 10.5%/21.5%, HTKK-Ready Form 05 XML, mã hóa AES-256, và xác thực TSA RFC-3161) và `history/v16_roadmap/validation.md` (ma trận khả thi & kế hoạch kiểm thử) -> ✅ HOÀN THÀNH
+- [x] **Đăng ký Story trên Hệ thống Harness Database**: Đăng ký thông tin 6 User Story mới (US-190 ~ US-195) vào SQLite `harness.db` ở trạng thái "planned" -> ✅ HOÀN THÀNH
+
+
 
 
 
