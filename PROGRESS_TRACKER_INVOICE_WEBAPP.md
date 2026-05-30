@@ -947,6 +947,13 @@ Project is COMPLETE when:
 - [x] **Tạo Story Files chi tiết (Acceptance Criteria & Validation)**: Xây dựng 6 tệp tin story trong `docs/stories/` với đầy đủ hợp đồng sản phẩm, tiêu chí chấp nhận, và kế hoạch kiểm thử -> ✅ HOÀN THÀNH
 - [x] **Tài liệu hóa Context Nghiệp vụ & Kế hoạch Kiểm thử**: Khởi tạo `history/v14_roadmap/CONTEXT.md` (5 quyết định khóa: trọng số T-Score, luật liên kết NĐ 132, tỷ giá VCB ngày nghỉ, FCT gross/net) và `history/v14_roadmap/validation.md` (6 bộ test kiểm thử tự động) -> ✅ HOÀN THÀNH
 
+## ⚡ PHẦN 36: LỘ TRÌNH V15 - AUTOMATED CIT FINALIZATION, VISUAL SCENARIO MODELER & INTELLIGENT XML SCHEMA EXPANSION (2026-05-30)
+- [x] **Thiết lập Lộ trình & Mối quan hệ User Story (Version 15.0.0 Product Roadmap)**: Soạn thảo lộ trình `docs/product/v15_roadmap.md` với 3 trụ cột chiến lược: Quyết toán thuế TNDN & Mô phỏng kịch bản (CIT Finalization + Form 03/TNDN + slider Modeler), Mở rộng Lược đồ XML thông minh (Schema Extension Engine + JSON metadata filter & report), và Cryptographic Workflows & Ledger (Multi-Signature Approvals + Blockchain-Based Invoice Integrity Ledger) -> ✅ HOÀN THÀNH
+- [x] **Tạo Story Files chi tiết (Acceptance Criteria & Validation)**: Xây dựng 6 tệp tin story trong `docs/stories/` (`US-180` đến `US-185`) với đầy đủ hợp đồng sản phẩm, tiêu chí chấp nhận, và kế hoạch kiểm thử -> ✅ HOÀN THÀNH
+- [x] **Tài liệu hóa Context Nghiệp vụ & Kế hoạch Kiểm thử**: Khởi tạo `history/v15_roadmap/CONTEXT.md` (5 quyết định khóa: khống chế lãi vay liên kết CIT, lưu trữ JSON cho thẻ XML mở rộng động, SQLite hash chain blockchain mock, chữ ký duyệt đa cấp) và `history/v15_roadmap/validation.md` (ma trận khả thi & kế hoạch kiểm thử) -> ✅ HOÀN THÀNH
+- [x] **Đăng ký Story trên Hệ thống Harness Database**: Đăng ký thông tin 6 User Story mới (US-180 ~ US-185) vào SQLite `harness.db` ở trạng thái "planned" -> ✅ HOÀN THÀNH
+
+
 
 
 
