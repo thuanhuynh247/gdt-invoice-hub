@@ -941,6 +941,13 @@ Project is COMPLETE when:
 - [x] **Tài liệu hóa Context Nghiệp vụ & Kế hoạch Kiểm thử**: Khởi tạo `history/v13_roadmap/CONTEXT.md` (5 quyết định khóa: lịch tài chính VN, OCR zero-cloud, API Key, webhook idempotency) và `history/v13_roadmap/validation.md` (6 bộ test kiểm thử tự động) -> ✅ HOÀN THÀNH
 - [x] **Đồng bộ hóa repository GitHub**: Đồng bộ và push thành công toàn bộ thay đổi lên `gdt-invoice-hub` main branch -> ✅ HOÀN THÀNH
 
+## ⚡ PHẦN 35: LỘ TRÌNH V14 - AI TAX AUDIT SIMULATION, AUTOMATED TRANSFER PRICING COMPLIANCE & MULTI-CURRENCY TREASURY MANAGEMENT HUB (2026-05-30)
+- [x] **Thiết lập Lộ trình & Mối quan hệ User Story (Version 14.0.0 Product Roadmap)**: Soạn thảo lộ trình `docs/product/v14_roadmap.md` với 3 trụ cột chiến lược: Giả lập thanh tra thuế nâng cao (T-Score + Advisory), Tuân thủ giá giao dịch liên kết (Affiliated Check + EBITDA Limit + Appendix I Local File), và Quản trị Ngân quỹ đa ngoại tệ & FCT (tỷ giá VCB + tính thuế FCT nhà thầu nước ngoài) -> ✅ HOÀN THÀNH
+- [x] **Đăng ký Story trên Hệ thống Harness Database**: Đã ghi nhận 6 User Story mới (US-170 ~ US-175) vào SQLite `harness.db` ở trạng thái "planned" -> ✅ HOÀN THÀNH
+- [x] **Tạo Story Files chi tiết (Acceptance Criteria & Validation)**: Xây dựng 6 tệp tin story trong `docs/stories/` với đầy đủ hợp đồng sản phẩm, tiêu chí chấp nhận, và kế hoạch kiểm thử -> ✅ HOÀN THÀNH
+- [x] **Tài liệu hóa Context Nghiệp vụ & Kế hoạch Kiểm thử**: Khởi tạo `history/v14_roadmap/CONTEXT.md` (5 quyết định khóa: trọng số T-Score, luật liên kết NĐ 132, tỷ giá VCB ngày nghỉ, FCT gross/net) và `history/v14_roadmap/validation.md` (6 bộ test kiểm thử tự động) -> ✅ HOÀN THÀNH
+
+
 
 
 
