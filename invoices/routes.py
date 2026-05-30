@@ -5470,6 +5470,241 @@ def api_agent_stream():
     return Response(generate(), mimetype="text/event-stream")
 
 
+@invoices_blueprint.post("/api/bctc/compile")
+@roles_required("admin", "auditor")
+def api_bctc_compile():
+    """Compile BCTC B01-DN, B02-DN, B03-DN from Trial Balance ledger data (US-200)."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+        
+    balances = {}
+    metadata = request.json or {}
+    
+    if "file" in request.files:
+        file = request.files["file"]
+        if file and file.filename:
+            try:
+                from invoices.bctc_service import parse_ledger_file
+                balances = parse_ledger_file(file.read(), file.filename)
+                # Populate metadata from request form fields if present
+                metadata = {
+                    "mst": request.form.get("mst", "0109998887"),
+                    "company_name": request.form.get("company_name", "CONG TY TNHH MOCK"),
+                    "year": int(request.form.get("year", datetime.now().year)),
+                    "reporting_period_type": request.form.get("reporting_period_type", "N"),
+                    "dividends_paid": float(request.form.get("dividends_paid", 0.0))
+                }
+            except Exception as e:
+                return jsonify({"error": f"Loi doc file: {str(e)}"}), 400
+    else:
+        balances = metadata.get("balances", {})
+        
+    if not balances:
+        return jsonify({"error": "Thieu du lieu bang can doi phat sinh / so cai."}), 400
+        
+    try:
+        from invoices.bctc_service import compile_bctc
+        xml_str, warnings = compile_bctc(balances, metadata)
+        return jsonify({
+            "status": "success" if not warnings else "warning",
+            "xml": xml_str,
+            "warnings": warnings
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/bctc/audit-ledger")
+@roles_required("admin", "auditor")
+def api_bctc_audit_ledger():
+    """Cross-reference General Ledger entries with e-invoices for compliance (US-201)."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+        
+    balances = {}
+    taxpayer_mst = request.args.get("taxpayer_mst") or session.get("taxpayer_mst") or "0109998887"
+    
+    if "file" in request.files:
+        file = request.files["file"]
+        if file and file.filename:
+            try:
+                from invoices.bctc_service import parse_ledger_file
+                balances = parse_ledger_file(file.read(), file.filename)
+                taxpayer_mst = request.form.get("taxpayer_mst") or taxpayer_mst
+            except Exception as e:
+                return jsonify({"error": f"Loi doc file: {str(e)}"}), 400
+    else:
+        payload = request.json or {}
+        balances = payload.get("balances", {})
+        taxpayer_mst = payload.get("taxpayer_mst") or taxpayer_mst
+        
+    if not balances:
+        return jsonify({"error": "Thieu du lieu bang can doi phat sinh / so cai."}), 400
+        
+    try:
+        from invoices.bctc_service import audit_ledger_against_invoices
+        report = audit_ledger_against_invoices(balances, taxpayer_mst)
+        return jsonify(report)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/payments/tax-slip")
+@roles_required("admin", "auditor")
+def api_payments_tax_slip():
+    """Generate GDT Form 711/MB Tax Payment Slip XML and VietQR code (US-202)."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+        
+    payload = request.json or {}
+    mst = payload.get("mst") or session.get("taxpayer_mst") or "0109998887"
+    company_name = payload.get("company_name", "CONG TY TNHH MOCK")
+    tax_type = payload.get("tax_type")
+    amount = payload.get("amount")
+    
+    if not tax_type or not amount:
+        return jsonify({"error": "Thieu thong tin loai thue hoac so tien."}), 400
+        
+    try:
+        amount_val = float(amount)
+    except ValueError:
+        return jsonify({"error": "So tien khong hop le."}), 400
+        
+    chapter_type = payload.get("chapter_type", "domestic_private")
+    treasury_name = payload.get("treasury_name", "Kho bac Nha nuoc Quan Cau Giay")
+    treasury_account = payload.get("treasury_account", "111222333444")
+    bank_bin = payload.get("bank_bin", "970415")
+    
+    try:
+        from invoices.tax_payment_service import generate_tax_payment_slip
+        slip = generate_tax_payment_slip(
+            mst=mst,
+            company_name=company_name,
+            tax_type=tax_type,
+            amount=amount_val,
+            chapter_type=chapter_type,
+            treasury_name=treasury_name,
+            treasury_account=treasury_account,
+            bank_bin=bank_bin
+        )
+        return jsonify(slip)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/payments/bank-recon")
+@roles_required("admin", "auditor")
+def api_payments_bank_recon():
+    """Standard bank statement parsing, fuzzy matching, and cash payment compliance auditing (US-203)."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+        
+    taxpayer_mst = request.args.get("taxpayer_mst") or session.get("taxpayer_mst") or "0109998887"
+    
+    # Process uploaded bank statement if present
+    results = {}
+    if "file" in request.files:
+        file = request.files["file"]
+        if file and file.filename:
+            try:
+                content = file.read().decode("utf-8")
+                from invoices.reconciliation_service import ReconciliationEngine
+                engine = ReconciliationEngine()
+                engine.process_csv(content)
+                results = engine.run_matching()
+            except Exception as e:
+                return jsonify({"error": f"Loi xu ly file sao ke: {str(e)}"}), 400
+                
+    # Run cash compliance checks for invoices >= 20M VND
+    try:
+        from invoices.bank_reconcile_service import check_cash_payment_compliance
+        compliance_flags = check_cash_payment_compliance(taxpayer_mst)
+        return jsonify({
+            "status": "success",
+            "reconciliation_summary": results,
+            "compliance_warnings": compliance_flags
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/ecommerce/sync")
+@roles_required("admin", "auditor")
+def api_ecommerce_sync():
+    """Parse platform reports and record daily consolidated revenue & fees in the database (US-204)."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+        
+    platform = request.args.get("platform", "shopee").strip()
+    taxpayer_mst = request.args.get("taxpayer_mst") or session.get("taxpayer_mst") or "0109998887"
+    
+    orders = []
+    
+    if "file" in request.files:
+        file = request.files["file"]
+        if file and file.filename:
+            try:
+                from invoices.ecommerce_service import parse_ecommerce_sheet
+                orders = parse_ecommerce_sheet(file.read(), platform)
+            except Exception as e:
+                return jsonify({"error": f"Loi doc file: {str(e)}"}), 400
+    else:
+        payload = request.json or {}
+        orders = payload.get("orders", [])
+        taxpayer_mst = payload.get("taxpayer_mst") or taxpayer_mst
+        platform = payload.get("platform") or platform
+        
+    if not orders:
+        return jsonify({"error": "Thieu du lieu don hang e-commerce."}), 400
+        
+    try:
+        from invoices.ecommerce_service import sync_ecommerce_orders
+        res = sync_ecommerce_orders(orders, taxpayer_mst, platform)
+        return jsonify(res)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.get("/api/ecommerce/reconcile")
+@roles_required("admin", "auditor", "viewer")
+def api_ecommerce_reconcile():
+    """Reconcile Shopee/TikTok Shop order logs with output invoices (US-205)."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+        
+    taxpayer_mst = request.args.get("taxpayer_mst") or session.get("taxpayer_mst") or "0109998887"
+    
+    import json
+    orders_json = request.args.get("orders")
+    platform_orders = []
+    if orders_json:
+        try:
+            platform_orders = json.loads(orders_json)
+        except Exception:
+            pass
+            
+    if not platform_orders:
+        platform_orders = [
+            {"order_id": "ORD-SHOPEE-1001", "date": datetime.now().strftime("%Y-%m-%d"), "gross_revenue": 500000.0, "commission_fee": 15000.0, "service_fee": 5000.0},
+            {"order_id": "ORD-SHOPEE-1002", "date": datetime.now().strftime("%Y-%m-%d"), "gross_revenue": 1200000.0, "commission_fee": 36000.0, "service_fee": 12000.0},
+            {"order_id": "ORD-SHOPEE-1003", "date": datetime.now().strftime("%Y-%m-%d"), "gross_revenue": 850000.0, "commission_fee": 25500.0, "service_fee": 8500.0}
+        ]
+        
+    try:
+        from invoices.ecommerce_service import reconcile_ecommerce_tax
+        report = reconcile_ecommerce_tax(taxpayer_mst, platform_orders)
+        return jsonify(report)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+
 
 
 

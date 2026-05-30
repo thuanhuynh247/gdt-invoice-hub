@@ -356,3 +356,47 @@ def execute_auto_reconciliation(taxpayer_mst: str) -> dict:
         "matches_found": matches_completed,
         "details": results
     }
+
+
+def check_cash_payment_compliance(taxpayer_mst: str) -> list[dict]:
+    """Verify if invoices with value >= 20M VND are paid via cash or lack bank transfer matching (US-203)."""
+    # Fetch all invoices >= 20M VND for this taxpayer
+    high_value_invoices = Invoice.query.filter(
+        Invoice.taxpayer_mst == taxpayer_mst,
+        Invoice.total_amount >= 20000000.0
+    ).all()
+    
+    compliance_flags = []
+    
+    for inv in high_value_invoices:
+        # Check if there is a matching BankTransaction in the DB
+        matched_tx = BankTransaction.query.filter_by(
+            matched_invoice_id=inv.id
+        ).first()
+        
+        payment_method_lower = (inv.payment_method or "").lower()
+        is_cash = any(kw in payment_method_lower for kw in ["tm", "tien mat", "cash"])
+        
+        if is_cash:
+            compliance_flags.append({
+                "invoice_id": inv.id,
+                "invoice_number": inv.number,
+                "partner_name": inv.seller_name if inv.invoice_type == "purchase" else inv.buyer_name,
+                "total_amount": inv.total_amount,
+                "payment_method": inv.payment_method,
+                "compliance_status": "non_compliant",
+                "message": f"Hoa don so {inv.number} tri gia {inv.total_amount:,.0f} VND ghi phuong thuc thanh toan Tien mat (TM), vi pham quy dinh thanh toan khong dung tien mat tu 20 trieu VND tro len."
+            })
+        elif not matched_tx:
+            compliance_flags.append({
+                "invoice_id": inv.id,
+                "invoice_number": inv.number,
+                "partner_name": inv.seller_name if inv.invoice_type == "purchase" else inv.buyer_name,
+                "total_amount": inv.total_amount,
+                "payment_method": inv.payment_method or "Chua ro",
+                "compliance_status": "pending_verification",
+                "message": f"Hoa don so {inv.number} tri gia {inv.total_amount:,.0f} VND chua duoc doi chieu voi giao dich chuyen khoan ngan hang."
+            })
+            
+    return compliance_flags
+
