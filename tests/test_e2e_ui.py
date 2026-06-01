@@ -22,6 +22,12 @@ from selenium.webdriver.support import expected_conditions as EC
 from app import create_app
 from auth.captcha import stop_captcha_prefetch_worker
 
+# Skip E2E UI tests by default to prevent hanging in headless or non-UI environments
+pytestmark = pytest.mark.skipif(
+    os.environ.get("RUN_E2E") != "1",
+    reason="E2E UI tests are skipped by default. Set RUN_E2E=1 to run them."
+)
+
 @pytest.fixture(scope="session")
 def flask_server():
     """Starts the Flask application in a separate background thread on port 5001."""

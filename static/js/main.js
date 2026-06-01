@@ -64,6 +64,14 @@ function setButtonLoading(button, isLoading) {
 }
 
 // 4. Authenticate Request
+function triggerInputError(inputElement) {
+    if (!inputElement) return;
+    inputElement.classList.add("is-invalid");
+    inputElement.addEventListener("animationend", () => {
+        inputElement.classList.remove("is-invalid");
+    }, { once: true });
+}
+
 async function handleLoginSubmit(event) {
     event.preventDefault();
 
@@ -87,7 +95,12 @@ async function handleLoginSubmit(event) {
         window.location.href = "/invoices";
     } catch (error) {
         renderAlert(error.message, "danger");
+        triggerInputError(document.getElementById("username"));
+        triggerInputError(document.getElementById("password"));
+        triggerInputError(document.getElementById("captcha"));
         await loadAuthCaptcha();
+        const capInput = document.getElementById("captcha");
+        if (capInput) capInput.value = "";
     } finally {
         setButtonLoading(button, false);
     }

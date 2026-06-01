@@ -209,3 +209,80 @@ def test_map_ifrs_endpoint(app, logged_in_client):
         Invoice.query.filter_by(id=invoice_id).delete()
         db.session.commit()
 
+
+def test_tax_risk_scoreboard_endpoint(app, logged_in_client):
+    """Verify that the tax-risk-scoreboard gathers correct statistics and lists high-risk suppliers."""
+    invoice_id = "INV-SCOREBOARD-TEST"
+    
+    with app.app_context():
+        # Setup clean state
+        Invoice.query.filter_by(id=invoice_id).delete()
+        from invoices.models import BlacklistedMST
+        BlacklistedMST.query.filter_by(mst="8099887766").delete()
+        
+        # 1. Add a blacklisted supplier
+        blacklisted = BlacklistedMST(
+            mst="8099887766",
+            reason="Trốn thuế nghiêm trọng",
+            blacklisted_at="2026-05-29T00:00:00Z"
+        )
+        db.session.add(blacklisted)
+        
+        # 2. Add an invoice from this blacklisted supplier
+        inv = Invoice(
+            id=invoice_id,
+            filename="scoreboard_test.xml",
+            seller_name="AWS Europe SARL",
+            seller_mst="8099887766",
+            buyer_name="Tập đoàn Đại Nam",
+            buyer_mst="0312345678",
+            total_amount=50_800_000.0,
+            amount_before_tax=50_800_000.0,
+            tax_amount=0.0,
+            has_signature=False,
+            payment_method="Tiền mặt",
+            imported_at="2026-05-29T00:00:00Z",
+            import_status="imported",
+            taxpayer_mst="0312345678"
+        )
+        db.session.add(inv)
+        db.session.commit()
+
+    # Set taxpayer MST in session to match the invoice
+    with logged_in_client.session_transaction() as sess:
+        sess["taxpayer_mst"] = "0312345678"
+
+    response = logged_in_client.get("/api/reports/tax-risk-scoreboard")
+    assert response.status_code == 200
+    
+    data = response.get_json()
+    assert data["status"] == "success"
+    
+    # 3. Assert counts and values
+    summary = data["summary"]
+    assert summary["total_analyzed"] >= 1
+    assert summary["total_with_warnings"] >= 1
+    assert summary["total_value_at_risk"] >= 50_800_000.0
+    assert summary["blacklist_warnings_count"] >= 1
+    assert summary["signature_violations_count"] >= 1
+    assert summary["payment_type_flags_count"] >= 1
+    
+    # 4. Assert supplier breakdown
+    suppliers = data["suppliers"]
+    assert len(suppliers) >= 1
+    
+    aws_supplier = next((s for s in suppliers if s["supplier_mst"] == "8099887766"), None)
+    assert aws_supplier is not None
+    assert aws_supplier["supplier_name"] == "AWS Europe SARL"
+    assert aws_supplier["is_blacklisted"] is True
+    assert aws_supplier["warnings_count"] >= 1
+    assert aws_supplier["total_value"] >= 50_800_000.0
+
+    # Cleanup database
+    with app.app_context():
+        Invoice.query.filter_by(id=invoice_id).delete()
+        from invoices.models import BlacklistedMST
+        BlacklistedMST.query.filter_by(mst="8099887766").delete()
+        db.session.commit()
+
+

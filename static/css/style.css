@@ -105,12 +105,12 @@
 }
 
 /* Interactive elements default transition */
-.btn, .nav-link, .custom-input, .custom-select, .stat-card, .btn-theme-toggle, .btn-password-toggle {
-    transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
-                border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
-                color 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
-                transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
-                box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+.btn, .nav-link, .custom-input, .custom-select, .stat-card, .btn-theme-toggle, .btn-password-toggle, body, html, .navbar, .glass-card, .hero-panel, .table, td, th {
+    transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                color 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 body {
@@ -384,6 +384,15 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
     border-color: var(--primary-accent);
 }
 
+.btn-theme-toggle .theme-icon {
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-block;
+}
+
+.btn-theme-toggle:hover .theme-icon {
+    transform: rotate(360deg);
+}
+
 .theme-icon::before {
     font-family: 'bootstrap-icons';
     content: "\F5A2"; /* bi-sun-fill */
@@ -483,6 +492,18 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
     outline: none;
 }
 
+.custom-input.is-invalid, .custom-select.is-invalid {
+    border-color: var(--color-alert-red) !important;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important;
+    animation: shakeError 0.3s ease-in-out;
+}
+
+@keyframes shakeError {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-4px); }
+    40%, 80% { transform: translateX(4px); }
+}
+
 /* Password visibility toggle button */
 .btn-password-toggle {
     background-color: var(--input-bg);
@@ -546,11 +567,35 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
     border: 1px solid var(--border-card) !important;
     box-shadow: var(--shadow-premium) !important;
     transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(
+        to right,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.15) 50%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    transform: skewX(-25deg);
+    transition: 0.75s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
 }
 
 .stat-card:hover {
     transform: translateY(-5px);
     box-shadow: var(--shadow-card-hover) !important;
+}
+
+.stat-card:hover::after {
+    left: 125%;
 }
 
 /* Bento Hero Gradient Card Style */

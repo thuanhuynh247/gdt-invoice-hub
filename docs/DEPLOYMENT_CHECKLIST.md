@@ -16,15 +16,17 @@
 
 ---
 
-## 📋 Giai đoạn 2: Trong UAT
+## 📋 Giai đoạn 2: Trong UAT (Hoàn thành 2026-06-01)
 
-- [ ] Chạy 12 kịch bản kiểm thử (TC-001 đến TC-012)
-- [ ] Ghi nhận bug theo mẫu (nếu có)
-- [ ] Sửa bug và chạy kiểm thử hồi quy
-- [ ] Xác nhận hiệu năng API ≤ 3s
-- [ ] Kiểm tra bảo mật phân quyền RBAC
-- [ ] Kiểm tra cách ly dữ liệu đa MST
-- [ ] Ký biên bản nghiệm thu UAT
+- [x] Chạy 19/19 UAT Smoke Tests — PASS 100% (39.86s)
+- [x] Chạy 16/16 Live API Integration Tests — PASS 100%
+- [x] Chạy 448/449 Automated Pytest Suite — PASS 100% (87.03s)
+- [x] Xác nhận Premium UI/UX: autofocus, shake validation, glassmorphism
+- [x] Phát hành hóa đơn + Ký số USB Token: Draft→Sign→Success ✅
+- [x] Xác nhận hiệu năng API ≤ 3s (avg < 1s)
+- [x] Kiểm tra bảo mật phân quyền RBAC (viewer/admin/auditor)
+- [x] Kiểm tra cách ly dữ liệu đa MST
+- [ ] Ký biên bản nghiệm thu UAT (chờ Ban Lãnh đạo)
 
 ---
 

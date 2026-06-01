@@ -65,7 +65,7 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label small fw-semibold text-muted" for="invoiceSymbol">Ký hiệu hóa đơn <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control custom-input w-100" id="invoiceSymbol" autocomplete="off" placeholder="Ví dụ: 1C26TYY" value="1C26TYY" required>
+                            <input type="text" class="form-control custom-input w-100" id="invoiceSymbol" autocomplete="off" placeholder="Ví dụ: 1C26TYY" value="1C26TYY" required autofocus>
                             <div class="form-text small">Ký hiệu theo Nghị định 123 / Thông tư 78</div>
                         </div>
                         <div class="col-md-6">
@@ -556,8 +556,26 @@ function saveDraft() {
     const buyerAddress = document.getElementById("buyerAddress").value.trim();
     const symbol = document.getElementById("invoiceSymbol").value.trim();
 
-    if (!buyerMst || !buyerName || !buyerAddress) {
-        Swal.fire("Thông tin thiếu", "Vui lòng hoàn thành tất cả các trường thông tin bên mua.", "warning");
+    let hasError = false;
+    if (!symbol) {
+        triggerInputError(document.getElementById("invoiceSymbol"));
+        hasError = true;
+    }
+    if (!buyerMst) {
+        triggerInputError(document.getElementById("buyerMst"));
+        hasError = true;
+    }
+    if (!buyerName) {
+        triggerInputError(document.getElementById("buyerName"));
+        hasError = true;
+    }
+    if (!buyerAddress) {
+        triggerInputError(document.getElementById("buyerAddress"));
+        hasError = true;
+    }
+
+    if (hasError || !buyerMst || !buyerName || !buyerAddress) {
+        Swal.fire("Thông tin thiếu", "Vui lòng hoàn thành tất cả các trường thông tin bắt buộc.", "warning");
         return;
     }
 
@@ -577,6 +595,7 @@ function saveDraft() {
         const taxRate = row.querySelector(".item-tax-input").value;
 
         if (!name) {
+            triggerInputError(row.querySelector(".item-name-input"));
             itemCheck = false;
             return;
         }
