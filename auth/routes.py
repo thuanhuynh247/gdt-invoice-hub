@@ -129,12 +129,16 @@ def api_login():
 
                 try:
                     auth_data = authenticate_user(username, password, solved_value)
+                    from auth.captcha_solver import captcha_analytics
+                    captcha_analytics.record_success()
                     break
                 except AuthenticationError as error:
                     last_error = error
                     msg = str(error)
                     if "captcha" in msg.lower():
                         current_app.logger.warning(f"Auto-solve attempt {attempt+1} failed with captcha error. Retrying...")
+                        from auth.captcha_solver import captcha_analytics
+                        captcha_analytics.record_fail()
                         current_captcha_svg = ""
                         current_captcha_key = ""
                         current_captcha_cookies = {}
@@ -148,6 +152,8 @@ def api_login():
             current_app.config["CURRENT_CAPTCHA_COOKIES"] = session.get("auth_captcha_cookies", {})
             auth_data = authenticate_user(username, password, captcha)
     except AuthenticationError as error:
+        from invoices.security_audit_service import log_security_event
+        log_security_event("AUTH", f"User login failed: {error}", username=username)
         return jsonify({"error": str(error)}), 401
     finally:
         current_app.config["CURRENT_CAPTCHA_KEY"] = ""
@@ -175,6 +181,13 @@ def api_login():
     else:
         session["user_role"] = "viewer"
 
+    from invoices.security_audit_service import log_security_event
+    log_security_event(
+        "AUTH",
+        f"User logged in successfully (role: {session['user_role']})",
+        username=session["username"],
+        tax_code=session.get("tax_code"),
+    )
 
     return jsonify(
         {
@@ -190,6 +203,11 @@ def api_login():
 @auth_blueprint.post("/api/auth/logout")
 def api_logout():
     """Clear the session and return a JSON success response."""
+
+    username = session.get("username", "unknown")
+    tax_code = session.get("tax_code")
+    from invoices.security_audit_service import log_security_event
+    log_security_event("AUTH", "User logged out.", username=username, tax_code=tax_code)
 
     logout_user(session.get("jwt"))
     session.clear()

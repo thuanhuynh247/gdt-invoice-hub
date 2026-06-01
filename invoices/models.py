@@ -587,6 +587,61 @@ class InvoiceCorrectionProposal(db.Model):
         }
 
 
+class SecurityAuditLog(db.Model):
+    """An immutable database log for tracking user and administrative events."""
+
+    __tablename__ = "security_audit_log"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    timestamp = db.Column(db.String(30), nullable=False)
+    username = db.Column(db.String(100), nullable=False)
+    tax_code = db.Column(db.String(20), nullable=True)
+    event_category = db.Column(db.String(50), nullable=False)  # AUTH, PROFILE, REPAIR, UPDATE, DELETE
+    ip_address = db.Column(db.String(45), nullable=True)
+    event_details = db.Column(db.Text, nullable=False)
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "timestamp": self.timestamp,
+            "username": self.username,
+            "tax_code": self.tax_code or "",
+            "event_category": self.event_category,
+            "ip_address": self.ip_address or "",
+            "event_details": self.event_details,
+        }
+class TenantGroup(db.Model):
+    """Represents a corporate group or organization managing multiple taxpayer profiles."""
+    __tablename__ = "tenant_group"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    group_name = db.Column(db.String(100), nullable=False, unique=True)
+    admin_username = db.Column(db.String(100), nullable=False)  # User managing this corporate group
+    taxpayer_msts = db.Column(db.Text, nullable=False)  # JSON list of MSTs, e.g. '["0101234567", "0202345678"]'
+
+    def get_mst_list(self) -> list[str]:
+        try:
+            return json.loads(self.taxpayer_msts)
+        except Exception:
+            return []
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "group_name": self.group_name,
+            "admin_username": self.admin_username,
+            "taxpayer_msts": self.get_mst_list(),
+        }
 
 
+from sqlalchemy import event
 
+
+@event.listens_for(SecurityAuditLog, "before_update")
+def prevent_audit_log_update(mapper, connection, target):
+    raise ValueError("SecurityAuditLog entries are immutable and cannot be updated.")
+
+
+@event.listens_for(SecurityAuditLog, "before_delete")
+def prevent_audit_log_delete(mapper, connection, target):
+    raise ValueError("SecurityAuditLog entries are immutable and cannot be deleted.")

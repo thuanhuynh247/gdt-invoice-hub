@@ -16,8 +16,14 @@ class TenantRoutingSession(FlaskSQLAlchemySession):
 
         try:
             from flask import has_request_context, session, current_app
+            mst = None
             if has_request_context() and session.get("tax_code"):
                 mst = session["tax_code"]
+            else:
+                from invoices.thread_local import get_current_thread_mst
+                mst = get_current_thread_mst()
+
+            if mst:
                 sanitized_mst = mst.strip().replace("-", "").replace(" ", "")
                 
                 # Check cache of engines on the active app context

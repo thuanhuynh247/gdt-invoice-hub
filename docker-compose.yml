@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  webapp:
+    build: .
+    container_name: gdt_invoice_hub_v3
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./data:/app/data
+      - ./instance:/app/instance
+    environment:
+      - FLASK_ENV=production
+      - SECRET_KEY=${SECRET_KEY:-"production_secret_key_change_me"}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-"production_encryption_key_change"}
+      - JWT_SECRET=${JWT_SECRET:-"production_jwt_secret_change_me"}
+      - GDT_USE_MOCK=False
+    restart: unless-stopped

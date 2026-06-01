@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Báo cáo Nhật ký Bảo mật — GDT Invoice Hub</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', 'Inter', Arial, sans-serif;
+            font-size: 11px;
+            color: #1a1a2e;
+            background: #fff;
+            padding: 24px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #302b63;
+            padding-bottom: 12px;
+        }
+        .header h1 {
+            font-size: 20px;
+            color: #302b63;
+            font-weight: 700;
+        }
+        .header p {
+            font-size: 11px;
+            color: #666;
+            margin-top: 4px;
+        }
+        .meta-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 14px;
+            font-size: 10px;
+            color: #555;
+        }
+        .meta-info .filters span {
+            display: inline-block;
+            background: #f0f0ff;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-right: 4px;
+            font-weight: 600;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10px;
+        }
+        thead th {
+            background: #302b63;
+            color: #fff;
+            padding: 6px 4px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        tbody td {
+            padding: 5px 4px;
+            border-bottom: 1px solid #e5e7eb;
+            vertical-align: top;
+        }
+        tbody tr:nth-child(even) {
+            background: #fafafa;
+        }
+        .cat-badge {
+            display: inline-block;
+            padding: 1px 5px;
+            border-radius: 3px;
+            font-weight: 700;
+            font-size: 9px;
+        }
+        .cat-AUTH { background: #dbeafe; color: #1e40af; }
+        .cat-PROFILE { background: #f3e8ff; color: #7c3aed; }
+        .cat-DELETE { background: #fee2e2; color: #dc2626; }
+        .cat-UPDATE { background: #fef3c7; color: #d97706; }
+        .cat-REPAIR { background: #d1fae5; color: #059669; }
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 9px;
+            color: #999;
+            border-top: 1px solid #e5e7eb;
+            padding-top: 8px;
+        }
+        @media print {
+            body { padding: 10px; }
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔒 Báo cáo Nhật ký Bảo mật</h1>
+        <p>GDT Invoice Hub — Hệ thống Quản lý Hóa đơn Điện tử</p>
+    </div>
+
+    <div class="meta-info">
+        <div>
+            <strong>Ngày xuất:</strong> {{ generated_at }} &nbsp;|&nbsp;
+            <strong>Tổng số bản ghi:</strong> {{ total_records }}
+        </div>
+        <div class="filters">
+            {% if filters.category %}<span>Loại: {{ filters.category }}</span>{% endif %}
+            {% if filters.username %}<span>User: {{ filters.username }}</span>{% endif %}
+            {% if filters.tax_code %}<span>MST: {{ filters.tax_code }}</span>{% endif %}
+            {% if filters.date_from %}<span>Từ: {{ filters.date_from }}</span>{% endif %}
+            {% if filters.date_to %}<span>Đến: {{ filters.date_to }}</span>{% endif %}
+            {% if filters.keyword %}<span>Keyword: {{ filters.keyword }}</span>{% endif %}
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:4%">#</th>
+                <th style="width:16%">Thời gian</th>
+                <th style="width:10%">Người dùng</th>
+                <th style="width:10%">MST</th>
+                <th style="width:8%">Loại</th>
+                <th style="width:12%">IP</th>
+                <th style="width:40%">Chi tiết sự kiện</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in logs %}
+            <tr>
+                <td>{{ log.id }}</td>
+                <td>{{ log.timestamp }}</td>
+                <td><strong>{{ log.username }}</strong></td>
+                <td>{{ log.tax_code or '—' }}</td>
+                <td><span class="cat-badge cat-{{ log.event_category }}">{{ log.event_category }}</span></td>
+                <td>{{ log.ip_address or '—' }}</td>
+                <td>{{ log.event_details or '' }}</td>
+            </tr>
+            {% endfor %}
+            {% if not logs %}
+            <tr>
+                <td colspan="7" style="text-align:center;padding:24px;color:#999;">Không có bản ghi nào phù hợp với bộ lọc.</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <div class="footer">
+        <p>Tài liệu này được tạo tự động bởi GDT Invoice Hub. Mọi nội dung bên trong đều bất biến và không thể bị chỉnh sửa sau khi ghi nhận.</p>
+        <p>© 2026 GDT Invoice Hub — Nền tảng Tra cứu & Kết xuất Hóa đơn chuyên nghiệp.</p>
+    </div>
+
+    <script class="no-print">
+        // Auto-print on open for PDF-like experience
+        // window.print();
+    </script>
+</body>
+</html>

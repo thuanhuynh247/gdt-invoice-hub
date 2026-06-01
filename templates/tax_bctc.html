@@ -1,0 +1,1939 @@
+{% extends "base.html" %}
+{% block title %}Hệ thống Nghiệp vụ Thuế & BCTC - GDT Invoice Hub{% endblock %}
+
+{% block content %}
+<style>
+    /* Styling overrides for premium Wise feel */
+    .nav-tabs-premium {
+        border-bottom: 2px solid var(--border-card);
+        gap: 0.5rem;
+    }
+    .nav-tabs-premium .nav-link {
+        font-family: var(--font-heading);
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: var(--text-secondary);
+        border: none;
+        padding: 0.8rem 1.5rem;
+        border-radius: 12px 12px 0 0;
+        transition: all 0.2s ease;
+        background: transparent;
+    }
+    .nav-tabs-premium .nav-link:hover {
+        color: var(--text-primary);
+        background-color: var(--primary-accent-soft);
+    }
+    .nav-tabs-premium .nav-link.active {
+        color: var(--primary-accent);
+        border-bottom: 3px solid var(--primary-accent);
+        background-color: var(--bg-card);
+    }
+    .xml-pre {
+        background-color: var(--bg-app);
+        border: 1px solid var(--border-card);
+        border-radius: 12px;
+        color: var(--text-primary);
+        padding: 1.2rem;
+        max-height: 400px;
+        overflow-y: auto;
+        font-family: var(--font-monospace);
+        font-size: 0.85rem;
+    }
+    .qr-container {
+        border: 1px solid var(--border-card);
+        border-radius: 20px;
+        padding: 1.5rem;
+        background-color: #ffffff;
+        text-align: center;
+        box-shadow: var(--shadow-premium);
+        max-width: 280px;
+        margin: 0 auto;
+    }
+    .qr-image {
+        max-width: 100%;
+        height: auto;
+        border-radius: 10px;
+    }
+    .compliance-pill {
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 6px 12px;
+        border-radius: 9999px;
+    }
+</style>
+
+<div class="mb-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+    <div>
+        <h1 class="h3 fw-bold mb-1" style="color: var(--text-primary);">
+            Nghiệp vụ Thuế & BCTC (v17)
+        </h1>
+        <p class="text-secondary mb-0">Quản lý lập BCTC Thông tư 200, Đối soát Sổ cái, Nộp thuế VietQR & Hóa đơn TMĐT.</p>
+    </div>
+</div>
+
+<!-- Tabs Navigation -->
+<ul class="nav nav-tabs nav-tabs-premium mb-4" id="taxBctcTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="bctc-tab" data-bs-toggle="tab" data-bs-target="#bctc-pane" type="button" role="tab" aria-controls="bctc-pane" aria-selected="true">
+            <i class="bi bi-file-earmark-spreadsheet me-2"></i>Lập BCTC (B01/02/03-DN)
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="ledger-tab" data-bs-toggle="tab" data-bs-target="#ledger-pane" type="button" role="tab" aria-controls="ledger-pane" aria-selected="false">
+            <i class="bi bi-shield-check me-2"></i>Kiểm toán Sổ cái
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="taxpayment-tab" data-bs-toggle="tab" data-bs-target="#taxpayment-pane" type="button" role="tab" aria-controls="taxpayment-pane" aria-selected="false">
+            <i class="bi bi-qr-code me-2"></i>Nộp Thuế VietQR
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="ecommerce-tab" data-bs-toggle="tab" data-bs-target="#ecommerce-pane" type="button" role="tab" aria-controls="ecommerce-pane" aria-selected="false">
+            <i class="bi bi-shop me-2"></i>Hóa đơn TMĐT & Đối chiếu
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="cit-tab" data-bs-toggle="tab" data-bs-target="#cit-pane" type="button" role="tab" aria-controls="cit-pane" aria-selected="false">
+            <i class="bi bi-calculator me-2"></i>Quyết toán & Mô phỏng TNDN
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="risk-scoreboard-tab" data-bs-toggle="tab" data-bs-target="#risk-scoreboard-pane" type="button" role="tab" aria-controls="risk-scoreboard-pane" aria-selected="false">
+            <i class="bi bi-shield-exclamation me-2"></i>Bảng điểm Rủi ro Thuế
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="ifrs-fct-tab" data-bs-toggle="tab" data-bs-target="#ifrs-fct-pane" type="button" role="tab" aria-controls="ifrs-fct-pane" aria-selected="false">
+            <i class="bi bi-globe me-2"></i>IFRS & Thuế Nhà Thầu
+        </button>
+    </li>
+</ul>
+
+<!-- Tabs Content -->
+<div class="tab-content" id="taxBctcTabsContent">
+    <!-- TAB 1: BCTC compilation -->
+    <div class="tab-pane fade show active" id="bctc-pane" role="tabpanel" aria-labelledby="bctc-tab">
+        <div class="row g-4">
+            <div class="col-lg-5">
+                <div class="card border-0 glass-card">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-upload text-primary me-2"></i>Nhập bảng Cân đối số phát sinh</h5>
+                    <p class="text-secondary small">Tải lên file Excel bảng Cân đối phát sinh (Trial Balance) để tự động ánh xạ tài khoản theo Thông tư 200/2014/TT-BTC.</p>
+                    
+                    <form id="bctcUploadForm" class="mt-3">
+                        <div class="mb-3">
+                            <label class="form-label">Chọn tệp Excel (.xlsx, .xls)</label>
+                            <input class="form-control custom-input" type="file" id="bctcFile" accept=".xlsx, .xls" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Mã số thuế (MST)</label>
+                                <input type="text" class="form-control custom-input" id="bctcMst" value="{{ session.get('taxpayer_mst') or '0109998887' }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Năm báo cáo</label>
+                                <input type="number" class="form-control custom-input" id="bctcYear" value="2026">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Tên doanh nghiệp</label>
+                            <input type="text" class="form-control custom-input" id="bctcCompanyName" value="CONG TY TNHH MOCK">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Cổ tức / Lợi nhuận đã chia (VND)</label>
+                            <input type="number" class="form-control custom-input" id="bctcDividends" value="0">
+                        </div>
+                        
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-primary-accent rounded-pill">
+                                <i class="bi bi-cpu-fill me-2"></i>Biên dịch & Kiểm tra BCTC
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="col-lg-7">
+                <div class="card border-0 glass-card h-100">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-file-earmark-code text-primary me-2"></i>Kết quả kết xuất XML HTKK</h5>
+                    <div id="bctcResultPlaceholder" class="text-center py-5 text-muted">
+                        <i class="bi bi-file-earmark-excel fs-1 mb-3 d-block text-secondary"></i>
+                        Vui lòng tải lên tệp Cân đối phát sinh ở khung bên trái để chạy quy trình.
+                    </div>
+                    
+                    <div id="bctcResults" class="d-none">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span id="bctcStatusPill" class="compliance-pill"></span>
+                            <button class="btn btn-outline-excel btn-sm rounded-pill" onclick="downloadBctcXml()">
+                                <i class="bi bi-download me-1"></i>Tải xuống tệp XML
+                            </button>
+                        </div>
+                        
+                        <div id="bctcWarningsSection" class="alert alert-warning d-none mb-3">
+                            <h6 class="fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i>Cảnh báo mất cân đối sổ sách:</h6>
+                            <ul id="bctcWarningsList" class="mb-0 small"></ul>
+                        </div>
+                        
+                        <div class="alert alert-success mb-3 py-2 px-3 small d-flex align-items-center gap-2">
+                            <i class="bi bi-check-circle-fill"></i>
+                            <span>BCTC đã biên dịch thành công. Định dạng tương thích với phần mềm HTKK của Tổng cục Thuế.</span>
+                        </div>
+                        
+                        <pre class="xml-pre" id="bctcXmlContent"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- TAB 2: Ledger integrity audit -->
+    <div class="tab-pane fade" id="ledger-pane" role="tabpanel" aria-labelledby="ledger-tab">
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="card border-0 glass-card">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-file-earmark-lock text-primary me-2"></i>Đối soát Sổ cái & Hóa đơn</h5>
+                    <p class="text-secondary small">Hệ thống sẽ đối chiếu phát sinh trên Sổ cái của doanh nghiệp với cơ sở dữ liệu hóa đơn điện tử XML chính thức đã tải về từ Tổng cục Thuế (GDT).</p>
+                    
+                    <form id="ledgerAuditForm" class="mt-3">
+                        <div class="mb-3">
+                            <label class="form-label">Chọn tệp Sổ cái / Cân đối phát sinh</label>
+                            <input class="form-control custom-input" type="file" id="ledgerFile" accept=".xlsx, .xls" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Mã số thuế Doanh nghiệp đối soát</label>
+                            <input type="text" class="form-control custom-input" id="ledgerMst" value="{{ session.get('taxpayer_mst') or '0109998887' }}">
+                        </div>
+                        
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-primary-accent rounded-pill">
+                                <i class="bi bi-shield-shaded me-2"></i>Bắt đầu Kiểm toán Đối chiếu
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="col-lg-8">
+                <div class="card border-0 glass-card h-100">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-clipboard-data text-primary me-2"></i>Báo cáo sai lệch và bất thường</h5>
+                    
+                    <div id="ledgerPlaceholder" class="text-center py-5 text-muted">
+                        <i class="bi bi-clipboard-x fs-1 mb-3 d-block text-secondary"></i>
+                        Vui lòng chọn file Sổ cái và MST để đối chiếu.
+                    </div>
+                    
+                    <div id="ledgerReport" class="d-none">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div class="d-flex align-items-center gap-2">
+                                <h6 class="fw-bold mb-0">Điểm số Tuân thủ (Compliance Score):</h6>
+                                <span id="complianceScoreBadge" class="badge fs-6 rounded-pill">100 / 100</span>
+                            </div>
+                            <span id="ledgerStatusPill" class="compliance-pill"></span>
+                        </div>
+                        
+                        <!-- Missing Invoices -->
+                        <div class="mb-4">
+                            <h6 class="fw-bold text-danger"><i class="bi bi-x-circle-fill me-2"></i>Thiếu hóa đơn đầu vào/ra XML (Ledger có - GDT không có)</h6>
+                            <div class="table-responsive mt-2">
+                                <table class="table table-sm align-middle small">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Tài khoản Sổ</th>
+                                            <th class="text-end">Số tiền phát sinh</th>
+                                            <th>Trạng thái rủi ro</th>
+                                            <th>Chi tiết</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="missingInvoicesBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <!-- Missing Entries -->
+                        <div class="mb-4">
+                            <h6 class="fw-bold text-warning"><i class="bi bi-exclamation-circle-fill me-2"></i>Thiếu bút toán hạch toán Sổ cái (GDT có - Ledger không có)</h6>
+                            <div class="table-responsive mt-2">
+                                <table class="table table-sm align-middle small">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Số hóa đơn</th>
+                                            <th>Đối tác</th>
+                                            <th class="text-end">Giá trị hóa đơn</th>
+                                            <th>Ngày lập</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="missingEntriesBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <!-- Value Mismatches -->
+                        <div>
+                            <h6 class="fw-bold text-info"><i class="bi bi-info-circle-fill me-2"></i>Chênh lệch giá trị / sai lệch số tiền</h6>
+                            <div class="table-responsive mt-2">
+                                <table class="table table-sm align-middle small">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Hóa đơn</th>
+                                            <th class="text-end">Tiền hóa đơn</th>
+                                            <th>Tài khoản Sổ</th>
+                                            <th class="text-end">Tiền sổ cái</th>
+                                            <th>Mô tả chênh lệch</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="valueMismatchesBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- TAB 3: Tax Payment & VietQR -->
+    <div class="tab-pane fade" id="taxpayment-pane" role="tabpanel" aria-labelledby="taxpayment-tab">
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <div class="card border-0 glass-card">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-file-earmark-text text-primary me-2"></i>Thông tin Giấy nộp tiền thuế</h5>
+                    <p class="text-secondary small">Nhập thông tin nộp thuế nhà nước để tạo Giấy nộp tiền thuế vào Ngân sách Nhà nước (Mẫu số 711/MB) và mã VietQR thanh toán nhanh.</p>
+                    
+                    <form id="taxSlipForm" class="mt-3">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Loại thuế cần nộp</label>
+                                <select class="form-select custom-select" id="taxType" required>
+                                    <option value="vat">Thuế giá trị gia tăng (VAT - 1701)</option>
+                                    <option value="cit">Thuế thu nhập doanh nghiệp (CIT - 1052)</option>
+                                    <option value="pit">Thuế thu nhập cá nhân (PIT - 1001)</option>
+                                    <option value="licence">Lệ phí môn bài (1801)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Số tiền thuế (VND)</label>
+                                <input type="number" class="form-control custom-input" id="taxAmount" placeholder="Ví dụ: 15000000" required>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Mã số thuế doanh nghiệp</label>
+                                <input type="text" class="form-control custom-input" id="taxMst" value="{{ session.get('taxpayer_mst') or '0109998887' }}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Tên người nộp thuế</label>
+                                <input type="text" class="form-control custom-input" id="taxCompanyName" value="CONG TY TNHH MOCK" required>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Loại chương nộp thuế</label>
+                                <select class="form-select custom-select" id="chapterType">
+                                    <option value="domestic_private">Doanh nghiệp tư nhân (Chương 552)</option>
+                                    <option value="fdi">Doanh nghiệp FDI (Chương 551)</option>
+                                    <option value="state_owned">Doanh nghiệp nhà nước (Chương 554)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Tài khoản Kho bạc Nhà nước</label>
+                                <input type="text" class="form-control custom-input" id="treasuryAccount" value="111222333444" required>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Tên cơ quan quản lý thu</label>
+                                <input type="text" class="form-control custom-input" id="treasuryName" value="Kho bac Nha nuoc Quan Cau Giay" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Ngân hàng ủy nhiệm thu (BIN)</label>
+                                <input type="text" class="form-control custom-input" id="bankBin" value="970415" placeholder="VietinBank (970415)" required>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-primary-accent rounded-pill">
+                                <i class="bi bi-qr-code-scan me-2"></i>Tạo VietQR & Giấy nộp tiền
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="card border-0 glass-card h-100 text-center d-flex flex-column justify-content-center align-items-center">
+                    <div id="taxSlipPlaceholder" class="py-5 text-muted">
+                        <i class="bi bi-qr-code fs-1 mb-3 d-block text-secondary"></i>
+                        Vui lòng điền thông tin và bấm nút tạo để lấy mã thanh toán nhanh VietQR.
+                    </div>
+                    
+                    <div id="taxSlipResult" class="d-none w-100 text-start">
+                        <h5 class="fw-bold text-center mb-3"><i class="bi bi-check2-circle text-success me-2"></i>Giấy nộp tiền đã khởi tạo</h5>
+                        
+                        <div class="row g-4 align-items-center">
+                            <div class="col-md-6">
+                                <div class="qr-container">
+                                    <h6 class="fw-bold mb-2 text-dark">Thanh toán qua VietQR</h6>
+                                    <img src="" id="taxQrImage" class="qr-image mb-2" alt="VietQR code">
+                                    <p class="text-secondary small mb-0 font-monospace" id="taxQrString" style="word-break: break-all; font-size: 0.65rem;"></p>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card bg-light p-3 border-0 rounded-4 text-dark-emphasis small">
+                                    <p class="mb-1"><strong>Mã Chương:</strong> <span id="lblChapterCode"></span></p>
+                                    <p class="mb-1"><strong>Mục thuế:</strong> <span id="lblSubChapterCode"></span></p>
+                                    <p class="mb-1"><strong>Cơ quan quản lý:</strong> <span id="lblTreasuryName"></span></p>
+                                    <p class="mb-1"><strong>Số tài khoản:</strong> <span id="lblTreasuryAccount"></span></p>
+                                    <p class="mb-2"><strong>Số tiền nộp:</strong> <strong class="text-danger" id="lblAmount"></strong></p>
+                                    
+                                    <hr class="my-2">
+                                    
+                                    <button class="btn btn-outline-dark btn-sm w-100 rounded-pill mt-2" onclick="downloadTaxSlipXml()">
+                                        <i class="bi bi-download me-1"></i>Tải XML giấy nộp tiền
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- TAB 4: Ecommerce Sync & Reconciliation -->
+    <div class="tab-pane fade" id="ecommerce-pane" role="tabpanel" aria-labelledby="ecommerce-tab">
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="card border-0 glass-card">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-arrow-repeat text-primary me-2"></i>Đồng bộ doanh số TMĐT</h5>
+                    <p class="text-secondary small">Tải báo cáo tài chính/thanh toán của Shopee (Shopee Income Report) hoặc TikTok Shop (TikTok Settlement Sheets) để đồng bộ vào hệ thống quản lý hóa đơn.</p>
+                    
+                    <form id="ecommerceSyncForm" class="mt-3">
+                        <div class="mb-3">
+                            <label class="form-label">Nền tảng TMĐT</label>
+                            <select class="form-select custom-select" id="ecomPlatform" required>
+                                <option value="Shopee">Shopee Seller Portal</option>
+                                <option value="TikTok">TikTok Shop Center</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Chọn tệp báo cáo thanh toán (.xlsx, .xls)</label>
+                            <input class="form-control custom-input" type="file" id="ecomFile" accept=".xlsx, .xls" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Mã số thuế Doanh nghiệp bán</label>
+                            <input type="text" class="form-control custom-input" id="ecomMst" value="{{ session.get('taxpayer_mst') or '0109998887' }}">
+                        </div>
+                        
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-primary-accent rounded-pill">
+                                <i class="bi bi-sync me-2"></i>Đồng bộ & Tạo Hóa đơn
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="col-lg-8">
+                <div class="card border-0 glass-card h-100">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-shield-fill-exclamation text-primary me-2"></i>Báo cáo chênh lệch thuế TMĐT</h5>
+                    
+                    <div id="ecomPlaceholder" class="text-center py-5 text-muted">
+                        <i class="bi bi-shop-window fs-1 mb-3 d-block text-secondary"></i>
+                        Vui lòng tải lên báo cáo thanh toán của Shopee hoặc TikTok Shop để bắt đầu đối soát thuế bán lẻ.
+                    </div>
+                    
+                    <div id="ecomReport" class="d-none">
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <div class="p-3 bg-light rounded-4 text-center">
+                                    <span class="text-secondary small d-block">Tổng doanh số sàn</span>
+                                    <strong class="fs-5 text-dark" id="ecomTotalRevenue">0 ₫</strong>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="p-3 bg-light rounded-4 text-center">
+                                    <span class="text-secondary small d-block">Đã khớp hóa đơn</span>
+                                    <strong class="fs-5 text-success" id="ecomMatchedRevenue">0 ₫</strong>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="p-3 bg-light rounded-4 text-center">
+                                    <span class="text-secondary small d-block">Mức độ rủi ro thuế</span>
+                                    <strong class="fs-5 text-danger" id="ecomRiskLevel">Thấp</strong>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h6 class="fw-bold text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>Đơn hàng chưa xuất hóa đơn điện tử (Chênh lệch đầu ra)</h6>
+                            <div class="table-responsive mt-2">
+                                <table class="table table-sm align-middle small">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Mã đơn hàng</th>
+                                            <th>Ngày giao dịch</th>
+                                            <th class="text-end">Doanh số chưa kê khai</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ecomUninvoicedBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h6 class="fw-bold text-warning"><i class="bi bi-cash-stack me-2"></i>Rủi ro khấu trừ VAT chi phí sàn (Phí sàn chưa có hóa đơn đầu vào)</h6>
+                            <div class="table-responsive mt-2">
+                                <table class="table table-sm align-middle small">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Mã đơn hàng</th>
+                                            <th>Ngày giao dịch</th>
+                                            <th class="text-end">Tiền phí sàn phát sinh</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ecomFeeRiskBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- TAB 5: CIT Finalization & Scenario Modeler -->
+    <div class="tab-pane fade" id="cit-pane" role="tabpanel" aria-labelledby="cit-tab">
+        <div class="row g-4">
+            <!-- Left Column: Finalization Form -->
+            <div class="col-lg-5">
+                <div class="card border-0 glass-card">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-upload text-primary me-2"></i>Quyết toán thuế TNDN (03/TNDN)</h5>
+                    <p class="text-secondary small">Tải lên file Excel bảng Cân đối phát sinh để chạy quyết toán và khống chế chi phí lãi vay liên kết theo Nghị định 132/2020/NĐ-CP.</p>
+                    
+                    <form id="citFinalizeForm" class="mt-3">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Bảng Cân đối phát sinh Excel</label>
+                            <input class="form-control custom-input" type="file" id="citFile" accept=".xlsx, .xls" required>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Mã số thuế (MST)</label>
+                                <input type="text" class="form-control custom-input" id="citMst" value="{{ session.get('taxpayer_mst') or '0109998887' }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Năm quyết toán</label>
+                                <input type="number" class="form-control custom-input" id="citYear" value="2026">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Tên doanh nghiệp</label>
+                            <input type="text" class="form-control custom-input" id="citCompanyName" value="CONG TY TNHH MOCK">
+                        </div>
+                        
+                        <hr class="my-3 text-secondary">
+                        <h6 class="fw-bold mb-3 text-primary"><i class="bi bi-sliders me-1"></i>Điều chỉnh thủ công (nếu có)</h6>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Chi phí không được trừ khác (VND)</label>
+                            <input type="number" class="form-control custom-input" id="citNonDeductibleManual" value="0">
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Số lỗ được chuyển (VND)</label>
+                                <input type="number" class="form-control custom-input" id="citLossCarryForward" value="0">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Miễn giảm thuế/R&D (VND)</label>
+                                <input type="number" class="form-control custom-input" id="citRdAllowance" value="0">
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-primary-accent rounded-pill">
+                                <i class="bi bi-calculator-fill me-2"></i>Quyết toán & Biên dịch XML 03
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Right Column: Interactive Scenario Modeler -->
+            <div class="col-lg-7">
+                <div class="card border-0 glass-card">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-cpu text-primary me-2"></i>Mô phỏng Kịch bản TNDN thời gian thực (Decree 132)</h5>
+                    <p class="text-secondary small">Kéo các thanh trượt bên dưới để mô phỏng kịch bản lập kế hoạch thuế. Hệ thống sẽ tự động cập nhật EBITDA, Trần lãi vay liên kết & Thuế TNDN phải nộp.</p>
+                    
+                    <!-- Sliders Panel -->
+                    <div class="p-3 bg-light rounded-4 mb-4 text-dark">
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <label class="form-label fw-semibold">Tăng/Giảm Doanh thu (%)</label>
+                                <span class="fw-bold text-primary" id="valRevenuePct">0%</span>
+                            </div>
+                            <input type="range" class="form-range" id="slideRevenuePct" min="-50" max="100" value="0">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <label class="form-label fw-semibold">Tăng/Giảm Giá vốn (%)</label>
+                                <span class="fw-bold text-primary" id="valCogsPct">0%</span>
+                            </div>
+                            <input type="range" class="form-range" id="slideCogsPct" min="-50" max="100" value="0">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <label class="form-label fw-semibold">Thay đổi Chi phí nhân sự (VND)</label>
+                                <span class="fw-bold text-primary" id="valStaffCosts">0 ₫</span>
+                            </div>
+                            <input type="range" class="form-range" id="slideStaffCosts" min="-2000000000" max="5000000000" step="100000000" value="0">
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex justify-content-between">
+                                    <label class="form-label fw-semibold">Lãi vay liên kết simulated</label>
+                                    <span class="fw-bold text-danger" id="valInterestLinked">0 ₫</span>
+                                </div>
+                                <input type="range" class="form-range" id="slideInterestLinked" min="0" max="3000000000" step="50000000" value="0">
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex justify-content-between">
+                                    <label class="form-label fw-semibold">Vốn đầu tư R&D simulated</label>
+                                    <span class="fw-bold text-success" id="valRdInvestment">0 ₫</span>
+                                </div>
+                                <input type="range" class="form-range" id="slideRdInvestment" min="0" max="4000000000" step="50000000" value="0">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Real-time KPIs (Bento Grid) -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <div class="p-3 bg-light rounded-4 text-center text-dark">
+                                <span class="text-secondary small d-block">Lợi nhuận trước thuế</span>
+                                <strong class="fs-6 font-monospace" id="simPretaxProfit">0 ₫</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 bg-light rounded-4 text-center text-dark">
+                                <span class="text-secondary small d-block">EBITDA dự kiến</span>
+                                <strong class="fs-6 font-monospace" id="simEbitda">0 ₫</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 bg-light rounded-4 text-center text-dark">
+                                <span class="text-secondary small d-block">Trần Lãi vay liên kết (30%)</span>
+                                <strong class="fs-6 font-monospace text-warning" id="simInterestCap">0 ₫</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 bg-light rounded-4 text-center text-dark">
+                                <span class="text-secondary small d-block">Chi phí lãi vay không được trừ</span>
+                                <strong class="fs-6 font-monospace text-danger" id="simNonDeductibleInterest">0 ₫</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 bg-light rounded-4 text-center text-dark">
+                                <span class="text-secondary small d-block">Thuế TNDN phải nộp simulated</span>
+                                <strong class="fs-5 font-monospace text-danger fw-bold" id="simCitPayable">0 ₫</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 bg-light rounded-4 text-center text-dark">
+                                <span class="text-secondary small d-block">Thuế suất hiệu dụng (ETR)</span>
+                                <strong class="fs-5 font-monospace text-primary fw-bold" id="simEtr">0%</strong>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Audit Risk Score panel -->
+                    <div class="p-3 bg-light rounded-4 mb-4 text-dark">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="fw-bold">Điểm số rủi ro thanh tra thuế:</span>
+                            <span class="badge rounded-pill fs-6" id="simRiskPill">100 / 100</span>
+                        </div>
+                        <div class="progress mb-3" style="height: 10px;">
+                            <div class="progress-bar bg-success" id="simRiskProgress" role="progressbar" style="width: 100%;"></div>
+                        </div>
+                        <div class="small text-secondary" id="simRiskReasons">
+                            <span class="text-success"><i class="bi bi-shield-check me-1"></i>Hồ sơ thuế an toàn, không phát hiện rủi ro trọng yếu.</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Output Results Panel -->
+                    <div id="citResults" class="d-none">
+                        <hr class="my-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold mb-0 text-primary"><i class="bi bi-file-earmark-code me-2"></i>Mẫu Tờ khai 03/TNDN XML HTKK</h6>
+                            <button class="btn btn-outline-primary btn-sm rounded-pill" onclick="downloadCitXml()">
+                                <i class="bi bi-download me-1"></i>Tải XML 03/TNDN
+                            </button>
+                        </div>
+                        <pre class="xml-pre" id="citXmlContent"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 6: Tax Risk Scoreboard & High Risk Suppliers -->
+    <div class="tab-pane fade" id="risk-scoreboard-pane" role="tabpanel" aria-labelledby="risk-scoreboard-tab">
+        <div class="row g-4">
+            <!-- Left Side: Bento Cards & Dynamic SVG Chart -->
+            <div class="col-lg-6">
+                <!-- Bento KPI row -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="card border-0 glass-card p-3 text-center">
+                            <span class="text-secondary small d-block mb-1">Tỷ lệ Hóa đơn Cảnh báo</span>
+                            <strong class="fs-4 text-danger font-monospace" id="sbWarnRate">0 / 0</strong>
+                            <span class="text-muted small mt-1">Đã phát hiện cảnh báo rủi ro</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border-0 glass-card p-3 text-center">
+                            <span class="text-secondary small d-block mb-1">Tổng Giá trị Rủi ro</span>
+                            <strong class="fs-4 text-warning font-monospace" id="sbValueAtRisk">0 ₫</strong>
+                            <span class="text-muted small mt-1">Giá trị giao dịch chịu cảnh báo</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive SVG Dashboard Panel -->
+                <div class="card border-0 glass-card">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-pie-chart text-primary me-2"></i>Phân phối Cảnh báo Rủi ro Thuế</h5>
+                    <p class="text-secondary small mb-4">Tỷ lệ cảnh báo xuất hiện trong tập hợp hóa đơn được kiểm tra. Màu sắc tự động đồng bộ theo hệ thống chủ đề.</p>
+                    
+                    <div class="d-flex flex-column align-items-center justify-content-center py-3">
+                        <svg width="100%" height="240" viewBox="0 0 400 240" class="mx-auto" style="max-width: 400px;">
+                            <!-- Grid / Background -->
+                            <rect width="100%" height="100%" fill="none" />
+                            
+                            <!-- Gauge 1: Blacklist (Left) -->
+                            <g transform="translate(80, 100)">
+                                <circle cx="0" cy="0" r="45" fill="none" stroke="var(--border-card)" stroke-width="8" />
+                                <circle id="gaugeBlacklist" cx="0" cy="0" r="45" fill="none" stroke="#ff4d4f" stroke-width="8" 
+                                        stroke-dasharray="283" stroke-dashoffset="283" stroke-linecap="round" transform="rotate(-90)"
+                                        style="transition: stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1);" />
+                                <text id="lblBlacklistPct" x="0" y="5" text-anchor="middle" font-weight="bold" fill="var(--text-primary)" font-size="14px">0%</text>
+                                <text x="0" y="70" text-anchor="middle" fill="var(--text-secondary)" font-size="12px" font-weight="600">NCC Đen/Rủi ro</text>
+                            </g>
+                            
+                            <!-- Gauge 2: Signature (Center) -->
+                            <g transform="translate(200, 100)">
+                                <circle cx="0" cy="0" r="45" fill="none" stroke="var(--border-card)" stroke-width="8" />
+                                <circle id="gaugeSignature" cx="0" cy="0" r="45" fill="none" stroke="var(--primary-accent)" stroke-width="8" 
+                                        stroke-dasharray="283" stroke-dashoffset="283" stroke-linecap="round" transform="rotate(-90)"
+                                        style="transition: stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1);" />
+                                <text id="lblSignaturePct" x="0" y="5" text-anchor="middle" font-weight="bold" fill="var(--text-primary)" font-size="14px">0%</text>
+                                <text x="0" y="70" text-anchor="middle" fill="var(--text-secondary)" font-size="12px" font-weight="600">Lỗi Chữ Ký</text>
+                            </g>
+                            
+                            <!-- Gauge 3: Payment (Right) -->
+                            <g transform="translate(320, 100)">
+                                <circle cx="0" cy="0" r="45" fill="none" stroke="var(--border-card)" stroke-width="8" />
+                                <circle id="gaugePayment" cx="0" cy="0" r="45" fill="none" stroke="#faad14" stroke-width="8" 
+                                        stroke-dasharray="283" stroke-dashoffset="283" stroke-linecap="round" transform="rotate(-90)"
+                                        style="transition: stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1);" />
+                                <text id="lblPaymentPct" x="0" y="5" text-anchor="middle" font-weight="bold" fill="var(--text-primary)" font-size="14px">0%</text>
+                                <text x="0" y="70" text-anchor="middle" fill="var(--text-secondary)" font-size="12px" font-weight="600">Thanh Toán TM</text>
+                            </g>
+                        </svg>
+                        
+                        <div class="w-100 mt-4 small text-secondary">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span><i class="bi bi-circle-fill text-danger me-2"></i>Nhà cung cấp trong danh sách rủi ro/đen:</span>
+                                <strong class="text-primary font-monospace" id="sbBlacklistCount">0 h.đơn</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span><i class="bi bi-circle-fill text-primary me-2"></i>Lỗi/Thiếu chữ ký số trên hóa đơn:</span>
+                                <strong class="text-primary font-monospace" id="sbSignatureCount">0 h.đơn</strong>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span><i class="bi bi-circle-fill text-warning me-2"></i>Giao dịch trên 20 triệu bằng tiền mặt:</span>
+                                <strong class="text-primary font-monospace" id="sbPaymentCount">0 h.đơn</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: High Risk Suppliers Table -->
+            <div class="col-lg-6">
+                <div class="card border-0 glass-card h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0"><i class="bi bi-shield-slash text-danger me-2"></i>Nhà Cung Cấp Có Rủi Ro Cao</h5>
+                        <button class="btn btn-outline-primary btn-sm rounded-pill" onclick="loadTaxRiskScoreboard()">
+                            <i class="bi bi-arrow-clockwise me-1"></i>Làm mới
+                        </button>
+                    </div>
+                    <p class="text-secondary small">Danh sách các đối tác cung cấp có phát hiện hóa đơn cảnh báo rủi ro hoặc nằm trong danh sách đen của Cơ quan thuế.</p>
+                    
+                    <!-- Search Input -->
+                    <div class="input-group mb-3">
+                        <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control custom-input border-start-0" id="supplierSearchInput" placeholder="Tìm kiếm theo MST hoặc tên nhà cung cấp..." onkeyup="filterSupplierTable()">
+                    </div>
+
+                    <div class="table-responsive" style="max-height: 480px; overflow-y: auto;">
+                        <table class="table table-hover align-middle small mb-0">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th>Nhà Cung Cấp</th>
+                                    <th class="text-center">Số h.đơn cảnh báo / Tổng</th>
+                                    <th class="text-end">Tổng Doanh số</th>
+                                    <th class="text-center">Điểm T-Score TB</th>
+                                    <th>Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody id="riskSuppliersTableBody">
+                                <tr>
+                                    <td colspan="5" class="text-center py-5 text-muted">
+                                        <div class="spinner-border spinner-border-sm text-primary" role="status" class="mb-2"></div>
+                                        <span class="d-block">Đang tải danh sách nhà cung cấp rủi ro...</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 7: IFRS & FCT International Tax Integration -->
+    <div class="tab-pane fade" id="ifrs-fct-pane" role="tabpanel" aria-labelledby="ifrs-fct-tab">
+        <div class="row g-4">
+            <!-- Left Side: Controls, Invoices Selection -->
+            <div class="col-lg-4">
+                <div class="card border-0 glass-card p-4">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-gear-fill text-primary me-2"></i>Tham Số Quốc Tế</h5>
+                    
+                    <div class="mb-3">
+                        <label for="ifrsMst" class="form-label small fw-bold">Mã số thuế doanh nghiệp</label>
+                        <input type="text" class="form-control custom-input" id="ifrsMst" value="0102030405" placeholder="MST doanh nghiệp">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="ifrsCurrency" class="form-label small fw-bold">Đồng tiền báo cáo (Reporting Currency)</label>
+                        <select class="form-select custom-input" id="ifrsCurrency" onchange="onIfrsCurrencyChange(this)">
+                            <option value="USD" selected>USD (Đô la Mỹ) - VCB Spot Rate</option>
+                            <option value="EUR">EUR (Euro) - VCB Spot Rate</option>
+                            <option value="JPY">JPY (Yên Nhật) - VCB Spot Rate</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="ifrsFctCategory" class="form-label small fw-bold">Phân loại Thuế Nhà Thầu mặc định</label>
+                        <select class="form-select custom-input" id="ifrsFctCategory">
+                            <option value="services" selected>Dịch vụ kỹ thuật (VAT 5%, CIT 5%)</option>
+                            <option value="software_license">Bản quyền phần mềm (VAT 0%, CIT 10%)</option>
+                            <option value="royalties">Bản quyền thương hiệu (VAT Exempt, CIT 10%)</option>
+                            <option value="goods_supply">Cung cấp hàng hóa kèm dịch vụ (VAT 3%, CIT 2%)</option>
+                        </select>
+                    </div>
+
+                    <hr class="my-3">
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold mb-0"><i class="bi bi-list-check text-primary me-2"></i>Chọn Hóa Đơn</h6>
+                        <button class="btn btn-outline-primary btn-sm rounded-pill" onclick="loadIfrsInvoices()">
+                            <i class="bi bi-arrow-clockwise"></i> Tải hóa đơn
+                        </button>
+                    </div>
+
+                    <!-- Scrollable list of invoices with checkboxes -->
+                    <div class="border rounded-4 p-2 bg-light bg-opacity-50" style="max-height: 280px; overflow-y: auto;">
+                        <table class="table table-sm table-hover align-middle mb-0 small">
+                            <thead>
+                                <tr>
+                                    <th width="30"><input type="checkbox" id="selectAllIfrs" onchange="toggleSelectAllIfrs(this)"></th>
+                                    <th>Số H.Đơn / Ngày</th>
+                                    <th class="text-end">Giá trị (VND)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ifrsInvoicesSelectBody">
+                                <tr>
+                                    <td colspan="3" class="text-center py-4 text-muted">
+                                        Vui lòng nhấn "Tải hóa đơn" để hiển thị danh sách.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <button class="btn btn-primary w-100 mt-4 rounded-pill fw-bold" onclick="runIfrsMapping()">
+                        <i class="bi bi-cpu me-2"></i>Quy Đổi & Bút Toán IFRS
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Side: Presentation Tabs (Ledger mapping & FCT sheet) -->
+            <div class="col-lg-8">
+                <!-- Sub tabs for Right Side -->
+                <ul class="nav nav-pills nav-pills-premium mb-3 bg-light p-1 rounded-pill" id="ifrsSubTabs" role="tablist" style="max-width: 500px;">
+                    <li class="nav-item w-50" role="presentation">
+                        <button class="nav-link active w-100 rounded-pill py-2" id="ifrs-ledger-subtab" data-bs-toggle="tab" data-bs-target="#ifrs-ledger-pane" type="button" role="tab" aria-controls="ifrs-ledger-pane" aria-selected="true">
+                            <i class="bi bi-file-earmark-spreadsheet me-2"></i>Quy Đổi IFRS & Sổ Nhật Ký
+                        </button>
+                    </li>
+                    <li class="nav-item w-50" role="presentation">
+                        <button class="nav-link w-100 rounded-pill py-2" id="ifrs-fct-subtab" data-bs-toggle="tab" data-bs-target="#ifrs-fct-subpane" type="button" role="tab" aria-controls="ifrs-fct-subpane" aria-selected="false">
+                            <i class="bi bi-file-earmark-check me-2"></i>Thuế Nhà Thầu (01/NTNN)
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="ifrsSubTabsContent">
+                    <!-- SUB-TAB 1: IFRS Ledger Mapping -->
+                    <div class="tab-pane fade show active" id="ifrs-ledger-pane" role="tabpanel" aria-labelledby="ifrs-ledger-subtab">
+                        <div class="card border-0 glass-card p-4">
+                            <!-- Bento KPIs row -->
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-4">
+                                    <div class="p-3 bg-primary bg-opacity-10 rounded-4 text-center">
+                                        <span class="text-secondary small d-block mb-1">Tổng Quy Đổi (USD/EUR)</span>
+                                        <strong class="fs-4 text-primary font-monospace" id="ifrsKpiTotalAmount">0.00</strong>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="p-3 bg-success bg-opacity-10 rounded-4 text-center">
+                                        <span class="text-secondary small d-block mb-1">Số Hóa Đơn Quy Đổi</span>
+                                        <strong class="fs-4 text-success font-monospace" id="ifrsKpiInvoiceCount">0</strong>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="p-3 bg-warning bg-opacity-10 rounded-4 text-center">
+                                        <span class="text-secondary small d-block mb-1">Tổng Thuế Nhà Thầu (VND)</span>
+                                        <strong class="fs-4 text-warning font-monospace" id="ifrsKpiTotalFct">0 ₫</strong>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h6 class="fw-bold mb-3 text-primary"><i class="bi bi-file-earmark-code me-2"></i>Sổ Cái & Nhật Ký Bút Toán Song Tệ (IFRS Double-Entry Ledger)</h6>
+                            <div class="table-responsive mb-4" style="max-height: 300px; overflow-y: auto;">
+                                <table class="table table-hover align-middle small mb-0">
+                                    <thead class="table-light sticky-top">
+                                        <tr>
+                                            <th>Tài khoản Nợ (Debit)</th>
+                                            <th>Tài khoản Có (Credit)</th>
+                                            <th>Diễn giải</th>
+                                            <th class="text-end">Nguyên tệ (VND)</th>
+                                            <th class="text-end" id="ledgerReportingHeader">Quy đổi (USD)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ifrsLedgerTableBody">
+                                        <tr>
+                                            <td colspan="5" class="text-center py-5 text-muted">
+                                                Chọn các hóa đơn ở bảng bên trái và nhấn "Quy Đổi & Bút Toán IFRS" để mô phỏng bút toán kế toán quốc tế.
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <h6 class="fw-bold mb-3 text-primary"><i class="bi bi-info-circle me-2"></i>Chi Tiết Quy Đổi Song Tệ & Thuế Nhà Thầu Đầu Vào</h6>
+                            <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
+                                <table class="table table-hover align-middle small mb-0">
+                                    <thead class="table-light sticky-top">
+                                        <tr>
+                                            <th>Số hóa đơn</th>
+                                            <th>Bên bán</th>
+                                            <th class="text-end">Tỷ giá Quy Đổi</th>
+                                            <th class="text-end">Giá trị VND</th>
+                                            <th class="text-end" id="detailsReportingHeader">Giá trị Ngoại Tệ</th>
+                                            <th>FCT Nhà Thầu</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ifrsDetailsTableBody">
+                                        <tr>
+                                            <td colspan="6" class="text-center py-4 text-muted">Chưa có dữ liệu chi tiết quy đổi.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SUB-TAB 2: FCT Tax Return Mẫu 01/NTNN -->
+                    <div class="tab-pane fade" id="ifrs-fct-subpane" role="tabpanel" aria-labelledby="ifrs-fct-subtab">
+                        <div class="card border-0 glass-card p-4">
+                            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                                <h6 class="fw-bold mb-0 text-primary"><i class="bi bi-file-earmark-text me-2"></i>Tờ khai Thuế Nhà Thầu Nước Ngoài (Mẫu 01/NTNN)</h6>
+                                
+                                <div class="d-flex align-items-center gap-2">
+                                    <select class="form-select form-select-sm custom-input" id="fctPeriodType" style="width: 120px;" onchange="updateFctPeriodOptions()">
+                                        <option value="monthly" selected>Theo Tháng</option>
+                                        <option value="quarterly">Theo Quý</option>
+                                    </select>
+                                    <select class="form-select form-select-sm custom-input" id="fctPeriodValue" style="width: 80px;">
+                                        <!-- Will be populated dynamically -->
+                                    </select>
+                                    <select class="form-select form-select-sm custom-input" id="fctYear" style="width: 90px;">
+                                        <option value="2026" selected>2026</option>
+                                        <option value="2025">2025</option>
+                                    </select>
+                                    <button class="btn btn-primary btn-sm rounded-pill px-3" onclick="loadFctDeclaration()">
+                                        <i class="bi bi-search me-1"></i>Truy vấn
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Bento KPIs row for FCT -->
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-3">
+                                    <div class="p-3 bg-light rounded-4 text-center">
+                                        <span class="text-secondary small d-block mb-1">Doanh số tính thuế</span>
+                                        <strong class="fs-5 text-dark font-monospace" id="fctKpiRevenue">0 ₫</strong>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="p-3 bg-danger bg-opacity-10 rounded-4 text-center">
+                                        <span class="text-secondary small d-block mb-1">Thuế GTGT khấu trừ</span>
+                                        <strong class="fs-5 text-danger font-monospace" id="fctKpiVat">0 ₫</strong>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="p-3 bg-info bg-opacity-10 rounded-4 text-center">
+                                        <span class="text-secondary small d-block mb-1">Thuế TNDN khấu trừ</span>
+                                        <strong class="fs-5 text-info font-monospace" id="fctKpiCit">0 ₫</strong>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="p-3 bg-success bg-opacity-10 rounded-4 text-center">
+                                        <span class="text-secondary small d-block mb-1">Tổng phải nộp</span>
+                                        <strong class="fs-5 text-success font-monospace" id="fctKpiTotal">0 ₫</strong>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="fw-bold mb-0"><i class="bi bi-layout-three-columns me-2"></i>Bảng Kê Hóa Đơn Nhà Thầu Công Nghệ Nước Ngoài</h6>
+                                <button class="btn btn-outline-success btn-sm rounded-pill" onclick="exportFctExcel()">
+                                    <i class="bi bi-file-earmark-excel me-1"></i>Xuất Excel 01/NTNN
+                                </button>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle small mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Nhà Thầu / MST</th>
+                                            <th>Số H.Đơn / Ngày</th>
+                                            <th>Ngành nghề tính thuế</th>
+                                            <th class="text-end">Doanh số (VND)</th>
+                                            <th class="text-end">GTGT khấu trừ</th>
+                                            <th class="text-end">TNDN khấu trừ</th>
+                                            <th class="text-end">Tổng nộp</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="fctDeclarationTableBody">
+                                        <tr>
+                                            <td colspan="7" class="text-center py-5 text-muted">
+                                                Nhập thông tin thời kỳ khai thuế phía trên và nhấn "Truy vấn" để tổng hợp dữ liệu hóa đơn nhà thầu (Google, Meta, AWS...).
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let currentBctcXml = "";
+    let currentTaxSlipXml = "";
+    let currentCitXml = "";
+
+    document.addEventListener("DOMContentLoaded", () => {
+        // Tab BCTC Submit
+        document.getElementById("bctcUploadForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const fileInput = document.getElementById("bctcFile");
+            const mst = document.getElementById("bctcMst").value.trim();
+            const year = document.getElementById("bctcYear").value.trim();
+            const companyName = document.getElementById("bctcCompanyName").value.trim();
+            const dividends = document.getElementById("bctcDividends").value.trim();
+            
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+            formData.append("mst", mst);
+            formData.append("year", year);
+            formData.append("company_name", companyName);
+            formData.append("dividends_paid", dividends);
+            
+            document.getElementById("bctcResultPlaceholder").textContent = "Đang xử lý biên dịch dữ liệu Excel...";
+            
+            try {
+                const response = await fetch("/api/bctc/compile", {
+                    method: "POST",
+                    body: formData
+                });
+                const result = await response.json();
+                
+                if (result.error) {
+                    alert("Lỗi: " + result.error);
+                    document.getElementById("bctcResultPlaceholder").textContent = "Lỗi trong quá trình xử lý: " + result.error;
+                    return;
+                }
+                
+                currentBctcXml = result.xml;
+                document.getElementById("bctcXmlContent").textContent = result.xml;
+                
+                const pill = document.getElementById("bctcStatusPill");
+                pill.textContent = result.status === "success" ? "CÂN ĐỐI" : "CẢNH BÁO";
+                pill.className = "compliance-pill " + (result.status === "success" ? "text-bg-success" : "text-bg-warning");
+                
+                const warningsSection = document.getElementById("bctcWarningsSection");
+                const warningsList = document.getElementById("bctcWarningsList");
+                warningsList.innerHTML = "";
+                
+                if (result.warnings && result.warnings.length > 0) {
+                    result.warnings.forEach(w => {
+                        const li = document.createElement("li");
+                        li.textContent = w;
+                        warningsList.appendChild(li);
+                    });
+                    warningsSection.classList.remove("d-none");
+                } else {
+                    warningsSection.classList.add("d-none");
+                }
+                
+                document.getElementById("bctcResultPlaceholder").classList.add("d-none");
+                document.getElementById("bctcResults").classList.remove("d-none");
+            } catch (err) {
+                console.error(err);
+                alert("Đã xảy ra lỗi hệ thống: " + err.message);
+            }
+        });
+
+        // Tab Ledger Audit Submit
+        document.getElementById("ledgerAuditForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const fileInput = document.getElementById("ledgerFile");
+            const mst = document.getElementById("ledgerMst").value.trim();
+            
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+            formData.append("taxpayer_mst", mst);
+            
+            document.getElementById("ledgerPlaceholder").textContent = "Đang đối soát dữ liệu với XML GDT...";
+            
+            try {
+                const response = await fetch("/api/bctc/audit-ledger", {
+                    method: "POST",
+                    body: formData
+                });
+                const report = await response.json();
+                
+                if (report.error) {
+                    alert("Lỗi: " + report.error);
+                    document.getElementById("ledgerPlaceholder").textContent = "Lỗi: " + report.error;
+                    return;
+                }
+                
+                // Set compliance score
+                const scoreBadge = document.getElementById("complianceScoreBadge");
+                scoreBadge.textContent = `${report.compliance_score} / 100`;
+                scoreBadge.className = "badge fs-6 rounded-pill " + 
+                    (report.compliance_score >= 80 ? "text-bg-success" : report.compliance_score >= 50 ? "text-bg-warning" : "text-bg-danger");
+                
+                // Set status pill
+                const statusPill = document.getElementById("ledgerStatusPill");
+                statusPill.textContent = report.status === "success" ? "KHỚP HOÀN TOÀN" : "SAI LỆCH";
+                statusPill.className = "compliance-pill " + (report.status === "success" ? "text-bg-success" : "text-bg-danger");
+                
+                // Fill missing invoices
+                const missingInvoicesBody = document.getElementById("missingInvoicesBody");
+                missingInvoicesBody.innerHTML = "";
+                if (report.missing_invoices && report.missing_invoices.length > 0) {
+                    report.missing_invoices.forEach(item => {
+                        const tr = document.createElement("tr");
+                        tr.innerHTML = `
+                            <td class="fw-semibold font-monospace">${item.ledger_account}</td>
+                            <td class="text-end text-danger fw-bold font-monospace">${item.amount.toLocaleString()} ₫</td>
+                            <td><span class="badge text-bg-danger bg-opacity-10 text-danger">${item.severity.toUpperCase()}</span></td>
+                            <td>${item.message}</td>
+                        `;
+                        missingInvoicesBody.appendChild(tr);
+                    });
+                } else {
+                    missingInvoicesBody.innerHTML = `<tr><td colspan="4" class="text-center py-2 text-success">Không phát hiện sai lệch thiếu hóa đơn đầu vào/ra.</td></tr>`;
+                }
+                
+                // Fill missing entries
+                const missingEntriesBody = document.getElementById("missingEntriesBody");
+                missingEntriesBody.innerHTML = "";
+                if (report.missing_entries && report.missing_entries.length > 0) {
+                    report.missing_entries.forEach(item => {
+                        const tr = document.createElement("tr");
+                        tr.innerHTML = `
+                            <td class="fw-semibold font-monospace">${item.invoice_number}</td>
+                            <td>${item.partner_name}</td>
+                            <td class="text-end text-warning fw-bold font-monospace">${item.amount.toLocaleString()} ₫</td>
+                            <td class="font-monospace">${item.date}</td>
+                        `;
+                        missingEntriesBody.appendChild(tr);
+                    });
+                } else {
+                    missingEntriesBody.innerHTML = `<tr><td colspan="4" class="text-center py-2 text-success">Tất cả hóa đơn GDT đã được hạch toán đầy đủ trên Sổ cái.</td></tr>`;
+                }
+                
+                // Fill value mismatches
+                const valueMismatchesBody = document.getElementById("valueMismatchesBody");
+                valueMismatchesBody.innerHTML = "";
+                if (report.value_mismatches && report.value_mismatches.length > 0) {
+                    report.value_mismatches.forEach(item => {
+                        const tr = document.createElement("tr");
+                        tr.innerHTML = `
+                            <td class="fw-semibold font-monospace">${item.invoice_number}</td>
+                            <td class="text-end font-monospace">${item.invoice_amount.toLocaleString()} ₫</td>
+                            <td class="font-monospace">${item.ledger_account}</td>
+                            <td class="text-end font-monospace">${item.ledger_amount.toLocaleString()} ₫</td>
+                            <td class="text-danger small">${item.message}</td>
+                        `;
+                        valueMismatchesBody.appendChild(tr);
+                    });
+                } else {
+                    valueMismatchesBody.innerHTML = `<tr><td colspan="5" class="text-center py-2 text-success">Không phát hiện lệch số tiền giữa hóa đơn và bút toán.</td></tr>`;
+                }
+                
+                document.getElementById("ledgerPlaceholder").classList.add("d-none");
+                document.getElementById("ledgerReport").classList.remove("d-none");
+            } catch (err) {
+                console.error(err);
+                alert("Lỗi đối soát: " + err.message);
+            }
+        });
+
+        // Tab Tax Payment Slip Submit
+        document.getElementById("taxSlipForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const taxType = document.getElementById("taxType").value;
+            const amount = document.getElementById("taxAmount").value.trim();
+            const mst = document.getElementById("taxMst").value.trim();
+            const companyName = document.getElementById("taxCompanyName").value.trim();
+            const chapterType = document.getElementById("chapterType").value;
+            const treasuryAccount = document.getElementById("treasuryAccount").value.trim();
+            const treasuryName = document.getElementById("treasuryName").value.trim();
+            const bankBin = document.getElementById("bankBin").value.trim();
+            
+            document.getElementById("taxSlipPlaceholder").textContent = "Đang tạo giấy nộp tiền & mã VietQR...";
+            
+            try {
+                const response = await fetch("/api/payments/tax-slip", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        tax_type: taxType,
+                        amount: amount,
+                        mst: mst,
+                        company_name: companyName,
+                        chapter_type: chapterType,
+                        treasury_account: treasuryAccount,
+                        treasury_name: treasuryName,
+                        bank_bin: bankBin
+                    })
+                });
+                
+                const slip = await response.json();
+                if (slip.error) {
+                    alert("Lỗi: " + slip.error);
+                    document.getElementById("taxSlipPlaceholder").textContent = "Lỗi: " + slip.error;
+                    return;
+                }
+                
+                currentTaxSlipXml = slip.xml;
+                document.getElementById("taxQrImage").src = `data:image/png;base64,${slip.vietqr_base64}`;
+                document.getElementById("taxQrString").textContent = slip.vietqr_string;
+                
+                document.getElementById("lblChapterCode").textContent = slip.chapter_code;
+                document.getElementById("lblSubChapterCode").textContent = slip.sub_chapter_code;
+                document.getElementById("lblTreasuryName").textContent = slip.treasury_name;
+                document.getElementById("lblTreasuryAccount").textContent = slip.treasury_account;
+                document.getElementById("lblAmount").textContent = parseFloat(amount).toLocaleString() + " ₫";
+                
+                document.getElementById("taxSlipPlaceholder").classList.add("d-none");
+                document.getElementById("taxSlipResult").classList.remove("d-none");
+            } catch (err) {
+                console.error(err);
+                alert("Lỗi tạo VietQR nộp thuế: " + err.message);
+            }
+        });
+
+        // Tab Ecommerce Sync Submit
+        document.getElementById("ecommerceSyncForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const fileInput = document.getElementById("ecomFile");
+            const platform = document.getElementById("ecomPlatform").value;
+            const mst = document.getElementById("ecomMst").value.trim();
+            
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+            formData.append("platform", platform);
+            formData.append("taxpayer_mst", mst);
+            
+            document.getElementById("ecomPlaceholder").textContent = "Đang đồng bộ hóa hóa đơn điện tử TMĐT...";
+            
+            try {
+                // Step 1: Sync to create daily output sales & input fee invoices
+                const syncResponse = await fetch(`/api/ecommerce/sync?platform=${platform}&taxpayer_mst=${mst}`, {
+                    method: "POST",
+                    body: formData
+                });
+                const syncResult = await syncResponse.json();
+                
+                if (syncResult.error) {
+                    alert("Lỗi đồng bộ: " + syncResult.error);
+                    document.getElementById("ecomPlaceholder").textContent = "Lỗi: " + syncResult.error;
+                    return;
+                }
+                
+                // Let's call reconcile route to show the report
+                const reconResponse = await fetch(`/api/ecommerce/reconcile?taxpayer_mst=${mst}`);
+                const report = await reconResponse.json();
+                
+                document.getElementById("ecomTotalRevenue").textContent = report.total_platform_revenue.toLocaleString() + " ₫";
+                document.getElementById("ecomMatchedRevenue").textContent = report.matched_revenue.toLocaleString() + " ₫";
+                
+                const riskPill = document.getElementById("ecomRiskLevel");
+                riskPill.textContent = report.risk_level;
+                riskPill.className = report.audit_risk_score >= 80 ? "text-danger" : report.audit_risk_score >= 50 ? "text-warning" : "text-success";
+                
+                // Fill uninvoiced revenue
+                const uninvBody = document.getElementById("ecomUninvoicedBody");
+                uninvBody.innerHTML = "";
+                if (report.un_invoiced_revenue && report.un_invoiced_revenue.length > 0) {
+                    report.un_invoiced_revenue.forEach(item => {
+                        const tr = document.createElement("tr");
+                        tr.innerHTML = `
+                            <td class="font-monospace">${item.order_id}</td>
+                            <td class="font-monospace">${item.date}</td>
+                            <td class="text-end text-danger font-monospace fw-bold">${item.amount.toLocaleString()} ₫</td>
+                        `;
+                        uninvBody.appendChild(tr);
+                    });
+                } else {
+                    uninvBody.innerHTML = `<tr><td colspan="3" class="text-center py-2 text-success">Không phát hiện doanh thu bán lẻ quá hạn chưa xuất hóa đơn.</td></tr>`;
+                }
+                
+                // Fill fee deduction risks
+                const feeBody = document.getElementById("ecomFeeRiskBody");
+                feeBody.innerHTML = "";
+                if (report.vat_deduction_risk && report.vat_deduction_risk.length > 0) {
+                    report.vat_deduction_risk.forEach(item => {
+                        const tr = document.createElement("tr");
+                        tr.innerHTML = `
+                            <td class="font-monospace">${item.order_id}</td>
+                            <td class="font-monospace">${item.date}</td>
+                            <td class="text-end text-warning font-monospace fw-bold">${item.fee_amount.toLocaleString()} ₫</td>
+                        `;
+                        feeBody.appendChild(tr);
+                    });
+                } else {
+                    feeBody.innerHTML = `<tr><td colspan="3" class="text-center py-2 text-success">Đã đầy đủ hóa đơn phí sàn cho các ngày phát sinh.</td></tr>`;
+                }
+                
+                document.getElementById("ecomPlaceholder").classList.add("d-none");
+                document.getElementById("ecomReport").classList.remove("d-none");
+            } catch (err) {
+                console.error(err);
+                alert("Lỗi đối soát TMĐT: " + err.message);
+            }
+        });
+
+        // Global variables/base state for CIT
+        let baseCitData = {
+            revenue: 25000000000.0,
+            cogs: 15000000000.0,
+            salaries: 3500000000.0,
+            other_costs: 2000000000.0,
+            depreciation: 800000000.0
+        };
+
+        // Helper to format currency
+        function formatVND(val) {
+            return Math.round(val).toLocaleString('vi-VN') + " ₫";
+        }
+
+        // Initialize sliders displays
+        function updateSlidersLabels() {
+            document.getElementById("valRevenuePct").textContent = document.getElementById("slideRevenuePct").value + "%";
+            document.getElementById("valCogsPct").textContent = document.getElementById("slideCogsPct").value + "%";
+            document.getElementById("valStaffCosts").textContent = formatVND(parseFloat(document.getElementById("slideStaffCosts").value));
+            document.getElementById("valInterestLinked").textContent = formatVND(parseFloat(document.getElementById("slideInterestLinked").value));
+            document.getElementById("valRdInvestment").textContent = formatVND(parseFloat(document.getElementById("slideRdInvestment").value));
+        }
+
+        // Real-time Simulation Trigger
+        async function triggerSimulation() {
+            updateSlidersLabels();
+            const payload = {
+                base_data: baseCitData,
+                adjustments: {
+                    revenue_pct: parseFloat(document.getElementById("slideRevenuePct").value),
+                    cost_of_goods_pct: parseFloat(document.getElementById("slideCogsPct").value),
+                    staff_costs: parseFloat(document.getElementById("slideStaffCosts").value),
+                    interest_linked: parseFloat(document.getElementById("slideInterestLinked").value),
+                    rd_investment: parseFloat(document.getElementById("slideRdInvestment").value)
+                }
+            };
+            
+            try {
+                const response = await fetch("/api/cit/simulate-scenario", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                const report = await response.json();
+                
+                // Update Bento Grid KPIs
+                document.getElementById("simPretaxProfit").textContent = formatVND(report.pretax_profit);
+                document.getElementById("simEbitda").textContent = formatVND(report.ebitda);
+                document.getElementById("simInterestCap").textContent = formatVND(report.interest_cap);
+                document.getElementById("simNonDeductibleInterest").textContent = formatVND(report.non_deductible_interest);
+                document.getElementById("simCitPayable").textContent = formatVND(report.cit_payable);
+                document.getElementById("simEtr").textContent = report.effective_tax_rate.toFixed(2) + "%";
+                
+                // Set color indicator for CIT and ETR
+                const payableEl = document.getElementById("simCitPayable");
+                if (report.cit_payable > 1000000000) {
+                    payableEl.className = "fs-5 font-monospace text-danger fw-bold";
+                } else if (report.cit_payable > 0) {
+                    payableEl.className = "fs-5 font-monospace text-warning fw-bold";
+                } else {
+                    payableEl.className = "fs-5 font-monospace text-success fw-bold";
+                }
+                
+                // Update Risk Score Panel
+                const scorePill = document.getElementById("simRiskPill");
+                scorePill.textContent = `${report.risk_score} / 100`;
+                scorePill.className = "badge rounded-pill fs-6 " + 
+                    (report.risk_score >= 80 ? "text-bg-success" : report.risk_score >= 60 ? "text-bg-warning" : "text-bg-danger");
+                
+                const progressBar = document.getElementById("simRiskProgress");
+                progressBar.style.width = `${report.risk_score}%`;
+                progressBar.className = "progress-bar " + 
+                    (report.risk_score >= 80 ? "bg-success" : report.risk_score >= 60 ? "bg-warning" : "bg-danger");
+                
+                const reasonsContainer = document.getElementById("simRiskReasons");
+                reasonsContainer.innerHTML = "";
+                if (report.risk_reasons && report.risk_reasons.length > 0) {
+                    report.risk_reasons.forEach(r => {
+                        const div = document.createElement("div");
+                        div.className = "text-danger mb-1";
+                        div.innerHTML = `<i class="bi bi-shield-slash me-1"></i> ${r}`;
+                        reasonsContainer.appendChild(div);
+                    });
+                } else {
+                    reasonsContainer.innerHTML = `<span class="text-success"><i class="bi bi-shield-check me-1"></i>Hồ sơ thuế an toàn, không phát hiện rủi ro trọng yếu.</span>`;
+                }
+            } catch (err) {
+                console.error("Simulation error:", err);
+            }
+        }
+
+        // Attach event listeners to all sliders
+        const sliders = ["slideRevenuePct", "slideCogsPct", "slideStaffCosts", "slideInterestLinked", "slideRdInvestment"];
+        sliders.forEach(id => {
+            document.getElementById(id).addEventListener("input", triggerSimulation);
+        });
+
+        // CIT Finalization Submit
+        document.getElementById("citFinalizeForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const fileInput = document.getElementById("citFile");
+            const mst = document.getElementById("citMst").value.trim();
+            const year = document.getElementById("citYear").value.trim();
+            const companyName = document.getElementById("citCompanyName").value.trim();
+            const nonDeductible = document.getElementById("citNonDeductibleManual").value.trim();
+            const lossCarry = document.getElementById("citLossCarryForward").value.trim();
+            const rdAllowance = document.getElementById("citRdAllowance").value.trim();
+            
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+            formData.append("mst", mst);
+            formData.append("year", year);
+            formData.append("company_name", companyName);
+            formData.append("non_deductible_manual", nonDeductible);
+            formData.append("loss_carry_forward", lossCarry);
+            formData.append("rd_allowance", rdAllowance);
+            
+            try {
+                const response = await fetch("/api/cit/finalize", {
+                    method: "POST",
+                    body: formData
+                });
+                const result = await response.json();
+                
+                if (result.error) {
+                    alert("Lỗi: " + result.error);
+                    return;
+                }
+                
+                currentCitXml = result.xml;
+                document.getElementById("citXmlContent").textContent = result.xml;
+                document.getElementById("citResults").classList.remove("d-none");
+                
+                // Populate base data for simulation from the compiled results
+                baseCitData = {
+                    revenue: result.pretax_profit * 2.5, // approximate base revenue
+                    cogs: result.pretax_profit * 1.5,
+                    salaries: result.total_non_deductible * 0.5,
+                    other_costs: result.total_non_deductible * 0.2,
+                    depreciation: result.ebitda - result.pretax_profit
+                };
+                
+                // Trigger simulation run once with new base data
+                triggerSimulation();
+                
+                alert("Quyết toán thuế TNDN đã hoàn tất và kết xuất XML thành công!");
+            } catch (err) {
+                console.error(err);
+                alert("Lỗi quyết toán CIT: " + err.message);
+            }
+        });
+
+        // Initialize sliders labels on start
+        updateSlidersLabels();
+        triggerSimulation();
+
+        // Initial load of scoreboard
+        loadTaxRiskScoreboard();
+        
+        // Tab click event listener to load scoreboard dynamically
+        const sbTab = document.getElementById("risk-scoreboard-tab");
+        if (sbTab) {
+            sbTab.addEventListener("click", loadTaxRiskScoreboard);
+        }
+
+        // Tab click listener for IFRS & FCT
+        const ifrsTab = document.getElementById("ifrs-fct-tab");
+        if (ifrsTab) {
+            ifrsTab.addEventListener("click", () => {
+                loadIfrsInvoices();
+                updateFctPeriodOptions();
+                loadFctDeclaration();
+            });
+        }
+    });
+
+    // Global function to fetch tax risk scoreboard
+    async function loadTaxRiskScoreboard() {
+        const tableBody = document.getElementById("riskSuppliersTableBody");
+        if (!tableBody) return;
+        
+        try {
+            const response = await fetch("/api/reports/tax-risk-scoreboard");
+            const data = await response.json();
+            
+            if (data.status !== "success") {
+                tableBody.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">Lỗi: ${data.error || "Không thể tải dữ liệu"}</td></tr>`;
+                return;
+            }
+            
+            const summary = data.summary;
+            const suppliers = data.suppliers;
+            
+            // 1. Update Bento KPIs
+            const analyzed = summary.total_analyzed || 0;
+            const warningCount = summary.total_with_warnings || 0;
+            const warnRate = analyzed > 0 ? ((warningCount / analyzed) * 100).toFixed(1) : 0;
+            document.getElementById("sbWarnRate").textContent = `${warningCount} / ${analyzed} (${warnRate}%)`;
+            document.getElementById("sbValueAtRisk").textContent = summary.total_value_at_risk.toLocaleString('vi-VN') + " ₫";
+            
+            document.getElementById("sbBlacklistCount").textContent = `${summary.blacklist_warnings_count} h.đơn`;
+            document.getElementById("sbSignatureCount").textContent = `${summary.signature_violations_count} h.đơn`;
+            document.getElementById("sbPaymentCount").textContent = `${summary.payment_type_flags_count} h.đơn`;
+
+            // 2. Animate SVG gauges
+            const bPct = analyzed > 0 ? (summary.blacklist_warnings_count / analyzed) : 0;
+            const sPct = analyzed > 0 ? (summary.signature_violations_count / analyzed) : 0;
+            const pPct = analyzed > 0 ? (summary.payment_type_flags_count / analyzed) : 0;
+            
+            document.getElementById("lblBlacklistPct").textContent = `${Math.round(bPct * 100)}%`;
+            document.getElementById("lblSignaturePct").textContent = `${Math.round(sPct * 100)}%`;
+            document.getElementById("lblPaymentPct").textContent = `${Math.round(pPct * 100)}%`;
+            
+            document.getElementById("gaugeBlacklist").style.strokeDashoffset = 283 - (283 * bPct);
+            document.getElementById("gaugeSignature").style.strokeDashoffset = 283 - (283 * sPct);
+            document.getElementById("gaugePayment").style.strokeDashoffset = 283 - (283 * pPct);
+
+            // 3. Render Table
+            tableBody.innerHTML = "";
+            if (suppliers.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="5" class="text-center py-5 text-success"><i class="bi bi-shield-check fs-4 d-block mb-2"></i>Không phát hiện nhà cung cấp rủi ro hoặc vi phạm quy định thuế.</td></tr>`;
+                return;
+            }
+            
+            suppliers.forEach(s => {
+                const tr = document.createElement("tr");
+                if (s.is_blacklisted) {
+                    tr.style.backgroundColor = "rgba(255, 77, 79, 0.08)";
+                }
+                
+                // Color code T-Score
+                let scoreClass = "text-success fw-bold";
+                if (s.average_t_score < 50) scoreClass = "text-danger fw-bold";
+                else if (s.average_t_score < 85) scoreClass = "text-warning fw-bold";
+                
+                const statusBadge = s.is_blacklisted 
+                    ? `<span class="badge text-bg-danger rounded-pill">ĐEN / RỦI RO CAO</span>`
+                    : `<span class="badge text-bg-warning rounded-pill">CẢNH BÁO</span>`;
+                
+                tr.innerHTML = `
+                    <td>
+                        <div class="fw-bold">${s.supplier_name}</div>
+                        <div class="text-muted font-monospace" style="font-size: 0.75rem;">MST: ${s.supplier_mst}</div>
+                    </td>
+                    <td class="text-center font-monospace">
+                        <strong>${s.warnings_count}</strong> / <span class="text-secondary">${s.invoice_count}</span>
+                    </td>
+                    <td class="text-end font-monospace fw-bold">${s.total_value.toLocaleString('vi-VN')} ₫</td>
+                    <td class="text-center font-monospace ${scoreClass}">${s.average_t_score}</td>
+                    <td>${statusBadge}</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        } catch (err) {
+            console.error("Error loading scoreboard:", err);
+            tableBody.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">Lỗi hệ thống: ${err.message}</td></tr>`;
+        }
+    }
+
+    // Search filtering function
+    function filterSupplierTable() {
+        const input = document.getElementById("supplierSearchInput");
+        if (!input) return;
+        const filter = input.value.toLowerCase();
+        const tableBody = document.getElementById("riskSuppliersTableBody");
+        if (!tableBody) return;
+        const trs = tableBody.getElementsByTagName("tr");
+        
+        for (let i = 0; i < trs.length; i++) {
+            const tr = trs[i];
+            // Skip placeholder or empty rows
+            if (tr.cells.length < 5) continue;
+            
+            const supplierCell = tr.cells[0];
+            if (supplierCell) {
+                const text = supplierCell.textContent || supplierCell.innerText;
+                if (text.toLowerCase().indexOf(filter) > -1) {
+                    tr.style.display = "";
+                } else {
+                    tr.style.display = "none";
+                }
+            }
+        }
+    }
+
+    // Helper functions to trigger downloads
+    function downloadBctcXml() {
+        if (!currentBctcXml) return;
+        const blob = new Blob([currentBctcXml], { type: "application/xml" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `BCTC_${document.getElementById("bctcMst").value}_2026.xml`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
+    function downloadTaxSlipXml() {
+        if (!currentTaxSlipXml) return;
+        const blob = new Blob([currentTaxSlipXml], { type: "application/xml" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `GiayNopTien_${document.getElementById("taxMst").value}.xml`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
+    function downloadCitXml() {
+        if (!currentCitXml) return;
+        const blob = new Blob([currentCitXml], { type: "application/xml" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `QuyetToanTNDN_${document.getElementById("citMst").value}_2026.xml`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
+    // --- IFRS & FCT INTERNATIONAL TAX INTEGRATION ---
+    let localIfrsInvoices = [];
+
+    // Change reporting currency headers dynamically
+    function onIfrsCurrencyChange(selectEl) {
+        const val = selectEl.value;
+        document.getElementById("ledgerReportingHeader").textContent = `Quy đổi (${val})`;
+        document.getElementById("detailsReportingHeader").textContent = `Giá trị Ngoại Tệ (${val})`;
+    }
+
+    // Load local invoices for the selective mapping panel
+    async function loadIfrsInvoices() {
+        const mst = document.getElementById("ifrsMst").value.trim();
+        const tbody = document.getElementById("ifrsInvoicesSelectBody");
+        tbody.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Đang tải danh sách...</td></tr>`;
+
+        try {
+            const response = await fetch(`/api/invoices/local?taxpayer_mst=${mst}`);
+            const data = await response.json();
+            
+            localIfrsInvoices = data.invoices || [];
+            tbody.innerHTML = "";
+
+            if (localIfrsInvoices.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-secondary">Không có hóa đơn nào cho MST ${mst}</td></tr>`;
+                return;
+            }
+
+            localIfrsInvoices.forEach(inv => {
+                const tr = document.createElement("tr");
+                const dateStr = inv.date ? inv.date.split('T')[0] : 'Không ngày';
+                const amount = inv.amount_before_tax || inv.amount_total || 0;
+                tr.innerHTML = `
+                    <td><input type="checkbox" class="ifrs-invoice-checkbox" value="${inv.id}"></td>
+                    <td>
+                        <div class="fw-semibold font-monospace">${inv.number || 'Chưa ký'}</div>
+                        <div class="text-secondary" style="font-size: 0.75rem;">${dateStr}</div>
+                    </td>
+                    <td class="text-end font-monospace">${amount.toLocaleString()} ₫</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } catch (err) {
+            console.error("Error loading local invoices:", err);
+            tbody.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-danger">Lỗi tải hóa đơn: ${err.message}</td></tr>`;
+        }
+    }
+
+    // Toggle select all checkbox in invoice selector list
+    function toggleSelectAllIfrs(selectAllEl) {
+        const checkboxes = document.querySelectorAll(".ifrs-invoice-checkbox");
+        checkboxes.forEach(cb => {
+            cb.checked = selectAllEl.checked;
+        });
+    }
+
+    // Call map-ifrs API and render results
+    async function runIfrsMapping() {
+        const checkedBoxes = document.querySelectorAll(".ifrs-invoice-checkbox:checked");
+        const invoiceIds = Array.from(checkedBoxes).map(cb => cb.value);
+
+        if (invoiceIds.length === 0) {
+            alert("Vui lòng chọn ít nhất một hóa đơn từ danh sách để quy đổi.");
+            return;
+        }
+
+        const currency = document.getElementById("ifrsCurrency").value;
+        const category = document.getElementById("ifrsFctCategory").value;
+
+        const ledgerBody = document.getElementById("ifrsLedgerTableBody");
+        const detailsBody = document.getElementById("ifrsDetailsTableBody");
+
+        ledgerBody.innerHTML = `<tr><td colspan="5" class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Đang tiến hành ánh xạ IFRS & Sổ Nhật ký...</td></tr>`;
+        detailsBody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">Đang tải...</td></tr>`;
+
+        try {
+            const response = await fetch("/api/compliance/map-ifrs", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    invoice_ids: invoiceIds,
+                    reporting_currency: currency,
+                    fct_category: category
+                })
+            });
+
+            const data = await response.json();
+            if (data.error || data.status !== "success") {
+                alert("Lỗi quy đổi IFRS: " + (data.error || "Không rõ nguyên nhân"));
+                ledgerBody.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">Thao tác thất bại: ${data.error}</td></tr>`;
+                return;
+            }
+
+            const mapped = data.mapped_invoices || [];
+            
+            // 1. Populate KPIs
+            let totalAmountReporting = 0;
+            let totalFctVnd = 0;
+            let allJournalEntries = [];
+
+            mapped.forEach(item => {
+                totalAmountReporting += item.amount_in_reporting || 0;
+                if (item.fct_liability && item.fct_liability.is_applicable) {
+                    totalFctVnd += item.fct_liability.total_fct_liability || 0;
+                }
+                if (item.journal_entries) {
+                    allJournalEntries = allJournalEntries.concat(item.journal_entries);
+                }
+            });
+
+            const symbol = currency === "EUR" ? "€" : currency === "JPY" ? "¥" : "$";
+            document.getElementById("ifrsKpiTotalAmount").textContent = symbol + " " + totalAmountReporting.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            document.getElementById("ifrsKpiInvoiceCount").textContent = mapped.length;
+            document.getElementById("ifrsKpiTotalFct").textContent = totalFctVnd.toLocaleString('vi-VN') + " ₫";
+
+            // 2. Render Double Entry Journal Table
+            ledgerBody.innerHTML = "";
+            if (allJournalEntries.length === 0) {
+                ledgerBody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-success">Quy đổi hoàn tất. Không phát sinh bút toán nợ/có cần kê khai.</td></tr>`;
+            } else {
+                allJournalEntries.forEach(entry => {
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td class="fw-bold text-success font-monospace">${entry.account_debit}</td>
+                        <td class="fw-bold text-danger font-monospace">${entry.account_credit}</td>
+                        <td>${entry.description}</td>
+                        <td class="text-end font-monospace fw-semibold">${Math.round(entry.amount_base).toLocaleString()} ₫</td>
+                        <td class="text-end font-monospace text-primary fw-semibold">${symbol} ${entry.amount_reporting.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    `;
+                    ledgerBody.appendChild(tr);
+                });
+            }
+
+            // 3. Render Details Table
+            detailsBody.innerHTML = "";
+            mapped.forEach(item => {
+                const tr = document.createElement("tr");
+                const fctLabel = item.fct_liability && item.fct_liability.is_applicable
+                    ? `<span class="badge text-bg-warning">FCT: ${formatVND(item.fct_liability.total_fct_liability)}</span>`
+                    : `<span class="badge text-bg-light text-muted">Không</span>`;
+
+                tr.innerHTML = `
+                    <td class="font-monospace">${item.document_number || 'N/A'}</td>
+                    <td>${item.supplier_name}</td>
+                    <td class="text-end font-monospace text-secondary">1 ${currency} = ${Math.round(item.exchange_rate).toLocaleString()} ₫</td>
+                    <td class="text-end font-monospace fw-semibold">${Math.round(item.amount_in_base).toLocaleString()} ₫</td>
+                    <td class="text-end font-monospace text-primary fw-semibold">${symbol} ${item.amount_in_reporting.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    <td>${fctLabel}</td>
+                `;
+                detailsBody.appendChild(tr);
+            });
+
+            alert("Quy đổi song tệ IFRS và tạo bút toán Nhật ký thành công!");
+        } catch (err) {
+            console.error("Mapping execution error:", err);
+            alert("Lỗi hệ thống quy đổi: " + err.message);
+        }
+    }
+
+    // Dynamic month/quarter options based on period type
+    function updateFctPeriodOptions() {
+        const type = document.getElementById("fctPeriodType").value;
+        const select = document.getElementById("fctPeriodValue");
+        select.innerHTML = "";
+
+        if (type === "quarterly") {
+            for (let i = 1; i <= 4; i++) {
+                const opt = document.createElement("option");
+                opt.value = i;
+                opt.textContent = `Quý ${i}`;
+                select.appendChild(opt);
+            }
+        } else {
+            for (let i = 1; i <= 12; i++) {
+                const opt = document.createElement("option");
+                const val = i < 10 ? "0" + i : "" + i;
+                opt.value = val;
+                opt.textContent = `Tháng ${i}`;
+                select.appendChild(opt);
+            }
+        }
+    }
+
+    // Load FCT Return Mẫu 01/NTNN data
+    async function loadFctDeclaration() {
+        const periodType = document.getElementById("fctPeriodType").value;
+        const periodValue = document.getElementById("fctPeriodValue").value;
+        const year = document.getElementById("fctYear").value;
+        const tbody = document.getElementById("fctDeclarationTableBody");
+
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Đang đối soát và tập hợp danh sách...</td></tr>`;
+
+        try {
+            const url = `/api/reports/fct-declaration?period_type=${periodType}&period_value=${periodValue}&year=${year}`;
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (data.error || !data.success) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">Lỗi: ${data.error || "Không thể tải tờ khai"}</td></tr>`;
+                return;
+            }
+
+            // Update FCT KPIs
+            document.getElementById("fctKpiRevenue").textContent = formatVND(data.total_revenue || 0);
+            document.getElementById("fctKpiVat").textContent = formatVND(data.total_vat_withheld || 0);
+            document.getElementById("fctKpiCit").textContent = formatVND(data.total_cit_withheld || 0);
+            document.getElementById("fctKpiTotal").textContent = formatVND(data.total_fct_payable || 0);
+
+            // Render table
+            tbody.innerHTML = "";
+            const invoices = data.fct_invoices || [];
+
+            if (invoices.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-5 text-success"><i class="bi bi-shield-check fs-4 d-block mb-2"></i>Không phát hiện hóa đơn chịu thuế FCT trong kỳ báo cáo đã chọn.</td></tr>`;
+                return;
+            }
+
+            invoices.forEach(inv => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td>
+                        <div class="fw-bold">${inv.seller_name}</div>
+                        <div class="text-muted small font-monospace">MST: ${inv.seller_mst || 'N/A'}</div>
+                    </td>
+                    <td>
+                        <div class="fw-semibold font-monospace">${inv.number}</div>
+                        <div class="text-secondary small">${inv.date}</div>
+                    </td>
+                    <td><span class="badge text-bg-primary bg-opacity-10 text-primary small">${inv.category}</span></td>
+                    <td class="text-end font-monospace fw-semibold">${Math.round(inv.amount).toLocaleString()} ₫</td>
+                    <td class="text-end font-monospace text-danger">${Math.round(inv.vat_withheld).toLocaleString()} ₫ <span class="text-muted small d-block">(${inv.vat_rate * 100}%)</span></td>
+                    <td class="text-end font-monospace text-info">${Math.round(inv.cit_withheld).toLocaleString()} ₫ <span class="text-muted small d-block">(${inv.cit_rate * 100}%)</span></td>
+                    <td class="text-end font-monospace text-success fw-bold">${Math.round(inv.fct_total).toLocaleString()} ₫</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+        } catch (err) {
+            console.error("Error loading FCT:", err);
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">Lỗi hệ thống: ${err.message}</td></tr>`;
+        }
+    }
+
+    // Export FCT Return Mẫu 01/NTNN to Excel
+    function exportFctExcel() {
+        const periodType = document.getElementById("fctPeriodType").value;
+        const periodValue = document.getElementById("fctPeriodValue").value;
+        const year = document.getElementById("fctYear").value;
+
+        const downloadUrl = `/api/reports/fct-declaration/export-excel?period_type=${periodType}&period_value=${periodValue}&year=${year}`;
+        window.location.href = downloadUrl;
+    }
+</script>
+{% endblock %}

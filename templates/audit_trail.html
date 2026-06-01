@@ -1,0 +1,663 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .audit-hero {
+        background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+        border-radius: 20px;
+        padding: 2.5rem;
+        margin-bottom: 2rem;
+        color: #fff;
+        position: relative;
+        overflow: hidden;
+    }
+    .audit-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(99,102,241,0.3), transparent 70%);
+        border-radius: 50%;
+    }
+    .audit-hero h1 {
+        font-family: 'Outfit', sans-serif;
+        font-weight: 700;
+        font-size: 2rem;
+        position: relative;
+        z-index: 1;
+    }
+    .audit-hero p {
+        opacity: 0.8;
+        position: relative;
+        z-index: 1;
+    }
+
+    .glass-card {
+        background: var(--card-bg, rgba(255,255,255,0.85));
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--card-border, rgba(255,255,255,0.18));
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 8px 32px rgba(31,38,135,0.07);
+    }
+    [data-theme="dark"] .glass-card {
+        --card-bg: rgba(30,30,50,0.85);
+        --card-border: rgba(255,255,255,0.08);
+    }
+
+    .filter-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        align-items: end;
+    }
+    .filter-bar .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    .filter-bar label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        opacity: 0.7;
+    }
+    .filter-bar input, .filter-bar select {
+        border-radius: 10px;
+        border: 1px solid var(--bs-border-color);
+        padding: 0.45rem 0.75rem;
+        font-size: 0.875rem;
+        background: var(--bs-body-bg);
+        color: var(--bs-body-color);
+    }
+
+    .stat-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.35rem 0.85rem;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: rgba(99,102,241,0.12);
+        color: #6366f1;
+    }
+    [data-theme="dark"] .stat-pill {
+        background: rgba(99,102,241,0.2);
+        color: #a5b4fc;
+    }
+
+    .category-badge {
+        display: inline-block;
+        padding: 0.2rem 0.6rem;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+    }
+    .cat-AUTH { background: #dbeafe; color: #1e40af; }
+    .cat-PROFILE { background: #f3e8ff; color: #7c3aed; }
+    .cat-DELETE { background: #fee2e2; color: #dc2626; }
+    .cat-UPDATE { background: #fef3c7; color: #d97706; }
+    .cat-REPAIR { background: #d1fae5; color: #059669; }
+    [data-theme="dark"] .cat-AUTH { background: rgba(59,130,246,0.2); color: #93c5fd; }
+    [data-theme="dark"] .cat-PROFILE { background: rgba(124,58,237,0.2); color: #c4b5fd; }
+    [data-theme="dark"] .cat-DELETE { background: rgba(220,38,38,0.2); color: #fca5a5; }
+    [data-theme="dark"] .cat-UPDATE { background: rgba(217,119,6,0.2); color: #fcd34d; }
+    [data-theme="dark"] .cat-REPAIR { background: rgba(5,150,105,0.2); color: #6ee7b7; }
+
+    .audit-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 0.875rem;
+    }
+    .audit-table thead th {
+        position: sticky;
+        top: 0;
+        background: var(--bs-body-bg);
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.7rem;
+        letter-spacing: 0.06em;
+        padding: 0.75rem 0.5rem;
+        border-bottom: 2px solid var(--bs-border-color);
+        white-space: nowrap;
+    }
+    .audit-table tbody td {
+        padding: 0.6rem 0.5rem;
+        border-bottom: 1px solid var(--bs-border-color-translucent, rgba(0,0,0,0.05));
+        vertical-align: middle;
+    }
+    .audit-table tbody tr {
+        transition: background 0.15s;
+    }
+    .audit-table tbody tr:hover {
+        background: rgba(99,102,241,0.04);
+    }
+
+    .pagination-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    .pagination-bar .page-btn {
+        border: 1px solid var(--bs-border-color);
+        border-radius: 8px;
+        padding: 0.35rem 0.75rem;
+        font-size: 0.85rem;
+        cursor: pointer;
+        background: var(--bs-body-bg);
+        color: var(--bs-body-color);
+        transition: all 0.15s;
+    }
+    .pagination-bar .page-btn:hover:not(:disabled) {
+        background: #6366f1;
+        color: white;
+        border-color: #6366f1;
+    }
+    .pagination-bar .page-btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+
+    .export-btn-group {
+        display: flex;
+        gap: 0.5rem;
+    }
+    .export-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.5rem 1rem;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .export-btn-csv {
+        background: linear-gradient(135deg, #059669, #10b981);
+        color: #fff;
+    }
+    .export-btn-csv:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(5,150,105,0.3); }
+    .export-btn-pdf {
+        background: linear-gradient(135deg, #dc2626, #ef4444);
+        color: #fff;
+    }
+    .export-btn-pdf:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(220,38,38,0.3); }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        opacity: 0.5;
+    }
+    .empty-state i {
+        font-size: 3rem;
+        display: block;
+        margin-bottom: 1rem;
+    }
+
+    .table-scroll {
+        max-height: 600px;
+        overflow-y: auto;
+        border-radius: 12px;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(12px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in { animation: fadeInUp 0.4s ease both; }
+</style>
+
+<!-- Hero -->
+<div class="audit-hero fade-in">
+    <h1><i class="bi bi-shield-lock-fill me-2"></i>Hệ thống Giám sát & Tuân thủ</h1>
+    <p class="mb-0">Theo dõi tất cả hành động hệ thống và xác minh tính toàn vẹn của báo cáo thuế mã hóa (US-145).</p>
+</div>
+
+<!-- Nav Tabs -->
+<ul class="nav nav-pills mb-4 fade-in" id="auditTabs" role="tablist" style="animation-delay:0.05s">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active px-4 py-2 fw-semibold" id="logs-tab" data-bs-toggle="pill" data-bs-target="#logs-pane" type="button" role="tab" style="border-radius: 12px; transition: all 0.2s;">
+            <i class="bi bi-list-task me-1"></i> Nhật ký Kiểm toán
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link px-4 py-2 fw-semibold ms-2" id="verify-tab" data-bs-toggle="pill" data-bs-target="#verify-pane" type="button" role="tab" style="border-radius: 12px; transition: all 0.2s;">
+            <i class="bi bi-shield-check-fill me-1"></i> Xác minh Chữ ký Báo cáo
+        </button>
+    </li>
+</ul>
+
+<!-- Tab Contents -->
+<div class="tab-content" id="auditTabContent">
+    <!-- Tab 1: Logs Pane -->
+    <div class="tab-pane fade show active" id="logs-pane" role="tabpanel" aria-labelledby="logs-tab">
+        <!-- Filters -->
+        <div class="glass-card mb-3 fade-in" style="animation-delay:0.1s">
+            <div class="filter-bar">
+                <div class="filter-group">
+                    <label>Loại sự kiện</label>
+                    <select id="filterCategory">
+                        <option value="">Tất cả</option>
+                        <option value="AUTH">AUTH</option>
+                        <option value="PROFILE">PROFILE</option>
+                        <option value="DELETE">DELETE</option>
+                        <option value="UPDATE">UPDATE</option>
+                        <option value="REPAIR">REPAIR</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Người dùng</label>
+                    <input type="text" id="filterUsername" placeholder="admin...">
+                </div>
+                <div class="filter-group">
+                    <label>MST</label>
+                    <input type="text" id="filterTaxCode" placeholder="0101234567">
+                </div>
+                <div class="filter-group">
+                    <label>Từ ngày</label>
+                    <input type="date" id="filterDateFrom">
+                </div>
+                <div class="filter-group">
+                    <label>Đến ngày</label>
+                    <input type="date" id="filterDateTo">
+                </div>
+                <div class="filter-group">
+                    <label>Từ khóa</label>
+                    <input type="text" id="filterKeyword" placeholder="Tìm kiếm...">
+                </div>
+                <div class="filter-group">
+                    <label>&nbsp;</label>
+                    <button class="btn btn-primary btn-sm" id="btnApplyFilter" style="border-radius:10px;padding:0.45rem 1.2rem;">
+                        <i class="bi bi-funnel"></i> Lọc
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats & Export -->
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2 fade-in" style="animation-delay:0.15s">
+            <div>
+                <span class="stat-pill"><i class="bi bi-database"></i> <span id="totalCount">0</span> bản ghi</span>
+            </div>
+            <div class="export-btn-group">
+                <button class="export-btn export-btn-csv" id="btnExportCSV"><i class="bi bi-filetype-csv"></i> Xuất CSV</button>
+                <button class="export-btn export-btn-pdf" id="btnExportPDF"><i class="bi bi-file-earmark-pdf"></i> Xuất PDF</button>
+            </div>
+        </div>
+
+        <!-- Data Table -->
+        <div class="glass-card fade-in" style="animation-delay:0.2s">
+            <div class="table-scroll">
+                <table class="audit-table" id="auditTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Thời gian</th>
+                            <th>Người dùng</th>
+                            <th>MST</th>
+                            <th>Loại</th>
+                            <th>IP</th>
+                            <th>Chi tiết</th>
+                        </tr>
+                    </thead>
+                    <tbody id="auditTableBody">
+                    </tbody>
+                </table>
+            </div>
+            <div id="emptyState" class="empty-state" style="display:none;">
+                <i class="bi bi-inbox"></i>
+                <p>Chưa có bản ghi nhật ký bảo mật nào.</p>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination-bar" id="paginationBar">
+                <span class="text-muted small" id="paginationInfo"></span>
+                <div class="d-flex gap-2">
+                    <button class="page-btn" id="btnPrevPage" disabled><i class="bi bi-chevron-left"></i> Trước</button>
+                    <button class="page-btn" id="btnNextPage" disabled>Sau <i class="bi bi-chevron-right"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 2: Verify Pane -->
+    <div class="tab-pane fade" id="verify-pane" role="tabpanel" aria-labelledby="verify-tab">
+        <div class="glass-card mb-4 fade-in">
+            <h3 class="mb-3" style="font-family: 'Outfit', sans-serif; font-weight: 600; color: #6366f1;">
+                <i class="bi bi-patch-check-fill me-2"></i>Cổng Xác minh Mã hóa Báo cáo Tuân thủ (US-145)
+            </h3>
+            <p class="text-muted">
+                Hệ thống hỗ trợ tải lên tệp báo cáo Excel kiểm toán tuân thủ thuế đã được ký số mã hóa. Hệ thống sẽ tự động giải mã cấu trúc dữ liệu, tái tính toán mã băm SHA-256 nguyên bản và đối chứng với chữ ký bảo mật ở chân trang để phát hiện mọi hành vi sửa đổi trái phép sau xuất bản.
+            </p>
+
+            <!-- Dropzone Area -->
+            <div class="dropzone-area p-5 text-center d-flex flex-column align-items-center justify-content-center" id="dropzone" style="border: 2px dashed #6366f1; border-radius: 16px; background: rgba(99,102,241,0.02); cursor: pointer; transition: all 0.3s;">
+                <i class="bi bi-cloud-arrow-up-fill text-primary" style="font-size: 3.5rem;"></i>
+                <h5 class="mt-3 fw-bold">Tải lên tệp Excel (.xlsx) báo cáo tuân thủ</h5>
+                <p class="text-muted small">Kéo thả tệp tin vào đây hoặc nhấp chuột để duyệt file</p>
+                <span class="btn btn-outline-primary btn-sm px-4 py-2 mt-2" style="border-radius:10px;">Chọn Tệp</span>
+                <input type="file" id="reportFile" accept=".xlsx" class="d-none">
+            </div>
+
+            <!-- Loading State -->
+            <div id="verifyLoading" class="text-center py-5" style="display: none;">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="mt-2 text-muted">Đang phân tích cấu trúc dữ liệu và giải mã chữ ký số...</p>
+            </div>
+
+            <!-- Result Area -->
+            <div id="verifyResult" class="mt-4" style="display: none;">
+                <!-- Success Alert -->
+                <div id="successBanner" class="p-4 rounded-4 mb-4 border-0" style="background: rgba(16,185,129,0.1); border-left: 5px solid #10b981 !important; display: none;">
+                    <div class="d-flex align-items-start">
+                        <i class="bi bi-shield-fill-check text-success me-3" style="font-size: 2.5rem;"></i>
+                        <div>
+                            <h5 class="fw-bold text-success">✓ BÁO CÁO TOÀN VẸN - CHỮ KÝ HỢP LỆ</h5>
+                            <p class="mb-0 text-muted">Chữ ký số SHA-256 hoàn toàn trùng khớp với dữ liệu hóa đơn bên trong báo cáo. Tệp tin này là nguyên bản, không có bất kỳ thay đổi nào sau khi được xuất bản bởi hệ thống kiểm toán.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Failure Alert -->
+                <div id="failureBanner" class="p-4 rounded-4 mb-4 border-0" style="background: rgba(239,68,68,0.1); border-left: 5px solid #ef4444 !important; display: none;">
+                    <div class="d-flex align-items-start">
+                        <i class="bi bi-exclamation-triangle-fill text-danger me-3" style="font-size: 2.5rem;"></i>
+                        <div>
+                            <h5 class="fw-bold text-danger">⚠ PHÁT HIỆN SỬA ĐỔI - CHỮ KÝ BỊ GIẢ MẠO!</h5>
+                            <p class="mb-0 text-muted">Chữ ký số SHA-256 tính toán lại không khớp với mã hash được nhúng dưới chân trang. Một hoặc nhiều trường dữ liệu (số tiền, ngày lập, hoặc mã số thuế hóa đơn) đã bị thay đổi trái phép hoặc tệp tin không phải do hệ thống này ký số.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Details Grid -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="p-3 border rounded-3 bg-body-tertiary">
+                            <span class="text-muted small uppercase fw-bold">Chữ ký đọc được từ file</span>
+                            <div id="sigFound" class="font-monospace text-primary text-break mt-1 p-2 bg-light rounded text-center fw-bold" style="font-size: 0.9rem;">—</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 border rounded-3 bg-body-tertiary">
+                            <span class="text-muted small uppercase fw-bold">Chữ ký tính toán dự kiến</span>
+                            <div id="sigExpected" class="font-monospace text-break mt-1 p-2 bg-light rounded text-center fw-bold" style="font-size: 0.9rem;">—</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summary stats -->
+                <div class="p-3 border rounded-3 bg-body-tertiary mb-3 d-flex justify-content-between align-items-center">
+                    <span class="fw-bold"><i class="bi bi-file-spreadsheet me-1 text-primary"></i> Danh sách hóa đơn được ký bảo đảm</span>
+                    <span class="badge bg-primary" id="verifiedCount" style="font-size: 0.9rem;">0 hóa đơn</span>
+                </div>
+
+                <!-- Verified Invoices Table -->
+                <div class="table-responsive rounded-3 border">
+                    <table class="table table-hover table-striped mb-0 align-middle" style="font-size: 0.85rem;">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Mã Hóa Đơn</th>
+                                <th>Ký Hiệu</th>
+                                <th>Số</th>
+                                <th>Ngày Lập</th>
+                                <th>Tên Đối Tác</th>
+                                <th class="text-end">Tổng Cộng</th>
+                            </tr>
+                        </thead>
+                        <tbody id="verifiedInvoicesBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    let currentPage = 1;
+    const perPage = 50;
+
+    function getFilters() {
+        return {
+            category: document.getElementById('filterCategory').value,
+            username: document.getElementById('filterUsername').value.trim(),
+            tax_code: document.getElementById('filterTaxCode').value.trim(),
+            date_from: document.getElementById('filterDateFrom').value,
+            date_to: document.getElementById('filterDateTo').value,
+            keyword: document.getElementById('filterKeyword').value.trim(),
+        };
+    }
+
+    function buildQueryString(filters, page) {
+        const params = new URLSearchParams();
+        if (filters.category) params.set('category', filters.category);
+        if (filters.username) params.set('username', filters.username);
+        if (filters.tax_code) params.set('tax_code', filters.tax_code);
+        if (filters.date_from) params.set('date_from', filters.date_from);
+        if (filters.date_to) params.set('date_to', filters.date_to);
+        if (filters.keyword) params.set('keyword', filters.keyword);
+        if (page) params.set('page', page);
+        params.set('per_page', perPage);
+        return params.toString();
+    }
+
+    function categoryBadge(cat) {
+        return `<span class="category-badge cat-${cat}">${cat}</span>`;
+    }
+
+    function formatTimestamp(ts) {
+        if (!ts) return '';
+        try {
+            const d = new Date(ts);
+            return d.toLocaleString('vi-VN', { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit' });
+        } catch(e) { return ts; }
+    }
+
+    async function loadLogs() {
+        const filters = getFilters();
+        const qs = buildQueryString(filters, currentPage);
+        const tbody = document.getElementById('auditTableBody');
+        const emptyState = document.getElementById('emptyState');
+
+        try {
+            const res = await fetch(`/api/audit-logs?${qs}`);
+            const data = await res.json();
+
+            if (data.error) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-danger">${data.error}</td></tr>`;
+                return;
+            }
+
+            document.getElementById('totalCount').textContent = data.total;
+
+            if (!data.logs || data.logs.length === 0) {
+                tbody.innerHTML = '';
+                emptyState.style.display = 'block';
+                document.getElementById('paginationInfo').textContent = '';
+                document.getElementById('btnPrevPage').disabled = true;
+                document.getElementById('btnNextPage').disabled = true;
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            tbody.innerHTML = data.logs.map(log => `
+                <tr>
+                    <td class="text-muted">${log.id}</td>
+                    <td style="white-space:nowrap">${formatTimestamp(log.timestamp)}</td>
+                    <td><strong>${log.username || ''}</strong></td>
+                    <td><code>${log.tax_code || '—'}</code></td>
+                    <td>${categoryBadge(log.event_category)}</td>
+                    <td class="text-muted">${log.ip_address || '—'}</td>
+                    <td>${log.event_details || ''}</td>
+                </tr>
+            `).join('');
+
+            const totalPages = Math.ceil(data.total / perPage);
+            document.getElementById('paginationInfo').textContent = `Trang ${data.page} / ${totalPages} (${data.total} bản ghi)`;
+            document.getElementById('btnPrevPage').disabled = data.page <= 1;
+            document.getElementById('btnNextPage').disabled = data.page >= totalPages;
+
+        } catch(err) {
+            tbody.innerHTML = `<tr><td colspan="7" class="text-danger">Lỗi kết nối: ${err.message}</td></tr>`;
+        }
+    }
+
+    document.getElementById('btnApplyFilter').addEventListener('click', () => {
+        currentPage = 1;
+        loadLogs();
+    });
+
+    document.getElementById('btnPrevPage').addEventListener('click', () => {
+        if (currentPage > 1) { currentPage--; loadLogs(); }
+    });
+
+    document.getElementById('btnNextPage').addEventListener('click', () => {
+        currentPage++;
+        loadLogs();
+    });
+
+    // Enter key triggers filter
+    document.querySelectorAll('.filter-bar input, .filter-bar select').forEach(el => {
+        el.addEventListener('keydown', e => {
+            if (e.key === 'Enter') { currentPage = 1; loadLogs(); }
+        });
+    });
+
+    // Export CSV
+    document.getElementById('btnExportCSV').addEventListener('click', () => {
+        const filters = getFilters();
+        const qs = buildQueryString(filters);
+        window.location.href = `/api/audit-logs/export/csv?${qs}`;
+    });
+
+    // Export PDF
+    document.getElementById('btnExportPDF').addEventListener('click', () => {
+        const filters = getFilters();
+        const qs = buildQueryString(filters);
+        window.location.href = `/api/audit-logs/export/pdf?${qs}`;
+    });
+
+    // Verification Drag & Drop / Upload Flow
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('reportFile');
+
+    dropzone.addEventListener('click', () => fileInput.click());
+
+    dropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropzone.style.background = 'rgba(99,102,241,0.08)';
+        dropzone.style.borderColor = '#4f46e5';
+    });
+
+    dropzone.addEventListener('dragleave', () => {
+        dropzone.style.background = 'rgba(99,102,241,0.02)';
+        dropzone.style.borderColor = '#6366f1';
+    });
+
+    dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.style.background = 'rgba(99,102,241,0.02)';
+        dropzone.style.borderColor = '#6366f1';
+        
+        if (e.dataTransfer.files.length > 0) {
+            handleFile(e.dataTransfer.files[0]);
+        }
+    });
+
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            handleFile(e.target.files[0]);
+        }
+    });
+
+    async function handleFile(file) {
+        if (!file.name.endsWith('.xlsx')) {
+            alert('Vui lòng chỉ tải lên tệp tin định dạng Excel (.xlsx).');
+            return;
+        }
+        
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const loading = document.getElementById('verifyLoading');
+        const resultDiv = document.getElementById('verifyResult');
+        const successBanner = document.getElementById('successBanner');
+        const failureBanner = document.getElementById('failureBanner');
+        
+        loading.style.display = 'block';
+        resultDiv.style.display = 'none';
+        successBanner.style.display = 'none';
+        failureBanner.style.display = 'none';
+        
+        try {
+            const res = await fetch('/api/reports/verify-signed', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            
+            loading.style.display = 'none';
+            resultDiv.style.display = 'block';
+            
+            if (data.error) {
+                alert('Lỗi: ' + data.error);
+                resultDiv.style.display = 'none';
+                return;
+            }
+            
+            // Populate results
+            document.getElementById('sigFound').textContent = data.signature_found || '—';
+            document.getElementById('sigExpected').textContent = data.signature_expected || '—';
+            document.getElementById('verifiedCount').textContent = `${data.invoices_count || 0} hóa đơn`;
+            
+            if (data.verified) {
+                successBanner.style.display = 'block';
+                document.getElementById('sigFound').className = "font-monospace text-success text-break mt-1 p-2 bg-success-subtle rounded text-center fw-bold";
+                document.getElementById('sigExpected').className = "font-monospace text-success text-break mt-1 p-2 bg-success-subtle rounded text-center fw-bold";
+            } else {
+                failureBanner.style.display = 'block';
+                document.getElementById('sigFound').className = "font-monospace text-danger text-break mt-1 p-2 bg-danger-subtle rounded text-center fw-bold";
+                document.getElementById('sigExpected').className = "font-monospace text-danger text-break mt-1 p-2 bg-danger-subtle rounded text-center fw-bold";
+            }
+            
+            const tbody = document.getElementById('verifiedInvoicesBody');
+            if (!data.invoices || data.invoices.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-3">Không tìm thấy dữ liệu hóa đơn nào trong file.</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = data.invoices.map(inv => `
+                <tr>
+                    <td><code>${inv.id || ''}</code></td>
+                    <td class="text-center">${inv.symbol || ''}</td>
+                    <td class="text-center">${inv.number || ''}</td>
+                    <td class="text-center">${inv.date || ''}</td>
+                    <td><strong>${inv.seller_name || ''}</strong></td>
+                    <td class="text-end fw-bold text-primary">${(inv.total_amount || 0).toLocaleString('vi-VN')} VND</td>
+                </tr>
+            `).join('');
+            
+        } catch (err) {
+            loading.style.display = 'none';
+            alert('Lỗi kết nối máy chủ: ' + err.message);
+        }
+    }
+
+    // Initial load
+    loadLogs();
+})();
+</script>
+{% endblock %}

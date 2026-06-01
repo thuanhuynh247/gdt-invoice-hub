@@ -42,8 +42,19 @@
                         <a class="nav-link {% if request.path == '/cashflow' %}active{% endif %}" href="{{ url_for('invoices.cashflow_page') }}"><i class="bi bi-graph-up-arrow" aria-hidden="true"></i> Dự báo Dòng tiền</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/tax-bctc' %}active{% endif %}" href="{{ url_for('invoices.tax_bctc_page') }}"><i class="bi bi-file-earmark-bar-graph" aria-hidden="true"></i> Thuế & BCTC</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link {% if request.path == '/harness' %}active{% endif %}" href="{{ url_for('invoices.harness_page') }}"><i class="bi bi-cpu-fill" aria-hidden="true"></i> Harness Agent</a>
                     </li>
+                    {% if session.get('user_role') in ['admin', 'auditor'] %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/consolidated-dashboard' %}active{% endif %}" href="{{ url_for('invoices.consolidated_dashboard_page') }}"><i class="bi bi-ui-checks-grid" aria-hidden="true"></i> Hợp nhất</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/audit-trail' %}active{% endif %}" href="{{ url_for('invoices.audit_trail_page') }}"><i class="bi bi-shield-lock" aria-hidden="true"></i> Nhật ký</a>
+                    </li>
+                    {% endif %}
                 </ul>
                 <div class="d-flex flex-column flex-xl-row align-items-start align-items-xl-center gap-3 ms-auto mt-2 mt-xl-0">
                     {% if logged_in %}

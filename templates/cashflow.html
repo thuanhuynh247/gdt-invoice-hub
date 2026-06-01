@@ -1,538 +1,419 @@
 {% extends "base.html" %}
-{% block title %}Intelligent Cashflow Oracle - meInvoice{% endblock %}
-
 {% block content %}
 <style>
-    /* Glow variations using Wise styling tokens */
-    .glow-gold {
+    .cashflow-hero {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        border-radius: 20px;
+        padding: 2.5rem;
+        margin-bottom: 2rem;
+        color: #fff;
         position: relative;
+        overflow: hidden;
     }
-    .glow-gold::after {
+    .cashflow-hero::before {
         content: '';
         position: absolute;
-        inset: 0;
-        border-radius: 28px;
-        box-shadow: 0 0 15px var(--primary-accent-soft);
-        opacity: 0.8;
-        z-index: -1;
-        pointer-events: none;
+        top: -50%;
+        right: -20%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(255,255,255,0.15), transparent 70%);
+        border-radius: 50%;
     }
-
-    .glow-ruby {
+    .cashflow-hero h1 {
+        font-family: 'Outfit', sans-serif;
+        font-weight: 700;
+        font-size: 2.2rem;
         position: relative;
+        z-index: 1;
     }
-    .glow-ruby::after {
-        content: '';
-        position: absolute;
-        inset: 0;
-        border-radius: 28px;
-        box-shadow: 0 0 15px rgba(225, 29, 72, 0.15);
-        opacity: 0.8;
-        z-index: -1;
-        pointer-events: none;
-    }
-
-    .glow-emerald {
+    .cashflow-hero p {
+        opacity: 0.9;
         position: relative;
-    }
-    .glow-emerald::after {
-        content: '';
-        position: absolute;
-        inset: 0;
-        border-radius: 28px;
-        box-shadow: 0 0 15px var(--primary-accent-soft);
-        opacity: 0.8;
-        z-index: -1;
-        pointer-events: none;
+        z-index: 1;
+        max-width: 600px;
     }
 
-    .scenario-badge {
-        font-size: 0.75rem;
+    .glass-card {
+        background: var(--card-bg, rgba(255,255,255,0.85));
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--card-border, rgba(255,255,255,0.18));
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 8px 32px rgba(31,38,135,0.07);
+    }
+    [data-theme="dark"] .glass-card {
+        --card-bg: rgba(30,30,50,0.85);
+        --card-border: rgba(255,255,255,0.08);
+    }
+
+    .horizon-badge {
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+        border-radius: 12px;
         font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.05em;
-        padding: 4px 10px;
-        border-radius: 9999px; /* Wise Pill */
+    }
+    .recv-badge { background-color: rgba(16, 185, 129, 0.15); color: #10b981; }
+    .pay-badge { background-color: rgba(239, 68, 68, 0.15); color: #ef4444; }
+    .vat-badge { background-color: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+
+    .slider-container {
+        margin-bottom: 1.5rem;
+    }
+    .slider-label {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .chart-container {
+        position: relative;
+        width: 100%;
+        height: 350px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px dashed rgba(255, 255, 255, 0.1);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+    }
+    svg.cashflow-chart {
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+    }
+
+    .metric-value {
+        font-size: 1.6rem;
+        font-weight: 700;
+        font-family: 'Outfit', sans-serif;
     }
 </style>
 
-<div class="mb-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-    <div>
-        <h1 class="h3 fw-bold mb-1" style="color: var(--text-primary);">
-            Intelligent Cashflow Oracle
-        </h1>
-        <p class="text-secondary mb-0">Phân tích tuổi nợ & Giả định kịch bản dự báo dòng tiền AI (90 Ngày).</p>
-    </div>
-    <div class="d-flex align-items-center gap-2">
-        <button class="btn btn-outline-excel btn-sm px-3" onclick="exportCashflowData()">
-            <i class="bi bi-download me-1" aria-hidden="true"></i> Xuất Báo cáo CSV
-        </button>
-    </div>
-</div>
-
-<!-- Overview Stats Grid -->
-<div class="row g-4 mb-4">
-    <!-- AR (Receivables) - Glowing Gold -->
-    <div class="col-md-4">
-        <div class="card h-100 border-0 glass-card glow-gold">
-            <div class="card-body p-4">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                    <p class="text-muted small fw-semibold mb-0">Phải Thu Khách Hàng (AR)</p>
-                    <span class="badge text-bg-warning bg-opacity-10 text-warning px-2.5 py-1">Kỳ Hạn</span>
-                </div>
-                <h3 class="fw-bold text-warning mb-1" id="expectedInflow">0 ₫</h3>
-                <p class="text-secondary small mb-0" id="arCountLabel">Đang tải…</p>
+<div class="container-fluid py-4">
+    <!-- Hero Block -->
+    <div class="cashflow-hero shadow-lg">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+            <div>
+                <h1>Dự Báo Dòng Tiền Thông Minh</h1>
+                <p class="mb-0">
+                    Phân tích dòng tiền tương lai (Rolling 30/60/90 ngày) dựa trên thời gian đáo hạn hóa đơn, các khoản thuế GTGT dự kiến, và mô phỏng tác động rủi ro thanh toán.
+                </p>
             </div>
-            <div class="position-absolute bottom-0 end-0 p-3 opacity-10">
-                <i class="bi bi-arrow-down-left-circle-fill fs-1 text-warning" aria-hidden="true"></i>
-            </div>
+            <a href="/dashboard" class="btn btn-outline-light rounded-pill px-4">
+                <i class="bi bi-arrow-left-circle me-2"></i>Quay lại
+            </a>
         </div>
     </div>
 
-    <!-- AP (Payables) - Glowing Ruby -->
-    <div class="col-md-4">
-        <div class="card h-100 border-0 glass-card glow-ruby">
-            <div class="card-body p-4">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                    <p class="text-muted small fw-semibold mb-0">Phải Trả Nhà Cung Cấp (AP)</p>
-                    <span class="badge text-bg-danger bg-opacity-10 text-danger px-2.5 py-1">Kỳ Hạn</span>
+    <!-- Main Grid layout -->
+    <div class="row g-4">
+        <!-- Sidebar Controls / Parameters Simulation -->
+        <div class="col-lg-4 col-md-5">
+            <div class="glass-card shadow-sm h-100">
+                <h4 class="mb-4 fw-bold text-gradient"><i class="bi bi-sliders me-2"></i>Bộ Mô Phỏng Rủi Ro (What-If)</h4>
+                <p class="text-secondary small mb-4">
+                    Điều chỉnh các tham số giả lập để stress-test khả năng thanh khoản mà không ảnh hưởng đến dữ liệu hóa đơn thật.
+                </p>
+
+                <!-- Parameter 1: Delay receivables -->
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>Trễ hạn thanh toán thu (Phải thu):</span>
+                        <span class="badge bg-primary rounded-pill" id="val-delay-days">+0 ngày</span>
+                    </div>
+                    <input type="range" class="form-range" id="param-delay-days" min="0" max="90" step="5" value="0">
+                    <span class="text-secondary tiny-text">Giả lập đối tác kéo dài thanh toán so với hạn hóa đơn</span>
                 </div>
-                <h3 class="fw-bold text-danger mb-1" id="expectedOutflow">0 ₫</h3>
-                <p class="text-secondary small mb-0" id="apCountLabel">Đang tải…</p>
-            </div>
-            <div class="position-absolute bottom-0 end-0 p-3 opacity-10">
-                <i class="bi bi-arrow-up-right-circle-fill fs-1 text-danger" aria-hidden="true"></i>
+
+                <!-- Parameter 2: Rejection / Bad debt rate -->
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>Tỷ lệ hóa đơn bị từ chối/nợ xấu:</span>
+                        <span class="badge bg-danger rounded-pill" id="val-rejection-rate">0%</span>
+                    </div>
+                    <input type="range" class="form-range" id="param-rejection-rate" min="0" max="100" step="5" value="0">
+                    <span class="text-secondary tiny-text">Tỷ lệ thất thoát dòng tiền (hoặc cơ quan thuế bác bỏ hóa đơn đầu vào)</span>
+                </div>
+
+                <!-- Parameter 3: VAT Adjustment -->
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>Điều chỉnh Thuế GTGT dự kiến:</span>
+                        <span class="badge bg-warning text-dark rounded-pill" id="val-vat-adj">0 VND</span>
+                    </div>
+                    <input type="range" class="form-range" id="param-vat-adj" min="-100000000" max="100000000" step="5000000" value="0">
+                    <span class="text-secondary tiny-text">Tăng/giảm đột xuất nghĩa vụ thuế GTGT trong kỳ kế toán</span>
+                </div>
+
+                <hr class="my-4 opacity-10">
+
+                <!-- Reset control -->
+                <button class="btn btn-outline-danger w-100 rounded-pill fw-bold" id="btn-reset-simulator">
+                    <i class="bi bi-arrow-counterclockwise me-2"></i>Reset Mô Phỏng
+                </button>
             </div>
         </div>
-    </div>
 
-    <!-- Projected Ending Balance - Glowing Emerald -->
-    <div class="col-md-4">
-        <div class="card h-100 border-0 glass-card glow-emerald">
-            <div class="card-body p-4">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                    <p class="text-muted small fw-semibold mb-0">Dự Kiến Số Dư Cuối Kỳ (90D)</p>
-                    <span class="badge text-bg-success bg-opacity-10 text-success px-2.5 py-1">Khả Dụng</span>
+        <!-- Dynamic Visualization Dashboard -->
+        <div class="col-lg-8 col-md-7">
+            <div class="glass-card shadow-sm h-100">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="m-0 fw-bold"><i class="bi bi-graph-up-arrows me-2"></i>Đường Biểu Diễn Dòng Tiền 90 Ngày</h4>
+                    <span class="badge bg-success rounded-pill px-3 py-2" id="sim-active-badge" style="display: none;">Đang mô phỏng</span>
                 </div>
-                <h3 class="fw-bold text-success mb-1" id="netLiquidity">0 ₫</h3>
-                <p class="text-secondary small mb-0" id="baseBalanceLabel">Số dư ban đầu: 0 ₫</p>
-            </div>
-            <div class="position-absolute bottom-0 end-0 p-3 opacity-10">
-                <i class="bi bi-wallet2 fs-1 text-success" aria-hidden="true"></i>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- Main Charts & What-If Panel -->
-<div class="row g-4 mb-4">
-    <!-- Chart Section -->
-    <div class="col-lg-8">
-        <div class="card border-0 glass-card h-100">
-            <div class="card-header bg-transparent border-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
-                <h5 class="fw-bold mb-0">Dự báo Dòng tiền & Xu thế Thanh khoản (90 Ngày)</h5>
-                <div class="d-flex gap-2">
-                    <span class="scenario-badge text-bg-success bg-opacity-15 text-success">Lạc quan (0D trễ)</span>
-                    <span class="scenario-badge text-bg-warning bg-opacity-15 text-warning">Kịch bản giả định</span>
-                </div>
-            </div>
-            <div class="card-body">
-                <div style="height: 350px; position: relative;">
-                    <canvas id="cashflowChart"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Interactive Scenario Simulator (What-If Control Panel) -->
-    <div class="col-lg-4">
-        <div class="card border-0 glass-card h-100">
-            <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                <h5 class="fw-bold mb-0"><i class="bi bi-sliders me-2 text-primary" aria-hidden="true"></i>Kịch bản Giả định</h5>
-                <p class="text-secondary small mb-0">Mô phỏng tình huống chậm thanh toán từ đối tác khách hàng.</p>
-            </div>
-            <div class="card-body d-flex flex-column justify-content-between gap-4">
-                <div>
-                    <!-- Delay slider -->
-                    <div class="mb-4">
-                        <label for="lateDaysSlider" class="form-label d-flex justify-content-between small fw-semibold text-secondary">
-                            <span>Số ngày chậm thanh toán:</span>
-                            <span class="text-warning fw-bold" id="lateDaysVal">15 ngày</span>
-                        </label>
-                        <input type="range" class="form-range" min="0" max="90" step="5" value="15" id="lateDaysSlider" oninput="updateLateDaysLabel(this.value)">
-                        <div class="d-flex justify-content-between text-muted small px-1">
-                            <span>0D (Đúng Hạn)</span>
-                            <span>45D</span>
-                            <span>90D (Nợ Xấu)</span>
+                <!-- Three projection cards -->
+                <div class="row g-3 mb-4">
+                    <!-- 30 Days -->
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded-4 bg-light bg-opacity-50">
+                            <span class="horizon-badge text-primary fw-bold">Rolling 30 Ngày</span>
+                            <div class="metric-value mt-2 text-primary" id="net-30">0 VND</div>
+                            <div class="small mt-1 text-secondary">
+                                <span class="text-success" id="recv-30">+0 VND</span> | 
+                                <span class="text-danger" id="pay-30">-0 VND</span>
+                            </div>
                         </div>
                     </div>
-
-                    <!-- Client Target filter -->
-                    <div class="mb-4">
-                        <label for="clientMstInput" class="form-label small fw-semibold text-secondary">Áp dụng cho Đối tác cụ thể (MST):</label>
-                        <div class="input-group input-group-sm">
-                            <span class="input-group-text"><i class="bi bi-people" aria-hidden="true"></i></span>
-                            <input type="text" class="form-control" id="clientMstInput" autocomplete="off" placeholder="Nhập MST khách hàng (e.g. 0109998887) hoặc bỏ trống để áp dụng tất cả">
+                    <!-- 60 Days -->
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded-4 bg-light bg-opacity-50">
+                            <span class="horizon-badge text-info fw-bold">Rolling 60 Ngày</span>
+                            <div class="metric-value mt-2 text-info" id="net-60">0 VND</div>
+                            <div class="small mt-1 text-secondary">
+                                <span class="text-success" id="recv-60">+0 VND</span> | 
+                                <span class="text-danger" id="pay-60">-0 VND</span>
+                            </div>
                         </div>
-                        <div class="form-text text-muted small">Nếu bỏ trống, hệ thống sẽ tự động trì hoãn toàn bộ doanh thu Phải Thu (AR) để phân tích kịch bản xấu nhất.</div>
                     </div>
-
-                    <!-- Base balance override -->
-                    <div class="mb-3">
-                        <label for="baseBalanceInput" class="form-label small fw-semibold text-secondary">Số dư ngân hàng ban đầu (VNĐ):</label>
-                        <div class="input-group input-group-sm">
-                            <span class="input-group-text">₫</span>
-                            <input type="number" class="form-control" id="baseBalanceInput" autocomplete="off" placeholder="Tự động tính từ số phụ ngân hàng">
+                    <!-- 90 Days -->
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded-4 bg-light bg-opacity-50">
+                            <span class="horizon-badge text-purple fw-bold" style="color: #6f42c1;">Rolling 90 Ngày</span>
+                            <div class="metric-value mt-2" style="color: #6f42c1;" id="net-90">0 VND</div>
+                            <div class="small mt-1 text-secondary">
+                                <span class="text-success" id="recv-90">+0 VND</span> | 
+                                <span class="text-danger" id="pay-90">-0 VND</span>
+                            </div>
                         </div>
-                        <div class="form-text text-muted small">Bỏ trống để tự động lấy từ tổng số phụ ngân hàng đã đối soát thực tế.</div>
                     </div>
                 </div>
 
-                <div class="d-grid mt-auto">
-                    <button class="btn btn-primary-accent rounded-pill shadow-sm" onclick="runProjection()">
-                        <i class="bi bi-cpu me-1" aria-hidden="true"></i> Chạy Giả định Dự báo
-                    </button>
+                <!-- Dynamic Chart Container -->
+                <div class="chart-container p-3 mb-4">
+                    <svg class="cashflow-chart" id="svg-chart" viewBox="0 0 800 300" preserveAspectRatio="none">
+                        <!-- Chart content is dynamically generated in JS -->
+                    </svg>
+                </div>
+
+                <!-- Summary meta stats -->
+                <div class="d-flex justify-content-between flex-wrap gap-3 small text-secondary">
+                    <div>
+                        <i class="bi bi-file-earmark-spreadsheet me-1"></i>Tổng số hóa đơn phân tích: <strong id="stat-total">0</strong>
+                    </div>
+                    <div>
+                        <i class="bi bi-exclamation-triangle me-1"></i>Hóa đơn phải thu trễ hạn: <strong class="text-warning" id="stat-overdue">0</strong>
+                    </div>
+                    <div>
+                        <i class="bi bi-calculator me-1"></i>Thuế GTGT Dự kiến (90d): <strong id="stat-vat">0 VND</strong>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<div class="row g-4 mb-4">
-    <!-- Aging Table & List -->
-    <div class="col-lg-6">
-        <div class="card border-0 glass-card h-100">
-            <div class="card-header bg-transparent border-bottom pt-4 pb-3">
-                <h5 class="fw-bold mb-0">Cơ cấu Tuổi nợ Chi tiết (AR/AP Aging Report)</h5>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light text-muted small uppercase">
-                            <tr>
-                                <th class="ps-4 py-3">Khoảng tuổi nợ</th>
-                                <th class="py-3 text-end">Phải thu (AR)</th>
-                                <th class="py-3 text-end">Phải trả (AP)</th>
-                                <th class="pe-4 py-3 text-end">Ròng (Net)</th>
-                            </tr>
-                        </thead>
-                        <tbody id="agingBreakdownBody">
-                            <tr><td colspan="4" class="text-center py-4 text-muted">Đang phân tích cấu trúc...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Interactive Chart Aging Structure -->
-    <div class="col-lg-6">
-        <div class="card border-0 glass-card h-100">
-            <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                <h5 class="fw-bold mb-0">Tỷ lệ Phân phối Tuổi nợ (Receivables & Payables Overdue)</h5>
-            </div>
-            <div class="card-body">
-                <div style="height: 250px; position: relative;">
-                    <canvas id="agingBarChart"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- AI Categorization & Outflow Warnings -->
-<div class="card border-0 glass-card mb-5">
-    <div class="card-header bg-transparent border-bottom pt-4 pb-3 d-flex justify-content-between align-items-center">
-        <h5 class="fw-bold mb-0">Khoản mục & Cảnh báo Dòng tiền thông minh (AI Cashflow Auditor)</h5>
-        <span class="badge text-bg-info bg-opacity-10 text-info px-3 py-1.5 rounded-pill"><i class="bi bi-lightbulb me-1" aria-hidden="true"></i>AI Engine Active</span>
-    </div>
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light text-muted small uppercase">
-                    <tr>
-                        <th class="ps-4 py-3">Đối tác (Khách hàng / NCC)</th>
-                        <th class="py-3">MST</th>
-                        <th class="py-3">Loại</th>
-                        <th class="py-3">Danh mục AI</th>
-                        <th class="py-3 text-end">Số ngày quá hạn</th>
-                        <th class="pe-4 py-3 text-end">Giá trị giao dịch</th>
-                    </tr>
-                </thead>
-                <tbody id="aiAuditorTableBody">
-                    <tr><td colspan="6" class="text-center py-5 text-muted">Đang quét dòng tiền hóa đơn...</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-{% endblock %}
-
-{% block scripts %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-let cashflowChartInstance = null;
-let agingChartInstance = null;
-let latestProjectionData = null;
+document.addEventListener("DOMContentLoaded", function() {
+    const delaySlider = document.getElementById("param-delay-days");
+    const rejectionSlider = document.getElementById("param-rejection-rate");
+    const vatSlider = document.getElementById("param-vat-adj");
+    
+    const valDelay = document.getElementById("val-delay-days");
+    const valRejection = document.getElementById("val-rejection-rate");
+    const valVat = document.getElementById("val-vat-adj");
 
-document.addEventListener('DOMContentLoaded', async () => {
-    // Initial Run
-    await runProjection();
-});
+    const simBadge = document.getElementById("sim-active-badge");
 
-function updateLateDaysLabel(val) {
-    document.getElementById('lateDaysVal').textContent = val === '0' ? 'Đúng hạn (0 ngày)' : val + ' ngày';
-}
+    function formatVND(val) {
+        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
+    }
 
-async function runProjection() {
-    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    const textColor = isDark ? '#adb5bd' : '#6c757d';
-    const gridColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)';
+    function updateLabels() {
+        valDelay.innerText = "+" + delaySlider.value + " ngày";
+        valRejection.innerText = rejectionSlider.value + "%";
+        valVat.innerText = formatVND(parseInt(vatSlider.value));
 
-    const lateDays = document.getElementById('lateDaysSlider').value;
-    const clientMst = document.getElementById('clientMstInput').value.trim();
-    const baseBalance = document.getElementById('baseBalanceInput').value.trim();
-
-    // 1. Fetch Aging and AI Auditor Analysis
-    try {
-        const agingResp = await fetch('/api/aging/summary');
-        const agingData = await agingResp.json();
-        
-        if (agingData.success) {
-            // Fill Statistics Cards
-            document.getElementById('expectedInflow').textContent = agingData.receivables.total_amount.toLocaleString() + ' ₫';
-            document.getElementById('expectedOutflow').textContent = agingData.payables.total_amount.toLocaleString() + ' ₫';
-            
-            document.getElementById('arCountLabel').textContent = `Tổng cộng ${agingData.receivables.total_count} hóa đơn Phải thu`;
-            document.getElementById('apCountLabel').textContent = `Tổng cộng ${agingData.payables.total_count} hóa đơn Phải trả`;
-
-            // Fill Aging breakdown table
-            const arBuckets = agingData.receivables.buckets;
-            const apBuckets = agingData.payables.buckets;
-            const tableBody = document.getElementById('agingBreakdownBody');
-            tableBody.innerHTML = '';
-
-            for (let i = 0; i < arBuckets.length; i++) {
-                const label = arBuckets[i].label;
-                const arVal = arBuckets[i].total_amount;
-                const apVal = apBuckets[i].total_amount;
-                const netVal = arVal - apVal;
-
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="ps-4 py-3 fw-semibold text-secondary small">${label}</td>
-                    <td class="py-3 text-end text-warning font-monospace">${arVal.toLocaleString()} ₫</td>
-                    <td class="py-3 text-end text-danger font-monospace">${apVal.toLocaleString()} ₫</td>
-                    <td class="pe-4 py-3 text-end font-monospace fw-bold ${netVal >= 0 ? 'text-success' : 'text-danger'}">${(netVal >= 0 ? '+' : '')}${netVal.toLocaleString()} ₫</td>
-                `;
-                tableBody.appendChild(tr);
-            }
-
-            // Fill AI Auditor table with list of invoices
-            const auditorBody = document.getElementById('aiAuditorTableBody');
-            auditorBody.innerHTML = '';
-            
-            let allInvoices = [];
-            arBuckets.forEach(b => b.invoices.forEach(inv => allInvoices.push(inv)));
-            apBuckets.forEach(b => b.invoices.forEach(inv => allInvoices.push(inv)));
-
-            // Sort by age_days descending to show critical overdue first
-            allInvoices.sort((a, b) => b.age_days - a.age_days);
-
-            allInvoices.forEach(inv => {
-                const tr = document.createElement('tr');
-                let badgeClass = inv.invoice_type === 'sold' ? 'text-bg-warning bg-opacity-10 text-warning' : 'text-bg-danger bg-opacity-10 text-danger';
-                let typeLabel = inv.invoice_type === 'sold' ? 'Phải thu (AR)' : 'Phải trả (AP)';
-                
-                let catBadge = 'text-bg-secondary';
-                if (inv.ai_category === 'UTILITIES') catBadge = 'text-bg-info';
-                else if (inv.ai_category === 'REVENUE') catBadge = 'text-bg-success';
-
-                tr.innerHTML = `
-                    <td class="ps-4 py-3 fw-semibold">${inv.invoice_type === 'sold' ? inv.buyer_name : inv.seller_name}</td>
-                    <td class="py-3 text-muted small">${inv.invoice_type === 'sold' ? inv.buyer_mst : (inv.seller_mst || 'N/A')}</td>
-                    <td class="py-3"><span class="badge ${badgeClass}">${typeLabel}</span></td>
-                    <td class="py-3"><span class="badge ${catBadge} bg-opacity-10 text-dark-emphasis">${inv.ai_category}</span></td>
-                    <td class="py-3 text-end font-monospace ${inv.age_days > 0 ? 'text-danger fw-bold' : 'text-muted'}">${inv.age_days > 0 ? inv.age_days + ' ngày quá hạn' : 'Chưa quá hạn'}</td>
-                    <td class="pe-4 py-3 text-end font-monospace fw-bold">${inv.total_amount.toLocaleString()} ₫</td>
-                `;
-                auditorBody.appendChild(tr);
-            });
-
-            if (allInvoices.length === 0) {
-                auditorBody.innerHTML = '<tr><td colspan="6" class="text-center py-5 text-muted">Tuyệt vời! Không có hóa đơn nào quá hạn cần đối soát cảnh báo.</td></tr>';
-            }
-
-            // Draw Aging Distribution Chart
-            const agingLabels = arBuckets.map(b => b.label);
-            const arAmounts = arBuckets.map(b => b.total_amount);
-            const apAmounts = apBuckets.map(b => b.total_amount);
-
-            if (agingChartInstance) {
-                agingChartInstance.destroy();
-            }
-
-            const ctxAging = document.getElementById('agingBarChart').getContext('2d');
-            agingChartInstance = new Chart(ctxAging, {
-                type: 'bar',
-                data: {
-                    labels: agingLabels,
-                    datasets: [
-                        {
-                            label: 'Phải Thu (AR)',
-                            data: arAmounts,
-                            backgroundColor: 'rgba(245, 158, 11, 0.7)',
-                            borderColor: 'rgb(245, 158, 11)',
-                            borderWidth: 1,
-                            borderRadius: 4
-                        },
-                        {
-                            label: 'Phải Trả (AP)',
-                            data: apAmounts,
-                            backgroundColor: 'rgba(239, 68, 68, 0.7)',
-                            borderColor: 'rgb(239, 68, 68)',
-                            borderWidth: 1,
-                            borderRadius: 4
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { labels: { color: textColor } } },
-                    scales: {
-                        y: { 
-                            beginAtZero: true, 
-                            grid: { color: gridColor },
-                            ticks: { color: textColor }
-                        },
-                        x: { 
-                            grid: { display: false },
-                            ticks: { color: textColor }
-                        }
-                    }
-                }
-            });
+        if (parseInt(delaySlider.value) > 0 || parseFloat(rejectionSlider.value) > 0 || parseInt(vatSlider.value) !== 0) {
+            simBadge.style.display = "inline-block";
+        } else {
+            simBadge.style.display = "none";
         }
-    } catch (e) {
-        console.error("Failed to fetch aging breakdown summary", e);
     }
 
-    // 2. Fetch Cashflow Forecasting Projections
-    try {
-        let queryUrl = `/api/cashflow/projection?late_days=${lateDays}`;
-        if (clientMst) queryUrl += `&client_mst=${clientMst}`;
-        if (baseBalance) queryUrl += `&base_balance=${baseBalance}`;
+    function drawChart(timeline) {
+        const svg = document.getElementById("svg-chart");
+        svg.innerHTML = ""; // Clear existing
 
-        const forecastResp = await fetch(queryUrl);
-        const forecastData = await forecastResp.json();
-        
-        if (forecastData.success && forecastData.projections) {
-            latestProjectionData = forecastData;
+        if (!timeline || timeline.length === 0) {
+            svg.innerHTML = `<text x="400" y="150" fill="gray" text-anchor="middle">Không có dữ liệu hóa đơn tương thích để dự báo</text>`;
+            return;
+        }
 
-            // Fill starting and ending cashflow values
-            const baseVal = forecastData.base_balance;
-            document.getElementById('baseBalanceLabel').textContent = `Số dư ban đầu: ${baseVal.toLocaleString()} ₫`;
+        const width = 800;
+        const height = 300;
+        const paddingLeft = 60;
+        const paddingRight = 30;
+        const paddingTop = 30;
+        const paddingBottom = 40;
+
+        const maxVal = Math.max(...timeline.map(d => Math.max(d.balance, d.inflow, d.outflow, 1000000)));
+        const minVal = Math.min(0, ...timeline.map(d => d.balance));
+        const valRange = maxVal - minVal;
+
+        const points = [];
+        const inflowBars = [];
+        const outflowBars = [];
+
+        timeline.forEach((d, idx) => {
+            const x = paddingLeft + (idx / (timeline.length - 1)) * (width - paddingLeft - paddingRight);
+            const y = height - paddingBottom - ((d.balance - minVal) / valRange) * (height - paddingTop - paddingBottom);
+            points.push(`${x},${y}`);
+
+            // Draw small daily flow representation bars at bottom
+            const barYIn = height - paddingBottom - ((d.inflow / valRange) * (height - paddingTop - paddingBottom) * 0.5);
+            const barYOut = height - paddingBottom - ((d.outflow / valRange) * (height - paddingTop - paddingBottom) * 0.5);
             
-            const lastProj = forecastData.projections[forecastData.projections.length - 1];
-            document.getElementById('netLiquidity').textContent = lastProj.balance_sim.toLocaleString() + ' ₫';
+            if (d.inflow > 0) {
+                inflowBars.push(`<rect x="${x-3}" y="${barYIn}" width="3" height="${height - paddingBottom - barYIn}" fill="#10b981" opacity="0.4"/>`);
+            }
+            if (d.outflow > 0) {
+                outflowBars.push(`<rect x="${x}" y="${barYOut}" width="3" height="${height - paddingBottom - barYOut}" fill="#ef4444" opacity="0.4"/>`);
+            }
+        });
 
-            const days = forecastData.projections.map(f => f.day_label);
-            const optBalances = forecastData.projections.map(f => f.balance_opt);
-            const simBalances = forecastData.projections.map(f => f.balance_sim);
+        // Grid lines & Zero axis line
+        const zeroY = height - paddingBottom - ((0 - minVal) / valRange) * (height - paddingTop - paddingBottom);
+        let gridLines = `<line x1="${paddingLeft}" y1="${zeroY}" x2="${width - paddingRight}" y2="${zeroY}" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" stroke-dasharray="4"/>`;
+        
+        // Dynamic grid markers
+        [maxVal, maxVal/2, 0, minVal < 0 ? minVal/2 : null, minVal < 0 ? minVal : null].forEach(v => {
+            if (v === null) return;
+            const gy = height - paddingBottom - ((v - minVal) / valRange) * (height - paddingTop - paddingBottom);
+            gridLines += `
+                <line x1="${paddingLeft}" y1="${gy}" x2="${width - paddingRight}" y2="${gy}" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+                <text x="${paddingLeft - 10}" y="${gy + 4}" fill="#a0aec0" font-size="10" text-anchor="end">${v >= 1000000 ? (v/1000000).toFixed(1) + 'M' : v}</text>
+            `;
+        });
 
-            if (cashflowChartInstance) {
-                cashflowChartInstance.destroy();
+        // X Axis labels (Dates at 0, 30, 60, 90d)
+        const dateIntervals = [0, Math.floor(timeline.length/3), Math.floor(2*timeline.length/3), timeline.length-1];
+        dateIntervals.forEach(idx => {
+            if (idx >= timeline.length) return;
+            const d = timeline[idx];
+            const x = paddingLeft + (idx / (timeline.length - 1)) * (width - paddingLeft - paddingRight);
+            const dt = new Date(d.date);
+            const labelStr = `${dt.getDate()}/${dt.getMonth()+1}`;
+            gridLines += `
+                <line x1="${x}" y1="${height-paddingBottom}" x2="${x}" y2="${height-paddingBottom+5}" stroke="rgba(255,255,255,0.2)"/>
+                <text x="${x}" y="${height-paddingBottom+20}" fill="#a0aec0" font-size="11" text-anchor="middle">${labelStr}</text>
+            `;
+        });
+
+        svg.innerHTML = `
+            <!-- Grid -->
+            ${gridLines}
+            <!-- Flow Bars -->
+            ${inflowBars.join('')}
+            ${outflowBars.join('')}
+            <!-- Line path -->
+            <polyline fill="none" stroke="url(#lineGradient)" stroke-width="3" points="${points.join(' ')}"/>
+            <!-- Dots on peaks -->
+            ${points.map((p, idx) => idx % 10 === 0 ? `<circle cx="${p.split(',')[0]}" cy="${p.split(',')[1]}" r="4" fill="#ffffff" stroke="#3182ce" stroke-width="2"/>` : '').join('')}
+            
+            <!-- Gradients Definition -->
+            <defs>
+                <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#3182ce"/>
+                    <stop offset="100%" stop-color="#6f42c1"/>
+                </linearGradient>
+            </defs>
+        `;
+    }
+
+    function fetchAndRender() {
+        const payload = {
+            delay_days: parseInt(delaySlider.value),
+            rejection_rate: parseFloat(rejectionSlider.value) / 100.0,
+            vat_adjustment: parseFloat(vatSlider.value)
+        };
+
+        fetch("/api/finance/simulate", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                console.error(data.error);
+                return;
             }
 
-            const ctxCashflow = document.getElementById('cashflowChart').getContext('2d');
-            cashflowChartInstance = new Chart(ctxCashflow, {
-                type: 'line',
-                data: {
-                    labels: days,
-                    datasets: [
-                        {
-                            label: 'Lạc quan (Đúng hạn)',
-                            data: optBalances,
-                            borderColor: 'rgb(16, 185, 129)',
-                            backgroundColor: 'rgba(16, 185, 129, 0.05)',
-                            borderWidth: 2,
-                            fill: true,
-                            tension: 0.3
-                        },
-                        {
-                            label: 'Giả định (Chậm thanh toán)',
-                            data: simBalances,
-                            borderColor: 'rgb(245, 158, 11)',
-                            backgroundColor: 'rgba(245, 158, 11, 0.05)',
-                            borderWidth: 2,
-                            borderDash: [5, 5],
-                            fill: true,
-                            tension: 0.3
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { 
-                        legend: { labels: { color: textColor } },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    let label = context.dataset.label || '';
-                                    if (label) label += ': ';
-                                    if (context.raw !== null) {
-                                        label += context.raw.toLocaleString() + ' ₫';
-                                    }
-                                    return label;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: { 
-                            grid: { color: gridColor },
-                            ticks: { color: textColor }
-                        },
-                        x: { 
-                            grid: { display: false },
-                            ticks: { 
-                                color: textColor,
-                                maxTicksLimit: 12
-                            }
-                        }
-                    },
-                    elements: { point: { radius: 1, hitRadius: 10, hoverRadius: 4 } }
-                }
-            });
-        }
-    } catch (e) {
-        console.error("Failed to load cashflow projection data", e);
-    }
-}
+            // Update 30/60/90 cards
+            document.getElementById("net-30").innerText = formatVND(data.projections["30d"].net_cash_flow);
+            document.getElementById("recv-30").innerText = "+" + formatVND(data.projections["30d"].total_receivables);
+            document.getElementById("pay-30").innerText = "-" + formatVND(data.projections["30d"].total_payables);
 
-function exportCashflowData() {
-    if (!latestProjectionData || !latestProjectionData.projections) {
-        alert("Không có dữ liệu dự báo để xuất!");
-        return;
+            document.getElementById("net-60").innerText = formatVND(data.projections["60d"].net_cash_flow);
+            document.getElementById("recv-60").innerText = "+" + formatVND(data.projections["60d"].total_receivables);
+            document.getElementById("pay-60").innerText = "-" + formatVND(data.projections["60d"].total_payables);
+
+            document.getElementById("net-90").innerText = formatVND(data.projections["90d"].net_cash_flow);
+            document.getElementById("recv-90").innerText = "+" + formatVND(data.projections["90d"].total_receivables);
+            document.getElementById("pay-90").innerText = "-" + formatVND(data.projections["90d"].total_payables);
+
+            // Update stats
+            document.getElementById("stat-total").innerText = data.summary.total_invoices;
+            document.getElementById("stat-overdue").innerText = data.summary.overdue_receivables;
+            document.getElementById("stat-vat").innerText = formatVND(data.projections["90d"].projected_vat_liability);
+
+            // Draw SVG
+            drawChart(data.daily_timeline);
+        })
+        .catch(err => {
+            console.error("Error connecting with simulate endpoint:", err);
+        });
     }
 
-    let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "Date,Day,Optimistic Balance (VND),Simulated Balance (VND),Opt Inflow (VND),Sim Inflow (VND),Outflow (VND)\n";
+    // Debounced simulation for smooth slider performance
+    let timeout;
+    function triggerFetch() {
+        updateLabels();
+        clearTimeout(timeout);
+        timeout = setTimeout(fetchAndRender, 150);
+    }
 
-    latestProjectionData.projections.forEach(f => {
-        csvContent += `${f.date},${f.day_label},${f.balance_opt},${f.balance_sim},${f.inflow_opt},${f.inflow_sim},${f.outflow}\n`;
+    delaySlider.addEventListener("input", triggerFetch);
+    rejectionSlider.addEventListener("input", triggerFetch);
+    vatSlider.addEventListener("input", triggerFetch);
+
+    document.getElementById("btn-reset-simulator").addEventListener("click", function() {
+        delaySlider.value = 0;
+        rejectionSlider.value = 0;
+        vatSlider.value = 0;
+        triggerFetch();
     });
 
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `cashflow_projection_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
+    // Initial load
+    triggerFetch();
+});
 </script>
 {% endblock %}

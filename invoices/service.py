@@ -118,11 +118,28 @@ def fetch_invoices(query: InvoiceQuery) -> list[dict]:
             results.append(normalize_invoice(raw_invoice))
         return results
 
-    jwt_token = current_app.config.get("CURRENT_JWT")
+    jwt_token = None
+    try:
+        from invoices.thread_local import get_current_thread_credentials
+        _, _, tl_jwt = get_current_thread_credentials()
+        jwt_token = tl_jwt
+    except ImportError:
+        pass
+
+    if not jwt_token:
+        jwt_token = current_app.config.get("CURRENT_JWT")
+
     if not jwt_token:
         from auth.service import auto_refresh_gdt_session
         if auto_refresh_gdt_session():
-            jwt_token = current_app.config.get("CURRENT_JWT")
+            try:
+                from invoices.thread_local import get_current_thread_credentials
+                _, _, tl_jwt = get_current_thread_credentials()
+                jwt_token = tl_jwt
+            except ImportError:
+                pass
+            if not jwt_token:
+                jwt_token = current_app.config.get("CURRENT_JWT")
         else:
             raise GDTIntegrationNotReadyError("Chua co JWT dang nhap de goi danh sach hoa don.")
 
@@ -130,7 +147,15 @@ def fetch_invoices(query: InvoiceQuery) -> list[dict]:
     
     attempts = 2
     for attempt in range(attempts):
-        jwt_token = current_app.config.get("CURRENT_JWT")
+        jwt_token = None
+        try:
+            from invoices.thread_local import get_current_thread_credentials
+            _, _, tl_jwt = get_current_thread_credentials()
+            jwt_token = tl_jwt
+        except ImportError:
+            pass
+        if not jwt_token:
+            jwt_token = current_app.config.get("CURRENT_JWT")
         response = requests.get(
             f'{current_app.config["GDT_BASE_URL"]}/api/query/invoices/{endpoint}',
             params={
@@ -180,15 +205,40 @@ def download_invoice_xml(invoice_id: str) -> bytes:
         with open(local_xml_path, "rb") as f:
             return f.read()
 
-    if not current_app.config["GDT_USE_MOCK"]:
-        jwt_token = current_app.config.get("CURRENT_JWT")
+        jwt_token = None
+        try:
+            from invoices.thread_local import get_current_thread_credentials
+            _, _, tl_jwt = get_current_thread_credentials()
+            jwt_token = tl_jwt
+        except ImportError:
+            pass
+        if not jwt_token:
+            jwt_token = current_app.config.get("CURRENT_JWT")
+
         if not jwt_token:
             from auth.service import auto_refresh_gdt_session
             if auto_refresh_gdt_session():
-                jwt_token = current_app.config.get("CURRENT_JWT")
+                try:
+                    from invoices.thread_local import get_current_thread_credentials
+                    _, _, tl_jwt = get_current_thread_credentials()
+                    jwt_token = tl_jwt
+                except ImportError:
+                    pass
+                if not jwt_token:
+                    jwt_token = current_app.config.get("CURRENT_JWT")
             else:
                 raise GDTIntegrationNotReadyError("Chua co JWT dang nhap de tai XML.")
-        invoice = current_app.config.get("CURRENT_INVOICE_LOOKUP", {}).get(invoice_id)
+
+        invoice = None
+        try:
+            from invoices.thread_local import get_current_thread_lookup
+            tl_lookup = get_current_thread_lookup()
+            if tl_lookup:
+                invoice = tl_lookup.get(invoice_id)
+        except ImportError:
+            pass
+        if not invoice:
+            invoice = current_app.config.get("CURRENT_INVOICE_LOOKUP", {}).get(invoice_id)
         if not invoice:
             raise FileNotFoundError("Khong tim thay hoa don trong phien hien tai de tai XML.")
         raw_invoice = invoice.get("raw") or {}
@@ -204,7 +254,15 @@ def download_invoice_xml(invoice_id: str) -> bytes:
         
         attempts = 2
         for attempt in range(attempts):
-            jwt_token = current_app.config.get("CURRENT_JWT")
+            jwt_token = None
+            try:
+                from invoices.thread_local import get_current_thread_credentials
+                _, _, tl_jwt = get_current_thread_credentials()
+                jwt_token = tl_jwt
+            except ImportError:
+                pass
+            if not jwt_token:
+                jwt_token = current_app.config.get("CURRENT_JWT")
             response = requests.get(
                 f'{current_app.config["GDT_BASE_URL"]}/api/{endpoint}/invoices/export-xml',
                 params=export_params,

@@ -66,6 +66,14 @@ def harness_page():
     return render_template("harness.html")
 
 
+@invoices_blueprint.get("/tax-bctc")
+def tax_bctc_page():
+    """Render the V17 Tax and BCTC services screen for authenticated users."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("tax_bctc.html")
+
+
 @invoices_blueprint.get("/api/config")
 def api_config():
     """Return small frontend configuration flags."""
@@ -976,6 +984,9 @@ def api_clear_local_invoices():
         Invoice.query.delete()
         db.session.commit()
 
+        from invoices.security_audit_service import log_security_event
+        log_security_event("DELETE", "Cleared all records from local SQLite database and removed XML storage files.")
+
         if os.path.exists(XML_DIR):
             shutil.rmtree(XML_DIR)
             os.makedirs(XML_DIR, exist_ok=True)
@@ -999,6 +1010,9 @@ def api_delete_local_invoice(invoice_id):
     success = delete_local_invoice(invoice_id)
     if not success:
         return jsonify({"error": "Không tìm thấy hóa đơn cần xóa."}), 404
+
+    from invoices.security_audit_service import log_security_event
+    log_security_event("DELETE", f"Deleted local invoice: {invoice_id}")
 
     return jsonify({"status": "success", "message": "Đã xóa hóa đơn thành công."})
 
@@ -1142,6 +1156,9 @@ def api_post_settings():
         "signature_filter_enabled": bool(payload.get("signature_filter_enabled", True)),
         "blacklist_filter_enabled": bool(payload.get("blacklist_filter_enabled", True))
     })
+
+    from invoices.security_audit_service import log_security_event
+    log_security_event("UPDATE", "Updated application settings (SMTP, scheduler, AI, cloud sync, ERP, and webhooks).")
 
     return jsonify({"status": "success", "message": "Đã lưu thiết lập thành công."})
 
@@ -2195,6 +2212,8 @@ def api_apply_repair():
 
         if applied:
             db.session.commit()
+            from invoices.security_audit_service import log_security_event
+            log_security_event("REPAIR", f"Applied AI repair to invoice {invoice_id} for fields: {', '.join(applied)}")
 
         return jsonify({
             "success": True,
@@ -3312,6 +3331,7 @@ def create_taxpayer_profile():
         encrypted_password = encrypt_password(gdt_password)
 
         profile = db.session.get(TaxpayerProfile, mst)
+        is_update = profile is not None
         if profile:
             profile.company_name = company_name
             profile.gdt_username = gdt_username
@@ -3328,6 +3348,13 @@ def create_taxpayer_profile():
             db.session.add(profile)
 
         db.session.commit()
+
+        from invoices.security_audit_service import log_security_event
+        if is_update:
+            log_security_event("PROFILE", f"Updated taxpayer profile for MST: {mst}")
+        else:
+            log_security_event("PROFILE", f"Created new taxpayer profile for MST: {mst}")
+
         return jsonify({"success": True, "profile": profile.to_dict()})
     except Exception as e:
         db.session.rollback()
@@ -3350,6 +3377,10 @@ def delete_taxpayer_profile(mst):
 
         db.session.delete(profile)
         db.session.commit()
+
+        from invoices.security_audit_service import log_security_event
+        log_security_event("PROFILE", f"Deleted taxpayer profile for MST: {mst}")
+
         return jsonify({"success": True, "message": f"Đã xóa hồ sơ và tất cả hóa đơn của MST {mst}."})
     except Exception as e:
         db.session.rollback()
@@ -3368,8 +3399,10 @@ def switch_taxpayer_profile():
         body = request.get_json() or {}
         mst = body.get("mst")
 
+        from invoices.security_audit_service import log_security_event
         if mst == "all" or not mst:
             session["active_taxpayer_mst"] = None
+            log_security_event("PROFILE", "Switched active taxpayer profile to all (no filter)")
             return jsonify({"success": True, "active_taxpayer_mst": None})
 
         from invoices.models import TaxpayerProfile
@@ -3378,6 +3411,7 @@ def switch_taxpayer_profile():
             return jsonify({"error": f"Không tìm thấy hồ sơ mã số thuế {mst}."}), 404
 
         session["active_taxpayer_mst"] = mst
+        log_security_event("PROFILE", f"Switched active taxpayer profile to MST: {mst}")
         return jsonify({"success": True, "active_taxpayer_mst": mst})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -4935,6 +4969,9 @@ def api_update_compliance_rulebook():
 
     db.session.commit()
 
+    from invoices.security_audit_service import log_security_event
+    log_security_event("UPDATE", f"Updated compliance rulebook DSL: {rulebook.name}")
+
     return jsonify({
         "status": "success",
         "message": "Cập nhật DSL Rulebook thành công.",
@@ -5024,6 +5061,158 @@ def api_map_ifrs_compliance():
         "reporting_currency": reporting_currency,
         "mapped_invoices": mapped_results
     })
+
+
+@invoices_blueprint.get("/api/reports/tax-risk-scoreboard")
+@roles_required("admin", "auditor", "viewer")
+def api_tax_risk_scoreboard():
+    """Retrieve tax compliance audit warning distribution and supplier risk scoreboard."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    import json
+    from invoices.service import get_local_invoices
+    from invoices.models import BlacklistedMST
+
+    active_mst = session.get("taxpayer_mst")
+    
+    # 1. Fetch all local invoices for the current taxpayer
+    invoices = get_local_invoices(active_mst)
+    
+    # 2. Get all blacklisted MSTs
+    try:
+        blacklisted_msts = {b.mst for b in BlacklistedMST.query.all()}
+    except Exception:
+        blacklisted_msts = set()
+
+    total_analyzed = len(invoices)
+    total_with_warnings = 0
+    total_value_at_risk = 0.0
+
+    blacklist_warnings_count = 0
+    signature_violations_count = 0
+    payment_type_flags_count = 0
+
+    supplier_groups = {}
+
+    for inv in invoices:
+        warnings = inv.get("warnings") or []
+        # Support both a string list or a json list
+        if isinstance(warnings, str):
+            try:
+                warnings = json.loads(warnings)
+            except Exception:
+                warnings = []
+        
+        has_warning = False
+        is_blacklisted_inv = False
+        is_sig_violation = False
+        is_payment_flag = False
+
+        seller_mst = inv.get("seller_mst") or ""
+        seller_name = inv.get("seller_name") or "Không rõ"
+        total_amount = inv.get("total_amount") or 0.0
+        payment_method = inv.get("payment_method") or ""
+        has_signature = inv.get("has_signature", True)
+
+        # A. Blacklist check
+        if seller_mst in blacklisted_msts:
+            is_blacklisted_inv = True
+        else:
+            for w in warnings:
+                w_lower = str(w).lower()
+                if "blacklist" in w_lower or "đen" in w_lower or "rủi ro" in w_lower:
+                    is_blacklisted_inv = True
+                    break
+
+        # B. Signature violation check
+        if not has_signature:
+            is_sig_violation = True
+        else:
+            for w in warnings:
+                w_lower = str(w).lower()
+                if "signature" in w_lower or "chữ ký" in w_lower or "ký số" in w_lower:
+                    is_sig_violation = True
+                    break
+
+        # C. Payment type flag check
+        pay_method_upper = payment_method.upper()
+        is_cash = any(x in pay_method_upper for x in ["TM", "TIỀN MẶT", "CASH"])
+        if total_amount >= 20000000.0 and is_cash:
+            is_payment_flag = True
+        else:
+            for w in warnings:
+                w_lower = str(w).lower()
+                if any(x in w_lower for x in ["tiền mặt", "phương thức thanh toán", "hạch toán", "không dùng tiền mặt"]):
+                    is_payment_flag = True
+                    break
+
+        if is_blacklisted_inv or is_sig_violation or is_payment_flag or len(warnings) > 0:
+            has_warning = True
+
+        if is_blacklisted_inv:
+            blacklist_warnings_count += 1
+        if is_sig_violation:
+            signature_violations_count += 1
+        if is_payment_flag:
+            payment_type_flags_count += 1
+
+        if has_warning:
+            total_with_warnings += 1
+            total_value_at_risk += total_amount
+
+        # Group by supplier
+        if seller_mst:
+            if seller_mst not in supplier_groups:
+                supplier_groups[seller_mst] = {
+                    "supplier_mst": seller_mst,
+                    "supplier_name": seller_name,
+                    "invoice_count": 0,
+                    "warnings_count": 0,
+                    "total_value": 0.0,
+                    "total_t_score": 0,
+                    "is_blacklisted": seller_mst in blacklisted_msts
+                }
+            
+            supplier_groups[seller_mst]["invoice_count"] += 1
+            supplier_groups[seller_mst]["total_value"] += total_amount
+            supplier_groups[seller_mst]["total_t_score"] += inv.get("t_score", 100)
+            if has_warning:
+                supplier_groups[seller_mst]["warnings_count"] += 1
+
+    suppliers_list = []
+    for mst, s in supplier_groups.items():
+        avg_score = s["total_t_score"] / s["invoice_count"] if s["invoice_count"] > 0 else 100
+        suppliers_list.append({
+            "supplier_mst": s["supplier_mst"],
+            "supplier_name": s["supplier_name"],
+            "invoice_count": s["invoice_count"],
+            "warnings_count": s["warnings_count"],
+            "total_value": s["total_value"],
+            "average_t_score": round(avg_score, 1),
+            "is_blacklisted": s["is_blacklisted"]
+        })
+
+    # Sort suppliers: highest warnings count first, then by total transaction value descending
+    suppliers_list.sort(key=lambda x: (x["warnings_count"], x["total_value"]), reverse=True)
+
+    # Filter to only list suppliers that have warnings or are blacklisted
+    high_risk_suppliers = [s for s in suppliers_list if s["warnings_count"] > 0 or s["is_blacklisted"]]
+
+    return jsonify({
+        "status": "success",
+        "summary": {
+            "total_analyzed": total_analyzed,
+            "total_with_warnings": total_with_warnings,
+            "total_value_at_risk": total_value_at_risk,
+            "blacklist_warnings_count": blacklist_warnings_count,
+            "signature_violations_count": signature_violations_count,
+            "payment_type_flags_count": payment_type_flags_count
+        },
+        "suppliers": high_risk_suppliers
+    })
+
 
 
 def get_harness_db():
@@ -5704,8 +5893,580 @@ def api_ecommerce_reconcile():
         return jsonify({"error": str(e)}), 500
 
 
+# ---------------------------------------------------------------------------
+# US-141: Audit Trail Viewer UI & Export
+# ---------------------------------------------------------------------------
+
+@invoices_blueprint.get("/audit-trail")
+@roles_required("admin", "auditor")
+def audit_trail_page():
+    """Render the Audit Trail Viewer UI."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return redirect(url_for("index"))
+    return render_template("audit_trail.html",
+                           logged_in=session.get("logged_in"),
+                           session_username=session.get("display_name") or session.get("username"))
+
+
+@invoices_blueprint.get("/api/audit-logs")
+@roles_required("admin", "auditor")
+def api_get_audit_logs():
+    """Retrieve security audit logs with optional filtering."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    from invoices.models import SecurityAuditLog
+
+    try:
+        query = SecurityAuditLog.query
+
+        # Filters
+        category = request.args.get("category")
+        if category:
+            query = query.filter(SecurityAuditLog.event_category == category)
+
+        username = request.args.get("username")
+        if username:
+            query = query.filter(SecurityAuditLog.username.ilike(f"%{username}%"))
+
+        tax_code = request.args.get("tax_code")
+        if tax_code:
+            query = query.filter(SecurityAuditLog.tax_code.ilike(f"%{tax_code}%"))
+
+        date_from = request.args.get("date_from")
+        if date_from:
+            query = query.filter(SecurityAuditLog.timestamp >= date_from)
+
+        date_to = request.args.get("date_to")
+        if date_to:
+            query = query.filter(SecurityAuditLog.timestamp <= date_to + "T23:59:59Z")
+
+        keyword = request.args.get("keyword")
+        if keyword:
+            query = query.filter(SecurityAuditLog.event_details.ilike(f"%{keyword}%"))
+
+        # Pagination
+        page = request.args.get("page", 1, type=int)
+        per_page = request.args.get("per_page", 50, type=int)
+        per_page = min(per_page, 200)
+
+        total = query.count()
+        logs = query.order_by(SecurityAuditLog.id.desc()).offset((page - 1) * per_page).limit(per_page).all()
+
+        return jsonify({
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "logs": [
+                {
+                    "id": log.id,
+                    "timestamp": log.timestamp,
+                    "username": log.username,
+                    "tax_code": log.tax_code,
+                    "event_category": log.event_category,
+                    "ip_address": log.ip_address,
+                    "event_details": log.event_details,
+                }
+                for log in logs
+            ],
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.get("/api/audit-logs/export/csv")
+@roles_required("admin", "auditor")
+def api_export_audit_logs_csv():
+    """Export filtered audit logs as CSV file."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    from invoices.models import SecurityAuditLog
+    import csv
+    import io
+
+    try:
+        query = SecurityAuditLog.query
+
+        category = request.args.get("category")
+        if category:
+            query = query.filter(SecurityAuditLog.event_category == category)
+        username = request.args.get("username")
+        if username:
+            query = query.filter(SecurityAuditLog.username.ilike(f"%{username}%"))
+        tax_code = request.args.get("tax_code")
+        if tax_code:
+            query = query.filter(SecurityAuditLog.tax_code.ilike(f"%{tax_code}%"))
+        date_from = request.args.get("date_from")
+        if date_from:
+            query = query.filter(SecurityAuditLog.timestamp >= date_from)
+        date_to = request.args.get("date_to")
+        if date_to:
+            query = query.filter(SecurityAuditLog.timestamp <= date_to + "T23:59:59Z")
+        keyword = request.args.get("keyword")
+        if keyword:
+            query = query.filter(SecurityAuditLog.event_details.ilike(f"%{keyword}%"))
+
+        logs = query.order_by(SecurityAuditLog.id.desc()).limit(10000).all()
+
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(["ID", "Timestamp", "Username", "Tax Code", "Category", "IP Address", "Details"])
+        for log in logs:
+            writer.writerow([
+                log.id, log.timestamp, log.username, log.tax_code or "",
+                log.event_category, log.ip_address or "", log.event_details or "",
+            ])
+
+        from datetime import datetime
+        filename = f"audit_trail_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+
+        return Response(
+            output.getvalue(),
+            mimetype="text/csv",
+            headers={"Content-Disposition": f"attachment; filename={filename}"},
+        )
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.get("/api/audit-logs/export/pdf")
+@roles_required("admin", "auditor")
+def api_export_audit_logs_pdf():
+    """Export filtered audit logs as PDF file."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    from invoices.models import SecurityAuditLog
+    from datetime import datetime
+
+    try:
+        query = SecurityAuditLog.query
+
+        category = request.args.get("category")
+        if category:
+            query = query.filter(SecurityAuditLog.event_category == category)
+        username = request.args.get("username")
+        if username:
+            query = query.filter(SecurityAuditLog.username.ilike(f"%{username}%"))
+        tax_code = request.args.get("tax_code")
+        if tax_code:
+            query = query.filter(SecurityAuditLog.tax_code.ilike(f"%{tax_code}%"))
+        date_from = request.args.get("date_from")
+        if date_from:
+            query = query.filter(SecurityAuditLog.timestamp >= date_from)
+        date_to = request.args.get("date_to")
+        if date_to:
+            query = query.filter(SecurityAuditLog.timestamp <= date_to + "T23:59:59Z")
+        keyword = request.args.get("keyword")
+        if keyword:
+            query = query.filter(SecurityAuditLog.event_details.ilike(f"%{keyword}%"))
+
+        logs = query.order_by(SecurityAuditLog.id.desc()).limit(5000).all()
+
+        # Generate HTML-based PDF using render_template
+        html = render_template("audit_trail_pdf.html",
+                               logs=logs,
+                               generated_at=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                               total_records=len(logs),
+                               filters={
+                                   "category": category,
+                                   "username": username,
+                                   "tax_code": tax_code,
+                                   "date_from": date_from,
+                                   "date_to": date_to,
+                                   "keyword": keyword,
+                               })
+
+        filename = f"audit_trail_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"
+        return Response(
+            html,
+            mimetype="text/html",
+            headers={"Content-Disposition": f"attachment; filename={filename}"},
+        )
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.get("/api/reports/signed-compliance")
+@roles_required("admin", "auditor")
+def api_export_signed_compliance():
+    """Export audited compliance report with embedded cryptographic signature."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    try:
+        parsed_from, parsed_to = validate_date_range(
+            request.args.get("from", ""),
+            request.args.get("to", ""),
+        )
+        direction = request.args.get("direction", "purchase")
+        
+        # Get invoices from service
+        current_app.config["CURRENT_JWT"] = session.get("jwt")
+        invoices = fetch_invoices(InvoiceQuery(parsed_from, parsed_to, False, direction))
+        
+        # Get system secret key for hashing
+        secret_key = current_app.config.get("SECRET_KEY", "compliance-system-secret-key-12345")
+        
+        from invoices.compliance_report_service import generate_signed_excel_report
+        excel_bytes = generate_signed_excel_report(invoices, secret_key)
+        
+        # Log this administrative export event in the security audit ledger
+        from invoices.security_audit_service import log_security_event
+        log_security_event(
+            username=session.get("username", "admin"),
+            event_category="EXPORT",
+            tax_code=session.get("tax_code", ""),
+            ip_address=request.remote_addr,
+            event_details=f"Exported cryptographically signed compliance report for period {parsed_from} to {parsed_to} ({len(invoices)} invoices)."
+        )
+
+        filename = f"signed_compliance_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+        return send_file(
+            BytesIO(excel_bytes),
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            as_attachment=True,
+            download_name=filename,
+        )
+    except DateValidationError as error:
+        return jsonify({"error": str(error)}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        current_app.config["CURRENT_JWT"] = None
+
+
+@invoices_blueprint.post("/api/reports/verify-signed")
+@roles_required("admin", "auditor")
+def api_verify_signed_report():
+    """Upload and verify a signed compliance report file."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    if "file" not in request.files:
+        return jsonify({"error": "Không tìm thấy tệp tin báo cáo được tải lên."}), 400
+
+    file = request.files["file"]
+    if not file or not file.filename:
+        return jsonify({"error": "Tên tệp tin không hợp lệ."}), 400
+
+    try:
+        file_bytes = file.read()
+        secret_key = current_app.config.get("SECRET_KEY", "compliance-system-secret-key-12345")
+        
+        from invoices.compliance_report_service import verify_excel_report
+        result = verify_excel_report(file_bytes, secret_key)
+        
+        # Log security audit verification event
+        status_str = "SUCCESS" if result.get("verified") else "FAILED"
+        from invoices.security_audit_service import log_security_event
+        log_security_event(
+            username=session.get("username", "admin"),
+            event_category="VERIFY",
+            tax_code=session.get("tax_code", ""),
+            ip_address=request.remote_addr,
+            event_details=f"Performed cryptographic verification of compliance report file '{file.filename}'. Result: {status_str} ({result.get('invoices_count', 0)} invoices parsed)."
+        )
+
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": f"Lỗi xử lý xác minh báo cáo: {str(e)}"}), 500
+
+
+@invoices_blueprint.get("/api/sync/health")
+@roles_required("admin", "auditor")
+def api_sync_health():
+    """Retrieve CAPTCHA solver statistics and overall crawler status."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    try:
+        from auth.captcha_solver import captcha_analytics
+
+        # CAPTCHA metrics
+        stats = captcha_analytics.get_stats()
+
+        # Crawler status
+        crawler_status = "idle"
+        queue_instance = current_app.extensions.get("resilient_sync_queue")
+        if queue_instance:
+            with queue_instance._lock:
+                if any(job.status == "running" for job in queue_instance.jobs.values()):
+                    crawler_status = "running"
+
+        return jsonify({
+            "status": "healthy",
+            "crawler_status": crawler_status,
+            "solver": stats,
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.get("/consolidated-dashboard")
+@roles_required("admin", "auditor")
+def consolidated_dashboard_page():
+    """Render the corporate multi-entity consolidated dashboard."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("consolidated.html")
+
+
+@invoices_blueprint.route("/api/tenant/groups", methods=["GET", "POST"])
+@roles_required("admin", "auditor")
+def api_tenant_groups():
+    """GET/POST API to fetch or create corporate tenant groups."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    from invoices.models import TenantGroup
+    import json
+
+    username = session.get("username", "admin")
+
+    if request.method == "POST":
+        try:
+            data = request.get_json() or {}
+            group_name = data.get("group_name")
+            taxpayer_msts = data.get("taxpayer_msts", [])
+
+            if not group_name:
+                return jsonify({"error": "Tên tập đoàn không được để trống."}), 400
+            if not isinstance(taxpayer_msts, list):
+                return jsonify({"error": "Danh sách MST phải là một mảng."}), 400
+
+            # Validate MSTs
+            taxpayer_msts = [str(mst).strip() for mst in taxpayer_msts if mst]
+
+            # Upsert group
+            group = TenantGroup.query.filter_by(group_name=group_name).first()
+            if group:
+                group.taxpayer_msts = json.dumps(taxpayer_msts)
+                group.admin_username = username
+            else:
+                group = TenantGroup(
+                    group_name=group_name,
+                    admin_username=username,
+                    taxpayer_msts=json.dumps(taxpayer_msts)
+                )
+                db.session.add(group)
+
+            db.session.commit()
+            return jsonify({"status": "success", "group": group.to_dict()})
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({"error": str(e)}), 500
+
+    # GET
+    try:
+        groups = TenantGroup.query.filter_by(admin_username=username).all()
+        # Fallback to all groups if admin or no group found
+        if not groups and username == "admin":
+            groups = TenantGroup.query.all()
+        return jsonify([g.to_dict() for g in groups])
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.get("/api/tenant/consolidated")
+@roles_required("admin", "auditor")
+def api_tenant_consolidated():
+    """Retrieve consolidated financial metrics and risk scores across a group's MSTs."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    from invoices.models import TenantGroup
+    from invoices.multitenant_service import get_tenant_consolidated_stats
+    import json
+
+    username = session.get("username", "admin")
+    group_id = request.args.get("group_id")
+
+    try:
+        # 1. Resolve Group
+        group = None
+        if group_id:
+            group = TenantGroup.query.get(group_id)
+        else:
+            group = TenantGroup.query.filter_by(admin_username=username).first()
+            if not group and username == "admin":
+                group = TenantGroup.query.first()
+
+        if not group:
+            return jsonify({
+                "group_id": None,
+                "group_name": "Không có nhóm",
+                "summary": {
+                    "total_invoices": 0,
+                    "total_revenue": 0.0,
+                    "vat_output": 0.0,
+                    "vat_input": 0.0,
+                    "average_t_score": 100.0
+                },
+                "entities": []
+            })
+
+        # 2. Query each member MST
+        mst_list = group.get_mst_list()
+        entities = []
+        for mst in mst_list:
+            stats = get_tenant_consolidated_stats(mst)
+            entities.append(stats)
+
+        # 3. Aggregate totals
+        total_invoices = sum(e["total_invoices"] for e in entities)
+        total_revenue = sum(e["total_revenue"] for e in entities)
+        vat_output = sum(e["vat_output"] for e in entities)
+        vat_input = sum(e["vat_input"] for e in entities)
+        
+        # Weighted average for T-Score
+        t_score_sum = 0.0
+        t_score_count = 0
+        for e in entities:
+            if e["total_invoices"] > 0:
+                t_score_sum += e["average_t_score"] * e["total_invoices"]
+                t_score_count += e["total_invoices"]
+            else:
+                t_score_sum += e["average_t_score"]
+                t_score_count += 1
+                
+        average_t_score = round(t_score_sum / t_score_count, 1) if t_score_count > 0 else 100.0
+
+        return jsonify({
+            "group_id": group.id,
+            "group_name": group.group_name,
+            "summary": {
+                "total_invoices": total_invoices,
+                "total_revenue": total_revenue,
+                "vat_output": vat_output,
+                "vat_input": vat_input,
+                "average_t_score": average_t_score
+            },
+            "entities": entities
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/cit/finalize")
+@roles_required("admin", "auditor")
+def api_cit_finalize():
+    """US-180: Compile CIT Finalization and generate Form 03/TNDN XML."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    from datetime import datetime
+    balances = {}
+    metadata = {
+        "mst": request.form.get("mst") or session.get("taxpayer_mst") or "0109998887",
+        "company_name": request.form.get("company_name", "CONG TY TNHH MOCK"),
+        "year": int(request.form.get("year", datetime.now().year)),
+        "non_deductible_manual": float(request.form.get("non_deductible_manual", 0.0)),
+        "loss_carry_forward": float(request.form.get("loss_carry_forward", 0.0)),
+        "rd_allowance": float(request.form.get("rd_allowance", 0.0))
+    }
+
+    if "file" in request.files:
+        file = request.files["file"]
+        if file and file.filename:
+            try:
+                from invoices.bctc_service import parse_ledger_file
+                balances = parse_ledger_file(file.read(), file.filename)
+            except Exception as e:
+                return jsonify({"error": f"Loi doc file: {str(e)}"}), 400
+    else:
+        payload = request.json or {}
+        balances = payload.get("balances", {})
+        metadata.update(payload.get("metadata", {}))
+
+    if not balances:
+        return jsonify({"error": "Thieu du lieu bang can doi phat sinh / so cai."}), 400
+
+    try:
+        from invoices.cit_service import finalize_cit
+        result = finalize_cit(balances, metadata)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/cit/simulate-scenario")
+@roles_required("admin", "auditor")
+def api_cit_simulate_scenario():
+    """US-181: Simulate what-if tax scenarios based on slider adjustments."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    try:
+        payload = request.get_json() or {}
+        base_data = payload.get("base_data", {})
+        adjustments = payload.get("adjustments", {})
+        
+        from invoices.cit_service import simulate_cit_scenario
+        result = simulate_cit_scenario(base_data, adjustments)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# ---------------------------------------------------------------------------
+# US-150: Smart Cash Flow Predictor — rolling 30/60/90-day projections
+# US-151: Interactive Scenario Simulator — what-if stress testing
+# ---------------------------------------------------------------------------
+
+
+@invoices_blueprint.route("/api/finance/cashflow")
+def api_finance_cashflow():
+    """US-150: Return rolling 30/60/90-day cash-flow projections."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    try:
+        taxpayer_mst = session.get("active_taxpayer_mst") or request.args.get("mst")
+        from invoices.cashflow_service import calculate_cashflow_projection
+        result = calculate_cashflow_projection(taxpayer_mst=taxpayer_mst)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 
+@invoices_blueprint.route("/api/finance/simulate", methods=["POST"])
+def api_finance_simulate():
+    """US-151: Stateless scenario simulation with adjustable parameters."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    try:
+        payload = request.get_json() or {}
+        delay_days = int(payload.get("delay_days", 0))
+        rejection_rate = float(payload.get("rejection_rate", 0.0))
+        vat_adjustment = float(payload.get("vat_adjustment", 0.0))
+        taxpayer_mst = session.get("active_taxpayer_mst") or payload.get("mst")
+
+        from invoices.cashflow_service import simulate_scenario
+        result = simulate_scenario(
+            taxpayer_mst=taxpayer_mst,
+            delay_days=delay_days,
+            rejection_rate=rejection_rate,
+            vat_adjustment=vat_adjustment,
+        )
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 

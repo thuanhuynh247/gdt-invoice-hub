@@ -143,20 +143,31 @@ def _raise_api_error(response: requests.Response) -> None:
 def auto_refresh_gdt_session() -> bool:
     """Attempt to transparently re-authenticate using encrypted credentials.
 
-    Looks up credentials in the Flask session first (for request threads)
-    and falls back to current_app.config (for background threads).
+    Looks up credentials in the thread local storage first (for parallel workers),
+    then the Flask session (for request threads), and falls back to current_app.config.
     """
     username = None
     encrypted_pass = None
 
-    # 1. Try Flask Session
+    # 0. Try Thread-Local Storage first
     try:
-        from flask import session
-        username = session.get("username")
-        encrypted_pass = session.get("encrypted_password")
-    except RuntimeError:
-        # Outside request context (e.g. background threads or celery tasks)
+        from invoices.thread_local import get_current_thread_credentials
+        tl_username, tl_pass, _ = get_current_thread_credentials()
+        if tl_username and tl_pass:
+            username = tl_username
+            encrypted_pass = tl_pass
+    except ImportError:
         pass
+
+    if not username or not encrypted_pass:
+        # 1. Try Flask Session
+        try:
+            from flask import session
+            username = session.get("username")
+            encrypted_pass = session.get("encrypted_password")
+        except RuntimeError:
+            # Outside request context (e.g. background threads or celery tasks)
+            pass
 
     # 2. Fall back to current_app config
     if not username or not encrypted_pass:
@@ -216,6 +227,8 @@ def auto_refresh_gdt_session() -> bool:
 
         try:
             auth_data = authenticate_user(username, password, solved_value)
+            from auth.captcha_solver import captcha_analytics
+            captcha_analytics.record_success()
 
             # Update session variables if we are in a request context
             try:
@@ -233,11 +246,19 @@ def auto_refresh_gdt_session() -> bool:
 
             # Update current app configuration (active for this thread)
             current_app.config["CURRENT_JWT"] = auth_data["jwt"]
+            try:
+                from invoices.thread_local import set_current_thread_jwt
+                set_current_thread_jwt(auth_data["jwt"])
+            except ImportError:
+                pass
             current_app.logger.info("Auto-refresh session completed successfully.")
             return True
         except AuthenticationError as auth_err:
             last_error = auth_err
-            if "captcha" not in str(auth_err).lower():
+            if "captcha" in str(auth_err).lower():
+                from auth.captcha_solver import captcha_analytics
+                captcha_analytics.record_fail()
+            else:
                 break
         finally:
             current_app.config["CURRENT_CAPTCHA_KEY"] = ""

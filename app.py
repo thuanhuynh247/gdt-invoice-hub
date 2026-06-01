@@ -30,6 +30,9 @@ def create_app() -> Flask:
     from extensions import db
     db.init_app(app)
 
+    from invoices.sync_queue import ResilientSyncQueue
+    ResilientSyncQueue(app)
+
     with app.app_context():
         import os
         os.makedirs(os.path.join(app.root_path, "data"), exist_ok=True)
@@ -122,6 +125,27 @@ def create_app() -> Flask:
             db.session.commit()
         except Exception as e:
             app.logger.warning(f"Failed to recalculate initial T-Scores: {e}")
+
+        try:
+            from invoices.models import TenantGroup
+            import json
+            default_group = TenantGroup.query.filter_by(group_name="Tập đoàn GDT Hub").first()
+            if not default_group:
+                from invoices.multitenant_service import list_tenant_databases
+                tenant_msts = [t["mst"] for t in list_tenant_databases()]
+                if not tenant_msts:
+                    tenant_msts = ["0101234567", "0102030405", "0208887776", "777888999"]
+                
+                group = TenantGroup(
+                    group_name="Tập đoàn GDT Hub",
+                    admin_username="admin",
+                    taxpayer_msts=json.dumps(tenant_msts)
+                )
+                db.session.add(group)
+                db.session.commit()
+                app.logger.info("Successfully seeded default TenantGroup for admin.")
+        except Exception as e:
+            app.logger.warning(f"Failed to seed default TenantGroup: {e}")
 
     app.register_blueprint(auth_blueprint)
     app.register_blueprint(invoices_blueprint)

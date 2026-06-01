@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import io
 import logging
+import threading
+import time
 import xml.etree.ElementTree as ET
 from flask import current_app
 from svglib.svglib import svg2rlg
@@ -13,6 +15,45 @@ logger = logging.getLogger(__name__)
 
 # Global OCR instance initialized lazily to optimize application startup time
 _ocr_instance = None
+
+
+class CaptchaAnalytics:
+    """Thread-safe statistics counter for CAPTCHA solving engine performance."""
+    def __init__(self):
+        self.lock = threading.Lock()
+        self.success_count = 0
+        self.fail_count = 0
+        self.total_latency = 0.0
+        self.solve_count = 0
+
+    def record_solve(self, latency: float):
+        with self.lock:
+            self.solve_count += 1
+            self.total_latency += latency
+
+    def record_success(self):
+        with self.lock:
+            self.success_count += 1
+
+    def record_fail(self):
+        with self.lock:
+            self.fail_count += 1
+
+    def get_stats(self) -> dict:
+        with self.lock:
+            avg_latency = (self.total_latency / self.solve_count) if self.solve_count > 0 else 0.0
+            total_solved = self.success_count + self.fail_count
+            accuracy = (self.success_count / total_solved * 100.0) if total_solved > 0 else 100.0
+            return {
+                "success_count": self.success_count,
+                "fail_count": self.fail_count,
+                "solve_count": self.solve_count,
+                "accuracy_rate": round(accuracy, 2),
+                "average_latency_seconds": round(avg_latency, 3),
+            }
+
+
+captcha_analytics = CaptchaAnalytics()
 
 
 def get_ocr_instance():
@@ -40,6 +81,7 @@ def solve_captcha_from_svg(svg_content: str) -> str:
     if not svg_content:
         return ""
 
+    start_time = time.time()
     try:
         # Register default namespace for correct serialization
         ET.register_namespace('', 'http://www.w3.org/2000/svg')
@@ -50,6 +92,8 @@ def solve_captcha_from_svg(svg_content: str) -> str:
         for t in text_elements:
             if t.text and t.text.strip():
                 logger.info(f"Mock CAPTCHA solved via text tag: {t.text.strip().upper()}")
+                latency = time.time() - start_time
+                captcha_analytics.record_solve(latency)
                 return t.text.strip().upper()
 
         # 1. Locate all path elements across namespaces
@@ -135,10 +179,16 @@ def solve_captcha_from_svg(svg_content: str) -> str:
         if result:
             solved_text = result.strip().upper()
             logger.info(f"CAPTCHA solved: {solved_text}")
+            latency = time.time() - start_time
+            captcha_analytics.record_solve(latency)
             return solved_text
             
     except Exception as e:
+        latency = time.time() - start_time
+        captcha_analytics.record_solve(latency)
         logger.error(f"Error solving captcha from SVG: {e}", exc_info=True)
         raise RuntimeError(f"Lỗi giải captcha: {e}") from e
 
+    latency = time.time() - start_time
+    captcha_analytics.record_solve(latency)
     return ""

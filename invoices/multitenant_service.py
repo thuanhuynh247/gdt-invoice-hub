@@ -201,3 +201,110 @@ def compute_file_checksum(filepath: str) -> str:
         for chunk in iter(lambda: f.read(8192), b""):
             h.update(chunk)
     return h.hexdigest()
+
+
+def get_tenant_consolidated_stats(mst: str) -> dict:
+    """Return consolidated financial and risk stats for a given tenant MST.
+    
+    Tries to read from the dedicated tenant-specific SQLite file if it exists,
+    otherwise falls back to querying from the main database's invoice table.
+    """
+    import sqlite3
+    
+    stats = {
+        "mst": mst,
+        "name": mst,
+        "total_invoices": 0,
+        "total_revenue": 0.0,
+        "vat_output": 0.0,
+        "vat_input": 0.0,
+        "average_t_score": 100.0,
+        "active": False
+    }
+    
+    # Try tenant-specific DB first
+    db_path = get_tenant_db_path(mst)
+    if os.path.isfile(db_path):
+        try:
+            conn = sqlite3.connect(db_path)
+            conn.row_factory = sqlite3.Row
+            cur = conn.cursor()
+            
+            # Fetch company name
+            cur.execute("SELECT value FROM tenant_meta WHERE key = 'company_name'")
+            res_meta = cur.fetchone()
+            if res_meta:
+                stats["name"] = res_meta["value"]
+            else:
+                cur.execute("SELECT value FROM tenant_meta WHERE key = 'company_name_cached'")
+                res_meta_cached = cur.fetchone()
+                if res_meta_cached:
+                    stats["name"] = res_meta_cached["value"]
+            
+            # Aggregate invoices
+            cur.execute("""
+                SELECT 
+                    COUNT(*) as count,
+                    SUM(CASE WHEN is_cancelled = 0 THEN amount_before_tax ELSE 0 END) as revenue,
+                    SUM(CASE WHEN is_cancelled = 0 AND (seller_mst = ? OR taxpayer_mst = ?) THEN tax_amount ELSE 0 END) as vat_out,
+                    SUM(CASE WHEN is_cancelled = 0 AND (buyer_mst = ? OR taxpayer_mst != ?) THEN tax_amount ELSE 0 END) as vat_in,
+                    AVG(t_score) as avg_t
+                FROM invoice
+            """, (mst, mst, mst, mst))
+            
+            res_inv = cur.fetchone()
+            if res_inv and res_inv["count"] > 0:
+                stats["total_invoices"] = res_inv["count"]
+                stats["total_revenue"] = res_inv["revenue"] or 0.0
+                stats["vat_output"] = res_inv["vat_out"] or 0.0
+                stats["vat_input"] = res_inv["vat_in"] or 0.0
+                stats["average_t_score"] = round(res_inv["avg_t"] or 100.0, 1)
+                stats["active"] = True
+                
+            conn.close()
+            return stats
+        except Exception:
+            # If failed to read tenant-specific DB, fall through to main DB fallback
+            pass
+            
+    # Fallback to main DB
+    try:
+        from extensions import db
+        from invoices.models import Invoice, TaxpayerProfile
+        
+        profile = TaxpayerProfile.query.filter_by(mst=mst).first()
+        if profile:
+            stats["name"] = profile.company_name
+            stats["active"] = profile.is_active
+            
+        # Aggregate from shared invoice table
+        invoices = Invoice.query.filter_by(taxpayer_mst=mst).all()
+        if invoices:
+            stats["total_invoices"] = len(invoices)
+            revenue = 0.0
+            vat_out = 0.0
+            vat_in = 0.0
+            total_t = 0
+            count_t = 0
+            
+            for inv in invoices:
+                if not inv.is_cancelled:
+                    revenue += inv.amount_before_tax or 0.0
+                    if inv.seller_mst == mst:
+                        vat_out += inv.tax_amount or 0.0
+                    if inv.buyer_mst == mst:
+                        vat_in += inv.tax_amount or 0.0
+                if inv.t_score is not None:
+                    total_t += inv.t_score
+                    count_t += 1
+                    
+            stats["total_revenue"] = revenue
+            stats["vat_output"] = vat_out
+            stats["vat_input"] = vat_in
+            stats["average_t_score"] = round(total_t / count_t, 1) if count_t > 0 else 100.0
+            stats["active"] = True
+    except Exception:
+        pass
+        
+    return stats
+

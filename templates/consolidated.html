@@ -1,0 +1,902 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* Premium Glassmorphism & Bento Grid variables */
+    :root {
+        --glass-bg: rgba(255, 255, 255, 0.45);
+        --glass-border: rgba(255, 255, 255, 0.25);
+        --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.08);
+        --card-border-radius: 16px;
+        
+        --color-primary: #4361ee;
+        --color-success: #2ec4b6;
+        --color-warning: #ff9f1c;
+        --color-danger: #e71d36;
+        --color-info: #00b4d8;
+    }
+
+    [data-theme="dark"] {
+        --glass-bg: rgba(20, 20, 30, 0.65);
+        --glass-border: rgba(255, 255, 255, 0.08);
+        --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+
+    /* Base Styling Override for Premium Look */
+    .consolidated-container {
+        font-family: 'Inter', sans-serif;
+    }
+    
+    .dashboard-title {
+        font-family: 'Outfit', sans-serif;
+        font-weight: 800;
+        background: linear-gradient(135deg, var(--color-primary), var(--color-info));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    /* Glassmorphism Card Style */
+    .glass-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--card-border-radius);
+        box-shadow: var(--glass-shadow);
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        overflow: hidden;
+    }
+
+    .glass-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.15);
+        border-color: rgba(67, 97, 238, 0.3);
+    }
+
+    /* Bento Grid Layout */
+    .bento-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+        margin-bottom: 25px;
+    }
+
+    @media (max-width: 1200px) {
+        .bento-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .bento-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* KPI styling */
+    .kpi-title {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--bs-secondary);
+        font-weight: 600;
+    }
+
+    .kpi-value {
+        font-family: 'Outfit', sans-serif;
+        font-size: 1.85rem;
+        font-weight: 700;
+        color: var(--bs-body-color);
+        margin: 8px 0;
+    }
+
+    .kpi-icon-box {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        background: rgba(67, 97, 238, 0.1);
+        color: var(--color-primary);
+    }
+
+    /* Chart visualization */
+    .chart-container {
+        height: 300px;
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .chart-tooltip {
+        position: absolute;
+        background: rgba(0, 0, 0, 0.85);
+        color: #fff;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.2s;
+        z-index: 10;
+    }
+
+    /* SVG Donut / Bar */
+    .donut-slice {
+        transition: stroke-width 0.3s, filter 0.3s;
+        cursor: pointer;
+    }
+    .donut-slice:hover {
+        stroke-width: 22;
+        filter: drop-shadow(0px 0px 8px rgba(0,0,0,0.2));
+    }
+
+    /* Table styling */
+    .custom-table {
+        margin-bottom: 0;
+    }
+    
+    .custom-table th {
+        background: rgba(67, 97, 238, 0.05) !important;
+        color: var(--color-primary);
+        font-weight: 600;
+        border-bottom: 2px solid var(--glass-border);
+        padding: 14px 16px;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+    }
+
+    .custom-table td {
+        padding: 14px 16px;
+        vertical-align: middle;
+        border-bottom: 1px solid var(--glass-border);
+    }
+
+    .custom-table tr:hover td {
+        background: rgba(67, 97, 238, 0.02) !important;
+    }
+
+    /* Badge Design */
+    .t-score-badge {
+        font-family: 'Outfit', sans-serif;
+        font-weight: 700;
+        padding: 6px 14px;
+        border-radius: 30px;
+        font-size: 0.8rem;
+    }
+
+    .badge-safe {
+        background: rgba(46, 196, 182, 0.15);
+        color: #0f9f90;
+    }
+
+    .badge-warning {
+        background: rgba(255, 159, 28, 0.15);
+        color: #d47e00;
+    }
+
+    .badge-danger {
+        background: rgba(231, 29, 54, 0.15);
+        color: #c1121f;
+    }
+
+    /* Micro-animations */
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+
+    .pulse-animation {
+        animation: pulse 2s infinite ease-in-out;
+    }
+</style>
+
+<div class="consolidated-container pb-5">
+    <!-- Header Section -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+        <div>
+            <h1 class="dashboard-title mb-1">Bảng Điều Hối Hợp Nhất Tập Đoàn</h1>
+            <p class="text-secondary mb-0">Quản lý rủi ro tuân thủ thuế & tài chính liên doanh nghiệp tập trung.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-primary rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#manageGroupModal">
+                <i class="bi bi-gear-fill me-2"></i>Cấu hình Tập đoàn
+            </button>
+            <button id="refreshDataBtn" class="btn btn-primary rounded-pill px-4">
+                <i class="bi bi-arrow-clockwise me-1"></i> Làm mới dữ liệu
+            </button>
+        </div>
+    </div>
+
+    <!-- Active Group Status Banner -->
+    <div class="glass-card p-3 mb-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-3">
+            <span class="badge bg-primary rounded-pill px-3 py-2 fs-6" id="activeGroupName">Tập đoàn GDT Hub</span>
+            <span class="text-secondary small" id="activeGroupMstsCount">5 Mã số thuế trực thuộc</span>
+        </div>
+        <div class="text-end text-secondary small">
+            <i class="bi bi-clock me-1"></i> Cập nhật tự động: <span id="lastUpdatedTime">--:--:--</span>
+        </div>
+    </div>
+
+    <!-- Bento Grid KPI Section -->
+    <div class="bento-grid">
+        <!-- KPI 1: Revenue -->
+        <div class="glass-card p-4 d-flex flex-column justify-content-between">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <span class="kpi-title">Doanh thu hợp nhất</span>
+                    <h2 class="kpi-value" id="kpiRevenue">0 ₫</h2>
+                </div>
+                <div class="kpi-icon-box" style="background: rgba(67, 97, 238, 0.1); color: var(--color-primary);">
+                    <i class="bi bi-cash-stack"></i>
+                </div>
+            </div>
+            <div class="small text-secondary mt-2">
+                <span class="text-success fw-bold"><i class="bi bi-arrow-up-short"></i> Doanh thu thuần</span> trước thuế
+            </div>
+        </div>
+
+        <!-- KPI 2: Total Invoices -->
+        <div class="glass-card p-4 d-flex flex-column justify-content-between">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <span class="kpi-title">Tổng số hóa đơn</span>
+                    <h2 class="kpi-value" id="kpiInvoices">0</h2>
+                </div>
+                <div class="kpi-icon-box" style="background: rgba(0, 180, 216, 0.1); color: var(--color-info);">
+                    <i class="bi bi-file-earmark-spreadsheet"></i>
+                </div>
+            </div>
+            <div class="small text-secondary mt-2">
+                Hợp nhất từ tất cả các tenant thành viên
+            </div>
+        </div>
+
+        <!-- KPI 3: Net VAT Payable -->
+        <div class="glass-card p-4 d-flex flex-column justify-content-between">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <span class="kpi-title">Thuế VAT Ròng Phải Nộp</span>
+                    <h2 class="kpi-value" id="kpiNetVat">0 ₫</h2>
+                </div>
+                <div class="kpi-icon-box" style="background: rgba(46, 196, 182, 0.1); color: var(--color-success);">
+                    <i class="bi bi-wallet2"></i>
+                </div>
+            </div>
+            <div class="small text-secondary mt-2" id="kpiVatDetails">
+                Đầu ra: 0 ₫ | Đầu vào: 0 ₫
+            </div>
+        </div>
+
+        <!-- KPI 4: Weighted Average T-Score -->
+        <div class="glass-card p-4 d-flex flex-column justify-content-between">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <span class="kpi-title">Điểm T-Score Tập đoàn</span>
+                    <div class="d-flex align-items-center gap-2">
+                        <h2 class="kpi-value mb-0" id="kpiTScore">100</h2>
+                        <span class="t-score-badge badge-safe ms-2" id="kpiRating">A</span>
+                    </div>
+                </div>
+                <div class="kpi-icon-box" id="tscoreIconBox" style="background: rgba(255, 159, 28, 0.1); color: var(--color-warning);">
+                    <i class="bi bi-shield-check"></i>
+                </div>
+            </div>
+            <div class="small text-secondary mt-2">
+                Điểm trung bình an toàn tuân thủ thuế
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts & Analytics Bento Layout -->
+    <div class="row g-4 mb-4">
+        <!-- Revenue Share Chart -->
+        <div class="col-lg-6">
+            <div class="glass-card p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="fs-5 fw-bold mb-0">Cơ cấu Doanh thu Doanh nghiệp</h3>
+                    <span class="text-secondary small">Đóng góp tỷ lệ doanh thu (%)</span>
+                </div>
+                <div class="chart-container">
+                    <svg id="revenueShareSvg" width="260" height="260" viewBox="0 0 200 200">
+                        <circle cx="100" cy="100" r="70" fill="transparent" stroke="var(--glass-border)" stroke-width="16" />
+                    </svg>
+                    <div id="chartTooltip" class="chart-tooltip"></div>
+                </div>
+                <!-- Custom Legend -->
+                <div class="row g-2 mt-3" id="revenueLegend">
+                    <!-- Dynamic legend content here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Invoice Volume Chart -->
+        <div class="col-lg-6">
+            <div class="glass-card p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="fs-5 fw-bold mb-0">Sản lượng Hóa đơn từng Thực thể</h3>
+                    <span class="text-secondary small">Số lượng hóa đơn</span>
+                </div>
+                <div class="chart-container" style="align-items: flex-end; padding-bottom: 20px;">
+                    <svg id="invoiceVolumeSvg" width="100%" height="240" viewBox="0 0 500 200" preserveAspectRatio="none">
+                        <!-- Dynamic SVG bars here -->
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Corporate Entities Detail Grid Table -->
+    <div class="glass-card mb-4">
+        <div class="p-4 border-bottom border-light d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <h3 class="fs-5 fw-bold mb-1">Danh sách Thực thể Thành viên</h3>
+                <p class="text-secondary small mb-0">Danh sách mã số thuế thành viên được cấu hình trong tập đoàn.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <input type="text" id="entitySearch" class="form-control form-control-sm rounded-pill px-3" placeholder="Tìm tên hoặc MST..." style="width: 240px;">
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table custom-table">
+                <thead>
+                    <tr>
+                        <th>Mã số thuế</th>
+                        <th>Tên Doanh Nghiệp</th>
+                        <th class="text-center">Sản lượng</th>
+                        <th class="text-end">Doanh Thu Thuần</th>
+                        <th class="text-end">VAT Đầu Ra</th>
+                        <th class="text-end">VAT Đầu Vào</th>
+                        <th class="text-center">T-Score</th>
+                        <th class="text-center">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody id="entitiesTableBody">
+                    <!-- Dynamic rows here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Drill-down taxpayer analysis modal -->
+    <div class="modal fade" id="entityDetailsModal" tabindex="-1" aria-labelledby="entityDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content glass-card border-0">
+                <div class="modal-header border-bottom border-light">
+                    <h5 class="modal-title fw-bold" id="entityDetailsModalLabel">Phân Tích Chi Tiết Thực Thể</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4" id="entityDetailsContent">
+                    <!-- Dynamic details content -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manage corporate group modal -->
+    <div class="modal fade" id="manageGroupModal" tabindex="-1" aria-labelledby="manageGroupModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content glass-card border-0">
+                <div class="modal-header border-bottom border-light">
+                    <h5 class="modal-title fw-bold" id="manageGroupModalLabel"><i class="bi bi-gear-fill me-2"></i>Cấu Hình Nhóm Tập Đoàn</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="groupConfigForm">
+                        <div class="mb-3">
+                            <label for="groupNameInput" class="form-label fw-semibold">Tên Nhóm Tập Đoàn</label>
+                            <input type="text" class="form-control" id="groupNameInput" value="Tập đoàn GDT Hub" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold d-flex justify-content-between align-items-center">
+                                <span>Danh Sách Mã Số Thuế Thành Viên</span>
+                                <button type="button" class="btn btn-sm btn-link text-primary p-0" id="addNewMstBtn">
+                                    <i class="bi bi-plus-circle me-1"></i>Thêm MST
+                                </button>
+                            </label>
+                            <div id="mstInputsContainer" class="d-flex flex-column gap-2">
+                                <!-- Dynamic input boxes -->
+                            </div>
+                        </div>
+                        <div class="text-end mt-4">
+                            <button type="button" class="btn btn-secondary rounded-pill me-2 px-3" data-bs-dismiss="modal">Đóng</button>
+                            <button type="submit" class="btn btn-primary rounded-pill px-4">Lưu cấu hình</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    let consolidatedData = null;
+    const colors = ["#4361ee", "#2ec4b6", "#ff9f1c", "#e71d36", "#00b4d8", "#7209b7", "#f72585", "#4cc9f0"];
+
+    // Utilities
+    function formatCurrency(amount) {
+        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+    }
+
+    function getTScoreBadgeClass(score) {
+        if (score >= 90) return 'badge-safe';
+        if (score >= 70) return 'badge-warning';
+        return 'badge-danger';
+    }
+
+    function getTScoreRating(score) {
+        if (score >= 90) return 'A';
+        if (score >= 80) return 'B';
+        if (score >= 70) return 'C';
+        if (score >= 50) return 'D';
+        return 'F';
+    }
+
+    // Fetch and render data
+    async function loadConsolidatedData() {
+        try {
+            const btn = document.getElementById("refreshDataBtn");
+            const spinner = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Đang tải...';
+            const originalText = btn.innerHTML;
+            btn.innerHTML = spinner;
+            btn.disabled = true;
+
+            const res = await fetch("/api/tenant/consolidated");
+            const data = await res.json();
+            
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+
+            if (data.error) {
+                showToast("Lỗi", data.error, "danger");
+                return;
+            }
+
+            consolidatedData = data;
+            renderDashboard();
+            showToast("Thành công", "Đã cập nhật dữ liệu tài chính hợp nhất.", "success");
+        } catch (err) {
+            console.error(err);
+            document.getElementById("refreshDataBtn").disabled = false;
+            showToast("Lỗi", "Không thể kết nối đến máy chủ.", "danger");
+        }
+    }
+
+    // Render elements
+    function renderDashboard() {
+        if (!consolidatedData) return;
+
+        // Group headers
+        document.getElementById("activeGroupName").textContent = consolidatedData.group_name;
+        document.getElementById("activeGroupMstsCount").textContent = `${consolidatedData.entities.length} Mã số thuế trực thuộc`;
+        document.getElementById("lastUpdatedTime").textContent = new Date().toLocaleTimeString();
+
+        // Config Modal Group Name
+        document.getElementById("groupNameInput").value = consolidatedData.group_name;
+
+        // KPIs
+        const sum = consolidatedData.summary;
+        document.getElementById("kpiRevenue").textContent = formatCurrency(sum.total_revenue);
+        document.getElementById("kpiInvoices").textContent = sum.total_invoices;
+        
+        const netVat = sum.vat_output - sum.vat_input;
+        document.getElementById("kpiNetVat").textContent = formatCurrency(netVat);
+        document.getElementById("kpiVatDetails").textContent = `Đầu ra: ${formatCurrency(sum.vat_output)} | Đầu vào: ${formatCurrency(sum.vat_input)}`;
+        
+        document.getElementById("kpiTScore").textContent = sum.average_t_score;
+        
+        // Update T-Score Rating Badge & Card Color
+        const rating = getTScoreRating(sum.average_t_score);
+        const ratingBadge = document.getElementById("kpiRating");
+        ratingBadge.textContent = rating;
+        ratingBadge.className = `t-score-badge ${getTScoreBadgeClass(sum.average_t_score)}`;
+
+        const tscoreBox = document.getElementById("tscoreIconBox");
+        if (sum.average_t_score >= 90) {
+            tscoreBox.style.color = "var(--color-success)";
+            tscoreBox.style.background = "rgba(46, 196, 182, 0.1)";
+        } else if (sum.average_t_score >= 70) {
+            tscoreBox.style.color = "var(--color-warning)";
+            tscoreBox.style.background = "rgba(255, 159, 28, 0.1)";
+        } else {
+            tscoreBox.style.color = "var(--color-danger)";
+            tscoreBox.style.background = "rgba(231, 29, 54, 0.1)";
+        }
+
+        // Render Tables & Charts
+        renderEntitiesTable(consolidatedData.entities);
+        renderRevenueShareChart(consolidatedData.entities);
+        renderInvoiceVolumeChart(consolidatedData.entities);
+        setupConfigModalMsts(consolidatedData.entities.map(e => e.mst));
+    }
+
+    function renderEntitiesTable(entities) {
+        const tbody = document.getElementById("entitiesTableBody");
+        tbody.innerHTML = "";
+
+        if (entities.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center text-secondary py-4">Chưa cấu hình mã số thuế thành viên nào cho tập đoàn.</td></tr>`;
+            return;
+        }
+
+        entities.forEach(ent => {
+            const tr = document.createElement("tr");
+            const rating = getTScoreRating(ent.average_t_score);
+            const badgeClass = getTScoreBadgeClass(ent.average_t_score);
+            
+            tr.innerHTML = `
+                <td><code class="fw-semibold text-primary">${ent.mst}</code></td>
+                <td>
+                    <div class="fw-bold">${ent.name || 'Doanh nghiệp chưa khởi tạo'}</div>
+                    ${ent.active ? '<span class="text-success small" style="font-size:0.75rem;"><i class="bi bi-circle-fill me-1" style="font-size:6px;"></i>Đang hoạt động</span>' : '<span class="text-danger small" style="font-size:0.75rem;"><i class="bi bi-circle-fill me-1" style="font-size:6px;"></i>Chưa hoạt động</span>'}
+                </td>
+                <td class="text-center fw-semibold">${ent.total_invoices}</td>
+                <td class="text-end fw-bold text-success">${formatCurrency(ent.total_revenue)}</td>
+                <td class="text-end text-secondary">${formatCurrency(ent.vat_output)}</td>
+                <td class="text-end text-secondary">${formatCurrency(ent.vat_input)}</td>
+                <td class="text-center">
+                    <span class="t-score-badge ${badgeClass}">${ent.average_t_score} (${rating})</span>
+                </td>
+                <td class="text-center">
+                    <button class="btn btn-sm btn-outline-primary rounded-pill px-3 view-details-btn" data-mst="${ent.mst}">Chi tiết</button>
+                </td>
+            `;
+
+            tr.querySelector(".view-details-btn").addEventListener("click", () => showEntityDetails(ent));
+            tbody.appendChild(tr);
+        });
+    }
+
+    // Dynamic SVG Pie/Donut Chart rendering
+    function renderRevenueShareChart(entities) {
+        const svg = document.getElementById("revenueShareSvg");
+        const legend = document.getElementById("revenueLegend");
+        legend.innerHTML = "";
+        
+        // Remove existing slices
+        const oldSlices = svg.querySelectorAll(".donut-slice");
+        oldSlices.forEach(s => s.remove());
+
+        const totalRevenue = entities.reduce((acc, ent) => acc + ent.total_revenue, 0);
+        if (totalRevenue === 0) {
+            legend.innerHTML = `<div class="col-12 text-center text-secondary small py-2">Không có doanh thu để hiển thị biểu đồ.</div>`;
+            return;
+        }
+
+        let accumulatedAngle = 0;
+        const radius = 70;
+        const cx = 100;
+        const cy = 100;
+        const circumference = 2 * Math.PI * radius;
+
+        entities.forEach((ent, index) => {
+            const color = colors[index % colors.length];
+            const pct = totalRevenue > 0 ? ent.total_revenue / totalRevenue : 0;
+            const sliceLength = pct * circumference;
+            const strokeDashoffset = circumference - sliceLength + accumulatedAngle;
+
+            if (pct > 0) {
+                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute("cx", cx);
+                circle.setAttribute("cy", cy);
+                circle.setAttribute("r", radius);
+                circle.setAttribute("fill", "transparent");
+                circle.setAttribute("stroke", color);
+                circle.setAttribute("stroke-width", "16");
+                circle.setAttribute("stroke-dasharray", `${sliceLength} ${circumference}`);
+                circle.setAttribute("stroke-dashoffset", -accumulatedAngle);
+                circle.setAttribute("transform", "rotate(-90 100 100)");
+                circle.setAttribute("class", "donut-slice");
+                
+                // Interactive hover state
+                circle.addEventListener("mouseenter", (e) => {
+                    const tooltip = document.getElementById("chartTooltip");
+                    tooltip.innerHTML = `<strong>${ent.name || ent.mst}</strong><br>${formatCurrency(ent.total_revenue)} (${(pct * 100).toFixed(1)}%)`;
+                    tooltip.style.opacity = 1;
+                    
+                    const rect = svg.getBoundingClientRect();
+                    tooltip.style.left = `${e.clientX - rect.left + 15}px`;
+                    tooltip.style.top = `${e.clientY - rect.top - 20}px`;
+                });
+
+                circle.addEventListener("mousemove", (e) => {
+                    const tooltip = document.getElementById("chartTooltip");
+                    const rect = svg.getBoundingClientRect();
+                    tooltip.style.left = `${e.clientX - rect.left + 15}px`;
+                    tooltip.style.top = `${e.clientY - rect.top - 20}px`;
+                });
+
+                circle.addEventListener("mouseleave", () => {
+                    document.getElementById("chartTooltip").style.opacity = 0;
+                });
+
+                svg.appendChild(circle);
+                accumulatedAngle += sliceLength;
+            }
+
+            // Legend item
+            const legItem = document.createElement("div");
+            legItem.className = "col-md-6 d-flex align-items-center gap-2 small text-truncate";
+            legItem.innerHTML = `
+                <span style="display:inline-block; width:12px; height:12px; border-radius:50%; background:${color}; flex-shrink:0;"></span>
+                <span class="text-truncate" title="${ent.name || ent.mst}">${ent.name || ent.mst}</span>
+                <span class="ms-auto fw-bold">${(pct * 100).toFixed(1)}%</span>
+            `;
+            legend.appendChild(legItem);
+        });
+    }
+
+    // Dynamic SVG Bar Chart rendering
+    function renderInvoiceVolumeChart(entities) {
+        const svg = document.getElementById("invoiceVolumeSvg");
+        svg.innerHTML = "";
+
+        if (entities.length === 0) return;
+
+        const maxInvoices = Math.max(...entities.map(e => e.total_invoices), 1);
+        const barWidth = 40;
+        const gap = 30;
+        const startX = 40;
+        const chartHeight = 160;
+
+        entities.forEach((ent, index) => {
+            const color = colors[index % colors.length];
+            const height = (ent.total_invoices / maxInvoices) * chartHeight;
+            const x = startX + index * (barWidth + gap);
+            const y = chartHeight - height + 10;
+
+            // Create Bar Group
+            const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+            g.setAttribute("cursor", "pointer");
+
+            // Main Bar Rectangle
+            const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            rect.setAttribute("x", x);
+            rect.setAttribute("y", y);
+            rect.setAttribute("width", barWidth);
+            rect.setAttribute("height", height);
+            rect.setAttribute("rx", "6");
+            rect.setAttribute("fill", color);
+            rect.setAttribute("opacity", "0.85");
+            rect.style.transition = "all 0.3s";
+            
+            rect.addEventListener("mouseenter", () => {
+                rect.setAttribute("opacity", "1");
+                rect.setAttribute("y", y - 5);
+                rect.setAttribute("height", height + 5);
+            });
+            rect.addEventListener("mouseleave", () => {
+                rect.setAttribute("opacity", "0.85");
+                rect.setAttribute("y", y);
+                rect.setAttribute("height", height);
+            });
+
+            // Count Text label
+            const textCount = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            textCount.setAttribute("x", x + barWidth / 2);
+            textCount.setAttribute("y", y - 6);
+            textCount.setAttribute("text-anchor", "middle");
+            textCount.setAttribute("fill", "var(--bs-body-color)");
+            textCount.setAttribute("font-size", "10");
+            textCount.setAttribute("font-weight", "bold");
+            textCount.textContent = ent.total_invoices;
+
+            // MST Text Label below bar
+            const textMst = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            textMst.setAttribute("x", x + barWidth / 2);
+            textMst.setAttribute("y", chartHeight + 25);
+            textMst.setAttribute("text-anchor", "middle");
+            textMst.setAttribute("fill", "var(--bs-secondary)");
+            textMst.setAttribute("font-size", "9");
+            textMst.textContent = ent.mst.substring(0, 5) + "...";
+
+            g.appendChild(rect);
+            g.appendChild(textCount);
+            g.appendChild(textMst);
+            svg.appendChild(g);
+        });
+    }
+
+    // Member Entity Details
+    function showEntityDetails(entity) {
+        const modalEl = document.getElementById("entityDetailsModal");
+        const modal = new bootstrap.Modal(modalEl);
+        
+        const content = document.getElementById("entityDetailsContent");
+        
+        const rating = getTScoreRating(entity.average_t_score);
+        const ratingBadgeClass = getTScoreBadgeClass(entity.average_t_score);
+
+        content.innerHTML = `
+            <div class="row g-3">
+                <div class="col-md-7 border-end border-light pe-md-4">
+                    <h4 class="fw-bold text-primary mb-1">${entity.name || 'Thành viên chưa khởi tạo'}</h4>
+                    <p class="text-secondary small">Mã số thuế: <code class="fw-bold">${entity.mst}</code></p>
+                    
+                    <div class="mt-4">
+                        <h6 class="fw-bold mb-2">Thống kê hoạt động</h6>
+                        <ul class="list-group list-group-flush bg-transparent">
+                            <li class="list-group-item bg-transparent d-flex justify-content-between px-0">
+                                <span>Trạng thái hoạt động</span>
+                                <span class="fw-bold ${entity.active ? 'text-success' : 'text-danger'}">${entity.active ? 'Bật' : 'Tắt'}</span>
+                            </li>
+                            <li class="list-group-item bg-transparent d-flex justify-content-between px-0">
+                                <span>Tổng số lượng hóa đơn</span>
+                                <span class="fw-bold">${entity.total_invoices}</span>
+                            </li>
+                            <li class="list-group-item bg-transparent d-flex justify-content-between px-0">
+                                <span>Doanh thu thuần</span>
+                                <span class="fw-bold text-success">${formatCurrency(entity.total_revenue)}</span>
+                            </li>
+                            <li class="list-group-item bg-transparent d-flex justify-content-between px-0">
+                                <span>Thuế VAT Đầu Ra</span>
+                                <span class="fw-bold text-secondary">${formatCurrency(entity.vat_output)}</span>
+                            </li>
+                            <li class="list-group-item bg-transparent d-flex justify-content-between px-0">
+                                <span>Thuế VAT Đầu Vào</span>
+                                <span class="fw-bold text-secondary">${formatCurrency(entity.vat_input)}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="col-md-5 ps-md-4 text-center d-flex flex-column justify-content-center align-items-center">
+                    <div class="mb-3">
+                        <span class="text-secondary small uppercase fw-bold tracking-wider">ĐÁNH GIÁ RỦI RO CHUNG</span>
+                    </div>
+                    <div class="rounded-circle d-flex flex-column align-items-center justify-content-center shadow-lg" 
+                         style="width: 140px; height: 140px; border: 6px solid var(--glass-border); background: var(--glass-bg);">
+                        <span class="fs-1 fw-bold mb-0" id="modalScoreVal">${entity.average_t_score}</span>
+                        <span class="t-score-badge ${ratingBadgeClass} py-0 px-2 fs-6 mt-1">${rating}</span>
+                    </div>
+                    <p class="text-secondary small mt-3 px-2">
+                        Điểm tuân thủ rủi ro thuế (T-Score) được đánh giá tự động dựa trên hóa đơn đầu vào, đầu ra, tính hợp lệ của chữ ký số, và các cảnh báo chênh lệch thuế suất.
+                    </p>
+                    <a href="/invoices?direction=purchase" class="btn btn-outline-primary rounded-pill btn-sm mt-3 px-3">
+                        Xem chi tiết hóa đơn
+                    </a>
+                </div>
+            </div>
+        `;
+        
+        modal.show();
+    }
+
+    // Config Tenant Group & MST dynamic inputs
+    function setupConfigModalMsts(msts) {
+        const container = document.getElementById("mstInputsContainer");
+        container.innerHTML = "";
+
+        if (msts.length === 0) {
+            msts = [""];
+        }
+
+        msts.forEach(mst => addMstInputElement(mst));
+    }
+
+    function addMstInputElement(value = "") {
+        const container = document.getElementById("mstInputsContainer");
+        const div = document.createElement("div");
+        div.className = "d-flex gap-2 align-items-center";
+        
+        div.innerHTML = `
+            <input type="text" class="form-control form-control-sm mst-input-item" value="${value}" placeholder="Nhập mã số thuế..." maxlength="14" required>
+            <button type="button" class="btn btn-sm btn-outline-danger border-0 p-1 remove-mst-btn" aria-label="Xóa">
+                <i class="bi bi-trash3-fill"></i>
+            </button>
+        `;
+
+        div.querySelector(".remove-mst-btn").addEventListener("click", () => {
+            if (container.querySelectorAll(".mst-input-item").length > 1) {
+                div.remove();
+            } else {
+                showToast("Lưu ý", "Phải giữ lại ít nhất một ô nhập mã số thuế.", "warning");
+            }
+        });
+
+        container.appendChild(div);
+    }
+
+    // Add new MST input button click
+    document.getElementById("addNewMstBtn").addEventListener("click", () => addMstInputElement(""));
+
+    // Save group configurations
+    document.getElementById("groupConfigForm").addEventListener("submit", async function(e) {
+        e.preventDefault();
+        
+        const groupName = document.getElementById("groupNameInput").value.trim();
+        const inputItems = document.querySelectorAll(".mst-input-item");
+        const taxpayerMsts = [];
+
+        inputItems.forEach(input => {
+            const val = input.value.trim();
+            if (val) taxpayerMsts.push(val);
+        });
+
+        if (taxpayerMsts.length === 0) {
+            showToast("Lỗi", "Vui lòng nhập ít nhất một mã số thuế.", "danger");
+            return;
+        }
+
+        try {
+            const res = await fetch("/api/tenant/groups", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    group_name: groupName,
+                    taxpayer_msts: taxpayerMsts
+                })
+            });
+
+            const data = await res.json();
+            if (data.error) {
+                showToast("Lỗi", data.error, "danger");
+                return;
+            }
+
+            // Close modal
+            const modalEl = document.getElementById("manageGroupModal");
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            modal.hide();
+
+            showToast("Thành công", "Đã cập nhật cấu hình nhóm tập đoàn.", "success");
+            loadConsolidatedData();
+        } catch (err) {
+            console.error(err);
+            showToast("Lỗi", "Không thể lưu cấu hình tập đoàn.", "danger");
+        }
+    });
+
+    // Local Search table entities
+    document.getElementById("entitySearch").addEventListener("input", function(e) {
+        const query = e.target.value.toLowerCase().trim();
+        if (!consolidatedData) return;
+
+        const filtered = consolidatedData.entities.filter(ent => {
+            return ent.mst.includes(query) || (ent.name && ent.name.toLowerCase().includes(query));
+        });
+
+        renderEntitiesTable(filtered);
+    });
+
+    // Refresh and Initial Load
+    document.getElementById("refreshDataBtn").addEventListener("click", loadConsolidatedData);
+    loadConsolidatedData();
+
+    // Helper toast alerts
+    function showToast(title, message, type = "info") {
+        const alertRegion = document.getElementById("appAlertRegion");
+        const alertEl = document.createElement("div");
+        alertEl.className = `alert alert-${type} alert-dismissible fade show shadow-sm glass-card border-${type} px-4 py-3 d-flex align-items-center gap-3`;
+        alertEl.setAttribute("role", "alert");
+        
+        let icon = "bi-info-circle-fill";
+        if (type === "success") icon = "bi-check-circle-fill";
+        if (type === "danger") icon = "bi-exclamation-triangle-fill";
+        if (type === "warning") icon = "bi-exclamation-circle-fill";
+
+        alertEl.innerHTML = `
+            <i class="bi ${icon} fs-4 text-${type}"></i>
+            <div>
+                <strong class="d-block">${title}</strong>
+                <span>${message}</span>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+
+        alertRegion.appendChild(alertEl);
+        setTimeout(() => {
+            const bsAlert = bootstrap.Alert.getInstance(alertEl);
+            if (bsAlert) bsAlert.close();
+        }, 5000);
+    }
+});
+</script>
+{% endblock %}

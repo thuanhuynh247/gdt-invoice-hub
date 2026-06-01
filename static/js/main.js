@@ -5404,5 +5404,109 @@ function setupAgentHarnessEvents() {
             loadHarnessSummary();
         });
     }
+
+    // --- CAPTCHA & Crawler Health Monitoring Widget Logic ---
+    const crawlerStatusBadge = document.getElementById("crawlerStatusBadge");
+    const btnRefreshSyncHealth = document.getElementById("btnRefreshSyncHealth");
+
+    async function fetchSyncHealth() {
+        if (!crawlerStatusBadge) return;
+        
+        try {
+            // Call API with custom options to avoid redirect on unauthorized/401
+            const response = await fetch("/api/sync/health");
+            if (response.status === 401 || response.status === 403) {
+                crawlerStatusBadge.className = "badge bg-danger text-white px-3 py-2 text-uppercase";
+                crawlerStatusBadge.textContent = "Không có quyền";
+                return;
+            }
+            
+            if (!response.ok) {
+                throw new Error("HTTP error " + response.status);
+            }
+            
+            const data = await response.json();
+            
+            // Update crawler status badge
+            if (data.crawler_status === "running") {
+                crawlerStatusBadge.className = "badge bg-warning text-dark px-3 py-2 text-uppercase text-shadow-none";
+                crawlerStatusBadge.style.boxShadow = "0 0 10px rgba(245, 158, 11, 0.4)";
+                crawlerStatusBadge.textContent = "Đang chạy ngầm";
+            } else {
+                crawlerStatusBadge.className = "badge bg-success text-white px-3 py-2 text-uppercase text-shadow-none";
+                crawlerStatusBadge.style.boxShadow = "0 0 10px rgba(16, 185, 129, 0.4)";
+                crawlerStatusBadge.textContent = "Đang rảnh (Idle)";
+            }
+
+            // Update Solver metrics with smooth transitions or direct values
+            const accuracyEl = document.getElementById("captchaAccuracy");
+            const latencyEl = document.getElementById("captchaLatency");
+            const successEl = document.getElementById("captchaSuccess");
+            const failEl = document.getElementById("captchaFail");
+
+            const solverData = data.solver || data.solver_stats || {};
+
+            if (accuracyEl) {
+                // accuracy_rate is already 0-100 on the server side
+                const accuracyRate = solverData.accuracy_rate || 0;
+                accuracyEl.textContent = accuracyRate.toFixed(1) + "%";
+                if (accuracyRate >= 80) {
+                    accuracyEl.style.color = "#00f5d4";
+                } else if (accuracyRate >= 50) {
+                    accuracyEl.style.color = "#f59e0b";
+                } else {
+                    accuracyEl.style.color = "#ef4444";
+                }
+            }
+
+            if (latencyEl) {
+                const avgLatency = solverData.average_latency_seconds || solverData.average_latency || 0;
+                latencyEl.textContent = avgLatency.toFixed(2) + "s";
+            }
+
+            if (successEl) {
+                const totalSuccess = solverData.success_count || solverData.total_success || 0;
+                successEl.textContent = totalSuccess.toLocaleString();
+            }
+            if (failEl) {
+                const totalFail = solverData.fail_count || solverData.total_fail || 0;
+                failEl.textContent = totalFail.toLocaleString();
+            }
+
+        } catch (error) {
+            console.error("Lỗi khi tải trạng thái Sync Health:", error);
+            if (crawlerStatusBadge) {
+                crawlerStatusBadge.className = "badge bg-secondary text-white px-3 py-2 text-uppercase";
+                crawlerStatusBadge.textContent = "Ngoại tuyến";
+            }
+        }
+    }
+
+    // Initial load
+    if (crawlerStatusBadge) {
+        fetchSyncHealth();
+        // Poll every 10 seconds
+        const healthInterval = setInterval(fetchSyncHealth, 10000);
+        
+        // Clean up interval if user leaves/reloads (standard practice)
+        window.addEventListener("unload", () => {
+            clearInterval(healthInterval);
+        });
+    }
+
+    if (btnRefreshSyncHealth) {
+        btnRefreshSyncHealth.addEventListener("click", async () => {
+            const icon = btnRefreshSyncHealth.querySelector("i");
+            if (icon) icon.classList.add("spin-animation");
+            btnRefreshSyncHealth.disabled = true;
+            
+            await fetchSyncHealth();
+            
+            setTimeout(() => {
+                if (icon) icon.classList.remove("spin-animation");
+                btnRefreshSyncHealth.disabled = false;
+            }, 600);
+        });
+    }
 }
 
