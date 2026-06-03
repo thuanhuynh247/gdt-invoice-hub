@@ -78,7 +78,12 @@ This backlog lists the core epics and stories for the **Invoice Download Webapp*
 | **E88** | Decree 132 Related-Party & EBITDA Cap | - US-310: Database Schema & Catalog Management<br>- US-311: Core EBITDA interest cap & Form 01/132 disclosures | **implemented** | `tests/test_v19_us191_partner_schema.py`, `tests/test_cit.py` |
 | **E89** | Circular 103 FCT Withholding Auditor | - US-312: FCT Classifier & Line-item calculations<br>- US-313: FCT Form 01/NTNN Excel Exporter | **implemented** | `tests/test_fct_auditor.py` |
 | **E90** | Circular 78 CIT Preferential Rates & Tax Holidays | - US-314: Preferred CIT Rates, Tax Holidays & R&D Modeler<br>- US-315: End-to-End Integration & Suite Verification | **implemented** | `tests/test_cit.py`, `tests/test_ifrs_engine.py`, `scripts/validate.bat` |
-
+| **E91** | Tax AI Agent Swarm | - US-320: Local Agent Mailroom & Coordination Hub<br>- US-321: Autonomous Joint Audit Coordinator | **planned** | `tests/test_ai_swarm.py` |
+| **E92** | Bank Stream Ingestion & Matching | - US-322: Bank Feed Ingestion & Transaction Normalizer<br>- US-323: Automated Bank-to-Invoice Matcher | **planned** | `tests/test_bank_matching.py` |
+| **E93** | ML Tax Forecast & Sandbox | - US-324: Machine Learning Tax Liability Predictor<br>- US-325: Tax Scenario Simulation Sandbox | **planned** | `tests/test_ml_forecast.py` |
+| **E94** | Graph Fraud Analyzer | - US-330: Taxpayer Network Graph Generator<br>- US-331: VAT Fraud Ring Network Detector | **planned** | `tests/test_graph_fraud.py` |
+| **E95** | Cryptographic TSA Ledger | - US-332: Immutable Cryptographic Merkle Ledger<br>- US-333: Zero-Knowledge Proof Tax Compliance | **planned** | `tests/test_cryptographic_ledger.py` |
+| **E96** | Customs VAT Reconciler | - US-334: Customs XML Declaration Parser<br>- US-335: Import VAT Reconciliation & Mitigation | **planned** | `tests/test_customs_reconciler.py` |
 
 ## Harness Growth Backlog
 
