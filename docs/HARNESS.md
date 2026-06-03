@@ -54,31 +54,32 @@ Every task has two possible outputs:
 2. Harness delta: docs, templates, validation expectations, backlog items, or
    decision records that make the next task easier.
 
-## Harness v0 Scope
+## Harness v2.0 (Hermes-Inspired Edition)
 
-Harness v0 includes:
+Harness v2.0 introduces a state-of-the-art multi-agent operating environment designed for autonomous collaboration, self-improving workflows, and secure execution sandboxes.
 
-- Agent entrypoint.
-- Empty product documentation structure.
-- Feature intake and risk lanes.
-- Story templates.
-- Decision log template.
-- Validation report template.
-- Test matrix placeholder.
-- Harness growth backlog.
+### Key Components
 
-Harness v0 deliberately excludes:
+1. **Multi-Agent Kanban Board**
+   * Durable task coordination layer managed via the `br` (Beads CLI) and `bv` (Beads Viewer) engines.
+   * Tracks task dependencies, blockages, run histories, and priorities.
+   * Enables "fleet farming" where specialized agents (e.g. implementing agents, quality gatekeepers) collaborate.
 
-- A project-specific `SPEC.md`.
-- Pre-sliced product domains.
-- A locked application stack.
-- App source scaffolding.
-- Package scripts.
-- Test runner config.
-- CI workflows.
-- Database migrations or infrastructure.
+2. **Orchestrator v3 Background Processing**
+   * Coordinates background task delegation asynchronously to prevent blocking the main developer conversation.
+   * Employs "Doer" (functional developer) and "Reviewer" (auditor/linter/tester) patterns.
+   * Uses "Hindsight" semantic search log access (via `cass` / `cm` toolsets) to maintain a shared memory loop.
 
-Those should arrive only when a selected story needs them.
+3. **Self-Improving Reflection Loops**
+   * Automatically captures developer friction, compiler errors, and audit failures.
+   * Feeds back into project guidelines by dynamically proposing updates to skill runbooks (`SKILL.md` documents) or `AGENTS.md`.
+
+4. **YOLO Mode & Execution Sandboxing**
+   * Bypasses interactive confirmation gates using the `--yolo` flag for automated pipeline environments.
+   * Establaces strict sandbox isolation profiles:
+     - `local`: Direct command execution (for read-only queries, code formatting, lints).
+     - `containerized`: Docker/Singularity for compiling or testing untrusted payloads.
+     - `cloud`/`remote`: Modal, Daytona, and SSH execution backends to control the blast radius.
 
 ## Source Hierarchy
 
@@ -104,7 +105,7 @@ product docs plus executable tests become the living contract.
 
 ## Spec Lifecycle
 
-Harness v0 starts without a tracked project spec. When the human provides a
+Harness v2.0 starts without a tracked project spec. When the human provides a
 specification, treat it as input material, not as a permanent operating manual.
 Use it to populate product docs, story packets, architecture decisions, and
 validation expectations during the first buildout.

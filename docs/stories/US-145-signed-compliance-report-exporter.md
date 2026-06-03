@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -18,10 +18,10 @@ The application must allow users to export verified ledgers of invoices to PDF o
 
 ## Acceptance Criteria
 
-- [ ] Implement API endpoint `GET /api/reports/signed-compliance` exporting the audited ledger.
-- [ ] Calculate a SHA-256 digest of the exported data table rows and append the signature block at the footer.
-- [ ] Integrate a verification panel where users can upload an exported report file to re-calculate and verify its integrity signature.
-- [ ] Write tests ensuring signature verification matches original file content and detects alterations.
+- [x] Implement API endpoint `GET /api/reports/signed-compliance` exporting the audited ledger.
+- [x] Calculate a SHA-256 digest of the exported data table rows and append the signature block at the footer.
+- [x] Integrate a verification panel where users can upload an exported report file to re-calculate and verify its integrity signature.
+- [x] Write tests ensuring signature verification matches original file content and detects alterations.
 
 ## Design Notes
 

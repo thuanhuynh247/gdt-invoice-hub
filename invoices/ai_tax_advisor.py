@@ -219,6 +219,18 @@ TAX_REGULATION_EXCERPTS = [
             "kết nối API với phần mềm kế toán doanh nghiệp, và ứng dụng AI để phát hiện gian lận thuế."
         ),
     },
+    {
+        "id": "circular20-art13-employee-payment",
+        "source": "Thông tư 20/2026/TT-BTC - Thuế TNDN",
+        "page": 13,
+        "text": (
+            "Điều 13: Chi phí mua hàng ủy quyền qua cá nhân. Các giao dịch mua hàng hóa, dịch vụ được doanh nghiệp "
+            "ủy quyền cho cá nhân thanh toán bằng thẻ cá nhân hoặc tiền mặt từ 5 triệu đồng trở lên "
+            "(đã bao gồm thuế GTGT) để được tính vào chi phí được trừ khi tính thuế TNDN và được khấu trừ thuế GTGT "
+            "phải có đầy đủ hóa đơn hợp pháp và chứng từ thanh toán không dùng tiền mặt (chuyển khoản từ tài khoản cá nhân "
+            "được ủy quyền sang tài khoản người bán và doanh nghiệp hoàn trả tiền qua tài khoản ngân hàng của cá nhân đó)."
+        ),
+    },
 ]
 
 
@@ -288,6 +300,26 @@ class TaxAdvisoryAgent:
                     "type": "LOW_TSCORE_ALERT",
                     "severity": "CRITICAL",
                     "message": f"Hóa đơn {inv['id']} có T-Score={inv['t_score']}, rủi ro bị thanh tra thuế cao.",
+                    "legal_refs": [r["source"] + f" (trang {r['page']})" for r in refs],
+                })
+
+            # Rule 4: Employee authorized purchase >= 5M VND without non-cash payment proofs (Circular 20/2026/TT-BTC)
+            is_emp_auth = (
+                inv.get("is_employee_payment") or 
+                inv.get("employee_payment") or 
+                inv.get("is_authorized_payment") or 
+                inv.get("employee_authorized") or
+                any(kw in inv.get("payment_method", "").lower() for kw in ["ủy quyền", "uy quyen", "nhân viên", "nhan vien", "cá nhân", "ca nhan"])
+            )
+            if is_emp_auth and inv.get("total_amount", 0) >= 5_000_000 and not inv.get("has_non_cash_proof", False):
+                refs = self.vector_store.query("ủy quyền thanh toán không dùng tiền mặt 5 triệu thông tư 20", top_k=2)
+                risks.append({
+                    "type": "CIT_CIRCULAR_20_RISK",
+                    "severity": "HIGH",
+                    "message": (
+                        f"Hóa đơn {inv['id']} mua hàng ủy quyền qua cá nhân từ 5 triệu đồng trở lên "
+                        "nhưng thiếu chứng từ thanh toán không dùng tiền mặt theo Điều 13 Thông tư 20/2026/TT-BTC."
+                    ),
                     "legal_refs": [r["source"] + f" (trang {r['page']})" for r in refs],
                 })
 

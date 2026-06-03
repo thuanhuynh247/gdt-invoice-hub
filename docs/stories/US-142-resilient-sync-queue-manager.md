@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -18,10 +18,10 @@ The application must support asynchronous background synchronization of VAT invo
 
 ## Acceptance Criteria
 
-- [ ] Create a `ResilientSyncQueue` using a background `ThreadPoolExecutor` to handle parallel crawl jobs.
-- [ ] Implement isolated exception handling to ensure that failing profiles are logged and marked but do not interfere with other tenants' sync execution.
-- [ ] Implement scheduling options to configure synchronization times or periodic cron-like triggers.
-- [ ] Write integration tests simulating multiple taxpayer sync operations, asserting isolated failures.
+- [x] Create a `ResilientSyncQueue` using a background `ThreadPoolExecutor` to handle parallel crawl jobs.
+- [x] Implement isolated exception handling to ensure that failing profiles are logged and marked but do not interfere with other tenants' sync execution.
+- [x] Implement scheduling options to configure synchronization times or periodic cron-like triggers.
+- [x] Write integration tests simulating multiple taxpayer sync operations, asserting isolated failures.
 
 ## Design Notes
 

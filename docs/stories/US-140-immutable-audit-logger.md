@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -18,10 +18,10 @@ The application must include an isolated, tamper-proof activity logging database
 
 ## Acceptance Criteria
 
-- [ ] Create a `SecurityAuditLog` database model containing the following fields: timestamp, username, tax_code, event_category, ip_address, and event_details.
-- [ ] Implement an event listener or check preventing database updates or deletes on the `SecurityAuditLog` table.
-- [ ] Automatically write audit log entries on successful/failed authentication, taxpayer switching, configuration edits, XML data repairs, and invoice deletions.
-- [ ] Add unit tests verifying logger writes and database-level immutability enforcement.
+- [x] Create a `SecurityAuditLog` database model containing the following fields: timestamp, username, tax_code, event_category, ip_address, and event_details.
+- [x] Implement an event listener or check preventing database updates or deletes on the `SecurityAuditLog` table.
+- [x] Automatically write audit log entries on successful/failed authentication, taxpayer switching, configuration edits, XML data repairs, and invoice deletions.
+- [x] Add unit tests verifying logger writes and database-level immutability enforcement.
 
 ## Design Notes
 

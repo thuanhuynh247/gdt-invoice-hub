@@ -14,12 +14,12 @@
                 <form id="loginForm" class="vstack gap-3">
                     <div>
                         <label class="form-label fw-medium" for="username">Tên đăng nhập</label>
-                        <input class="form-control custom-input" id="username" name="username" autocomplete="username" placeholder="Nhập tên tài khoản GDT…" required autofocus>
+                        <input class="form-control custom-input" id="username" name="username" autocomplete="username" placeholder="Nhập tên tài khoản GDT…" required autofocus aria-label="Nhập tên tài khoản GDT…">
                     </div>
                     <div>
                         <label class="form-label fw-medium" for="password">Mật khẩu</label>
                         <div class="input-group">
-                            <input class="form-control custom-input border-end-0" id="password" name="password" type="password" autocomplete="current-password" placeholder="Nhập mật khẩu…" required>
+                            <input class="form-control custom-input border-end-0" id="password" name="password" type="password" autocomplete="current-password" placeholder="Nhập mật khẩu…" required aria-label="Nhập mật khẩu…">
                             <button class="btn btn-password-toggle border-start-0" type="button" id="togglePassword" aria-label="Hiện/Ẩn mật khẩu">
                                 <i class="bi bi-eye" id="togglePasswordIcon" aria-hidden="true"></i>
                             </button>
@@ -28,7 +28,7 @@
                     <div class="row g-3 align-items-end" id="captchaRow">
                         <div class="col-sm-7">
                             <label class="form-label fw-medium" for="captcha">Mã Captcha</label>
-                            <input class="form-control custom-input" id="captcha" name="captcha" autocomplete="off" placeholder="Mã bảo mật…" required>
+                            <input class="form-control custom-input" id="captcha" name="captcha" autocomplete="off" placeholder="Mã bảo mật…" required aria-label="Mã bảo mật…">
                         </div>
                         <div class="col-sm-5">
                             <div class="captcha-box" id="captchaBox">Đang tải captcha…</div>

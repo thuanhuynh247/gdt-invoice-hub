@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -18,13 +18,13 @@ The application must accept uploaded invoice images (JPEG, PNG, scanned PDF) and
 
 ## Acceptance Criteria
 
-- [ ] Implement upload endpoint `POST /api/invoices/ocr-upload` accepting image files.
-- [ ] Extract key fields: seller_name, seller_mst, invoice_number, invoice_date, line_items, vat_amount, total.
-- [ ] Display extraction preview UI with editable fields for user correction.
-- [ ] Use ddddocr as primary engine with Tesseract fallback for complex layouts.
-- [ ] Handle error cases: corrupted files, unreadable images, unsupported formats.
-- [ ] Achieve >80% field extraction accuracy on standard Vietnamese invoice templates.
-- [ ] Write tests with sample invoice image fixtures.
+- [x] Implement upload endpoint `POST /api/invoices/ocr-upload` accepting image files.
+- [x] Extract key fields: seller_name, seller_mst, invoice_number, invoice_date, line_items, vat_amount, total.
+- [x] Display extraction preview UI with editable fields for user correction.
+- [x] Use ddddocr as primary engine with Tesseract fallback for complex layouts.
+- [x] Handle error cases: corrupted files, unreadable images, unsupported formats.
+- [x] Achieve >80% field extraction accuracy on standard Vietnamese invoice templates.
+- [x] Write tests with sample invoice image fixtures.
 
 ## Design Notes
 

@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -19,11 +19,11 @@ The application must run a comprehensive simulated audit suite mimicking GDT ins
 
 ## Acceptance Criteria
 
-- [ ] Implement GDT compliance checks: blacklisted MST detection, signature delays, cash payments, template/serial verification, sequence gaps.
-- [ ] Calculate consolidated T-Score (0 to 100) using weighted scoring models.
-- [ ] Expose endpoint `POST /api/audit/simulate` to trigger simulated audit runs.
-- [ ] Render visual risk flags (Low, Medium, High) in the dashboard lists and offcanvas drawers.
-- [ ] Write unit tests verifying T-Score calculations for various warning combinations.
+- [x] Implement GDT compliance checks: blacklisted MST detection, signature delays, cash payments, template/serial verification, sequence gaps.
+- [x] Calculate consolidated T-Score (0 to 100) using weighted scoring models.
+- [x] Expose endpoint `POST /api/audit/simulate` to trigger simulated audit runs.
+- [x] Render visual risk flags (Low, Medium, High) in the dashboard lists and offcanvas drawers.
+- [x] Write unit tests verifying T-Score calculations for various warning combinations.
 
 ## Design Notes
 

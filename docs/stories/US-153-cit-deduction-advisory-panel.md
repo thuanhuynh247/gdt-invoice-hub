@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -19,11 +19,11 @@ The application must provide an AI-powered advisory panel that presents actionab
 
 ## Acceptance Criteria
 
-- [ ] Display a structured list of flagged CIT items with legal citations (e.g., Điều 4, Thông tư 96/2015/TT-BTC).
-- [ ] Generate recommended adjustment actions per flagged item (reclassify, amend payment method, split invoices).
-- [ ] Provide one-click copy/download for advisory notes to include in CIT filing documentation.
-- [ ] Integrate with the existing RAG knowledge base to ground suggestions in current tax regulations.
-- [ ] Write tests verifying advisory content accuracy and legal citation correctness.
+- [x] Display a structured list of flagged CIT items with legal citations (e.g., Điều 4, Thông tư 96/2015/TT-BTC).
+- [x] Generate recommended adjustment actions per flagged item (reclassify, amend payment method, split invoices).
+- [x] Provide one-click copy/download for advisory notes to include in CIT filing documentation.
+- [x] Integrate with the existing RAG knowledge base to ground suggestions in current tax regulations.
+- [x] Write tests verifying advisory content accuracy and legal citation correctness.
 
 ## Design Notes
 

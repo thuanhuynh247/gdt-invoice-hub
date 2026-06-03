@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -18,13 +18,13 @@ The application must provide a legally compliant digital vault to store, compres
 
 ## Acceptance Criteria
 
-- [ ] Create an archiving scheduler that automatically packages invoice XML and PDF files into compressed ZIP archives.
-- [ ] Implement ZIP package encryption using AES-256 with user-defined or tenant keys.
-- [ ] Build a database index system mapping full-text searchable metadata (Date, Tax Code, Issuer, Total, Products).
-- [ ] Expose an advanced search and retrieval panel in the web interface.
-- [ ] Provide options to export archives to local disk or cloud backup (mocked).
-- [ ] Expose API endpoint `POST /api/vault/archive` to manage vault records.
-- [ ] Write unit tests verifying zip packaging, AES encryption, and metadata index searches.
+- [x] Create an archiving scheduler that automatically packages invoice XML and PDF files into compressed ZIP archives.
+- [x] Implement ZIP package encryption using AES-256 with user-defined or tenant keys.
+- [x] Build a database index system mapping full-text searchable metadata (Date, Tax Code, Issuer, Total, Products).
+- [x] Expose an advanced search and retrieval panel in the web interface.
+- [x] Provide options to export archives to local disk or cloud backup (mocked).
+- [x] Expose API endpoint `POST /api/vault/archive` to manage vault records.
+- [x] Write unit tests verifying zip packaging, AES encryption, and metadata index searches.
 
 ## Design Notes
 

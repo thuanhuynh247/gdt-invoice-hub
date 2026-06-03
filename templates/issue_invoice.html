@@ -65,7 +65,7 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label small fw-semibold text-muted" for="invoiceSymbol">Ký hiệu hóa đơn <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control custom-input w-100" id="invoiceSymbol" autocomplete="off" placeholder="Ví dụ: 1C26TYY" value="1C26TYY" required autofocus>
+                            <input type="text" class="form-control custom-input w-100" id="invoiceSymbol" autocomplete="off" placeholder="Ví dụ: 1C26TYY" value="1C26TYY" required autofocus aria-label="Ví dụ: 1C26TYY">
                             <div class="form-text small">Ký hiệu theo Nghị định 123 / Thông tư 78</div>
                         </div>
                         <div class="col-md-6">
@@ -83,17 +83,17 @@
                         <div class="col-md-6">
                             <label class="form-label small fw-semibold text-muted" for="buyerMst">Mã số thuế bên mua <span class="text-danger">*</span></label>
                             <div class="input-group">
-                                <input type="text" class="form-control custom-input" id="buyerMst" autocomplete="off" placeholder="Nhập MST bên mua…" required>
+                                <input type="text" class="form-control custom-input" id="buyerMst" autocomplete="off" placeholder="Nhập MST bên mua…" required aria-label="Nhập MST bên mua…">
                                 <button class="btn btn-outline-secondary" type="button" onclick="autoLookupBuyer()" style="border-radius: 0 10px 10px 0 !important; border: 1px solid var(--input-border);"><i class="bi bi-search" aria-hidden="true"></i> Tra cứu</button>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-semibold text-muted" for="buyerName">Tên đơn vị mua hàng <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control custom-input w-100" id="buyerName" autocomplete="organization" placeholder="Tên công ty hoặc người mua…" required>
+                            <input type="text" class="form-control custom-input w-100" id="buyerName" autocomplete="organization" placeholder="Tên công ty hoặc người mua…" required aria-label="Tên công ty hoặc người mua…">
                         </div>
                         <div class="col-12">
                             <label class="form-label small fw-semibold text-muted" for="buyerAddress">Địa chỉ đơn vị mua <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control custom-input w-100" id="buyerAddress" autocomplete="street-address" placeholder="Địa chỉ đăng ký kinh doanh…" required>
+                            <input type="text" class="form-control custom-input w-100" id="buyerAddress" autocomplete="street-address" placeholder="Địa chỉ đăng ký kinh doanh…" required aria-label="Địa chỉ đăng ký kinh doanh…">
                         </div>
                     </div>
                 </div>
@@ -382,16 +382,16 @@ function addLineItem() {
     row.innerHTML = `
         <td class="text-center fw-semibold text-muted stt-cell">${stt}</td>
         <td>
-            <input type="text" class="form-control custom-input form-control-sm item-name-input" placeholder="Tên hàng hóa dịch vụ…" oninput="calculateRow(${stt})" required>
+            <input type="text" class="form-control custom-input form-control-sm item-name-input" placeholder="Tên hàng hóa dịch vụ…" oninput="calculateRow(${stt})" required autocomplete="off" aria-label="Tên hàng hóa dịch vụ…">
         </td>
         <td>
-            <input type="text" class="form-control custom-input form-control-sm item-unit-input" placeholder="ĐVT" value="Cái">
+            <input type="text" class="form-control custom-input form-control-sm item-unit-input" placeholder="ĐVT" value="Cái" autocomplete="off" aria-label="ĐVT">
         </td>
         <td>
-            <input type="number" class="form-control custom-input form-control-sm text-end item-qty-input" value="1" min="0" step="any" oninput="calculateRow(${stt})">
+            <input type="number" class="form-control custom-input form-control-sm text-end item-qty-input" value="1" min="0" step="any" oninput="calculateRow(${stt})" autocomplete="off" aria-label="Input field">
         </td>
         <td>
-            <input type="number" class="form-control custom-input form-control-sm text-end item-price-input" value="0" min="0" step="any" oninput="calculateRow(${stt})">
+            <input type="number" class="form-control custom-input form-control-sm text-end item-price-input" value="0" min="0" step="any" oninput="calculateRow(${stt})" autocomplete="off" aria-label="Input field">
         </td>
         <td>
             <select class="form-select custom-select form-select-sm text-center item-tax-input" onchange="calculateRow(${stt})">

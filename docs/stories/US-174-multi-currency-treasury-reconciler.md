@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -19,11 +19,11 @@ The application must retrieve daily exchange rates from Vietcombank (VCB) and au
 
 ## Acceptance Criteria
 
-- [ ] Connect the treasury model with the local VCB Exchange Rate scraper/database.
-- [ ] Implement daily rate lookup matching the invoice issue date.
-- [ ] Auto-calculate converted VND amounts for foreign currency invoices using standard transfer rates.
-- [ ] Display transaction rate and original currency next to converted VND values on the UI.
-- [ ] Write unit tests verifying currency conversions across historical dates using mock exchange rate tables.
+- [x] Connect the treasury model with the local VCB Exchange Rate scraper/database.
+- [x] Implement daily rate lookup matching the invoice issue date.
+- [x] Auto-calculate converted VND amounts for foreign currency invoices using standard transfer rates.
+- [x] Display transaction rate and original currency next to converted VND values on the UI.
+- [x] Write unit tests verifying currency conversions across historical dates using mock exchange rate tables.
 
 ## Design Notes
 

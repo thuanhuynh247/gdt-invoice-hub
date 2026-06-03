@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -18,11 +18,11 @@ The application must provide a stateless simulation interface that allows financ
 
 ## Acceptance Criteria
 
-- [ ] Implement API endpoint `POST /api/finance/simulate` accepting scenario parameters (delay_days, rejection_rate).
-- [ ] Create interactive UI with sliders for payment delay (+15, +30, +60 days) and rejection toggles.
-- [ ] Dynamically update SVG cash-flow chart in real-time as user adjusts parameters.
-- [ ] Ensure simulation is stateless — no database modifications unless user explicitly confirms.
-- [ ] Write tests validating calculation correctness under various scenario configurations.
+- [x] Implement API endpoint `POST /api/finance/simulate` accepting scenario parameters (delay_days, rejection_rate).
+- [x] Create interactive UI with sliders for payment delay (+15, +30, +60 days) and rejection toggles.
+- [x] Dynamically update SVG cash-flow chart in real-time as user adjusts parameters.
+- [x] Ensure simulation is stateless — no database modifications unless user explicitly confirms.
+- [x] Write tests validating calculation correctness under various scenario configurations.
 
 ## Design Notes
 

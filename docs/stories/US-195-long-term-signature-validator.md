@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -18,12 +18,12 @@ The application must provide a cryptographic signature validator that parses ele
 
 ## Acceptance Criteria
 
-- [ ] Extract digital signature tokens, trust anchors, and embedded certificates from standard GDT XML files.
-- [ ] Parse and decode RFC-3161 Timestamp Authority (TSA) tokens verifying the signing date and time.
-- [ ] Check certificate revocation status (mocked CRL/OCSP checking).
-- [ ] Build a verification result dashboard showing trust chain path, certificate status, signing time, and validity flags.
-- [ ] Expose API endpoint `POST /api/vault/verify-signature` to process XML files and return cryptographic validation logs.
-- [ ] Write unit tests verifying XML signature parsing, TSA token verification, and error response on tampered inputs.
+- [x] Extract digital signature tokens, trust anchors, and embedded certificates from standard GDT XML files.
+- [x] Parse and decode RFC-3161 Timestamp Authority (TSA) tokens verifying the signing date and time.
+- [x] Check certificate revocation status (mocked CRL/OCSP checking).
+- [x] Build a verification result dashboard showing trust chain path, certificate status, signing time, and validity flags.
+- [x] Expose API endpoint `POST /api/vault/verify-signature` to process XML files and return cryptographic validation logs.
+- [x] Write unit tests verifying XML signature parsing, TSA token verification, and error response on tampered inputs.
 
 ## Design Notes
 

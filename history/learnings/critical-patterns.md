@@ -41,3 +41,31 @@ When reading cold storage archives, database backups, or compressed logs package
 - Always pass the raw ZIP stream reference directly to the parser (`json.load(f)`) to achieve memory-safe sequential loading.
 
 **Full entry:** [20260529-webapp-audit-refinement.md](file:///d:/LearnAnyThing/Webapp%20XML/history/learnings/20260529-webapp-audit-refinement.md)
+
+---
+
+## [20260601] Stateful API Binding for Contextual AI Agents & Network Mocking
+**Category:** pattern
+**Feature:** tax_ai_invoice_chat
+**Tags:** [ai-context, testing, standard-chat]
+
+When designing conversational AI agents that interact with specific repository resources (such as specific invoices):
+- Do not let the client submit raw, lengthy prompt contexts. Instead, pass resource identifiers (`invoice_id` foreign key) and bind them to the database model (`AIChatSession.invoice_id`). This secures the transaction and keeps token costs low.
+- For robust, high-fidelity API testing, mock the network transport level (`requests.post`) instead of internal methods. This ensures that every line of system prompt composition, JSON serialization, and response handling is thoroughly covered by tests.
+
+**Full entry:** [20260601-tax-ai-invoice-chat.md](file:///d:/LearnAnyThing/Webapp%20XML/history/learnings/20260601-tax-ai-invoice-chat.md)
+
+---
+
+## [20260602] Smart SQLite CP1258 Decoding Factory & Mock Test Isolation
+**Category:** pattern
+**Feature:** harness_onboarding_uat
+**Tags:** [sqlite, windows, encoding, testing]
+
+To prevent application crashes on Windows systems when reading or indexing database logs with Vietnamese characters:
+- Always use a multi-encoding fallback `decode_smart` as `conn.text_factory` on the SQLite connection.
+- Isolate external dependency tests behind mock endpoints when `GDT_USE_MOCK=true` to achieve offline reliability.
+
+**Full entry:** [20260602-harness-onboarding-uat.md](file:///d:/LearnAnyThing/Webapp%20XML/history/learnings/20260602-harness-onboarding-uat.md)
+
+

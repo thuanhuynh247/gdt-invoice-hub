@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -18,12 +18,12 @@ The application must provide a reconciliation tool that matches customs declarat
 
 ## Acceptance Criteria
 
-- [ ] Create a reconciliation database model linking Customs Declarations to domestic Invoices.
-- [ ] Implement matching algorithms checking declaration IDs, payment vouchers, total values, and tax codes.
-- [ ] Build a reconciliation comparison UI highlight discrepancies (e.g., mismatch in VAT paid, missing invoice).
-- [ ] Support exporting matched and unmatched lists to Excel/CSV for accounting records.
-- [ ] Expose API endpoint `GET /api/customs/reconcile` to perform analysis and retrieve mismatch items.
-- [ ] Write unit tests verifying matching logic and discrepancy flags.
+- [x] Create a reconciliation database model linking Customs Declarations to domestic Invoices.
+- [x] Implement matching algorithms checking declaration IDs, payment vouchers, total values, and tax codes.
+- [x] Build a reconciliation comparison UI highlight discrepancies (e.g., mismatch in VAT paid, missing invoice).
+- [x] Support exporting matched and unmatched lists to Excel/CSV for accounting records.
+- [x] Expose API endpoint `GET /api/customs/reconcile` to perform analysis and retrieve mismatch items.
+- [x] Write unit tests verifying matching logic and discrepancy flags.
 
 ## Design Notes
 

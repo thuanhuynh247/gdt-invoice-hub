@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -18,10 +18,10 @@ The application must project rolling 30/60/90-day cash availability by combining
 
 ## Acceptance Criteria
 
-- [ ] Implement calculation engine aggregating invoice due dates, amounts receivable/payable, and forecasted VAT obligations.
-- [ ] Expose API endpoint `GET /api/finance/cashflow` returning rolling projection datasets (30/60/90 days).
-- [ ] Render an interactive SVG line chart on the dashboard showing projected cash balance over time.
-- [ ] Write unit tests verifying projection accuracy against known invoice datasets.
+- [x] Implement calculation engine aggregating invoice due dates, amounts receivable/payable, and forecasted VAT obligations.
+- [x] Expose API endpoint `GET /api/finance/cashflow` returning rolling projection datasets (30/60/90 days).
+- [x] Render an interactive SVG line chart on the dashboard showing projected cash balance over time.
+- [x] Write unit tests verifying projection accuracy against known invoice datasets.
 
 ## Design Notes
 

@@ -85,9 +85,9 @@ timeline
 
 | Epic ID | Epic Title | Story ID | Story Title | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **E61** | Global Tax Compliance | **US-120** | Dynamic Rulebook DSL | 📅 Planned |
-| **E61** | Global Tax Compliance | **US-121** | Multi-Jurisdictional Tax Mapping Engine | 📅 Planned |
-| **E62** | Event Streaming Hub | **US-122** | High-Throughput PubSub Event Streamer | 📅 Planned |
-| **E62** | Event Streaming Hub | **US-123** | Signed Webhook Hub with Retries | 📅 Planned |
-| **E63** | Database WAL & Caching | **US-124** | Hybrid Caching & WAL Scaling | 📅 Planned |
-| **E63** | Database WAL & Caching | **US-125** | Zero-Downtime Data Archiver | 📅 Planned |
+| **E61** | Global Tax Compliance | **US-120** | Dynamic Rulebook DSL | ✅ Implemented |
+| **E61** | Global Tax Compliance | **US-121** | Multi-Jurisdictional Tax Mapping Engine | ✅ Implemented |
+| **E62** | Event Streaming Hub | **US-122** | High-Throughput PubSub Event Streamer | ✅ Implemented |
+| **E62** | Event Streaming Hub | **US-123** | Signed Webhook Hub with Retries | ✅ Implemented |
+| **E63** | Database WAL & Caching | **US-124** | Hybrid Caching & WAL Scaling | ✅ Implemented |
+| **E63** | Database WAL & Caching | **US-125** | Zero-Downtime Data Archiver | ✅ Implemented |

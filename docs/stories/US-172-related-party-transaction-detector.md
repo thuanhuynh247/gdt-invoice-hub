@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -19,11 +19,11 @@ The application must identify and flag related-party transactions (giao dịch l
 
 ## Acceptance Criteria
 
-- [ ] Support marking business partners as related-parties (affiliated entity flags) in the Partner Directory.
-- [ ] Implement value aggregation engine checking if total transaction values cross statutorily regulated thresholds.
-- [ ] Add warning badges to related-party invoices indicating CIT deduction rules (e.g. EBITDA interest caps).
-- [ ] Expose endpoint `GET /api/transfer-pricing/transactions` returning aggregated transactional charts.
-- [ ] Test detecting related-party transactions and applying EBITDA interest limitation alerts.
+- [x] Support marking business partners as related-parties (affiliated entity flags) in the Partner Directory.
+- [x] Implement value aggregation engine checking if total transaction values cross statutorily regulated thresholds.
+- [x] Add warning badges to related-party invoices indicating CIT deduction rules (e.g. EBITDA interest caps).
+- [x] Expose endpoint `GET /api/transfer-pricing/transactions` returning aggregated transactional charts.
+- [x] Test detecting related-party transactions and applying EBITDA interest limitation alerts.
 
 ## Design Notes
 

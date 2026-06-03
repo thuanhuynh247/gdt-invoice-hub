@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -18,12 +18,12 @@ The application must automatically suggest expense category tags for imported in
 
 ## Acceptance Criteria
 
-- [ ] Implement classifier analyzing seller name, line-item descriptions, and historical patterns.
-- [ ] Suggest expense categories (raw_materials, services, assets, welfare, utilities, transport, other).
-- [ ] Display suggestions with confidence scores (0.0–1.0) on invoice detail view.
-- [ ] Allow users to confirm/override/reject suggestions via UI buttons.
-- [ ] Store confirmed classifications to improve future suggestions (learning loop).
-- [ ] Write tests verifying classification accuracy for known seller patterns.
+- [x] Implement classifier analyzing seller name, line-item descriptions, and historical patterns.
+- [x] Suggest expense categories (raw_materials, services, assets, welfare, utilities, transport, other).
+- [x] Display suggestions with confidence scores (0.0–1.0) on invoice detail view.
+- [x] Allow users to confirm/override/reject suggestions via UI buttons.
+- [x] Store confirmed classifications to improve future suggestions (learning loop).
+- [x] Write tests verifying classification accuracy for known seller patterns.
 
 ## Design Notes
 

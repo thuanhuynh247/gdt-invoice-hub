@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -18,14 +18,14 @@ The application must expose a versioned public REST API (`/api/v1/`) enabling ex
 
 ## Acceptance Criteria
 
-- [ ] Implement Flask Blueprint for `/api/v1/` with versioned resource endpoints.
-- [ ] Create `APIKey` model with fields: key_hash, name, owner, rate_limit, created_at, is_active.
-- [ ] Implement API key authentication middleware checking `X-API-Key` header.
-- [ ] Enforce rate limiting (default: 100 requests/minute per key) with 429 responses.
-- [ ] Expose endpoints: `GET /api/v1/invoices`, `GET /api/v1/audits`, `GET /api/v1/reports`.
-- [ ] Auto-generate OpenAPI 3.0 spec accessible at `GET /api/v1/docs`.
-- [ ] Use standard JSON envelope: `{"status": "ok", "data": [...], "pagination": {...}}`.
-- [ ] Write comprehensive tests for auth, rate limiting, and data retrieval.
+- [x] Implement Flask Blueprint for `/api/v1/` with versioned resource endpoints.
+- [x] Create `APIKey` model with fields: key_hash, name, owner, rate_limit, created_at, is_active.
+- [x] Implement API key authentication middleware checking `X-API-Key` header.
+- [x] Enforce rate limiting (default: 100 requests/minute per key) with 429 responses.
+- [x] Expose endpoints: `GET /api/v1/invoices`, `GET /api/v1/audits`, `GET /api/v1/reports`.
+- [x] Auto-generate OpenAPI 3.0 spec accessible at `GET /api/v1/docs`.
+- [x] Use standard JSON envelope: `{"status": "ok", "data": [...], "pagination": {...}}`.
+- [x] Write comprehensive tests for auth, rate limiting, and data retrieval.
 
 ## Design Notes
 

@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -18,11 +18,11 @@ The application must provide a secure, user-friendly dashboard interface allowin
 
 ## Acceptance Criteria
 
-- [ ] Implement API endpoint `GET /api/audit/logs` returning paginated, filtered log records.
-- [ ] Create a Glassmorphism-style UI tab in the settings/admin area displaying the logs in an interactive, responsive table.
-- [ ] Add filters for date ranges, taxpayer MST profile, event categories, and keyword search.
-- [ ] Implement export buttons to download filtered log views in CSV and PDF formats.
-- [ ] Implement unit and integration tests covering the endpoint, filters, and export formatting.
+- [x] Implement API endpoint `GET /api/audit/logs` returning paginated, filtered log records.
+- [x] Create a Glassmorphism-style UI tab in the settings/admin area displaying the logs in an interactive, responsive table.
+- [x] Add filters for date ranges, taxpayer MST profile, event categories, and keyword search.
+- [x] Implement export buttons to download filtered log views in CSV and PDF formats.
+- [x] Implement unit and integration tests covering the endpoint, filters, and export formatting.
 
 ## Design Notes
 

@@ -1733,6 +1733,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("btnTestAudit")?.addEventListener("click", handleTestAudit);
     document.getElementById("btnRunAiAudit")?.addEventListener("click", handleManualAiAudit);
     document.getElementById("btnTriggerRealtimeSync")?.addEventListener("click", handleTriggerRealtimeSync);
+    document.getElementById("btnChatAboutInvoice")?.addEventListener("click", openInvoiceChat);
     initializeSettingsPasswordToggles();
 
 
@@ -3049,6 +3050,70 @@ function initAiChatbot() {
     });
 }
 
+/**
+ * Open (or resume) an AI chat session linked to the currently-viewed invoice.
+ * Called from the "Hỏi AI" button inside the invoice details drawer.
+ * Flow: check existing sessions for one linked to this invoice_id → select it,
+ *       or create a brand new session with invoice_id → open the chatbot panel.
+ */
+async function openInvoiceChat() {
+    const invoiceId = document.getElementById("detId")?.textContent?.trim();
+    if (!invoiceId || invoiceId === "-") {
+        renderAlert("Vui lòng mở chi tiết hóa đơn trước khi hỏi Trợ lý AI.", "warning");
+        return;
+    }
+
+    const chatCard = document.getElementById("aiChatCard");
+    const sessionSelect = document.getElementById("chatSessionSelect");
+    const btn = document.getElementById("btnChatAboutInvoice");
+    if (!chatCard || !sessionSelect) return;
+
+    // Disable button during processing
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang mở...'; }
+
+    try {
+        // 1. Fetch all sessions and look for one already linked to this invoice
+        const rawData = await apiCall("/api/ai/chat/sessions");
+        const sessions = (rawData && rawData.sessions) ? rawData.sessions : (Array.isArray(rawData) ? rawData : []);
+        const existing = sessions.find(s => s.invoice_id === invoiceId);
+
+        if (existing) {
+            // Resume existing session
+            currentChatSessionId = existing.id;
+            await loadChatSessions();
+            sessionSelect.value = existing.id;
+            await selectChatSession(existing.id);
+        } else {
+            // Create new session linked to this invoice
+            const res = await apiCall("/api/ai/chat/sessions", {
+                method: "POST",
+                body: JSON.stringify({ invoice_id: invoiceId })
+            });
+            if (res && res.session) {
+                currentChatSessionId = res.session.id;
+                await loadChatSessions();
+                sessionSelect.value = res.session.id;
+                await selectChatSession(res.session.id);
+            }
+        }
+
+        // 2. Show the chatbot panel and close the drawer
+        chatCard.classList.remove("d-none");
+        const drawerEl = document.getElementById("invoiceDetailsDrawer");
+        if (drawerEl) {
+            const bsOffcanvas = bootstrap.Offcanvas.getInstance(drawerEl);
+            if (bsOffcanvas) bsOffcanvas.hide();
+        }
+
+        // 3. Focus input
+        document.getElementById("aiChatMessageInput")?.focus();
+    } catch (error) {
+        renderAlert(`Không thể mở phiên chat AI: ${error.message}`, "danger");
+    } finally {
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-chat-dots-fill" aria-hidden="true"></i> Hỏi AI'; }
+    }
+}
+
 async function loadChatSessions() {
     const sessionSelect = document.getElementById("chatSessionSelect");
     if (!sessionSelect) return;
@@ -3066,7 +3131,8 @@ async function loadChatSessions() {
 
             sessionSelect.innerHTML = sessions.map(s => {
                 const dateStr = new Date(s.updated_at).toLocaleString("vi-VN", { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' });
-                return `<option value="${s.id}">${s.title} (${dateStr})</option>`;
+                const invoicePrefix = s.invoice_id ? "🧾 " : "";
+                return `<option value="${s.id}">${invoicePrefix}${s.title} (${dateStr})</option>`;
             }).join("");
 
             // Keep selection or pick first
@@ -3098,6 +3164,9 @@ async function selectChatSession(sessionId) {
         const sessions = (rawData && rawData.sessions) ? rawData.sessions : (Array.isArray(rawData) ? rawData : []);
         const session = sessions.find(s => s.id === sessionId);
         if (session) {
+            // Update invoice badge indicator
+            updateChatInvoiceBadge(session.invoice_id);
+
             messagesContainer.innerHTML = "";
             if (session.messages && session.messages.length > 0) {
                 session.messages.forEach(msg => {
@@ -3110,6 +3179,25 @@ async function selectChatSession(sessionId) {
         }
     } catch (error) {
         messagesContainer.innerHTML = `<div class="text-danger small py-3 text-center">Lỗi tải tin nhắn: ${error.message}</div>`;
+    }
+}
+
+/**
+ * Show or hide the invoice-linked badge in the chat panel header.
+ * @param {string|null} invoiceId - The linked invoice ID, or null/undefined.
+ */
+function updateChatInvoiceBadge(invoiceId) {
+    const badge = document.getElementById("chatInvoiceBadge");
+    const badgeText = document.getElementById("chatInvoiceBadgeText");
+    if (!badge || !badgeText) return;
+    if (invoiceId) {
+        // Extract short display: show last segment (number) or truncate
+        const shortId = invoiceId.length > 20 ? "..." + invoiceId.slice(-15) : invoiceId;
+        badgeText.textContent = shortId;
+        badge.classList.remove("d-none");
+    } else {
+        badge.classList.add("d-none");
+        badgeText.textContent = "";
     }
 }
 
@@ -3202,15 +3290,61 @@ function renderMarkdownTable(lines) {
     return html;
 }
 
+function highlightSql(code) {
+    let highlighted = escapeHtml(code);
+    
+    // Comments
+    highlighted = highlighted.replace(/(--.*)/g, '<span class="chat-sql-comment">$1</span>');
+    highlighted = highlighted.replace(/(\/\*[\s\S]*?\*\/)/g, '<span class="chat-sql-comment">$1</span>');
+    
+    // Strings (single quotes)
+    highlighted = highlighted.replace(/('(?:''|[^'])*')/g, '<span class="chat-sql-string">$1</span>');
+    
+    // SQL Keywords
+    const keywords = [
+        "SELECT", "FROM", "WHERE", "JOIN", "LEFT", "RIGHT", "INNER", "ON", "GROUP BY", "ORDER BY",
+        "HAVING", "LIMIT", "AND", "OR", "IN", "NOT", "NULL", "AS", "IS", "LIKE", "COUNT", "SUM",
+        "AVG", "MIN", "MAX", "WITH", "UNION", "ALL", "CASE", "WHEN", "THEN", "ELSE", "END"
+    ];
+    keywords.forEach(kw => {
+        const regex = new RegExp(`\\b(${kw})\\b`, 'gi');
+        highlighted = highlighted.replace(regex, (match) => {
+            return `<span class="chat-sql-keyword">${match.toUpperCase()}</span>`;
+        });
+    });
+    
+    // Numbers
+    highlighted = highlighted.replace(/\b(\d+)\b/g, '<span class="chat-sql-number">$1</span>');
+    
+    return highlighted;
+}
+
 function formatMarkdown(text) {
     if (!text) return "";
     
     let escaped = escapeHtml(text);
     
-    // Code blocks
-    escaped = escaped.replace(/```([\s\S]*?)```/g, (match, code) => {
-        return `<pre class="bg-dark text-light p-2 rounded small border border-secondary" style="overflow-x: auto;"><code>${code.trim()}</code></pre>`;
+    // Code blocks with syntax highlighting
+    escaped = escaped.replace(/```(?:sql)?([\s\S]*?)```/g, (match, code) => {
+        const cleanCode = code.trim();
+        const isSql = /select\s|from\s|where\s|join\s|group\sby\s/i.test(cleanCode) || match.startsWith("```sql");
+        if (isSql) {
+            // Unescape the HTML-escaped code block for highlightSql to process safely
+            const rawCode = cleanCode.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#039;/g, "'");
+            return `<pre class="bg-dark p-2 rounded small border border-secondary" style="overflow-x: auto;"><code class="chat-sql-code">${highlightSql(rawCode)}</code></pre>`;
+        }
+        return `<pre class="bg-dark text-light p-2 rounded small border border-secondary" style="overflow-x: auto;"><code>${cleanCode}</code></pre>`;
     });
+
+    // Law Citations formatting
+    // 1. Nghị định
+    escaped = escaped.replace(/(Nghị\s+định\s+\d+\/\d+\/NĐ-CP)/gi, '<span class="law-badge"><i class="bi bi-file-earmark-ruled" aria-hidden="true"></i> $1</span>');
+    // 2. Thông tư
+    escaped = escaped.replace(/(Thông\s+tư\s+\d+\/\d+\/TT-BTC)/gi, '<span class="law-badge"><i class="bi bi-file-earmark-ruled" aria-hidden="true"></i> $1</span>');
+    // 3. Luật số ... /QH... hoặc Luật Thuế...
+    escaped = escaped.replace(/(Luật\s+số\s+\d+\/\d+\/QH\d+|Luật\s+Thuế\s+GTGT\s+\d+\/\d+\/QH\d+|Luật\s+Thuế\s+GTGT|Luật\s+Thuế\s+TNDN|Luật\s+Quản\s+lý\s+thuế)/gi, '<span class="law-badge"><i class="bi bi-file-earmark-ruled" aria-hidden="true"></i> $1</span>');
+    // 4. Điều ... Khoản ...
+    escaped = escaped.replace(/(Điều\s+\d+(?:\s+Khoản\s+\d+)?)/gi, '<span class="law-badge"><i class="bi bi-bookmark-fill" aria-hidden="true"></i> $1</span>');
     
     // Markdown tables parsing
     const lines = escaped.split("\n");
@@ -3255,7 +3389,7 @@ function formatMarkdown(text) {
     formatted = paragraphs.map(p => {
         p = p.trim();
         if (!p) return "";
-        if (p.startsWith("<ul") || p.startsWith("<ol") || p.startsWith("<pre") || p.startsWith("<table") || p.startsWith("<div")) {
+        if (p.startsWith("<ul") || p.startsWith("<ol") || p.startsWith("<pre") || p.startsWith("<table") || p.startsWith("<div") || p.startsWith("<span")) {
             return p;
         }
         return `<p class="mb-2">${p.replace(/\n/g, "<br>")}</p>`;

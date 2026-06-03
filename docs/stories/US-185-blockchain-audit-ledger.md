@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -18,11 +18,11 @@ The application must provide a cryptographic ledger anchoring invoice hashes seq
 
 ## Acceptance Criteria
 
-- [ ] Automatically calculate a SHA-256 hash of invoice data, digital signature, and audit results upon approval.
-- [ ] Implement a sequential cryptographic hashing chain (each block contains the hash of the previous block) representing the integrity ledger.
-- [ ] Build a verification panel allowing users/auditors to upload an invoice XML file to check it against the cryptographic ledger hash.
-- [ ] Expose API endpoint `GET /api/blockchain/verify` to validate the overall integrity of the ledger chain.
-- [ ] Write unit tests verifying block serialization, hashing chain integrity checks, and detection of modified mock invoice entries.
+- [x] Automatically calculate a SHA-256 hash of invoice data, digital signature, and audit results upon approval.
+- [x] Implement a sequential cryptographic hashing chain (each block contains the hash of the previous block) representing the integrity ledger.
+- [x] Build a verification panel allowing users/auditors to upload an invoice XML file to check it against the cryptographic ledger hash.
+- [x] Expose API endpoint `GET /api/blockchain/verify` to validate the overall integrity of the ledger chain.
+- [x] Write unit tests verifying block serialization, hashing chain integrity checks, and detection of modified mock invoice entries.
 
 ## Design Notes
 

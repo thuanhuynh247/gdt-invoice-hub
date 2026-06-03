@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -19,11 +19,11 @@ The application must offer an automated setup wizard to compile corporate and tr
 
 ## Acceptance Criteria
 
-- [ ] Build a multi-step TP Local File configuration wizard UI.
-- [ ] Auto-extract related-party transaction tables from database to populate Appendix I.
-- [ ] Implement local file Word (.docx) generation with structured sections: Company Profile, Related Party Relationships, Pricing Methods, and Transaction Details.
-- [ ] Support exporting Appendix I (Mẫu số 01) format to spreadsheet/Word files.
-- [ ] Write tests verifying report builder data bindings.
+- [x] Build a multi-step TP Local File configuration wizard UI.
+- [x] Auto-extract related-party transaction tables from database to populate Appendix I.
+- [x] Implement local file Word (.docx) generation with structured sections: Company Profile, Related Party Relationships, Pricing Methods, and Transaction Details.
+- [x] Support exporting Appendix I (Mẫu số 01) format to spreadsheet/Word files.
+- [x] Write tests verifying report builder data bindings.
 
 ## Design Notes
 

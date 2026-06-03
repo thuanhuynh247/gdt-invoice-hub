@@ -99,9 +99,9 @@ timeline
 
 | Epic ID | Epic Title | Story ID | Story Title | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **E79** | Customs Audit Hub | **US-190** | Customs XML Parser & Import-Export Duty Calculator | 📅 Planned |
-| **E79** | Customs Audit Hub | **US-191** | Customs-to-Invoice Matcher & Discrepancy Detector | 📅 Planned |
-| **E80** | PIT & Social Insurance | **US-192** | Payroll & Labor Contract Compliance Audit Engine | 📅 Planned |
-| **E80** | PIT & Social Insurance | **US-193** | Automated PIT Finalizer & Form 05/QTT-TNCN Scaffolder | 📅 Planned |
-| **E81** | Compliance Vault | **US-194** | Decree 123 Compliant Digital Vault & XML Archiver | 📅 Planned |
-| **E81** | Compliance Vault | **US-195** | Long-Term Signature & TSA Validator | 📅 Planned |
+| **E79** | Customs Audit Hub | **US-190** | Customs XML Parser & Import-Export Duty Calculator | ✅ Implemented |
+| **E79** | Customs Audit Hub | **US-191** | Customs-to-Invoice Matcher & Discrepancy Detector | ✅ Implemented |
+| **E80** | PIT & Social Insurance | **US-192** | Payroll & Labor Contract Compliance Audit Engine | ✅ Implemented |
+| **E80** | PIT & Social Insurance | **US-193** | Automated PIT Finalizer & Form 05/QTT-TNCN Scaffolder | ✅ Implemented |
+| **E81** | Compliance Vault | **US-194** | Decree 123 Compliant Digital Vault & XML Archiver | ✅ Implemented |
+| **E81** | Compliance Vault | **US-195** | Long-Term Signature & TSA Validator | ✅ Implemented |

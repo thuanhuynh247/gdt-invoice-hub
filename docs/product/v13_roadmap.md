@@ -95,9 +95,9 @@ timeline
 
 | Epic ID | Epic Title | Story ID | Story Title | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **E70** | Smart Notifications | **US-160** | Tax Deadline Alerter | 📅 Planned |
-| **E70** | Smart Notifications | **US-161** | Anomaly Alert Engine | 📅 Planned |
-| **E71** | Document Intelligence | **US-162** | Photo Invoice OCR Pipeline | 📅 Planned |
-| **E71** | Document Intelligence | **US-163** | Smart Document Classifier | 📅 Planned |
-| **E72** | API Gateway Hub | **US-164** | Versioned REST API Gateway | 📅 Planned |
-| **E72** | API Gateway Hub | **US-165** | Integration Marketplace & Webhook Registry | 📅 Planned |
+| **E70** | Smart Notifications | **US-160** | Tax Deadline Alerter | ✅ Implemented |
+| **E70** | Smart Notifications | **US-161** | Anomaly Alert Engine | ✅ Implemented |
+| **E71** | Document Intelligence | **US-162** | Photo Invoice OCR Pipeline | ✅ Implemented |
+| **E71** | Document Intelligence | **US-163** | Smart Document Classifier | ✅ Implemented |
+| **E72** | API Gateway Hub | **US-164** | Versioned REST API Gateway | ✅ Implemented |
+| **E72** | API Gateway Hub | **US-165** | Integration Marketplace & Webhook Registry | ✅ Implemented |

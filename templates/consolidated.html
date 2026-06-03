@@ -205,10 +205,10 @@
         </div>
         <div class="d-flex gap-2">
             <button class="btn btn-outline-primary rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#manageGroupModal">
-                <i class="bi bi-gear-fill me-2"></i>Cấu hình Tập đoàn
+                <i class="bi bi-gear-fill me-2" aria-hidden="true"></i>Cấu hình Tập đoàn
             </button>
             <button id="refreshDataBtn" class="btn btn-primary rounded-pill px-4">
-                <i class="bi bi-arrow-clockwise me-1"></i> Làm mới dữ liệu
+                <i class="bi bi-arrow-clockwise me-1" aria-hidden="true"></i> Làm mới dữ liệu
             </button>
         </div>
     </div>
@@ -220,7 +220,7 @@
             <span class="text-secondary small" id="activeGroupMstsCount">5 Mã số thuế trực thuộc</span>
         </div>
         <div class="text-end text-secondary small">
-            <i class="bi bi-clock me-1"></i> Cập nhật tự động: <span id="lastUpdatedTime">--:--:--</span>
+            <i class="bi bi-clock me-1" aria-hidden="true"></i> Cập nhật tự động: <span id="lastUpdatedTime">--:--:--</span>
         </div>
     </div>
 
@@ -234,11 +234,11 @@
                     <h2 class="kpi-value" id="kpiRevenue">0 ₫</h2>
                 </div>
                 <div class="kpi-icon-box" style="background: rgba(67, 97, 238, 0.1); color: var(--color-primary);">
-                    <i class="bi bi-cash-stack"></i>
+                    <i class="bi bi-cash-stack" aria-hidden="true"></i>
                 </div>
             </div>
             <div class="small text-secondary mt-2">
-                <span class="text-success fw-bold"><i class="bi bi-arrow-up-short"></i> Doanh thu thuần</span> trước thuế
+                <span class="text-success fw-bold"><i class="bi bi-arrow-up-short" aria-hidden="true"></i> Doanh thu thuần</span> trước thuế
             </div>
         </div>
 
@@ -250,7 +250,7 @@
                     <h2 class="kpi-value" id="kpiInvoices">0</h2>
                 </div>
                 <div class="kpi-icon-box" style="background: rgba(0, 180, 216, 0.1); color: var(--color-info);">
-                    <i class="bi bi-file-earmark-spreadsheet"></i>
+                    <i class="bi bi-file-earmark-spreadsheet" aria-hidden="true"></i>
                 </div>
             </div>
             <div class="small text-secondary mt-2">
@@ -266,7 +266,7 @@
                     <h2 class="kpi-value" id="kpiNetVat">0 ₫</h2>
                 </div>
                 <div class="kpi-icon-box" style="background: rgba(46, 196, 182, 0.1); color: var(--color-success);">
-                    <i class="bi bi-wallet2"></i>
+                    <i class="bi bi-wallet2" aria-hidden="true"></i>
                 </div>
             </div>
             <div class="small text-secondary mt-2" id="kpiVatDetails">
@@ -285,7 +285,7 @@
                     </div>
                 </div>
                 <div class="kpi-icon-box" id="tscoreIconBox" style="background: rgba(255, 159, 28, 0.1); color: var(--color-warning);">
-                    <i class="bi bi-shield-check"></i>
+                    <i class="bi bi-shield-check" aria-hidden="true"></i>
                 </div>
             </div>
             <div class="small text-secondary mt-2">
@@ -340,7 +340,7 @@
                 <p class="text-secondary small mb-0">Danh sách mã số thuế thành viên được cấu hình trong tập đoàn.</p>
             </div>
             <div class="d-flex gap-2">
-                <input type="text" id="entitySearch" class="form-control form-control-sm rounded-pill px-3" placeholder="Tìm tên hoặc MST..." style="width: 240px;">
+                <input type="text" id="entitySearch" class="form-control form-control-sm rounded-pill px-3" placeholder="Tìm tên hoặc MST…" style="width: 240px;" autocomplete="off" aria-label="Tìm tên hoặc MST…">
             </div>
         </div>
         <div class="table-responsive">
@@ -384,20 +384,20 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content glass-card border-0">
                 <div class="modal-header border-bottom border-light">
-                    <h5 class="modal-title fw-bold" id="manageGroupModalLabel"><i class="bi bi-gear-fill me-2"></i>Cấu Hình Nhóm Tập Đoàn</h5>
+                    <h5 class="modal-title fw-bold" id="manageGroupModalLabel"><i class="bi bi-gear-fill me-2" aria-hidden="true"></i>Cấu Hình Nhóm Tập Đoàn</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4">
                     <form id="groupConfigForm">
                         <div class="mb-3">
                             <label for="groupNameInput" class="form-label fw-semibold">Tên Nhóm Tập Đoàn</label>
-                            <input type="text" class="form-control" id="groupNameInput" value="Tập đoàn GDT Hub" required>
+                            <input type="text" class="form-control" id="groupNameInput" value="Tập đoàn GDT Hub" required autocomplete="off" aria-label="Groupnameinput">
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-semibold d-flex justify-content-between align-items-center">
                                 <span>Danh Sách Mã Số Thuế Thành Viên</span>
                                 <button type="button" class="btn btn-sm btn-link text-primary p-0" id="addNewMstBtn">
-                                    <i class="bi bi-plus-circle me-1"></i>Thêm MST
+                                    <i class="bi bi-plus-circle me-1" aria-hidden="true"></i>Thêm MST
                                 </button>
                             </label>
                             <div id="mstInputsContainer" class="d-flex flex-column gap-2">
@@ -535,7 +535,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 <td><code class="fw-semibold text-primary">${ent.mst}</code></td>
                 <td>
                     <div class="fw-bold">${ent.name || 'Doanh nghiệp chưa khởi tạo'}</div>
-                    ${ent.active ? '<span class="text-success small" style="font-size:0.75rem;"><i class="bi bi-circle-fill me-1" style="font-size:6px;"></i>Đang hoạt động</span>' : '<span class="text-danger small" style="font-size:0.75rem;"><i class="bi bi-circle-fill me-1" style="font-size:6px;"></i>Chưa hoạt động</span>'}
+                    ${ent.active ? '<span class="text-success small" style="font-size:0.75rem;"><i class="bi bi-circle-fill me-1" style="font-size:6px;" aria-hidden="true"></i>Đang hoạt động</span>' : '<span class="text-danger small" style="font-size:0.75rem;"><i class="bi bi-circle-fill me-1" style="font-size:6px;" aria-hidden="true"></i>Chưa hoạt động</span>'}
                 </td>
                 <td class="text-center fw-semibold">${ent.total_invoices}</td>
                 <td class="text-end fw-bold text-success">${formatCurrency(ent.total_revenue)}</td>
@@ -787,9 +787,9 @@ document.addEventListener("DOMContentLoaded", function() {
         div.className = "d-flex gap-2 align-items-center";
         
         div.innerHTML = `
-            <input type="text" class="form-control form-control-sm mst-input-item" value="${value}" placeholder="Nhập mã số thuế..." maxlength="14" required>
+            <input type="text" class="form-control form-control-sm mst-input-item" value="${value}" placeholder="Nhập mã số thuế…" maxlength="14" required autocomplete="off" aria-label="Nhập mã số thuế…">
             <button type="button" class="btn btn-sm btn-outline-danger border-0 p-1 remove-mst-btn" aria-label="Xóa">
-                <i class="bi bi-trash3-fill"></i>
+                <i class="bi bi-trash3-fill" aria-hidden="true"></i>
             </button>
         `;
 

@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -18,11 +18,11 @@ The application must provide an interactive what-if modeling panel allowing user
 
 ## Acceptance Criteria
 
-- [ ] Build a frontend visual dashboard with slider controls for custom financial simulation inputs.
-- [ ] Implement mathematical recalculation of CIT liability and effective tax rate in real-time.
-- [ ] Provide warning messages when simulated variables breach statutory tax guidelines (e.g. loan interest exceeding 30% of EBITDA).
-- [ ] Support saving and comparing multiple named scenarios (e.g., Conservative vs. Optimistic).
-- [ ] Expose API endpoint `POST /api/cit/simulate-scenario` to run calculations.
+- [x] Build a frontend visual dashboard with slider controls for custom financial simulation inputs.
+- [x] Implement mathematical recalculation of CIT liability and effective tax rate in real-time.
+- [x] Provide warning messages when simulated variables breach statutory tax guidelines (e.g. loan interest exceeding 30% of EBITDA).
+- [x] Support saving and comparing multiple named scenarios (e.g., Conservative vs. Optimistic).
+- [x] Expose API endpoint `POST /api/cit/simulate-scenario` to run calculations.
 
 ## Design Notes
 

@@ -50,3 +50,16 @@ timeline
    - Corporate Income Tax (CIT): `1052`
    - Personal Income Tax (PIT): `1001`
    - Import Duty: `1901`
+
+---
+
+## 📋 Epic & Story Mapping
+
+| Epic ID | Epic Title | Story ID | Story Title | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| **E82** | Statutory BCTC & Audit | **US-200** | Statutory Financial Statements (BCTC) Scaffolder | ✅ Implemented |
+| **E82** | Statutory BCTC & Audit | **US-201** | Trial Balance & Ledger Integrity Auditor | ✅ Implemented |
+| **E83** | Tax & Bank Reconciliation | **US-202** | GDT Tax Payment Slip Scaffolder | ✅ Implemented |
+| **E83** | Tax & Bank Reconciliation | **US-203** | Corporate Banking Transaction Reconciler | ✅ Implemented |
+| **E84** | E-Commerce Sync & Match | **US-204** | E-Commerce Seller Portal Sync | ✅ Implemented |
+| **E84** | E-Commerce Sync & Match | **US-205** | Multi-Channel Revenue & Tax Matcher | ✅ Implemented |

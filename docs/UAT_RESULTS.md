@@ -12,10 +12,10 @@
 
 | Bộ kiểm thử | Tổng | ✅ Pass | ❌ Fail | ⏭️ Skip | Thời gian |
 |---|---|---|---|---|---|
-| **Automated Pytest Suite** | 449 | 448 | 0 | 1 (E2E) | 87.03s |
-| **UAT Smoke Test** | 19 | 19 | 0 | 0 | 39.86s |
+| **Automated Pytest Suite** | 477 | 476 | 0 | 1 (E2E) | 68.41s |
+| **UAT Smoke Test** | 19 | 19 | 0 | 0 | 10.42s |
 | **Live API Integration Test** | 16 | 16 | 0 | 0 | ~3s |
-| **TỔNG CỘNG** | **484** | **483** | **0** | **1** | **~130s** |
+| **TỔNG CỘNG** | **512** | **511** | **0** | **1** | **~82s** |
 
 > **Kết luận: ĐẠT ✅ — Hệ thống sẵn sàng đưa vào vận hành.**
 
@@ -23,11 +23,11 @@
 
 ## 2. CHI TIẾT TỪNG BỘ KIỂM THỬ
 
-### 2.1. Automated Pytest Suite (448/449 PASS)
+### 2.1. Automated Pytest Suite (476/477 PASS)
 
-Bao phủ toàn bộ 205 User Stories qua 449 test cases:
+Bao phủ toàn bộ User Stories qua 477 test cases:
 - Python syntax check: ✅ Valid
-- Coverage: 74% overall (11,263 lines, 2,897 uncovered)
+- Coverage: 75% overall (11,659 lines, 2,941 uncovered)
 - 1 test skipped: E2E browser test (yêu cầu Playwright headful)
 
 ### 2.2. UAT Smoke Test (19/19 PASS)
@@ -126,8 +126,8 @@ Ngày: 01/06/2026
 
 Kết quả:
   - Tổng số bộ kiểm thử: 3 (Pytest + Smoke + Live API)
-  - Tổng test cases: 484
-  - Test PASS: 483 (99.8%)
+  - Tổng test cases: 512
+  - Test PASS: 511 (99.8%)
   - Test FAIL: 0
   - Test SKIP: 1 (E2E headful)
 

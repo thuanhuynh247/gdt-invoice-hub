@@ -965,15 +965,16 @@ Project is COMPLETE when:
 - [x] **Tài liệu hóa Context Nghiệp vụ & Kế hoạch Kiểm thử**: Khởi tạo `history/v17_roadmap/CONTEXT.md` (4 quyết định khóa: quy tắc ánh xạ tài khoản VAS, mã tiểu mục nộp ngân sách, ngưỡng tiền mặt 20 triệu VND, và gom nhóm doanh thu lẻ bán ra sàn) và `history/v17_roadmap/validation.md` (ma trận khả thi & kế hoạch kiểm thử) -> ✅ HOÀN THÀNH
 - [x] **Đăng ký Story trên Hệ thống Harness Database**: Đăng ký thông tin 6 User Story mới (US-200 ~ US-205) vào SQLite `harness.db` ở trạng thái "planned" -> ✅ HOÀN THÀNH
 
+## ⚡ PHẦN 39: HOÀN THÀNH TRIỂN KHAI TOÀN BỘ LỘ TRÌNH CHIẾN LƯỢC (V11 - V17) & KIỂM THỬ TÍCH HỢP (2026-06-03)
+- [x] **Triển khai Trọn vẹn các User Story (US-140 đến US-205)**: Hoàn thành toàn bộ mã nguồn nghiệp vụ cho các phân hệ bảo mật, crawler resiliency, dự báo dòng tiền, kiểm toán thuế TNDN, quyết toán TNCN/TNDN, cổng API gateway, liên kết blockchain, đối soát tờ khai hải quan, đối soát ngân hàng và đồng bộ TMĐT -> ✅ HOÀN THÀNH
+- [x] **Tái cấu trúc UI/UX & Tối ưu CRO (US-206 đến US-212)**: Hoàn thiện Premium Theme Switcher CSS, Bento Grid search dashboard, cashflow SVG charts, tối ưu hóa biểu mẫu đăng nhập/phát hành hóa đơn, và radar cảnh báo rủi ro nhà cung cấp -> ✅ HOÀN THÀNH
+- [x] **Cập nhật Trạng thái SQLite harness.db**: Đồng bộ và cập nhật toàn bộ trạng thái của các User Story trong cơ sở dữ liệu Harness từ `planned` sang `implemented` -> ✅ HOÀN THÀNH
+- [x] **Xác minh qua Bộ kiểm thử Tích hợp**: Chạy thành công toàn bộ suite test gồm **470 tests** (lệnh `scripts/harness validate --cmd "pytest"`) đạt tỷ lệ bao phủ code cực cao và không có lỗi kiểm thử nào xảy ra -> ✅ HOÀN THÀNH
+- [x] **Đồng bộ hóa & Đóng gói Tài liệu**: Cập nhật tệp `docs/stories/backlog.md` ghi nhận toàn bộ Epics & Stories đã hoàn thành, chuẩn bị sẵn sàng cho việc kiểm duyệt UAT và triển khai sản xuất -> ✅ HOÀN THÀNH
 
-
-
-
-
-
-
-
-
-
-
+## ⚡ PHẦN 40: DỰ PHÒNG THÔNG TƯ 20/2026/TT-BTC & CHATBOT RAG UPGRADE (2026-06-03)
+- [x] **Cập nhật Dynamic PDF Ingestion**: Cấu hình tự động nhận diện tài liệu pháp lý `"20-btc.pdf"` và gán ngày hiệu lực thực tế `"2026-03-12"` khi hệ thống quét tệp tin khởi động -> ✅ HOÀN THÀNH
+- [x] **Tích hợp Cơ sở dữ liệu Virtual FTS5 & Fallback RAG**: Đăng ký các từ khóa và nội dung quy chế của Thông tư 20/2026/TT-BTC vào cơ chế tìm kiếm toàn văn FTS5 và từ điển RAG fallback -> ✅ HOÀN THÀNH
+- [x] **Phát hiện Rủi ro Chi phí mua hàng ủy quyền qua cá nhân (Điều 13)**: Nâng cấp lớp `TaxAdvisoryAgent.scan_invoices` tự động phát hiện và cảnh báo các giao dịch ủy quyền cá nhân từ 5 triệu VND trở lên thiếu chứng từ thanh toán không dùng tiền mặt -> ✅ HOÀN THÀNH
+- [x] **Xác minh qua Bộ kiểm thử Tích hợp**: Viết mới bộ test `tests/test_circular20_compliance.py` và chạy thành công toàn bộ **480 tests** của hệ thống đạt tỷ lệ 100% xanh mượt -> ✅ HOÀN THÀNH
 

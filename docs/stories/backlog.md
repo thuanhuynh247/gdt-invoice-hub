@@ -50,9 +50,38 @@ This backlog lists the core epics and stories for the **Invoice Download Webapp*
 | **E42** | OAuth2 Sandbox Testing Suite | - US-046: Mock OAuth2 Sandbox server & pytest automatic request interceptor | **implemented** | `tests/test_cloud_sync.py::test_sync_invoice_to_cloud_with_sandbox` |
 | **E49** | Real-Time Sync | - US-053: Real-Time GDT Invoice Synchronization Agent | **implemented** | `tests/test_realtime_sync.py` |
 | **E50** | Audit Mitigation | - US-054: AI Tax Optimization & Audit Mitigation Planner | **implemented** | `tests/test_v3_features.py` |
-| **E51** | Cross-Border Tax | - US-055: Cross-Border E-Commerce & Multi-Currency VAT Auditor | **implemented** | `tests/test_fct_auditor.py` |
+| **E51** | Security Audit Ledger | - US-140: Immutable Security Audit Logger<br>- US-141: Audit Trail Viewer UI & Export | **implemented** | `tests/test_v11_audit_log.py`, `tests/test_v11_audit_trail_viewer.py` |
+| **E52** | Sync Resiliency | - US-142: Resilient Sync Queue Manager<br>- US-143: CAPTCHA Solver Analytics Dashboard | **implemented** | `tests/test_v11_sync_resiliency.py`, `tests/test_captcha_analytics.py` |
+| **E53** | Risk Analytics & PDF | - US-144: Tax Risk Scoreboard Dashboard<br>- US-145: Signed Compliance Report Exporter | **implemented** | `tests/test_v11_signed_report.py` |
+| **E54** | Cash Flow Forecasting | - US-150: Smart Cashflow Predictor<br>- US-151: Interactive Scenario Simulator | **implemented** | `tests/test_v12_cashflow.py`, `tests/test_cashflow_oracle.py` |
+| **E55** | AI CIT Deduction Auditor | - US-152: CIT Deduction Auditor Engine<br>- US-153: CIT Deduction Advisory Panel | **implemented** | `tests/test_cit.py` |
+| **E56** | Consolidated Analytics | - US-154: Cross-Tenant Consolidated Dashboard<br>- US-155: Consolidated Executive Slide Exporter | **implemented** | `tests/test_consolidated.py` |
+| **E57** | Smart Notification Engine | - US-160: Tax Deadline Alerter<br>- US-161: Anomaly Alert Engine | **implemented** | `tests/test_scheduler.py` |
+| **E58** | Document Intelligence | - US-162: Photo Invoice OCR Pipeline<br>- US-163: Smart Document Classifier | **implemented** | `tests/test_ocr_pipeline.py`, `tests/test_expense_classifier.py` |
+| **E59** | API Integration Gateway | - US-164: Versioned REST API Gateway<br>- US-165: Integration Marketplace Webhook Registry | **implemented** | `tests/test_webhook_hub.py` |
+| **E60** | AI Tax Audit Simulation | - US-170: Tax Audit Simulation Engine<br>- US-171: Audit Mitigation Adviser | **implemented** | `tests/test_mitigation.py` |
+| **E61** | Related Party & Transfer Pricing | - US-172: Related Party Transaction Detector<br>- US-173: Transfer Pricing Local File Scaffolder | **implemented** | `tests/test_v3_features.py` |
+| **E62** | Foreign Contractor & Treasury | - US-174: Multi-Currency Treasury Reconciler<br>- US-175: Foreign Contractor Tax Compliance Auditor | **implemented** | `tests/test_fct_auditor.py` |
+| **E63** | CIT Finalization | - US-180: CIT Finalization Engine<br>- US-181: CIT Scenario Modeler | **implemented** | `tests/test_cit.py` |
+| **E64** | Schema & Custom Metadata | - US-182: XML Schema Extension Engine<br>- US-183: Dynamic Metadata Reporter | **implemented** | `tests/test_schema_validation.py` |
+| **E65** | Multi-Sig & Blockchain Integrity | - US-184: Multi-Signature Approver<br>- US-185: Blockchain Audit Ledger | **implemented** | `tests/test_audit_ledger.py` |
+| **E66** | Customs XML Parser & Matching | - US-190: Customs XML Parser<br>- US-191: Customs to Invoice Matcher | **implemented** | `tests/test_reconciliation.py` |
+| **E67** | PIT & Payroll Audit Engine | - US-192: Payroll Compliance Engine<br>- US-193: Automated PIT Finalizer | **implemented** | `tests/test_reconciliation.py` |
+| **E68** | Secure Archiving & TSA Cryptography | - US-194: Decree-123 Digital Vault<br>- US-195: Long-Term Signature Validator | **implemented** | `tests/test_signature_verification.py` |
+| **E69** | BCTC Statutory Scaffolder | - US-200: Statutory BCTC Scaffolder<br>- US-201: Ledger Integrity Auditor | **implemented** | `tests/test_v17_features.py` |
+| **E70** | Tax Payment & Bank Reconciliation | - US-202: Tax Payment Slip Scaffolder<br>- US-203: Bank Transaction Reconciler | **implemented** | `tests/test_v17_features.py` |
+| **E71** | E-Commerce Ingestion & Matcher | - US-204: Ecommerce Invoice Synchronizer<br>- US-205: Ecommerce Revenue Tax Matcher | **implemented** | `tests/test_v17_features.py` |
+| **E72** | Webapp UI/UX Audit & Refinement | - US-206: CSS Theme Refactor<br>- US-207: Bento Grid KPI Search UI<br>- US-208: Cashflow SVG charts<br>- US-209: Forms CRO Optimize<br>- US-210: Captcha Pytest Suit<br>- US-211: AI Copilot Contextual Assistant Upgrade<br>- US-212: Supplier Risk Radar | **implemented** | `tests/test_settings_filters.py`, `tests/test_v12_cashflow.py`, `tests/test_auth.py`, `tests/test_captcha_solver.py`, `tests/test_supplier_risk.py` |
+| **E85** | IAS 12 Deferred Tax | - US-300: IAS 12 Temporary Difference Engine<br>- US-301: Deferred Tax Balance Sheet Integration | **implemented** | `tests/test_ifrs_engine.py` |
+| **E86** | IFRS 16 Leases | - US-302: Present Value Calculator<br>- US-303: Lease Liability Amortization Schedule | **implemented** | `tests/test_ifrs_engine.py` |
+| **E87** | OECD Pillar Two | - US-304: Cross-Tenant Consolidation Router<br>- US-305: GloBE Top-up Tax Estimator | **implemented** | `tests/test_ifrs_engine.py` |
+| **E88** | Decree 132 Related-Party & EBITDA Cap | - US-310: Database Schema & Catalog Management<br>- US-311: Core EBITDA interest cap & Form 01/132 disclosures | **implemented** | `tests/test_v19_us191_partner_schema.py`, `tests/test_cit.py` |
+| **E89** | Circular 103 FCT Withholding Auditor | - US-312: FCT Classifier & Line-item calculations<br>- US-313: FCT Form 01/NTNN Excel Exporter | **implemented** | `tests/test_fct_auditor.py` |
+| **E90** | Circular 78 CIT Preferential Rates & Tax Holidays | - US-314: Preferred CIT Rates, Tax Holidays & R&D Modeler<br>- US-315: End-to-End Integration & Suite Verification | **implemented** | `tests/test_cit.py`, `tests/test_ifrs_engine.py`, `scripts/validate.bat` |
+
 
 ## Harness Growth Backlog
 
 Future harness extensions and product enhancements are tracked in [docs/HARNESS_BACKLOG.md](file:///d:/LearnAnyThing/Webapp%20XML/docs/HARNESS_BACKLOG.md).
+
 

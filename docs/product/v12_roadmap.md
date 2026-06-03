@@ -89,9 +89,9 @@ timeline
 
 | Epic ID | Epic Title | Story ID | Story Title | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **E67** | Cash Flow Forecasting | **US-150** | Smart Cash Flow Predictor | 📅 Planned |
-| **E67** | Cash Flow Forecasting | **US-151** | Interactive Scenario Simulator | 📅 Planned |
-| **E68** | AI CIT Deduction Auditor | **US-152** | CIT Deduction Auditor Engine | 📅 Planned |
-| **E68** | AI CIT Deduction Auditor | **US-153** | CIT Deduction Advisory Panel | 📅 Planned |
-| **E69** | Cross-Tenant Aggregation | **US-154** | Cross-Tenant Consolidated Dashboard | 📅 Planned |
-| **E69** | Cross-Tenant Aggregation | **US-155** | Consolidated Executive Slide Exporter | 📅 Planned |
+| **E67** | Cash Flow Forecasting | **US-150** | Smart Cash Flow Predictor | ✅ Implemented |
+| **E67** | Cash Flow Forecasting | **US-151** | Interactive Scenario Simulator | ✅ Implemented |
+| **E68** | AI CIT Deduction Auditor | **US-152** | CIT Deduction Auditor Engine | ✅ Implemented |
+| **E68** | AI CIT Deduction Auditor | **US-153** | CIT Deduction Advisory Panel | ✅ Implemented |
+| **E69** | Cross-Tenant Aggregation | **US-154** | Cross-Tenant Consolidated Dashboard | ✅ Implemented |
+| **E69** | Cross-Tenant Aggregation | **US-155** | Consolidated Executive Slide Exporter | ✅ Implemented |

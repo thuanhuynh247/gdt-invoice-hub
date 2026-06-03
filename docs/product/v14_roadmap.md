@@ -97,9 +97,9 @@ timeline
 
 | Epic ID | Epic Title | Story ID | Story Title | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **E73** | AI Tax Audit | **US-170** | Tax Audit Simulation Engine | 📅 Planned |
-| **E73** | AI Tax Audit | **US-171** | Audit Mitigation Adviser | 📅 Planned |
-| **E74** | Transfer Pricing | **US-172** | Related Party Transaction Detector | 📅 Planned |
-| **E74** | Transfer Pricing | **US-173** | Transfer Pricing Local File Scaffolder | 📅 Planned |
-| **E75** | Multi-Currency Treasury | **US-174** | Multi-Currency Treasury Reconciler | 📅 Planned |
-| **E75** | Multi-Currency Treasury | **US-175** | Foreign Contractor Tax Compliance Auditor | 📅 Planned |
+| **E73** | AI Tax Audit | **US-170** | Tax Audit Simulation Engine | ✅ Implemented |
+| **E73** | AI Tax Audit | **US-171** | Audit Mitigation Adviser | ✅ Implemented |
+| **E74** | Transfer Pricing | **US-172** | Related Party Transaction Detector | ✅ Implemented |
+| **E74** | Transfer Pricing | **US-173** | Transfer Pricing Local File Scaffolder | ✅ Implemented |
+| **E75** | Multi-Currency Treasury | **US-174** | Multi-Currency Treasury Reconciler | ✅ Implemented |
+| **E75** | Multi-Currency Treasury | **US-175** | Foreign Contractor Tax Compliance Auditor | ✅ Implemented |

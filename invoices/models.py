@@ -75,6 +75,7 @@ class Partner(db.Model):
     address = db.Column(db.Text, nullable=True)
     mst_status = db.Column(db.String(100), nullable=True)
     mst_last_checked = db.Column(db.String(50), nullable=True)
+    decree_132_relationship = db.Column(db.String(10), nullable=True)
 
     def to_dict(self) -> dict:
         return {
@@ -83,6 +84,7 @@ class Partner(db.Model):
             "address": self.address or "",
             "mst_status": self.mst_status or "",
             "mst_last_checked": self.mst_last_checked or "",
+            "decree_132_relationship": self.decree_132_relationship or "",
         }
 
 
@@ -301,6 +303,11 @@ class AIChatSession(db.Model):
     id = db.Column(db.String(36), primary_key=True)
     title = db.Column(db.String(255), nullable=False)
     created_at = db.Column(db.String(50), nullable=False)
+    invoice_id = db.Column(
+        db.String(100),
+        db.ForeignKey("invoice.id", ondelete="SET NULL"),
+        nullable=True,
+    )
 
     messages = db.relationship(
         "AIChatMessage",
@@ -315,8 +322,10 @@ class AIChatSession(db.Model):
             "title": self.title,
             "created_at": self.created_at,
             "updated_at": self.created_at,
+            "invoice_id": self.invoice_id,
             "messages": [msg.to_dict() for msg in self.messages]
         }
+
 
 
 class AIChatMessage(db.Model):

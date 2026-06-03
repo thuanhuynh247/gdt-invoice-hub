@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -19,11 +19,11 @@ The application must proactively calculate and display upcoming Vietnamese tax f
 
 ## Acceptance Criteria
 
-- [ ] Implement deadline calculation engine based on Vietnamese fiscal calendar rules.
-- [ ] Display countdown badges on dashboard (30-day green, 15-day yellow, 7-day orange, overdue red).
-- [ ] Expose API `GET /api/notifications/deadlines` returning next upcoming deadlines.
-- [ ] Support configurable advance-warning thresholds via SystemConfig.
-- [ ] Write tests verifying deadline calculation accuracy across quarter boundaries.
+- [x] Implement deadline calculation engine based on Vietnamese fiscal calendar rules.
+- [x] Display countdown badges on dashboard (30-day green, 15-day yellow, 7-day orange, overdue red).
+- [x] Expose API `GET /api/notifications/deadlines` returning next upcoming deadlines.
+- [x] Support configurable advance-warning thresholds via SystemConfig.
+- [x] Write tests verifying deadline calculation accuracy across quarter boundaries.
 
 ## Design Notes
 

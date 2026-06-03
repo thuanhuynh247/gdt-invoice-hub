@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -20,12 +20,12 @@ The system must automatically aggregate financial data (revenue, cost of goods s
 
 ## Acceptance Criteria
 
-- [ ] Aggregates financial items (revenue, costs, interest expenses) from invoices and profiles.
-- [ ] Automatically computes and applies the 30% EBITDA loan interest cap under Decree 132/2020/NĐ-CP.
-- [ ] Supports manual line-item adjustments for non-deductible cost inputs (e.g., welfare exceedances).
-- [ ] Generates the statutory XML schema and Excel structure for Form 03/TNDN compatible with GDT's HTKK software.
-- [ ] Exposes API endpoint `POST /api/cit/finalize` to trigger report generation.
-- [ ] Write unit tests verifying CIT calculations, EBITDA interest caps, and XML generation validity.
+- [x] Aggregates financial items (revenue, costs, interest expenses) from invoices and profiles.
+- [x] Automatically computes and applies the 30% EBITDA loan interest cap under Decree 132/2020/NĐ-CP.
+- [x] Supports manual line-item adjustments for non-deductible cost inputs (e.g., welfare exceedances).
+- [x] Generates the statutory XML schema and Excel structure for Form 03/TNDN compatible with GDT's HTKK software.
+- [x] Exposes API endpoint `POST /api/cit/finalize` to trigger report generation.
+- [x] Write unit tests verifying CIT calculations, EBITDA interest caps, and XML generation validity.
 
 ## Design Notes
 

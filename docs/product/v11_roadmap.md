@@ -83,9 +83,9 @@ timeline
 
 | Epic ID | Epic Title | Story ID | Story Title | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **E64** | Security Audit Ledger | **US-140** | Immutable Audit Logger | 📅 Planned |
-| **E64** | Security Audit Ledger | **US-141** | Audit Trail Viewer UI & Export | 📅 Planned |
-| **E65** | Sync Resiliency | **US-142** | Resilient Sync Queue Manager | 📅 Planned |
-| **E65** | Sync Resiliency | **US-143** | CAPTCHA Solver Analytics Dashboard | 📅 Planned |
-| **E66** | Risk Analytics & PDF | **US-144** | Tax Risk Scoreboard Dashboard | 📅 Planned |
-| **E66** | Risk Analytics & PDF | **US-145** | Signed Compliance Report Exporter | 📅 Planned |
+| **E64** | Security Audit Ledger | **US-140** | Immutable Audit Logger | ✅ Implemented |
+| **E64** | Security Audit Ledger | **US-141** | Audit Trail Viewer UI & Export | ✅ Implemented |
+| **E65** | Sync Resiliency | **US-142** | Resilient Sync Queue Manager | ✅ Implemented |
+| **E65** | Sync Resiliency | **US-143** | CAPTCHA Solver Analytics Dashboard | ✅ Implemented |
+| **E66** | Risk Analytics & PDF | **US-144** | Tax Risk Scoreboard Dashboard | ✅ Implemented |
+| **E66** | Risk Analytics & PDF | **US-145** | Signed Compliance Report Exporter | ✅ Implemented |

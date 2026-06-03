@@ -164,11 +164,11 @@
             <form id="invoiceSearchForm" class="row g-4 align-items-end">
                 <div class="col-md-2">
                     <label class="form-label fw-medium" for="dateFrom">Từ Ngày</label>
-                    <input type="date" class="form-control custom-input w-100" id="dateFrom" required autocomplete="off">
+                    <input type="date" class="form-control custom-input w-100" id="dateFrom" required autocomplete="off" aria-label="Datefrom">
                 </div>
                 <div class="col-md-2">
                     <label class="form-label fw-medium" for="dateTo">Đến Ngày</label>
-                    <input type="date" class="form-control custom-input w-100" id="dateTo" required autocomplete="off">
+                    <input type="date" class="form-control custom-input w-100" id="dateTo" required autocomplete="off" aria-label="Dateto">
                 </div>
                 <div class="col-md-2">
                     <label class="form-label fw-medium" for="invoiceDirection">Loại Hóa Đơn</label>
@@ -383,7 +383,7 @@
                 <div class="d-flex align-items-center gap-2">
                     <span class="text-secondary small">Trạng thái crawler:</span>
                     <span id="crawlerStatusBadge" class="badge bg-secondary px-3 py-2 text-uppercase" style="border-radius: 20px; font-weight: 600; letter-spacing: 0.5px;">
-                        Đang Tải...
+                        Đang Tải…
                     </span>
                     <button type="button" class="btn btn-sm btn-outline-light ms-2" id="btnRefreshSyncHealth" title="Làm mới chỉ số" aria-label="Làm mới chỉ số">
                         <i class="bi bi-arrow-clockwise" aria-hidden="true"></i>
@@ -439,7 +439,7 @@
                     <form id="batchDownloadForm" class="row g-3 align-items-end mt-2">
                         <div class="col-sm-4">
                             <label class="form-label fw-medium" for="batchMonth">Tháng Cần Tải</label>
-                            <input type="month" class="form-control custom-input" id="batchMonth" required autocomplete="off">
+                            <input type="month" class="form-control custom-input" id="batchMonth" required autocomplete="off" aria-label="Batchmonth">
                         </div>
                         <div class="col-sm-4">
                             <label class="form-label fw-medium" for="batchDirection">Chiều Hóa Đơn</label>
@@ -637,7 +637,7 @@
                     <label class="form-label fw-medium small mb-1" for="localSearchKeyword">Tìm kiếm từ khóa</label>
                     <div class="input-group">
                         <span class="input-group-text bg-transparent border-end-0 text-secondary"><i class="bi bi-search" aria-hidden="true"></i></span>
-                        <input type="text" class="form-control custom-input border-start-0" id="localSearchKeyword" placeholder="Số hóa đơn, người bán/mua, MST…" autocomplete="off">
+                        <input type="text" class="form-control custom-input border-start-0" id="localSearchKeyword" placeholder="Số hóa đơn, người bán/mua, MST…" autocomplete="off" aria-label="Số hóa đơn, người bán/mua, MST…">
                     </div>
                 </div>
                 <div class="col-md-3">
@@ -718,7 +718,7 @@
                         </div>
                         <div class="col-sm-6">
                             <label class="form-label fw-semibold small mb-1 text-white" for="reconcileAccountNum">Số Tài Khoản</label>
-                            <input type="text" class="form-control custom-input" id="reconcileAccountNum" placeholder="Ví dụ: 1022998887" autocomplete="off">
+                            <input type="text" class="form-control custom-input" id="reconcileAccountNum" placeholder="Ví dụ: 1022998887" autocomplete="off" aria-label="Ví dụ: 1022998887">
                         </div>
                         <div class="col-12 mt-3">
                             <div class="border border-dashed border-secondary border-opacity-25 rounded p-4 text-center cursor-pointer position-relative hover-border-primary" id="bankDragZone" style="background: rgba(0,0,0,0.25); transition: border-color 0.25s;">
@@ -884,20 +884,20 @@
                     <form id="smtpSettingsForm" class="row g-3 mt-1">
                         <div class="col-md-8">
                             <label class="form-label fw-medium small mb-1" for="settingsSmtpHost">SMTP Host</label>
-                            <input type="text" class="form-control custom-input" id="settingsSmtpHost" placeholder="smtp.gmail.com" required autocomplete="off">
+                            <input type="text" class="form-control custom-input" id="settingsSmtpHost" placeholder="smtp.gmail.com" required autocomplete="off" aria-label="smtp.gmail.com">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-medium small mb-1" for="settingsSmtpPort">Cổng (Port)</label>
-                            <input type="number" class="form-control custom-input" id="settingsSmtpPort" placeholder="587" required autocomplete="off">
+                            <input type="number" class="form-control custom-input" id="settingsSmtpPort" placeholder="587" required autocomplete="off" aria-label="587">
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-medium small mb-1" for="settingsSmtpUser">Tên đăng nhập SMTP</label>
-                            <input type="text" class="form-control custom-input" id="settingsSmtpUser" placeholder="your-email@gmail.com" required autocomplete="username">
+                            <input type="text" class="form-control custom-input" id="settingsSmtpUser" placeholder="your-email@gmail.com" required autocomplete="username" aria-label="your-email@gmail.com">
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-medium small mb-1" for="settingsSmtpPass">Mật khẩu SMTP</label>
                             <div class="input-group">
-                                <input type="password" class="form-control custom-input border-end-0" id="settingsSmtpPass" required autocomplete="current-password">
+                                <input type="password" class="form-control custom-input border-end-0" id="settingsSmtpPass" required autocomplete="current-password" aria-label="Settingssmtppass">
                                 <button class="btn btn-outline-secondary border-start-0" type="button" id="toggleSmtpPass" style="border-top-right-radius: 0.75rem; border-bottom-right-radius: 0.75rem;">
                                     <i class="bi bi-eye" aria-hidden="true"></i>
                                 </button>
@@ -933,7 +933,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-medium small mb-1" for="settingsRecipientEmail">Email nhận báo cáo</label>
-                            <input type="email" class="form-control custom-input" id="settingsRecipientEmail" placeholder="recipient@company.com" autocomplete="email">
+                            <input type="email" class="form-control custom-input" id="settingsRecipientEmail" placeholder="recipient@company.com" autocomplete="email" aria-label="recipient@company.com">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-medium small mb-1" for="settingsScheduleInterval">Chu kỳ báo cáo</label>
@@ -944,7 +944,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-medium small mb-1" for="settingsScheduleTime">Giờ chạy báo cáo</label>
-                            <input type="time" class="form-control custom-input" id="settingsScheduleTime" value="08:00" autocomplete="off">
+                            <input type="time" class="form-control custom-input" id="settingsScheduleTime" value="08:00" autocomplete="off" aria-label="Settingsscheduletime">
                         </div>
                         <div class="col-md-6" id="weekdaySelectorWrapper" style="display: none;">
                             <label class="form-label fw-medium small mb-1" for="settingsScheduleWeekday">Ngày chạy trong tuần</label>
@@ -962,12 +962,12 @@
                         <!-- GDT tax account info for background session auto-refresh -->
                         <div class="col-md-6 mt-4">
                             <label class="form-label fw-medium small mb-1" for="settingsGdtUser">MST đăng nhập Tổng Cục Thuế</label>
-                            <input type="text" class="form-control custom-input" id="settingsGdtUser" placeholder="Nhập mã số thuế…" autocomplete="username">
+                            <input type="text" class="form-control custom-input" id="settingsGdtUser" placeholder="Nhập mã số thuế…" autocomplete="username" aria-label="Nhập mã số thuế…">
                         </div>
                         <div class="col-md-6 mt-4">
                             <label class="form-label fw-medium small mb-1" for="settingsGdtPass">Mật khẩu Tổng Cục Thuế</label>
                             <div class="input-group">
-                                <input type="password" class="form-control custom-input border-end-0" id="settingsGdtPass" autocomplete="current-password">
+                                <input type="password" class="form-control custom-input border-end-0" id="settingsGdtPass" autocomplete="current-password" aria-label="Settingsgdtpass">
                                 <button class="btn btn-outline-secondary border-start-0" type="button" id="toggleGdtPass" style="border-top-right-radius: 0.75rem; border-bottom-right-radius: 0.75rem;">
                                     <i class="bi bi-eye" aria-hidden="true"></i>
                                 </button>
@@ -1027,7 +1027,7 @@
                         <div class="col-md-12">
                             <label class="form-label fw-medium small mb-1" for="settingsRealtimeSyncInterval">Tần suất đồng bộ (Phút)</label>
                             <div class="input-group">
-                                <input type="number" class="form-control custom-input" id="settingsRealtimeSyncInterval" value="15" min="5" placeholder="15" autocomplete="off">
+                                <input type="number" class="form-control custom-input" id="settingsRealtimeSyncInterval" value="15" min="5" placeholder="15" autocomplete="off" aria-label="15">
                                 <span class="input-group-text bg-transparent text-secondary border-secondary border-opacity-25" style="border-top-right-radius: 0.75rem; border-bottom-right-radius: 0.75rem;">phút / lần</span>
                             </div>
                             <div class="form-text text-secondary" style="font-size: 0.75rem;">Khuyến nghị từ 15-30 phút để tối ưu hiệu năng và tránh bị giới hạn IP bởi GDT.</div>
@@ -1047,12 +1047,12 @@
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-medium small mb-1" for="settingsWebhookUrl">Webhook URL</label>
-                            <input type="url" class="form-control custom-input" id="settingsWebhookUrl" placeholder="https://api.yourcompany.com/webhooks/invoice" autocomplete="off">
+                            <input type="url" class="form-control custom-input" id="settingsWebhookUrl" placeholder="https://api.yourcompany.com/webhooks/invoice" autocomplete="off" aria-label="https://api.yourcompany.com/webhooks/invoice">
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-medium small mb-1" for="settingsWebhookSecret">Webhook Secret (Khóa Ký HMAC)</label>
                             <div class="input-group">
-                                <input type="password" class="form-control custom-input border-end-0" id="settingsWebhookSecret" placeholder="Nhập khóa bí mật để xác thực chữ ký…" autocomplete="off">
+                                <input type="password" class="form-control custom-input border-end-0" id="settingsWebhookSecret" placeholder="Nhập khóa bí mật để xác thực chữ ký…" autocomplete="off" aria-label="Nhập khóa bí mật để xác thực chữ ký…">
                                 <button class="btn btn-outline-secondary border-start-0" type="button" id="toggleWebhookSecret" style="border-top-right-radius: 0.75rem; border-bottom-right-radius: 0.75rem;">
                                     <i class="bi bi-eye" aria-hidden="true"></i>
                                 </button>
@@ -1094,16 +1094,16 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-medium small mb-1" for="settingsAiModelName">Tên Model</label>
-                            <input type="text" class="form-control custom-input" id="settingsAiModelName" placeholder="gemma-4" autocomplete="off">
+                            <input type="text" class="form-control custom-input" id="settingsAiModelName" placeholder="gemma-4" autocomplete="off" aria-label="gemma-4">
                         </div>
                         <div class="col-12" id="aiOllamaEndpointWrapper">
                             <label class="form-label fw-medium small mb-1" for="settingsAiOllamaEndpoint">Ollama Endpoint URL</label>
-                            <input type="url" class="form-control custom-input" id="settingsAiOllamaEndpoint" placeholder="http://localhost:11434" autocomplete="off">
+                            <input type="url" class="form-control custom-input" id="settingsAiOllamaEndpoint" placeholder="http://localhost:11434" autocomplete="off" aria-label="http://localhost:11434">
                         </div>
                         <div class="col-12" id="aiApiKeyWrapper" style="display: none;">
                             <label class="form-label fw-medium small mb-1" for="settingsAiApiKey">API Key</label>
                             <div class="input-group">
-                                <input type="password" class="form-control custom-input border-end-0" id="settingsAiApiKey" placeholder="Nhập API Key bảo mật…" autocomplete="off">
+                                <input type="password" class="form-control custom-input border-end-0" id="settingsAiApiKey" placeholder="Nhập API Key bảo mật…" autocomplete="off" aria-label="Nhập API Key bảo mật…">
                                 <button class="btn btn-outline-secondary border-start-0" type="button" id="toggleAiApiKey" style="border-top-right-radius: 0.75rem; border-bottom-right-radius: 0.75rem;">
                                     <i class="bi bi-eye" aria-hidden="true"></i>
                                 </button>
@@ -1128,7 +1128,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-medium small mb-1" for="settingsAuditAgentScheduleTime">Giờ chạy quét hàng ngày</label>
-                            <input type="time" class="form-control custom-input" id="settingsAuditAgentScheduleTime" value="23:00" autocomplete="off">
+                            <input type="time" class="form-control custom-input" id="settingsAuditAgentScheduleTime" value="23:00" autocomplete="off" aria-label="Settingsauditagentscheduletime">
                         </div>
                         <div class="col-12 mt-3">
                             <div class="form-check form-switch">
@@ -1139,7 +1139,7 @@
                         <div class="col-md-6 mt-2" id="telegramBotTokenWrapper">
                             <label class="form-label fw-medium small mb-1" for="settingsTelegramBotToken">Telegram Bot Token</label>
                             <div class="input-group">
-                                <input type="password" class="form-control custom-input border-end-0" id="settingsTelegramBotToken" placeholder="Nhập bot token…" autocomplete="off">
+                                <input type="password" class="form-control custom-input border-end-0" id="settingsTelegramBotToken" placeholder="Nhập bot token…" autocomplete="off" aria-label="Nhập bot token…">
                                 <button class="btn btn-outline-secondary border-start-0" type="button" id="toggleTelegramBotToken" style="border-top-right-radius: 0.75rem; border-bottom-right-radius: 0.75rem;">
                                     <i class="bi bi-eye" aria-hidden="true"></i>
                                 </button>
@@ -1147,7 +1147,7 @@
                         </div>
                         <div class="col-md-6 mt-2" id="telegramChatIdWrapper">
                             <label class="form-label fw-medium small mb-1" for="settingsTelegramChatId">Telegram Chat ID</label>
-                            <input type="text" class="form-control custom-input" id="settingsTelegramChatId" placeholder="Nhập chat/group ID…" autocomplete="off">
+                            <input type="text" class="form-control custom-input" id="settingsTelegramChatId" placeholder="Nhập chat/group ID…" autocomplete="off" aria-label="Nhập chat/group ID…">
                         </div>
                         <div class="col-12 d-flex gap-2 mt-4">
                             <button type="button" class="btn btn-outline-secondary w-100" id="btnTestAudit" style="min-height: 44px; border-radius: 0.75rem;">
@@ -1221,20 +1221,20 @@
                             <form id="taxpayerProfileForm" class="row g-3">
                                 <div class="col-12">
                                     <label class="form-label fw-medium small mb-1" for="profileMst">Mã số thuế</label>
-                                    <input type="text" class="form-control custom-input" id="profileMst" placeholder="Ví dụ: 0101234567" required autocomplete="organization-tax-id">
+                                    <input type="text" class="form-control custom-input" id="profileMst" placeholder="Ví dụ: 0101234567" required autocomplete="organization-tax-id" aria-label="Ví dụ: 0101234567">
                                 </div>
                                 <div class="col-12">
                                     <label class="form-label fw-medium small mb-1" for="profileCompanyName">Tên doanh nghiệp</label>
-                                    <input type="text" class="form-control custom-input" id="profileCompanyName" placeholder="Nhập tên đầy đủ…" required autocomplete="organization">
+                                    <input type="text" class="form-control custom-input" id="profileCompanyName" placeholder="Nhập tên đầy đủ…" required autocomplete="organization" aria-label="Nhập tên đầy đủ…">
                                 </div>
                                 <div class="col-12">
                                     <label class="form-label fw-medium small mb-1" for="profileGdtUser">Tài khoản đăng nhập GDT</label>
-                                    <input type="text" class="form-control custom-input" id="profileGdtUser" placeholder="Nhập tên đăng nhập…" required autocomplete="username">
+                                    <input type="text" class="form-control custom-input" id="profileGdtUser" placeholder="Nhập tên đăng nhập…" required autocomplete="username" aria-label="Nhập tên đăng nhập…">
                                 </div>
                                 <div class="col-12">
                                     <label class="form-label fw-medium small mb-1" for="profileGdtPass">Mật khẩu Tổng Cục Thuế</label>
                                     <div class="input-group">
-                                        <input type="password" class="form-control custom-input border-end-0" id="profileGdtPass" placeholder="Nhập mật khẩu…" required autocomplete="current-password">
+                                        <input type="password" class="form-control custom-input border-end-0" id="profileGdtPass" placeholder="Nhập mật khẩu…" required autocomplete="current-password" aria-label="Nhập mật khẩu…">
                                         <button class="btn btn-outline-secondary border-start-0" type="button" id="toggleProfileGdtPass" style="border-top-right-radius: 0.75rem; border-bottom-right-radius: 0.75rem;">
                                             <i class="bi bi-eye" aria-hidden="true"></i>
                                         </button>
@@ -1278,7 +1278,7 @@
                 </div>
                 <div class="col-md-3">
                     <label class="form-label fw-medium small mb-1" for="vatYear">Năm Kê Khai</label>
-                    <input type="number" class="form-control custom-input" id="vatYear" value="2026" min="2020" max="2100" autocomplete="off">
+                    <input type="number" class="form-control custom-input" id="vatYear" value="2026" min="2020" max="2100" autocomplete="off" aria-label="Vatyear">
                 </div>
                 <div class="col-md-3 d-grid">
                     <button type="submit" class="btn btn-primary-accent" id="btnLoadVatData" style="min-height: 44px;">
@@ -1511,6 +1511,10 @@
                         <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none fw-semibold d-flex align-items-center gap-1" id="btnRunAiClassification" style="font-size: 0.8rem; color: #10b981 !important;">
                             <i class="bi bi-tag-fill" aria-hidden="true"></i> Phân Loại
                         </button>
+                        <span style="color: rgba(255,255,255,0.2); font-size: 0.8rem;">|</span>
+                        <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none fw-semibold d-flex align-items-center gap-1" id="btnChatAboutInvoice" style="font-size: 0.8rem; color: #f59e0b !important;" title="Mở hội thoại AI chuyên sâu về hóa đơn này">
+                            <i class="bi bi-chat-dots-fill" aria-hidden="true"></i> Hỏi AI
+                        </button>
                     </div>
                 </h6>
                 <div id="detAiAuditContent" class="p-3 rounded border border-secondary border-opacity-25" style="background-color: rgba(99, 102, 241, 0.08);">
@@ -1687,7 +1691,7 @@
                     
                     <div class="col-md-6">
                         <label class="form-label fw-medium small mb-1" for="adjustDate">Ngày Lập Hóa Đơn</label>
-                        <input type="date" class="form-control custom-input" id="adjustDate" required autocomplete="off">
+                        <input type="date" class="form-control custom-input" id="adjustDate" required autocomplete="off" aria-label="Adjustdate">
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-medium small mb-1" for="adjustInvoiceStatus">Trạng Trạng Kế Toán (Thuế)</label>
@@ -1701,42 +1705,42 @@
 
                     <div class="col-md-6">
                         <label class="form-label fw-medium small mb-1" for="adjustSellerName">Tên Đơn Vị Bán Hàng</label>
-                        <input type="text" class="form-control custom-input" id="adjustSellerName" required autocomplete="organization">
+                        <input type="text" class="form-control custom-input" id="adjustSellerName" required autocomplete="organization" aria-label="Adjustsellername">
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-medium small mb-1" for="adjustSellerMst">Mã Số Thuế Người Bán</label>
-                        <input type="text" class="form-control custom-input" id="adjustSellerMst" required autocomplete="organization-tax-id">
+                        <input type="text" class="form-control custom-input" id="adjustSellerMst" required autocomplete="organization-tax-id" aria-label="Adjustsellermst">
                     </div>
 
                     <div class="col-md-6">
                         <label class="form-label fw-medium small mb-1" for="adjustBuyerName">Tên Đơn Vị Mua Hàng</label>
-                        <input type="text" class="form-control custom-input" id="adjustBuyerName" required autocomplete="organization">
+                        <input type="text" class="form-control custom-input" id="adjustBuyerName" required autocomplete="organization" aria-label="Adjustbuyername">
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-medium small mb-1" for="adjustBuyerMst">Mã Số Thuế Người Mua</label>
-                        <input type="text" class="form-control custom-input" id="adjustBuyerMst" required autocomplete="organization-tax-id">
+                        <input type="text" class="form-control custom-input" id="adjustBuyerMst" required autocomplete="organization-tax-id" aria-label="Adjustbuyermst">
                     </div>
 
                     <div class="col-md-4">
                         <label class="form-label fw-medium small mb-1" for="adjustAmountBeforeTax">Tiền Trước Thuế (₫)</label>
-                        <input type="number" step="0.01" class="form-control custom-input" id="adjustAmountBeforeTax" required autocomplete="off">
+                        <input type="number" step="0.01" class="form-control custom-input" id="adjustAmountBeforeTax" required autocomplete="off" aria-label="Adjustamountbeforetax">
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-medium small mb-1" for="adjustTaxAmount">Tiền Thuế GTGT (₫)</label>
-                        <input type="number" step="0.01" class="form-control custom-input" id="adjustTaxAmount" required autocomplete="off">
+                        <input type="number" step="0.01" class="form-control custom-input" id="adjustTaxAmount" required autocomplete="off" aria-label="Adjusttaxamount">
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-medium small mb-1" for="adjustTotalAmount">Tổng Cộng Sau Thuế (₫)</label>
-                        <input type="number" step="0.01" class="form-control custom-input" id="adjustTotalAmount" required autocomplete="off">
+                        <input type="number" step="0.01" class="form-control custom-input" id="adjustTotalAmount" required autocomplete="off" aria-label="Adjusttotalamount">
                     </div>
 
                     <div class="col-md-6">
                         <label class="form-label fw-medium small mb-1" for="adjustPaymentMethod">Hình Thức Thanh Toán</label>
-                        <input type="text" class="form-control custom-input" id="adjustPaymentMethod" placeholder="TM, CK, TM/CK…" autocomplete="off">
+                        <input type="text" class="form-control custom-input" id="adjustPaymentMethod" placeholder="TM, CK, TM/CK…" autocomplete="off" aria-label="TM, CK, TM/CK…">
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-medium small mb-1" for="adjustNotes">Ghi Chú Điều Chỉnh</label>
-                        <input type="text" class="form-control custom-input" id="adjustNotes" autocomplete="off" placeholder="Nhập lý do thay đổi/điều chỉnh…">
+                        <input type="text" class="form-control custom-input" id="adjustNotes" autocomplete="off" placeholder="Nhập lý do thay đổi/điều chỉnh…" aria-label="Nhập lý do thay đổi/điều chỉnh…">
                     </div>
                 </form>
             </div>
@@ -1855,6 +1859,7 @@
             <select class="form-select custom-select form-select-sm" id="chatSessionSelect" aria-label="Chọn phiên trò chuyện AI" style="font-size: 0.8rem; padding: 2px 8px; height: 28px;">
                 <option value="">-- Đang tải phiên… --</option>
             </select>
+            <span id="chatInvoiceBadge" class="badge d-none" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; font-size: 0.7rem; white-space: nowrap; border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 0.5rem; padding: 2px 6px;"><i class="bi bi-receipt" aria-hidden="true"></i> <span id="chatInvoiceBadgeText"></span></span>
             <button type="button" class="btn btn-sm btn-link text-danger p-0 ms-auto d-flex align-items-center" id="btnDeleteChatSession" title="Xóa phiên hiện tại" aria-label="Xóa phiên hiện tại" style="min-height: auto;"><i class="bi bi-trash" aria-hidden="true"></i></button>
         </div>
 
@@ -1916,7 +1921,7 @@
             </div>
             <div class="col-md-3">
                 <label class="form-label fw-medium small mb-1" for="fctYear">Năm Kê Khai</label>
-                <input type="number" class="form-control custom-input" id="fctYear" value="2026" min="2020" max="2100" autocomplete="off">
+                <input type="number" class="form-control custom-input" id="fctYear" value="2026" min="2020" max="2100" autocomplete="off" aria-label="Fctyear">
             </div>
             <div class="col-md-3 d-grid">
                 <button type="submit" class="btn btn-primary-accent" id="btnLoadFctData" style="min-height: 44px;">
@@ -2411,7 +2416,7 @@
         <div class="row g-3">
             <div class="col-sm-6 col-md-3">
                 <div class="stat-card glass-card">
-                    <div class="stat-icon icon-spend" style="background: hsl(260 50% 50% / .1); color: hsl(260 80% 60%)"><i class="bi bi-journal-check"></i></div>
+                    <div class="stat-icon icon-spend" style="background: hsl(260 50% 50% / .1); color: hsl(260 80% 60%)"><i class="bi bi-journal-check" aria-hidden="true"></i></div>
                     <div class="stat-content">
                         <p class="stat-label">Tổng số Stories</p>
                         <h3 class="stat-value" id="harnessTotalStories">0</h3>
@@ -2421,7 +2426,7 @@
             </div>
             <div class="col-sm-6 col-md-3">
                 <div class="stat-card glass-card">
-                    <div class="stat-icon icon-tax" style="background: hsl(38 95% 55% / .1); color: hsl(38 95% 55%)"><i class="bi bi-play-circle"></i></div>
+                    <div class="stat-icon icon-tax" style="background: hsl(38 95% 55% / .1); color: hsl(38 95% 55%)"><i class="bi bi-play-circle" aria-hidden="true"></i></div>
                     <div class="stat-content">
                         <p class="stat-label">Stories Đang Làm</p>
                         <h3 class="stat-value" id="harnessInProgressStories">0</h3>
@@ -2431,7 +2436,7 @@
             </div>
             <div class="col-sm-6 col-md-3">
                 <div class="stat-card glass-card">
-                    <div class="stat-icon icon-active" style="background: hsl(160 64% 40% / .1); color: hsl(160 64% 40%)"><i class="bi bi-bezier2"></i></div>
+                    <div class="stat-icon icon-active" style="background: hsl(160 64% 40% / .1); color: hsl(160 64% 40%)"><i class="bi bi-bezier2" aria-hidden="true"></i></div>
                     <div class="stat-content">
                         <p class="stat-label">Traces Hoạt Động</p>
                         <h3 class="stat-value" id="harnessTotalTraces">0</h3>
@@ -2441,7 +2446,7 @@
             </div>
             <div class="col-sm-6 col-md-3">
                 <div class="stat-card glass-card">
-                    <div class="stat-icon" style="background: hsl(340 70% 50% / .1); color: hsl(340 85% 60%); width: 48px; height: 48px; border-radius: 12px; display: flex; align-items:center; justify-content:center; font-size:1.35rem"><i class="bi bi-lightbulb"></i></div>
+                    <div class="stat-icon" style="background: hsl(340 70% 50% / .1); color: hsl(340 85% 60%); width: 48px; height: 48px; border-radius: 12px; display: flex; align-items:center; justify-content:center; font-size:1.35rem"><i class="bi bi-lightbulb" aria-hidden="true"></i></div>
                     <div class="stat-content">
                         <p class="stat-label">Backlog Phục Hồi</p>
                         <h3 class="stat-value" id="harnessTotalBacklog">0</h3>
@@ -2458,7 +2463,7 @@
         <div class="col-lg-5">
             <div class="glass-card p-4 h-100 d-flex flex-column" style="min-height:650px;">
                 <h4 class="h6 fw-bold mb-3 text-secondary uppercase tracking-wider">
-                    <i class="bi bi-play-btn-fill"></i> KHỞI CHẠY AGENT TỰ CHỦ
+                    <i class="bi bi-play-btn-fill" aria-hidden="true"></i> KHỞI CHẠY AGENT TỰ CHỦ
                 </h4>
 
                 <form id="agentRunForm" class="d-flex flex-column gap-3">
@@ -2490,11 +2495,11 @@
 
                     <div>
                         <label class="form-label fw-semibold" style="font-size:.85rem">Yêu Cầu / Nhiệm Vụ Cho Agent (Goal)</label>
-                        <textarea id="agentRunGoal" class="form-control" rows="4" placeholder="Ví dụ: Chạy bộ thử nghiệm pytest xem file invoices/routes.py có lỗi cú pháp không..." required style="background:hsl(var(--surface-2));border:1px solid hsl(var(--border));color:hsl(var(--text));border-radius:10px"></textarea>
+                        <textarea id="agentRunGoal" class="form-control" rows="4" placeholder="Ví dụ: Chạy bộ thử nghiệm pytest xem file invoices/routes.py có lỗi cú pháp không…" required style="background:hsl(var(--surface-2));border:1px solid hsl(var(--border));color:hsl(var(--text));border-radius:10px"></textarea>
                     </div>
 
                     <button type="submit" id="btnRunAgent" class="btn btn-primary-accent w-100 d-flex align-items-center justify-content-center gap-2" style="min-height:48px;border-radius:10px; font-weight: 600; font-size: .95rem; border: none; box-shadow: 0 0 15px hsl(var(--accent-color) / .3)">
-                        <i class="bi bi-cpu" id="runAgentBtnIcon"></i> <span id="runAgentBtnText">BẮT ĐẦU AGENT</span>
+                        <i class="bi bi-cpu" id="runAgentBtnIcon" aria-hidden="true"></i> <span id="runAgentBtnText">BẮT ĐẦU AGENT</span>
                     </button>
                 </form>
 
@@ -2503,7 +2508,7 @@
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <span class="fw-semibold text-secondary uppercase tracking-wider" style="font-size:.78rem">Console Output Stream</span>
                         <button class="btn btn-link btn-sm text-secondary p-0" onclick="clearConsoleLog()" style="text-decoration:none; font-size:.78rem">
-                            <i class="bi bi-trash"></i> Xóa log
+                            <i class="bi bi-trash" aria-hidden="true"></i> Xóa log
                         </button>
                     </div>
                     <div id="agentConsoleLog" class="p-3 font-monospace text-white overflow-auto flex-grow-1" style="background: hsl(0 0% 5%); border-radius:12px; height: 350px; font-size: .8rem; line-height: 1.5; border: 1px solid rgba(255,255,255,0.05)">
@@ -2518,11 +2523,11 @@
             <div class="glass-card p-4 h-100 d-flex flex-column">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h4 class="h6 fw-bold mb-0 text-secondary uppercase tracking-wider">
-                        <i class="bi bi-database"></i> DỮ LIỆU HARNESS
+                        <i class="bi bi-database" aria-hidden="true"></i> DỮ LIỆU HARNESS
                     </h4>
                     <div class="d-flex gap-2">
                         <button class="btn btn-sm btn-outline-light" onclick="loadHarnessSummary()" title="Tải lại dữ liệu">
-                            <i class="bi bi-arrow-clockwise"></i>
+                            <i class="bi bi-arrow-clockwise" aria-hidden="true"></i>
                         </button>
                     </div>
                 </div>
@@ -2555,7 +2560,7 @@
                     <div class="tab-pane fade show active" id="harness-stories-pane" role="tabpanel">
                         <div class="d-flex justify-content-end mb-3">
                             <button class="btn btn-sm btn-primary-accent" data-bs-toggle="modal" data-bs-target="#addStoryModal">
-                                <i class="bi bi-plus-circle"></i> Thêm Story mới
+                                <i class="bi bi-plus-circle" aria-hidden="true"></i> Thêm Story mới
                             </button>
                         </div>
                         <div class="table-responsive">
@@ -2579,7 +2584,7 @@
                     <div class="tab-pane fade" id="harness-decisions-pane" role="tabpanel">
                         <div class="d-flex justify-content-end mb-3">
                             <button class="btn btn-sm btn-primary-accent" data-bs-toggle="modal" data-bs-target="#addDecisionModal">
-                                <i class="bi bi-plus-circle"></i> Ghi nhận Quyết định
+                                <i class="bi bi-plus-circle" aria-hidden="true"></i> Ghi nhận Quyết định
                             </button>
                         </div>
                         <div class="table-responsive">
@@ -2603,7 +2608,7 @@
                     <div class="tab-pane fade" id="harness-backlog-pane" role="tabpanel">
                         <div class="d-flex justify-content-end mb-3">
                             <button class="btn btn-sm btn-primary-accent" data-bs-toggle="modal" data-bs-target="#addBacklogModal">
-                                <i class="bi bi-plus-circle"></i> Đề xuất Backlog
+                                <i class="bi bi-plus-circle" aria-hidden="true"></i> Đề xuất Backlog
                             </button>
                         </div>
                         <div class="table-responsive">
@@ -2655,18 +2660,18 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content glass-card border border-light border-opacity-10 text-white" style="background: hsl(var(--surface-3)); border-radius:16px;">
             <div class="modal-header border-bottom border-light border-opacity-10">
-                <h5 class="modal-title fw-bold text-white"><i class="bi bi-plus-circle-fill"></i> Thêm Story mới</h5>
+                <h5 class="modal-title fw-bold text-white"><i class="bi bi-plus-circle-fill" aria-hidden="true"></i> Thêm Story mới</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="addStoryForm">
                 <div class="modal-body d-flex flex-column gap-3">
                     <div>
                         <label class="form-label small fw-semibold">Mã ID (vd: story-001)</label>
-                        <input type="text" id="addStoryId" class="form-control text-white" required placeholder="story-xxx" style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px; min-height:38px;">
+                        <input type="text" id="addStoryId" class="form-control text-white" required placeholder="story-xxx" style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px; min-height:38px;" autocomplete="off" aria-label="story-xxx">
                     </div>
                     <div>
                         <label class="form-label small fw-semibold">Tiêu đề Story</label>
-                        <input type="text" id="addStoryTitle" class="form-control text-white" required placeholder="Mô tả ngắn về story..." style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px; min-height:38px;">
+                        <input type="text" id="addStoryTitle" class="form-control text-white" required placeholder="Mô tả ngắn về story…" style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px; min-height:38px;" autocomplete="off" aria-label="Mô tả ngắn về story…">
                     </div>
                     <div>
                         <label class="form-label small fw-semibold">Phân Loại Rủi Ro (Risk Lane)</label>
@@ -2678,7 +2683,7 @@
                     </div>
                     <div>
                         <label class="form-label small fw-semibold">Liên kết Contract Doc</label>
-                        <input type="text" id="addStoryContract" class="form-control text-white" placeholder="vd: docs/stories/story-001.md" style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px; min-height:38px;">
+                        <input type="text" id="addStoryContract" class="form-control text-white" placeholder="vd: docs/stories/story-001.md" style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px; min-height:38px;" autocomplete="off" aria-label="vd: docs/stories/story-001.md">
                     </div>
                     <div>
                         <label class="form-label small fw-semibold">Trạng thái khởi tạo</label>
@@ -2707,7 +2712,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content glass-card border border-light border-opacity-10 text-white" style="background: hsl(var(--surface-3)); border-radius:16px;">
             <div class="modal-header border-bottom border-light border-opacity-10">
-                <h5 class="modal-title fw-bold text-white"><i class="bi bi-pencil-fill"></i> Cập nhật Story: <span id="updateStoryIdTitle"></span></h5>
+                <h5 class="modal-title fw-bold text-white"><i class="bi bi-pencil-fill" aria-hidden="true"></i> Cập nhật Story: <span id="updateStoryIdTitle"></span></h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="updateStoryForm">
@@ -2725,7 +2730,7 @@
                     </div>
                     <div>
                         <label class="form-label small fw-semibold">Bằng chứng kiểm thử (Evidence)</label>
-                        <textarea id="updateStoryEvidence" class="form-control text-white" rows="2" placeholder="vd: pass all pytest tests..." style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px;"></textarea>
+                        <textarea id="updateStoryEvidence" class="form-control text-white" rows="2" placeholder="vd: pass all pytest tests…" style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px;"></textarea>
                     </div>
                     <div class="row g-2">
                         <div class="col-6">
@@ -2778,18 +2783,18 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content glass-card border border-light border-opacity-10 text-white" style="background: hsl(var(--surface-3)); border-radius:16px;">
             <div class="modal-header border-bottom border-light border-opacity-10">
-                <h5 class="modal-title fw-bold text-white"><i class="bi bi-file-earmark-plus"></i> Ghi nhận Quyết định</h5>
+                <h5 class="modal-title fw-bold text-white"><i class="bi bi-file-earmark-plus" aria-hidden="true"></i> Ghi nhận Quyết định</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="addDecisionForm">
                 <div class="modal-body d-flex flex-column gap-3">
                     <div>
                         <label class="form-label small fw-semibold">Mã Quyết Định (vd: ADR-001)</label>
-                        <input type="text" id="addDecisionId" class="form-control text-white" required placeholder="ADR-xxx" style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px; min-height:38px;">
+                        <input type="text" id="addDecisionId" class="form-control text-white" required placeholder="ADR-xxx" style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px; min-height:38px;" autocomplete="off" aria-label="ADR-xxx">
                     </div>
                     <div>
                         <label class="form-label small fw-semibold">Tiêu đề Quyết Định</label>
-                        <input type="text" id="addDecisionTitle" class="form-control text-white" required placeholder="Tóm tắt quyết định..." style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px; min-height:38px;">
+                        <input type="text" id="addDecisionTitle" class="form-control text-white" required placeholder="Tóm tắt quyết định…" style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px; min-height:38px;" autocomplete="off" aria-label="Tóm tắt quyết định…">
                     </div>
                     <div>
                         <label class="form-label small fw-semibold">Trạng thái</label>
@@ -2802,15 +2807,15 @@
                     </div>
                     <div>
                         <label class="form-label small fw-semibold">Liên kết ADR Doc Path</label>
-                        <input type="text" id="addDecisionDoc" class="form-control text-white" placeholder="vd: docs/decisions/0001-xxxx.md" style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px; min-height:38px;">
+                        <input type="text" id="addDecisionDoc" class="form-control text-white" placeholder="vd: docs/decisions/0001-xxxx.md" style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px; min-height:38px;" autocomplete="off" aria-label="vd: docs/decisions/0001-xxxx.md">
                     </div>
                     <div>
                         <label class="form-label small fw-semibold">Command Kiểm Chứng</label>
-                        <input type="text" id="addDecisionVerify" class="form-control text-white" placeholder="vd: pytest tests/test_xxxx.py" style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px; min-height:38px;">
+                        <input type="text" id="addDecisionVerify" class="form-control text-white" placeholder="vd: pytest tests/test_xxxx.py" style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px; min-height:38px;" autocomplete="off" aria-label="vd: pytest tests/test_xxxx.py">
                     </div>
                     <div>
                         <label class="form-label small fw-semibold">Tác Động Dự Kiến</label>
-                        <input type="text" id="addDecisionPredicted" class="form-control text-white" placeholder="Mô tả tác động kỹ thuật..." style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px; min-height:38px;">
+                        <input type="text" id="addDecisionPredicted" class="form-control text-white" placeholder="Mô tả tác động kỹ thuật…" style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px; min-height:38px;" autocomplete="off" aria-label="Mô tả tác động kỹ thuật…">
                     </div>
                     <div>
                         <label class="form-label small fw-semibold">Ghi chú</label>
@@ -2831,26 +2836,26 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content glass-card border border-light border-opacity-10 text-white" style="background: hsl(var(--surface-3)); border-radius:16px;">
             <div class="modal-header border-bottom border-light border-opacity-10">
-                <h5 class="modal-title fw-bold text-white"><i class="bi bi-lightbulb-fill"></i> Đề xuất Backlog mới</h5>
+                <h5 class="modal-title fw-bold text-white"><i class="bi bi-lightbulb-fill" aria-hidden="true"></i> Đề xuất Backlog mới</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="addBacklogForm">
                 <div class="modal-body d-flex flex-column gap-3">
                     <div>
                         <label class="form-label small fw-semibold">Tiêu Đề Đề Xuất</label>
-                        <input type="text" id="addBacklogTitle" class="form-control text-white" required placeholder="Vd: Thêm log tập trung khi gọi API..." style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px; min-height:38px;">
+                        <input type="text" id="addBacklogTitle" class="form-control text-white" required placeholder="Vd: Thêm log tập trung khi gọi API…" style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px; min-height:38px;" autocomplete="off" aria-label="Vd: Thêm log tập trung khi gọi API…">
                     </div>
                     <div>
                         <label class="form-label small fw-semibold">Phát hiện trong lúc làm tác vụ nào?</label>
-                        <input type="text" id="addBacklogDiscovered" class="form-control text-white" placeholder="vd: Làm story-002" style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px; min-height:38px;">
+                        <input type="text" id="addBacklogDiscovered" class="form-control text-white" placeholder="vd: Làm story-002" style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px; min-height:38px;" autocomplete="off" aria-label="vd: Làm story-002">
                     </div>
                     <div>
                         <label class="form-label small fw-semibold">Pain Point / Khó khăn hiện tại</label>
-                        <textarea id="addBacklogPain" class="form-control text-white" rows="2" placeholder="Mô tả khó khăn gặp phải..." style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px;"></textarea>
+                        <textarea id="addBacklogPain" class="form-control text-white" rows="2" placeholder="Mô tả khó khăn gặp phải…" style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px;"></textarea>
                     </div>
                     <div>
                         <label class="form-label small fw-semibold">Giải Pháp Cải Tiến Đề Xuất</label>
-                        <textarea id="addBacklogImprovement" class="form-control text-white" rows="2" placeholder="Mô tả hướng giải quyết..." style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px;"></textarea>
+                        <textarea id="addBacklogImprovement" class="form-control text-white" rows="2" placeholder="Mô tả hướng giải quyết…" style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px;"></textarea>
                     </div>
                     <div class="row g-2">
                         <div class="col-6">
@@ -2872,7 +2877,7 @@
                     </div>
                     <div>
                         <label class="form-label small fw-semibold">Dự kiến Tác Động Tích Cực</label>
-                        <input type="text" id="addBacklogImpact" class="form-control text-white" placeholder="vd: Giảm thời gian kiểm tra lỗi xuống 50%..." style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px; min-height:38px;">
+                        <input type="text" id="addBacklogImpact" class="form-control text-white" placeholder="vd: Giảm thời gian kiểm tra lỗi xuống 50%…" style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.1); border-radius:8px; min-height:38px;" autocomplete="off" aria-label="vd: Giảm thời gian kiểm tra lỗi xuống 50%…">
                     </div>
                     <div>
                         <label class="form-label small fw-semibold">Ghi chú</label>

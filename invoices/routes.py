@@ -520,16 +520,26 @@ def api_erp_export_odoo():
 
 @invoices_blueprint.get("/api/partners")
 def api_partners():
-    """Extract and return corporate business partners and their statistics."""
+    """Extract and return corporate business partners and their statistics, or return catalog if no date range is provided."""
 
     unauthorized = _ensure_logged_in()
     if unauthorized:
         return unauthorized
 
+    date_from = request.args.get("from", "")
+    date_to = request.args.get("to", "")
+    if not date_from and not date_to:
+        from invoices.models import Partner
+        try:
+            partners = Partner.query.order_by(Partner.mst).all()
+            return jsonify([p.to_dict() for p in partners])
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
     try:
         parsed_from, parsed_to = validate_date_range(
-            request.args.get("from", ""),
-            request.args.get("to", ""),
+            date_from,
+            date_to,
         )
         direction = request.args.get("direction", "purchase")
         current_app.config["CURRENT_JWT"] = session.get("jwt")
@@ -1936,19 +1946,73 @@ def api_create_chat_session():
     unauthorized = _ensure_logged_in()
     if unauthorized:
         return unauthorized
-    from invoices.models import AIChatSession
+    from invoices.models import AIChatSession, AIChatMessage, Invoice
     import uuid
     from datetime import datetime
     try:
         data = request.get_json() or {}
         title = data.get("title", "Cuộc hội thoại mới")
+        invoice_id = data.get("invoice_id")
+        
+        invoice = None
+        if invoice_id:
+            invoice = db.session.get(Invoice, invoice_id)
+            if not invoice:
+                return jsonify({"error": "Không tìm thấy hóa đơn liên kết."}), 404
+            title = f"Tham vấn hóa đơn {invoice.number}"
+            
         session_id = str(uuid.uuid4())
         new_session = AIChatSession(
             id=session_id,
             title=title,
+            invoice_id=invoice_id,
             created_at=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         )
         db.session.add(new_session)
+        
+        if invoice:
+            import json
+            welcome_content = (
+                f"### [Hệ thống Kiểm soát Tuân thủ Thuế AI - GDT Hub]\n\n"
+                f"Kính chào Quý khách, tôi là **Cố vấn Thuế cấp cao AI**. Tôi đã tiếp nhận yêu cầu tham vấn về hóa đơn điện tử sau:\n\n"
+                f"- **Nhà cung cấp:** {invoice.seller_name} (MST: `{invoice.seller_mst}`)\n"
+                f"- **Số hóa đơn:** `{invoice.number}` | **Ký hiệu:** `{invoice.symbol}` | **Ngày lập:** {invoice.date}\n"
+                f"- **Tổng tiền thanh toán (sau thuế):** {invoice.total_amount:,.2f} {invoice.currency or 'VND'}\n"
+                f"- **Chỉ số tuân thủ T-Score:** **{invoice.t_score}/100** ({invoice.t_rating})\n\n"
+                f"**Đánh giá tuân thủ sơ bộ (Nghị định 123/2020/NĐ-CP & Thông tư 219/2013/TT-BTC):**\n"
+            )
+            
+            warnings = []
+            if invoice.warnings_json:
+                try:
+                    warnings = json.loads(invoice.warnings_json)
+                except Exception:
+                    pass
+            
+            cash_threshold = 20000000.0
+            if invoice.total_amount >= cash_threshold and invoice.payment_method == "Tiền mặt":
+                warnings.append("Hóa đơn thanh toán bằng Tiền mặt từ 20 triệu đồng trở lên có nguy cơ không được khấu trừ thuế GTGT đầu vào và không được tính vào chi phí được trừ khi quyết toán thuế TNDN (Điều 15 Thông tư 219/2013/TT-BTC).")
+            
+            if warnings:
+                welcome_content += "⚠️ **Các điểm cần lưu ý/rủi ro:**\n"
+                for w in warnings:
+                    welcome_content += f"- {w}\n"
+            else:
+                welcome_content += "✅ Hóa đơn không phát hiện lỗi cấu trúc hay cảnh báo rủi ro rác/rủi ro hình thức nào trọng yếu.\n"
+                
+            welcome_content += (
+                f"\nQuý khách có thể bắt đầu đặt câu hỏi cho tôi về việc **tính hợp lệ chi phí được trừ (Thuế TNDN)**, "
+                f"**khấu trừ thuế GTGT đầu vào**, hoặc **cơ sở pháp lý** liên quan đến hóa đơn này."
+            )
+            
+            welcome_msg = AIChatMessage(
+                session_id=session_id,
+                role="assistant",
+                content=welcome_content,
+                created_at=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            )
+            db.session.add(welcome_msg)
+            
         db.session.commit()
         # Dual compatibility: return details both directly and nested under 'session'
         res_dict = new_session.to_dict()
@@ -5063,6 +5127,103 @@ def api_map_ifrs_compliance():
     })
 
 
+@invoices_blueprint.post("/api/compliance/ias12-deferred-tax")
+@roles_required("admin", "auditor", "viewer")
+def api_ias12_deferred_tax():
+    """Calculate IAS 12 deferred taxes for a given MST and year."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    payload = request.get_json(silent=True) or {}
+    active_mst = payload.get("mst") or session.get("active_taxpayer_mst") or session.get("taxpayer_mst")
+    year = payload.get("year")
+    
+    if not active_mst:
+        return jsonify({"error": "Mã số thuế không được để trống"}), 400
+    if not year:
+        year = datetime.now().year
+
+    try:
+        from invoices.ifrs_engine import IFRSTranslationService
+        service = IFRSTranslationService()
+        records = service.calculate_ias12_deferred_tax(active_mst, int(year))
+        return jsonify({
+            "status": "success",
+            "mst": active_mst,
+            "year": year,
+            "records": records
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/compliance/ifrs16-lease-schedule")
+@roles_required("admin", "auditor", "viewer")
+def api_ifrs16_lease_schedule():
+    """Generate IFRS 16 lease amortization schedule month-by-month."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    payload = request.get_json(silent=True) or {}
+    lease_id = payload.get("lease_id")
+    monthly_payment = payload.get("monthly_payment")
+    discount_rate = payload.get("discount_rate")
+    lease_term_months = payload.get("lease_term_months")
+
+    if not lease_id:
+        return jsonify({"error": "lease_id không được để trống"}), 400
+    if monthly_payment is None or discount_rate is None or lease_term_months is None:
+        return jsonify({"error": "Thiếu các thông số tính toán amortization"}), 400
+
+    try:
+        from invoices.ifrs_engine import IFRSTranslationService
+        service = IFRSTranslationService()
+        schedule = service.calculate_ifrs16_amortization(
+            lease_id, float(monthly_payment), float(discount_rate), int(lease_term_months)
+        )
+        return jsonify({
+            "status": "success",
+            "lease_id": lease_id,
+            "schedule": schedule
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/compliance/pillar-two-estimate")
+@roles_required("admin", "auditor", "viewer")
+def api_pillar_two_estimate():
+    """Estimate consolidated OECD Pillar Two GloBE top-up taxes."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    payload = request.get_json(silent=True) or {}
+    parent_mst = payload.get("parent_mst") or session.get("active_taxpayer_mst") or session.get("taxpayer_mst")
+    group_msts = payload.get("group_msts")
+    year = payload.get("year")
+
+    if not parent_mst:
+        return jsonify({"error": "parent_mst không được để trống"}), 400
+    if not group_msts or not isinstance(group_msts, list):
+        return jsonify({"error": "group_msts phải là danh sách MST hợp lệ"}), 400
+    if not year:
+        year = datetime.now().year
+
+    try:
+        from invoices.ifrs_engine import IFRSTranslationService
+        service = IFRSTranslationService()
+        estimate = service.estimate_pillar_two_topup(parent_mst, group_msts, int(year))
+        return jsonify({
+            "status": "success",
+            "estimate": estimate
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @invoices_blueprint.get("/api/reports/tax-risk-scoreboard")
 @roles_required("admin", "auditor", "viewer")
 def api_tax_risk_scoreboard():
@@ -5071,147 +5232,94 @@ def api_tax_risk_scoreboard():
     if unauthorized:
         return unauthorized
 
-    import json
-    from invoices.service import get_local_invoices
-    from invoices.models import BlacklistedMST
-
+    from invoices.supplier_risk_service import get_all_suppliers_risk_radar
     active_mst = session.get("taxpayer_mst")
-    
-    # 1. Fetch all local invoices for the current taxpayer
-    invoices = get_local_invoices(active_mst)
-    
-    # 2. Get all blacklisted MSTs
-    try:
-        blacklisted_msts = {b.mst for b in BlacklistedMST.query.all()}
-    except Exception:
-        blacklisted_msts = set()
 
-    total_analyzed = len(invoices)
-    total_with_warnings = 0
-    total_value_at_risk = 0.0
+    # Fetch dynamic supplier risk radar data
+    radar_data = get_all_suppliers_risk_radar(active_mst)
 
-    blacklist_warnings_count = 0
-    signature_violations_count = 0
-    payment_type_flags_count = 0
+    # Map fields for UI compatibility
+    for s in radar_data["suppliers"]:
+        s["average_t_score"] = s["risk_score"]
+        s["warnings_count"] = len(s["flags"])
+        s["is_blacklisted"] = "BLACKLISTED" in s["flags"] or s.get("gdt_status") == "BLACKLISTED"
 
-    supplier_groups = {}
-
-    for inv in invoices:
-        warnings = inv.get("warnings") or []
-        # Support both a string list or a json list
-        if isinstance(warnings, str):
-            try:
-                warnings = json.loads(warnings)
-            except Exception:
-                warnings = []
-        
-        has_warning = False
-        is_blacklisted_inv = False
-        is_sig_violation = False
-        is_payment_flag = False
-
-        seller_mst = inv.get("seller_mst") or ""
-        seller_name = inv.get("seller_name") or "Không rõ"
-        total_amount = inv.get("total_amount") or 0.0
-        payment_method = inv.get("payment_method") or ""
-        has_signature = inv.get("has_signature", True)
-
-        # A. Blacklist check
-        if seller_mst in blacklisted_msts:
-            is_blacklisted_inv = True
-        else:
-            for w in warnings:
-                w_lower = str(w).lower()
-                if "blacklist" in w_lower or "đen" in w_lower or "rủi ro" in w_lower:
-                    is_blacklisted_inv = True
-                    break
-
-        # B. Signature violation check
-        if not has_signature:
-            is_sig_violation = True
-        else:
-            for w in warnings:
-                w_lower = str(w).lower()
-                if "signature" in w_lower or "chữ ký" in w_lower or "ký số" in w_lower:
-                    is_sig_violation = True
-                    break
-
-        # C. Payment type flag check
-        pay_method_upper = payment_method.upper()
-        is_cash = any(x in pay_method_upper for x in ["TM", "TIỀN MẶT", "CASH"])
-        if total_amount >= 20000000.0 and is_cash:
-            is_payment_flag = True
-        else:
-            for w in warnings:
-                w_lower = str(w).lower()
-                if any(x in w_lower for x in ["tiền mặt", "phương thức thanh toán", "hạch toán", "không dùng tiền mặt"]):
-                    is_payment_flag = True
-                    break
-
-        if is_blacklisted_inv or is_sig_violation or is_payment_flag or len(warnings) > 0:
-            has_warning = True
-
-        if is_blacklisted_inv:
-            blacklist_warnings_count += 1
-        if is_sig_violation:
-            signature_violations_count += 1
-        if is_payment_flag:
-            payment_type_flags_count += 1
-
-        if has_warning:
-            total_with_warnings += 1
-            total_value_at_risk += total_amount
-
-        # Group by supplier
-        if seller_mst:
-            if seller_mst not in supplier_groups:
-                supplier_groups[seller_mst] = {
-                    "supplier_mst": seller_mst,
-                    "supplier_name": seller_name,
-                    "invoice_count": 0,
-                    "warnings_count": 0,
-                    "total_value": 0.0,
-                    "total_t_score": 0,
-                    "is_blacklisted": seller_mst in blacklisted_msts
-                }
-            
-            supplier_groups[seller_mst]["invoice_count"] += 1
-            supplier_groups[seller_mst]["total_value"] += total_amount
-            supplier_groups[seller_mst]["total_t_score"] += inv.get("t_score", 100)
-            if has_warning:
-                supplier_groups[seller_mst]["warnings_count"] += 1
-
-    suppliers_list = []
-    for mst, s in supplier_groups.items():
-        avg_score = s["total_t_score"] / s["invoice_count"] if s["invoice_count"] > 0 else 100
-        suppliers_list.append({
-            "supplier_mst": s["supplier_mst"],
-            "supplier_name": s["supplier_name"],
-            "invoice_count": s["invoice_count"],
-            "warnings_count": s["warnings_count"],
-            "total_value": s["total_value"],
-            "average_t_score": round(avg_score, 1),
-            "is_blacklisted": s["is_blacklisted"]
-        })
-
-    # Sort suppliers: highest warnings count first, then by total transaction value descending
-    suppliers_list.sort(key=lambda x: (x["warnings_count"], x["total_value"]), reverse=True)
-
-    # Filter to only list suppliers that have warnings or are blacklisted
-    high_risk_suppliers = [s for s in suppliers_list if s["warnings_count"] > 0 or s["is_blacklisted"]]
+    # Only include suppliers with warnings or blacklisted in high_risk list for the view
+    high_risk_suppliers = [s for s in radar_data["suppliers"] if s["warnings_count"] > 0 or s["is_blacklisted"]]
 
     return jsonify({
         "status": "success",
-        "summary": {
-            "total_analyzed": total_analyzed,
-            "total_with_warnings": total_with_warnings,
-            "total_value_at_risk": total_value_at_risk,
-            "blacklist_warnings_count": blacklist_warnings_count,
-            "signature_violations_count": signature_violations_count,
-            "payment_type_flags_count": payment_type_flags_count
-        },
+        "summary": radar_data["summary"],
         "suppliers": high_risk_suppliers
     })
+
+
+@invoices_blueprint.get("/api/reports/supplier-risk-radar")
+@roles_required("admin", "auditor", "viewer")
+def api_supplier_risk_radar():
+    """Retrieve all suppliers and summarize the risk radar statistics."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+    
+    from invoices.supplier_risk_service import get_all_suppliers_risk_radar
+    active_mst = session.get("taxpayer_mst")
+    
+    radar_data = get_all_suppliers_risk_radar(active_mst)
+    return jsonify(radar_data)
+
+
+@invoices_blueprint.post("/api/reports/supplier-risk-radar/blacklist")
+@roles_required("admin", "auditor")
+def api_add_supplier_blacklist():
+    """Add a supplier MST to the blacklist."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+        
+    payload = request.json or {}
+    mst = payload.get("mst", "").strip()
+    reason = payload.get("reason", "").strip()
+    if not mst:
+        return jsonify({"error": "Mã số thuế không được để trống"}), 400
+        
+    from invoices.models import BlacklistedMST
+    from extensions import db
+    import datetime
+    
+    existing = db.session.get(BlacklistedMST, mst)
+    if existing:
+        existing.reason = reason
+        existing.blacklisted_at = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    else:
+        item = BlacklistedMST(
+            mst=mst,
+            reason=reason,
+            blacklisted_at=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        )
+        db.session.add(item)
+    db.session.commit()
+    return jsonify({"status": "success", "message": "Đã thêm nhà cung cấp vào danh sách đen."})
+
+
+@invoices_blueprint.delete("/api/reports/supplier-risk-radar/blacklist/<mst>")
+@roles_required("admin", "auditor")
+def api_delete_supplier_blacklist(mst):
+    """Remove a supplier MST from the blacklist."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+    from invoices.models import BlacklistedMST
+    from extensions import db
+    
+    item = db.session.get(BlacklistedMST, mst)
+    if not item:
+        return jsonify({"error": "Không tìm thấy nhà cung cấp trong danh sách đen."}), 404
+        
+    db.session.delete(item)
+    db.session.commit()
+    return jsonify({"status": "success", "message": "Đã xóa nhà cung cấp khỏi danh sách đen."})
+
 
 
 
@@ -6468,5 +6576,44 @@ def api_finance_simulate():
         return jsonify(result)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@invoices_blueprint.post("/api/partners/<mst>/decree-132")
+@roles_required("admin", "auditor")
+def update_partner_decree_132(mst):
+    """Update Decree 132 relationship code for a specific partner."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+    from invoices.models import Partner
+    from extensions import db
+    try:
+        partner = db.session.get(Partner, mst)
+        if not partner:
+            return jsonify({"error": f"Không tìm thấy đối tác với MST {mst}"}), 404
+        
+        body = request.get_json(silent=True) or {}
+        relationship = body.get("decree_132_relationship")
+        
+        if relationship is not None:
+            relationship = str(relationship).strip()
+            if relationship == "":
+                relationship = None
+            else:
+                valid_codes = {chr(c) for c in range(ord('A'), ord('L') + 1)}
+                if relationship.upper() not in valid_codes:
+                    return jsonify({"error": "Mã liên kết không hợp lệ. Phải thuộc từ A đến L."}), 400
+                relationship = relationship.upper()
+                
+        partner.decree_132_relationship = relationship
+        db.session.commit()
+        
+        return jsonify({
+            "success": True,
+            "partner": partner.to_dict()
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
 
 

@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -18,12 +18,12 @@ The application must automatically scan newly imported invoices for risk anomali
 
 ## Acceptance Criteria
 
-- [ ] Create `NotificationAlert` model with fields: timestamp, invoice_id, alert_type, severity, message, is_read.
-- [ ] Hook into invoice import pipeline to trigger anomaly scanning automatically.
-- [ ] Generate alerts for T-Score below configurable threshold (default < 50).
-- [ ] Display alert bell icon with unread count badge in the navigation bar.
-- [ ] Expose API `GET /api/notifications/alerts` with pagination and severity filter.
-- [ ] Write tests verifying alert generation on import of risky invoices.
+- [x] Create `NotificationAlert` model with fields: timestamp, invoice_id, alert_type, severity, message, is_read.
+- [x] Hook into invoice import pipeline to trigger anomaly scanning automatically.
+- [x] Generate alerts for T-Score below configurable threshold (default < 50).
+- [x] Display alert bell icon with unread count badge in the navigation bar.
+- [x] Expose API `GET /api/notifications/alerts` with pagination and severity filter.
+- [x] Write tests verifying alert generation on import of risky invoices.
 
 ## Design Notes
 

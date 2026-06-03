@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -18,12 +18,12 @@ The application must automatically aggregate annual payroll history and dependen
 
 ## Acceptance Criteria
 
-- [ ] Implement aggregation logic to compile year-to-date taxable income, dependents, exemptions, and withheld taxes.
-- [ ] Recalculate individual PIT liability using Vietnam's progressive tax brackets and flat rate exceptions.
-- [ ] Scaffold statutory Form 05/QTT-TNCN and its Appendices (05-1, 05-2, 05-3) in GDT-compliant XML format.
-- [ ] Provide a comparison dashboard to review tax refunds or additional payments due.
-- [ ] Expose API endpoint `POST /api/pit/finalize` to trigger the finalization and export the XML file.
-- [ ] Write unit tests verifying annual tax bracket aggregation, dependent calculation, and XML structure.
+- [x] Implement aggregation logic to compile year-to-date taxable income, dependents, exemptions, and withheld taxes.
+- [x] Recalculate individual PIT liability using Vietnam's progressive tax brackets and flat rate exceptions.
+- [x] Scaffold statutory Form 05/QTT-TNCN and its Appendices (05-1, 05-2, 05-3) in GDT-compliant XML format.
+- [x] Provide a comparison dashboard to review tax refunds or additional payments due.
+- [x] Expose API endpoint `POST /api/pit/finalize` to trigger the finalization and export the XML file.
+- [x] Write unit tests verifying annual tax bracket aggregation, dependent calculation, and XML structure.
 
 ## Design Notes
 

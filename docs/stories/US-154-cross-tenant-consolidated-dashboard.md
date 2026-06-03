@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -18,12 +18,12 @@ The application must provide a parent-tenant consolidation view aggregating fina
 
 ## Acceptance Criteria
 
-- [ ] Implement data model linking parent-entity accounts to authorized sub-entity MSTs.
-- [ ] Create API endpoint `GET /api/tenant/consolidated` returning aggregated multi-entity statistics.
-- [ ] Build a premium Glassmorphism dashboard panel displaying group-wide KPIs with entity-level drill-down.
-- [ ] Enforce role-based access control — only Group Admin accounts can access the consolidated view.
-- [ ] Allow filtering and sorting by entity name, MST code, and date ranges.
-- [ ] Write integration tests verifying data isolation (tenant A cannot see tenant B's data).
+- [x] Implement data model linking parent-entity accounts to authorized sub-entity MSTs.
+- [x] Create API endpoint `GET /api/tenant/consolidated` returning aggregated multi-entity statistics.
+- [x] Build a premium Glassmorphism dashboard panel displaying group-wide KPIs with entity-level drill-down.
+- [x] Enforce role-based access control — only Group Admin accounts can access the consolidated view.
+- [x] Allow filtering and sorting by entity name, MST code, and date ranges.
+- [x] Write integration tests verifying data isolation (tenant A cannot see tenant B's data).
 
 ## Design Notes
 

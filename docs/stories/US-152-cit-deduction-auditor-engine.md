@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -19,12 +19,12 @@ The application must include a Corporate Income Tax (CIT) deduction compliance e
 
 ## Acceptance Criteria
 
-- [ ] Implement rule engine scanning invoice attributes against CIT deduction thresholds.
-- [ ] Flag invoices ≥ 20M VND paid in cash (payment_method = "TM/Cash") as non-deductible.
-- [ ] Detect asset purchases exceeding statutory depreciation caps (passenger vehicles > 1.6B VND).
-- [ ] Flag invoices from MSTs present on the GDT blacklist or marked as abandoned.
-- [ ] Expose API endpoint `GET /api/tax/cit-audit` returning flagged items with rule citations.
-- [ ] Write tests covering each flag rule with boundary value testing.
+- [x] Implement rule engine scanning invoice attributes against CIT deduction thresholds.
+- [x] Flag invoices ≥ 20M VND paid in cash (payment_method = "TM/Cash") as non-deductible.
+- [x] Detect asset purchases exceeding statutory depreciation caps (passenger vehicles > 1.6B VND).
+- [x] Flag invoices from MSTs present on the GDT blacklist or marked as abandoned.
+- [x] Expose API endpoint `GET /api/tax/cit-audit` returning flagged items with rule citations.
+- [x] Write tests covering each flag rule with boundary value testing.
 
 ## Design Notes
 

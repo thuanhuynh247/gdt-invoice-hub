@@ -5,7 +5,7 @@
     <!-- Hero Header Section -->
     <div class="col-12">
         <div class="hero-panel mb-2">
-            <span class="eyebrow"><i class="bi bi-cpu-fill me-1"></i> System Orchestration</span>
+            <span class="eyebrow"><i class="bi bi-cpu-fill me-1" aria-hidden="true"></i> System Orchestration</span>
             <h1 class="page-title mt-2">Harness Control Center</h1>
             <p class="page-subtitle mb-0">Manage stories, architectural decisions, harness backlog items, and trigger autonomous AI agent loops with live telemetry streaming.</p>
         </div>
@@ -18,7 +18,7 @@
             <div class="col-md-3">
                 <div class="stat-card">
                     <div class="stat-icon icon-active">
-                        <i class="bi bi-kanban"></i>
+                        <i class="bi bi-kanban" aria-hidden="true"></i>
                     </div>
                     <div class="stat-content">
                         <h4 class="stat-label">Stories</h4>
@@ -31,7 +31,7 @@
             <div class="col-md-3">
                 <div class="stat-card">
                     <div class="stat-icon icon-tax">
-                        <i class="bi bi-shield-check"></i>
+                        <i class="bi bi-shield-check" aria-hidden="true"></i>
                     </div>
                     <div class="stat-content">
                         <h4 class="stat-label">Decisions</h4>
@@ -44,7 +44,7 @@
             <div class="col-md-3">
                 <div class="stat-card">
                     <div class="stat-icon icon-spend">
-                        <i class="bi bi-journal-check"></i>
+                        <i class="bi bi-journal-check" aria-hidden="true"></i>
                     </div>
                     <div class="stat-content">
                         <h4 class="stat-label">Backlog</h4>
@@ -57,7 +57,7 @@
             <div class="col-md-3">
                 <div class="stat-card">
                     <div class="stat-icon icon-dark">
-                        <i class="bi bi-activity"></i>
+                        <i class="bi bi-activity" aria-hidden="true"></i>
                     </div>
                     <div class="stat-content">
                         <h4 class="stat-label">Traces</h4>
@@ -74,19 +74,19 @@
         <!-- Tab Navigation -->
         <ul class="nav nav-pills mb-4 gap-2" id="harnessTabs" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="agent-tab" data-bs-toggle="pill" data-bs-target="#tab-agent" type="button" role="tab"><i class="bi bi-play-circle-fill me-1"></i> Autonomous Agent</button>
+                <button class="nav-link active" id="agent-tab" data-bs-toggle="pill" data-bs-target="#tab-agent" type="button" role="tab"><i class="bi bi-play-circle-fill me-1" aria-hidden="true"></i> Autonomous Agent</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="stories-tab" data-bs-toggle="pill" data-bs-target="#tab-stories" type="button" role="tab"><i class="bi bi-layers-half me-1"></i> Stories & Specs</button>
+                <button class="nav-link" id="stories-tab" data-bs-toggle="pill" data-bs-target="#tab-stories" type="button" role="tab"><i class="bi bi-layers-half me-1" aria-hidden="true"></i> Stories & Specs</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="decisions-tab" data-bs-toggle="pill" data-bs-target="#tab-decisions" type="button" role="tab"><i class="bi bi-journal-code me-1"></i> Architecture Decisions</button>
+                <button class="nav-link" id="decisions-tab" data-bs-toggle="pill" data-bs-target="#tab-decisions" type="button" role="tab"><i class="bi bi-journal-code me-1" aria-hidden="true"></i> Architecture Decisions</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="backlog-tab" data-bs-toggle="pill" data-bs-target="#tab-backlog" type="button" role="tab"><i class="bi bi-clipboard-pulse me-1"></i> Backlog & Friction</button>
+                <button class="nav-link" id="backlog-tab" data-bs-toggle="pill" data-bs-target="#tab-backlog" type="button" role="tab"><i class="bi bi-clipboard-pulse me-1" aria-hidden="true"></i> Backlog & Friction</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="traces-tab" data-bs-toggle="pill" data-bs-target="#tab-traces" type="button" role="tab"><i class="bi bi-hdd-stack me-1"></i> Traces</button>
+                <button class="nav-link" id="traces-tab" data-bs-toggle="pill" data-bs-target="#tab-traces" type="button" role="tab"><i class="bi bi-hdd-stack me-1" aria-hidden="true"></i> Traces</button>
             </li>
         </ul>
 
@@ -96,10 +96,10 @@
             <div class="tab-pane fade show active" id="tab-agent" role="tabpanel">
                 <div class="glass-card mb-4">
                     <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3">
-                        <h3 class="h5 mb-0 fw-bold"><i class="bi bi-terminal-fill me-2 text-success"></i>Agent Configuration</h3>
+                        <h3 class="h5 mb-0 fw-bold"><i class="bi bi-terminal-fill me-2 text-success" aria-hidden="true"></i>Agent Configuration</h3>
                         <div class="search-tip-badge" id="agentStatusBadge" style="display: none;">
                             <span class="pulse-dot"></span>
-                            <span class="small fw-semibold text-secondary">Agent Running...</span>
+                            <span class="small fw-semibold text-secondary">Agent Running…</span>
                         </div>
                     </div>
 
@@ -136,14 +136,14 @@
                                     <button type="button" class="btn btn-sm btn-outline-secondary btn-pill" onclick="applyGoalTemplate('check_db')">Inspect SQLite Tables</button>
                                 </div>
                                 <label for="agentGoal" class="form-label">Agent Goal</label>
-                                <textarea id="agentGoal" class="form-control custom-input" rows="4" placeholder="Describe the goal for the autonomous agent..."></textarea>
+                                <textarea id="agentGoal" class="form-control custom-input" rows="4" placeholder="Describe the goal for the autonomous agent…"></textarea>
                             </div>
                             <div class="col-12 mt-4 text-end">
                                 <button type="submit" class="btn btn-primary-accent" id="btnStartAgent">
-                                    <i class="bi bi-lightning-charge-fill me-1"></i> Activate Autonomous Agent
+                                    <i class="bi bi-lightning-charge-fill me-1" aria-hidden="true"></i> Activate Autonomous Agent
                                 </button>
                                 <button type="button" class="btn btn-danger btn-pill ms-2" id="btnStopAgent" style="display: none;">
-                                    <i class="bi bi-x-circle-fill me-1"></i> Stop Agent
+                                    <i class="bi bi-x-circle-fill me-1" aria-hidden="true"></i> Stop Agent
                                 </button>
                             </div>
                         </div>
@@ -153,8 +153,8 @@
                 <!-- Live Stream Console Output -->
                 <div class="glass-card bg-dark text-light border-dark font-monospace" style="border-radius: 16px;">
                     <div class="d-flex align-items-center justify-content-between mb-3 border-bottom border-secondary pb-2">
-                        <span class="small fw-semibold text-secondary text-uppercase tracking-wider"><i class="bi bi-gpu-card me-1"></i> Live Stream Telemetry</span>
-                        <button class="btn btn-sm btn-outline-secondary py-0 border-secondary px-2 text-secondary" onclick="clearConsole()"><i class="bi bi-trash"></i> Clear</button>
+                        <span class="small fw-semibold text-secondary text-uppercase tracking-wider"><i class="bi bi-gpu-card me-1" aria-hidden="true"></i> Live Stream Telemetry</span>
+                        <button class="btn btn-sm btn-outline-secondary py-0 border-secondary px-2 text-secondary" onclick="clearConsole()"><i class="bi bi-trash" aria-hidden="true"></i> Clear</button>
                     </div>
                     <div id="agentConsole" class="p-3" style="max-height: 450px; overflow-y: auto; background-color: #0b0c0a; border-radius: 8px; font-size: 0.88rem; line-height: 1.5; color: #a4cfa4;">
                         <div class="text-secondary">[System] Ready. Configure parameters above and launch the agent run.</div>
@@ -165,7 +165,7 @@
             <!-- 2. Stories & Specs Tab -->
             <div class="tab-pane fade" id="tab-stories" role="tabpanel">
                 <div class="glass-card mb-4">
-                    <h3 class="h5 mb-4 fw-bold border-bottom pb-3"><i class="bi bi-layers-half me-2"></i>Active Stories</h3>
+                    <h3 class="h5 mb-4 fw-bold border-bottom pb-3"><i class="bi bi-layers-half me-2" aria-hidden="true"></i>Active Stories</h3>
                     <div class="table-responsive">
                         <table class="table custom-table" id="storiesTable">
                             <thead>
@@ -178,7 +178,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr><td colspan="5" class="text-center text-secondary">Loading stories...</td></tr>
+                                <tr><td colspan="5" class="text-center text-secondary">Loading stories…</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -188,7 +188,7 @@
             <!-- 3. Architecture Decisions Tab -->
             <div class="tab-pane fade" id="tab-decisions" role="tabpanel">
                 <div class="glass-card mb-4">
-                    <h3 class="h5 mb-4 fw-bold border-bottom pb-3"><i class="bi bi-journal-code me-2"></i>Recorded ADRs</h3>
+                    <h3 class="h5 mb-4 fw-bold border-bottom pb-3"><i class="bi bi-journal-code me-2" aria-hidden="true"></i>Recorded ADRs</h3>
                     <div class="table-responsive">
                         <table class="table custom-table" id="decisionsTable">
                             <thead>
@@ -201,7 +201,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr><td colspan="5" class="text-center text-secondary">Loading decisions...</td></tr>
+                                <tr><td colspan="5" class="text-center text-secondary">Loading decisions…</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -211,7 +211,7 @@
             <!-- 4. Backlog & Friction Tab -->
             <div class="tab-pane fade" id="tab-backlog" role="tabpanel">
                 <div class="glass-card mb-4">
-                    <h3 class="h5 mb-4 fw-bold border-bottom pb-3"><i class="bi bi-clipboard-pulse me-2"></i>Harness Backlog</h3>
+                    <h3 class="h5 mb-4 fw-bold border-bottom pb-3"><i class="bi bi-clipboard-pulse me-2" aria-hidden="true"></i>Harness Backlog</h3>
                     <div class="table-responsive">
                         <table class="table custom-table" id="backlogTable">
                             <thead>
@@ -224,7 +224,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr><td colspan="5" class="text-center text-secondary">Loading backlog...</td></tr>
+                                <tr><td colspan="5" class="text-center text-secondary">Loading backlog…</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -234,7 +234,7 @@
             <!-- 5. Traces Tab -->
             <div class="tab-pane fade" id="tab-traces" role="tabpanel">
                 <div class="glass-card mb-4">
-                    <h3 class="h5 mb-4 fw-bold border-bottom pb-3"><i class="bi bi-hdd-stack me-2"></i>Execution Traces</h3>
+                    <h3 class="h5 mb-4 fw-bold border-bottom pb-3"><i class="bi bi-hdd-stack me-2" aria-hidden="true"></i>Execution Traces</h3>
                     <div class="table-responsive">
                         <table class="table custom-table" id="tracesTable">
                             <thead>
@@ -247,7 +247,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr><td colspan="5" class="text-center text-secondary">Loading traces...</td></tr>
+                                <tr><td colspan="5" class="text-center text-secondary">Loading traces…</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -260,16 +260,16 @@
     <div class="col-xl-4">
         <!-- Contextual action forms -->
         <div class="glass-card mb-4" id="form-story-add-card">
-            <h3 class="h6 mb-3 fw-bold uppercase tracking-wider text-secondary"><i class="bi bi-plus-square me-2"></i>Register New Story</h3>
+            <h3 class="h6 mb-3 fw-bold uppercase tracking-wider text-secondary"><i class="bi bi-plus-square me-2" aria-hidden="true"></i>Register New Story</h3>
             <form id="addStoryForm">
                 <div class="row g-3">
                     <div class="col-12">
                         <label for="storyId" class="form-label">Story ID (e.g. STORY-101)</label>
-                        <input type="text" id="storyId" class="form-control custom-input" placeholder="STORY-XXX" required>
+                        <input type="text" id="storyId" class="form-control custom-input" placeholder="STORY-XXX" required autocomplete="off" aria-label="STORY-XXX">
                     </div>
                     <div class="col-12">
                         <label for="storyTitle" class="form-label">Story Title</label>
-                        <input type="text" id="storyTitle" class="form-control custom-input" placeholder="Implement feature X..." required>
+                        <input type="text" id="storyTitle" class="form-control custom-input" placeholder="Implement feature X…" required autocomplete="off" aria-label="Implement feature X…">
                     </div>
                     <div class="col-6">
                         <label for="storyLane" class="form-label">Risk Lane</label>
@@ -289,61 +289,61 @@
                     </div>
                     <div class="col-12">
                         <label for="storyContract" class="form-label">Contract Document</label>
-                        <input type="text" id="storyContract" class="form-control custom-input" placeholder="docs/product/contract.md">
+                        <input type="text" id="storyContract" class="form-control custom-input" placeholder="docs/product/contract.md" autocomplete="off" aria-label="docs/product/contract.md">
                     </div>
                     <div class="col-12">
                         <label for="storyNotes" class="form-label">Notes</label>
-                        <textarea id="storyNotes" class="form-control custom-input" rows="2" placeholder="Any initial notes..."></textarea>
+                        <textarea id="storyNotes" class="form-control custom-input" rows="2" placeholder="Any initial notes…"></textarea>
                     </div>
                     <div class="col-12 text-end">
-                        <button type="submit" class="btn btn-sm btn-outline-excel"><i class="bi bi-check-circle"></i> Save Story</button>
+                        <button type="submit" class="btn btn-sm btn-outline-excel"><i class="bi bi-check-circle" aria-hidden="true"></i> Save Story</button>
                     </div>
                 </div>
             </form>
         </div>
 
         <div class="glass-card mb-4" id="form-decision-add-card">
-            <h3 class="h6 mb-3 fw-bold uppercase tracking-wider text-secondary"><i class="bi bi-file-earmark-code me-2"></i>Record Architecture Decision (ADR)</h3>
+            <h3 class="h6 mb-3 fw-bold uppercase tracking-wider text-secondary"><i class="bi bi-file-earmark-code me-2" aria-hidden="true"></i>Record Architecture Decision (ADR)</h3>
             <form id="addDecisionForm">
                 <div class="row g-3">
                     <div class="col-12">
                         <label for="decisionId" class="form-label">Decision ID (e.g. ADR-005)</label>
-                        <input type="text" id="decisionId" class="form-control custom-input" placeholder="ADR-XXX" required>
+                        <input type="text" id="decisionId" class="form-control custom-input" placeholder="ADR-XXX" required autocomplete="off" aria-label="ADR-XXX">
                     </div>
                     <div class="col-12">
                         <label for="decisionTitle" class="form-label">Decision Title</label>
-                        <input type="text" id="decisionTitle" class="form-control custom-input" placeholder="Use SQLite WAL mode..." required>
+                        <input type="text" id="decisionTitle" class="form-control custom-input" placeholder="Use SQLite WAL mode…" required autocomplete="off" aria-label="Use SQLite WAL mode…">
                     </div>
                     <div class="col-12">
                         <label for="decisionDoc" class="form-label">Document Path</label>
-                        <input type="text" id="decisionDoc" class="form-control custom-input" placeholder="docs/decisions/0005-title.md">
+                        <input type="text" id="decisionDoc" class="form-control custom-input" placeholder="docs/decisions/0005-title.md" autocomplete="off" aria-label="docs/decisions/0005-title.md">
                     </div>
                     <div class="col-12">
                         <label for="decisionVerify" class="form-label">Verification Command</label>
-                        <input type="text" id="decisionVerify" class="form-control custom-input" placeholder="pytest tests/test_db_persistence.py">
+                        <input type="text" id="decisionVerify" class="form-control custom-input" placeholder="pytest tests/test_db_persistence.py" autocomplete="off" aria-label="pytest tests/test_db_persistence.py">
                     </div>
                     <div class="col-12 text-end">
-                        <button type="submit" class="btn btn-sm btn-outline-excel"><i class="bi bi-check-circle"></i> Save Decision</button>
+                        <button type="submit" class="btn btn-sm btn-outline-excel"><i class="bi bi-check-circle" aria-hidden="true"></i> Save Decision</button>
                     </div>
                 </div>
             </form>
         </div>
 
         <div class="glass-card" id="form-backlog-add-card">
-            <h3 class="h6 mb-3 fw-bold uppercase tracking-wider text-secondary"><i class="bi bi-journal-plus me-2"></i>Propose Backlog Item</h3>
+            <h3 class="h6 mb-3 fw-bold uppercase tracking-wider text-secondary"><i class="bi bi-journal-plus me-2" aria-hidden="true"></i>Propose Backlog Item</h3>
             <form id="addBacklogForm">
                 <div class="row g-3">
                     <div class="col-12">
                         <label for="backlogTitle" class="form-label">Backlog Title</label>
-                        <input type="text" id="backlogTitle" class="form-control custom-input" placeholder="Improve exception handling in API..." required>
+                        <input type="text" id="backlogTitle" class="form-control custom-input" placeholder="Improve exception handling in API…" required autocomplete="off" aria-label="Improve exception handling in API…">
                     </div>
                     <div class="col-12">
                         <label for="backlogPain" class="form-label">Current Pain Point</label>
-                        <input type="text" id="backlogPain" class="form-control custom-input" placeholder="Locked database blocks testing flow...">
+                        <input type="text" id="backlogPain" class="form-control custom-input" placeholder="Locked database blocks testing flow…" autocomplete="off" aria-label="Locked database blocks testing flow…">
                     </div>
                     <div class="col-12">
                         <label for="backlogSuggestion" class="form-label">Suggested Improvement</label>
-                        <input type="text" id="backlogSuggestion" class="form-control custom-input" placeholder="Apply WAL mode and connection time-out...">
+                        <input type="text" id="backlogSuggestion" class="form-control custom-input" placeholder="Apply WAL mode and connection time-out…" autocomplete="off" aria-label="Apply WAL mode and connection time-out…">
                     </div>
                     <div class="col-6">
                         <label for="backlogRisk" class="form-label">Risk</label>
@@ -361,7 +361,7 @@
                         </select>
                     </div>
                     <div class="col-12 text-end">
-                        <button type="submit" class="btn btn-sm btn-outline-excel"><i class="bi bi-check-circle"></i> Save Item</button>
+                        <button type="submit" class="btn btn-sm btn-outline-excel"><i class="bi bi-check-circle" aria-hidden="true"></i> Save Item</button>
                     </div>
                 </div>
             </form>
@@ -425,11 +425,11 @@
                     </div>
                     <div class="mb-3">
                         <label for="modalStoryEvidence" class="form-label">Verification Evidence / Proof</label>
-                        <textarea id="modalStoryEvidence" class="form-control custom-input" rows="3" placeholder="Provide test paths or run logs as evidence..."></textarea>
+                        <textarea id="modalStoryEvidence" class="form-control custom-input" rows="3" placeholder="Provide test paths or run logs as evidence…"></textarea>
                     </div>
                     <div class="text-end mt-4">
                         <button type="button" class="btn btn-secondary btn-pill" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary-accent"><i class="bi bi-cloud-arrow-up-fill me-1"></i> Update Story</button>
+                        <button type="submit" class="btn btn-primary-accent"><i class="bi bi-cloud-arrow-up-fill me-1" aria-hidden="true"></i> Update Story</button>
                     </div>
                 </form>
             </div>
@@ -810,7 +810,7 @@
         const alertRegion = document.getElementById("appAlertRegion");
         alertRegion.innerHTML = `
             <div class="alert alert-${type} alert-dismissible fade show border-0 shadow-sm" role="alert" style="border-radius: 12px;">
-                <i class="bi bi-info-circle-fill me-2"></i> ${message}
+                <i class="bi bi-info-circle-fill me-2" aria-hidden="true"></i> ${message}
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         `;

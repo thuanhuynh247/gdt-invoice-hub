@@ -236,3 +236,45 @@ def test_sql_execution_failure_fallback(mock_post, app, chat_setup):
         response = agent.ask(chat_setup.id, "Lấy cột lạ?")
         assert "Lỗi chi tiết" in response
         assert "non_existent_column" in response
+
+
+@patch("invoices.ai_service.requests.post")
+def test_system_prompt_and_context_binding(mock_post, app, chat_setup):
+    """Verify system prompt contains invoice context and Senior Tax Advisor persona."""
+    agent = AIChatAgent()
+    
+    # 1. Intent response (general_query)
+    mock_resp_intent = MagicMock()
+    mock_resp_intent.status_code = 200
+    mock_resp_intent.json.return_value = {
+        "message": {
+            "content": '{"intent": "general_query"}'
+        }
+    }
+
+    # 2. General chat response
+    mock_resp_chat = MagicMock()
+    mock_resp_chat.status_code = 200
+    mock_resp_chat.json.return_value = {
+        "message": {
+            "content": "Phản hồi luật thuế"
+        }
+    }
+
+    mock_post.side_effect = [mock_resp_intent, mock_resp_chat]
+
+    with app.app_context():
+        agent.ask(chat_setup.id, "Kiểm tra luật thuế")
+        
+        assert mock_post.call_count == 2
+        
+        # Check second call (general chat model query)
+        called_args, called_kwargs = mock_post.call_args_list[1]
+        req_data = called_kwargs.get("json", {})
+        messages = req_data.get("messages", [])
+        system_msg = next((m["content"] for m in messages if m["role"] == "system"), "")
+        
+        assert "Senior Tax Compliance Consultant" in system_msg
+        assert "danh sách hóa đơn hiện có" in system_msg
+        assert "Điều, Khoản, Thông tư, Nghị định" in system_msg
+

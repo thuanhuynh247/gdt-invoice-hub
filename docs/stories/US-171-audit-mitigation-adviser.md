@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -20,11 +20,11 @@ The application must provide legal citations for simulated audit warning flags a
 
 ## Acceptance Criteria
 
-- [ ] Match warning badges to relevant Vietnamese tax regulations (Circulars, Decrees).
-- [ ] Provide explanation suggestions in the audit details panel.
-- [ ] Implement a "Draft Explanation Letter" generator producing formatted Vietnamese templates.
-- [ ] Support exporting generated response drafts to DOCX or PDF format.
-- [ ] Write integration tests verifying generated document content contains key invoice details.
+- [x] Match warning badges to relevant Vietnamese tax regulations (Circulars, Decrees).
+- [x] Provide explanation suggestions in the audit details panel.
+- [x] Implement a "Draft Explanation Letter" generator producing formatted Vietnamese templates.
+- [x] Support exporting generated response drafts to DOCX or PDF format.
+- [x] Write integration tests verifying generated document content contains key invoice details.
 
 ## Design Notes
 

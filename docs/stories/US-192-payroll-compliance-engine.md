@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -18,12 +18,12 @@ The application must support uploading corporate Excel payroll sheets, parsing t
 
 ## Acceptance Criteria
 
-- [ ] Support importing Excel payroll files and mapping payroll columns (salary, allowances, deductions).
-- [ ] Implement payroll audit logic to verify employee & employer social insurance contributions against statutory rates.
-- [ ] Implement allowance checks to flag welfare, lunch, and telephone allowances exceeding statutory tax-exempt thresholds.
-- [ ] Display an audit summary dashboard showing high-risk items, wrong calculations, or missing contracts.
-- [ ] Expose API endpoint `POST /api/pit/payroll-audit` to execute payroll checks.
-- [ ] Write unit tests verifying payroll Excel parsing, insurance calculation, and allowance check compliance.
+- [x] Support importing Excel payroll files and mapping payroll columns (salary, allowances, deductions).
+- [x] Implement payroll audit logic to verify employee & employer social insurance contributions against statutory rates.
+- [x] Implement allowance checks to flag welfare, lunch, and telephone allowances exceeding statutory tax-exempt thresholds.
+- [x] Display an audit summary dashboard showing high-risk items, wrong calculations, or missing contracts.
+- [x] Expose API endpoint `POST /api/pit/payroll-audit` to execute payroll checks.
+- [x] Write unit tests verifying payroll Excel parsing, insurance calculation, and allowance check compliance.
 
 ## Design Notes
 

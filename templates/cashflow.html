@@ -105,7 +105,7 @@
                 </p>
             </div>
             <a href="/dashboard" class="btn btn-outline-light rounded-pill px-4">
-                <i class="bi bi-arrow-left-circle me-2"></i>Quay lại
+                <i class="bi bi-arrow-left-circle me-2" aria-hidden="true"></i>Quay lại
             </a>
         </div>
     </div>
@@ -115,7 +115,7 @@
         <!-- Sidebar Controls / Parameters Simulation -->
         <div class="col-lg-4 col-md-5">
             <div class="glass-card shadow-sm h-100">
-                <h4 class="mb-4 fw-bold text-gradient"><i class="bi bi-sliders me-2"></i>Bộ Mô Phỏng Rủi Ro (What-If)</h4>
+                <h4 class="mb-4 fw-bold text-gradient"><i class="bi bi-sliders me-2" aria-hidden="true"></i>Bộ Mô Phỏng Rủi Ro (What-If)</h4>
                 <p class="text-secondary small mb-4">
                     Điều chỉnh các tham số giả lập để stress-test khả năng thanh khoản mà không ảnh hưởng đến dữ liệu hóa đơn thật.
                 </p>
@@ -154,7 +154,7 @@
 
                 <!-- Reset control -->
                 <button class="btn btn-outline-danger w-100 rounded-pill fw-bold" id="btn-reset-simulator">
-                    <i class="bi bi-arrow-counterclockwise me-2"></i>Reset Mô Phỏng
+                    <i class="bi bi-arrow-counterclockwise me-2" aria-hidden="true"></i>Reset Mô Phỏng
                 </button>
             </div>
         </div>
@@ -163,7 +163,7 @@
         <div class="col-lg-8 col-md-7">
             <div class="glass-card shadow-sm h-100">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h4 class="m-0 fw-bold"><i class="bi bi-graph-up-arrows me-2"></i>Đường Biểu Diễn Dòng Tiền 90 Ngày</h4>
+                    <h4 class="m-0 fw-bold"><i class="bi bi-graph-up-arrows me-2" aria-hidden="true"></i>Đường Biểu Diễn Dòng Tiền 90 Ngày</h4>
                     <span class="badge bg-success rounded-pill px-3 py-2" id="sim-active-badge" style="display: none;">Đang mô phỏng</span>
                 </div>
 
@@ -215,13 +215,13 @@
                 <!-- Summary meta stats -->
                 <div class="d-flex justify-content-between flex-wrap gap-3 small text-secondary">
                     <div>
-                        <i class="bi bi-file-earmark-spreadsheet me-1"></i>Tổng số hóa đơn phân tích: <strong id="stat-total">0</strong>
+                        <i class="bi bi-file-earmark-spreadsheet me-1" aria-hidden="true"></i>Tổng số hóa đơn phân tích: <strong id="stat-total">0</strong>
                     </div>
                     <div>
-                        <i class="bi bi-exclamation-triangle me-1"></i>Hóa đơn phải thu trễ hạn: <strong class="text-warning" id="stat-overdue">0</strong>
+                        <i class="bi bi-exclamation-triangle me-1" aria-hidden="true"></i>Hóa đơn phải thu trễ hạn: <strong class="text-warning" id="stat-overdue">0</strong>
                     </div>
                     <div>
-                        <i class="bi bi-calculator me-1"></i>Thuế GTGT Dự kiến (90d): <strong id="stat-vat">0 VND</strong>
+                        <i class="bi bi-calculator me-1" aria-hidden="true"></i>Thuế GTGT Dự kiến (90d): <strong id="stat-vat">0 VND</strong>
                     </div>
                 </div>
             </div>
@@ -314,8 +314,8 @@ document.addEventListener("DOMContentLoaded", function() {
         const paddingTop = 30;
         const paddingBottom = 40;
 
-        const maxVal = Math.max(...timeline.map(d => Math.max(d.balance, d.inflow, d.outflow, 1000000)));
-        const minVal = Math.min(0, ...timeline.map(d => d.balance));
+        const maxVal = Math.max.apply(Math, timeline.map(d => Math.max(d.balance, d.inflow, d.outflow, 1000000)));
+        const minVal = Math.min.apply(Math, [0].concat(timeline.map(d => d.balance)));
         const valRange = maxVal - minVal || 1;
 
         const pointsObjects = [];

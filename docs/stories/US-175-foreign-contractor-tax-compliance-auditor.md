@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -19,11 +19,11 @@ The application must audit invoices from cross-border service providers (such as
 
 ## Acceptance Criteria
 
-- [ ] Detect cross-border service transactions using supplier country or specialized FCT tags.
-- [ ] Calculate FCT liabilities (VAT and CIT withholding portions) based on standard tax rates (e.g. 5% VAT, 5% CIT for services).
-- [ ] Display an FCT audit dashboard showing tax due dates and withholding liabilities.
-- [ ] Support exporting monthly/quarterly FCT tax declaration worksheets to Excel.
-- [ ] Write tests validating FCT withholding calculations for gross-up and net-contract types.
+- [x] Detect cross-border service transactions using supplier country or specialized FCT tags.
+- [x] Calculate FCT liabilities (VAT and CIT withholding portions) based on standard tax rates (e.g. 5% VAT, 5% CIT for services).
+- [x] Display an FCT audit dashboard showing tax due dates and withholding liabilities.
+- [x] Support exporting monthly/quarterly FCT tax declaration worksheets to Excel.
+- [x] Write tests validating FCT withholding calculations for gross-up and net-contract types.
 
 ## Design Notes
 

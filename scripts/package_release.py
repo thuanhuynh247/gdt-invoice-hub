@@ -29,7 +29,15 @@ def package_project():
         '.harness-clone',
         '.skills-clone',
         'chromedriver',
-        'open-design'
+        'open-design',
+        '.understand-anything',
+        '.codex',
+        '.khuym',
+        '.code-review-graph',
+        '.codegraph',
+        'temp_understand',
+        'temp_ag_kit',
+        'gdt-invoice-hub'
     }
     
     # Excluded files

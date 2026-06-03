@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -18,11 +18,11 @@ The application must provide a query builder interface allowing users to filter,
 
 ## Acceptance Criteria
 
-- [ ] Create search filter dropdowns that dynamically populate from registered schema extension fields.
-- [ ] Implement invoice list query filtering using JSON-extract functions on sqlite `metadata_json` column.
-- [ ] Provide analytical aggregation grouping invoice total amounts by dynamic tags (e.g. group by ProjectID).
-- [ ] Support exporting filtered reports (containing custom fields) to CSV and Excel.
-- [ ] Expose API endpoint `GET /api/schema/reports` to fetch filtered analytical aggregations.
+- [x] Create search filter dropdowns that dynamically populate from registered schema extension fields.
+- [x] Implement invoice list query filtering using JSON-extract functions on sqlite `metadata_json` column.
+- [x] Provide analytical aggregation grouping invoice total amounts by dynamic tags (e.g. group by ProjectID).
+- [x] Support exporting filtered reports (containing custom fields) to CSV and Excel.
+- [x] Expose API endpoint `GET /api/schema/reports` to fetch filtered analytical aggregations.
 
 ## Design Notes
 

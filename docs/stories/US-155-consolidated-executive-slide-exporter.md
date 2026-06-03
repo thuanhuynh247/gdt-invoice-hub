@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -18,11 +18,11 @@ The application must automatically generate executive briefing slide decks (Powe
 
 ## Acceptance Criteria
 
-- [ ] Implement API endpoint `GET /api/reports/executive-brief` generating the consolidated presentation.
-- [ ] Generate professional slide decks with group summary, entity comparison, risk heatmap, and tax projections.
-- [ ] Support export to PowerPoint (.pptx) and PDF formats.
-- [ ] Embed a SHA-256 integrity block in the final slide mapping back to original data snapshots.
-- [ ] Write tests verifying file generation, content correctness, and integrity hash accuracy.
+- [x] Implement API endpoint `GET /api/reports/executive-brief` generating the consolidated presentation.
+- [x] Generate professional slide decks with group summary, entity comparison, risk heatmap, and tax projections.
+- [x] Support export to PowerPoint (.pptx) and PDF formats.
+- [x] Embed a SHA-256 integrity block in the final slide mapping back to original data snapshots.
+- [x] Write tests verifying file generation, content correctness, and integrity hash accuracy.
 
 ## Design Notes
 

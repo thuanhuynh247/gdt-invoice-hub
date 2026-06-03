@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -18,11 +18,11 @@ The application must provide a parser engine for Vietnam Customs XML declaration
 
 ## Acceptance Criteria
 
-- [ ] Build a parser that extracts metadata (Customs Declaration ID, Date, Incoterms, Currency, Exchange Rate, Total Value, Products list) from VNACCS/VCIS Customs XML files.
-- [ ] Implement tax calculation logic for import duties, export duties, anti-dumping duties, and import VAT.
-- [ ] Provide a frontend panel to upload customs XML files, view item lists, and inspect recalculated tax breakdowns.
-- [ ] Expose API endpoint `POST /api/customs/parse` to process and return calculation metrics.
-- [ ] Write unit tests validating parsing accuracy and mathematical correctness of tax calculations.
+- [x] Build a parser that extracts metadata (Customs Declaration ID, Date, Incoterms, Currency, Exchange Rate, Total Value, Products list) from VNACCS/VCIS Customs XML files.
+- [x] Implement tax calculation logic for import duties, export duties, anti-dumping duties, and import VAT.
+- [x] Provide a frontend panel to upload customs XML files, view item lists, and inspect recalculated tax breakdowns.
+- [x] Expose API endpoint `POST /api/customs/parse` to process and return calculation metrics.
+- [x] Write unit tests validating parsing accuracy and mathematical correctness of tax calculations.
 
 ## Design Notes
 

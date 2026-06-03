@@ -89,6 +89,16 @@ TAX_REGULATIONS = [
             "3. Hóa đơn đã gửi cho người mua có sai MST, sai số tiền, sai thuế suất, tiền thuế hoặc quy cách hàng hóa: Người bán lập hóa đơn điện tử điều chỉnh hoặc hóa đơn thay thế mới gửi cho người mua, đồng thời gửi Mẫu 04/SS-HĐĐT lên cơ quan thuế."
         ),
         "keywords": ["sai sót", "sai sot", "viết sai", "viet sai", "điều chỉnh", "dieu chinh", "thay thế", "thay the", "04/ss-hđđt", "mẫu 04", "mã số thuế", "địa chỉ", "tên người mua", "hóa đơn điều chỉnh"]
+    },
+    {
+        "id": "cit_circular_20_2026",
+        "title": "Thông tư số 20/2026/TT-BTC về quản lý thuế thu nhập doanh nghiệp (Hiệu lực từ 12/03/2026)",
+        "content": (
+            "Thông tư số 20/2026/TT-BTC ban hành ngày 12/02/2026 và có hiệu lực thi hành từ ngày 12/03/2026 hướng dẫn về thuế TNDN. Các thay đổi chính bao gồm:\n"
+            "1. Chi phí mua hàng ủy quyền qua cá nhân (Điều 13): Đối với các giao dịch mua hàng, dịch vụ được doanh nghiệp ủy quyền cho cá nhân thanh toán bằng thẻ cá nhân hoặc tiền mặt có giá trị từ 5 triệu đồng trở lên (bao gồm cả thuế GTGT), doanh nghiệp chỉ được tính vào chi phí được trừ khi có đủ hóa đơn hợp pháp và chứng từ thanh toán không dùng tiền mặt (chuyển khoản từ tài khoản cá nhân được ủy quyền sang tài khoản người bán và doanh nghiệp hoàn trả tiền qua tài khoản ngân hàng của cá nhân đó, hoặc chuyển khoản trực tiếp).\n"
+            "2. Chi phí không dùng tiền mặt: Thắt chặt quy định chứng từ thanh toán không dùng tiền mặt đối với các khoản chi ủy quyền cá nhân từ 5 triệu đồng trở lên để tránh gian lận chi phí hợp lý."
+        ),
+        "keywords": ["thông tư 20", "thong tu 20", "20/2026", "20/2026/tt-btc", "ủy quyền", "uy quyen", "thẻ cá nhân", "cá nhân thanh toán", "nhân viên thanh toán", "nhân viên ủy quyền", "5 triệu", "5 trieu"]
     }
 ]
 
@@ -168,7 +178,12 @@ def parse_and_chunk_pdf(filename: str) -> list[dict]:
     chunks = []
     try:
         reader = PdfReader(filename)
-        effective_date = "2025-07-01" if "48" in filename else "2026-01-01"
+        if "20-btc" in filename:
+            effective_date = "2026-03-12"
+        elif "48" in filename:
+            effective_date = "2025-07-01"
+        else:
+            effective_date = "2026-01-01"
         
         for page_idx, page in enumerate(reader.pages):
             text = page.extract_text()
@@ -223,7 +238,7 @@ def run_dynamic_pdf_ingestion(app):
         
         init_fts5_tables()
         
-        pdf_files = ["luat48.pdf", "luat149.signed.pdf"]
+        pdf_files = ["luat48.pdf", "luat149.signed.pdf", "20-btc.pdf"]
         ingested_any = False
         
         for filename in pdf_files:
@@ -1147,6 +1162,46 @@ class AIChatAgent:
         for msg in history[-10:]:  # Last 10 messages
             history_context += f"{'Kế toán' if msg.role == 'user' else 'Trợ lý AI'}: {msg.content}\n"
 
+        # Look up if this session is bound to an invoice
+        invoice_context = ""
+        try:
+            session = db.session.get(AIChatSession, session_id)
+            if session and session.invoice_id:
+                invoice = db.session.get(Invoice, session.invoice_id)
+                if invoice:
+                    items_detail = []
+                    for item in invoice.items:
+                        items_detail.append(
+                            f"- Tên hàng: {item.item_name}, ĐVT: {item.unit or ''}, Số lượng: {item.quantity or 0}, "
+                            f"Đơn giá: {item.unit_price or 0}, Thành tiền (chưa VAT): {item.amount_before_tax or 0}, "
+                            f"Thuế suất: {item.tax_rate or ''}, Tiền thuế: {item.tax_amount or 0}, Nhóm chi phí: {item.expense_category or ''}"
+                        )
+                    warnings_detail = []
+                    if invoice.warnings_json:
+                        try:
+                            warnings_detail = json.loads(invoice.warnings_json)
+                        except Exception:
+                            pass
+                    
+                    invoice_context = (
+                        f"### THÔNG TIN HÓA ĐƠN THAM VẤN HIỆN TẠI (INVOICE CONTEXT):\n"
+                        f"- Mã hệ thống: {invoice.id}\n"
+                        f"- Bên bán: {invoice.seller_name} (MST: {invoice.seller_mst})\n"
+                        f"- Địa chỉ bên bán: {invoice.seller_address}\n"
+                        f"- Bên mua: {invoice.buyer_name} (MST: {invoice.buyer_mst})\n"
+                        f"- Địa chỉ bên mua: {invoice.buyer_address}\n"
+                        f"- Số hóa đơn: {invoice.number} | Ký hiệu: {invoice.symbol} | Ngày lập: {invoice.date}\n"
+                        f"- Tiền hàng trước thuế: {invoice.amount_before_tax:,.2f} {invoice.currency or 'VND'}\n"
+                        f"- Tiền thuế GTGT: {invoice.tax_amount:,.2f} {invoice.currency or 'VND'}\n"
+                        f"- Tổng thanh toán: {invoice.total_amount:,.2f} {invoice.currency or 'VND'}\n"
+                        f"- Hình thức thanh toán: {invoice.payment_method or ''}\n"
+                        f"- Điểm rủi ro T-Score: {invoice.t_score}/100 | Xếp hạng: {invoice.t_rating}\n"
+                        f"- Cảnh báo hình thức: {', '.join(warnings_detail) if warnings_detail else 'Không có'}\n"
+                        f"- Chi tiết mặt hàng:\n" + "\n".join(items_detail) + "\n\n"
+                    )
+        except Exception as e:
+            logger.warning(f"Failed to fetch bound invoice context for chat: {e}")
+
         # 1. Classify intent
         intent = "general_query"
         try:
@@ -1280,6 +1335,7 @@ class AIChatAgent:
                     "Bạn là Kế toán trưởng & Chuyên gia tư vấn thuế chuyên nghiệp (Senior Tax Compliance Consultant) của meInvoice Intelligence.\n"
                     "Dưới đây là câu hỏi của người dùng, truy vấn SQL đã chạy và kết quả dữ liệu thực tế thu được từ cơ sở dữ liệu.\n"
                     "Nhiệm vụ của bạn là tổng hợp dữ liệu này và trả lời người dùng bằng tiếng Việt tự nhiên, chính xác, lịch sự.\n"
+                    "Hãy luôn trả lời bằng giọng điệu chuyên nghiệp, chuẩn mực của một cố vấn thuế cấp cao. Trích dẫn chính xác các Điều, Khoản, Thông tư, Nghị định liên quan (ví dụ: Nghị định 123/2020/NĐ-CP về hóa đơn, Nghị định 125/2020/NĐ-CP về xử phạt hành chính thuế/hóa đơn, Thông tư 219/2013/TT-BTC về thuế GTGT, Luật Thuế GTGT mới 48/2024/QH15 hoặc Luật số 149/2025/QH15) khi đưa ra lời khuyên pháp lý.\n"
                     "Hãy trình bày dữ liệu dạng bảng Markdown Table hoặc danh sách nếu có nhiều dòng.\n"
                     "Luôn bao gồm câu truy vấn SQL đã chạy trong câu trả lời để người dùng kiểm chứng dưới định dạng code block.\n"
                     "Hãy đưa ra nhận xét hoặc cảnh báo về các rủi ro tuân thủ (ví dụ: các hóa đơn từ doanh nghiệp có MST rủi ro cao, thanh toán tiền mặt vượt hạn mức, hoặc giá mua biến động quá mức) nếu phát hiện trong kết quả."
@@ -1322,14 +1378,18 @@ class AIChatAgent:
 
         system_prompt = (
             "Bạn là Kế toán trưởng & Chuyên gia tư vấn thuế chuyên nghiệp (Senior Tax Compliance Consultant) của meInvoice Intelligence.\n"
-            "Nhiệm vụ của bạn là hỗ trợ kế toán truy vấn, phân tích dữ liệu hóa đơn điện tử, đồng thời giải đáp các thắc mắc về luật thuế, chính sách kế toán, quy định hóa đơn tại Việt Nam.\n\n"
+            "Nhiệm vụ của bạn là hỗ trợ kế toán truy vấn, phân tích dữ liệu hóa đơn điện tử, đồng thời giải đáp các thắc mắc về luật thuế, chính sách kế toán, quy định hóa đơn tại Việt Nam.\n"
+            "Hãy luôn trả lời bằng giọng điệu chuyên nghiệp, chuẩn mực của một cố vấn thuế cấp cao. Trích dẫn chính xác các Điều, Khoản, Thông tư, Nghị định liên quan (ví dụ: Nghị định 123/2020/NĐ-CP về hóa đơn, Nghị định 125/2020/NĐ-CP về xử phạt hành chính thuế/hóa đơn, Thông tư 219/2013/TT-BTC về thuế GTGT, Luật Thuế GTGT mới 48/2024/QH15 hoặc Luật số 149/2025/QH15) khi đưa ra lời khuyên pháp lý.\n\n"
         )
+        if invoice_context:
+            system_prompt += invoice_context
+
         if tax_rag_context:
             system_prompt += (
                 "Dưới đây là các tài liệu quy định pháp luật thuế liên quan được truy xuất từ cơ sở dữ liệu luật thuế (RAG Context):\n"
                 f"{tax_rag_context}\n\n"
                 "Khi trả lời các câu hỏi về luật thuế, hãy:\n"
-                "- Trích dẫn chính xác các Điều, Khoản, Thông tư, Nghị định liên quan (ví dụ: Thông tư 219/2013/TT-BTC, Nghị định 123/2020/NĐ-CP, Luật Thuế GTGT 2024).\n"
+                "- Trích dẫn chính xác các Điều, Khoản, Thông tư, Nghị định liên quan.\n"
                 "- Cung cấp giải thích rõ ràng, chuyên nghiệp và có chiều sâu bằng tiếng Việt.\n"
                 "- Đưa ra các khuyến nghị hoặc hành động cụ thể để giảm thiểu rủi ro pháp lý cho doanh nghiệp.\n\n"
             )

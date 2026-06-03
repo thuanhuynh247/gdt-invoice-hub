@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -18,10 +18,10 @@ The application must capture real-time performance metrics of the local CAPTCHA 
 
 ## Acceptance Criteria
 
-- [ ] Track solve status (success/fail) and time taken inside the CAPTCHA solver execution.
-- [ ] Implement endpoint `GET /api/sync/health` returning solver statistics and overall crawler status.
-- [ ] Render a premium Glassmorphism monitoring card displaying real-time CAPTCHA stats, solve rates, and latency.
-- [ ] Write tests verifying statistics accumulation and correct JSON endpoint response.
+- [x] Track solve status (success/fail) and time taken inside the CAPTCHA solver execution.
+- [x] Implement endpoint `GET /api/sync/health` returning solver statistics and overall crawler status.
+- [x] Render a premium Glassmorphism monitoring card displaying real-time CAPTCHA stats, solve rates, and latency.
+- [x] Write tests verifying statistics accumulation and correct JSON endpoint response.
 
 ## Design Notes
 

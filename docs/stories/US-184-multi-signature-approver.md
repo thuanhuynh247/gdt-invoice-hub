@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -18,12 +18,12 @@ The application must enforce a customizable multi-signature approval routing cha
 
 ## Acceptance Criteria
 
-- [ ] Support creating approval workflow templates with sequential or parallel approvers.
-- [ ] Implement signature recording for each approver in the workflow chain.
-- [ ] Block outgoing invoice signing and GDT portal submission until the final approval signature is recorded.
-- [ ] Expose API endpoint `POST /api/approval/workflows` to configure and track approval states.
-- [ ] Display an approval progress bar and state indicators on invoice creation panel.
-- [ ] Write unit tests verifying approval state transitions and signing blocks.
+- [x] Support creating approval workflow templates with sequential or parallel approvers.
+- [x] Implement signature recording for each approver in the workflow chain.
+- [x] Block outgoing invoice signing and GDT portal submission until the final approval signature is recorded.
+- [x] Expose API endpoint `POST /api/approval/workflows` to configure and track approval states.
+- [x] Display an approval progress bar and state indicators on invoice creation panel.
+- [x] Write unit tests verifying approval state transitions and signing blocks.
 
 ## Design Notes
 

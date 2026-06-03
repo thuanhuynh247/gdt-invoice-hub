@@ -97,9 +97,9 @@ timeline
 
 | Epic ID | Epic Title | Story ID | Story Title | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **E76** | CIT Finalization | **US-180** | CIT Calculation & Form 03/TNDN Scaffolder | 📅 Planned |
-| **E76** | CIT Finalization | **US-181** | CIT Scenario Modeler & Stress-Tester | 📅 Planned |
-| **E77** | Schema Extension | **US-182** | Schema Extension Engine for Custom Fields | 📅 Planned |
-| **E77** | Schema Extension | **US-183** | Dynamic Metadata Filter & Report Generator | 📅 Planned |
-| **E78** | Cryptographic Trust | **US-184** | Multi-Signature Approval Workflows | 📅 Planned |
-| **E78** | Cryptographic Trust | **US-185** | Blockchain-Based Invoice Integrity Ledger | 📅 Planned |
+| **E76** | CIT Finalization | **US-180** | CIT Calculation & Form 03/TNDN Scaffolder | ✅ Implemented |
+| **E76** | CIT Finalization | **US-181** | CIT Scenario Modeler & Stress-Tester | ✅ Implemented |
+| **E77** | Schema Extension | **US-182** | Schema Extension Engine for Custom Fields | ✅ Implemented |
+| **E77** | Schema Extension | **US-183** | Dynamic Metadata Filter & Report Generator | ✅ Implemented |
+| **E78** | Cryptographic Trust | **US-184** | Multi-Signature Approval Workflows | ✅ Implemented |
+| **E78** | Cryptographic Trust | **US-185** | Blockchain-Based Invoice Integrity Ledger | ✅ Implemented |

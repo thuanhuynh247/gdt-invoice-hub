@@ -1275,6 +1275,20 @@ case "$cmd" in
   evaluate-risk) cmd_evaluate_risk "$@" ;;
   validate)      cmd_validate "$@" ;;
   serve)         cmd_serve "$@" ;;
+  unified-gate)
+    if command -v python3 >/dev/null 2>&1; then
+      python3 "$REPO_ROOT/scripts/harness_win.py" unified-gate "$@"
+    else
+      python "$REPO_ROOT/scripts/harness_win.py" unified-gate "$@"
+    fi
+    ;;
+  preflight)
+    if command -v python3 >/dev/null 2>&1; then
+      python3 "$REPO_ROOT/scripts/harness_win.py" preflight "$@"
+    else
+      python "$REPO_ROOT/scripts/harness_win.py" preflight "$@"
+    fi
+    ;;
   help|--help|-h)
     cat <<'EOF'
 harness — durable layer for the project harness.
@@ -1293,6 +1307,8 @@ Commands:
   context [flags]       Generate prompt-ready story context
   evaluate-risk [flags] Evaluate risk scores of feature descriptions
   validate [flags]      Run a verification command and record failure details
+  unified-gate [flags]  Execute Socratic, Khuym & Harness Unified Quality Gate
+  preflight             Execute automated Stage 3 & 4 production readiness pre-flight checks
   serve [flags]         Start a local web server to display the Harness Dashboard
 
 Environment:

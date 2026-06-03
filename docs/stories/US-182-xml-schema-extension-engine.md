@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -18,11 +18,11 @@ The application must support a flexible schema extension engine enabling users t
 
 ## Acceptance Criteria
 
-- [ ] Provide a schema builder settings UI to define custom metadata field mappings (XML path, field name, data type).
-- [ ] Implement XML parser updates to dynamically extract defined custom tags.
-- [ ] Save custom metadata tags as a JSON object in the `metadata_json` column of the `Invoice` table.
-- [ ] Expose API endpoint `POST /api/schema/extensions` to register new custom fields.
-- [ ] Write unit tests verifying custom tag extraction from standard GDT XML files with extended elements.
+- [x] Provide a schema builder settings UI to define custom metadata field mappings (XML path, field name, data type).
+- [x] Implement XML parser updates to dynamically extract defined custom tags.
+- [x] Save custom metadata tags as a JSON object in the `metadata_json` column of the `Invoice` table.
+- [x] Expose API endpoint `POST /api/schema/extensions` to register new custom fields.
+- [x] Write unit tests verifying custom tag extraction from standard GDT XML files with extended elements.
 
 ## Design Notes
 

@@ -106,6 +106,22 @@ def create_app() -> Flask:
                 if "imported_at" not in columns_bank:
                     db.session.execute(db.text("ALTER TABLE bank_transaction ADD COLUMN imported_at VARCHAR(30) NULL;"))
                     db.session.commit()
+
+            # Live migration check for ai_chat_session table
+            res_chat = db.session.execute(db.text("PRAGMA table_info(ai_chat_session);")).fetchall()
+            if res_chat:
+                columns_chat = [r[1] for r in res_chat]
+                if "invoice_id" not in columns_chat:
+                    db.session.execute(db.text("ALTER TABLE ai_chat_session ADD COLUMN invoice_id VARCHAR(100) NULL;"))
+                    db.session.commit()
+
+            # Live migration check for partner table
+            res_partner = db.session.execute(db.text("PRAGMA table_info(partner);")).fetchall()
+            if res_partner:
+                columns_partner = [r[1] for r in res_partner]
+                if "decree_132_relationship" not in columns_partner:
+                    db.session.execute(db.text("ALTER TABLE partner ADD COLUMN decree_132_relationship VARCHAR(10) NULL;"))
+                    db.session.commit()
         except Exception as e:
             app.logger.warning(f"Database migration check failed: {e}")
             db.session.rollback()
@@ -156,19 +172,24 @@ def create_app() -> Flask:
 
 
     if not app.config.get("TESTING") and os.getenv("TESTING") != "True":
-        from auth.captcha import start_captcha_prefetch_worker
-        start_captcha_prefetch_worker(app)
+        if os.getenv("ENABLE_CAPTCHA_PREFETCH", "true").lower() == "true":
+            from auth.captcha import start_captcha_prefetch_worker
+            start_captcha_prefetch_worker(app)
 
-        from invoices.scheduler import start_scheduler_worker
-        start_scheduler_worker(app)
+        if os.getenv("ENABLE_SCHEDULER_WORKER", "true").lower() == "true":
+            from invoices.scheduler import start_scheduler_worker
+            start_scheduler_worker(app)
 
-        from invoices.ai_service import start_dynamic_pdf_ingestion_thread
-        start_dynamic_pdf_ingestion_thread(app)
+        if os.getenv("ENABLE_PDF_INGESTION", "true").lower() == "true":
+            from invoices.ai_service import start_dynamic_pdf_ingestion_thread
+            start_dynamic_pdf_ingestion_thread(app)
 
-        from invoices.sync_daemon import GDTSyncDaemon
-        # Start the sync daemon with a fast 1-minute interval for demo purposes
-        daemon = GDTSyncDaemon(app, interval_minutes=1)
-        daemon.start()
+        if os.getenv("ENABLE_SYNC_DAEMON", "true").lower() == "true":
+            from invoices.sync_daemon import GDTSyncDaemon
+            # Start the sync daemon with a fast 1-minute interval for demo purposes
+            daemon = GDTSyncDaemon(app, interval_minutes=1)
+            daemon.start()
+
     @app.get("/")
     def index():
         """Redirect users to the appropriate landing page."""

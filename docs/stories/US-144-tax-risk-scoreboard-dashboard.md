@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -18,10 +18,10 @@ The application must aggregate and visualize VAT risk indicators (audit warning 
 
 ## Acceptance Criteria
 
-- [ ] Add an API or query view collecting audit warning distribution counts (blacklist warnings, signature violations, payment type flags).
-- [ ] Construct a modern SVG chart dashboard panel displaying warnings in a breakdown bar or pie chart.
-- [ ] Group and list high-risk suppliers by total transaction value and warnings count.
-- [ ] Verify that UI switches correctly between dark/light modes with HSL variable transitions.
+- [x] Add an API or query view collecting audit warning distribution counts (blacklist warnings, signature violations, payment type flags).
+- [x] Construct a modern SVG chart dashboard panel displaying warnings in a breakdown bar or pie chart.
+- [x] Group and list high-risk suppliers by total transaction value and warnings count.
+- [x] Verify that UI switches correctly between dark/light modes with HSL variable transitions.
 
 ## Design Notes
 
