@@ -1,0 +1,509 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .cashflow-hero {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        border-radius: 20px;
+        padding: 2.5rem;
+        margin-bottom: 2rem;
+        color: #fff;
+        position: relative;
+        overflow: hidden;
+    }
+    .cashflow-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(255,255,255,0.15), transparent 70%);
+        border-radius: 50%;
+    }
+    .cashflow-hero h1 {
+        font-family: 'Outfit', sans-serif;
+        font-weight: 700;
+        font-size: 2.2rem;
+        position: relative;
+        z-index: 1;
+    }
+    .cashflow-hero p {
+        opacity: 0.9;
+        position: relative;
+        z-index: 1;
+        max-width: 600px;
+    }
+
+    .glass-card {
+        background: var(--card-bg, rgba(255,255,255,0.85));
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--card-border, rgba(255,255,255,0.18));
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 8px 32px rgba(31,38,135,0.07);
+    }
+    [data-theme="dark"] .glass-card {
+        --card-bg: rgba(30,30,50,0.85);
+        --card-border: rgba(255,255,255,0.08);
+    }
+
+    .horizon-badge {
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+        border-radius: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    .recv-badge { background-color: rgba(16, 185, 129, 0.15); color: #10b981; }
+    .pay-badge { background-color: rgba(239, 68, 68, 0.15); color: #ef4444; }
+    .vat-badge { background-color: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+
+    .slider-container {
+        margin-bottom: 1.5rem;
+    }
+    .slider-label {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .chart-container {
+        position: relative;
+        width: 100%;
+        height: 350px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px dashed rgba(255, 255, 255, 0.1);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+    }
+    svg.cashflow-chart {
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+    }
+
+    .metric-value {
+        font-size: 1.6rem;
+        font-weight: 700;
+        font-family: 'Outfit', sans-serif;
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <!-- Hero Block -->
+    <div class="cashflow-hero shadow-lg">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+            <div>
+                <h1>Dự Báo Dòng Tiền Thông Minh</h1>
+                <p class="mb-0">
+                    Phân tích dòng tiền tương lai (Rolling 30/60/90 ngày) dựa trên thời gian đáo hạn hóa đơn, các khoản thuế GTGT dự kiến, và mô phỏng tác động rủi ro thanh toán.
+                </p>
+            </div>
+            <a href="/dashboard" class="btn btn-outline-light rounded-pill px-4">
+                <i class="bi bi-arrow-left-circle me-2" aria-hidden="true"></i>Quay lại
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Grid layout -->
+    <div class="row g-4">
+        <!-- Sidebar Controls / Parameters Simulation -->
+        <div class="col-lg-4 col-md-5">
+            <div class="glass-card shadow-sm h-100">
+                <h4 class="mb-4 fw-bold text-gradient"><i class="bi bi-sliders me-2" aria-hidden="true"></i>Bộ Mô Phỏng Rủi Ro (What-If)</h4>
+                <p class="text-secondary small mb-4">
+                    Điều chỉnh các tham số giả lập để stress-test khả năng thanh khoản mà không ảnh hưởng đến dữ liệu hóa đơn thật.
+                </p>
+
+                <!-- Parameter 1: Delay receivables -->
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>Trễ hạn thanh toán thu (Phải thu):</span>
+                        <span class="badge bg-primary rounded-pill" id="val-delay-days">+0 ngày</span>
+                    </div>
+                    <input type="range" class="form-range" id="param-delay-days" min="0" max="90" step="5" value="0">
+                    <span class="text-secondary tiny-text">Giả lập đối tác kéo dài thanh toán so với hạn hóa đơn</span>
+                </div>
+
+                <!-- Parameter 2: Rejection / Bad debt rate -->
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>Tỷ lệ hóa đơn bị từ chối/nợ xấu:</span>
+                        <span class="badge bg-danger rounded-pill" id="val-rejection-rate">0%</span>
+                    </div>
+                    <input type="range" class="form-range" id="param-rejection-rate" min="0" max="100" step="5" value="0">
+                    <span class="text-secondary tiny-text">Tỷ lệ thất thoát dòng tiền (hoặc cơ quan thuế bác bỏ hóa đơn đầu vào)</span>
+                </div>
+
+                <!-- Parameter 3: VAT Adjustment -->
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>Điều chỉnh Thuế GTGT dự kiến:</span>
+                        <span class="badge bg-warning text-dark rounded-pill" id="val-vat-adj">0 VND</span>
+                    </div>
+                    <input type="range" class="form-range" id="param-vat-adj" min="-100000000" max="100000000" step="5000000" value="0">
+                    <span class="text-secondary tiny-text">Tăng/giảm đột xuất nghĩa vụ thuế GTGT trong kỳ kế toán</span>
+                </div>
+
+                <hr class="my-4 opacity-10">
+
+                <!-- Reset control -->
+                <button class="btn btn-outline-danger w-100 rounded-pill fw-bold" id="btn-reset-simulator">
+                    <i class="bi bi-arrow-counterclockwise me-2" aria-hidden="true"></i>Reset Mô Phỏng
+                </button>
+            </div>
+        </div>
+
+        <!-- Dynamic Visualization Dashboard -->
+        <div class="col-lg-8 col-md-7">
+            <div class="glass-card shadow-sm h-100">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="m-0 fw-bold"><i class="bi bi-graph-up-arrows me-2" aria-hidden="true"></i>Đường Biểu Diễn Dòng Tiền 90 Ngày</h4>
+                    <span class="badge bg-success rounded-pill px-3 py-2" id="sim-active-badge" style="display: none;">Đang mô phỏng</span>
+                </div>
+
+                <!-- Three projection cards -->
+                <div class="row g-3 mb-4">
+                    <!-- 30 Days -->
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded-4 bg-light bg-opacity-50">
+                            <span class="horizon-badge text-primary fw-bold">Rolling 30 Ngày</span>
+                            <div class="metric-value mt-2 text-primary" id="net-30">0 VND</div>
+                            <div class="small mt-1 text-secondary">
+                                <span class="text-success" id="recv-30">+0 VND</span> | 
+                                <span class="text-danger" id="pay-30">-0 VND</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 60 Days -->
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded-4 bg-light bg-opacity-50">
+                            <span class="horizon-badge text-info fw-bold">Rolling 60 Ngày</span>
+                            <div class="metric-value mt-2 text-info" id="net-60">0 VND</div>
+                            <div class="small mt-1 text-secondary">
+                                <span class="text-success" id="recv-60">+0 VND</span> | 
+                                <span class="text-danger" id="pay-60">-0 VND</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 90 Days -->
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded-4 bg-light bg-opacity-50">
+                            <span class="horizon-badge text-purple fw-bold" style="color: #6f42c1;">Rolling 90 Ngày</span>
+                            <div class="metric-value mt-2" style="color: #6f42c1;" id="net-90">0 VND</div>
+                            <div class="small mt-1 text-secondary">
+                                <span class="text-success" id="recv-90">+0 VND</span> | 
+                                <span class="text-danger" id="pay-90">-0 VND</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dynamic Chart Container -->
+                <div class="chart-container p-3 mb-4" style="position: relative;">
+                    <svg class="cashflow-chart" id="svg-chart" viewBox="0 0 800 300" preserveAspectRatio="none">
+                        <!-- Chart content is dynamically generated in JS -->
+                    </svg>
+                    <div id="chart-tooltip" class="chart-tooltip shadow-lg" style="position: absolute; display: none; pointer-events: none; background: rgba(14, 15, 12, 0.95); border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; padding: 10px 14px; border-radius: 12px; font-size: 0.85rem; z-index: 10; min-width: 160px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); transition: opacity 0.15s ease-out; opacity: 0;"></div>
+                </div>
+
+                <!-- Summary meta stats -->
+                <div class="d-flex justify-content-between flex-wrap gap-3 small text-secondary">
+                    <div>
+                        <i class="bi bi-file-earmark-spreadsheet me-1" aria-hidden="true"></i>Tổng số hóa đơn phân tích: <strong id="stat-total">0</strong>
+                    </div>
+                    <div>
+                        <i class="bi bi-exclamation-triangle me-1" aria-hidden="true"></i>Hóa đơn phải thu trễ hạn: <strong class="text-warning" id="stat-overdue">0</strong>
+                    </div>
+                    <div>
+                        <i class="bi bi-calculator me-1" aria-hidden="true"></i>Thuế GTGT Dự kiến (90d): <strong id="stat-vat">0 VND</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const delaySlider = document.getElementById("param-delay-days");
+    const rejectionSlider = document.getElementById("param-rejection-rate");
+    const vatSlider = document.getElementById("param-vat-adj");
+    
+    const valDelay = document.getElementById("val-delay-days");
+    const valRejection = document.getElementById("val-rejection-rate");
+    const valVat = document.getElementById("val-vat-adj");
+
+    const simBadge = document.getElementById("sim-active-badge");
+
+    function formatVND(val) {
+        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
+    }
+
+    function updateLabels() {
+        valDelay.innerText = "+" + delaySlider.value + " ngày";
+        valRejection.innerText = rejectionSlider.value + "%";
+        valVat.innerText = formatVND(parseInt(vatSlider.value));
+
+        if (parseInt(delaySlider.value) > 0 || parseFloat(rejectionSlider.value) > 0 || parseInt(vatSlider.value) !== 0) {
+            simBadge.style.display = "inline-block";
+        } else {
+            simBadge.style.display = "none";
+        }
+    }
+
+    // Global tooltip helpers
+    window.showTooltip = function(event, date, balance, inflow, outflow) {
+        const circle = event.target;
+        const cx = parseFloat(circle.getAttribute("cx"));
+        const cy = parseFloat(circle.getAttribute("cy"));
+        const tooltip = document.getElementById("chart-tooltip");
+        tooltip.innerHTML = `
+            <div class="fw-bold mb-1" style="color: #9fe870;">${date}</div>
+            <div class="mb-1">Số dư: <strong>${balance}</strong></div>
+            <div style="font-size: 0.75rem; opacity: 0.9;">
+                <span class="text-success">↑ ${inflow}</span><br>
+                <span class="text-danger">↓ ${outflow}</span>
+            </div>
+        `;
+        tooltip.style.display = "block";
+        
+        const container = document.querySelector(".chart-container");
+        const rect = container.getBoundingClientRect();
+        const svgEl = document.getElementById("svg-chart");
+        const svgRect = svgEl.getBoundingClientRect();
+        
+        const clientX = svgRect.left - rect.left + (cx / 800) * svgRect.width;
+        const clientY = svgRect.top - rect.top + (cy / 300) * svgRect.height;
+        
+        tooltip.style.left = (clientX - 80) + "px";
+        tooltip.style.top = (clientY - 105) + "px";
+        tooltip.style.opacity = "1";
+        
+        // Phóng to nhẹ dot
+        circle.setAttribute("r", "7");
+    };
+
+    window.hideTooltip = function(event) {
+        const tooltip = document.getElementById("chart-tooltip");
+        tooltip.style.opacity = "0";
+        tooltip.style.display = "none";
+        if (event && event.target) {
+            event.target.setAttribute("r", "4");
+        }
+    };
+
+    function drawChart(timeline) {
+        const svg = document.getElementById("svg-chart");
+        svg.innerHTML = ""; // Clear existing
+
+        if (!timeline || timeline.length === 0) {
+            svg.innerHTML = `<text x="400" y="150" fill="gray" text-anchor="middle">Không có dữ liệu hóa đơn tương thích để dự báo</text>`;
+            return;
+        }
+
+        const width = 800;
+        const height = 300;
+        const paddingLeft = 60;
+        const paddingRight = 30;
+        const paddingTop = 30;
+        const paddingBottom = 40;
+
+        const maxVal = Math.max.apply(Math, timeline.map(d => Math.max(d.balance, d.inflow, d.outflow, 1000000)));
+        const minVal = Math.min.apply(Math, [0].concat(timeline.map(d => d.balance)));
+        const valRange = maxVal - minVal || 1;
+
+        const pointsObjects = [];
+        const inflowBars = [];
+        const outflowBars = [];
+
+        timeline.forEach((d, idx) => {
+            const x = paddingLeft + (idx / (timeline.length - 1)) * (width - paddingLeft - paddingRight);
+            const y = height - paddingBottom - ((d.balance - minVal) / valRange) * (height - paddingTop - paddingBottom);
+            pointsObjects.push({ x, y, data: d });
+
+            // Draw small daily flow representation bars at bottom
+            const barHeightScale = (height - paddingTop - paddingBottom) * 0.4;
+            const barYIn = height - paddingBottom - ((d.inflow / valRange) * barHeightScale);
+            const barYOut = height - paddingBottom - ((d.outflow / valRange) * barHeightScale);
+            
+            if (d.inflow > 0) {
+                inflowBars.push(`<rect x="${x-1.5}" y="${barYIn}" width="3" height="${height - paddingBottom - barYIn}" fill="#10b981" opacity="0.45"/>`);
+            }
+            if (d.outflow > 0) {
+                outflowBars.push(`<rect x="${x-1.5}" y="${barYOut}" width="3" height="${height - paddingBottom - barYOut}" fill="#ef4444" opacity="0.45"/>`);
+            }
+        });
+
+        // Grid lines & Zero axis line
+        const zeroY = height - paddingBottom - ((0 - minVal) / valRange) * (height - paddingTop - paddingBottom);
+        let gridLines = `<line x1="${paddingLeft}" y1="${zeroY}" x2="${width - paddingRight}" y2="${zeroY}" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" stroke-dasharray="4"/>`;
+        
+        // Dynamic grid markers
+        [maxVal, maxVal/2, 0, minVal < 0 ? minVal/2 : null, minVal < 0 ? minVal : null].forEach(v => {
+            if (v === null) return;
+            const gy = height - paddingBottom - ((v - minVal) / valRange) * (height - paddingTop - paddingBottom);
+            gridLines += `
+                <line x1="${paddingLeft}" y1="${gy}" x2="${width - paddingRight}" y2="${gy}" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+                <text x="${paddingLeft - 10}" y="${gy + 4}" fill="#a0aec0" font-size="10" text-anchor="end">${v >= 1000000 ? (v/1000000).toFixed(1) + 'M' : v}</text>
+            `;
+        });
+
+        // X Axis labels (Dates at 0, 30, 60, 90d)
+        const dateIntervals = [0, Math.floor(timeline.length/3), Math.floor(2*timeline.length/3), timeline.length-1];
+        dateIntervals.forEach(idx => {
+            if (idx >= timeline.length) return;
+            const d = timeline[idx];
+            const x = paddingLeft + (idx / (timeline.length - 1)) * (width - paddingLeft - paddingRight);
+            const dt = new Date(d.date);
+            const labelStr = `${dt.getDate()}/${dt.getMonth()+1}`;
+            gridLines += `
+                <line x1="${x}" y1="${height-paddingBottom}" x2="${x}" y2="${height-paddingBottom+5}" stroke="rgba(255,255,255,0.2)"/>
+                <text x="${x}" y="${height-paddingBottom+20}" fill="#a0aec0" font-size="11" text-anchor="middle">${labelStr}</text>
+            `;
+        });
+
+        // Bezier Curve Interpolation Path
+        function getBezierPath(pts) {
+            if (pts.length === 0) return "";
+            if (pts.length === 1) return `M ${pts[0].x} ${pts[0].y}`;
+            let d = `M ${pts[0].x} ${pts[0].y}`;
+            for (let i = 0; i < pts.length - 1; i++) {
+                const p0 = pts[i];
+                const p1 = pts[i + 1];
+                const cpX1 = p0.x + (p1.x - p0.x) / 3;
+                const cpY1 = p0.y;
+                const cpX2 = p0.x + 2 * (p1.x - p0.x) / 3;
+                const cpY2 = p1.y;
+                d += ` C ${cpX1} ${cpY1}, ${cpX2} ${cpY2}, ${p1.x} ${p1.y}`;
+            }
+            return d;
+        }
+
+        const linePath = getBezierPath(pointsObjects);
+        const areaPath = pointsObjects.length > 0 ? `${linePath} L ${pointsObjects[pointsObjects.length - 1].x} ${height - paddingBottom} L ${pointsObjects[0].x} ${height - paddingBottom} Z` : "";
+
+        // interactive dots
+        const hoverCircles = [];
+        pointsObjects.forEach((p, idx) => {
+            // Draw interactive dots at key intervals to prevent overcrowding
+            if (idx % 2 === 0 || idx === pointsObjects.length - 1) {
+                const dt = new Date(p.data.date);
+                const dateStr = `${dt.getDate()}/${dt.getMonth()+1}/${dt.getFullYear()}`;
+                const balStr = formatVND(p.data.balance);
+                const inStr = formatVND(p.data.inflow);
+                const outStr = formatVND(p.data.outflow);
+                hoverCircles.push(`
+                    <circle cx="${p.x}" cy="${p.y}" r="4" fill="#ffffff" stroke="#9fe870" stroke-width="2.5" class="chart-dot" style="cursor: pointer; transition: r 0.2s;"
+                            onmouseenter="showTooltip(event, '${dateStr}', '${balStr}', '${inStr}', '${outStr}')"
+                            onmouseleave="hideTooltip(event)"/>
+                `);
+            }
+        });
+
+        svg.innerHTML = `
+            <!-- Grid -->
+            ${gridLines}
+            <!-- Flow Bars -->
+            ${inflowBars.join('')}
+            ${outflowBars.join('')}
+            
+            <!-- Shaded Area Fill under bezier path -->
+            <path d="${areaPath}" fill="url(#areaGradient)" />
+            
+            <!-- Bezier Line path -->
+            <path d="${linePath}" fill="none" stroke="url(#lineGradient)" stroke-width="3.5" />
+            
+            <!-- Interactive Dots -->
+            ${hoverCircles.join('')}
+            
+            <!-- Gradients Definition -->
+            <defs>
+                <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#3182ce"/>
+                    <stop offset="100%" stop-color="#9fe870"/>
+                </linearGradient>
+                <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="#3182ce" stop-opacity="0.3"/>
+                    <stop offset="100%" stop-color="#3182ce" stop-opacity="0.0"/>
+                </linearGradient>
+            </defs>
+        `;
+    }
+
+    function fetchAndRender() {
+        const payload = {
+            delay_days: parseInt(delaySlider.value),
+            rejection_rate: parseFloat(rejectionSlider.value) / 100.0,
+            vat_adjustment: parseFloat(vatSlider.value)
+        };
+
+        fetch("/api/finance/simulate", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                console.error(data.error);
+                return;
+            }
+
+            // Update 30/60/90 cards
+            document.getElementById("net-30").innerText = formatVND(data.projections["30d"].net_cash_flow);
+            document.getElementById("recv-30").innerText = "+" + formatVND(data.projections["30d"].total_receivables);
+            document.getElementById("pay-30").innerText = "-" + formatVND(data.projections["30d"].total_payables);
+
+            document.getElementById("net-60").innerText = formatVND(data.projections["60d"].net_cash_flow);
+            document.getElementById("recv-60").innerText = "+" + formatVND(data.projections["60d"].total_receivables);
+            document.getElementById("pay-60").innerText = "-" + formatVND(data.projections["60d"].total_payables);
+
+            document.getElementById("net-90").innerText = formatVND(data.projections["90d"].net_cash_flow);
+            document.getElementById("recv-90").innerText = "+" + formatVND(data.projections["90d"].total_receivables);
+            document.getElementById("pay-90").innerText = "-" + formatVND(data.projections["90d"].total_payables);
+
+            // Update stats
+            document.getElementById("stat-total").innerText = data.summary.total_invoices;
+            document.getElementById("stat-overdue").innerText = data.summary.overdue_receivables;
+            document.getElementById("stat-vat").innerText = formatVND(data.projections["90d"].projected_vat_liability);
+
+            // Draw SVG
+            drawChart(data.daily_timeline);
+        })
+        .catch(err => {
+            console.error("Error connecting with simulate endpoint:", err);
+        });
+    }
+
+    // Debounced simulation for smooth slider performance
+    let timeout;
+    function triggerFetch() {
+        updateLabels();
+        clearTimeout(timeout);
+        timeout = setTimeout(fetchAndRender, 150);
+    }
+
+    delaySlider.addEventListener("input", triggerFetch);
+    rejectionSlider.addEventListener("input", triggerFetch);
+    vatSlider.addEventListener("input", triggerFetch);
+
+    document.getElementById("btn-reset-simulator").addEventListener("click", function() {
+        delaySlider.value = 0;
+        rejectionSlider.value = 0;
+        vatSlider.value = 0;
+        triggerFetch();
+    });
+
+    // Initial load
+    triggerFetch();
+});
+</script>
+{% endblock %}

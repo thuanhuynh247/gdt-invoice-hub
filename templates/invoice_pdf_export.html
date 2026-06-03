@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Hóa Đơn Điện Tử - {{ invoice.id }}</title>
+    <style>
+        @page {
+            size: a4 portrait;
+            margin: 1.2cm;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            color: #1e293b;
+            font-size: 10px;
+            line-height: 1.4;
+        }
+        .invoice-box {
+            border: 2px solid #8b0000;
+            padding: 15px;
+        }
+        .red-text {
+            color: #8b0000;
+        }
+        .bold-text {
+            font-family: 'Arial-Bold', sans-serif;
+            font-weight: bold;
+        }
+        .header-table {
+            width: 100%;
+            border-bottom: 2px double #8b0000;
+            margin-bottom: 10px;
+        }
+        .header-table td {
+            vertical-align: top;
+        }
+        .title-section {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .title-main {
+            font-family: 'Arial-Bold', sans-serif;
+            font-weight: bold;
+            font-size: 16px;
+            color: #8b0000;
+            margin-bottom: 3px;
+        }
+        .title-sub {
+            font-style: italic;
+            color: #475569;
+            font-size: 9px;
+            margin-bottom: 3px;
+        }
+        .party-table {
+            width: 100%;
+            border: 1px solid #cbd5e1;
+            background-color: #fafaf9;
+            margin-bottom: 10px;
+        }
+        .party-table td {
+            padding: 4px 6px;
+            vertical-align: top;
+        }
+        .party-header {
+            font-family: 'Arial-Bold', sans-serif;
+            font-weight: bold;
+            color: #8b0000;
+            text-transform: uppercase;
+            border-bottom: 1px solid #cbd5e1;
+            padding-bottom: 2px;
+            margin-bottom: 4px;
+        }
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+        .items-table th {
+            font-family: 'Arial-Bold', sans-serif;
+            font-weight: bold;
+            background-color: #fafaf9;
+            border: 1px solid #cbd5e1;
+            color: #8b0000;
+            padding: 5px;
+            text-align: center;
+            font-size: 9px;
+        }
+        .items-table td {
+            border: 1px solid #cbd5e1;
+            padding: 5px;
+            vertical-align: middle;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .text-right {
+            text-align: right;
+        }
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 12px;
+        }
+        .summary-table td {
+            border: 1px solid #cbd5e1;
+            padding: 5px;
+        }
+        .words-box {
+            border: 1px dashed #cbd5e1;
+            background-color: #fffdfb;
+            padding: 6px 10px;
+            margin-bottom: 12px;
+        }
+        .signature-table {
+            width: 100%;
+            margin-top: 10px;
+        }
+        .signature-table td {
+            text-align: center;
+            vertical-align: top;
+            width: 50%;
+        }
+        .digi-stamp {
+            border: 2px double #d62828;
+            background-color: #fffdfb;
+            color: #d62828;
+            padding: 6px;
+            font-size: 8px;
+            font-family: 'Arial-Bold', sans-serif;
+            font-weight: bold;
+            text-align: center;
+            width: 180px;
+            margin: 5px auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-box">
+        <!-- Header -->
+        <table class="header-table">
+            <tr>
+                <td style="width: 70%;">
+                    <div class="bold-text" style="font-size: 11px; color: #8b0000;">{{ seller.name }}</div>
+                    <div>Địa chỉ: {{ seller.address }}</div>
+                    <div>Điện thoại: {{ seller.phone or '1900 8888' }}</div>
+                </td>
+                <td style="width: 30%; text-align: right;">
+                    <div>Mẫu số: <span class="bold-text">1C26TBA</span></div>
+                    <div>Ký hiệu: <span class="bold-text">1C26{{ invoice.id.split('-')[1] if '-' in invoice.id else 'TBA' }}</span></div>
+                    <div>Số: <span class="bold-text" style="font-size: 12px; color: #8b0000;">{{ invoice.id.split('-')[-1] if '-' in invoice.id else '0000001' }}</span></div>
+                </td>
+            </tr>
+        </table>
+
+        <!-- Main Title -->
+        <div class="title-section">
+            <div class="title-main">HÓA ĐƠN GIÁ TRỊ GIA TĂNG</div>
+            <div class="title-sub">(Bản thể hiện của hóa đơn điện tử gốc)</div>
+            <div style="font-size: 10px;">
+                Ngày {{ invoice.date.split('-')[2] }} tháng {{ invoice.date.split('-')[1] }} năm {{ invoice.date.split('-')[0] }}
+            </div>
+        </div>
+
+        <!-- Party Info -->
+        <table class="party-table">
+            <tr>
+                <td>
+                    <div class="party-header">Thông tin đơn vị mua hàng</div>
+                    <div>Họ tên người mua hàng: <span class="bold-text">{{ invoice.buyer_name or 'Khách hàng mua lẻ' }}</span></div>
+                    <div>Tên đơn vị: <span class="bold-text">{{ buyer.name }}</span></div>
+                    <div>Mã số thuế: <span class="bold-text red-text">{{ buyer.mst or '' }}</span></div>
+                    <div>Địa chỉ: {{ buyer.address or '' }}</div>
+                    <div>Hình thức thanh toán: {{ invoice.payment_method or 'TM/CK' }}</div>
+                </td>
+            </tr>
+        </table>
+
+        <!-- Line Items -->
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th style="width: 5%;">STT</th>
+                    <th style="width: 45%;">Tên hàng hóa, dịch vụ</th>
+                    <th style="width: 10%;">Đơn vị tính</th>
+                    <th style="width: 10%;">Số lượng</th>
+                    <th style="width: 15%;">Đơn giá</th>
+                    <th style="width: 15%;">Thành tiền</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in line_items %}
+                <tr>
+                    <td class="text-center">{{ loop.index }}</td>
+                    <td>{{ item.item_name or item.product_name }}</td>
+                    <td class="text-center">{{ item.unit or 'Cái' }}</td>
+                    <td class="text-center">{{ item.quantity | int if item.quantity is not none else 1 }}</td>
+                    <td class="text-right">{{ "{:,.0f}".format(item.unit_price or item.price or 0) }} đ</td>
+                    <td class="text-right bold-text">{{ "{:,.0f}".format(item.amount_before_tax or 0) }} đ</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Calculation Box -->
+        <table class="summary-table">
+            <tr>
+                <td style="width: 70%;" class="text-right">Cộng tiền hàng (trước thuế):</td>
+                <td style="width: 30%;" class="text-right bold-text">{{ "{:,.0f}".format(sum_before_tax) }} đ</td>
+            </tr>
+            <tr>
+                <td class="text-right">Thuế suất GTGT:</td>
+                <td class="text-right bold-text">10%</td>
+            </tr>
+            <tr>
+                <td class="text-right">Tiền thuế GTGT:</td>
+                <td class="text-right bold-text">{{ "{:,.0f}".format(sum_tax) }} đ</td>
+            </tr>
+            <tr>
+                <td class="text-right red-text bold-text" style="font-size: 11px;">Tổng cộng tiền thanh toán (sau thuế):</td>
+                <td class="text-right red-text bold-text" style="font-size: 11px;">{{ "{:,.0f}".format(total_payable) }} đ</td>
+            </tr>
+        </table>
+
+        <!-- Amount in Words -->
+        <div class="words-box">
+            <span class="bold-text">Số tiền viết bằng chữ:</span>
+            <span class="red-text bold-text" style="font-style: italic;">{{ total_payable_words }}</span>
+        </div>
+
+        <!-- Signatures -->
+        <table class="signature-table">
+            <tr>
+                <td>
+                    <div class="bold-text" style="text-transform: uppercase;">Người mua hàng</div>
+                    <div style="font-style: italic; color: #475569; font-size: 9px; margin-bottom: 25px;">(Ký, ghi rõ họ tên)</div>
+                    <div style="height: 40px;"></div>
+                </td>
+                <td>
+                    <div class="bold-text" style="text-transform: uppercase;">Người bán hàng</div>
+                    <div style="font-style: italic; color: #475569; font-size: 9px; margin-bottom: 10px;">(Ký, đóng dấu, ghi rõ họ tên)</div>
+                    
+                    <div class="digi-stamp">
+                        <div style="font-size: 10px; margin-bottom: 3px;">✔ ĐÃ KÝ SỐ</div>
+                        <div>Ký bởi: {{ seller.name }}</div>
+                        <div>Ngày ký: {{ invoice.date }}</div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+</body>
+</html>

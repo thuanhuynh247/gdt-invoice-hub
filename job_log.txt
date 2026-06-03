@@ -1,0 +1,735 @@
+ï»¿2026-05-28T10:09:10.2979211Z Current runner version: '2.334.0'
+2026-05-28T10:09:10.3004893Z ##[group]Runner Image Provisioner
+2026-05-28T10:09:10.3005842Z Hosted Compute Agent
+2026-05-28T10:09:10.3006856Z Version: 20260213.493
+2026-05-28T10:09:10.3007513Z Commit: 5c115507f6dd24b8de37d8bbe0bb4509d0cc0fa3
+2026-05-28T10:09:10.3008341Z Build Date: 2026-02-13T00:28:41Z
+2026-05-28T10:09:10.3009069Z Worker ID: {568b3960-5232-42f3-bc73-b2d099d682b7}
+2026-05-28T10:09:10.3009844Z Azure Region: eastus
+2026-05-28T10:09:10.3010491Z ##[endgroup]
+2026-05-28T10:09:10.3011901Z ##[group]Operating System
+2026-05-28T10:09:10.3012528Z Ubuntu
+2026-05-28T10:09:10.3013166Z 24.04.4
+2026-05-28T10:09:10.3013862Z LTS
+2026-05-28T10:09:10.3014686Z ##[endgroup]
+2026-05-28T10:09:10.3015570Z ##[group]Runner Image
+2026-05-28T10:09:10.3016718Z Image: ubuntu-24.04
+2026-05-28T10:09:10.3017775Z Version: 20260518.149.1
+2026-05-28T10:09:10.3019749Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260518.149/images/ubuntu/Ubuntu2404-Readme.md
+2026-05-28T10:09:10.3022572Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260518.149
+2026-05-28T10:09:10.3024164Z ##[endgroup]
+2026-05-28T10:09:10.3026031Z ##[group]GITHUB_TOKEN Permissions
+2026-05-28T10:09:10.3028826Z Contents: read
+2026-05-28T10:09:10.3029835Z Metadata: read
+2026-05-28T10:09:10.3030581Z Packages: read
+2026-05-28T10:09:10.3031455Z ##[endgroup]
+2026-05-28T10:09:10.3034276Z Secret source: Actions
+2026-05-28T10:09:10.3035311Z Prepare workflow directory
+2026-05-28T10:09:10.3494150Z Prepare all required actions
+2026-05-28T10:09:10.3547394Z Getting action download info
+2026-05-28T10:09:10.8958468Z Download action repository 'actions/checkout@v4' (SHA:34e114876b0b11c390a56381ad16ebd13914f8d5)
+2026-05-28T10:09:11.0076197Z Download action repository 'actions/setup-python@v5' (SHA:a26af69be951a213d495a4c3e4e4022e16d87065)
+2026-05-28T10:09:11.1988087Z Complete job name: build-and-test
+2026-05-28T10:09:11.2789133Z ##[group]Run actions/checkout@v4
+2026-05-28T10:09:11.2790062Z with:
+2026-05-28T10:09:11.2790582Z   repository: thuanhuynh247/gdt-invoice-hub
+2026-05-28T10:09:11.2795787Z   token: ***
+2026-05-28T10:09:11.2796279Z   ssh-strict: true
+2026-05-28T10:09:11.2796930Z   ssh-user: git
+2026-05-28T10:09:11.2797428Z   persist-credentials: true
+2026-05-28T10:09:11.2797971Z   clean: true
+2026-05-28T10:09:11.2798453Z   sparse-checkout-cone-mode: true
+2026-05-28T10:09:11.2799022Z   fetch-depth: 1
+2026-05-28T10:09:11.2799495Z   fetch-tags: false
+2026-05-28T10:09:11.2799985Z   show-progress: true
+2026-05-28T10:09:11.2800480Z   lfs: false
+2026-05-28T10:09:11.2800923Z   submodules: false
+2026-05-28T10:09:11.2801411Z   set-safe-directory: true
+2026-05-28T10:09:11.2802134Z ##[endgroup]
+2026-05-28T10:09:11.4030636Z Syncing repository: thuanhuynh247/gdt-invoice-hub
+2026-05-28T10:09:11.4034194Z ##[group]Getting Git version info
+2026-05-28T10:09:11.4035783Z Working directory is '/home/runner/work/gdt-invoice-hub/gdt-invoice-hub'
+2026-05-28T10:09:11.4038128Z [command]/usr/bin/git version
+2026-05-28T10:09:11.4099730Z git version 2.54.0
+2026-05-28T10:09:11.4126711Z ##[endgroup]
+2026-05-28T10:09:11.4150796Z Temporarily overriding HOME='/home/runner/work/_temp/0e5c1dfe-ef5c-4bdd-aae9-ba57aa446e60' before making global git config changes
+2026-05-28T10:09:11.4153384Z Adding repository directory to the temporary git global config as a safe directory
+2026-05-28T10:09:11.4157860Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/gdt-invoice-hub/gdt-invoice-hub
+2026-05-28T10:09:11.4207325Z Deleting the contents of '/home/runner/work/gdt-invoice-hub/gdt-invoice-hub'
+2026-05-28T10:09:11.4210769Z ##[group]Initializing the repository
+2026-05-28T10:09:11.4215907Z [command]/usr/bin/git init /home/runner/work/gdt-invoice-hub/gdt-invoice-hub
+2026-05-28T10:09:11.4310601Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-05-28T10:09:11.4312020Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-05-28T10:09:11.4313252Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-05-28T10:09:11.4314776Z hint: call:
+2026-05-28T10:09:11.4315394Z hint:
+2026-05-28T10:09:11.4316944Z hint: 	git config --global init.defaultBranch <name>
+2026-05-28T10:09:11.4318185Z hint:
+2026-05-28T10:09:11.4319261Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-05-28T10:09:11.4321004Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-05-28T10:09:11.4322444Z hint:
+2026-05-28T10:09:11.4323205Z hint: 	git branch -m <name>
+2026-05-28T10:09:11.4324070Z hint:
+2026-05-28T10:09:11.4325220Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-05-28T10:09:11.4327544Z Initialized empty Git repository in /home/runner/work/gdt-invoice-hub/gdt-invoice-hub/.git/
+2026-05-28T10:09:11.4330998Z [command]/usr/bin/git remote add origin https://github.com/thuanhuynh247/gdt-invoice-hub
+2026-05-28T10:09:11.4374242Z ##[endgroup]
+2026-05-28T10:09:11.4375631Z ##[group]Disabling automatic garbage collection
+2026-05-28T10:09:11.4379318Z [command]/usr/bin/git config --local gc.auto 0
+2026-05-28T10:09:11.4410791Z ##[endgroup]
+2026-05-28T10:09:11.4412094Z ##[group]Setting up auth
+2026-05-28T10:09:11.4418655Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-05-28T10:09:11.4454337Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-05-28T10:09:11.4819540Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-05-28T10:09:11.4851666Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-05-28T10:09:11.5088465Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-05-28T10:09:11.5122951Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-05-28T10:09:11.5362669Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-05-28T10:09:11.5401243Z ##[endgroup]
+2026-05-28T10:09:11.5402149Z ##[group]Fetching the repository
+2026-05-28T10:09:11.5409360Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +fb77392142660e39fd10f56fc1f1c95e2facb9a8:refs/remotes/origin/main
+2026-05-28T10:09:12.1538547Z From https://github.com/thuanhuynh247/gdt-invoice-hub
+2026-05-28T10:09:12.1540672Z  * [new ref]         fb77392142660e39fd10f56fc1f1c95e2facb9a8 -> origin/main
+2026-05-28T10:09:12.1572192Z ##[endgroup]
+2026-05-28T10:09:12.1573436Z ##[group]Determining the checkout info
+2026-05-28T10:09:12.1574793Z ##[endgroup]
+2026-05-28T10:09:12.1579474Z [command]/usr/bin/git sparse-checkout disable
+2026-05-28T10:09:12.1623725Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-05-28T10:09:12.1654235Z ##[group]Checking out the ref
+2026-05-28T10:09:12.1659383Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-05-28T10:09:12.2173124Z Switched to a new branch 'main'
+2026-05-28T10:09:12.2174698Z branch 'main' set up to track 'origin/main'.
+2026-05-28T10:09:12.2185504Z ##[endgroup]
+2026-05-28T10:09:12.2229044Z [command]/usr/bin/git log -1 --format=%H
+2026-05-28T10:09:12.2253859Z fb77392142660e39fd10f56fc1f1c95e2facb9a8
+2026-05-28T10:09:12.2604690Z ##[group]Run actions/setup-python@v5
+2026-05-28T10:09:12.2605907Z with:
+2026-05-28T10:09:12.2606964Z   python-version: 3.10
+2026-05-28T10:09:12.2607941Z   cache: pip
+2026-05-28T10:09:12.2608824Z   check-latest: false
+2026-05-28T10:09:12.2620474Z   token: ***
+2026-05-28T10:09:12.2621429Z   update-environment: true
+2026-05-28T10:09:12.2622502Z   allow-prereleases: false
+2026-05-28T10:09:12.2623564Z   freethreaded: false
+2026-05-28T10:09:12.2624810Z ##[endgroup]
+2026-05-28T10:09:12.4355860Z ##[group]Installed versions
+2026-05-28T10:09:12.4442643Z Successfully set up CPython (3.10.20)
+2026-05-28T10:09:12.4444575Z ##[endgroup]
+2026-05-28T10:09:12.4914381Z [command]/opt/hostedtoolcache/Python/3.10.20/x64/bin/pip cache dir
+2026-05-28T10:09:12.8039453Z /home/runner/.cache/pip
+2026-05-28T10:09:12.9154838Z pip cache is not found
+2026-05-28T10:09:12.9326332Z ##[group]Run python -m pip install --upgrade pip
+2026-05-28T10:09:12.9328196Z [36;1mpython -m pip install --upgrade pip[0m
+2026-05-28T10:09:12.9329569Z [36;1mpip install -r requirements.txt[0m
+2026-05-28T10:09:12.9330864Z [36;1mpip install pytest pytest-cov[0m
+2026-05-28T10:09:12.9377398Z shell: /usr/bin/bash -e {0}
+2026-05-28T10:09:12.9378480Z env:
+2026-05-28T10:09:12.9379569Z   pythonLocation: /opt/hostedtoolcache/Python/3.10.20/x64
+2026-05-28T10:09:12.9381389Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.10.20/x64/lib/pkgconfig
+2026-05-28T10:09:12.9383230Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.10.20/x64
+2026-05-28T10:09:12.9384865Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.10.20/x64
+2026-05-28T10:09:12.9386703Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.10.20/x64
+2026-05-28T10:09:12.9462683Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.10.20/x64/lib
+2026-05-28T10:09:12.9464157Z ##[endgroup]
+2026-05-28T10:09:13.4648070Z Requirement already satisfied: pip in /opt/hostedtoolcache/Python/3.10.20/x64/lib/python3.10/site-packages (26.1.1)
+2026-05-28T10:09:14.0868532Z Collecting Flask==3.1.1 (from -r requirements.txt (line 1))
+2026-05-28T10:09:14.1403480Z   Downloading flask-3.1.1-py3-none-any.whl.metadata (3.0 kB)
+2026-05-28T10:09:14.1732400Z Collecting requests==2.32.3 (from -r requirements.txt (line 2))
+2026-05-28T10:09:14.1771259Z   Downloading requests-2.32.3-py3-none-any.whl.metadata (4.6 kB)
+2026-05-28T10:09:14.2059387Z Collecting selenium==4.32.0 (from -r requirements.txt (line 3))
+2026-05-28T10:09:14.2097463Z   Downloading selenium-4.32.0-py3-none-any.whl.metadata (7.5 kB)
+2026-05-28T10:09:14.2248468Z Collecting openpyxl==3.1.5 (from -r requirements.txt (line 4))
+2026-05-28T10:09:14.2284548Z   Downloading openpyxl-3.1.5-py2.py3-none-any.whl.metadata (2.5 kB)
+2026-05-28T10:09:14.2420044Z Collecting python-dotenv==1.1.0 (from -r requirements.txt (line 5))
+2026-05-28T10:09:14.2458091Z   Downloading python_dotenv-1.1.0-py3-none-any.whl.metadata (24 kB)
+2026-05-28T10:09:14.2642101Z Collecting beautifulsoup4==4.13.4 (from -r requirements.txt (line 6))
+2026-05-28T10:09:14.2680116Z   Downloading beautifulsoup4-4.13.4-py3-none-any.whl.metadata (3.8 kB)
+2026-05-28T10:09:14.2941509Z Collecting pytest==8.3.5 (from -r requirements.txt (line 7))
+2026-05-28T10:09:14.2980673Z   Downloading pytest-8.3.5-py3-none-any.whl.metadata (7.6 kB)
+2026-05-28T10:09:14.3127491Z Collecting pytest-cov==6.1.1 (from -r requirements.txt (line 8))
+2026-05-28T10:09:14.3166902Z   Downloading pytest_cov-6.1.1-py3-none-any.whl.metadata (28 kB)
+2026-05-28T10:09:14.3299816Z Collecting ddddocr==1.6.1 (from -r requirements.txt (line 9))
+2026-05-28T10:09:14.3358239Z   Downloading ddddocr-1.6.1-py3-none-any.whl.metadata (36 kB)
+2026-05-28T10:09:14.3496346Z Collecting svglib==1.6.0 (from -r requirements.txt (line 10))
+2026-05-28T10:09:14.3532456Z   Downloading svglib-1.6.0-py3-none-any.whl.metadata (11 kB)
+2026-05-28T10:09:14.4617003Z Collecting reportlab==4.5.1 (from -r requirements.txt (line 11))
+2026-05-28T10:09:14.4656799Z   Downloading reportlab-4.5.1-py3-none-any.whl.metadata (1.7 kB)
+2026-05-28T10:09:14.6639645Z Collecting lxml==6.1.1 (from -r requirements.txt (line 12))
+2026-05-28T10:09:14.6680997Z   Downloading lxml-6.1.1-cp310-cp310-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl.metadata (3.5 kB)
+2026-05-28T10:09:14.8568026Z Collecting cryptography==42.0.5 (from -r requirements.txt (line 13))
+2026-05-28T10:09:14.8609971Z   Downloading cryptography-42.0.5-cp39-abi3-manylinux_2_28_x86_64.whl.metadata (5.3 kB)
+2026-05-28T10:09:14.8759536Z Collecting Flask-SQLAlchemy==3.1.1 (from -r requirements.txt (line 14))
+2026-05-28T10:09:14.8798102Z   Downloading flask_sqlalchemy-3.1.1-py3-none-any.whl.metadata (3.4 kB)
+2026-05-28T10:09:14.8900796Z Collecting blinker>=1.9.0 (from Flask==3.1.1->-r requirements.txt (line 1))
+2026-05-28T10:09:14.8938903Z   Downloading blinker-1.9.0-py3-none-any.whl.metadata (1.6 kB)
+2026-05-28T10:09:14.9101933Z Collecting click>=8.1.3 (from Flask==3.1.1->-r requirements.txt (line 1))
+2026-05-28T10:09:14.9141746Z   Downloading click-8.4.1-py3-none-any.whl.metadata (2.6 kB)
+2026-05-28T10:09:14.9304973Z Collecting itsdangerous>=2.2.0 (from Flask==3.1.1->-r requirements.txt (line 1))
+2026-05-28T10:09:14.9346094Z   Downloading itsdangerous-2.2.0-py3-none-any.whl.metadata (1.9 kB)
+2026-05-28T10:09:14.9495167Z Collecting jinja2>=3.1.2 (from Flask==3.1.1->-r requirements.txt (line 1))
+2026-05-28T10:09:14.9535396Z   Downloading jinja2-3.1.6-py3-none-any.whl.metadata (2.9 kB)
+2026-05-28T10:09:15.0047568Z Collecting markupsafe>=2.1.1 (from Flask==3.1.1->-r requirements.txt (line 1))
+2026-05-28T10:09:15.0122519Z   Downloading markupsafe-3.0.3-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.7 kB)
+2026-05-28T10:09:15.0322344Z Collecting werkzeug>=3.1.0 (from Flask==3.1.1->-r requirements.txt (line 1))
+2026-05-28T10:09:15.0365128Z   Downloading werkzeug-3.1.8-py3-none-any.whl.metadata (4.0 kB)
+2026-05-28T10:09:15.1354270Z Collecting charset-normalizer<4,>=2 (from requests==2.32.3->-r requirements.txt (line 2))
+2026-05-28T10:09:15.1405351Z   Downloading charset_normalizer-3.4.7-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (40 kB)
+2026-05-28T10:09:15.1551805Z Collecting idna<4,>=2.5 (from requests==2.32.3->-r requirements.txt (line 2))
+2026-05-28T10:09:15.1587706Z   Downloading idna-3.16-py3-none-any.whl.metadata (6.4 kB)
+2026-05-28T10:09:15.1814002Z Collecting urllib3<3,>=1.21.1 (from requests==2.32.3->-r requirements.txt (line 2))
+2026-05-28T10:09:15.1851162Z   Downloading urllib3-2.7.0-py3-none-any.whl.metadata (6.9 kB)
+2026-05-28T10:09:15.2046670Z Collecting certifi>=2017.4.17 (from requests==2.32.3->-r requirements.txt (line 2))
+2026-05-28T10:09:15.2084868Z   Downloading certifi-2026.5.20-py3-none-any.whl.metadata (2.5 kB)
+2026-05-28T10:09:15.2282919Z Collecting trio~=0.17 (from selenium==4.32.0->-r requirements.txt (line 3))
+2026-05-28T10:09:15.2319627Z   Downloading trio-0.33.0-py3-none-any.whl.metadata (8.5 kB)
+2026-05-28T10:09:15.2442328Z Collecting trio-websocket~=0.9 (from selenium==4.32.0->-r requirements.txt (line 3))
+2026-05-28T10:09:15.2477575Z   Downloading trio_websocket-0.12.2-py3-none-any.whl.metadata (5.1 kB)
+2026-05-28T10:09:15.2662383Z Collecting typing_extensions~=4.9 (from selenium==4.32.0->-r requirements.txt (line 3))
+2026-05-28T10:09:15.2704302Z   Downloading typing_extensions-4.15.0-py3-none-any.whl.metadata (3.3 kB)
+2026-05-28T10:09:15.2881325Z Collecting websocket-client~=1.8 (from selenium==4.32.0->-r requirements.txt (line 3))
+2026-05-28T10:09:15.2918145Z   Downloading websocket_client-1.9.0-py3-none-any.whl.metadata (8.3 kB)
+2026-05-28T10:09:15.3025470Z Collecting et-xmlfile (from openpyxl==3.1.5->-r requirements.txt (line 4))
+2026-05-28T10:09:15.3062384Z   Downloading et_xmlfile-2.0.0-py3-none-any.whl.metadata (2.7 kB)
+2026-05-28T10:09:15.3233510Z Collecting soupsieve>1.2 (from beautifulsoup4==4.13.4->-r requirements.txt (line 6))
+2026-05-28T10:09:15.3281669Z   Downloading soupsieve-2.8.4-py3-none-any.whl.metadata (4.6 kB)
+2026-05-28T10:09:15.3432289Z Collecting exceptiongroup>=1.0.0rc8 (from pytest==8.3.5->-r requirements.txt (line 7))
+2026-05-28T10:09:15.3467947Z   Downloading exceptiongroup-1.3.1-py3-none-any.whl.metadata (6.7 kB)
+2026-05-28T10:09:15.3565191Z Collecting iniconfig (from pytest==8.3.5->-r requirements.txt (line 7))
+2026-05-28T10:09:15.3602095Z   Downloading iniconfig-2.3.0-py3-none-any.whl.metadata (2.5 kB)
+2026-05-28T10:09:15.3754450Z Collecting packaging (from pytest==8.3.5->-r requirements.txt (line 7))
+2026-05-28T10:09:15.3792162Z   Downloading packaging-26.2-py3-none-any.whl.metadata (3.5 kB)
+2026-05-28T10:09:15.3900812Z Collecting pluggy<2,>=1.5 (from pytest==8.3.5->-r requirements.txt (line 7))
+2026-05-28T10:09:15.3938398Z   Downloading pluggy-1.6.0-py3-none-any.whl.metadata (4.8 kB)
+2026-05-28T10:09:15.4161547Z Collecting tomli>=1 (from pytest==8.3.5->-r requirements.txt (line 7))
+2026-05-28T10:09:15.4197599Z   Downloading tomli-2.4.1-py3-none-any.whl.metadata (10 kB)
+2026-05-28T10:09:15.8199873Z Collecting coverage>=7.5 (from coverage[toml]>=7.5->pytest-cov==6.1.1->-r requirements.txt (line 8))
+2026-05-28T10:09:15.8242352Z   Downloading coverage-7.14.1-cp310-cp310-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl.metadata (8.6 kB)
+2026-05-28T10:09:16.0394980Z Collecting numpy (from ddddocr==1.6.1->-r requirements.txt (line 9))
+2026-05-28T10:09:16.0439195Z   Downloading numpy-2.2.6-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (62 kB)
+2026-05-28T10:09:16.1079033Z Collecting onnxruntime (from ddddocr==1.6.1->-r requirements.txt (line 9))
+2026-05-28T10:09:16.1125852Z   Downloading onnxruntime-1.23.2-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (5.1 kB)
+2026-05-28T10:09:16.2856014Z Collecting Pillow (from ddddocr==1.6.1->-r requirements.txt (line 9))
+2026-05-28T10:09:16.2898227Z   Downloading pillow-12.2.0-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (8.8 kB)
+2026-05-28T10:09:16.3722211Z Collecting opencv-python-headless (from ddddocr==1.6.1->-r requirements.txt (line 9))
+2026-05-28T10:09:16.3762549Z   Downloading opencv_python_headless-4.13.0.92-cp37-abi3-manylinux_2_28_x86_64.whl.metadata (19 kB)
+2026-05-28T10:09:16.3880163Z Collecting cssselect2>=0.2.0 (from svglib==1.6.0->-r requirements.txt (line 10))
+2026-05-28T10:09:16.3920771Z   Downloading cssselect2-0.9.0-py3-none-any.whl.metadata (2.9 kB)
+2026-05-28T10:09:16.4044640Z Collecting rlpycairo>=0.4.0 (from svglib==1.6.0->-r requirements.txt (line 10))
+2026-05-28T10:09:16.4081975Z   Downloading rlpycairo-0.4.0-py3-none-any.whl.metadata (4.9 kB)
+2026-05-28T10:09:16.4185812Z Collecting tinycss2>=0.6.0 (from svglib==1.6.0->-r requirements.txt (line 10))
+2026-05-28T10:09:16.4223153Z   Downloading tinycss2-1.5.1-py3-none-any.whl.metadata (3.0 kB)
+2026-05-28T10:09:16.5262101Z Collecting cffi>=1.12 (from cryptography==42.0.5->-r requirements.txt (line 13))
+2026-05-28T10:09:16.5302752Z   Downloading cffi-2.0.0-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (2.6 kB)
+2026-05-28T10:09:16.8357087Z Collecting sqlalchemy>=2.0.16 (from Flask-SQLAlchemy==3.1.1->-r requirements.txt (line 14))
+2026-05-28T10:09:16.8397537Z   Downloading sqlalchemy-2.0.50-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (9.5 kB)
+2026-05-28T10:09:16.8631192Z Collecting attrs>=23.2.0 (from trio~=0.17->selenium==4.32.0->-r requirements.txt (line 3))
+2026-05-28T10:09:16.8668167Z   Downloading attrs-26.1.0-py3-none-any.whl.metadata (8.8 kB)
+2026-05-28T10:09:16.8788766Z Collecting sortedcontainers (from trio~=0.17->selenium==4.32.0->-r requirements.txt (line 3))
+2026-05-28T10:09:16.8824797Z   Downloading sortedcontainers-2.4.0-py2.py3-none-any.whl.metadata (10 kB)
+2026-05-28T10:09:16.8921970Z Collecting outcome (from trio~=0.17->selenium==4.32.0->-r requirements.txt (line 3))
+2026-05-28T10:09:16.8960821Z   Downloading outcome-1.3.0.post0-py2.py3-none-any.whl.metadata (2.6 kB)
+2026-05-28T10:09:16.9048353Z Collecting sniffio>=1.3.0 (from trio~=0.17->selenium==4.32.0->-r requirements.txt (line 3))
+2026-05-28T10:09:16.9083457Z   Downloading sniffio-1.3.1-py3-none-any.whl.metadata (3.9 kB)
+2026-05-28T10:09:16.9225517Z Collecting wsproto>=0.14 (from trio-websocket~=0.9->selenium==4.32.0->-r requirements.txt (line 3))
+2026-05-28T10:09:16.9262272Z   Downloading wsproto-1.3.2-py3-none-any.whl.metadata (5.2 kB)
+2026-05-28T10:09:16.9390764Z Collecting pysocks!=1.5.7,<2.0,>=1.5.6 (from urllib3[socks]<3,>=1.26->selenium==4.32.0->-r requirements.txt (line 3))
+2026-05-28T10:09:16.9428600Z   Downloading PySocks-1.7.1-py3-none-any.whl.metadata (13 kB)
+2026-05-28T10:09:16.9569127Z Collecting pycparser (from cffi>=1.12->cryptography==42.0.5->-r requirements.txt (line 13))
+2026-05-28T10:09:16.9606201Z   Downloading pycparser-3.0-py3-none-any.whl.metadata (8.2 kB)
+2026-05-28T10:09:16.9716744Z Collecting webencodings (from cssselect2>=0.2.0->svglib==1.6.0->-r requirements.txt (line 10))
+2026-05-28T10:09:16.9758868Z   Downloading webencodings-0.5.1-py2.py3-none-any.whl.metadata (2.1 kB)
+2026-05-28T10:09:17.0022704Z Collecting pycairo>=1.20.0 (from rlpycairo>=0.4.0->svglib==1.6.0->-r requirements.txt (line 10))
+2026-05-28T10:09:17.0062023Z   Downloading pycairo-1.29.0.tar.gz (665 kB)
+2026-05-28T10:09:17.0174588Z      ââââââââââââââââââââââââââââââââââââââââ 665.9/665.9 kB 74.0 MB/s  0:00:00
+2026-05-28T10:09:17.0641266Z   Installing build dependencies: started
+2026-05-28T10:09:17.8064362Z   Installing build dependencies: finished with status 'done'
+2026-05-28T10:09:17.8072031Z   Getting requirements to build wheel: started
+2026-05-28T10:09:18.0360317Z   Getting requirements to build wheel: finished with status 'done'
+2026-05-28T10:09:18.0370635Z   Preparing metadata (pyproject.toml): started
+2026-05-28T10:09:20.3850839Z   Preparing metadata (pyproject.toml): finished with status 'error'
+2026-05-28T10:09:20.4034161Z   error: subprocess-exited-with-error
+2026-05-28T10:09:20.4034933Z   
+2026-05-28T10:09:20.4035756Z   Ã Preparing metadata (pyproject.toml) did not run successfully.
+2026-05-28T10:09:20.4036710Z   â exit code: 1
+2026-05-28T10:09:20.4037136Z   â°â> [454 lines of output]
+2026-05-28T10:09:20.4039386Z       + meson setup /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr -Dbuildtype=release -Db_ndebug=if-release -Db_vscrt=md -Dwheel=true -Dtests=false --native-file=/tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-python-native-file.ini
+2026-05-28T10:09:20.4041846Z       The Meson build system
+2026-05-28T10:09:20.4042278Z       Version: 1.11.1
+2026-05-28T10:09:20.4042884Z       Source dir: /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef
+2026-05-28T10:09:20.4043904Z       Build dir: /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr
+2026-05-28T10:09:20.4044703Z       Build type: native build
+2026-05-28T10:09:20.4045138Z       Project name: pycairo
+2026-05-28T10:09:20.4045565Z       Project version: 1.29.0
+2026-05-28T10:09:20.4046245Z       C compiler for the host machine: cc (gcc 13.3.0 "cc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0")
+2026-05-28T10:09:20.4047251Z       C linker for the host machine: cc ld.bfd 2.42
+2026-05-28T10:09:20.4047787Z       Host machine cpu family: x86_64
+2026-05-28T10:09:20.4048239Z       Host machine cpu: x86_64
+2026-05-28T10:09:20.4048880Z       Program python3 found: YES (/opt/hostedtoolcache/Python/3.10.20/x64/bin/python)
+2026-05-28T10:09:20.4049640Z       Compiler for C supports arguments -Wall: YES
+2026-05-28T10:09:20.4050336Z       Compiler for C supports arguments -Warray-bounds: YES
+2026-05-28T10:09:20.4050972Z       Compiler for C supports arguments -Wcast-align: YES
+2026-05-28T10:09:20.4051590Z       Compiler for C supports arguments -Wconversion: YES
+2026-05-28T10:09:20.4052204Z       Compiler for C supports arguments -Wextra: YES
+2026-05-28T10:09:20.4052800Z       Compiler for C supports arguments -Wformat=2: YES
+2026-05-28T10:09:20.4053458Z       Compiler for C supports arguments -Wformat-nonliteral: YES
+2026-05-28T10:09:20.4054153Z       Compiler for C supports arguments -Wformat-security: YES
+2026-05-28T10:09:20.4054929Z       Compiler for C supports arguments -Wimplicit-function-declaration: YES
+2026-05-28T10:09:20.4055683Z       Compiler for C supports arguments -Winit-self: YES
+2026-05-28T10:09:20.4056565Z       Compiler for C supports arguments -Wmissing-format-attribute: YES
+2026-05-28T10:09:20.4057331Z       Compiler for C supports arguments -Wmissing-noreturn: YES
+2026-05-28T10:09:20.4058005Z       Compiler for C supports arguments -Wnested-externs: YES
+2026-05-28T10:09:20.4059012Z       Compiler for C supports arguments -Wold-style-definition: YES
+2026-05-28T10:09:20.4059591Z       Compiler for C supports arguments -Wpacked: YES
+2026-05-28T10:09:20.4060123Z       Compiler for C supports arguments -Wpointer-arith: YES
+2026-05-28T10:09:20.4060661Z       Compiler for C supports arguments -Wreturn-type: YES
+2026-05-28T10:09:20.4061354Z       Compiler for C supports arguments -Wshadow: YES
+2026-05-28T10:09:20.4061868Z       Compiler for C supports arguments -Wsign-compare: YES
+2026-05-28T10:09:20.4062421Z       Compiler for C supports arguments -Wstrict-aliasing: YES
+2026-05-28T10:09:20.4062960Z       Compiler for C supports arguments -Wundef: YES
+2026-05-28T10:09:20.4063560Z       Compiler for C supports arguments -Wunused-but-set-variable: YES
+2026-05-28T10:09:20.4064233Z       Compiler for C supports arguments -Wswitch-default: YES
+2026-05-28T10:09:20.4064939Z       Compiler for C supports arguments -Wno-missing-field-initializers: YES
+2026-05-28T10:09:20.4065616Z       Compiler for C supports arguments -Wno-unused-parameter: YES
+2026-05-28T10:09:20.4066220Z       Compiler for C supports arguments -fno-strict-aliasing: YES
+2026-05-28T10:09:20.4067024Z       Compiler for C supports arguments -fvisibility=hidden: YES
+2026-05-28T10:09:20.4067622Z       Found pkg-config: YES (/usr/bin/pkg-config) 1.8.1
+2026-05-28T10:09:20.4068132Z       Found CMake: /usr/local/bin/cmake (3.31.6)
+2026-05-28T10:09:20.4068734Z       Run-time dependency cairo found: NO  (tried pkg-config and cmake)
+2026-05-28T10:09:20.4069299Z       
+2026-05-28T10:09:20.4069878Z       ../cairo/meson.build:31:12: ERROR: Dependency "cairo" not found (tried pkg-config and cmake)
+2026-05-28T10:09:20.4070580Z       
+2026-05-28T10:09:20.4071431Z       A full log can be found at /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-logs/meson-log.txt
+2026-05-28T10:09:20.4073820Z ##[group]==== CI platform detected, click here for meson-log.txt contents. ====
+2026-05-28T10:09:20.4074526Z       Build started at 2026-05-28T10:09:19.270744
+2026-05-28T10:09:20.4075163Z       Main binary: /opt/hostedtoolcache/Python/3.10.20/x64/bin/python
+2026-05-28T10:09:20.4077060Z       Build Options: -Dbuildtype=release -Db_ndebug=if-release -Db_vscrt=md -Dwheel=true -Dtests=false --native-file=/tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-python-native-file.ini
+2026-05-28T10:09:20.4078619Z       Python system: Linux
+2026-05-28T10:09:20.4079953Z       The Meson build system
+2026-05-28T10:09:20.4080419Z       Version: 1.11.1
+2026-05-28T10:09:20.4081004Z       Source dir: /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef
+2026-05-28T10:09:20.4082175Z       Build dir: /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr
+2026-05-28T10:09:20.4083293Z       Build type: native build
+2026-05-28T10:09:20.4083699Z       Project name: pycairo
+2026-05-28T10:09:20.4084096Z       Project version: 1.29.0
+2026-05-28T10:09:20.4084512Z       -----------
+2026-05-28T10:09:20.4085036Z       Detecting compiler via: `cc --version` -> 0
+2026-05-28T10:09:20.4085505Z       stdout:
+2026-05-28T10:09:20.4085855Z       cc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+2026-05-28T10:09:20.4086561Z       Copyright (C) 2023 Free Software Foundation, Inc.
+2026-05-28T10:09:20.4087277Z       This is free software; see the source for copying conditions.  There is NO
+2026-05-28T10:09:20.4088134Z       warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+2026-05-28T10:09:20.4088768Z       -----------
+2026-05-28T10:09:20.4089134Z       Running command: -cpp -x c -E -dM -
+2026-05-28T10:09:20.4089568Z       -----
+2026-05-28T10:09:20.4089866Z       -----------
+2026-05-28T10:09:20.4090261Z       Detecting linker via: `cc -Wl,--version` -> 0
+2026-05-28T10:09:20.4090743Z       stdout:
+2026-05-28T10:09:20.4091081Z       GNU ld (GNU Binutils for Ubuntu) 2.42
+2026-05-28T10:09:20.4091818Z       Copyright (C) 2024 Free Software Foundation, Inc.
+2026-05-28T10:09:20.4092522Z       This program is free software; you may redistribute it under the terms of
+2026-05-28T10:09:20.4093343Z       the GNU General Public License version 3 or (at your option) a later version.
+2026-05-28T10:09:20.4094029Z       This program has absolutely no warranty.
+2026-05-28T10:09:20.4094477Z       -----------
+2026-05-28T10:09:20.4094939Z       stderr:
+2026-05-28T10:09:20.4095267Z       collect2 version 13.3.0
+2026-05-28T10:09:20.4101809Z       /usr/bin/ld -plugin /usr/libexec/gcc/x86_64-linux-gnu/13/liblto_plugin.so -plugin-opt=/usr/libexec/gcc/x86_64-linux-gnu/13/lto-wrapper -plugin-opt=-fresolution=/tmp/ccTpHcyV.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro /usr/lib/gcc/x86_64-linux-gnu/13/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/13/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/13/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/13 -L/usr/lib/gcc/x86_64-linux-gnu/13/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/13/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/13/../../.. --version -lgcc --push-state --as-needed -lgcc_s --pop-state -lc -lgcc --push-state --as-needed -lgcc_s --pop-state /usr/lib/gcc/x86_64-linux-gnu/13/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/13/../../../x86_64-linux-gnu/crtn.o
+2026-05-28T10:09:20.4108522Z       -----------
+2026-05-28T10:09:20.4109390Z       Sanity check compiler command line: cc -D_FILE_OFFSET_BITS=64 -o sanity_check_for_c.exe sanity_check_for_c.c -D_FILE_OFFSET_BITS=64
+2026-05-28T10:09:20.4110342Z       Sanity check compile stdout:
+2026-05-28T10:09:20.4110738Z       
+2026-05-28T10:09:20.4111131Z       -----
+2026-05-28T10:09:20.4111462Z       Sanity check compile stderr:
+2026-05-28T10:09:20.4111847Z       
+2026-05-28T10:09:20.4112127Z       -----
+2026-05-28T10:09:20.4112561Z       Sanity check built target output for host machine c compiler
+2026-05-28T10:09:20.4113844Z        -- Running test binary command:  /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/sanity_check_for_c.exe
+2026-05-28T10:09:20.4114953Z       -----------
+2026-05-28T10:09:20.4115915Z       Sanity check: `/tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/sanity_check_for_c.exe` -> 0
+2026-05-28T10:09:20.4117201Z        -- stdout:
+2026-05-28T10:09:20.4117512Z       
+2026-05-28T10:09:20.4117806Z        -- stderr:
+2026-05-28T10:09:20.4118107Z       
+2026-05-28T10:09:20.4118407Z        -- returncode: 0
+2026-05-28T10:09:20.4119031Z       C compiler for the host machine: cc (gcc 13.3.0 "cc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0")
+2026-05-28T10:09:20.4119785Z       C linker for the host machine: cc ld.bfd 2.42
+2026-05-28T10:09:20.4120254Z       -----------
+2026-05-28T10:09:20.4120649Z       Detecting archiver via: `gcc-ar --version` -> 0
+2026-05-28T10:09:20.4121129Z       stdout:
+2026-05-28T10:09:20.4121469Z       GNU ar (GNU Binutils for Ubuntu) 2.42
+2026-05-28T10:09:20.4121983Z       Copyright (C) 2024 Free Software Foundation, Inc.
+2026-05-28T10:09:20.4122679Z       This program is free software; you may redistribute it under the terms of
+2026-05-28T10:09:20.4123536Z       the GNU General Public License version 3 or (at your option) any later version.
+2026-05-28T10:09:20.4124243Z       This program has absolutely no warranty.
+2026-05-28T10:09:20.4124688Z       -----------
+2026-05-28T10:09:20.4125001Z       -----------
+2026-05-28T10:09:20.4125373Z       Detecting compiler via: `cc --version` -> 0
+2026-05-28T10:09:20.4125839Z       stdout:
+2026-05-28T10:09:20.4126183Z       cc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+2026-05-28T10:09:20.4126873Z       Copyright (C) 2023 Free Software Foundation, Inc.
+2026-05-28T10:09:20.4127776Z       This is free software; see the source for copying conditions.  There is NO
+2026-05-28T10:09:20.4128599Z       warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+2026-05-28T10:09:20.4129223Z       -----------
+2026-05-28T10:09:20.4129582Z       Running command: -cpp -x c -E -dM -
+2026-05-28T10:09:20.4130008Z       -----
+2026-05-28T10:09:20.4130448Z       -----------
+2026-05-28T10:09:20.4130846Z       Detecting linker via: `cc -Wl,--version` -> 0
+2026-05-28T10:09:20.4131311Z       stdout:
+2026-05-28T10:09:20.4131650Z       GNU ld (GNU Binutils for Ubuntu) 2.42
+2026-05-28T10:09:20.4132162Z       Copyright (C) 2024 Free Software Foundation, Inc.
+2026-05-28T10:09:20.4132837Z       This program is free software; you may redistribute it under the terms of
+2026-05-28T10:09:20.4133661Z       the GNU General Public License version 3 or (at your option) a later version.
+2026-05-28T10:09:20.4134346Z       This program has absolutely no warranty.
+2026-05-28T10:09:20.4134806Z       -----------
+2026-05-28T10:09:20.4135117Z       stderr:
+2026-05-28T10:09:20.4135436Z       collect2 version 13.3.0
+2026-05-28T10:09:20.4141978Z       /usr/bin/ld -plugin /usr/libexec/gcc/x86_64-linux-gnu/13/liblto_plugin.so -plugin-opt=/usr/libexec/gcc/x86_64-linux-gnu/13/lto-wrapper -plugin-opt=-fresolution=/tmp/ccLWwLlo.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro /usr/lib/gcc/x86_64-linux-gnu/13/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/13/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/13/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/13 -L/usr/lib/gcc/x86_64-linux-gnu/13/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/13/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/13/../../.. --version -lgcc --push-state --as-needed -lgcc_s --pop-state -lc -lgcc --push-state --as-needed -lgcc_s --pop-state /usr/lib/gcc/x86_64-linux-gnu/13/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/13/../../../x86_64-linux-gnu/crtn.o
+2026-05-28T10:09:20.4148697Z       -----------
+2026-05-28T10:09:20.4149565Z       Sanity check compiler command line: cc -D_FILE_OFFSET_BITS=64 -o sanity_check_for_c.exe sanity_check_for_c.c -D_FILE_OFFSET_BITS=64
+2026-05-28T10:09:20.4150595Z       Sanity check compile stdout:
+2026-05-28T10:09:20.4150995Z       
+2026-05-28T10:09:20.4151280Z       -----
+2026-05-28T10:09:20.4151606Z       Sanity check compile stderr:
+2026-05-28T10:09:20.4152002Z       
+2026-05-28T10:09:20.4152286Z       -----
+2026-05-28T10:09:20.4152725Z       Sanity check built target output for build machine c compiler
+2026-05-28T10:09:20.4153989Z        -- Running test binary command:  /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/sanity_check_for_c.exe
+2026-05-28T10:09:20.4155111Z       -----------
+2026-05-28T10:09:20.4156056Z       Sanity check: `/tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/sanity_check_for_c.exe` -> 0
+2026-05-28T10:09:20.4157229Z        -- stdout:
+2026-05-28T10:09:20.4157536Z       
+2026-05-28T10:09:20.4157846Z        -- stderr:
+2026-05-28T10:09:20.4158148Z       
+2026-05-28T10:09:20.4158454Z        -- returncode: 0
+2026-05-28T10:09:20.4159088Z       C compiler for the build machine: cc (gcc 13.3.0 "cc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0")
+2026-05-28T10:09:20.4159848Z       C linker for the build machine: cc ld.bfd 2.42
+2026-05-28T10:09:20.4160370Z       Build machine cpu family: x86_64
+2026-05-28T10:09:20.4160815Z       Build machine cpu: x86_64
+2026-05-28T10:09:20.4161229Z       Host machine cpu family: x86_64
+2026-05-28T10:09:20.4161663Z       Host machine cpu: x86_64
+2026-05-28T10:09:20.4162256Z       Target machine cpu family: x86_64
+2026-05-28T10:09:20.4162699Z       Target machine cpu: x86_64
+2026-05-28T10:09:20.4163321Z       Program python3 found: YES (/opt/hostedtoolcache/Python/3.10.20/x64/bin/python)
+2026-05-28T10:09:20.4163978Z       Running compile:
+2026-05-28T10:09:20.4165055Z       Working directory:  /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmp_r29knl_
+2026-05-28T10:09:20.4166029Z       Code:
+2026-05-28T10:09:20.4166332Z       extern int i;
+2026-05-28T10:09:20.4166835Z       int i;
+2026-05-28T10:09:20.4167131Z       
+2026-05-28T10:09:20.4167418Z       -----------
+2026-05-28T10:09:20.4169471Z       Command line: `cc /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmp_r29knl_/testfile.c -o /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmp_r29knl_/output.obj -c -D_FILE_OFFSET_BITS=64 -O0 -U_FORTIFY_SOURCE -Wall` -> 0
+2026-05-28T10:09:20.4171658Z       Compiler for C supports arguments -Wall: YES
+2026-05-28T10:09:20.4172147Z       Running compile:
+2026-05-28T10:09:20.4173052Z       Working directory:  /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmp7c4imrt3
+2026-05-28T10:09:20.4174028Z       Code:
+2026-05-28T10:09:20.4174330Z       extern int i;
+2026-05-28T10:09:20.4174658Z       int i;
+2026-05-28T10:09:20.4174951Z       
+2026-05-28T10:09:20.4175241Z       -----------
+2026-05-28T10:09:20.4177549Z       Command line: `cc /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmp7c4imrt3/testfile.c -o /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmp7c4imrt3/output.obj -c -D_FILE_OFFSET_BITS=64 -O0 -U_FORTIFY_SOURCE -Warray-bounds` -> 0
+2026-05-28T10:09:20.4179844Z       Compiler for C supports arguments -Warray-bounds: YES
+2026-05-28T10:09:20.4180376Z       Running compile:
+2026-05-28T10:09:20.4181282Z       Working directory:  /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpb90biks7
+2026-05-28T10:09:20.4182241Z       Code:
+2026-05-28T10:09:20.4182537Z       extern int i;
+2026-05-28T10:09:20.4182849Z       int i;
+2026-05-28T10:09:20.4183136Z       
+2026-05-28T10:09:20.4183415Z       -----------
+2026-05-28T10:09:20.4185467Z       Command line: `cc /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpb90biks7/testfile.c -o /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpb90biks7/output.obj -c -D_FILE_OFFSET_BITS=64 -O0 -U_FORTIFY_SOURCE -Wcast-align` -> 0
+2026-05-28T10:09:20.4187969Z       Compiler for C supports arguments -Wcast-align: YES
+2026-05-28T10:09:20.4188496Z       Running compile:
+2026-05-28T10:09:20.4189395Z       Working directory:  /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpg85hffyl
+2026-05-28T10:09:20.4190377Z       Code:
+2026-05-28T10:09:20.4190703Z       extern int i;
+2026-05-28T10:09:20.4191024Z       int i;
+2026-05-28T10:09:20.4191312Z       
+2026-05-28T10:09:20.4191600Z       -----------
+2026-05-28T10:09:20.4193660Z       Command line: `cc /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpg85hffyl/testfile.c -o /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpg85hffyl/output.obj -c -D_FILE_OFFSET_BITS=64 -O0 -U_FORTIFY_SOURCE -Wconversion` -> 0
+2026-05-28T10:09:20.4195920Z       Compiler for C supports arguments -Wconversion: YES
+2026-05-28T10:09:20.4196593Z       Running compile:
+2026-05-28T10:09:20.4197488Z       Working directory:  /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmps89ipmui
+2026-05-28T10:09:20.4198440Z       Code:
+2026-05-28T10:09:20.4198736Z       extern int i;
+2026-05-28T10:09:20.4199377Z       int i;
+2026-05-28T10:09:20.4199666Z       
+2026-05-28T10:09:20.4199948Z       -----------
+2026-05-28T10:09:20.4202181Z       Command line: `cc /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmps89ipmui/testfile.c -o /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmps89ipmui/output.obj -c -D_FILE_OFFSET_BITS=64 -O0 -U_FORTIFY_SOURCE -Wextra` -> 0
+2026-05-28T10:09:20.4204426Z       Compiler for C supports arguments -Wextra: YES
+2026-05-28T10:09:20.4204928Z       Running compile:
+2026-05-28T10:09:20.4205827Z       Working directory:  /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpf5b86ild
+2026-05-28T10:09:20.4206961Z       Code:
+2026-05-28T10:09:20.4207265Z       extern int i;
+2026-05-28T10:09:20.4207578Z       int i;
+2026-05-28T10:09:20.4207868Z       
+2026-05-28T10:09:20.4208156Z       -----------
+2026-05-28T10:09:20.4210205Z       Command line: `cc /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpf5b86ild/testfile.c -o /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpf5b86ild/output.obj -c -D_FILE_OFFSET_BITS=64 -O0 -U_FORTIFY_SOURCE -Wformat=2` -> 0
+2026-05-28T10:09:20.4212429Z       Compiler for C supports arguments -Wformat=2: YES
+2026-05-28T10:09:20.4212951Z       Running compile:
+2026-05-28T10:09:20.4213852Z       Working directory:  /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpk2i7we46
+2026-05-28T10:09:20.4214811Z       Code:
+2026-05-28T10:09:20.4215111Z       extern int i;
+2026-05-28T10:09:20.4215432Z       int i;
+2026-05-28T10:09:20.4215730Z       
+2026-05-28T10:09:20.4216019Z       -----------
+2026-05-28T10:09:20.4218301Z       Command line: `cc /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpk2i7we46/testfile.c -o /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpk2i7we46/output.obj -c -D_FILE_OFFSET_BITS=64 -O0 -U_FORTIFY_SOURCE -Wformat-nonliteral` -> 0
+2026-05-28T10:09:20.4220660Z       Compiler for C supports arguments -Wformat-nonliteral: YES
+2026-05-28T10:09:20.4221223Z       Running compile:
+2026-05-28T10:09:20.4222199Z       Working directory:  /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpmya5jvhp
+2026-05-28T10:09:20.4223168Z       Code:
+2026-05-28T10:09:20.4223463Z       extern int i;
+2026-05-28T10:09:20.4223781Z       int i;
+2026-05-28T10:09:20.4224070Z       
+2026-05-28T10:09:20.4224357Z       -----------
+2026-05-28T10:09:20.4226678Z       Command line: `cc /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpmya5jvhp/testfile.c -o /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpmya5jvhp/output.obj -c -D_FILE_OFFSET_BITS=64 -O0 -U_FORTIFY_SOURCE -Wformat-security` -> 0
+2026-05-28T10:09:20.4229153Z       Compiler for C supports arguments -Wformat-security: YES
+2026-05-28T10:09:20.4229701Z       Running compile:
+2026-05-28T10:09:20.4230593Z       Working directory:  /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpqq2309nl
+2026-05-28T10:09:20.4231546Z       Code:
+2026-05-28T10:09:20.4231852Z       extern int i;
+2026-05-28T10:09:20.4232184Z       int i;
+2026-05-28T10:09:20.4232470Z       
+2026-05-28T10:09:20.4232754Z       -----------
+2026-05-28T10:09:20.4234912Z       Command line: `cc /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpqq2309nl/testfile.c -o /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpqq2309nl/output.obj -c -D_FILE_OFFSET_BITS=64 -O0 -U_FORTIFY_SOURCE -Wimplicit-function-declaration` -> 0
+2026-05-28T10:09:20.4237540Z       Compiler for C supports arguments -Wimplicit-function-declaration: YES
+2026-05-28T10:09:20.4238362Z       Running compile:
+2026-05-28T10:09:20.4239238Z       Working directory:  /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpknbi76sn
+2026-05-28T10:09:20.4240198Z       Code:
+2026-05-28T10:09:20.4240493Z       extern int i;
+2026-05-28T10:09:20.4240808Z       int i;
+2026-05-28T10:09:20.4241278Z       
+2026-05-28T10:09:20.4241559Z       -----------
+2026-05-28T10:09:20.4243621Z       Command line: `cc /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpknbi76sn/testfile.c -o /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpknbi76sn/output.obj -c -D_FILE_OFFSET_BITS=64 -O0 -U_FORTIFY_SOURCE -Winit-self` -> 0
+2026-05-28T10:09:20.4245844Z       Compiler for C supports arguments -Winit-self: YES
+2026-05-28T10:09:20.4246343Z       Running compile:
+2026-05-28T10:09:20.4247439Z       Working directory:  /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpk9t9wo3_
+2026-05-28T10:09:20.4248392Z       Code:
+2026-05-28T10:09:20.4248684Z       extern int i;
+2026-05-28T10:09:20.4249000Z       int i;
+2026-05-28T10:09:20.4249292Z       
+2026-05-28T10:09:20.4249580Z       -----------
+2026-05-28T10:09:20.4251775Z       Command line: `cc /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpk9t9wo3_/testfile.c -o /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpk9t9wo3_/output.obj -c -D_FILE_OFFSET_BITS=64 -O0 -U_FORTIFY_SOURCE -Wmissing-format-attribute` -> 0
+2026-05-28T10:09:20.4254181Z       Compiler for C supports arguments -Wmissing-format-attribute: YES
+2026-05-28T10:09:20.4254790Z       Running compile:
+2026-05-28T10:09:20.4255695Z       Working directory:  /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpaoz0dux7
+2026-05-28T10:09:20.4256875Z       Code:
+2026-05-28T10:09:20.4257183Z       extern int i;
+2026-05-28T10:09:20.4257497Z       int i;
+2026-05-28T10:09:20.4257790Z       
+2026-05-28T10:09:20.4258078Z       -----------
+2026-05-28T10:09:20.4260179Z       Command line: `cc /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpaoz0dux7/testfile.c -o /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpaoz0dux7/output.obj -c -D_FILE_OFFSET_BITS=64 -O0 -U_FORTIFY_SOURCE -Wmissing-noreturn` -> 0
+2026-05-28T10:09:20.4262498Z       Compiler for C supports arguments -Wmissing-noreturn: YES
+2026-05-28T10:09:20.4263058Z       Running compile:
+2026-05-28T10:09:20.4263962Z       Working directory:  /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpwe95plwv
+2026-05-28T10:09:20.4264918Z       Code:
+2026-05-28T10:09:20.4265207Z       extern int i;
+2026-05-28T10:09:20.4265523Z       int i;
+2026-05-28T10:09:20.4265810Z       
+2026-05-28T10:09:20.4266094Z       -----------
+2026-05-28T10:09:20.4268449Z       Command line: `cc /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpwe95plwv/testfile.c -o /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpwe95plwv/output.obj -c -D_FILE_OFFSET_BITS=64 -O0 -U_FORTIFY_SOURCE -Wnested-externs` -> 0
+2026-05-28T10:09:20.4270755Z       Compiler for C supports arguments -Wnested-externs: YES
+2026-05-28T10:09:20.4271299Z       Running compile:
+2026-05-28T10:09:20.4272195Z       Working directory:  /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmprr81wian
+2026-05-28T10:09:20.4273164Z       Code:
+2026-05-28T10:09:20.4273460Z       extern int i;
+2026-05-28T10:09:20.4273777Z       int i;
+2026-05-28T10:09:20.4274066Z       
+2026-05-28T10:09:20.4274351Z       -----------
+2026-05-28T10:09:20.4276848Z       Command line: `cc /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmprr81wian/testfile.c -o /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmprr81wian/output.obj -c -D_FILE_OFFSET_BITS=64 -O0 -U_FORTIFY_SOURCE -Wold-style-definition` -> 0
+2026-05-28T10:09:20.4279410Z       Compiler for C supports arguments -Wold-style-definition: YES
+2026-05-28T10:09:20.4280001Z       Running compile:
+2026-05-28T10:09:20.4280915Z       Working directory:  /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpd7fw4m_s
+2026-05-28T10:09:20.4281875Z       Code:
+2026-05-28T10:09:20.4282166Z       extern int i;
+2026-05-28T10:09:20.4282496Z       int i;
+2026-05-28T10:09:20.4282786Z       
+2026-05-28T10:09:20.4283071Z       -----------
+2026-05-28T10:09:20.4285112Z       Command line: `cc /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpd7fw4m_s/testfile.c -o /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpd7fw4m_s/output.obj -c -D_FILE_OFFSET_BITS=64 -O0 -U_FORTIFY_SOURCE -Wpacked` -> 0
+2026-05-28T10:09:20.4287490Z       Compiler for C supports arguments -Wpacked: YES
+2026-05-28T10:09:20.4287996Z       Running compile:
+2026-05-28T10:09:20.4288908Z       Working directory:  /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpa9zxpyr4
+2026-05-28T10:09:20.4289865Z       Code:
+2026-05-28T10:09:20.4290153Z       extern int i;
+2026-05-28T10:09:20.4290467Z       int i;
+2026-05-28T10:09:20.4290757Z       
+2026-05-28T10:09:20.4291041Z       -----------
+2026-05-28T10:09:20.4293134Z       Command line: `cc /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpa9zxpyr4/testfile.c -o /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpa9zxpyr4/output.obj -c -D_FILE_OFFSET_BITS=64 -O0 -U_FORTIFY_SOURCE -Wpointer-arith` -> 0
+2026-05-28T10:09:20.4295424Z       Compiler for C supports arguments -Wpointer-arith: YES
+2026-05-28T10:09:20.4295953Z       Running compile:
+2026-05-28T10:09:20.4297064Z       Working directory:  /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpyiixfj1k
+2026-05-28T10:09:20.4298038Z       Code:
+2026-05-28T10:09:20.4298334Z       extern int i;
+2026-05-28T10:09:20.4298646Z       int i;
+2026-05-28T10:09:20.4298935Z       
+2026-05-28T10:09:20.4299220Z       -----------
+2026-05-28T10:09:20.4301274Z       Command line: `cc /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpyiixfj1k/testfile.c -o /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpyiixfj1k/output.obj -c -D_FILE_OFFSET_BITS=64 -O0 -U_FORTIFY_SOURCE -Wreturn-type` -> 0
+2026-05-28T10:09:20.4303533Z       Compiler for C supports arguments -Wreturn-type: YES
+2026-05-28T10:09:20.4304067Z       Running compile:
+2026-05-28T10:09:20.4304964Z       Working directory:  /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmp4uut583_
+2026-05-28T10:09:20.4305936Z       Code:
+2026-05-28T10:09:20.4306233Z       extern int i;
+2026-05-28T10:09:20.4306794Z       int i;
+2026-05-28T10:09:20.4307096Z       
+2026-05-28T10:09:20.4307393Z       -----------
+2026-05-28T10:09:20.4309418Z       Command line: `cc /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmp4uut583_/testfile.c -o /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmp4uut583_/output.obj -c -D_FILE_OFFSET_BITS=64 -O0 -U_FORTIFY_SOURCE -Wshadow` -> 0
+2026-05-28T10:09:20.4311603Z       Compiler for C supports arguments -Wshadow: YES
+2026-05-28T10:09:20.4312116Z       Running compile:
+2026-05-28T10:09:20.4313019Z       Working directory:  /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmp9tgj_8eb
+2026-05-28T10:09:20.4314193Z       Code:
+2026-05-28T10:09:20.4314497Z       extern int i;
+2026-05-28T10:09:20.4314820Z       int i;
+2026-05-28T10:09:20.4315109Z       
+2026-05-28T10:09:20.4315395Z       -----------
+2026-05-28T10:09:20.4317808Z       Command line: `cc /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmp9tgj_8eb/testfile.c -o /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmp9tgj_8eb/output.obj -c -D_FILE_OFFSET_BITS=64 -O0 -U_FORTIFY_SOURCE -Wsign-compare` -> 0
+2026-05-28T10:09:20.4320103Z       Compiler for C supports arguments -Wsign-compare: YES
+2026-05-28T10:09:20.4320634Z       Running compile:
+2026-05-28T10:09:20.4321539Z       Working directory:  /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpm2i0m41m
+2026-05-28T10:09:20.4322546Z       Code:
+2026-05-28T10:09:20.4322848Z       extern int i;
+2026-05-28T10:09:20.4323169Z       int i;
+2026-05-28T10:09:20.4323456Z       
+2026-05-28T10:09:20.4323747Z       -----------
+2026-05-28T10:09:20.4325841Z       Command line: `cc /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpm2i0m41m/testfile.c -o /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpm2i0m41m/output.obj -c -D_FILE_OFFSET_BITS=64 -O0 -U_FORTIFY_SOURCE -Wstrict-aliasing` -> 0
+2026-05-28T10:09:20.4328312Z       Compiler for C supports arguments -Wstrict-aliasing: YES
+2026-05-28T10:09:20.4328864Z       Running compile:
+2026-05-28T10:09:20.4329756Z       Working directory:  /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpymjq5rxu
+2026-05-28T10:09:20.4330718Z       Code:
+2026-05-28T10:09:20.4331010Z       extern int i;
+2026-05-28T10:09:20.4331337Z       int i;
+2026-05-28T10:09:20.4331641Z       
+2026-05-28T10:09:20.4331925Z       -----------
+2026-05-28T10:09:20.4333957Z       Command line: `cc /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpymjq5rxu/testfile.c -o /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpymjq5rxu/output.obj -c -D_FILE_OFFSET_BITS=64 -O0 -U_FORTIFY_SOURCE -Wundef` -> 0
+2026-05-28T10:09:20.4336144Z       Compiler for C supports arguments -Wundef: YES
+2026-05-28T10:09:20.4337215Z       Running compile:
+2026-05-28T10:09:20.4337878Z       Working directory:  /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpeeo9uyo3
+2026-05-28T10:09:20.4338506Z       Code:
+2026-05-28T10:09:20.4338711Z       extern int i;
+2026-05-28T10:09:20.4338927Z       int i;
+2026-05-28T10:09:20.4339125Z       
+2026-05-28T10:09:20.4339331Z       -----------
+2026-05-28T10:09:20.4340622Z       Command line: `cc /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpeeo9uyo3/testfile.c -o /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpeeo9uyo3/output.obj -c -D_FILE_OFFSET_BITS=64 -O0 -U_FORTIFY_SOURCE -Wunused-but-set-variable` -> 0
+2026-05-28T10:09:20.4342059Z       Compiler for C supports arguments -Wunused-but-set-variable: YES
+2026-05-28T10:09:20.4342436Z       Running compile:
+2026-05-28T10:09:20.4343013Z       Working directory:  /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpm60pz4cx
+2026-05-28T10:09:20.4343606Z       Code:
+2026-05-28T10:09:20.4343809Z       extern int i;
+2026-05-28T10:09:20.4344025Z       int i;
+2026-05-28T10:09:20.4344218Z       
+2026-05-28T10:09:20.4344412Z       -----------
+2026-05-28T10:09:20.4345633Z       Command line: `cc /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpm60pz4cx/testfile.c -o /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpm60pz4cx/output.obj -c -D_FILE_OFFSET_BITS=64 -O0 -U_FORTIFY_SOURCE -Wswitch-default` -> 0
+2026-05-28T10:09:20.4347346Z       Compiler for C supports arguments -Wswitch-default: YES
+2026-05-28T10:09:20.4347689Z       Running compile:
+2026-05-28T10:09:20.4348357Z       Working directory:  /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpxo_6st0q
+2026-05-28T10:09:20.4348937Z       Code:
+2026-05-28T10:09:20.4349139Z       extern int i;
+2026-05-28T10:09:20.4349344Z       int i;
+2026-05-28T10:09:20.4349535Z       
+2026-05-28T10:09:20.4349722Z       -----------
+2026-05-28T10:09:20.4351060Z       Command line: `cc /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpxo_6st0q/testfile.c -o /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpxo_6st0q/output.obj -c -D_FILE_OFFSET_BITS=64 -O0 -U_FORTIFY_SOURCE -Wmissing-field-initializers -Wno-missing-field-initializers` -> 0
+2026-05-28T10:09:20.4352561Z       Compiler for C supports arguments -Wno-missing-field-initializers: YES
+2026-05-28T10:09:20.4352948Z       Running compile:
+2026-05-28T10:09:20.4353492Z       Working directory:  /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpoi91sml3
+2026-05-28T10:09:20.4354066Z       Code:
+2026-05-28T10:09:20.4354259Z       extern int i;
+2026-05-28T10:09:20.4354462Z       int i;
+2026-05-28T10:09:20.4354652Z       
+2026-05-28T10:09:20.4354839Z       -----------
+2026-05-28T10:09:20.4356129Z       Command line: `cc /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpoi91sml3/testfile.c -o /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmpoi91sml3/output.obj -c -D_FILE_OFFSET_BITS=64 -O0 -U_FORTIFY_SOURCE -Wunused-parameter -Wno-unused-parameter` -> 0
+2026-05-28T10:09:20.4357869Z       Compiler for C supports arguments -Wno-unused-parameter: YES
+2026-05-28T10:09:20.4358231Z       Running compile:
+2026-05-28T10:09:20.4358782Z       Working directory:  /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmp39eba0v7
+2026-05-28T10:09:20.4359360Z       Code:
+2026-05-28T10:09:20.4359557Z       extern int i;
+2026-05-28T10:09:20.4359772Z       int i;
+2026-05-28T10:09:20.4359964Z       
+2026-05-28T10:09:20.4360155Z       -----------
+2026-05-28T10:09:20.4361363Z       Command line: `cc /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmp39eba0v7/testfile.c -o /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmp39eba0v7/output.obj -c -D_FILE_OFFSET_BITS=64 -O0 -U_FORTIFY_SOURCE -fno-strict-aliasing` -> 0
+2026-05-28T10:09:20.4362717Z       Compiler for C supports arguments -fno-strict-aliasing: YES
+2026-05-28T10:09:20.4363069Z       Running compile:
+2026-05-28T10:09:20.4363646Z       Working directory:  /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmp4zauvuua
+2026-05-28T10:09:20.4364212Z       Code:
+2026-05-28T10:09:20.4364422Z       extern int i;
+2026-05-28T10:09:20.4364631Z       int i;
+2026-05-28T10:09:20.4364821Z       
+2026-05-28T10:09:20.4365016Z       -----------
+2026-05-28T10:09:20.4366212Z       Command line: `cc /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmp4zauvuua/testfile.c -o /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/tmp4zauvuua/output.obj -c -D_FILE_OFFSET_BITS=64 -O0 -U_FORTIFY_SOURCE -fvisibility=hidden` -> 0
+2026-05-28T10:09:20.4367652Z       Compiler for C supports arguments -fvisibility=hidden: YES
+2026-05-28T10:09:20.4368125Z       Pkg-config binary missing from cross or native file, or env var undefined.
+2026-05-28T10:09:20.4368728Z       Trying a default Pkg-config fallback at pkg-config
+2026-05-28T10:09:20.4369101Z       Found pkg-config: YES (/usr/bin/pkg-config) 1.8.1
+2026-05-28T10:09:20.4369558Z       Determining dependency 'cairo' with pkg-config executable '/usr/bin/pkg-config'
+2026-05-28T10:09:20.4370107Z       env[PKG_CONFIG_PATH]: /opt/hostedtoolcache/Python/3.10.20/x64/lib/pkgconfig
+2026-05-28T10:09:20.4370630Z       env[PKG_CONFIG]: /usr/bin/pkg-config
+2026-05-28T10:09:20.4370927Z       -----------
+2026-05-28T10:09:20.4371213Z       Called: `/usr/bin/pkg-config --modversion cairo` -> 1
+2026-05-28T10:09:20.4371532Z       stderr:
+2026-05-28T10:09:20.4371819Z       Package cairo was not found in the pkg-config search path.
+2026-05-28T10:09:20.4372243Z       Perhaps you should add the directory containing `cairo.pc'
+2026-05-28T10:09:20.4372619Z       to the PKG_CONFIG_PATH environment variable
+2026-05-28T10:09:20.4372982Z       Package 'cairo', required by 'virtual:world', not found
+2026-05-28T10:09:20.4373303Z       -----------
+2026-05-28T10:09:20.4373548Z       CMake binary for host machine is not cached
+2026-05-28T10:09:20.4373943Z       CMake binary missing from cross or native file, or env var undefined.
+2026-05-28T10:09:20.4374352Z       Trying a default CMake fallback at cmake
+2026-05-28T10:09:20.4374673Z       Found CMake: /usr/local/bin/cmake (3.31.6)
+2026-05-28T10:09:20.4374987Z       Extracting basic cmake information
+2026-05-28T10:09:20.4375364Z       CMake Toolchain: Calling CMake once to generate the compiler state
+2026-05-28T10:09:20.4376209Z       Calling CMake (['/usr/local/bin/cmake']) in /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/__CMake_compiler_info__ with:
+2026-05-28T10:09:20.4377081Z         - "--trace-expand"
+2026-05-28T10:09:20.4377351Z         - "--trace-format=json-v1"
+2026-05-28T10:09:20.4377629Z         - "--no-warn-unused-cli"
+2026-05-28T10:09:20.4377899Z         - "--trace-redirect=cmake_trace.txt"
+2026-05-28T10:09:20.4378177Z         - "-G"
+2026-05-28T10:09:20.4378383Z         - "Ninja"
+2026-05-28T10:09:20.4379103Z         - "-DCMAKE_TOOLCHAIN_FILE=/tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/__CMake_compiler_info__/CMakeMesonTempToolchainFile.cmake"
+2026-05-28T10:09:20.4379867Z         - "."
+2026-05-28T10:09:20.4380222Z       CMake trace warning: add_executable() non imported executables are not supported
+2026-05-28T10:09:20.4381293Z       CMake TRACE: /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/__CMake_compiler_info__/CMakeFiles/CMakeScratch/TryCompile-miwLPP/CMakeLists.txt:22 add_executable(['cmTC_02341'])
+2026-05-28T10:09:20.4382305Z       CMake trace warning: target_link_libraries() TARGET cmTC_02341 not found
+2026-05-28T10:09:20.4383387Z       CMake TRACE: /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/__CMake_compiler_info__/CMakeFiles/CMakeScratch/TryCompile-miwLPP/CMakeLists.txt:28 target_link_libraries(['cmTC_02341', ''])
+2026-05-28T10:09:20.4384788Z       !meson_ci!/ci_include "/tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/cmake_cairo/CMakeMesonToolchainFile.cmake"
+2026-05-28T10:09:20.4385494Z       Try CMake generator: auto
+2026-05-28T10:09:20.4386131Z       !meson_ci!/ci_include "/tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/cmake_cairo/CMakeLists.txt"
+2026-05-28T10:09:20.4387280Z       Calling CMake (['/usr/local/bin/cmake']) in /tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/cmake_cairo with:
+2026-05-28T10:09:20.4387976Z         - "--trace-expand"
+2026-05-28T10:09:20.4388243Z         - "--trace-format=json-v1"
+2026-05-28T10:09:20.4388521Z         - "--no-warn-unused-cli"
+2026-05-28T10:09:20.4388806Z         - "--trace-redirect=cmake_trace.txt"
+2026-05-28T10:09:20.4389580Z         - "-DCMAKE_TOOLCHAIN_FILE=/tmp/pip-install-ucj05kto/pycairo_f03670866ef440bb8426f691a2d569ef/.mesonpy-tmrdnerr/meson-private/cmake_cairo/CMakeMesonToolchainFile.cmake"
+2026-05-28T10:09:20.4390559Z         - "."
+2026-05-28T10:09:20.4390899Z         -- Module search paths:    ['/', '/opt', '/usr', '/usr/local']
+2026-05-28T10:09:20.4391301Z         -- CMake root:             /usr/local/share/cmake-3.31
+2026-05-28T10:09:20.4391777Z         -- CMake architectures:    ['x86_64-linux-gnu']
+2026-05-28T10:09:20.4392264Z         -- CMake lib search paths: ['lib', 'lib32', 'lib64', 'libx32', 'share', '', 'lib/x86_64-linux-gnu']
+2026-05-28T10:09:20.4392737Z       Preliminary CMake check failed. Aborting.
+2026-05-28T10:09:20.4393134Z       Run-time dependency cairo found: NO  (tried pkg-config and cmake)
+2026-05-28T10:09:20.4393487Z       
+2026-05-28T10:09:20.4393855Z       ../cairo/meson.build:31:12: ERROR: Dependency "cairo" not found (tried pkg-config and cmake)
+2026-05-28T10:09:20.4394283Z       
+2026-05-28T10:09:20.4394895Z ##[endgroup]
+2026-05-28T10:09:20.4395100Z       
+2026-05-28T10:09:20.4395290Z       [end of output]
+2026-05-28T10:09:20.4395510Z   
+2026-05-28T10:09:20.4395848Z   note: This error originates from a subprocess, and is likely not a problem with pip.
+2026-05-28T10:09:20.4396294Z error: metadata-generation-failed
+2026-05-28T10:09:20.4396713Z 
+2026-05-28T10:09:20.4397158Z Ã Encountered error while generating package metadata.
+2026-05-28T10:09:20.4397548Z â°â> pycairo
+2026-05-28T10:09:20.4397669Z 
+2026-05-28T10:09:20.4397847Z note: This is an issue with the package mentioned above, not pip.
+2026-05-28T10:09:20.4398209Z hint: See above for details.
+2026-05-28T10:09:20.5587258Z ##[error]Process completed with exit code 1.
+2026-05-28T10:09:20.5710217Z Post job cleanup.
+2026-05-28T10:09:20.6699008Z [command]/usr/bin/git version
+2026-05-28T10:09:20.6735536Z git version 2.54.0
+2026-05-28T10:09:20.6777961Z Temporarily overriding HOME='/home/runner/work/_temp/cd391e92-1b16-4a3c-b2bf-43a68bc7d4e1' before making global git config changes
+2026-05-28T10:09:20.6779294Z Adding repository directory to the temporary git global config as a safe directory
+2026-05-28T10:09:20.6784609Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/gdt-invoice-hub/gdt-invoice-hub
+2026-05-28T10:09:20.6829664Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-05-28T10:09:20.6863602Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-05-28T10:09:20.7107971Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-05-28T10:09:20.7133689Z http.https://github.com/.extraheader
+2026-05-28T10:09:20.7147014Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-05-28T10:09:20.7178777Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-05-28T10:09:20.7415715Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-05-28T10:09:20.7451089Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-05-28T10:09:20.7817236Z Cleaning up orphan processes
+2026-05-28T10:09:20.8082729Z ##[warning]Node.js 20 actions are deprecated. The following actions are running on Node.js 20 and may not work as expected: actions/checkout@v4, actions/setup-python@v5. Actions will be forced to run with Node.js 24 by default starting June 2nd, 2026. Node.js 20 will be removed from the runner on September 16th, 2026. Please check if updated versions of these actions are available that support Node.js 24. To opt into Node.js 24 now, set the FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true environment variable on the runner or in your workflow file. Once Node.js 24 becomes the default, you can temporarily opt out by setting ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

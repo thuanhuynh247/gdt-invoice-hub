@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GDT Invoice Hub - Facebook Ad Carousel</title>
+  <!-- Google Fonts: Outfit & Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Outfit', 'Inter', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', 'sans-serif'],
+          },
+        },
+      },
+    }
+  </script>
+  <style>
+    /* Bulletproof font stack and smooth rendering rules */
+    body, h1, h2, h3, p, span, div, button {
+      font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    .slides-container::-webkit-scrollbar {
+      display: none;
+    }
+    .slides-container {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="bg-gray-900 flex justify-center items-center min-h-screen p-4">
+
+  <!-- Carousel Wrapper (1:1 Ratio: 1080x1080px for Facebook Post) -->
+  <div class="carousel-wrapper w-[1080px] h-[1080px] overflow-hidden rounded-[40px] shadow-2xl border border-gray-800 bg-slate-950 relative">
+    
+    <!-- Slides Container -->
+    <div class="slides-container flex w-full h-full overflow-x-auto scroll-snap-type-x-mandatory scroll-smooth">
+      
+      <!-- SLIDE 1: COVER (STUNNING FIRST IMPRESSION) -->
+      <div class="slide flex-shrink-0 w-full h-full bg-gradient-to-br from-slate-950 via-indigo-950 to-purple-950 flex flex-col justify-between p-16 relative overflow-hidden">
+        <!-- Abstract Background Orbs -->
+        <div class="absolute -top-32 -left-32 w-96 h-96 bg-indigo-500/20 rounded-full blur-[128px]"></div>
+        <div class="absolute -bottom-32 -right-32 w-[400px] h-[400px] bg-purple-500/20 rounded-full blur-[128px]"></div>
+        
+        <!-- Top bar -->
+        <div class="flex justify-between items-center z-10">
+          <div class="flex items-center gap-3">
+            <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center font-bold text-white text-xl shadow-lg">G</div>
+            <span class="font-extrabold text-white text-lg tracking-wider">GDT INVOICE HUB</span>
+          </div>
+          <span class="px-4 py-1.5 bg-indigo-500/10 border border-indigo-500/30 rounded-full text-indigo-400 font-semibold text-xs uppercase tracking-widest">Enterprise Solution</span>
+        </div>
+
+        <!-- Main Body -->
+        <div class="my-auto z-10 flex flex-col gap-6">
+          <span class="text-indigo-400 font-bold text-sm tracking-[0.2em] uppercase">Cách Mạng Hóa Quản Lý Hóa Đơn</span>
+          <h1 class="font-black text-white text-6xl leading-[1.1] tracking-tight">
+            QUẢN LÝ HÓA ĐƠN <br/>
+            <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">THÔNG MINH BẰNG AI</span>
+          </h1>
+          <p class="text-gray-300 text-lg max-w-2xl leading-relaxed">
+            Tự động kiểm soát rủi ro thuế doanh nghiệp, thẩm định hóa đơn điện tử chuẩn Tổng cục Thuế Việt Nam & Dự báo dòng tiền VAT chính xác.
+          </p>
+        </div>
+
+        <!-- Bottom bar -->
+        <div class="flex justify-between items-end border-t border-white/10 pt-8 z-10">
+          <div>
+            <p class="text-gray-400 text-xs uppercase tracking-wider font-semibold">Công nghệ lõi</p>
+            <p class="text-white font-bold text-lg mt-0.5">T-Score Engine • ARIMA Forecasting</p>
+          </div>
+          <div class="flex items-center gap-1.5 text-indigo-400 font-bold">
+            <span>Vuốt để xem chi tiết</span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 2: LIVE INVOICE DASHBOARD MOCKUP -->
+      <div class="slide flex-shrink-0 w-full h-full bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 flex flex-col justify-between p-16 relative overflow-hidden">
+        <div class="absolute -top-32 -right-32 w-80 h-80 bg-indigo-500/10 rounded-full blur-[96px]"></div>
+        
+        <div class="flex justify-between items-center z-10">
+          <span class="font-bold text-white text-lg tracking-wider">GDT INVOICE HUB</span>
+          <span class="text-gray-400 font-semibold text-xs tracking-wider">02 / 06</span>
+        </div>
+
+        <div class="my-auto z-10 flex flex-col gap-6">
+          <div class="flex flex-col gap-1.5">
+            <span class="text-indigo-400 font-bold text-xs uppercase tracking-widest">Hệ Thống Thực Tế</span>
+            <h2 class="font-extrabold text-white text-3xl leading-tight">Quản Lý Hóa Đơn Trực Quan</h2>
+          </div>
+
+          <!-- Browser Mockup -->
+          <div class="bg-slate-900/90 border border-gray-800 rounded-3xl overflow-hidden shadow-2xl flex flex-col">
+            <!-- Window header -->
+            <div class="bg-slate-950/80 px-5 py-3.5 border-b border-gray-800 flex items-center gap-2">
+              <div class="w-3.5 h-3.5 rounded-full bg-rose-500/80"></div>
+              <div class="w-3.5 h-3.5 rounded-full bg-amber-500/80"></div>
+              <div class="w-3.5 h-3.5 rounded-full bg-emerald-500/80"></div>
+              <span class="text-xs text-gray-500 ml-4 font-mono">http://127.0.0.1:5000/invoices</span>
+            </div>
+            <!-- Captured image -->
+            <div class="h-[400px] overflow-hidden relative">
+              <img src="dashboard-screenshot.png" alt="Invoice Dashboard Screenshot" class="w-full h-full object-cover object-top" />
+              <div class="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-slate-900 to-transparent"></div>
+            </div>
+          </div>
+          
+          <p class="text-gray-300 text-sm leading-relaxed">
+            Giao diện kế toán tối giản, tự động đồng bộ hóa đơn XML, phân loại nhanh và lọc trạng thái hoạt động thực tế của người bán live.
+          </p>
+        </div>
+
+        <div class="flex justify-between items-center border-t border-white/10 pt-6 z-10">
+          <span class="text-gray-400 text-sm">Circular 78 Compliance Verified</span>
+          <span class="text-indigo-400 font-bold text-sm">Xem T-Score ở slide tiếp theo →</span>
+        </div>
+      </div>
+
+      <!-- SLIDE 3: T-SCORE AUDIT PANEL MOCKUP -->
+      <div class="slide flex-shrink-0 w-full h-full bg-gradient-to-br from-slate-950 via-slate-900 to-purple-950 flex flex-col justify-between p-16 relative overflow-hidden">
+        <div class="absolute -bottom-32 -left-32 w-80 h-80 bg-purple-500/10 rounded-full blur-[96px]"></div>
+        
+        <div class="flex justify-between items-center z-10">
+          <span class="font-bold text-white text-lg tracking-wider">GDT INVOICE HUB</span>
+          <span class="text-gray-400 font-semibold text-xs tracking-wider">03 / 06</span>
+        </div>
+
+        <div class="my-auto z-10 flex flex-col gap-6">
+          <div class="flex flex-col gap-1.5">
+            <span class="text-purple-400 font-bold text-xs uppercase tracking-widest">Kiểm Soát An Toàn</span>
+            <h2 class="font-extrabold text-white text-3xl leading-tight">Thẩm Định T-Score & Rủi Ro Thuế</h2>
+          </div>
+
+          <!-- Browser Mockup -->
+          <div class="bg-slate-900/90 border border-gray-800 rounded-3xl overflow-hidden shadow-2xl flex flex-col">
+            <!-- Window header -->
+            <div class="bg-slate-950/80 px-5 py-3.5 border-b border-gray-800 flex items-center gap-2">
+              <div class="w-3.5 h-3.5 rounded-full bg-rose-500/80"></div>
+              <div class="w-3.5 h-3.5 rounded-full bg-amber-500/80"></div>
+              <div class="w-3.5 h-3.5 rounded-full bg-emerald-500/80"></div>
+              <span class="text-xs text-gray-500 ml-4 font-mono">http://127.0.0.1:5000/invoices/detail</span>
+            </div>
+            <!-- Captured image -->
+            <div class="h-[400px] overflow-hidden relative">
+              <img src="detail-screenshot.png" alt="Invoice Detail Screenshot" class="w-full h-full object-cover object-top" />
+              <div class="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-slate-900 to-transparent"></div>
+            </div>
+          </div>
+
+          <p class="text-gray-300 text-sm leading-relaxed">
+            Hệ thống tự động chấm điểm T-Score cảnh báo rủi ro tức thì: kiểm tra chữ ký số, tính hợp pháp của MST người bán và các vi phạm ngưỡng thanh toán tiền mặt.
+          </p>
+        </div>
+
+        <div class="flex justify-between items-center border-t border-white/10 pt-6 z-10">
+          <span class="text-gray-400 text-sm">Advanced Audit Logic</span>
+          <span class="text-indigo-400 font-bold text-sm">Trợ lý AI slide sau →</span>
+        </div>
+      </div>
+
+      <!-- SLIDE 4: AI COMPLIANCE ASSISTANT -->
+      <div class="slide flex-shrink-0 w-full h-full bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-950 flex flex-col justify-between p-16 relative overflow-hidden">
+        <div class="absolute -top-32 -left-32 w-96 h-96 bg-purple-500/10 rounded-full blur-[128px]"></div>
+        
+        <div class="flex justify-between items-center z-10">
+          <span class="font-bold text-white text-lg tracking-wider">GDT INVOICE HUB</span>
+          <span class="text-gray-400 font-semibold text-xs tracking-wider">04 / 06</span>
+        </div>
+
+        <div class="my-auto z-10 flex flex-col gap-6">
+          <div class="flex flex-col gap-1.5">
+            <span class="text-purple-400 font-bold text-xs uppercase tracking-widest">Trí Tuệ Nhân Tạo</span>
+            <h2 class="font-extrabold text-white text-3xl leading-tight">Trợ Lý Thuế AI Cao Cấp</h2>
+          </div>
+
+          <div class="bg-slate-900/60 border border-purple-500/20 rounded-3xl p-8 flex flex-col gap-4 shadow-xl backdrop-blur-md relative">
+            <div class="flex items-center gap-3">
+              <span class="text-2xl">🤖</span>
+              <span class="font-bold text-white text-lg">Soạn Thảo Công Văn Giải Trình Tự Động</span>
+              <span class="ml-auto px-3 py-1 bg-purple-500/20 border border-purple-500/40 rounded text-purple-300 text-xs font-bold uppercase tracking-wider">Nghị định 30</span>
+            </div>
+            
+            <div class="bg-slate-950/90 border border-white/5 rounded-2xl p-6 text-xs font-sans text-gray-400 leading-relaxed font-mono">
+              <p class="text-purple-400 text-center border-b border-white/5 pb-2 mb-3 font-sans font-bold text-xs">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
+              <p class="font-bold text-gray-300">Kính gửi: Chi cục Thuế Quận/Huyện...</p>
+              <p class="mt-1">Căn cứ Nghị định 30/2020/NĐ-CP về công tác văn thư, Công ty giải trình về việc đối chiếu chênh lệch hóa đơn INV-2026-0501 do lỗi khách quan...</p>
+            </div>
+
+            <!-- Highlights -->
+            <div class="grid grid-cols-2 gap-4 text-sm text-gray-300 border-t border-white/5 pt-4">
+              <div class="flex items-center gap-2">
+                <span class="text-emerald-400 font-bold">✓</span>
+                <span>Xuất file Word & PDF nhanh</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-emerald-400 font-bold">✓</span>
+                <span>Tự phục hồi offline khi mất mạng</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-between items-center border-t border-white/10 pt-6 z-10">
+          <span class="text-gray-400 text-sm">Senior Tax Auditor Agent Mode</span>
+          <span class="text-indigo-400 font-bold text-sm">Dự báo Thuế ARIMA ở slide sau →</span>
+        </div>
+      </div>
+
+      <!-- SLIDE 5: ARIMA FORECASTING MOCKUP -->
+      <div class="slide flex-shrink-0 w-full h-full bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 flex flex-col justify-between p-16 relative overflow-hidden">
+        <div class="absolute -bottom-32 -right-32 w-80 h-80 bg-blue-500/10 rounded-full blur-[96px]"></div>
+        
+        <div class="flex justify-between items-center z-10">
+          <span class="font-bold text-white text-lg tracking-wider">GDT INVOICE HUB</span>
+          <span class="text-gray-400 font-semibold text-xs tracking-wider">05 / 06</span>
+        </div>
+
+        <div class="my-auto z-10 flex flex-col gap-6">
+          <div class="flex flex-col gap-1.5">
+            <span class="text-indigo-400 font-bold text-xs uppercase tracking-widest">Toán Học Phân Tích</span>
+            <h2 class="font-extrabold text-white text-3xl leading-tight">Dự Báo Thuế GTGT Khấu Trừ</h2>
+          </div>
+
+          <!-- Browser Mockup -->
+          <div class="bg-slate-900/90 border border-gray-800 rounded-3xl overflow-hidden shadow-2xl flex flex-col">
+            <!-- Window header -->
+            <div class="bg-slate-950/80 px-5 py-3.5 border-b border-gray-800 flex items-center gap-2">
+              <div class="w-3.5 h-3.5 rounded-full bg-rose-500/80"></div>
+              <div class="w-3.5 h-3.5 rounded-full bg-amber-500/80"></div>
+              <div class="w-3.5 h-3.5 rounded-full bg-emerald-500/80"></div>
+              <span class="text-xs text-gray-500 ml-4 font-mono">http://127.0.0.1:5000/vat-declaration</span>
+            </div>
+            <!-- Captured image -->
+            <div class="h-[400px] overflow-hidden relative">
+              <img src="forecasting-screenshot.png" alt="ARIMA Forecasting Screenshot" class="w-full h-full object-cover object-top" />
+              <div class="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-slate-900 to-transparent"></div>
+            </div>
+          </div>
+
+          <p class="text-gray-300 text-sm leading-relaxed">
+            Áp dụng thuật toán ARIMA phân tích chuỗi thời gian, tự động tính toán dòng tiền thuế GTGT đầu vào/đầu ra và dự kiến số tiền thuế phải nộp trong 3 tháng tới.
+          </p>
+        </div>
+
+        <div class="flex justify-between items-center border-t border-white/10 pt-6 z-10">
+          <span class="text-gray-400 text-sm">ARIMA • Cash Flow Forecasting</span>
+          <span class="text-indigo-400 font-bold text-sm">Bắt đầu ngay slide tiếp theo →</span>
+        </div>
+      </div>
+
+      <!-- SLIDE 6: CALL TO ACTION (WITH CORRECT GITHUB & INSTANT QR CODE) -->
+      <div class="slide flex-shrink-0 w-full h-full bg-gradient-to-br from-indigo-950 via-slate-950 to-purple-950 flex flex-col justify-between p-16 relative overflow-hidden">
+        <!-- Abstract background orbs -->
+        <div class="absolute -top-32 -right-32 w-[350px] h-[350px] bg-indigo-500/20 rounded-full blur-[128px]"></div>
+        <div class="absolute -bottom-32 -left-32 w-[350px] h-[350px] bg-purple-500/20 rounded-full blur-[128px]"></div>
+        
+        <div class="flex justify-between items-center z-10">
+          <div class="flex items-center gap-3">
+            <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center font-bold text-white text-xl shadow-lg">G</div>
+            <span class="font-bold text-white text-lg tracking-wider">GDT INVOICE HUB</span>
+          </div>
+          <span class="text-gray-400 font-semibold text-xs tracking-wider">06 / 06</span>
+        </div>
+
+        <div class="my-auto z-10 flex flex-col items-center text-center gap-6">
+          <div class="flex flex-col gap-2">
+            <span class="text-indigo-400 font-bold text-sm tracking-[0.2em] uppercase">Mã nguồn mở chất lượng doanh nghiệp</span>
+            <h2 class="font-black text-white text-4xl leading-tight">TỐI ƯU HÓA QUẢN LÝ THUẾ<br/>NGAY HÔM NAY!</h2>
+          </div>
+
+          <p class="text-gray-300 text-sm max-w-2xl leading-relaxed">
+            Hệ thống mã nguồn mở hoàn chỉnh đã được xuất bản chính thức trên GitHub của bạn! Hãy clone về, tích hợp và trải nghiệm ngay.
+          </p>
+
+          <!-- Glassmorphic card for QR & URL -->
+          <div class="bg-slate-900/80 border border-white/10 rounded-3xl p-6 flex items-center gap-6 shadow-2xl backdrop-blur-md mt-2 max-w-lg w-full justify-center">
+            <!-- Dynamically generated crisp QR code -->
+            <div class="bg-slate-950 p-2.5 rounded-2xl border border-white/10 flex items-center justify-center shadow-lg">
+              <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://github.com/thuanhuynh247/gdt-invoice-hub&color=a78bfa&bgcolor=020617" alt="GitHub Repo QR Code" class="w-[120px] h-[120px] rounded-lg" />
+            </div>
+            
+            <div class="flex flex-col items-start text-left gap-2">
+              <span class="text-gray-400 text-xs font-semibold uppercase tracking-wider">GitHub Repository</span>
+              <span class="text-white font-bold text-sm font-mono break-all leading-tight">
+                https://github.com/thuanhuynh247/gdt-invoice-hub
+              </span>
+              <span class="text-indigo-400 text-xs font-semibold">Quét mã QR để xem mã nguồn →</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-between items-center border-t border-white/10 pt-8 z-10 text-gray-400 text-xs">
+          <span>Phát hành bởi @thuanhuynh247</span>
+          <span>© 2026 GDT Invoice Hub. All rights reserved.</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</body>
+</html>

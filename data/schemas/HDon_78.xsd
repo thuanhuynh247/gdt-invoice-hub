@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+  <xs:element name="HDon">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="DLHDon">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="TTChung">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="PBan" type="xs:string" minOccurs="0"/>
+                    <xs:element name="THDon" type="xs:string"/>
+                    <xs:element name="KHMSHDon" type="xs:string"/>
+                    <xs:element name="KHHDon" type="xs:string"/>
+                    <xs:element name="SHDon" type="xs:string"/>
+                    <xs:element name="NLap" type="xs:string"/>
+                    <xs:element name="DVTTe" type="xs:string" minOccurs="0"/>
+                    <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="NDHDon">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="NBan">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="Ten" type="xs:string"/>
+                          <xs:element name="MST" type="xs:string"/>
+                          <xs:element name="DChi" type="xs:string"/>
+                          <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:element name="NMua">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="Ten" type="xs:string" minOccurs="0"/>
+                          <xs:element name="TenDonVi" type="xs:string" minOccurs="0"/>
+                          <xs:element name="MST" type="xs:string" minOccurs="0"/>
+                          <xs:element name="DChi" type="xs:string" minOccurs="0"/>
+                          <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:element name="DSDVu" minOccurs="0">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="HHDVu" maxOccurs="unbounded">
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:element name="TChat" type="xs:integer" minOccurs="0"/>
+                                <xs:element name="STT" type="xs:integer" minOccurs="0"/>
+                                <xs:element name="Ten" type="xs:string"/>
+                                <xs:element name="DVT" type="xs:string" minOccurs="0"/>
+                                <xs:element name="SLuong" type="xs:string" minOccurs="0"/>
+                                <xs:element name="DGia" type="xs:string" minOccurs="0"/>
+                                <xs:element name="ThTien" type="xs:string" minOccurs="0"/>
+                                <xs:element name="TSuat" type="xs:string" minOccurs="0"/>
+                                <xs:element name="TThue" type="xs:string" minOccurs="0"/>
+                                <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+                              </xs:sequence>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+            </xs:sequence>
+            <xs:attribute name="Id" type="xs:string" use="optional"/>
+          </xs:complexType>
+        </xs:element>
+        <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

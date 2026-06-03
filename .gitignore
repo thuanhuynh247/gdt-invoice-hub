@@ -1,0 +1,56 @@
+venv/
+.env
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local databases and XML storage
+data/*
+!data/schemas/
+instance/
+
+# Cache and browser profile folders
+.cache/
+.chrome_user_data*
+.understand-anything/
+.better-agents-clone/
+.skills-clone/
+.harness-clone/
+.harness-backup/
+.khuym/
+.codegraph/
+temp_understand/
+tmp_pip_build/
+venv/
+.code-review-graph/
+.code-review-graphignore
+
+# Exports and Excel spreadsheets
+export/
+*.xlsx
+*.xls
+*.zip
+
+# Drivers and binaries
+chromedriver/
+*.exe
+*.dll
+
+# Editor files
+.idea/
+.vscode/
+*.log
+
+
+# Harness durable layer
+harness.db
+harness.db-wal
+harness.db-shm
+scripts/bin/harness-cli
+
+# Scratch and nested workspace copies
+scratch/
+gdt-invoice-hub/
+

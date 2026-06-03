@@ -1,0 +1,30 @@
+# Ignore database files
+*.db
+*.db-journal
+*.db-wal
+*.enc
+*.sqlite
+*.sqlite3
+
+# Ignore temporary files
+*.tmp
+*.temp
+*.log
+*.bak
+*.swp
+
+# Ignore test directories and build caches
+.pytest_cache/
+pytest_cache/
+.coverage
+htmlcov/
+.cache/
+temp/
+venv/
+node_modules/
+dist/
+build/
+temp_understand/
+temp_ag_kit/
+scratch/
+open-design/
