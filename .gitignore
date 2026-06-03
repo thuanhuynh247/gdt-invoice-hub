@@ -53,4 +53,5 @@ scripts/bin/harness-cli
 # Scratch and nested workspace copies
 scratch/
 gdt-invoice-hub/
+open-design/
 
