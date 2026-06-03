@@ -971,3 +971,10 @@ Project is COMPLETE when:
 - [x] **Cập nhật Trạng thái SQLite harness.db**: Đồng bộ và cập nhật toàn bộ trạng thái của các User Story trong cơ sở dữ liệu Harness từ `planned` sang `implemented` -> ✅ HOÀN THÀNH
 - [x] **Xác minh qua Bộ kiểm thử Tích hợp**: Chạy thành công toàn bộ suite test gồm **470 tests** (lệnh `scripts/harness validate --cmd "pytest"`) đạt tỷ lệ bao phủ code cực cao và không có lỗi kiểm thử nào xảy ra -> ✅ HOÀN THÀNH
 - [x] **Đồng bộ hóa & Đóng gói Tài liệu**: Cập nhật tệp `docs/stories/backlog.md` ghi nhận toàn bộ Epics & Stories đã hoàn thành, chuẩn bị sẵn sàng cho việc kiểm duyệt UAT và triển khai sản xuất -> ✅ HOÀN THÀNH
+
+## ⚡ PHẦN 40: DỰ PHÒNG THÔNG TƯ 20/2026/TT-BTC & CHATBOT RAG UPGRADE (2026-06-03)
+- [x] **Cập nhật Dynamic PDF Ingestion**: Cấu hình tự động nhận diện tài liệu pháp lý `"20-btc.pdf"` và gán ngày hiệu lực thực tế `"2026-03-12"` khi hệ thống quét tệp tin khởi động -> ✅ HOÀN THÀNH
+- [x] **Tích hợp Cơ sở dữ liệu Virtual FTS5 & Fallback RAG**: Đăng ký các từ khóa và nội dung quy chế của Thông tư 20/2026/TT-BTC vào cơ chế tìm kiếm toàn văn FTS5 và từ điển RAG fallback -> ✅ HOÀN THÀNH
+- [x] **Phát hiện Rủi ro Chi phí mua hàng ủy quyền qua cá nhân (Điều 13)**: Nâng cấp lớp `TaxAdvisoryAgent.scan_invoices` tự động phát hiện và cảnh báo các giao dịch ủy quyền cá nhân từ 5 triệu VND trở lên thiếu chứng từ thanh toán không dùng tiền mặt -> ✅ HOÀN THÀNH
+- [x] **Xác minh qua Bộ kiểm thử Tích hợp**: Viết mới bộ test `tests/test_circular20_compliance.py` và chạy thành công toàn bộ **480 tests** của hệ thống đạt tỷ lệ 100% xanh mượt -> ✅ HOÀN THÀNH
+

@@ -89,6 +89,16 @@ TAX_REGULATIONS = [
             "3. Hóa đơn đã gửi cho người mua có sai MST, sai số tiền, sai thuế suất, tiền thuế hoặc quy cách hàng hóa: Người bán lập hóa đơn điện tử điều chỉnh hoặc hóa đơn thay thế mới gửi cho người mua, đồng thời gửi Mẫu 04/SS-HĐĐT lên cơ quan thuế."
         ),
         "keywords": ["sai sót", "sai sot", "viết sai", "viet sai", "điều chỉnh", "dieu chinh", "thay thế", "thay the", "04/ss-hđđt", "mẫu 04", "mã số thuế", "địa chỉ", "tên người mua", "hóa đơn điều chỉnh"]
+    },
+    {
+        "id": "cit_circular_20_2026",
+        "title": "Thông tư số 20/2026/TT-BTC về quản lý thuế thu nhập doanh nghiệp (Hiệu lực từ 12/03/2026)",
+        "content": (
+            "Thông tư số 20/2026/TT-BTC ban hành ngày 12/02/2026 và có hiệu lực thi hành từ ngày 12/03/2026 hướng dẫn về thuế TNDN. Các thay đổi chính bao gồm:\n"
+            "1. Chi phí mua hàng ủy quyền qua cá nhân (Điều 13): Đối với các giao dịch mua hàng, dịch vụ được doanh nghiệp ủy quyền cho cá nhân thanh toán bằng thẻ cá nhân hoặc tiền mặt có giá trị từ 5 triệu đồng trở lên (bao gồm cả thuế GTGT), doanh nghiệp chỉ được tính vào chi phí được trừ khi có đủ hóa đơn hợp pháp và chứng từ thanh toán không dùng tiền mặt (chuyển khoản từ tài khoản cá nhân được ủy quyền sang tài khoản người bán và doanh nghiệp hoàn trả tiền qua tài khoản ngân hàng của cá nhân đó, hoặc chuyển khoản trực tiếp).\n"
+            "2. Chi phí không dùng tiền mặt: Thắt chặt quy định chứng từ thanh toán không dùng tiền mặt đối với các khoản chi ủy quyền cá nhân từ 5 triệu đồng trở lên để tránh gian lận chi phí hợp lý."
+        ),
+        "keywords": ["thông tư 20", "thong tu 20", "20/2026", "20/2026/tt-btc", "ủy quyền", "uy quyen", "thẻ cá nhân", "cá nhân thanh toán", "nhân viên thanh toán", "nhân viên ủy quyền", "5 triệu", "5 trieu"]
     }
 ]
 
@@ -168,7 +178,12 @@ def parse_and_chunk_pdf(filename: str) -> list[dict]:
     chunks = []
     try:
         reader = PdfReader(filename)
-        effective_date = "2025-07-01" if "48" in filename else "2026-01-01"
+        if "20-btc" in filename:
+            effective_date = "2026-03-12"
+        elif "48" in filename:
+            effective_date = "2025-07-01"
+        else:
+            effective_date = "2026-01-01"
         
         for page_idx, page in enumerate(reader.pages):
             text = page.extract_text()
@@ -223,7 +238,7 @@ def run_dynamic_pdf_ingestion(app):
         
         init_fts5_tables()
         
-        pdf_files = ["luat48.pdf", "luat149.signed.pdf"]
+        pdf_files = ["luat48.pdf", "luat149.signed.pdf", "20-btc.pdf"]
         ingested_any = False
         
         for filename in pdf_files:

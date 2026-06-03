@@ -119,6 +119,8 @@ body {
     font-family: var(--font-body);
     min-height: 100vh;
     overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: var(--custom-scroll) transparent;
 }
 
 /* Main content container - wider for data-heavy dashboard */

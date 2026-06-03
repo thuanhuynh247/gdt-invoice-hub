@@ -178,4 +178,10 @@ Kế hoạch này theo sát tài liệu **Next-Gen Roadmap** và cấu trúc l�
 - [x] **Task 94 (US-314)**: Preferred CIT Rates, Tax Holidays & R&D Modeler (Mô hình hóa ưu đãi thuế TNDN, miễn giảm thuế và trích lập quỹ KHCN).
 - [x] **Task 95 (US-315)**: End-to-End Integration & Suite Verification (Tích hợp toàn diện và kiểm chứng bộ suite kiểm thử).
 
+### 🚀 Giai Đoạn 21: Dự Phòng Thông Tư 20/2026/TT-BTC & Chatbot RAG Upgrade (circular20_compliance)
+- [x] **Task 96 (US-320)**: Cấu hình tự động quét, phân tích và đồng bộ dynamic PDF `20-btc.pdf` với hiệu lực `2026-03-12`.
+- [x] **Task 97 (US-321)**: Đăng ký quy tắc Điều 13 Thông tư 20/2026/TT-BTC về chi phí mua hàng ủy quyền qua cá nhân từ 5 triệu VND trở lên.
+- [x] **Task 98 (US-322)**: Viết bộ test suite `tests/test_circular20_compliance.py` kiểm định toàn diện luồng audit, RAG và dynamic ingestion.
+
+
 

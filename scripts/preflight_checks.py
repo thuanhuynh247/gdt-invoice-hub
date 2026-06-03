@@ -102,26 +102,36 @@ def main() -> int:
     # ── 3. DATABASE INTEGRITY CHECK ───────────────────────────────────
     log_section("DATABASE INTEGRITY & COHESION")
     
-    invoices_db_path = os.path.join("data", "invoices.db")
-    if not os.path.exists(invoices_db_path):
-        print(f"  {YELLOW}⚠️  WARN{RESET}  Production database '{invoices_db_path}' not found. Will be scaffolded on launch.")
+    db_dir = "data"
+    dbs_to_check = []
+    
+    # Safely scan for databases in data/
+    if os.path.exists(db_dir):
+        for f in os.listdir(db_dir):
+            if f.endswith(".db"):
+                dbs_to_check.append(os.path.join(db_dir, f))
+    
+    if not dbs_to_check:
+        print(f"  {YELLOW}⚠️  WARN{RESET}  No SQLite database files found in '{db_dir}'. Will be scaffolded on launch.")
         warnings += 1
     else:
-        try:
-            conn = sqlite3.connect(invoices_db_path)
-            cur = conn.cursor()
-            cur.execute("PRAGMA integrity_check")
-            integrity = cur.fetchone()[0]
-            if integrity == "ok":
-                print(f"  {GREEN}✅ PASS{RESET}  invoices.db integrity verified (OK).")
-                passed += 1
-            else:
-                print(f"  {RED}❌ FAIL{RESET}  invoices.db integrity compromised: {integrity}")
+        for db_path in sorted(dbs_to_check):
+            db_name = os.path.basename(db_path)
+            try:
+                conn = sqlite3.connect(db_path)
+                cur = conn.cursor()
+                cur.execute("PRAGMA integrity_check")
+                integrity = cur.fetchone()[0]
+                if integrity == "ok":
+                    print(f"  {GREEN}✅ PASS{RESET}  {db_name} integrity verified (OK).")
+                    passed += 1
+                else:
+                    print(f"  {RED}❌ FAIL{RESET}  {db_name} integrity compromised: {integrity}")
+                    failures += 1
+                conn.close()
+            except Exception as e:
+                print(f"  {RED}❌ FAIL{RESET}  Error connecting to {db_name}: {e}")
                 failures += 1
-            conn.close()
-        except Exception as e:
-            print(f"  {RED}❌ FAIL{RESET}  Error connecting to invoices.db: {e}")
-            failures += 1
             
     harness_db_path = "harness.db"
     if os.path.exists(harness_db_path):
@@ -143,7 +153,7 @@ def main() -> int:
 
     # ── 4. NETWORKING & OFFICIAL PORTAL CONNECTIVITY ──────────────────
     log_section("EXTERNAL INTEGRATION & PORTS")
-    gdt_host = "hoadonbientulai.gdt.gov.vn"
+    gdt_host = "hoadondientu.gdt.gov.vn"
     try:
         ip = socket.gethostbyname(gdt_host)
         print(f"  {GREEN}✅ PASS{RESET}  Successfully resolved {gdt_host} -> IP: {ip}")
