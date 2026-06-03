@@ -183,5 +183,26 @@ Kế hoạch này theo sát tài liệu **Next-Gen Roadmap** và cấu trúc l�
 - [x] **Task 97 (US-321)**: Đăng ký quy tắc Điều 13 Thông tư 20/2026/TT-BTC về chi phí mua hàng ủy quyền qua cá nhân từ 5 triệu VND trở lên.
 - [x] **Task 98 (US-322)**: Viết bộ test suite `tests/test_circular20_compliance.py` kiểm định toàn diện luồng audit, RAG và dynamic ingestion.
 
+### 🚀 Giai Đoạn 22: Bank Stream Ingestion & Matching (v20.0.0 / E92)
+- [x] **Task 99 (US-322)**: Bank Feed Ingestion & Transaction Normalizer (Trích xuất sổ phụ ngân hàng và chuẩn hóa cấu trúc dòng tiền).
+- [x] **Task 100 (US-323)**: Automated Bank-to-Invoice Matcher (Thuật toán tự động khớp giao dịch ngân hàng thương mại với hóa đơn tương ứng).
+
+### 🚀 Giai Đoạn 23: ML Tax Forecast & Sandbox (v20.0.0 / E93)
+- [x] **Task 101 (US-324)**: Machine Learning Tax Liability Predictor (Xây dựng mô hình hồi quy và phân loại dự đoán nghĩa vụ thuế cuối kỳ).
+- [x] **Task 102 (US-325)**: Tax Scenario Simulation Sandbox (Môi trường giả lập các kịch bản điều chỉnh thuế và đánh giá tác động tài chính).
+
+### 🚀 Giai Đoạn 24: Graph Fraud Analyzer (v21.0.0 / E94)
+- [x] **Task 103 (US-330)**: Taxpayer Network Graph Generator (Trực quan hóa mạng lưới giao dịch giữa các MST dưới dạng đồ thị có hướng).
+- [x] **Task 104 (US-331)**: VAT Fraud Ring Network Detector (Phát hiện chu kỳ mua bán khống vòng tròn thông qua phân tích kết nối đồ thị).
+
+### 🚀 Giai Đoạn 25: Cryptographic TSA Ledger (v21.0.0 / E95)
+- [x] **Task 105 (US-332)**: Immutable Cryptographic Merkle Ledger (Sổ cái kiểm toán bất biến sử dụng cấu trúc Merkle Tree liên kết mã băm hóa đơn).
+- [x] **Task 106 (US-333)**: Zero-Knowledge Proof Tax Compliance (Xác thực tính tuân thủ thuế mà không rò rỉ chi tiết số liệu bảo mật).
+
+### 🚀 Giai Đoạn 26: Customs VAT Reconciler (v21.0.0 / E96)
+- [x] **Task 107 (US-334)**: Customs XML Declaration Parser (Bộ biên dịch tờ khai hải quan nhập khẩu XML trích xuất trị giá tính thuế và mã HS).
+- [x] **Task 108 (US-335)**: Import VAT Reconciliation & Mitigation (Tự động đối chiếu chênh lệch thuế GTGT hàng nhập khẩu và đề xuất giảm thiểu rủi ro).
+
+
 
 

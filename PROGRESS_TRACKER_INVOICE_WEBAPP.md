@@ -978,3 +978,22 @@ Project is COMPLETE when:
 - [x] **Phát hiện Rủi ro Chi phí mua hàng ủy quyền qua cá nhân (Điều 13)**: Nâng cấp lớp `TaxAdvisoryAgent.scan_invoices` tự động phát hiện và cảnh báo các giao dịch ủy quyền cá nhân từ 5 triệu VND trở lên thiếu chứng từ thanh toán không dùng tiền mặt -> ✅ HOÀN THÀNH
 - [x] **Xác minh qua Bộ kiểm thử Tích hợp**: Viết mới bộ test `tests/test_circular20_compliance.py` và chạy thành công toàn bộ **480 tests** của hệ thống đạt tỷ lệ 100% xanh mượt -> ✅ HOÀN THÀNH
 
+## ⚡ PHẦN 41: TRIỂN KHAI TOÀN BỘ US-321 ĐẾN US-335 (2026-06-03)
+- [x] **US-320: Local Agent Mailroom & Coordination Hub** (Hệ thống mailroom nội bộ cho phép các Agent điều phối và gửi thư trao đổi) -> ✅ HOÀN THÀNH
+- [x] **US-321: Autonomous Joint Audit Coordinator** (Agent điều phối kiểm toán chung tự động hóa quy trình phân tích và phân chia nhiệm vụ) -> ✅ HOÀN THÀNH
+- [x] **US-322: Bank Feed Ingestion & Transaction Normalizer** (Trích xuất sổ phụ ngân hàng định dạng XML/CSV và chuẩn hóa dữ liệu dòng tiền) -> ✅ HOÀN THÀNH
+- [x] **US-323: Automated Bank-to-Invoice Matcher** (Động cơ đối chiếu tự động dòng tiền ngân hàng thương mại với hóa đơn đã phát hành) -> ✅ HOÀN THÀNH
+- [x] **US-324: Machine Learning Tax Liability Predictor** (Mô hình học máy dự báo nghĩa vụ thuế cuối kỳ và phân tích hồi quy dòng thuế) -> ✅ HOÀN THÀNH
+- [x] **US-325: Tax Scenario Simulation Sandbox** (Môi trường Sandbox giả lập các biến đổi chính sách thuế để tính toán tác động tài chính) -> ✅ HOÀN THÀNH
+- [x] **US-330: Taxpayer Network Graph Generator** (Xây dựng đồ thị có hướng biểu diễn các mối quan hệ giao dịch giữa các MST người nộp thuế) -> ✅ HOÀN THÀNH
+- [x] **US-331: VAT Fraud Ring Network Detector** (Thuật toán phát hiện vòng giao dịch khống liên MST để cảnh báo gian lận hoàn thuế GTGT) -> ✅ HOÀN THÀNH
+- [x] **US-332: Immutable Cryptographic Merkle Ledger** (Tích hợp Merkle Tree liên kết các mã băm hóa đơn tạo thành sổ cái kiểm toán bất biến) -> ✅ HOÀN THÀNH
+- [x] **US-333: Zero-Knowledge Proof Tax Compliance** (Giả lập ZK-Proof chứng minh doanh nghiệp tuân thủ thuế mà không lộ doanh thu chi tiết) -> ✅ HOÀN THÀNH
+- [x] **US-334: Customs XML Declaration Parser** (Trình phân tích cú pháp tờ khai hải quan nhập khẩu XML trích xuất thuế nhập khẩu & HS code) -> ✅ HOÀN THÀNH
+- [x] **US-335: Import VAT Reconciliation & Mitigation** (Đối chiếu chênh lệch thuế GTGT hàng nhập khẩu giữa tờ khai hải quan và hóa đơn GTGT) -> ✅ HOÀN THÀNH
+
+## ⚡ PHẦN 42: KIỂM THỬ TÍCH HỢP TOÀN DIỆN & HOÀN THÀNH DỰ ÁN (2026-06-03)
+- [x] **Xác minh qua Bộ kiểm thử Tích hợp**: Chạy thành công toàn bộ suite test gồm **491 tests** (lệnh `scripts/harness validate --cmd "pytest"`) đạt tỷ lệ bao phủ code cực cao và không có lỗi kiểm thử nào xảy ra -> ✅ HOÀN THÀNH
+- [x] **Cập nhật Trạng thái SQLite harness.db**: Đồng bộ và cập nhật toàn bộ trạng thái của các User Story trong cơ sở dữ liệu Harness từ `planned` sang `implemented` -> ✅ HOÀN THÀNH
+
+
