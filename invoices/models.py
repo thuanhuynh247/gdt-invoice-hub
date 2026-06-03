@@ -138,6 +138,10 @@ class Invoice(db.Model):
     erp_synced = db.Column(db.Boolean, default=False, nullable=False)
     erp_sync_date = db.Column(db.String(50), nullable=True)
     erp_sync_error = db.Column(db.Text, nullable=True)
+    merkle_hash = db.Column(db.String(64), nullable=True)
+    merkle_root = db.Column(db.String(64), nullable=True)
+    merkle_index = db.Column(db.Integer, nullable=True)
+
 
 
     # Relationship with cascade delete
@@ -427,6 +431,7 @@ class BankTransaction(db.Model):
     """Stores parsed bank statement rows for reconciliation against invoices."""
 
     __tablename__ = "bank_transaction"
+    __table_args__ = {"extend_existing": True}
 
     id = db.Column(db.String(50), primary_key=True)
     taxpayer_mst = db.Column(
@@ -640,6 +645,85 @@ class TenantGroup(db.Model):
             "group_name": self.group_name,
             "admin_username": self.admin_username,
             "taxpayer_msts": self.get_mst_list(),
+        }
+
+
+class AgentMessage(db.Model):
+    """Storage for communication messages between specialized AI agents."""
+    __tablename__ = "agent_message"
+    __table_args__ = {"extend_existing": True}
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    sender_agent = db.Column(db.String(100), nullable=False)
+    receiver_agent = db.Column(db.String(100), nullable=False)
+    subject = db.Column(db.String(255), nullable=False)
+    payload = db.Column(db.Text, nullable=False)  # JSON-serialized string
+    status = db.Column(db.String(20), nullable=False, default="pending")  # pending, processed, failed
+    timestamp = db.Column(db.String(50), nullable=False)
+
+    def to_dict(self) -> dict:
+        try:
+            parsed_payload = json.loads(self.payload)
+        except Exception:
+            parsed_payload = self.payload
+        return {
+            "id": self.id,
+            "sender_agent": self.sender_agent,
+            "receiver_agent": self.receiver_agent,
+            "subject": self.subject,
+            "payload": parsed_payload,
+            "status": self.status,
+            "timestamp": self.timestamp,
+        }
+
+
+class CustomsDeclaration(db.Model):
+    """Vietnamese VNACCS/VCIS customs import declaration."""
+    __tablename__ = "customs_declaration"
+
+    declaration_number = db.Column(db.String(50), primary_key=True)
+    declaration_date = db.Column(db.String(20), nullable=False)
+    taxpayer_mst = db.Column(db.String(20), nullable=False)
+    customs_value_vnd = db.Column(db.Float, nullable=False, default=0.0)
+    import_duty_vnd = db.Column(db.Float, nullable=False, default=0.0)
+    import_vat_vnd = db.Column(db.Float, nullable=False, default=0.0)
+    exchange_rate = db.Column(db.Float, nullable=False, default=1.0)
+    currency = db.Column(db.String(10), nullable=False, default="VND")
+    hs_codes_json = db.Column(db.Text, nullable=True)  # JSON list of HS codes
+    xml_content = db.Column(db.Text, nullable=True)
+    matching_invoice_id = db.Column(db.String(100), db.ForeignKey("invoice.id", ondelete="SET NULL"), nullable=True)
+    status = db.Column(db.String(50), nullable=False, default="unreconciled")  # unreconciled, matched, variance_exceeded
+    variance_notes = db.Column(db.Text, nullable=True)
+
+    invoice = db.relationship("Invoice", backref="customs_declarations")
+
+    @property
+    def hs_codes(self) -> list[str]:
+        if not self.hs_codes_json:
+            return []
+        try:
+            return json.loads(self.hs_codes_json)
+        except Exception:
+            return []
+
+    @hs_codes.setter
+    def hs_codes(self, val: list[str]) -> None:
+        self.hs_codes_json = json.dumps(val, ensure_ascii=False)
+
+    def to_dict(self) -> dict:
+        return {
+            "declaration_number": self.declaration_number,
+            "declaration_date": self.declaration_date,
+            "taxpayer_mst": self.taxpayer_mst,
+            "customs_value_vnd": self.customs_value_vnd,
+            "import_duty_vnd": self.import_duty_vnd,
+            "import_vat_vnd": self.import_vat_vnd,
+            "exchange_rate": self.exchange_rate,
+            "currency": self.currency,
+            "hs_codes": self.hs_codes,
+            "matching_invoice_id": self.matching_invoice_id,
+            "status": self.status,
+            "variance_notes": self.variance_notes or "",
         }
 
 

@@ -6017,6 +6017,18 @@ def audit_trail_page():
                            session_username=session.get("display_name") or session.get("username"))
 
 
+@invoices_blueprint.get("/advanced-audit")
+@roles_required("admin", "auditor")
+def advanced_audit_page():
+    """Render the Advanced Audit & Fraud Detection Page."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return redirect(url_for("index"))
+    return render_template("advanced_audit.html",
+                           logged_in=session.get("logged_in"),
+                           session_username=session.get("display_name") or session.get("username"))
+
+
 @invoices_blueprint.get("/api/audit-logs")
 @roles_required("admin", "auditor")
 def api_get_audit_logs():
@@ -6614,6 +6626,395 @@ def update_partner_decree_132(mst):
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/agents/send")
+def api_agents_send():
+    """US-320: Post a message from one AI agent to another."""
+    import json
+    from datetime import datetime, timezone
+    from invoices.models import AgentMessage
+    from extensions import db
+
+    body = request.get_json(silent=True) or {}
+    sender = body.get("sender_agent")
+    receiver = body.get("receiver_agent")
+    subject = body.get("subject")
+    payload = body.get("payload", {})
+
+    if not sender or not receiver or not subject:
+        return jsonify({"error": "sender_agent, receiver_agent, and subject are required."}), 400
+
+    try:
+        if isinstance(payload, (dict, list)):
+            payload_str = json.dumps(payload)
+        else:
+            payload_str = str(payload)
+
+        msg = AgentMessage(
+            sender_agent=str(sender).strip(),
+            receiver_agent=str(receiver).strip(),
+            subject=str(subject).strip(),
+            payload=payload_str,
+            status="pending",
+            timestamp=datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
+        db.session.add(msg)
+        db.session.commit()
+
+        return jsonify({
+            "success": True,
+            "message": "Message sent successfully.",
+            "data": msg.to_dict()
+        }), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.get("/api/agents/inbox/<agent_name>")
+def api_agents_inbox(agent_name):
+    """US-320: Get pending and processed messages for a specific agent."""
+    from invoices.models import AgentMessage
+    try:
+        status_filter = request.args.get("status", "pending")
+        query = AgentMessage.query.filter_by(receiver_agent=agent_name)
+        if status_filter:
+            query = query.filter_by(status=status_filter)
+        messages = query.order_by(AgentMessage.id.desc()).all()
+        return jsonify([msg.to_dict() for msg in messages])
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/agents/update-status/<int:message_id>")
+def api_agents_update_status(message_id):
+    """US-320: Update the processing status of an agent message."""
+    from invoices.models import AgentMessage
+    from extensions import db
+    try:
+        msg = db.session.get(AgentMessage, message_id)
+        if not msg:
+            return jsonify({"error": f"Message with ID {message_id} not found."}), 404
+
+        body = request.get_json(silent=True) or {}
+        new_status = body.get("status")
+        if new_status not in ["pending", "processed", "failed"]:
+            return jsonify({"error": "Invalid status. Must be pending, processed, or failed."}), 400
+
+        msg.status = new_status
+        db.session.commit()
+        return jsonify({
+            "success": True,
+            "message": "Status updated successfully.",
+            "data": msg.to_dict()
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/agents/audit-coordinator")
+def api_agents_audit_coordinator():
+    """US-321: Run the multi-agent joint audit coordinator swarm."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    taxpayer_mst = session.get("active_taxpayer_mst") or body.get("taxpayer_mst")
+    user_prompt = body.get("user_prompt")
+
+    if not taxpayer_mst or not user_prompt:
+        return jsonify({"error": "taxpayer_mst and user_prompt are required."}), 400
+
+    from invoices.agent_swarm import JointAuditCoordinator
+    try:
+        coordinator = JointAuditCoordinator()
+        result = coordinator.execute_swarm(taxpayer_mst=taxpayer_mst, user_prompt=user_prompt)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/bank/ingest")
+def api_bank_ingest():
+    """US-322: Ingest bank statement feed files."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    taxpayer_mst = session.get("active_taxpayer_mst") or body.get("taxpayer_mst")
+    file_content = body.get("file_content")
+    bank_name = body.get("bank_name", "Vietcombank")
+    file_type = body.get("file_type", "csv")
+
+    if not taxpayer_mst or not file_content:
+        return jsonify({"error": "taxpayer_mst and file_content are required."}), 400
+
+    from invoices.bank_stream_service import BankStreamService
+    try:
+        service = BankStreamService()
+        count = service.ingest_bank_statement(file_content, taxpayer_mst, bank_name, file_type)
+        return jsonify({"success": True, "inserted_count": count}), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/bank/match")
+def api_bank_match():
+    """US-323: Execute automated matching of transactions with invoices."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    taxpayer_mst = session.get("active_taxpayer_mst") or body.get("taxpayer_mst")
+
+    if not taxpayer_mst:
+        return jsonify({"error": "taxpayer_mst is required."}), 400
+
+    from invoices.bank_stream_service import BankStreamService
+    try:
+        service = BankStreamService()
+        result = service.execute_transaction_matching(taxpayer_mst)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.get("/api/bank/transactions")
+def api_bank_transactions():
+    """List bank transactions."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    taxpayer_mst = session.get("active_taxpayer_mst") or request.args.get("taxpayer_mst")
+    if not taxpayer_mst:
+        return jsonify({"error": "taxpayer_mst is required."}), 400
+
+    match_status = request.args.get("match_status")
+    from invoices.models import BankTransaction
+    query = BankTransaction.query.filter_by(taxpayer_mst=taxpayer_mst)
+    if match_status:
+        query = query.filter_by(match_status=match_status)
+
+    transactions = query.all()
+    return jsonify([tx.to_dict() for tx in transactions])
+
+
+@invoices_blueprint.get("/api/fraud/network")
+def api_fraud_network():
+    """US-330: Fetch directed supplier-buyer transaction network graph."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    taxpayer_mst = session.get("active_taxpayer_mst") or request.args.get("taxpayer_mst")
+    if not taxpayer_mst:
+        return jsonify({"error": "taxpayer_mst is required."}), 400
+
+    from invoices.graph_service import TaxpayerNetworkGraphGenerator
+    try:
+        graph = TaxpayerNetworkGraphGenerator.build_network_graph(taxpayer_mst)
+        formatted_nodes = [node for node in graph["nodes"].values()]
+        formatted_edges = [edge for edge in graph["edges"].values()]
+        return jsonify({
+            "status": "success",
+            "nodes": formatted_nodes,
+            "edges": formatted_edges
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.get("/api/fraud/alerts")
+def api_fraud_alerts():
+    """US-331: Get VAT circular invoicing loop alerts and authority score outliers."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    taxpayer_mst = session.get("active_taxpayer_mst") or request.args.get("taxpayer_mst")
+    if not taxpayer_mst:
+        return jsonify({"error": "taxpayer_mst is required."}), 400
+
+    from invoices.graph_service import TaxpayerNetworkGraphGenerator, VATFraudRingNetworkDetector
+    try:
+        graph = TaxpayerNetworkGraphGenerator.build_network_graph(taxpayer_mst)
+        detector = VATFraudRingNetworkDetector(graph)
+        alerts = detector.detect_fraud_networks()
+        return jsonify({
+            "status": "success",
+            "alerts": alerts
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/ledger/verify")
+def api_ledger_verify():
+    """US-332: Verify the cryptographic Merkle Ledger integrity for a taxpayer."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    taxpayer_mst = session.get("active_taxpayer_mst") or body.get("taxpayer_mst")
+    if not taxpayer_mst:
+        return jsonify({"error": "taxpayer_mst is required."}), 400
+
+    from invoices.merkle_service import verify_ledger_integrity, rebuild_and_write_merkle_roots
+    try:
+        rebuild_and_write_merkle_roots(taxpayer_mst)
+        is_valid, tampered_ids = verify_ledger_integrity(taxpayer_mst)
+        return jsonify({
+            "status": "success",
+            "is_valid": is_valid,
+            "tampered_invoice_ids": tampered_ids,
+            "message": "Không phát hiện hành vi can thiệp dữ liệu." if is_valid else f"Phát hiện dữ liệu bị sửa đổi ở các hóa đơn: {', '.join(tampered_ids)}"
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/ledger/zkp-prove")
+def api_ledger_zkp_prove():
+    """US-333: Generate ZKP proof of compliance for a given invoice."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    invoice_id = body.get("invoice_id")
+    if not invoice_id:
+        return jsonify({"error": "invoice_id is required."}), 400
+
+    from invoices.models import Invoice
+    invoice = Invoice.query.filter_by(id=invoice_id).first()
+    if not invoice:
+        return jsonify({"error": "Invoice not found."}), 404
+
+    rate_percent = 10
+    if invoice.amount_before_tax > 0:
+        calculated_rate = (invoice.tax_amount / invoice.amount_before_tax) * 100
+        rate_percent = int(round(calculated_rate))
+
+    from invoices.zkp_service import generate_vat_compliance_proof
+    try:
+        proof = generate_vat_compliance_proof(
+            amount_before_tax=invoice.amount_before_tax,
+            tax_amount=invoice.tax_amount,
+            rate_percent=rate_percent
+        )
+        return jsonify({
+            "status": "success",
+            "invoice_id": invoice_id,
+            "proof": proof
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/ledger/zkp-verify")
+def api_ledger_zkp_verify():
+    """US-333: Verify a ZKP proof of compliance."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    proof_data = body.get("proof_data")
+    if not proof_data:
+        return jsonify({"error": "proof_data is required."}), 400
+
+    from invoices.zkp_service import verify_vat_compliance_proof
+    try:
+        is_valid = verify_vat_compliance_proof(proof_data)
+        return jsonify({
+            "status": "success",
+            "is_valid": is_valid,
+            "message": "Chứng minh tuân thủ thuế GTGT hợp lệ (ZKP Verified)." if is_valid else "Chứng minh tuân thủ không hợp lệ."
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/customs/upload")
+@roles_required("admin", "auditor")
+def api_customs_upload():
+    """US-334: Import VNACCS/VCIS Customs XML import declarations."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    if "file" not in request.files:
+        return jsonify({"error": "No file uploaded"}), 400
+
+    file = request.files["file"]
+    if not file or not file.filename.endswith(".xml"):
+        return jsonify({"error": "Only XML files are supported"}), 400
+
+    try:
+        xml_bytes = file.read()
+        from invoices.customs_service import CustomsReconciliationEngine
+        decl = CustomsReconciliationEngine.ingest_declaration(xml_bytes)
+        return jsonify({
+            "status": "success",
+            "message": "Customs declaration imported successfully.",
+            "declaration": decl.to_dict()
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/customs/reconcile")
+@roles_required("admin", "auditor")
+def api_customs_reconcile():
+    """US-335: Compare customs declarations with domestic/import VAT input invoices."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    taxpayer_mst = session.get("active_taxpayer_mst") or body.get("taxpayer_mst")
+    if not taxpayer_mst:
+        return jsonify({"error": "taxpayer_mst is required."}), 400
+
+    from invoices.customs_service import CustomsReconciliationEngine
+    try:
+        results = CustomsReconciliationEngine.run_reconciliation(taxpayer_mst)
+        return jsonify({
+            "status": "success",
+            "results": results
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.get("/api/customs/declarations")
+def api_customs_declarations():
+    """US-334: List imported customs declarations."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    taxpayer_mst = session.get("active_taxpayer_mst") or request.args.get("taxpayer_mst")
+    if not taxpayer_mst:
+        return jsonify({"error": "taxpayer_mst is required."}), 400
+
+    from invoices.models import CustomsDeclaration
+    try:
+        decls = CustomsDeclaration.query.filter_by(taxpayer_mst=taxpayer_mst).all()
+        return jsonify({
+            "status": "success",
+            "declarations": [d.to_dict() for d in decls]
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 
 

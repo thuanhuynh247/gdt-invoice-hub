@@ -77,6 +77,16 @@ def create_app() -> Flask:
             if "erp_sync_error" not in columns:
                 db.session.execute(db.text("ALTER TABLE invoice ADD COLUMN erp_sync_error TEXT NULL;"))
                 db.session.commit()
+            if "merkle_hash" not in columns:
+                db.session.execute(db.text("ALTER TABLE invoice ADD COLUMN merkle_hash VARCHAR(64) NULL;"))
+                db.session.commit()
+            if "merkle_root" not in columns:
+                db.session.execute(db.text("ALTER TABLE invoice ADD COLUMN merkle_root VARCHAR(64) NULL;"))
+                db.session.commit()
+            if "merkle_index" not in columns:
+                db.session.execute(db.text("ALTER TABLE invoice ADD COLUMN merkle_index INTEGER NULL;"))
+                db.session.commit()
+
 
             res_item = db.session.execute(db.text("PRAGMA table_info(line_item);")).fetchall()
             columns_item = [r[1] for r in res_item]
@@ -211,10 +221,13 @@ def create_app() -> Flask:
         return jsonify({"error": "Khong tim thay tai nguyen."}), 404
 
     @app.errorhandler(500)
-    def server_error(_error):
+    def server_error(error):
         """Return a safe error message without exposing stack traces."""
-    
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": "Co loi may chu. Vui long thu lai."}), 500
+
+
 
     @app.context_processor
     def inject_template_state():

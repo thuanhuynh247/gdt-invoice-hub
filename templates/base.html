@@ -52,6 +52,9 @@
                         <a class="nav-link {% if request.path == '/consolidated-dashboard' %}active{% endif %}" href="{{ url_for('invoices.consolidated_dashboard_page') }}"><i class="bi bi-ui-checks-grid" aria-hidden="true"></i> Hợp nhất</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/advanced-audit' %}active{% endif %}" href="{{ url_for('invoices.advanced_audit_page') }}"><i class="bi bi-shield-check" aria-hidden="true"></i> Kiểm toán Nâng cao</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link {% if request.path == '/audit-trail' %}active{% endif %}" href="{{ url_for('invoices.audit_trail_page') }}"><i class="bi bi-shield-lock" aria-hidden="true"></i> Nhật ký</a>
                     </li>
                     {% endif %}
