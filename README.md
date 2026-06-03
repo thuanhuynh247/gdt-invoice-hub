@@ -58,29 +58,39 @@ config.py
 requirements.txt
 ```
 
-## Setup
+## Setup & Lego Modular Installation
 
-1. Tao virtual environment:
+Ứng dụng hỗ trợ cấu trúc lắp ghép Lego (Modular System), cho phép bạn chọn lọc bật/tắt các tính năng tùy ý khi cấu hình để tối ưu tài nguyên và dung lượng tải về.
+
+1. Tạo môi trường ảo (Virtual Environment):
    ```powershell
    python -m venv venv
    ```
-2. Kich hoat venv:
+2. Kích hoạt môi trường ảo:
+   - **Windows (PowerShell)**:
+     ```powershell
+     .\venv\Scripts\Activate.ps1
+     ```
+   - **Unix/macOS**:
+     ```bash
+     source venv/bin/activate
+     ```
+3. Khởi chạy **Trình Cấu Hình Lego Setup Wizard**:
    ```powershell
-   .\venv\Scripts\Activate.ps1
+   python setup_wizard.py
    ```
-3. Cai dependencies:
+   *Wizard sẽ hướng dẫn bạn chọn bật/tắt các tính năng (như Auto Captcha Solver, AI RAG, Sync Daemon, API Gateway) và tự động sinh tệp cấu hình `.env` & tệp dependencies tối ưu `requirements.txt` dành riêng cho bạn.*
+
+4. Cài đặt các thư viện dependencies đã được cấu hình:
    ```powershell
    pip install -r requirements.txt
    ```
-4. Tao file `.env`:
-   ```powershell
-   Copy-Item .env.example .env
-   ```
-5. Chay app:
+5. Khởi chạy ứng dụng:
    ```powershell
    python app.py
    ```
-6. Mo `http://127.0.0.1:5000`.
+6. Truy cập vào giao diện web tại `http://127.0.0.1:<PORT>` (Mặc định: `http://127.0.0.1:5000`).
+
 
 ## Testing
 

@@ -172,19 +172,24 @@ def create_app() -> Flask:
 
 
     if not app.config.get("TESTING") and os.getenv("TESTING") != "True":
-        from auth.captcha import start_captcha_prefetch_worker
-        start_captcha_prefetch_worker(app)
+        if os.getenv("ENABLE_CAPTCHA_PREFETCH", "true").lower() == "true":
+            from auth.captcha import start_captcha_prefetch_worker
+            start_captcha_prefetch_worker(app)
 
-        from invoices.scheduler import start_scheduler_worker
-        start_scheduler_worker(app)
+        if os.getenv("ENABLE_SCHEDULER_WORKER", "true").lower() == "true":
+            from invoices.scheduler import start_scheduler_worker
+            start_scheduler_worker(app)
 
-        from invoices.ai_service import start_dynamic_pdf_ingestion_thread
-        start_dynamic_pdf_ingestion_thread(app)
+        if os.getenv("ENABLE_PDF_INGESTION", "true").lower() == "true":
+            from invoices.ai_service import start_dynamic_pdf_ingestion_thread
+            start_dynamic_pdf_ingestion_thread(app)
 
-        from invoices.sync_daemon import GDTSyncDaemon
-        # Start the sync daemon with a fast 1-minute interval for demo purposes
-        daemon = GDTSyncDaemon(app, interval_minutes=1)
-        daemon.start()
+        if os.getenv("ENABLE_SYNC_DAEMON", "true").lower() == "true":
+            from invoices.sync_daemon import GDTSyncDaemon
+            # Start the sync daemon with a fast 1-minute interval for demo purposes
+            daemon = GDTSyncDaemon(app, interval_minutes=1)
+            daemon.start()
+
     @app.get("/")
     def index():
         """Redirect users to the appropriate landing page."""
