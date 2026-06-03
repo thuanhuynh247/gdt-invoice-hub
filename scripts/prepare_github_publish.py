@@ -36,6 +36,7 @@ def prepare_github_folder():
         "extensions.py",
         "requirements.txt",
         "run_local.py",
+        "setup_wizard.py",
         ".env.example",
         "auth",
         "export",
