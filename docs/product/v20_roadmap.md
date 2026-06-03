@@ -53,9 +53,9 @@ timeline
 
 | Epic ID | Epic Title | Story ID | Story Title | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **E91** | Tax AI Agent Swarm | **US-320** | Local Agent Mailroom & Coordination Hub | ⏳ Planned |
-| **E91** | Tax AI Agent Swarm | **US-321** | Autonomous Joint Audit Coordinator | ⏳ Planned |
-| **E92** | Bank Stream Ingestion & Matching | **US-322** | Bank Feed Ingestion & Transaction Normalizer | ⏳ Planned |
-| **E92** | Bank Stream Ingestion & Matching | **US-323** | Automated Bank-to-Invoice Matcher | ⏳ Planned |
-| **E93** | ML Tax Forecast & Sandbox | **US-324** | Machine Learning Tax Liability Predictor | ⏳ Planned |
-| **E93** | ML Tax Forecast & Sandbox | **US-325** | Tax Scenario Simulation Sandbox | ⏳ Planned |
+| **E91** | Tax AI Agent Swarm | **US-320** | Local Agent Mailroom & Coordination Hub | ✅ Implemented |
+| **E91** | Tax AI Agent Swarm | **US-321** | Autonomous Joint Audit Coordinator | ✅ Implemented |
+| **E92** | Bank Stream Ingestion & Matching | **US-322** | Bank Feed Ingestion & Transaction Normalizer | ✅ Implemented |
+| **E92** | Bank Stream Ingestion & Matching | **US-323** | Automated Bank-to-Invoice Matcher | ✅ Implemented |
+| **E93** | ML Tax Forecast & Sandbox | **US-324** | Machine Learning Tax Liability Predictor | ✅ Implemented |
+| **E93** | ML Tax Forecast & Sandbox | **US-325** | Tax Scenario Simulation Sandbox | ✅ Implemented |

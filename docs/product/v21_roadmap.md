@@ -53,9 +53,9 @@ timeline
 
 | Epic ID | Epic Title | Story ID | Story Title | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **E94** | Graph Fraud Analyzer | **US-330** | Taxpayer Network Graph Generator | ⏳ Planned |
-| **E94** | Graph Fraud Analyzer | **US-331** | VAT Fraud Ring Network Detector | ⏳ Planned |
-| **E95** | Cryptographic TSA Ledger | **US-332** | Immutable Cryptographic Merkle Ledger | ⏳ Planned |
-| **E95** | Cryptographic TSA Ledger | **US-333** | Zero-Knowledge Proof Tax Compliance | ⏳ Planned |
-| **E96** | Customs VAT Reconciler | **US-334** | Customs XML Declaration Parser | ⏳ Planned |
-| **E96** | Customs VAT Reconciler | **US-335** | Import VAT Reconciliation & Mitigation | ⏳ Planned |
+| **E94** | Graph Fraud Analyzer | **US-330** | Taxpayer Network Graph Generator | ✅ Implemented |
+| **E94** | Graph Fraud Analyzer | **US-331** | VAT Fraud Ring Network Detector | ✅ Implemented |
+| **E95** | Cryptographic TSA Ledger | **US-332** | Immutable Cryptographic Merkle Ledger | ✅ Implemented |
+| **E95** | Cryptographic TSA Ledger | **US-333** | Zero-Knowledge Proof Tax Compliance | ✅ Implemented |
+| **E96** | Customs VAT Reconciler | **US-334** | Customs XML Declaration Parser | ✅ Implemented |
+| **E96** | Customs VAT Reconciler | **US-335** | Import VAT Reconciliation & Mitigation | ✅ Implemented |
