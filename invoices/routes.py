@@ -7142,6 +7142,144 @@ def api_simulate_scenario():
         return jsonify({"error": str(e)}), 500
 
 
+@invoices_blueprint.post("/api/audit/calculate-penalties")
+def api_calculate_penalties():
+    """US-340: Calculate GDT tax penalties and daily late payment interest."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+    
+    body = request.get_json(silent=True) or {}
+    underpaid_tax = float(body.get("underpaid_tax", 0.0))
+    due_date = body.get("due_date")
+    payment_date = body.get("payment_date")
+    evasion_multiplier = float(body.get("evasion_multiplier", 0.0))
+    has_mitigating_factors = bool(body.get("has_mitigating_factors", False))
+    
+    if not due_date or not payment_date:
+        return jsonify({"error": "Thieu thong tin ngay den han hoac ngay nop tien thuc te."}), 400
+        
+    try:
+        from invoices.tax_audit_service import calculate_audit_penalties
+        result = calculate_audit_penalties(
+            underpaid_tax=underpaid_tax,
+            due_date=due_date,
+            payment_date=payment_date,
+            evasion_multiplier=evasion_multiplier,
+            has_mitigating_factors=has_mitigating_factors
+        )
+        return jsonify({
+            "status": "success",
+            "calculation": result
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/audit/generate-explanation")
+def api_generate_explanation():
+    """US-341: Generate statutory Vietnamese letters citing compliance laws."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+        
+    body = request.get_json(silent=True) or {}
+    risk_type = body.get("risk_type", "")
+    taxpayer_name = body.get("taxpayer_name", "CONG TY TNHH MOCK")
+    taxpayer_mst = body.get("taxpayer_mst") or session.get("active_taxpayer_mst") or "0109998887"
+    details = body.get("details", {})
+    
+    if not risk_type:
+        return jsonify({"error": "Thieu thong tin loai rui ro (risk_type)."}), 400
+        
+    try:
+        from invoices.tax_audit_service import generate_audit_defense_letter
+        letter = generate_audit_defense_letter(
+            risk_type=risk_type,
+            taxpayer_name=taxpayer_name,
+            taxpayer_mst=taxpayer_mst,
+            details=details
+        )
+        return jsonify({
+            "status": "success",
+            "letter": letter
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/ecommerce/normalize-orders")
+def api_ecommerce_normalize_orders():
+    """US-342: Map raw platform order fields from Shopee, Lazada, and TikTok Shop into standardized internal model."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+        
+    body = request.get_json(silent=True) or {}
+    raw_orders = body.get("orders", [])
+    platform = body.get("platform", "shopee")
+    
+    if not raw_orders:
+        return jsonify({"error": "Thieu danh sach don hang."}), 400
+        
+    try:
+        from invoices.ecommerce_service import normalize_ecommerce_orders
+        normalized = normalize_ecommerce_orders(raw_orders, platform)
+        return jsonify({
+            "status": "success",
+            "orders": normalized
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/payroll/audit-summary")
+def api_payroll_audit_summary():
+    """US-344: Verify PIT progressive tax tables (5%-35%) and social insurance rates."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+        
+    body = request.get_json(silent=True) or {}
+    employees = body.get("employees", [])
+    
+    if not employees:
+        return jsonify({"error": "Thieu danh sach nhan vien de kiem toan luong."}), 400
+        
+    try:
+        from invoices.payroll_pit_service import audit_payroll_register
+        report = audit_payroll_register(employees)
+        return jsonify(report)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/payroll/export-pit-xml")
+def api_payroll_export_pit_xml():
+    """US-345: Scaffold GDT-compliant year-end PIT finalization Form 05/QTT-TNCN XML."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+        
+    body = request.get_json(silent=True) or {}
+    metadata = body.get("metadata", {})
+    employees = body.get("employees", [])
+    
+    if not employees:
+        return jsonify({"error": "Thieu danh sach nhan vien de xuat XML quyet toan."}), 400
+        
+    try:
+        from invoices.payroll_pit_service import generate_form_05_qtt_tncn_xml
+        xml_str = generate_form_05_qtt_tncn_xml(metadata, employees)
+        return jsonify({
+            "status": "success",
+            "xml": xml_str
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+
 
 
 
