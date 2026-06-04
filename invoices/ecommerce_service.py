@@ -358,7 +358,7 @@ def normalize_ecommerce_orders(raw_orders: list[dict], platform: str) -> list[di
         comm = 0.0
         service = 0.0
         
-        plat_lower = platform.lower()
+        plat_lower = (raw.get("platform") or platform).lower()
         
         # Helper to extract values by list of potential keys
         def extract(keys, default_val=None):
@@ -381,7 +381,7 @@ def normalize_ecommerce_orders(raw_orders: list[dict], platform: str) -> list[di
                 
         if "shopee" in plat_lower:
             order_id = str(extract(["order_id", "Mã đơn hàng", "Order ID", "Mã đơn"], "")).strip()
-            order_date = str(extract(["date", "Ngày hoàn thành", "Ngày thanh toán", "Completed Date"], order_date)).strip()
+            order_date = str(extract(["date", "order_date", "Ngày hoàn thành", "Ngày thanh toán", "Completed Date"], order_date)).strip()
             gross = get_float_val(extract(["gross_revenue", "Doanh thu", "Gross Sales", "Giá bán", "Số tiền"]))
             seller_v = get_float_val(extract(["seller_voucher", "Voucher người bán", "Seller Voucher", "Khuyến mãi người bán"]))
             platform_v = get_float_val(extract(["platform_voucher", "Voucher Shopee", "Shopee Voucher"]))
@@ -390,7 +390,7 @@ def normalize_ecommerce_orders(raw_orders: list[dict], platform: str) -> list[di
             
         elif "lazada" in plat_lower:
             order_id = str(extract(["order_id", "Order Number", "Mã đơn hàng Lazada", "Mã đơn"], "")).strip()
-            order_date = str(extract(["date", "Transaction Date", "Ngày giao dịch", "Ngày"], order_date)).strip()
+            order_date = str(extract(["date", "order_date", "Transaction Date", "Ngày giao dịch", "Ngày"], order_date)).strip()
             gross = get_float_val(extract(["gross_revenue", "Amount", "Số tiền", "Doanh thu"]))
             seller_v = get_float_val(extract(["seller_voucher", "Seller Voucher", "Voucher người bán"]))
             platform_v = get_float_val(extract(["platform_voucher", "Lazada Voucher", "Voucher Lazada"]))
@@ -399,7 +399,7 @@ def normalize_ecommerce_orders(raw_orders: list[dict], platform: str) -> list[di
             
         elif "tiktok" in plat_lower:
             order_id = str(extract(["order_id", "Order ID", "Mã đơn hàng TikTok", "Mã đơn"], "")).strip()
-            order_date = str(extract(["date", "Settlement Time", "Thời gian quyết toán", "Ngày quyết toán"], order_date)).strip()
+            order_date = str(extract(["date", "order_date", "Settlement Time", "Thời gian quyết toán", "Ngày quyết toán"], order_date)).strip()
             gross = get_float_val(extract(["gross_revenue", "Gross Revenue", "Doanh thu gộp", "Doanh thu"]))
             seller_v = get_float_val(extract(["seller_voucher", "Seller Coupon", "Coupon người bán"]))
             platform_v = get_float_val(extract(["platform_voucher", "TikTok Shop Coupon", "Coupon TikTok"]))
@@ -409,7 +409,7 @@ def normalize_ecommerce_orders(raw_orders: list[dict], platform: str) -> list[di
         else:
             # Fallback direct map
             order_id = str(extract(["order_id", "id"], "")).strip()
-            order_date = str(extract(["date", "time"], order_date)).strip()
+            order_date = str(extract(["date", "order_date", "time"], order_date)).strip()
             gross = get_float_val(extract(["gross_revenue", "gross"]))
             seller_v = get_float_val(extract(["seller_voucher", "seller"]))
             platform_v = get_float_val(extract(["platform_voucher", "platform"]))
