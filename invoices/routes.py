@@ -7016,5 +7016,132 @@ def api_customs_declarations():
         return jsonify({"error": str(e)}), 500
 
 
+@invoices_blueprint.post("/api/predictive/tax-forecast")
+def api_tax_forecast():
+    """US-324: Retrieve predictive tax liability reports using ML trend + seasonality forecasting."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    taxpayer_mst = session.get("active_taxpayer_mst") or body.get("taxpayer_mst")
+    months_ahead = int(body.get("months_ahead", 12))
+
+    # Allow client to supply historical data, or aggregate from DB
+    historical = body.get("historical_data")
+    if historical is None:
+        if not taxpayer_mst:
+            return jsonify({"error": "taxpayer_mst is required to retrieve database history."}), 400
+
+        from invoices.models import Invoice
+        try:
+            invoices = Invoice.query.filter_by(taxpayer_mst=taxpayer_mst, is_cancelled=False).all()
+            from collections import defaultdict
+            monthly_data = defaultdict(lambda: {
+                "output_vat": 0.0,
+                "input_vat": 0.0,
+                "revenue": 0.0,
+                "expenses": 0.0,
+            })
+
+            for inv in invoices:
+                if not inv.date or len(inv.date) < 7:
+                    continue
+                period = inv.date[:7]  # YYYY-MM
+                if "-" not in period:
+                    continue
+
+                if inv.seller_mst == taxpayer_mst:
+                    monthly_data[period]["revenue"] += inv.amount_before_tax
+                    monthly_data[period]["output_vat"] += inv.tax_amount
+                elif inv.buyer_mst == taxpayer_mst:
+                    monthly_data[period]["expenses"] += inv.amount_before_tax
+                    monthly_data[period]["input_vat"] += inv.tax_amount
+
+            historical = []
+            for period, vals in monthly_data.items():
+                vat_pay = max(0.0, vals["output_vat"] - vals["input_vat"])
+                pretax = vals["revenue"] - vals["expenses"]
+                cit_pay = max(0.0, pretax * 0.20)
+                fct_pay = max(0.0, vals["expenses"] * 0.10 * 0.05)
+                
+                historical.append({
+                    "period": period,
+                    "vat_payable": vat_pay,
+                    "cit_payable": cit_pay,
+                    "fct_payable": fct_pay,
+                })
+        except Exception as e:
+            return jsonify({"error": f"Failed to retrieve history: {str(e)}"}), 500
+
+    from invoices.tax_forecaster import ml_forecast_tax_liabilities
+    try:
+        forecast = ml_forecast_tax_liabilities(historical, months_ahead=months_ahead)
+        return jsonify({
+            "status": "success",
+            "forecast": forecast
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/predictive/simulate-scenario")
+def api_simulate_scenario():
+    """US-325: Execute stateless comparative tax scenario calculations."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    taxpayer_mst = session.get("active_taxpayer_mst") or body.get("taxpayer_mst")
+    
+    adjustments = body.get("adjustments", {})
+    base_data = body.get("base_data")
+
+    # If base data is not supplied, build it from DB aggregates or default mocks
+    if base_data is None:
+        if not taxpayer_mst:
+            return jsonify({"error": "taxpayer_mst is required to aggregate baseline data."}), 400
+
+        from invoices.models import Invoice
+        try:
+            invoices = Invoice.query.filter_by(taxpayer_mst=taxpayer_mst, is_cancelled=False).all()
+            output_vat_base = 0.0
+            input_vat_base = 0.0
+            revenue_base = 0.0
+            expenses_base = 0.0
+
+            for inv in invoices:
+                if inv.seller_mst == taxpayer_mst:
+                    revenue_base += inv.amount_before_tax
+                    output_vat_base += inv.tax_amount
+                elif inv.buyer_mst == taxpayer_mst:
+                    expenses_base += inv.amount_before_tax
+                    input_vat_base += inv.tax_amount
+
+            base_data = {
+                "output_vat_base": output_vat_base,
+                "input_vat_base": input_vat_base,
+                "revenue_base": revenue_base,
+                "expenses_base": expenses_base,
+                "fct_base_amount": expenses_base * 0.10,
+                "related_party_interest_base": expenses_base * 0.05,
+                "depreciation_base": expenses_base * 0.08,
+            }
+        except Exception as e:
+            return jsonify({"error": f"Failed to build baseline data: {str(e)}"}), 500
+
+    from invoices.tax_forecaster import simulate_tax_scenario
+    try:
+        result = simulate_tax_scenario(base_data, adjustments)
+        return jsonify({
+            "status": "success",
+            "result": result
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+
 
 
