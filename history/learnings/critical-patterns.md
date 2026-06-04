@@ -68,4 +68,33 @@ To prevent application crashes on Windows systems when reading or indexing datab
 
 **Full entry:** [20260602-harness-onboarding-uat.md](file:///d:/LearnAnyThing/Webapp%20XML/history/learnings/20260602-harness-onboarding-uat.md)
 
+---
+
+## [20260603] P2P Mailroom Architecture for Cooperative AI Swarms & ISO 20022 Bank Matching
+**Category:** pattern
+**Feature:** v20_roadmap
+**Tags:** [ai-swarm, telemetry, bank-matching, iso-20022]
+
+To implement decoupled multi-agent collaboration and high-precision bank transaction matching:
+- Utilize a database-backed inbox/outbox table (`AgentMessage`) with stringified JSON payloads to enable asynchronous peer-to-peer message exchanges between specialized agents.
+- Map and normalize disparate commercial bank statements into a unified `BankLedger` schema first, then execute a rule-based matching engine with configurable confidence weights (for MST matching, text similarity, and numerical tolerances).
+- Automatically flag transactions over 20M VND that lack a matching bank record to comply with non-cash payment rules under Vietnamese VAT law.
+
+**Full entry:** [20260603-v20_roadmap.md](file:///d:/LearnAnyThing/Webapp%20XML/history/learnings/20260603-v20_roadmap.md)
+
+---
+
+## [20260604] Graph-Based Circular Invoicing Detection & Sequential Merkle Ledgers
+**Category:** pattern
+**Feature:** v21_roadmap
+**Tags:** [graph-analytics, fraud-detection, cryptography, merkle-tree]
+
+To identify systemic VAT fraud rings and guarantee tax ledger integrity:
+- Represent buyer-seller transactions as a directed network graph, and run cycle-detection algorithms with a depth limit (e.g., depth $\le 5$) to detect circular cost-shielding rings while avoiding exponential scaling.
+- Apply HITS (Hubs and Authorities) scoring on transaction networks to flag central invoice-selling nodes (high Hubs) and tax-sink shell companies (high Authorities).
+- Construct an immutable transaction ledger using sequential SHA-256 Merkle tree hashing, and leverage Zero-Knowledge Proofs (ZKP) to prove tax rate compliance without leaking actual transaction numbers.
+
+**Full entry:** [20260604-v21_roadmap.md](file:///d:/LearnAnyThing/Webapp%20XML/history/learnings/20260604-v21_roadmap.md)
+
+
 
