@@ -270,7 +270,7 @@
                 <div class="card bg-glass shadow-sm border-0 p-3 card-hover-glow">
                     <div class="d-flex align-items-center gap-3">
                         <div class="rounded-circle bg-primary-subtle p-2 text-primary">
-                            <i class="bi bi-cart3 fs-4"></i>
+                            <i class="bi bi-cart3 fs-4" aria-hidden="true"></i>
                         </div>
                         <div>
                             <div class="text-secondary small fw-medium">Tổng Đơn Hàng Sàn</div>
@@ -281,7 +281,7 @@
                 <div class="card bg-glass shadow-sm border-0 p-3 card-hover-glow">
                     <div class="d-flex align-items-center gap-3">
                         <div class="rounded-circle bg-success-subtle p-2 text-success">
-                            <i class="bi bi-check-circle fs-4"></i>
+                            <i class="bi bi-check-circle fs-4" aria-hidden="true"></i>
                         </div>
                         <div>
                             <div class="text-secondary small fw-medium">Đã Khớp Hóa Đơn</div>
@@ -292,7 +292,7 @@
                 <div class="card bg-glass shadow-sm border-0 p-3 card-hover-glow">
                     <div class="d-flex align-items-center gap-3">
                         <div class="rounded-circle bg-danger-subtle p-2 text-danger">
-                            <i class="bi bi-exclamation-triangle fs-4"></i>
+                            <i class="bi bi-exclamation-triangle fs-4" aria-hidden="true"></i>
                         </div>
                         <div>
                             <div class="text-secondary small fw-medium">Chưa Xuất Hóa Đơn</div>
@@ -303,7 +303,7 @@
                 <div class="card bg-glass shadow-sm border-0 p-3 card-hover-glow">
                     <div class="d-flex align-items-center gap-3">
                         <div class="rounded-circle bg-warning-subtle p-2 text-warning">
-                            <i class="bi bi-tag fs-4"></i>
+                            <i class="bi bi-tag fs-4" aria-hidden="true"></i>
                         </div>
                         <div>
                             <div class="text-secondary small fw-medium">Sai Biệt Đơn Giá</div>
@@ -318,9 +318,9 @@
                 <!-- Left Pane: Orders Table list -->
                 <div class="split-pane-left card bg-glass shadow-sm border-0">
                     <div class="card-header bg-transparent border-0 py-3 d-flex justify-content-between align-items-center">
-                        <h5 class="fw-bold mb-0"><i class="bi bi-list-stars"></i> Danh sách Đơn hàng Normalized</h5>
+                        <h5 class="fw-bold mb-0"><i class="bi bi-list-stars" aria-hidden="true"></i> Danh sách Đơn hàng Normalized</h5>
                         <button class="btn btn-sm btn-outline-primary" onclick="triggerMockNormalize()">
-                            <i class="bi bi-arrow-repeat"></i> Chuẩn Hóa Lại
+                            <i class="bi bi-arrow-repeat" aria-hidden="true"></i> Chuẩn Hóa Lại
                         </button>
                     </div>
                     <div class="card-body">
@@ -349,11 +349,11 @@
                 <div class="split-pane-right">
                     <div class="card bg-glass shadow-sm border-0 mb-3" id="ecom-detail-card">
                         <div class="card-body py-4 text-center text-secondary" id="ecom-detail-empty">
-                            <i class="bi bi-info-circle fs-2 mb-2"></i>
+                            <i class="bi bi-info-circle fs-2 mb-2" aria-hidden="true"></i>
                             <p class="mb-0">Chọn một đơn hàng bên trái để xem kết quả đối soát chi tiết và phát sinh tờ trình giải trình.</p>
                         </div>
                         <div class="card-body d-none" id="ecom-detail-content">
-                            <h5 class="fw-bold mb-3 text-primary"><i class="bi bi-eye"></i> Chi Tiết Khớp Đối Chiếu</h5>
+                            <h5 class="fw-bold mb-3 text-primary"><i class="bi bi-eye" aria-hidden="true"></i> Chi Tiết Khớp Đối Chiếu</h5>
                             <div class="mb-3 p-3 bg-light rounded border">
                                 <div class="row row-gap-2">
                                     <div class="col-6 text-secondary small">Mã đơn hàng:</div>
@@ -370,11 +370,11 @@
                             </div>
 
                             <div class="border-top pt-3 mt-3" id="penalty-calculator-area">
-                                <h6 class="fw-bold mb-2"><i class="bi bi-calculator"></i> Tính Phạt Chậm Nộp & Khai Sai (NĐ 125)</h6>
+                                <h6 class="fw-bold mb-2"><i class="bi bi-calculator" aria-hidden="true"></i> Tính Phạt Chậm Nộp & Khai Sai (NĐ 125)</h6>
                                 <div class="mb-3">
-                                    <label class="form-label small text-secondary">Số ngày nộp chậm</label>
+                                    <label for="delay-days" class="form-label small text-secondary">Số ngày nộp chậm</label>
                                     <div class="input-group input-group-sm">
-                                        <input type="number" class="form-control" id="delay-days" value="30">
+                                        <input type="number" class="form-control" id="delay-days" value="30" autocomplete="off" aria-label="Số ngày nộp chậm">
                                         <button class="btn btn-primary" onclick="calculateEcommercePenalties()">Tính toán</button>
                                     </div>
                                 </div>
@@ -392,9 +392,9 @@
 
                             <div class="border-top pt-3 mt-3" id="explanation-area">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <h6 class="fw-bold mb-0"><i class="bi bi-file-earmark-text"></i> Mẫu Văn Bản Giải Trình Thuế</h6>
+                                    <h6 class="fw-bold mb-0"><i class="bi bi-file-earmark-text" aria-hidden="true"></i> Mẫu Văn Bản Giải Trình Thuế</h6>
                                     <button class="btn btn-sm btn-outline-success" onclick="copyExplanationText()">
-                                        <i class="bi bi-clipboard"></i> Sao chép
+                                        <i class="bi bi-clipboard" aria-hidden="true"></i> Sao chép
                                     </button>
                                 </div>
                                 <textarea class="form-control font-monospace small text-dark bg-white" id="explanation-text" rows="8" readonly style="resize: none;"></textarea>
@@ -412,7 +412,7 @@
                 <div class="card bg-glass shadow-sm border-0 p-3 card-hover-glow">
                     <div class="d-flex align-items-center gap-3">
                         <div class="rounded-circle bg-primary-subtle p-2 text-primary">
-                            <i class="bi bi-cash-stack fs-4"></i>
+                            <i class="bi bi-cash-stack fs-4" aria-hidden="true"></i>
                         </div>
                         <div>
                             <div class="text-secondary small fw-medium">Tổng Quỹ Lương</div>
@@ -423,7 +423,7 @@
                 <div class="card bg-glass shadow-sm border-0 p-3 card-hover-glow">
                     <div class="d-flex align-items-center gap-3">
                         <div class="rounded-circle bg-success-subtle p-2 text-success">
-                            <i class="bi bi-wallet2 fs-4"></i>
+                            <i class="bi bi-wallet2 fs-4" aria-hidden="true"></i>
                         </div>
                         <div>
                             <div class="text-secondary small fw-medium">Thuế TNCN Đã Khấu Trừ</div>
@@ -434,7 +434,7 @@
                 <div class="card bg-glass shadow-sm border-0 p-3 card-hover-glow">
                     <div class="d-flex align-items-center gap-3">
                         <div class="rounded-circle bg-danger-subtle p-2 text-danger">
-                            <i class="bi bi-shield-exclamation fs-4"></i>
+                            <i class="bi bi-shield-exclamation fs-4" aria-hidden="true"></i>
                         </div>
                         <div>
                             <div class="text-secondary small fw-medium">Số Nhân Viên Lệch PIT</div>
@@ -445,7 +445,7 @@
                 <div class="card bg-glass shadow-sm border-0 p-3 card-hover-glow">
                     <div class="d-flex align-items-center gap-3">
                         <div class="rounded-circle bg-info-subtle p-2 text-info">
-                            <i class="bi bi-heart-pulse fs-4"></i>
+                            <i class="bi bi-heart-pulse fs-4" aria-hidden="true"></i>
                         </div>
                         <div>
                             <div class="text-secondary small fw-medium">Điểm Tuân Thủ BHXH</div>
@@ -460,7 +460,7 @@
                 <!-- Left Pane: Employee List -->
                 <div class="split-pane-left card bg-glass shadow-sm border-0">
                     <div class="card-header bg-transparent border-0 py-3">
-                        <h5 class="fw-bold mb-0"><i class="bi bi-people-fill"></i> Danh sách Nhân viên & Cảnh báo Thuế/Bảo hiểm</h5>
+                        <h5 class="fw-bold mb-0"><i class="bi bi-people-fill" aria-hidden="true"></i> Danh sách Nhân viên & Cảnh báo Thuế/Bảo hiểm</h5>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
@@ -489,9 +489,9 @@
                     <!-- PIT Bracket Visualizer Card -->
                     <div class="card bg-glass shadow-sm border-0 mb-3" id="payroll-visualizer-card">
                         <div class="card-body">
-                            <h5 class="fw-bold mb-3 text-primary"><i class="bi bi-graph-up-arrow"></i> Phân Bổ Lũy Tiến Từng Phần PIT</h5>
+                            <h5 class="fw-bold mb-3 text-primary"><i class="bi bi-graph-up-arrow" aria-hidden="true"></i> Phân Bổ Lũy Tiến Từng Phần PIT</h5>
                             <div id="bracket-visualizer-empty" class="text-center text-secondary py-4">
-                                <i class="bi bi-info-circle fs-2"></i>
+                                <i class="bi bi-info-circle fs-2" aria-hidden="true"></i>
                                 <p class="mb-0 mt-2">Chọn một nhân viên bên trái để xem phân bổ biểu thuế suất lũy tiến.</p>
                             </div>
                             <div id="bracket-visualizer-content" class="d-none">
@@ -535,11 +535,11 @@
                     <!-- XML Form 05/QTT-TNCN Exporter -->
                     <div class="card bg-glass shadow-sm border-0">
                         <div class="card-body">
-                            <h5 class="fw-bold mb-3"><i class="bi bi-file-earmark-arrow-down-fill text-success"></i> Xuất Tờ Khai Quyết Toán 05/QTT-TNCN XML</h5>
+                            <h5 class="fw-bold mb-3"><i class="bi bi-file-earmark-arrow-down-fill text-success" aria-hidden="true"></i> Xuất Tờ Khai Quyết Toán 05/QTT-TNCN XML</h5>
                             <div class="mb-3 row g-2">
                                 <div class="col-6">
-                                    <label class="form-label small text-secondary">Năm quyết toán</label>
-                                    <input type="text" class="form-control form-control-sm" id="xml-tax-year" value="2025">
+                                    <label for="xml-tax-year" class="form-label small text-secondary">Năm quyết toán</label>
+                                    <input type="text" class="form-control form-control-sm" id="xml-tax-year" value="2025" autocomplete="off">
                                 </div>
                                 <div class="col-6">
                                     <label class="form-label small text-secondary">Kỳ tính thuế</label>
@@ -550,14 +550,14 @@
                             </div>
                             <div class="mb-3">
                                 <button class="btn btn-success w-100 py-2 fw-bold" onclick="generateAndPreviewPitXml()">
-                                    <i class="bi bi-filetype-xml"></i> Tạo & Xem trước XML tờ khai
+                                    <i class="bi bi-filetype-xml" aria-hidden="true"></i> Tạo & Xem trước XML tờ khai
                                 </button>
                             </div>
                             <div class="d-none" id="xml-preview-area">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <span class="small text-secondary fw-bold">Xem trước XML (chuẩn định dạng TCT)</span>
                                     <button class="btn btn-sm btn-outline-success" onclick="downloadPitXmlFile()">
-                                        <i class="bi bi-download"></i> Tải file .xml
+                                        <i class="bi bi-download" aria-hidden="true"></i> Tải file .xml
                                     </button>
                                 </div>
                                 <pre class="xml-preview-container" id="xml-preview-box"></pre>
@@ -590,18 +590,18 @@
                             <div class="flex-grow-1 overflow-auto mb-3 p-3 bg-dark bg-opacity-25 rounded d-flex flex-column gap-3" id="rag-chat-history" style="max-height: 400px;">
                                 <div class="d-flex align-items-start gap-2 max-w-75">
                                     <div class="rounded-circle bg-primary text-white p-2 flex-shrink-0 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
-                                        <i class="bi bi-robot"></i>
+                                        <i class="bi bi-robot" aria-hidden="true"></i>
                                     </div>
                                     <div class="p-3 rounded bg-secondary-subtle text-dark border">
-                                        <p class="mb-0 small">Xin chào! Tôi là Trợ lý Thuế AI của bạn. Tôi được trang bị RAG để tra cứu các văn bản pháp luật thuế Việt Nam (Nghị định 123, Nghị định 125, Thông tư 80, Thông tư 20...). Hãy đặt câu hỏi cho tôi!</p>
+                                        <p class="mb-0 small">Xin chào! Tôi là Trợ lý Thuế AI của bạn. Tôi được trang bị RAG để tra cứu các văn bản pháp luật thuế Việt Nam (Nghị định 123, Nghị định 125, Thông tư 80, Thông tư 20…). Hãy đặt câu hỏi cho tôi!</p>
                                     </div>
                                 </div>
                             </div>
                             <!-- Chat Input area -->
                             <div class="input-group">
-                                <input type="text" class="form-control" id="rag-chat-input" placeholder="Nhập câu hỏi thuế của bạn tại đây..." onkeydown="if(event.key === 'Enter') sendRagQuestion()">
+                                <input type="text" class="form-control" id="rag-chat-input" placeholder="Nhập câu hỏi thuế của bạn tại đây…" onkeydown="if(event.key === 'Enter') sendRagQuestion()" autocomplete="off" aria-label="Nhập câu hỏi thuế">
                                 <button class="btn btn-primary d-flex align-items-center gap-1" type="button" onclick="sendRagQuestion()" id="rag-send-btn">
-                                    <span>Gửi</span> <i class="bi bi-send-fill"></i>
+                                    <span>Gửi</span> <i class="bi bi-send-fill" aria-hidden="true"></i>
                                 </button>
                             </div>
                         </div>
@@ -619,7 +619,7 @@
                                 <div class="col-12">
                                     <label class="form-label small text-secondary">Chọn Hóa đơn Giao dịch gặp Anomaly</label>
                                     <select class="form-select form-select-sm" id="defense-invoice-select" onchange="updateDefenseInvoiceMeta()">
-                                        <option value="">-- Đang tải hóa đơn... --</option>
+                                        <option value="">-- Đang tải hóa đơn… --</option>
                                     </select>
                                 </div>
                                 <div class="col-md-6">
@@ -632,16 +632,16 @@
                                     </select>
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label small text-secondary">Nhà cung cấp / Đối tác</label>
-                                    <input type="text" class="form-control form-control-sm" id="defense-seller-name" placeholder="Công ty đối tác">
+                                    <label for="defense-seller-name" class="form-label small text-secondary">Nhà cung cấp / Đối tác</label>
+                                    <input type="text" class="form-control form-control-sm" id="defense-seller-name" placeholder="Công ty đối tác" autocomplete="off">
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label small text-secondary">Tổng số tiền thanh toán (VND)</label>
-                                    <input type="number" class="form-control form-control-sm" id="defense-amount" value="50000000">
+                                    <label for="defense-amount" class="form-label small text-secondary">Tổng số tiền thanh toán (VND)</label>
+                                    <input type="number" class="form-control form-control-sm" id="defense-amount" value="50000000" autocomplete="off">
                                 </div>
                                 <div class="col-md-6 d-flex align-items-end">
                                     <button class="btn btn-success btn-sm w-100 py-2 fw-bold" onclick="generateDefenseLetter()" id="defense-gen-btn">
-                                        <i class="bi bi-magic"></i> Tạo Báo cáo / Biên bản Giải trình
+                                        <i class="bi bi-magic" aria-hidden="true"></i> Tạo Báo cáo / Biên bản Giải trình
                                     </button>
                                 </div>
                             </div>
@@ -651,10 +651,10 @@
                                     <span class="small text-secondary fw-bold">Nội dung dự thảo văn bản</span>
                                     <div class="d-flex gap-2">
                                         <button class="btn btn-sm btn-outline-secondary" onclick="copyDefenseLetter()">
-                                            <i class="bi bi-clipboard"></i> Copy
+                                            <i class="bi bi-clipboard" aria-hidden="true"></i> Copy
                                         </button>
                                         <button class="btn btn-sm btn-outline-success" onclick="downloadDefenseLetter()">
-                                            <i class="bi bi-file-earmark-arrow-down"></i> Tải Txt
+                                            <i class="bi bi-file-earmark-arrow-down" aria-hidden="true"></i> Tải Txt
                                         </button>
                                     </div>
                                 </div>
@@ -1307,18 +1307,18 @@ function loadEcommerceReconciliation() {
             const allOrders = [];
             if (data.unmatched) {
                 data.unmatched.forEach(o => {
-                    allOrders.push({ ...o, status: "unmatched", badge: "bg-danger", statusText: "Chưa xuất HĐ", diff: o.gross_revenue, invNo: "N/A", invAmt: 0 });
+                    allOrders.push(Object.assign({ status: "unmatched", badge: "bg-danger", statusText: "Chưa xuất HĐ", diff: o.gross_revenue, invNo: "N/A", invAmt: 0 }, o));
                 });
             }
             if (data.price_mismatches_details) {
                 data.price_mismatches_details.forEach(o => {
-                    allOrders.push({ ...o, status: "mismatch", badge: "bg-warning text-dark", statusText: "Sai biệt giá", diff: o.discrepancy_amount, invNo: o.invoice_number, invAmt: o.invoice_amount });
+                    allOrders.push(Object.assign({ status: "mismatch", badge: "bg-warning text-dark", statusText: "Sai biệt giá", diff: o.discrepancy_amount, invNo: o.invoice_number, invAmt: o.invoice_amount }, o));
                 });
             }
             if (data.matches) {
                 data.matches.forEach(o => {
                     if (!allOrders.some(x => x.order_id === o.order_id)) {
-                        allOrders.push({ ...o, status: "matched", badge: "bg-success", statusText: "Khớp khớp", diff: 0, invNo: o.invoice_number, invAmt: o.invoice_amount });
+                        allOrders.push(Object.assign({ status: "matched", badge: "bg-success", statusText: "Khớp khớp", diff: 0, invNo: o.invoice_number, invAmt: o.invoice_amount }, o));
                     }
                 });
             }
