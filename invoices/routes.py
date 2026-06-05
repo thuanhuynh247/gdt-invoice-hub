@@ -7733,3 +7733,354 @@ def api_compliance_transfer_pricing_risk():
         return jsonify(analysis)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+# ── Version 25.0.0 API Endpoints ──────────────────────────────────────────
+
+@invoices_blueprint.get("/api/compliance/gdt-status")
+def api_compliance_gdt_status():
+    """US-371: Fetch invoice GDT verification status, search & filter."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    status_filter = request.args.get("status")
+    search_query = request.args.get("q")
+    
+    from invoices.models import Invoice
+    query = Invoice.query
+    
+    if status_filter:
+        query = query.filter(Invoice.invoice_status == status_filter)
+    if search_query:
+        query = query.filter(
+            Invoice.id.contains(search_query) | 
+            Invoice.number.contains(search_query) | 
+            Invoice.seller_mst.contains(search_query) | 
+            Invoice.buyer_mst.contains(search_query)
+        )
+        
+    invoices = query.order_by(Invoice.updated_at.desc()).all()
+    
+    return jsonify({
+        "status": "success",
+        "invoices": [{
+            "id": inv.id,
+            "number": inv.number,
+            "symbol": inv.symbol,
+            "template_code": inv.template_code,
+            "date": inv.date,
+            "seller_mst": inv.seller_mst,
+            "seller_name": inv.seller_name,
+            "buyer_mst": inv.buyer_mst,
+            "buyer_name": inv.buyer_name,
+            "total_amount": inv.total_amount,
+            "payment_method": inv.payment_method,
+            "has_signature": inv.has_signature,
+            "invoice_status": inv.invoice_status or "pending",
+            "notes": inv.notes,
+            "updated_at": inv.updated_at
+        } for inv in invoices]
+    })
+
+
+@invoices_blueprint.post("/api/compliance/gdt-sync")
+def api_compliance_gdt_sync():
+    """US-370 / US-371: Trigger GDT Sync Agent or sync specific invoice IDs."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    invoice_ids = body.get("invoice_ids")
+    
+    from invoices.v25_compliance_service import run_portal_sync_agent, sync_gdt_verification_status
+    try:
+        if invoice_ids:
+            result = sync_gdt_verification_status(invoice_ids)
+        else:
+            result = run_portal_sync_agent()
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/compliance/generate-correction-xml")
+def api_compliance_generate_correction_xml():
+    """US-372: Generate Decree 123 conforming XML for corrected/replaced invoice."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    original_invoice_id = body.get("original_invoice_id")
+    type_change = body.get("type_change") # "correction" or "replacement"
+    new_data = body.get("new_data") or {}
+
+    if not original_invoice_id or not type_change:
+        return jsonify({"error": "Thiếu original_invoice_id hoặc type_change."}), 400
+
+    from invoices.models import Invoice
+    orig_inv = Invoice.query.get(original_invoice_id)
+    if not orig_inv:
+        return jsonify({"error": f"Không tìm thấy hóa đơn gốc {original_invoice_id}."}), 404
+
+    from invoices.v25_compliance_service import generate_correction_or_replacement_xml
+    try:
+        xml_bytes = generate_correction_or_replacement_xml(orig_inv, new_data, type_change)
+        return jsonify({
+            "status": "success",
+            "xml": xml_bytes.decode("utf-8"),
+            "filename": f"{type_change}_invoice_{orig_inv.number}.xml"
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/compliance/transmit-form-04ss")
+def api_compliance_transmit_form_04ss():
+    """US-373: Scaffold, sign with HSM, and transmit Form 04/SS-HĐĐT."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    taxpayer_mst = body.get("taxpayer_mst")
+    company_name = body.get("company_name")
+    bad_invoices = body.get("bad_invoices") or []
+
+    if not taxpayer_mst or not company_name or not bad_invoices:
+        return jsonify({"error": "Thiếu taxpayer_mst, company_name hoặc danh sách bad_invoices."}), 400
+
+    from invoices.v25_compliance_service import generate_form_04_ss_xml
+    from invoices.v24_compliance_service import generate_hsm_mock_certificate, sign_xml_invoice, transmit_to_gdt_sandbox
+    try:
+        # 1. Scaffold Form 04/SS XML
+        xml_bytes = generate_form_04_ss_xml(taxpayer_mst, company_name, bad_invoices)
+        
+        # 2. Sign XML using mock HSM certificate
+        cert_der, priv_key = generate_hsm_mock_certificate(company_name, taxpayer_mst)
+        signed_xml_bytes = sign_xml_invoice(xml_bytes, cert_der, priv_key)
+        
+        # 3. Transmit signed XML to GDT sandbox
+        transmission_result = transmit_to_gdt_sandbox(signed_xml_bytes)
+        
+        return jsonify({
+            "status": "success",
+            "raw_xml": xml_bytes.decode("utf-8"),
+            "signed_xml": signed_xml_bytes.decode("utf-8"),
+            "transmission_result": transmission_result
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/compliance/tax-optimization")
+def api_compliance_tax_optimization():
+    """US-374: Run corporate tax optimization and scenario simulations."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    taxpayer_mst = body.get("taxpayer_mst") or session.get("taxpayer_mst") or "0109999999"
+    scenarios_config = body.get("scenarios")
+
+    if not scenarios_config:
+        # Fallback to standard scenario checklist if empty
+        scenarios_config = [
+            {
+                "name": "Kịch bản tối ưu 1: Thuế suất ưu đãi 10% & Miễn thuế 2 năm",
+                "preferential_rate": 0.10,
+                "holiday_exempt_years": 2,
+                "holiday_reduce_years": 4,
+                "reduce_loan_interest": True,
+                "enforce_bank_transfer": True
+            },
+            {
+                "name": "Kịch bản tối ưu 2: Thuế suất ưu đãi 15% & Giảm thuế 50% trong 2 năm",
+                "preferential_rate": 0.15,
+                "holiday_exempt_years": 0,
+                "holiday_reduce_years": 2,
+                "reduce_loan_interest": False,
+                "enforce_bank_transfer": False
+            }
+        ]
+
+    from invoices.v25_compliance_service import calculate_corporate_tax_optimization
+    try:
+        report = calculate_corporate_tax_optimization(taxpayer_mst, scenarios_config)
+        return jsonify(report)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# ── Version 26.0.0 Advanced Compliance & Tax Advisory Endpoints ────────────────
+
+@invoices_blueprint.get("/v26-compliance")
+def v26_compliance_page():
+    """Render the Version 26.0.0 compliance and tax advisor screen."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("v26_compliance.html")
+
+
+@invoices_blueprint.post("/api/compliance/insurance-audit")
+def api_compliance_insurance_audit():
+    """US-380: Audit payroll trích đóng BHXH/BHYT/BHTN against statutory rates."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    basic_salary = request.args.get("basic_salary", type=float) or 2340000.0
+
+    # Mock employee payroll records for auditing
+    mock_payroll = [
+        {"id": "EMP-001", "name": "Nguyễn Văn A", "gross_salary": 15000000.0, "withheld_insurance": 1575000.0},
+        {"id": "EMP-002", "name": "Trần Thị B", "gross_salary": 25000000.0, "withheld_insurance": 2300000.0},  # Mismatch (Statutory is 2,625,000)
+        {"id": "EMP-003", "name": "Lê Văn C", "gross_salary": 55000000.0, "withheld_insurance": 4914000.0}   # Capped at 46,800,000 (Statutory 4,914,000)
+    ]
+
+    from invoices.v26_service import audit_social_insurance
+    try:
+        result = audit_social_insurance(mock_payroll, basic_salary)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.get("/api/compliance/insurance-export-csv")
+def api_compliance_insurance_export_csv():
+    """US-381: Export social insurance audit discrepancies as a CSV report."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+
+    basic_salary = request.args.get("basic_salary", type=float) or 2340000.0
+
+    mock_payroll = [
+        {"id": "EMP-001", "name": "Nguyễn Văn A", "gross_salary": 15000000.0, "withheld_insurance": 1575000.0},
+        {"id": "EMP-002", "name": "Trần Thị B", "gross_salary": 25000000.0, "withheld_insurance": 2300000.0},
+        {"id": "EMP-003", "name": "Lê Văn C", "gross_salary": 55000000.0, "withheld_insurance": 4914000.0}
+    ]
+
+    from invoices.v26_service import audit_social_insurance, export_si_reconciliation_csv
+    try:
+        audit_result = audit_social_insurance(mock_payroll, basic_salary)
+        csv_data = export_si_reconciliation_csv(audit_result)
+        
+        return Response(
+            csv_data,
+            mimetype="text/csv",
+            headers={"Content-disposition": "attachment; filename=si_reconciliation_report.csv"}
+        )
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/compliance/tax-ledger-reconcile")
+def api_compliance_tax_ledger_reconcile():
+    """US-382: Sync taxpayer e-Tax ledger and reconcile against local journals."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    local_payments = body.get("local_payments") or []
+    taxpayer_mst = body.get("taxpayer_mst") or session.get("taxpayer_mst") or "0109999999"
+
+    from invoices.v26_service import reconcile_tax_ledger
+    try:
+        recompiled = reconcile_tax_ledger(taxpayer_mst, local_payments)
+        return jsonify({
+            "status": "success",
+            "recompiled": recompiled
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/compliance/vietqr-generate")
+def api_compliance_vietqr_generate():
+    """US-383: Generate Napas-compliant dynamic VietQR tax payment code."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    tax_type = body.get("tax_type", "VAT")
+    amount = body.get("amount", 1000.0)
+    taxpayer_mst = session.get("taxpayer_mst") or "0109999999"
+
+    from invoices.v26_service import generate_napas_vietqr_payload
+    try:
+        payload = generate_napas_vietqr_payload(tax_type, amount, taxpayer_mst)
+        return jsonify(payload)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/compliance/vietqr-confirm")
+def api_compliance_vietqr_confirm():
+    """US-383: Confirm dynamic tax payment transaction (status change simulation)."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    tx_id = body.get("transaction_id")
+    if not tx_id:
+        return jsonify({"error": "Thiếu transaction_id"}), 400
+
+    return jsonify({
+        "transaction_id": tx_id,
+        "status": "paid",
+        "message": f"Giao dịch nộp thuế {tx_id} đã được xác nhận khớp lệnh với Kho bạc Nhà nước.",
+        "completed_at": datetime.now().isoformat()
+    })
+
+
+@invoices_blueprint.get("/api/compliance/kg-query")
+def api_compliance_kg_query():
+    """US-384: Query Vietnamese Tax Law Knowledge Graph."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    query = request.args.get("query", "")
+    from invoices.v26_service import TaxLawKnowledgeGraph
+    try:
+        kg = TaxLawKnowledgeGraph()
+        results = kg.keyword_search(query)
+        return jsonify({"results": results})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/compliance/defense-compose")
+def api_compliance_defense_compose():
+    """US-385: Dynamic AI Audit Defense Document Composer."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    warning_type = body.get("warning_type")
+    context = body.get("context") or {}
+
+    profile = {
+        "mst": session.get("taxpayer_mst") or "0109999999",
+        "company_name": session.get("company_name") or "Công ty TNHH Giải pháp Phần mềm Ánh Sáng",
+        "district": "Cục Thuế Thành phố Hà Nội",
+        "representative": "Giám Đốc"
+    }
+
+    from invoices.v26_service import compose_audit_defense_letter
+    try:
+        letter_html = compose_audit_defense_letter(profile, warning_type, context)
+        return jsonify({
+            "status": "success",
+            "letter_html": letter_html
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+

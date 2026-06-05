@@ -45,6 +45,9 @@
                         <a class="nav-link {% if request.path == '/tax-bctc' %}active{% endif %}" href="{{ url_for('invoices.tax_bctc_page') }}"><i class="bi bi-file-earmark-bar-graph" aria-hidden="true"></i> Thuế & BCTC</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/v26-compliance' %}active{% endif %}" href="{{ url_for('invoices.v26_compliance_page') }}"><i class="bi bi-shield-check-fill text-warning" aria-hidden="true"></i> Tuân thủ v26</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link {% if request.path == '/harness' %}active{% endif %}" href="{{ url_for('invoices.harness_page') }}"><i class="bi bi-cpu-fill" aria-hidden="true"></i> Harness Agent</a>
                     </li>
                     {% if session.get('user_role') in ['admin', 'auditor'] %}

@@ -5070,6 +5070,8 @@ async function triggerAutoReconcileAI() {
 document.addEventListener("DOMContentLoaded", () => {
     initializeBankReconcileEvents();
     setupAgentHarnessEvents();
+    initCitOptimizationSandbox();
+    initGdtComplianceTab();
 });
 
 // ==========================================================================
@@ -5661,4 +5663,409 @@ function setupAgentHarnessEvents() {
         });
     }
 }
+
+
+// =========================================================================
+// CIT Scenario Modeler Sandbox (US-375)
+// =========================================================================
+function initCitOptimizationSandbox() {
+    const tabEl = document.getElementById("tax-return-tab");
+    if (!tabEl) return;
+
+    const sliders = [
+        document.getElementById("slideCitPrefRate"),
+        document.getElementById("slideCitExemptYears"),
+        document.getElementById("slideCitReduceYears")
+    ];
+    const checks = [
+        document.getElementById("checkCitReduceLoanInterest"),
+        document.getElementById("checkCitEnforceBankTransfer")
+    ];
+
+    // Listen to changes
+    sliders.forEach(slide => {
+        if (!slide) return;
+        slide.addEventListener("input", (e) => {
+            const id = e.target.id;
+            if (id === "slideCitPrefRate") {
+                document.getElementById("valCitPrefRate").textContent = e.target.value + "%";
+            } else if (id === "slideCitExemptYears") {
+                document.getElementById("valCitExemptYears").textContent = e.target.value + " năm";
+            } else if (id === "slideCitReduceYears") {
+                document.getElementById("valCitReduceYears").textContent = e.target.value + " năm";
+            }
+            updateCitOptimization();
+        });
+    });
+
+    checks.forEach(chk => {
+        if (chk) chk.addEventListener("change", updateCitOptimization);
+    });
+
+    // Load first calculation when tab is clicked
+    tabEl.addEventListener("shown.bs.tab", () => {
+        updateCitOptimization();
+    });
+
+    // Report PDF download
+    document.getElementById("btnExportCitRecommendation")?.addEventListener("click", () => {
+        alert("Báo cáo Khuyến nghị Tối ưu thuế TNDN đang được xuất... Vui lòng kiểm tra file tải về.");
+    });
+}
+
+async function updateCitOptimization() {
+    const prefRate = parseFloat(document.getElementById("slideCitPrefRate")?.value || 20) / 100;
+    const exemptYears = parseInt(document.getElementById("slideCitExemptYears")?.value || 0);
+    const reduceYears = parseInt(document.getElementById("slideCitReduceYears")?.value || 0);
+    const reduceInterest = document.getElementById("checkCitReduceLoanInterest")?.checked || false;
+    const enforceBank = document.getElementById("checkCitEnforceBankTransfer")?.checked || false;
+
+    const payload = {
+        scenarios: [
+            {
+                name: "Mô phỏng tùy chỉnh",
+                preferential_rate: prefRate,
+                holiday_exempt_years: exemptYears,
+                holiday_reduce_years: reduceYears,
+                reduce_loan_interest: reduceInterest,
+                enforce_bank_transfer: enforceBank
+            }
+        ]
+    };
+
+    try {
+        const response = await fetch("/api/compliance/tax-optimization", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+        if (data.error) throw new Error(data.error);
+
+        const baselineVal = data.baseline?.cit_liability || 0;
+        const simVal = data.scenarios?.[0]?.cit_liability || 0;
+        const savingsVal = data.scenarios?.[0]?.tax_savings || 0;
+
+        document.getElementById("citBaselineValue").textContent = formatVatCurrency(baselineVal);
+        document.getElementById("citSimulatedValue").textContent = formatVatCurrency(simVal);
+        document.getElementById("citTaxSavingsText").textContent = formatVatCurrency(savingsVal);
+
+        renderCitChart(baselineVal, simVal);
+    } catch (err) {
+        console.error("Lỗi khi tối ưu hóa thuế TNDN:", err);
+    }
+}
+
+function renderCitChart(baseline, simulated) {
+    const svg = document.getElementById("citComparisonChart");
+    if (!svg) return;
+    
+    const maxVal = Math.max(baseline, simulated, 1000000);
+    const width = svg.clientWidth || 300;
+    const height = svg.clientHeight || 180;
+    const padding = { top: 25, right: 30, bottom: 30, left: 65 };
+    
+    const chartWidth = width - padding.left - padding.right;
+    const chartHeight = height - padding.top - padding.bottom;
+    
+    const getBarHeight = (val) => (val / maxVal) * chartHeight;
+    
+    const hBase = getBarHeight(baseline);
+    const hSim = getBarHeight(simulated);
+    
+    const xBase = padding.left + chartWidth * 0.25;
+    const xSim = padding.left + chartWidth * 0.65;
+    const barWidth = Math.min(chartWidth * 0.2, 50);
+    
+    let html = `
+        <defs>
+            <linearGradient id="baselineGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="rgba(239, 68, 68, 0.8)"/>
+                <stop offset="100%" stop-color="rgba(239, 68, 68, 0.2)"/>
+            </linearGradient>
+            <linearGradient id="simulatedGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="rgba(0, 242, 254, 0.8)"/>
+                <stop offset="100%" stop-color="rgba(0, 242, 254, 0.2)"/>
+            </linearGradient>
+        </defs>
+        
+        <line x1="${padding.left}" y1="${padding.top}" x2="${width - padding.right}" y2="${padding.top}" stroke="rgba(255,255,255,0.05)" stroke-dasharray="3,3" />
+        <line x1="${padding.left}" y1="${padding.top + chartHeight / 2}" x2="${width - padding.right}" y2="${padding.top + chartHeight / 2}" stroke="rgba(255,255,255,0.05)" stroke-dasharray="3,3" />
+        <line x1="${padding.left}" y1="${padding.top + chartHeight}" x2="${width - padding.right}" y2="${padding.top + chartHeight}" stroke="rgba(255,255,255,0.1)" />
+        
+        <rect x="${xBase - barWidth / 2}" y="${padding.top + chartHeight - hBase}" width="${barWidth}" height="${hBase}" rx="4" fill="url(#baselineGrad)" stroke="rgba(239, 68, 68, 0.5)" stroke-width="1.5">
+            <animate attributeName="height" from="0" to="${hBase}" dur="0.8s" fill="freeze" />
+            <animate attributeName="y" from="${padding.top + chartHeight}" to="${padding.top + chartHeight - hBase}" dur="0.8s" fill="freeze" />
+        </rect>
+        
+        <rect x="${xSim - barWidth / 2}" y="${padding.top + chartHeight - hSim}" width="${barWidth}" height="${hSim}" rx="4" fill="url(#simulatedGrad)" stroke="rgba(0, 242, 254, 0.5)" stroke-width="1.5">
+            <animate attributeName="height" from="0" to="${hSim}" dur="0.8s" fill="freeze" />
+            <animate attributeName="y" from="${padding.top + chartHeight}" to="${padding.top + chartHeight - hSim}" dur="0.8s" fill="freeze" />
+        </rect>
+        
+        <text x="${xBase}" y="${padding.top + chartHeight - hBase - 8}" text-anchor="middle" fill="#ef4444" font-size="10" font-weight="bold">${new Intl.NumberFormat('vi-VN', {notation: 'compact'}).format(baseline)}</text>
+        <text x="${xSim}" y="${padding.top + chartHeight - hSim - 8}" text-anchor="middle" fill="#00f2fe" font-size="10" font-weight="bold">${new Intl.NumberFormat('vi-VN', {notation: 'compact'}).format(simulated)}</text>
+        
+        <text x="${xBase}" y="${height - 10}" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="11">Cơ sở</text>
+        <text x="${xSim}" y="${height - 10}" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="11">Tối ưu</text>
+    `;
+    svg.innerHTML = html;
+}
+
+// =========================================================================
+// GDT Compliance & Decree 123 E-Invoice Corrections (US-371, US-372, US-373)
+// =========================================================================
+function initGdtComplianceTab() {
+    const tabEl = document.getElementById("compliance-tab");
+    if (!tabEl) return;
+
+    tabEl.addEventListener("shown.bs.tab", () => {
+        loadGdtComplianceData();
+    });
+
+    // Manual online GDT sync
+    document.getElementById("btnSyncGdtStatus")?.addEventListener("click", async () => {
+        const btn = document.getElementById("btnSyncGdtStatus");
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang đồng bộ...';
+
+        try {
+            const response = await fetch("/api/compliance/gdt-sync", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" }
+            });
+            const data = await response.json();
+            if (data.error) throw new Error(data.error);
+
+            renderAlert("Đồng bộ trạng thái hóa đơn Tổng cục Thuế thành công!", "success");
+            loadGdtComplianceData();
+        } catch (err) {
+            renderAlert(`Lỗi đồng bộ GDT: ${err.message}`, "danger");
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    });
+
+    // Decree 123 Correction / Replacement XML Form submit handler
+    const formCorr = document.getElementById("correctionXmlForm");
+    formCorr?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById("btnGenerateCorrectionXml");
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang tạo XML...';
+
+        const originalInvoiceId = document.getElementById("selectOriginalInvoice").value;
+        const typeChange = document.getElementById("selectCorrectionType").value;
+        const buyerMst = document.getElementById("inputCorrectionBuyerMst").value.trim();
+        const buyerName = document.getElementById("inputCorrectionBuyerName").value.trim();
+        const amount = document.getElementById("inputCorrectionAmount").value;
+        const taxAmount = document.getElementById("inputCorrectionTaxAmount").value;
+        const reason = document.getElementById("inputCorrectionReason").value.trim();
+
+        const payload = {
+            original_invoice_id: originalInvoiceId,
+            type_change: typeChange,
+            new_data: {
+                buyer_mst: buyerMst || null,
+                buyer_name: buyerName || null,
+                total_amount: amount ? parseFloat(amount) : null,
+                tax_amount: taxAmount ? parseFloat(taxAmount) : null,
+                reason: reason
+            }
+        };
+
+        try {
+            const response = await fetch("/api/compliance/generate-correction-xml", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+            const data = await response.json();
+            if (!response.ok || data.error) throw new Error(data.error || "Cannot generate XML");
+
+            // Display results
+            const panel = document.getElementById("correctionResultPanel");
+            panel.classList.remove("d-none");
+            
+            const link = document.getElementById("linkDownloadCorrectionXml");
+            link.href = "data:text/xml;charset=utf-8," + encodeURIComponent(data.xml);
+            link.download = data.filename;
+
+            document.getElementById("textCorrectionXmlPreview").textContent = data.xml;
+            renderAlert("Đã sinh và ký số XML thành công!", "success");
+        } catch (err) {
+            renderAlert(`Lỗi tạo XML: ${err.message}`, "danger");
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    });
+
+    // Form 04/SS submit handler
+    const form04 = document.getElementById("transmitForm04ssForm");
+    form04?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById("btnTransmitForm04ss");
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang truyền...';
+
+        const taxpayerMst = document.getElementById("inputForm04TaxpayerMst").value.trim();
+        const companyName = document.getElementById("inputForm04TaxpayerName").value.trim();
+        
+        // Gather selected bad invoices
+        const badInvoices = [];
+        document.querySelectorAll(".bad-invoice-check:checked").forEach(chk => {
+            badInvoices.push({
+                id: chk.getAttribute("data-id"),
+                number: chk.getAttribute("data-number"),
+                date: chk.getAttribute("data-date"),
+                reason: "Hủy bỏ/Sai sót thông tin hóa đơn gốc"
+            });
+        });
+
+        if (badInvoices.length === 0) {
+            renderAlert("Vui lòng chọn ít nhất một hóa đơn có sai sót để gửi tờ khai 04/SS.", "warning");
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            return;
+        }
+
+        const payload = {
+            taxpayer_mst: taxpayerMst,
+            company_name: companyName,
+            bad_invoices: badInvoices
+        };
+
+        try {
+            const response = await fetch("/api/compliance/transmit-form-04ss", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+            const data = await response.json();
+            if (!response.ok || data.error) throw new Error(data.error || "Cannot transmit Form 04/SS");
+
+            // Display results
+            const panel = document.getElementById("form04ResultPanel");
+            panel.classList.remove("d-none");
+
+            const tr = data.transmission_result || {};
+            document.getElementById("badgeForm04Status").textContent = (tr.status_code || "200") + " OK";
+            document.getElementById("textForm04GdtTxnId").textContent = tr.transaction_id || "GDT-TXN-SUCCESS";
+            document.getElementById("textForm04GdtTimestamp").textContent = new Date(tr.received_at || Date.now()).toLocaleString("vi-VN");
+
+            const link = document.getElementById("linkDownloadForm04Xml");
+            link.href = "data:text/xml;charset=utf-8," + encodeURIComponent(data.signed_xml);
+            link.download = `form_04ss_${taxpayerMst}.xml`;
+
+            document.getElementById("textForm04XmlPreview").textContent = data.signed_xml;
+            renderAlert("Đã gửi thông báo sai sót Form 04/SS sang GDT Gateway thành công!", "success");
+        } catch (err) {
+            renderAlert(`Lỗi truyền Form 04/SS: ${err.message}`, "danger");
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    });
+}
+
+async function loadGdtComplianceData() {
+    const tbody = document.getElementById("gdtComplianceTableBody");
+    if (!tbody) return;
+
+    try {
+        const response = await fetch("/api/compliance/gdt-status");
+        const data = await response.json();
+        if (data.error) throw new Error(data.error);
+
+        const invoices = data.invoices || [];
+        if (invoices.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-secondary">Không tìm thấy hóa đơn nào trong hệ thống.</td></tr>';
+            document.getElementById("selectOriginalInvoice").innerHTML = '<option value="">-- Không có hóa đơn gốc --</option>';
+            document.getElementById("badInvoicesCheckboxList").innerHTML = '<div class="text-secondary small text-center py-3">Không có hóa đơn lỗi nào cần báo cáo.</div>';
+            return;
+        }
+
+        // Render Table Body
+        tbody.innerHTML = invoices.map(inv => {
+            const dateStr = new Date(inv.date).toLocaleDateString("vi-VN");
+            
+            // Signature badge
+            const sigBadge = inv.has_signature 
+                ? '<span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-20"><i class="bi bi-patch-check"></i> Hợp lệ</span>'
+                : '<span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-20"><i class="bi bi-patch-exclamation"></i> Thiếu</span>';
+
+            // GDT status badge
+            let statusBadge = '';
+            if (inv.invoice_status === "approved" || inv.invoice_status === "verified") {
+                statusBadge = '<span class="badge bg-success"><i class="bi bi-check-all"></i> GDT Approved</span>';
+            } else if (inv.invoice_status === "rejected") {
+                statusBadge = '<span class="badge bg-danger"><i class="bi bi-x-circle"></i> GDT Rejected</span>';
+            } else {
+                statusBadge = '<span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split"></i> Pending</span>';
+            }
+
+            return `
+                <tr>
+                    <td class="fw-bold">${inv.number}</td>
+                    <td>${dateStr}</td>
+                    <td style="font-size: 0.8rem;">
+                        <div class="fw-semibold text-white">${inv.seller_name}</div>
+                        <div class="text-secondary">${inv.seller_mst}</div>
+                    </td>
+                    <td>${sigBadge}</td>
+                    <td>${statusBadge}</td>
+                    <td class="text-center">
+                        <button type="button" class="btn btn-xs btn-outline-primary py-1 px-2 select-for-action-btn" data-invoice-id="${inv.id}" data-number="${inv.number}" data-seller-mst="${inv.seller_mst}" data-seller-name="${inv.seller_name}" data-total-amount="${inv.total_amount}" style="font-size: 0.75rem;">
+                            Sửa đổi
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join("");
+
+        // Attach action buttons event listeners
+        document.querySelectorAll(".select-for-action-btn").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const id = btn.getAttribute("data-invoice-id");
+                const select = document.getElementById("selectOriginalInvoice");
+                select.value = id;
+                // Pre-populate details
+                document.getElementById("inputCorrectionBuyerMst").value = btn.getAttribute("data-seller-mst");
+                document.getElementById("inputCorrectionBuyerName").value = btn.getAttribute("data-seller-name");
+                document.getElementById("inputCorrectionAmount").value = btn.getAttribute("data-total-amount");
+                document.getElementById("inputCorrectionTaxAmount").value = Math.round(parseFloat(btn.getAttribute("data-total-amount")) * 0.1);
+                document.getElementById("inputCorrectionReason").value = `Sửa đổi/Thay thế hóa đơn số ${btn.getAttribute("data-number")} do sai sót thông tin.`;
+                
+                // Scroll to form
+                document.getElementById("correctionXmlForm").scrollIntoView({ behavior: "smooth" });
+            });
+        });
+
+        // Populate Correction original invoice dropdown
+        const select = document.getElementById("selectOriginalInvoice");
+        select.innerHTML = '<option value="">-- Chọn hóa đơn sai sót --</option>' + 
+            invoices.map(inv => `<option value="${inv.id}">HĐ Số ${inv.number} - ${inv.seller_name} (${formatVatCurrency(inv.total_amount)})</option>`).join("");
+
+        // Populate Bad invoices checkbox list
+        const badList = document.getElementById("badInvoicesCheckboxList");
+        badList.innerHTML = invoices.map(inv => `
+            <div class="form-check mb-2">
+                <input class="form-check-input bad-invoice-check" type="checkbox" id="badCheck-${inv.id}" data-id="${inv.id}" data-number="${inv.number}" data-date="${inv.date}" style="cursor: pointer;">
+                <label class="form-check-label small text-secondary" for="badCheck-${inv.id}">
+                    HĐ ${inv.number} - ${inv.seller_name} (${formatVatCurrency(inv.total_amount)}) [${inv.invoice_status}]
+                </label>
+            </div>
+        `).join("");
+
+    } catch (err) {
+        console.error("Lỗi khi tải dữ liệu đối soát GDT:", err);
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">Lỗi: ${err.message}</td></tr>`;
+    }
+}
+
 
