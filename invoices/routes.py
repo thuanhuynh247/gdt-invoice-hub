@@ -4089,17 +4089,19 @@ def api_post_vat_refund_eligibility():
     try:
         from invoices.refund_service import VATRefundEligibilityEngine
         engine = VATRefundEligibilityEngine()
-        result = engine.get_eligibility(mst)
         
-        # Override with input custom lists if provided
         input_invoice_ids = body.get("input_invoice_ids")
-        if input_invoice_ids is not None:
-            # We can recalculate or filter based on these custom IDs
-            pass
-            
+        customs_declarations = body.get("customs_declarations")
+        
+        result = engine.get_eligibility(
+            mst,
+            input_invoice_ids=input_invoice_ids,
+            customs_declarations=customs_declarations
+        )
         return jsonify(result)
     except Exception as e:
         return jsonify({"error": f"Lỗi tính toán hoàn thuế: {str(e)}"}), 500
+
 
 
 @invoices_blueprint.post("/api/audit/export-refund-xml")

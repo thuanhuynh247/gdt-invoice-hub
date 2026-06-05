@@ -27,7 +27,7 @@ class WebhookHub:
         self.executor = ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix="GDT-Webhook-Worker")
         self.initial_delay = 1.0  # seconds
         self.backoff_factor = 2.0
-        self.max_attempts = 4
+        self.max_attempts = 5
         self.timeout = 5.0  # seconds
 
     def compute_signature(self, secret: str, timestamp: int, payload_str: str) -> str:

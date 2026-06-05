@@ -31,6 +31,21 @@
                 <i class="bi bi-file-earmark-code-fill" aria-hidden="true"></i> Đối chiếu Thuế Hải quan
             </button>
         </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link d-flex align-items-center gap-2" id="ecommerce-tab" data-bs-toggle="pill" data-bs-target="#ecommerce-pane" type="button" role="tab" onclick="loadEcommerceReconciliation()">
+                <i class="bi bi-shop" aria-hidden="true"></i> Đối chiếu Sàn TMĐT
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link d-flex align-items-center gap-2" id="payroll-tab" data-bs-toggle="pill" data-bs-target="#payroll-pane" type="button" role="tab" onclick="loadPayrollAudit()">
+                <i class="bi bi-calculator" aria-hidden="true"></i> Kiểm toán Lương & PIT
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link d-flex align-items-center gap-2" id="rag-tab" data-bs-toggle="pill" data-bs-target="#rag-pane" type="button" role="tab" onclick="initRagAdvisory()">
+                <i class="bi bi-chat-left-dots-fill" aria-hidden="true"></i> Trợ lý AI & Giải trình Thuế
+            </button>
+        </li>
     </ul>
 
     <!-- Tab Contents -->
@@ -248,6 +263,409 @@
             </div>
         </div>
 
+        <!-- Tab 4: E-Commerce Tax Reconciler -->
+        <div class="tab-pane fade" id="ecommerce-pane" role="tabpanel" aria-labelledby="ecommerce-tab">
+            <!-- Bento Grid Summary -->
+            <div class="bento-grid">
+                <div class="card bg-glass shadow-sm border-0 p-3 card-hover-glow">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-circle bg-primary-subtle p-2 text-primary">
+                            <i class="bi bi-cart3 fs-4"></i>
+                        </div>
+                        <div>
+                            <div class="text-secondary small fw-medium">Tổng Đơn Hàng Sàn</div>
+                            <h4 class="fw-bold mb-0 text-primary-emphasis" id="ecom-total-orders">-</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="card bg-glass shadow-sm border-0 p-3 card-hover-glow">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-circle bg-success-subtle p-2 text-success">
+                            <i class="bi bi-check-circle fs-4"></i>
+                        </div>
+                        <div>
+                            <div class="text-secondary small fw-medium">Đã Khớp Hóa Đơn</div>
+                            <h4 class="fw-bold mb-0 text-success" id="ecom-matched-orders">-</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="card bg-glass shadow-sm border-0 p-3 card-hover-glow">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-circle bg-danger-subtle p-2 text-danger">
+                            <i class="bi bi-exclamation-triangle fs-4"></i>
+                        </div>
+                        <div>
+                            <div class="text-secondary small fw-medium">Chưa Xuất Hóa Đơn</div>
+                            <h4 class="fw-bold mb-0 text-danger" id="ecom-unmatched-orders">-</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="card bg-glass shadow-sm border-0 p-3 card-hover-glow">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-circle bg-warning-subtle p-2 text-warning">
+                            <i class="bi bi-tag fs-4"></i>
+                        </div>
+                        <div>
+                            <div class="text-secondary small fw-medium">Sai Biệt Đơn Giá</div>
+                            <h4 class="fw-bold mb-0 text-warning" id="ecom-price-mismatches">-</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Split Pane Work Space -->
+            <div class="split-pane-container">
+                <!-- Left Pane: Orders Table list -->
+                <div class="split-pane-left card bg-glass shadow-sm border-0">
+                    <div class="card-header bg-transparent border-0 py-3 d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0"><i class="bi bi-list-stars"></i> Danh sách Đơn hàng Normalized</h5>
+                        <button class="btn btn-sm btn-outline-primary" onclick="triggerMockNormalize()">
+                            <i class="bi bi-arrow-repeat"></i> Chuẩn Hóa Lại
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Mã Đơn Hàng</th>
+                                        <th>Sàn TMĐT</th>
+                                        <th>Ngày GD</th>
+                                        <th class="text-end">Doanh Thu (VND)</th>
+                                        <th class="text-center">Trạng Thái</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ecom-orders-table-body">
+                                    <tr>
+                                        <td colspan="5" class="text-center py-4 text-secondary">Chọn MST để bắt đầu đối chiếu dữ liệu sàn...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Pane: Match Detail Inspector -->
+                <div class="split-pane-right">
+                    <div class="card bg-glass shadow-sm border-0 mb-3" id="ecom-detail-card">
+                        <div class="card-body py-4 text-center text-secondary" id="ecom-detail-empty">
+                            <i class="bi bi-info-circle fs-2 mb-2"></i>
+                            <p class="mb-0">Chọn một đơn hàng bên trái để xem kết quả đối soát chi tiết và phát sinh tờ trình giải trình.</p>
+                        </div>
+                        <div class="card-body d-none" id="ecom-detail-content">
+                            <h5 class="fw-bold mb-3 text-primary"><i class="bi bi-eye"></i> Chi Tiết Khớp Đối Chiếu</h5>
+                            <div class="mb-3 p-3 bg-light rounded border">
+                                <div class="row row-gap-2">
+                                    <div class="col-6 text-secondary small">Mã đơn hàng:</div>
+                                    <div class="col-6 fw-bold font-monospace" id="det-order-id">-</div>
+                                    <div class="col-6 text-secondary small">Doanh thu sàn:</div>
+                                    <div class="col-6 fw-bold text-end" id="det-gross">-</div>
+                                    <div class="col-6 text-secondary small">Số hóa đơn khớp:</div>
+                                    <div class="col-6 fw-bold text-end font-monospace" id="det-invoice-no">-</div>
+                                    <div class="col-6 text-secondary small">Tiền trên HĐ:</div>
+                                    <div class="col-6 fw-bold text-end" id="det-invoice-amt">-</div>
+                                    <div class="col-6 text-secondary small">Chênh lệch:</div>
+                                    <div class="col-6 fw-bold text-end text-danger" id="det-diff">-</div>
+                                </div>
+                            </div>
+
+                            <div class="border-top pt-3 mt-3" id="penalty-calculator-area">
+                                <h6 class="fw-bold mb-2"><i class="bi bi-calculator"></i> Tính Phạt Chậm Nộp & Khai Sai (NĐ 125)</h6>
+                                <div class="mb-3">
+                                    <label class="form-label small text-secondary">Số ngày nộp chậm</label>
+                                    <div class="input-group input-group-sm">
+                                        <input type="number" class="form-control" id="delay-days" value="30">
+                                        <button class="btn btn-primary" onclick="calculateEcommercePenalties()">Tính toán</button>
+                                    </div>
+                                </div>
+                                <div class="alert alert-danger-subtle p-3 rounded d-none" id="penalty-result">
+                                    <div class="row row-gap-1 small text-dark">
+                                        <div class="col-7">Phạt hành chính (20%):</div>
+                                        <div class="col-5 fw-bold text-end" id="pen-admin">-</div>
+                                        <div class="col-7">Tiền chậm nộp (0.03%/ngày):</div>
+                                        <div class="col-5 fw-bold text-end" id="pen-interest">-</div>
+                                        <div class="col-7 text-danger fw-bold">Tổng nghĩa vụ:</div>
+                                        <div class="col-5 text-danger fw-bold text-end" id="pen-total">-</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="border-top pt-3 mt-3" id="explanation-area">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="fw-bold mb-0"><i class="bi bi-file-earmark-text"></i> Mẫu Văn Bản Giải Trình Thuế</h6>
+                                    <button class="btn btn-sm btn-outline-success" onclick="copyExplanationText()">
+                                        <i class="bi bi-clipboard"></i> Sao chép
+                                    </button>
+                                </div>
+                                <textarea class="form-control font-monospace small text-dark bg-white" id="explanation-text" rows="8" readonly style="resize: none;"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 5: Payroll & PIT Audit -->
+        <div class="tab-pane fade" id="payroll-pane" role="tabpanel" aria-labelledby="payroll-tab">
+            <!-- Bento Grid Summary -->
+            <div class="bento-grid">
+                <div class="card bg-glass shadow-sm border-0 p-3 card-hover-glow">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-circle bg-primary-subtle p-2 text-primary">
+                            <i class="bi bi-cash-stack fs-4"></i>
+                        </div>
+                        <div>
+                            <div class="text-secondary small fw-medium">Tổng Quỹ Lương</div>
+                            <h4 class="fw-bold mb-0 text-primary-emphasis" id="payroll-total-salary">-</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="card bg-glass shadow-sm border-0 p-3 card-hover-glow">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-circle bg-success-subtle p-2 text-success">
+                            <i class="bi bi-wallet2 fs-4"></i>
+                        </div>
+                        <div>
+                            <div class="text-secondary small fw-medium">Thuế TNCN Đã Khấu Trừ</div>
+                            <h4 class="fw-bold mb-0 text-success" id="payroll-total-pit">-</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="card bg-glass shadow-sm border-0 p-3 card-hover-glow">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-circle bg-danger-subtle p-2 text-danger">
+                            <i class="bi bi-shield-exclamation fs-4"></i>
+                        </div>
+                        <div>
+                            <div class="text-secondary small fw-medium">Số Nhân Viên Lệch PIT</div>
+                            <h4 class="fw-bold mb-0 text-danger" id="payroll-pit-warnings">-</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="card bg-glass shadow-sm border-0 p-3 card-hover-glow">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-circle bg-info-subtle p-2 text-info">
+                            <i class="bi bi-heart-pulse fs-4"></i>
+                        </div>
+                        <div>
+                            <div class="text-secondary small fw-medium">Điểm Tuân Thủ BHXH</div>
+                            <h4 class="fw-bold mb-0 text-info" id="payroll-si-compliance">-</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Split Pane Work Space -->
+            <div class="split-pane-container">
+                <!-- Left Pane: Employee List -->
+                <div class="split-pane-left card bg-glass shadow-sm border-0">
+                    <div class="card-header bg-transparent border-0 py-3">
+                        <h5 class="fw-bold mb-0"><i class="bi bi-people-fill"></i> Danh sách Nhân viên & Cảnh báo Thuế/Bảo hiểm</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Mã NV</th>
+                                        <th>Họ & Tên</th>
+                                        <th class="text-end">Thu Nhập Chịu Thuế</th>
+                                        <th class="text-end">Thuế PIT Khấu Trừ</th>
+                                        <th class="text-center">Cảnh Báo</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="payroll-employees-table-body">
+                                    <tr>
+                                        <td colspan="5" class="text-center py-4 text-secondary">Chọn MST để bắt đầu kiểm toán lương...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Pane: XML Exporter & Bracket Visualizer -->
+                <div class="split-pane-right">
+                    <!-- PIT Bracket Visualizer Card -->
+                    <div class="card bg-glass shadow-sm border-0 mb-3" id="payroll-visualizer-card">
+                        <div class="card-body">
+                            <h5 class="fw-bold mb-3 text-primary"><i class="bi bi-graph-up-arrow"></i> Phân Bổ Lũy Tiến Từng Phần PIT</h5>
+                            <div id="bracket-visualizer-empty" class="text-center text-secondary py-4">
+                                <i class="bi bi-info-circle fs-2"></i>
+                                <p class="mb-0 mt-2">Chọn một nhân viên bên trái để xem phân bổ biểu thuế suất lũy tiến.</p>
+                            </div>
+                            <div id="bracket-visualizer-content" class="d-none">
+                                <div class="mb-3">
+                                    <strong>Nhân viên: </strong> <span id="visual-emp-name" class="fw-bold">-</span>
+                                </div>
+                                <div class="brackets-list">
+                                    <div class="bracket-indicator" id="bracket-1">
+                                        <span>Bậc 1 (Đến 5 triệu - 5%)</span>
+                                        <span class="bracket-value" id="b1-val">0 VND</span>
+                                    </div>
+                                    <div class="bracket-indicator" id="bracket-2">
+                                        <span>Bậc 2 (Trên 5 - 10 triệu - 10%)</span>
+                                        <span class="bracket-value" id="b2-val">0 VND</span>
+                                    </div>
+                                    <div class="bracket-indicator" id="bracket-3">
+                                        <span>Bậc 3 (Trên 10 - 18 triệu - 15%)</span>
+                                        <span class="bracket-value" id="b3-val">0 VND</span>
+                                    </div>
+                                    <div class="bracket-indicator" id="bracket-4">
+                                        <span>Bậc 4 (Trên 18 - 32 triệu - 20%)</span>
+                                        <span class="bracket-value" id="b4-val">0 VND</span>
+                                    </div>
+                                    <div class="bracket-indicator" id="bracket-5">
+                                        <span>Bậc 5 (Trên 32 - 52 triệu - 25%)</span>
+                                        <span class="bracket-value" id="b5-val">0 VND</span>
+                                    </div>
+                                    <div class="bracket-indicator" id="bracket-6">
+                                        <span>Bậc 6 (Trên 52 - 80 triệu - 30%)</span>
+                                        <span class="bracket-value" id="b6-val">0 VND</span>
+                                    </div>
+                                    <div class="bracket-indicator" id="bracket-7">
+                                        <span>Bậc 7 (Trên 80 triệu - 35%)</span>
+                                        <span class="bracket-value" id="b7-val">0 VND</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- XML Form 05/QTT-TNCN Exporter -->
+                    <div class="card bg-glass shadow-sm border-0">
+                        <div class="card-body">
+                            <h5 class="fw-bold mb-3"><i class="bi bi-file-earmark-arrow-down-fill text-success"></i> Xuất Tờ Khai Quyết Toán 05/QTT-TNCN XML</h5>
+                            <div class="mb-3 row g-2">
+                                <div class="col-6">
+                                    <label class="form-label small text-secondary">Năm quyết toán</label>
+                                    <input type="text" class="form-control form-control-sm" id="xml-tax-year" value="2025">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small text-secondary">Kỳ tính thuế</label>
+                                    <select class="form-select form-select-sm" id="xml-period-type">
+                                        <option value="Y">Cả năm</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <button class="btn btn-success w-100 py-2 fw-bold" onclick="generateAndPreviewPitXml()">
+                                    <i class="bi bi-filetype-xml"></i> Tạo & Xem trước XML tờ khai
+                                </button>
+                            </div>
+                            <div class="d-none" id="xml-preview-area">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="small text-secondary fw-bold">Xem trước XML (chuẩn định dạng TCT)</span>
+                                    <button class="btn btn-sm btn-outline-success" onclick="downloadPitXmlFile()">
+                                        <i class="bi bi-download"></i> Tải file .xml
+                                    </button>
+                                </div>
+                                <pre class="xml-preview-container" id="xml-preview-box"></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 6: AI Tax Advisory & Defense RAG -->
+        <div class="tab-pane fade" id="rag-pane" role="tabpanel" aria-labelledby="rag-tab">
+            <div class="row g-4">
+                <!-- Left: AI Chat assistant -->
+                <div class="col-lg-6">
+                    <div class="card shadow-sm border-0 h-100 bg-glass card-hover-glow">
+                        <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center py-3">
+                            <h5 class="fw-bold mb-0 text-primary-emphasis"><i class="bi bi-cpu" aria-hidden="true"></i> Trợ lý Thuế AI (Local RAG Advisor)</h5>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-secondary-subtle text-secondary small">Model:</span>
+                                <select class="form-select form-select-sm bg-dark text-white border-secondary" id="rag-model-select" style="width: 120px;">
+                                    <option value="gemma:2b">Gemma 2B</option>
+                                    <option value="llama3">Llama 3</option>
+                                    <option value="qwen2:7b">Qwen 2 7B</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="card-body d-flex flex-column" style="height: 520px;">
+                            <!-- Chat message history -->
+                            <div class="flex-grow-1 overflow-auto mb-3 p-3 bg-dark bg-opacity-25 rounded d-flex flex-column gap-3" id="rag-chat-history" style="max-height: 400px;">
+                                <div class="d-flex align-items-start gap-2 max-w-75">
+                                    <div class="rounded-circle bg-primary text-white p-2 flex-shrink-0 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                                        <i class="bi bi-robot"></i>
+                                    </div>
+                                    <div class="p-3 rounded bg-secondary-subtle text-dark border">
+                                        <p class="mb-0 small">Xin chào! Tôi là Trợ lý Thuế AI của bạn. Tôi được trang bị RAG để tra cứu các văn bản pháp luật thuế Việt Nam (Nghị định 123, Nghị định 125, Thông tư 80, Thông tư 20...). Hãy đặt câu hỏi cho tôi!</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Chat Input area -->
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="rag-chat-input" placeholder="Nhập câu hỏi thuế của bạn tại đây..." onkeydown="if(event.key === 'Enter') sendRagQuestion()">
+                                <button class="btn btn-primary d-flex align-items-center gap-1" type="button" onclick="sendRagQuestion()" id="rag-send-btn">
+                                    <span>Gửi</span> <i class="bi bi-send-fill"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Defense Statement Form -->
+                <div class="col-lg-6">
+                    <div class="card shadow-sm border-0 h-100 bg-glass card-hover-glow">
+                        <div class="card-header bg-transparent border-0 py-3">
+                            <h5 class="fw-bold mb-0 text-success-emphasis"><i class="bi bi-file-earmark-medical" aria-hidden="true"></i> Soạn thảo Giải trình Thuế (NĐ 125/2020/NĐ-CP)</h5>
+                        </div>
+                        <div class="card-body d-flex flex-column justify-content-between" style="min-height: 520px;">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label class="form-label small text-secondary">Chọn Hóa đơn Giao dịch gặp Anomaly</label>
+                                    <select class="form-select form-select-sm" id="defense-invoice-select" onchange="updateDefenseInvoiceMeta()">
+                                        <option value="">-- Đang tải hóa đơn... --</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small text-secondary">Loại sai sót / Hành vi giải trình</label>
+                                    <select class="form-select form-select-sm" id="defense-issue-type">
+                                        <option value="Ký sai thời điểm">Ký sai thời điểm (Khai sai hóa đơn đầu ra/vào)</option>
+                                        <option value="Mã số thuế bên bán ngưng hoạt động">Nhà cung cấp ngưng hoạt động (Rủi ro MST)</option>
+                                        <option value="Chênh lệch giá trị và tiền thuế">Sai lệch toán học / Chênh lệch thuế suất</option>
+                                        <option value="Thiếu chứng từ thanh toán ngân hàng">Hóa đơn trên 20 triệu thanh toán tiền mặt</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small text-secondary">Nhà cung cấp / Đối tác</label>
+                                    <input type="text" class="form-control form-control-sm" id="defense-seller-name" placeholder="Công ty đối tác">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small text-secondary">Tổng số tiền thanh toán (VND)</label>
+                                    <input type="number" class="form-control form-control-sm" id="defense-amount" value="50000000">
+                                </div>
+                                <div class="col-md-6 d-flex align-items-end">
+                                    <button class="btn btn-success btn-sm w-100 py-2 fw-bold" onclick="generateDefenseLetter()" id="defense-gen-btn">
+                                        <i class="bi bi-magic"></i> Tạo Báo cáo / Biên bản Giải trình
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mt-3 flex-grow-1 d-flex flex-column">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="small text-secondary fw-bold">Nội dung dự thảo văn bản</span>
+                                    <div class="d-flex gap-2">
+                                        <button class="btn btn-sm btn-outline-secondary" onclick="copyDefenseLetter()">
+                                            <i class="bi bi-clipboard"></i> Copy
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-success" onclick="downloadDefenseLetter()">
+                                            <i class="bi bi-file-earmark-arrow-down"></i> Tải Txt
+                                        </button>
+                                    </div>
+                                </div>
+                                <textarea class="form-control font-monospace small bg-dark bg-opacity-10 text-dark flex-grow-1" id="defense-letter-preview" rows="8" readonly style="resize: none;"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
 
@@ -332,6 +750,72 @@
     align-items: center;
     justify-content: center;
 }
+.bento-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.split-pane-container {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+.split-pane-left {
+    flex: 1.3;
+    min-width: 0;
+}
+.split-pane-right {
+    flex: 0.7;
+    min-width: 0;
+    position: sticky;
+    top: 1.5rem;
+    align-self: flex-start;
+}
+.bracket-indicator {
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 6px;
+    background: rgba(108, 117, 125, 0.05);
+    border: 1px solid rgba(108, 117, 125, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.bracket-indicator.active {
+    background: rgba(99, 102, 241, 0.12) !important;
+    border-color: rgba(99, 102, 241, 0.3) !important;
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.08);
+}
+.xml-preview-container {
+    background: #1e1e2e;
+    color: #cdd6f4;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.85rem;
+    border-radius: 8px;
+    padding: 1rem;
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+@media (max-width: 991.98px) {
+    .bento-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .split-pane-container {
+        flex-direction: column;
+    }
+    .split-pane-right {
+        position: static;
+    }
+}
+@media (max-width: 575.98px) {
+    .bento-grid {
+        grid-template-columns: 1fr;
+    }
+}
 </style>
 
 <script>
@@ -346,6 +830,8 @@ function refreshAllData() {
     loadGraphAndFraudAlerts();
     loadInvoicesAndMerkle();
     loadCustomsDeclarations();
+    loadEcommerceReconciliation();
+    loadPayrollAudit();
 }
 
 // 1. Graph Fraud Detection
@@ -789,6 +1275,540 @@ function runCustomsReconciliation() {
             loadCustomsDeclarations();
         }
     });
+}
+
+// 4. E-Commerce Tax Reconciliation
+let selectedEcomOrder = null;
+
+function loadEcommerceReconciliation() {
+    const selector = document.getElementById("globalTaxpayerSelector");
+    const mst = window.activeTaxpayerMst || (selector ? selector.value : "");
+    if (!mst) return;
+
+    fetch(`/api/ecommerce/reconcile?taxpayer_mst=${mst}`)
+        .then(res => res.json())
+        .then(data => {
+            // Update Bento Cards
+            document.getElementById("ecom-total-orders").innerText = data.summary.total_platform_orders;
+            document.getElementById("ecom-matched-orders").innerText = data.summary.matched_orders;
+            document.getElementById("ecom-unmatched-orders").innerText = data.summary.unmatched_orders;
+            document.getElementById("ecom-price-mismatches").innerText = data.summary.price_mismatches;
+
+            // Render table
+            const tbody = document.getElementById("ecom-orders-table-body");
+            tbody.innerHTML = "";
+
+            if (!data.matches && !data.unmatched && !data.price_mismatches_details) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-secondary">Không có đơn hàng nào.</td></tr>`;
+                return;
+            }
+
+            // Combine all lists for table representation
+            const allOrders = [];
+            if (data.unmatched) {
+                data.unmatched.forEach(o => {
+                    allOrders.push({ ...o, status: "unmatched", badge: "bg-danger", statusText: "Chưa xuất HĐ", diff: o.gross_revenue, invNo: "N/A", invAmt: 0 });
+                });
+            }
+            if (data.price_mismatches_details) {
+                data.price_mismatches_details.forEach(o => {
+                    allOrders.push({ ...o, status: "mismatch", badge: "bg-warning text-dark", statusText: "Sai biệt giá", diff: o.discrepancy_amount, invNo: o.invoice_number, invAmt: o.invoice_amount });
+                });
+            }
+            if (data.matches) {
+                data.matches.forEach(o => {
+                    if (!allOrders.some(x => x.order_id === o.order_id)) {
+                        allOrders.push({ ...o, status: "matched", badge: "bg-success", statusText: "Khớp khớp", diff: 0, invNo: o.invoice_number, invAmt: o.invoice_amount });
+                    }
+                });
+            }
+
+            allOrders.forEach(o => {
+                const tr = document.createElement("tr");
+                tr.style.cursor = "pointer";
+                tr.onclick = () => selectEcommerceOrder(o);
+                tr.innerHTML = `
+                    <td class="font-monospace small fw-bold">${o.order_id}</td>
+                    <td><span class="badge bg-secondary-subtle text-secondary-emphasis">${o.platform.toUpperCase()}</span></td>
+                    <td class="small text-secondary">${o.date || o.order_date || ""}</td>
+                    <td class="text-end font-monospace small">${(o.gross_revenue || 0).toLocaleString()} VND</td>
+                    <td class="text-center"><span class="badge ${o.badge}">${o.statusText}</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        });
+}
+
+function triggerMockNormalize() {
+    const selector = document.getElementById("globalTaxpayerSelector");
+    const mst = window.activeTaxpayerMst || (selector ? selector.value : "");
+    if (!mst) return;
+
+    const mockLogs = [
+        {"order_id": "ORD-TIKTOK-4001", "order_date": "2025-06-01", "gross_revenue": 750000.0, "commission_fee": 22500.0, "platform": "tiktok"},
+        {"order_id": "ORD-LAZADA-5002", "order_date": "2025-06-02", "gross_revenue": 1400000.0, "commission_fee": 42000.0, "platform": "lazada"},
+        {"order_id": "ORD-SHOPEE-6003", "order_date": "2025-06-03", "gross_revenue": 950000.0, "commission_fee": 28500.0, "platform": "shopee"}
+    ];
+
+    fetch("/api/ecommerce/normalize-orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ taxpayer_mst: mst, raw_logs: mockLogs })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === "success") {
+            alert(`Chuẩn hóa thành công ${data.count} đơn hàng sàn!`);
+            loadEcommerceReconciliation();
+        } else {
+            alert(`Lỗi: ${data.error}`);
+        }
+    });
+}
+
+function selectEcommerceOrder(order) {
+    selectedEcomOrder = order;
+    document.getElementById("ecom-detail-empty").classList.add("d-none");
+    document.getElementById("ecom-detail-content").classList.remove("d-none");
+
+    document.getElementById("det-order-id").innerText = order.order_id;
+    document.getElementById("det-gross").innerText = (order.gross_revenue || 0).toLocaleString() + " VND";
+    document.getElementById("det-invoice-no").innerText = order.invNo;
+    document.getElementById("det-invoice-amt").innerText = (order.invAmt || 0).toLocaleString() + " VND";
+    document.getElementById("det-diff").innerText = (order.diff || 0).toLocaleString() + " VND";
+
+    const calcArea = document.getElementById("penalty-calculator-area");
+    const expArea = document.getElementById("explanation-area");
+    if (order.status === "matched") {
+        calcArea.classList.add("d-none");
+        expArea.classList.add("d-none");
+    } else {
+        calcArea.classList.remove("d-none");
+        expArea.classList.remove("d-none");
+        document.getElementById("penalty-result").classList.add("d-none");
+        generateEcommerceExplanation();
+    }
+}
+
+function calculateEcommercePenalties() {
+    if (!selectedEcomOrder) return;
+    const days = document.getElementById("delay-days").value || 30;
+    const unpaidTax = Math.round(selectedEcomOrder.diff * 0.1);
+
+    fetch("/api/audit/calculate-penalties", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            unpaid_tax_amount: unpaidTax,
+            delay_days: parseInt(days)
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === "success") {
+            document.getElementById("penalty-result").classList.remove("d-none");
+            document.getElementById("pen-admin").innerText = data.penalty_details.administrative_penalty.toLocaleString() + " VND";
+            document.getElementById("pen-interest").innerText = data.penalty_details.late_interest.toLocaleString() + " VND";
+            document.getElementById("pen-total").innerText = data.penalty_details.total_due.toLocaleString() + " VND";
+        }
+    });
+}
+
+function generateEcommerceExplanation() {
+    if (!selectedEcomOrder) return;
+    const issueType = selectedEcomOrder.status === "unmatched" ? "UNINVOICED_SALES_WARNING" : "PRICE_MISMATCH_WARNING";
+
+    fetch("/api/audit/generate-explanation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            taxpayer_mst: window.activeTaxpayerMst || "0109998887",
+            issue_type: issueType,
+            context_details: {
+                order_id: selectedEcomOrder.order_id,
+                discrepancy_value: selectedEcomOrder.diff,
+                platform: selectedEcomOrder.platform
+            }
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === "success") {
+            document.getElementById("explanation-text").value = data.explanation_letter;
+        }
+    });
+}
+
+function copyExplanationText() {
+    const el = document.getElementById("explanation-text");
+    el.select();
+    document.execCommand("copy");
+    alert("Đã sao chép văn bản giải trình thuế vào clipboard!");
+}
+
+// 5. Payroll & PIT Audit
+let payrollSummaryData = null;
+let selectedEmployee = null;
+let generatedXmlString = "";
+
+function loadPayrollAudit() {
+    const selector = document.getElementById("globalTaxpayerSelector");
+    const mst = window.activeTaxpayerMst || (selector ? selector.value : "");
+    if (!mst) return;
+
+    fetch("/api/payroll/audit-summary", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ taxpayer_mst: mst })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === "success") {
+            payrollSummaryData = data;
+            
+            document.getElementById("payroll-total-salary").innerText = data.summary.total_gross_salary.toLocaleString() + " VND";
+            document.getElementById("payroll-total-pit").innerText = data.summary.total_pit_withheld.toLocaleString() + " VND";
+            document.getElementById("payroll-pit-warnings").innerText = data.summary.discrepant_count;
+            document.getElementById("payroll-si-compliance").innerText = (data.summary.si_compliance_rate * 100).toFixed(0) + "%";
+
+            const tbody = document.getElementById("payroll-employees-table-body");
+            tbody.innerHTML = "";
+
+            if (!data.employee_audit || data.employee_audit.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-secondary">Không có dữ liệu nhân viên nào.</td></tr>`;
+                return;
+            }
+
+            data.employee_audit.forEach(emp => {
+                let warningBadge = `<span class="badge bg-success">An toàn</span>`;
+                if (emp.pit_discrepancy > 0 || emp.si_discrepancy > 0) {
+                    let warnings = [];
+                    if (emp.pit_discrepancy > 0) warnings.push("Lệch PIT");
+                    if (emp.si_discrepancy > 0) warnings.push("Lệch BHXH");
+                    warningBadge = `<span class="badge bg-danger">${warnings.join(" & ")}</span>`;
+                }
+
+                const tr = document.createElement("tr");
+                tr.style.cursor = "pointer";
+                tr.onclick = () => selectEmployeePayroll(emp);
+                tr.innerHTML = `
+                    <td class="font-monospace small fw-bold">${emp.employee_id}</td>
+                    <td class="small fw-semibold">${emp.name}</td>
+                    <td class="text-end font-monospace small">${emp.taxable_income.toLocaleString()} VND</td>
+                    <td class="text-end font-monospace small text-primary">${emp.pit_withheld.toLocaleString()} VND</td>
+                    <td class="text-center">${warningBadge}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+    });
+}
+
+function selectEmployeePayroll(emp) {
+    selectedEmployee = emp;
+    document.getElementById("bracket-visualizer-empty").classList.add("d-none");
+    document.getElementById("bracket-visualizer-content").classList.remove("d-none");
+
+    document.getElementById("visual-emp-name").innerText = emp.name;
+
+    for (let i = 1; i <= 7; i++) {
+        document.getElementById(`bracket-${i}`).classList.remove("active");
+        document.getElementById(`b${i}-val`).innerText = "0 VND";
+    }
+
+    const monthlyIncome = Math.max(0, (emp.taxable_income / 12) - 11000000 - (emp.dependents * 4400000));
+    
+    const brackets = [
+        { limit: 5000000, rate: 0.05 },
+        { limit: 10000000, rate: 0.10 },
+        { limit: 18000000, rate: 0.15 },
+        { limit: 32000000, rate: 0.20 },
+        { limit: 52000000, rate: 0.25 },
+        { limit: 80000000, rate: 0.30 },
+        { limit: Infinity, rate: 0.35 }
+    ];
+
+    let tempIncome = monthlyIncome;
+    let prevLimit = 0;
+
+    for (let i = 0; i < brackets.length; i++) {
+        const bracket = brackets[i];
+        const range = bracket.limit - prevLimit;
+        if (tempIncome > 0) {
+            const taxedAmount = Math.min(tempIncome, range);
+            document.getElementById(`b${i+1}-val`).innerText = Math.round(taxedAmount * 12).toLocaleString() + " VND (Năm)";
+            document.getElementById(`bracket-${i+1}`).classList.add("active");
+            tempIncome -= taxedAmount;
+        } else {
+            break;
+        }
+        prevLimit = bracket.limit;
+    }
+}
+
+function generateAndPreviewPitXml() {
+    const selector = document.getElementById("globalTaxpayerSelector");
+    const mst = window.activeTaxpayerMst || (selector ? selector.value : "0109998887");
+    const year = document.getElementById("xml-tax-year").value || "2025";
+
+    fetch("/api/payroll/export-pit-xml", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            taxpayer_mst: mst,
+            tax_year: parseInt(year)
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === "success") {
+            generatedXmlString = data.xml_content;
+            document.getElementById("xml-preview-area").classList.remove("d-none");
+            
+            const safeXml = generatedXmlString
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;");
+            
+            document.getElementById("xml-preview-box").innerHTML = safeXml;
+        } else {
+            alert(`Lỗi: ${data.error}`);
+        }
+    });
+}
+
+function downloadPitXmlFile() {
+    if (!generatedXmlString) return;
+    const year = document.getElementById("xml-tax-year").value || "2025";
+    const blob = new Blob([generatedXmlString], { type: "application/xml" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `05-QTT-TNCN_${year}_${window.activeTaxpayerMst || '0109998887'}.xml`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// 6. AI Tax Advisory & Defense RAG
+let ragInvoicesList = [];
+
+function initRagAdvisory() {
+    const selector = document.getElementById("globalTaxpayerSelector");
+    const mst = window.activeTaxpayerMst || (selector ? selector.value : "");
+    if (!mst) return;
+
+    // Load active taxpayer's invoices for defense letter form dropdown
+    fetch(`/api/invoices?taxpayer_mst=${mst}`)
+        .then(res => res.json())
+        .then(data => {
+            const selectEl = document.getElementById("defense-invoice-select");
+            selectEl.innerHTML = '<option value="">-- Chọn Hóa Đơn --</option>';
+            
+            if (!data.invoices || data.invoices.length === 0) {
+                selectEl.innerHTML = '<option value="">-- Không tìm thấy hóa đơn nào --</option>';
+                ragInvoicesList = [];
+                return;
+            }
+
+            ragInvoicesList = data.invoices;
+            data.invoices.forEach(inv => {
+                const opt = document.createElement("option");
+                opt.value = inv.id;
+                opt.innerText = `HĐ số ${inv.number || 'N/A'} - ${inv.seller_name} (${(inv.amount_before_tax + inv.tax_amount).toLocaleString()} VND)`;
+                selectEl.appendChild(opt);
+            });
+        });
+}
+
+function updateDefenseInvoiceMeta() {
+    const invoiceId = document.getElementById("defense-invoice-select").value;
+    if (!invoiceId) return;
+
+    const inv = ragInvoicesList.find(x => x.id === invoiceId);
+    if (inv) {
+        document.getElementById("defense-seller-name").value = inv.seller_name;
+        document.getElementById("defense-amount").value = inv.amount_before_tax + inv.tax_amount;
+    }
+}
+
+function sendRagQuestion() {
+    const inputEl = document.getElementById("rag-chat-input");
+    const question = inputEl.value.trim();
+    if (!question) return;
+
+    const modelSelect = document.getElementById("rag-model-select");
+    const model = modelSelect ? modelSelect.value : "gemma:2b";
+
+    // Add user message to history UI
+    const chatHistory = document.getElementById("rag-chat-history");
+    const userMsg = document.createElement("div");
+    userMsg.className = "d-flex align-items-start gap-2 justify-content-end max-w-75 ms-auto";
+    userMsg.innerHTML = `
+        <div class="p-3 rounded bg-primary text-white">
+            <p class="mb-0 small">${escapeHtml(question)}</p>
+        </div>
+        <div class="rounded-circle bg-secondary text-dark p-2 flex-shrink-0 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+            <i class="bi bi-person-fill text-white"></i>
+        </div>
+    `;
+    chatHistory.appendChild(userMsg);
+    chatHistory.scrollTop = chatHistory.scrollHeight;
+
+    // Clear input
+    inputEl.value = "";
+
+    // Show AI typing placeholder
+    const aiPlaceholder = document.createElement("div");
+    aiPlaceholder.className = "d-flex align-items-start gap-2 max-w-75";
+    aiPlaceholder.id = "rag-ai-typing";
+    aiPlaceholder.innerHTML = `
+        <div class="rounded-circle bg-primary text-white p-2 flex-shrink-0 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+            <i class="bi bi-robot"></i>
+        </div>
+        <div class="p-3 rounded bg-secondary-subtle text-dark border">
+            <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+            <span class="small ms-2">Đang suy nghĩ và tra cứu RAG...</span>
+        </div>
+    `;
+    chatHistory.appendChild(aiPlaceholder);
+    chatHistory.scrollTop = chatHistory.scrollHeight;
+
+    // Call API
+    fetch("/api/audit/tax-rag-query", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: question, model: model })
+    })
+    .then(res => res.json())
+    .then(data => {
+        // Remove typing placeholder
+        const typingEl = document.getElementById("rag-ai-typing");
+        if (typingEl) typingEl.remove();
+
+        const aiResponse = document.createElement("div");
+        aiResponse.className = "d-flex align-items-start gap-2 max-w-75";
+        
+        let answer = data.answer || "Không nhận được phản hồi từ hệ thống RAG.";
+        let citationsHtml = "";
+        
+        // Render citations/sources if available
+        if (data.citations && data.citations.length > 0) {
+            citationsHtml = `<div class="mt-2 pt-2 border-top small text-secondary">
+                <strong>Nguồn trích dẫn:</strong><ul class="mb-0 ps-3">`;
+            data.citations.forEach(c => {
+                citationsHtml += `<li>${escapeHtml(c)}</li>`;
+            });
+            citationsHtml += `</ul></div>`;
+        }
+
+        aiResponse.innerHTML = `
+            <div class="rounded-circle bg-primary text-white p-2 flex-shrink-0 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                <i class="bi bi-robot"></i>
+            </div>
+            <div class="p-3 rounded bg-secondary-subtle text-dark border">
+                <p class="mb-0 small">${escapeHtml(answer).replace(/\n/g, '<br>')}</p>
+                ${citationsHtml}
+            </div>
+        `;
+        chatHistory.appendChild(aiResponse);
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+    })
+    .catch(err => {
+        const typingEl = document.getElementById("rag-ai-typing");
+        if (typingEl) typingEl.remove();
+
+        const aiResponse = document.createElement("div");
+        aiResponse.className = "d-flex align-items-start gap-2 max-w-75";
+        aiResponse.innerHTML = `
+            <div class="rounded-circle bg-danger text-white p-2 flex-shrink-0 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                <i class="bi bi-exclamation-triangle"></i>
+            </div>
+            <div class="p-3 rounded bg-danger-subtle text-danger border">
+                <p class="mb-0 small">Lỗi kết nối hoặc xử lý RAG: ${escapeHtml(err.message)}</p>
+            </div>
+        `;
+        chatHistory.appendChild(aiResponse);
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+    });
+}
+
+function generateDefenseLetter() {
+    const invoiceSelect = document.getElementById("defense-invoice-select");
+    const invoiceId = invoiceSelect.value;
+    if (!invoiceId) {
+        alert("Vui lòng chọn một hóa đơn gặp anomaly!");
+        return;
+    }
+
+    const issueType = document.getElementById("defense-issue-type").value;
+    const seller = document.getElementById("defense-seller-name").value;
+    const amount = parseFloat(document.getElementById("defense-amount").value) || 0;
+    
+    const selector = document.getElementById("globalTaxpayerSelector");
+    const mst = window.activeTaxpayerMst || (selector ? selector.value : "0109998887");
+
+    const genBtn = document.getElementById("defense-gen-btn");
+    genBtn.disabled = true;
+    genBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status"></span> Đang tạo...`;
+
+    fetch("/api/audit/draft-defense-letter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            invoice_id: invoiceId,
+            issue_type: issueType,
+            seller: seller,
+            amount: amount,
+            taxpayer_mst: mst
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        genBtn.disabled = false;
+        genBtn.innerHTML = `<i class="bi bi-magic"></i> Tạo Báo cáo / Biên bản Giải trình`;
+        
+        if (data.status === "success") {
+            document.getElementById("defense-letter-preview").value = data.draft_letter;
+        } else {
+            alert(`Lỗi: ${data.error}`);
+        }
+    })
+    .catch(err => {
+        genBtn.disabled = false;
+        genBtn.innerHTML = `<i class="bi bi-magic"></i> Tạo Báo cáo / Biên bản Giải trình`;
+        alert("Có lỗi xảy ra khi tạo văn bản giải trình.");
+    });
+}
+
+function copyDefenseLetter() {
+    const el = document.getElementById("defense-letter-preview");
+    if (!el.value) return;
+    el.select();
+    document.execCommand("copy");
+    alert("Đã sao chép nội dung văn bản giải trình thuế!");
+}
+
+function downloadDefenseLetter() {
+    const text = document.getElementById("defense-letter-preview").value;
+    if (!text) return;
+    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `Bien_ban_Giai_trinh_HĐ_${document.getElementById("defense-invoice-select").value || 'Anomaly'}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function escapeHtml(text) {
+    if (!text) return "";
+    return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
 }
 </script>
 {% endblock %}

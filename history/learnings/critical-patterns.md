@@ -96,5 +96,35 @@ To identify systemic VAT fraud rings and guarantee tax ledger integrity:
 
 **Full entry:** [20260604-v21_roadmap.md](file:///d:/LearnAnyThing/Webapp%20XML/history/learnings/20260604-v21_roadmap.md)
 
+---
+
+## [20260604] Unified E-Commerce Normalization & Statutory Penalty Simulation
+**Category:** pattern
+**Feature:** v22_roadmap
+**Tags:** [ecommerce-reconciliation, tax-penalties, pit-finalization, decree-125]
+
+To handle multi-platform e-commerce audits and statutory penalty predictions:
+- Map platform-specific keys (e.g. Lazada's `gross_revenue` vs Shopee's item price) into a standardized transaction ledger to isolate normalization from downstream matching algorithms.
+- Run late-payment penalty simulation beginning the 0.03% daily interest accrual precisely on `due_date + 1` pursuant to Decree 125/2020/NĐ-CP.
+- Implement progressive PIT tier calculations using a lookup table of boundaries, and compile Form 05/QTT-TNCN XML returns conforming to GDT's HTKK layout structure.
+
+**Full entry:** [20260604-v22_roadmap.md](file:///d:/LearnAnyThing/Webapp%20XML/history/learnings/20260604-v22_roadmap.md)
+
+---
+
+## [20260605] Secure API Gateway, Webhook Retry & Resilient Tax RAG
+**Category:** pattern
+**Feature:** v23_roadmap
+**Tags:** [hmac-signatures, webhooks-backoff, local-rag, circular-80]
+
+To build secure integration channels and resilient offline tax regulations RAG:
+- Authorize API requests via HMAC-SHA256 request signing over a `timestamp + "." + query_string_or_body` payload, rejecting requests with timestamp deviation > 300 seconds.
+- Execute exponential retry backoffs for webhooks (delay = $2^{retry} \times 10$ seconds) capped at 3 retries before marking as degraded.
+- Embed fallback regex and keyword lookups in RAG interfaces to return local tax decree answers if the Ollama service is unreachable.
+- Enforce non-cash payment rules by cross-matching customs imports and domestic VAT invoices with bank transaction ledgers for any refund claim > 20M VND.
+
+**Full entry:** [20260605-v23_roadmap.md](file:///d:/LearnAnyThing/Webapp%20XML/history/learnings/20260605-v23_roadmap.md)
+
+
 
 

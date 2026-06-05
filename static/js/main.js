@@ -4116,6 +4116,11 @@ async function handleSwitchTaxpayerProfile(mst) {
             if (document.getElementById("vat-refund-content") && document.getElementById("vat-refund-content").classList.contains("show")) {
                 loadVATRefundData();
             }
+            
+            // If Advanced Audit page is active, reload
+            if (typeof refreshAllData === "function") {
+                refreshAllData();
+            }
             renderAlert(`Đã chuyển sang doanh nghiệp: ${mst === "all" ? "Tất cả" : mst}`, "success");
         }
     } catch (error) {

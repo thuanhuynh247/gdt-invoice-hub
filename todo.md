@@ -203,6 +203,22 @@ Kế hoạch này theo sát tài liệu **Next-Gen Roadmap** và cấu trúc l�
 - [x] **Task 107 (US-334)**: Customs XML Declaration Parser (Bộ biên dịch tờ khai hải quan nhập khẩu XML trích xuất trị giá tính thuế và mã HS).
 - [x] **Task 108 (US-335)**: Import VAT Reconciliation & Mitigation (Tự động đối chiếu chênh lệch thuế GTGT hàng nhập khẩu và đề xuất giảm thiểu rủi ro).
 
+### 🚀 Giai Đoạn 27: Statutory Tax Penalty & E-Commerce Reconciler (v22.0.0 Roadmap / E97-E99)
+- [x] **Task 109 (US-340)**: Statutory Tax Penalty & Interest Calculator (Decree 125/2020/NĐ-CP).
+- [x] **Task 110 (US-341)**: AI-Generated Audit Explanation & Defense Template Builder.
+- [x] **Task 111 (US-342)**: Shopee, Lazada & TikTok Shop Order Normalizer.
+- [x] **Task 112 (US-343)**: E-Commerce Tax Compliance Matching & Warning Engine.
+- [x] **Task 113 (US-344)**: Interactive Payroll Audit Dashboard.
+- [x] **Task 114 (US-345)**: PIT Finalizer & Form 05/QTT-TNCN UI.
+
+### 🚀 Giai Đoạn 28: Exporter VAT Refund, ERP Webhooks & Local Ollama Tax RAG (v23.0.0 Roadmap / E100-E102)
+- [x] **Task 115 (US-350)**: Input VAT Evaluator Engine (Circular 80/2021/TT-BTC).
+- [x] **Task 116 (US-351)**: Form 01/ĐNHT Refund Packet Wizard.
+- [x] **Task 117 (US-352)**: Secure Versioned REST API Gateway.
+- [x] **Task 118 (US-353)**: ERP Webhook Dispatcher & Registry.
+- [x] **Task 119 (US-354)**: Offline Ollama Tax Regulations RAG.
+- [x] **Task 120 (US-355)**: Advisory Chat & Defense Panel UI.
+
 
 
 
