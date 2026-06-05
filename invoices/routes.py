@@ -8084,3 +8084,179 @@ def api_compliance_defense_compose():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
+# ── Version 27.0.0 Advanced Compliance & Tax Advisory Endpoints ────────────────
+
+@invoices_blueprint.get("/v27-compliance")
+def v27_compliance_page():
+    """Render the Version 27.0.0 compliance, risk radar, and treasury simulation screen."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("v27_compliance.html")
+
+
+@invoices_blueprint.post("/api/compliance/pxk-parse")
+def api_compliance_pxk_parse():
+    """US-390: Parse and validate official electronic delivery note XML."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    xml_content = body.get("xml_content", "")
+    if not xml_content:
+        return jsonify({"error": "Thiếu dữ liệu xml_content"}), 400
+
+    from invoices.v27_service import parse_delivery_note_xml
+    try:
+        parsed = parse_delivery_note_xml(xml_content)
+        return jsonify(parsed)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/compliance/pxk-reconcile")
+def api_compliance_pxk_reconcile():
+    """US-391: Reconcile delivery note items against commercial invoices."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    delivery_notes = body.get("delivery_notes") or []
+    invoices = body.get("invoices") or []
+
+    from invoices.v27_service import reconcile_delivery_to_invoice
+    try:
+        report = reconcile_delivery_to_invoice(delivery_notes, invoices)
+        return jsonify(report)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/compliance/pxk-export-csv")
+def api_compliance_pxk_export_csv():
+    """US-391: Export reconciliation differences as a CSV report."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    delivery_notes = body.get("delivery_notes") or []
+    invoices = body.get("invoices") or []
+
+    from invoices.v27_service import reconcile_delivery_to_invoice, export_delivery_reconciliation_csv
+    try:
+        report = reconcile_delivery_to_invoice(delivery_notes, invoices)
+        csv_data = export_delivery_reconciliation_csv(report)
+        return Response(
+            csv_data,
+            mimetype="text/csv",
+            headers={"Content-disposition": "attachment; filename=pxk_reconciliation_report.csv"}
+        )
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/compliance/pre-audit-risk")
+def api_compliance_pre_audit_risk():
+    """US-392: Calculate the pre-audit corporate tax risk scorecard."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    invoices = body.get("invoices") or []
+    related_party_context = body.get("related_party_context") or {}
+    profile = {
+        "mst": session.get("taxpayer_mst") or "0109999999",
+        "company_name": session.get("company_name") or "Công ty TNHH Ánh Sáng"
+    }
+
+    from invoices.v27_service import calculate_pre_audit_risk
+    try:
+        report = calculate_pre_audit_risk(profile, invoices, related_party_context)
+        return jsonify(report)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/compliance/risk-radar-svg")
+def api_compliance_risk_radar_svg():
+    """US-393: Generate dynamic SVG risk radar chart markup."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    scores = body.get("scores") or {}
+
+    from invoices.v27_service import generate_svg_radar_chart
+    try:
+        svg_markup = generate_svg_radar_chart(scores)
+        return jsonify({"svg_markup": svg_markup})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/compliance/econtract-parse")
+def api_compliance_econtract_parse():
+    """US-394: Parse electronic contract structured metadata."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    json_content = body.get("json_content", "")
+    if not json_content:
+        return jsonify({"error": "Thiếu dữ liệu json_content"}), 400
+
+    from invoices.v27_service import parse_econtract_metadata
+    try:
+        parsed = parse_econtract_metadata(json_content)
+        return jsonify(parsed)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/compliance/econtract-reconcile")
+def api_compliance_econtract_reconcile():
+    """US-394: Reconcile contract milestones with invoices and payments."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    contract = body.get("contract") or {}
+    invoices = body.get("invoices") or []
+    payments = body.get("payments") or []
+
+    from invoices.v27_service import reconcile_contract_milestones
+    try:
+        report = reconcile_contract_milestones(contract, invoices, payments)
+        return jsonify(report)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/compliance/treasury-forecast")
+def api_compliance_treasury_forecast():
+    """US-395: Smart treasury forecast scenario simulation."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    milestones = body.get("milestones") or []
+    invoices = body.get("invoices") or []
+    starting_cash = body.get("starting_cash", 1000000000.0)
+    delay_days = body.get("delay_days", 0)
+    cit_discount = body.get("cit_discount", 0.0)
+
+    from invoices.v27_service import simulate_treasury_forecast
+    try:
+        forecast = simulate_treasury_forecast(milestones, invoices, starting_cash, delay_days, cit_discount)
+        return jsonify(forecast)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
