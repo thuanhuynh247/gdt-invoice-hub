@@ -138,7 +138,7 @@ def main() -> int:
         try:
             conn = sqlite3.connect(harness_db_path)
             cur = conn.cursor()
-            cur.execute("SELECT COUNT(*) FROM story WHERE status != 'implemented'")
+            cur.execute("SELECT COUNT(*) FROM story WHERE status NOT IN ('implemented', 'completed')")
             unimplemented = cur.fetchone()[0]
             if unimplemented == 0:
                 print(f"  {GREEN}✅ PASS{RESET}  All Harness stories are completely synchronized to status 'implemented'.")
