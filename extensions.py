@@ -93,6 +93,12 @@ class TenantRoutingSession(FlaskSQLAlchemySession):
                                     conn.execute(text("ALTER TABLE invoice ADD COLUMN erp_sync_date VARCHAR(50) NULL;"))
                                 if "erp_sync_error" not in cols:
                                     conn.execute(text("ALTER TABLE invoice ADD COLUMN erp_sync_error TEXT NULL;"))
+                                if "merkle_hash" not in cols:
+                                    conn.execute(text("ALTER TABLE invoice ADD COLUMN merkle_hash VARCHAR(64) NULL;"))
+                                if "merkle_root" not in cols:
+                                    conn.execute(text("ALTER TABLE invoice ADD COLUMN merkle_root VARCHAR(64) NULL;"))
+                                if "merkle_index" not in cols:
+                                    conn.execute(text("ALTER TABLE invoice ADD COLUMN merkle_index INTEGER NULL;"))
                                     
                             # 4. Line Item table checks
                             res_item = conn.execute(text("PRAGMA table_info(line_item);")).fetchall()
