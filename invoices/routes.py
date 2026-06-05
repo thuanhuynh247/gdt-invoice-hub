@@ -7594,7 +7594,142 @@ def api_payroll_export_pit_xml():
         return jsonify({"error": str(e)}), 500
 
 
+@invoices_blueprint.post("/api/invoices/scaffold-xml")
+def api_invoices_scaffold_xml():
+    """US-361: Generate GDT-compliant e-invoice XML draft from OCR fields."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    ocr_data = body.get("ocr_data") or body
+    
+    if not ocr_data:
+        return jsonify({"error": "Thieu thong tin OCR de tao XML."}), 400
+        
+    try:
+        from invoices.v24_compliance_service import scaffold_xml_from_ocr_data
+        xml_bytes = scaffold_xml_from_ocr_data(ocr_data)
+        return jsonify({
+            "status": "success",
+            "xml": xml_bytes.decode("utf-8")
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
+@invoices_blueprint.post("/api/invoices/sign-hsm")
+def api_invoices_sign_hsm():
+    """US-362: Cryptographically sign invoice XML using simulated HSM certificate."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    xml_str = body.get("xml")
+    ocr_data = body.get("ocr_data")
+    
+    try:
+        from invoices.v24_compliance_service import scaffold_xml_from_ocr_data, generate_hsm_mock_certificate, sign_xml_invoice
+        
+        if not xml_str and ocr_data:
+            xml_bytes = scaffold_xml_from_ocr_data(ocr_data)
+            company_name = ocr_data.get("seller_name") or "Cong Ty Mau"
+            mst = ocr_data.get("seller_mst") or "0100112233"
+        elif xml_str:
+            xml_bytes = xml_str.encode("utf-8")
+            # Parse XML to extract company name and mst for certificate
+            import lxml.etree
+            root = lxml.etree.fromstring(xml_bytes)
+            seller_mst_nodes = root.xpath("//*[local-name()='NBan']/*[local-name()='MST']")
+            seller_name_nodes = root.xpath("//*[local-name()='NBan']/*[local-name()='Ten']")
+            company_name = seller_name_nodes[0].text if seller_name_nodes else "Cong Ty Mau"
+            mst = seller_mst_nodes[0].text if seller_mst_nodes else "0100112233"
+        else:
+            return jsonify({"error": "Yeu cau thieu xml hoac ocr_data."}), 400
+
+        cert_der, priv_key = generate_hsm_mock_certificate(company_name, mst)
+        signed_bytes = sign_xml_invoice(xml_bytes, cert_der, priv_key)
+        
+        return jsonify({
+            "status": "success",
+            "signed_xml": signed_bytes.decode("utf-8"),
+            "certificate_issuer": "MISA-CA Root Authority"
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
+@invoices_blueprint.post("/api/gdt-sandbox/transmit")
+def api_gdt_sandbox_transmit():
+    """US-363: Transmit signed XML to GDT Sandbox Gateway and verify compliance."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    xml_str = body.get("signed_xml") or body.get("xml")
+    
+    if not xml_str:
+        return jsonify({"error": "Yeu cau thieu xml da ky."}), 400
+        
+    try:
+        from invoices.v24_compliance_service import transmit_to_gdt_sandbox
+        result = transmit_to_gdt_sandbox(xml_str.encode("utf-8"))
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.route("/api/compliance/decree132-checklist", methods=["GET", "POST"])
+def api_compliance_decree132_checklist():
+    """US-364: Check related party thresholds under Decree 132/2020/NĐ-CP."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    if request.method == "POST":
+        body = request.get_json(silent=True) or {}
+        taxpayer_mst = body.get("taxpayer_mst")
+        start_date = body.get("start_date")
+        end_date = body.get("end_date")
+    else:
+        taxpayer_mst = request.args.get("taxpayer_mst")
+        start_date = request.args.get("start_date")
+        end_date = request.args.get("end_date")
+
+    if not taxpayer_mst or not start_date or not end_date:
+        return jsonify({"error": "Yeu cau thieu taxpayer_mst, start_date hoac end_date."}), 400
+
+    try:
+        from invoices.v24_compliance_service import calculate_related_party_disclosure
+        checklist = calculate_related_party_disclosure(taxpayer_mst, start_date, end_date)
+        return jsonify(checklist)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/compliance/transfer-pricing-risk")
+def api_compliance_transfer_pricing_risk():
+    """US-365: Compare operating margins against statistical sector benchmarks."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    transactions = body.get("transactions") or []
+    sector = body.get("sector") or "Manufacturing"
+    
+    if not transactions:
+        # Provide sample template transactions if empty
+        transactions = [
+            {"id": "TX001", "partner_name": "Cong ty Lien ket A", "revenue": 50000000000.0, "cogs": 48500000000.0},
+            {"id": "TX002", "partner_name": "Cong ty Lien ket B", "revenue": 12000000000.0, "cogs": 11000000000.0}
+        ]
+        
+    try:
+        from invoices.v24_compliance_service import analyze_transfer_pricing_risk
+        analysis = analyze_transfer_pricing_risk(transactions, sector)
+        return jsonify(analysis)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

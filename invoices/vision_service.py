@@ -1,5 +1,6 @@
 """Vision LLM service for OCR and data extraction from paper invoices."""
 
+from __future__ import annotations
 import base64
 import json
 import uuid
@@ -15,7 +16,7 @@ def get_setting(key: str, default: Any = "") -> Any:
     return config.value if config else default
 
 class VisionOCRService:
-    """Service to process images/PDFs and extract invoice data using Gemini/Ollama."""
+    """Service to process images/PDFs and extract invoice data using Gemini/Ollama with confidence levels."""
 
     def __init__(self):
         self.ai_provider = get_setting("ai_provider", "ollama")
@@ -30,7 +31,7 @@ class VisionOCRService:
         # Ensure we can return a valid structure even if AI fails
         default_mock_response = self._generate_mock_data(filename)
         
-        # Real integration with Gemini would look like this:
+        # Real integration with Gemini/Ollama:
         if self.ai_provider == "gemini" and self.api_key:
             return self._call_gemini_vision(file_bytes, mime_type)
         elif self.ai_provider == "ollama" and "llava" in get_setting("ai_model_name", "").lower():
@@ -58,6 +59,7 @@ class VisionOCRService:
             - amount_before_tax (Number)
             - tax_amount (Number)
             - total_amount (Number)
+            - confidence_scores: A dictionary containing the estimated confidence score (float between 0.0 and 1.0) for each of the fields above.
             """
             
             image_parts = [{"mime_type": mime_type, "data": file_bytes}]
@@ -82,7 +84,7 @@ class VisionOCRService:
             b64_image = base64.b64encode(file_bytes).decode('utf-8')
             payload = {
                 "model": "llava",
-                "prompt": "Extract the invoice number, date, seller name, total amount from this image. Output as JSON.",
+                "prompt": "Extract the invoice number, date, seller name, total amount, and confidence scores (0.0-1.0) for each field. Output as JSON.",
                 "images": [b64_image],
                 "stream": False,
                 "format": "json"
@@ -109,5 +111,16 @@ class VisionOCRService:
             "tax_amount": 1000000,
             "total_amount": 11000000,
             "is_vision_extracted": True,  # Flag for human verification
-            "filename": filename
+            "filename": filename,
+            "confidence_scores": {
+                "number": 0.98,
+                "date": 0.95,
+                "seller_name": 0.92,
+                "seller_mst": 0.99,
+                "buyer_name": 0.94,
+                "buyer_mst": 0.99,
+                "amount_before_tax": 0.97,
+                "tax_amount": 0.97,
+                "total_amount": 0.98
+            }
         }
