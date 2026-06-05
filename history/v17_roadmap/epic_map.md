@@ -25,12 +25,12 @@ Establish a compliant, automated, and secure enterprise financial tax compliance
 
 | Story ID | Title | Epic | Status | Dependencies |
 | --- | --- | --- | --- | --- |
-| `US-200` | Statutory Financial Statements (BCTC) Scaffolder | E82 | Todo | None |
-| `US-201` | Trial Balance & Ledger Integrity Auditor | E82 | Todo | None |
-| `US-202` | GDT Tax Payment Slip Scaffolder (Form 711/MB) | E83 | Todo | None |
-| `US-203` | Corporate Banking Transaction Reconciler | E83 | Todo | None |
-| `US-204` | E-Commerce Seller Portal Invoice Synchronizer | E84 | Todo | None |
-| `US-205` | Multi-Channel Revenue & Tax Reconciliation Engine | E84 | Todo | None |
+| `US-200` | Statutory Financial Statements (BCTC) Scaffolder | E82 | ✅ Completed | None |
+| `US-201` | Trial Balance & Ledger Integrity Auditor | E82 | ✅ Completed | None |
+| `US-202` | GDT Tax Payment Slip Scaffolder (Form 711/MB) | E83 | ✅ Completed | None |
+| `US-203` | Corporate Banking Transaction Reconciler | E83 | ✅ Completed | None |
+| `US-204` | E-Commerce Seller Portal Invoice Synchronizer | E84 | ✅ Completed | None |
+| `US-205` | Multi-Channel Revenue & Tax Reconciliation Engine | E84 | ✅ Completed | None |
 
 ---
 

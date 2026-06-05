@@ -58,9 +58,9 @@ timeline
 
 | Epic ID | Epic Title | Story ID | Story Title | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **E103** | AI OCR & Intelligent Document Processing | **US-360** | Physical Invoice Image OCR Pipeline | ⏳ To Do |
-| **E103** | AI OCR & Intelligent Document Processing | **US-361** | Automated XML Scaffold from Image OCR | ⏳ To Do |
-| **E104** | Secure e-Invoice Signing & Transmission | **US-362** | PKCS#11 HSM Cryptographic Signing Module | ⏳ To Do |
-| **E104** | Secure e-Invoice Signing & Transmission | **US-363** | Mock GDT Receiving Gateway Transmission Sandbox | ⏳ To Do |
-| **E105** | Related-Party & Transfer Pricing Analytics | **US-364** | Related Party Transaction Disclosure Checklist | ⏳ To Do |
-| **E105** | Related-Party & Transfer Pricing Analytics | **US-365** | Transfer Pricing Markup Risk Engine | ⏳ To Do |
+| **E103** | AI OCR & Intelligent Document Processing | **US-360** | Physical Invoice Image OCR Pipeline | ✅ Completed |
+| **E103** | AI OCR & Intelligent Document Processing | **US-361** | Automated XML Scaffold from Image OCR | ✅ Completed |
+| **E104** | Secure e-Invoice Signing & Transmission | **US-362** | PKCS#11 HSM Cryptographic Signing Module | ✅ Completed |
+| **E104** | Secure e-Invoice Signing & Transmission | **US-363** | Mock GDT Receiving Gateway Transmission Sandbox | ✅ Completed |
+| **E105** | Related-Party & Transfer Pricing Analytics | **US-364** | Related Party Transaction Disclosure Checklist | ✅ Completed |
+| **E105** | Related-Party & Transfer Pricing Analytics | **US-365** | Transfer Pricing Markup Risk Engine | ✅ Completed |

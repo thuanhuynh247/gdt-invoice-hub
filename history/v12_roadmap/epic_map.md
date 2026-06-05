@@ -25,12 +25,12 @@ Establish a compliant, automated, and secure enterprise financial tax compliance
 
 | Story ID | Title | Epic | Status | Dependencies |
 | --- | --- | --- | --- | --- |
-| `US-150` | Smart Cash Flow Predictor | E67 | Todo | None |
-| `US-151` | Interactive Scenario Simulator | E67 | Todo | None |
-| `US-152` | CIT Deduction Auditor Engine | E68 | Todo | None |
-| `US-153` | CIT Deduction Advisory Panel | E68 | Todo | None |
-| `US-154` | Cross-Tenant Consolidated Dashboard | E69 | Todo | None |
-| `US-155` | Consolidated Executive Slide Exporter | E69 | Todo | None |
+| `US-150` | Smart Cash Flow Predictor | E67 | ✅ Completed | None |
+| `US-151` | Interactive Scenario Simulator | E67 | ✅ Completed | None |
+| `US-152` | CIT Deduction Auditor Engine | E68 | ✅ Completed | None |
+| `US-153` | CIT Deduction Advisory Panel | E68 | ✅ Completed | None |
+| `US-154` | Cross-Tenant Consolidated Dashboard | E69 | ✅ Completed | None |
+| `US-155` | Consolidated Executive Slide Exporter | E69 | ✅ Completed | None |
 
 ---
 

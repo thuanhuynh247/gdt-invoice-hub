@@ -58,9 +58,9 @@ timeline
 
 | Epic ID | Epic Title | Story ID | Story Title | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **E97** | Statutory Tax Penalty Predictor | **US-340** | Statutory Tax Penalty & Interest Calculator | ⏳ To Do |
-| **E97** | Statutory Tax Penalty Predictor | **US-341** | AI-Generated Audit Explanation Builder | ⏳ To Do |
-| **E98** | E-Commerce Platform Reconciler | **US-342** | Shopee, Lazada & TikTok Shop Order Normalizer | ⏳ To Do |
-| **E98** | E-Commerce Platform Reconciler | **US-343** | E-Commerce Tax Compliance Matching Engine | ⏳ To Do |
-| **E99** | PIT & Payroll Dashboard | **US-344** | Interactive Payroll Audit Dashboard | ⏳ To Do |
-| **E99** | PIT & Payroll Dashboard | **US-345** | PIT Finalizer & Form 05/QTT-TNCN UI | ⏳ To Do |
+| **E97** | Statutory Tax Penalty Predictor | **US-340** | Statutory Tax Penalty & Interest Calculator | ✅ Completed |
+| **E97** | Statutory Tax Penalty Predictor | **US-341** | AI-Generated Audit Explanation Builder | ✅ Completed |
+| **E98** | E-Commerce Platform Reconciler | **US-342** | Shopee, Lazada & TikTok Shop Order Normalizer | ✅ Completed |
+| **E98** | E-Commerce Platform Reconciler | **US-343** | E-Commerce Tax Compliance Matching Engine | ✅ Completed |
+| **E99** | PIT & Payroll Dashboard | **US-344** | Interactive Payroll Audit Dashboard | ✅ Completed |
+| **E99** | PIT & Payroll Dashboard | **US-345** | PIT Finalizer & Form 05/QTT-TNCN UI | ✅ Completed |

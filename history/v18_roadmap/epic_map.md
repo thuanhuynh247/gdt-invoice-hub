@@ -25,12 +25,12 @@ A standard international accounting alignment hub that translates Vietnamese Acc
 
 | Story ID | Title | Epic | Status | Dependencies |
 | --- | --- | --- | --- | --- |
-| `US-300` | IAS 12 Deferred Tax Temporary Difference Engine | Epic 1 | Todo | None |
-| `US-301` | Deferred Tax Balance Sheet Integration | Epic 1 | Todo | `US-300` |
-| `US-302` | IFRS 16 Lease Present Value Calculator | Epic 2 | Todo | None |
-| `US-303` | Lease Liability Amortization Schedule | Epic 2 | Todo | `US-302` |
-| `US-304` | Cross-Tenant Consolidation Router | Epic 3 | Todo | None |
-| `US-305` | OECD Pillar Two GloBE Top-up Tax Estimator | Epic 3 | Todo | `US-304` |
+| `US-300` | IAS 12 Deferred Tax Temporary Difference Engine | Epic 1 | ✅ Completed | None |
+| `US-301` | Deferred Tax Balance Sheet Integration | Epic 1 | ✅ Completed | `US-300` |
+| `US-302` | IFRS 16 Lease Present Value Calculator | Epic 2 | ✅ Completed | None |
+| `US-303` | Lease Liability Amortization Schedule | Epic 2 | ✅ Completed | `US-302` |
+| `US-304` | Cross-Tenant Consolidation Router | Epic 3 | ✅ Completed | None |
+| `US-305` | OECD Pillar Two GloBE Top-up Tax Estimator | Epic 3 | ✅ Completed | `US-304` |
 
 ---
 

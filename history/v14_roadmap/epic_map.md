@@ -25,12 +25,12 @@ Establish a compliant, automated, and secure enterprise financial tax compliance
 
 | Story ID | Title | Epic | Status | Dependencies |
 | --- | --- | --- | --- | --- |
-| `US-170` | Tax Audit Simulation Engine | E73 | Todo | None |
-| `US-171` | Audit Mitigation Adviser | E73 | Todo | None |
-| `US-172` | Related Party Transaction Detector | E74 | Todo | None |
-| `US-173` | Transfer Pricing Local File Scaffolder | E74 | Todo | None |
-| `US-174` | Multi-Currency Treasury Reconciler | E75 | Todo | None |
-| `US-175` | Foreign Contractor Tax Compliance Auditor | E75 | Todo | None |
+| `US-170` | Tax Audit Simulation Engine | E73 | ✅ Completed | None |
+| `US-171` | Audit Mitigation Adviser | E73 | ✅ Completed | None |
+| `US-172` | Related Party Transaction Detector | E74 | ✅ Completed | None |
+| `US-173` | Transfer Pricing Local File Scaffolder | E74 | ✅ Completed | None |
+| `US-174` | Multi-Currency Treasury Reconciler | E75 | ✅ Completed | None |
+| `US-175` | Foreign Contractor Tax Compliance Auditor | E75 | ✅ Completed | None |
 
 ---
 

@@ -25,12 +25,12 @@ Establish a compliant, automated, and secure enterprise financial tax compliance
 
 | Story ID | Title | Epic | Status | Dependencies |
 | --- | --- | --- | --- | --- |
-| `US-160` | Tax Deadline Alerter | E70 | Todo | None |
-| `US-161` | Anomaly Alert Engine | E70 | Todo | None |
-| `US-162` | Photo Invoice OCR Pipeline | E71 | Todo | None |
-| `US-163` | Smart Document Classifier | E71 | Todo | None |
-| `US-164` | Versioned REST API Gateway | E72 | Todo | None |
-| `US-165` | Integration Marketplace & Webhook Registry | E72 | Todo | None |
+| `US-160` | Tax Deadline Alerter | E70 | ✅ Completed | None |
+| `US-161` | Anomaly Alert Engine | E70 | ✅ Completed | None |
+| `US-162` | Photo Invoice OCR Pipeline | E71 | ✅ Completed | None |
+| `US-163` | Smart Document Classifier | E71 | ✅ Completed | None |
+| `US-164` | Versioned REST API Gateway | E72 | ✅ Completed | None |
+| `US-165` | Integration Marketplace & Webhook Registry | E72 | ✅ Completed | None |
 
 ---
 

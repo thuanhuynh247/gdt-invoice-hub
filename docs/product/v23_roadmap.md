@@ -60,9 +60,9 @@ timeline
 
 | Epic ID | Epic Title | Story ID | Story Title | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **E100** | Exporter VAT Refund Automation | **US-350** | Input VAT Evaluator Engine | ⏳ To Do |
-| **E100** | Exporter VAT Refund Automation | **US-351** | Form 01/ĐNHT Refund Packet Wizard | ⏳ To Do |
-| **E101** | Enterprise API & Webhook Gateway | **US-352** | Secure Versioned REST API Gateway | ⏳ To Do |
-| **E101** | Enterprise API & Webhook Gateway | **US-353** | ERP Webhook Dispatcher & Registry | ⏳ To Do |
-| **E102** | Local Tax Regulations Intelligence | **US-354** | Offline Ollama Tax Regulations RAG | ⏳ To Do |
-| **E102** | Local Tax Regulations Intelligence | **US-355** | Advisory Chat & Defense Panel UI | ⏳ To Do |
+| **E100** | Exporter VAT Refund Automation | **US-350** | Input VAT Evaluator Engine | ✅ Completed |
+| **E100** | Exporter VAT Refund Automation | **US-351** | Form 01/ĐNHT Refund Packet Wizard | ✅ Completed |
+| **E101** | Enterprise API & Webhook Gateway | **US-352** | Secure Versioned REST API Gateway | ✅ Completed |
+| **E101** | Enterprise API & Webhook Gateway | **US-353** | ERP Webhook Dispatcher & Registry | ✅ Completed |
+| **E102** | Local Tax Regulations Intelligence | **US-354** | Offline Ollama Tax Regulations RAG | ✅ Completed |
+| **E102** | Local Tax Regulations Intelligence | **US-355** | Advisory Chat & Defense Panel UI | ✅ Completed |

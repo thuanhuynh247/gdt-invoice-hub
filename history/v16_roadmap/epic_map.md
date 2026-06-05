@@ -25,12 +25,12 @@ Establish a compliant, automated, and secure enterprise financial tax compliance
 
 | Story ID | Title | Epic | Status | Dependencies |
 | --- | --- | --- | --- | --- |
-| `US-190` | Customs XML Parser & Import-Export Duty Calculator | E79 | Todo | None |
-| `US-191` | Customs-to-Invoice Matcher & Discrepancy Detector | E79 | Todo | None |
-| `US-192` | Payroll & Labor Contract Compliance Audit Engine | E80 | Todo | None |
-| `US-193` | Automated PIT Finalizer & Form 05/QTT-TNCN Scaffolder | E80 | Todo | None |
-| `US-194` | Decree 123 Compliant Digital Vault & XML Archiver | E81 | Todo | None |
-| `US-195` | Long-Term Signature & TSA Validator | E81 | Todo | None |
+| `US-190` | Customs XML Parser & Import-Export Duty Calculator | E79 | ✅ Completed | None |
+| `US-191` | Customs-to-Invoice Matcher & Discrepancy Detector | E79 | ✅ Completed | None |
+| `US-192` | Payroll & Labor Contract Compliance Audit Engine | E80 | ✅ Completed | None |
+| `US-193` | Automated PIT Finalizer & Form 05/QTT-TNCN Scaffolder | E80 | ✅ Completed | None |
+| `US-194` | Decree 123 Compliant Digital Vault & XML Archiver | E81 | ✅ Completed | None |
+| `US-195` | Long-Term Signature & TSA Validator | E81 | ✅ Completed | None |
 
 ---
 

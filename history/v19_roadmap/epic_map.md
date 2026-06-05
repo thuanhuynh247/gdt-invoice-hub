@@ -25,11 +25,11 @@ A fully compliant enterprise tax hub supporting related-party transaction tracki
 
 | Story ID | Title | Epic | Status | Dependencies |
 | --- | --- | --- | --- | --- |
-| `US-191` | Database Schema & Catalog Management | Epic 1 | Todo | None |
-| `US-192` | Core EBITDA interest cap & Form 01/132 disclosures | Epic 1 | Todo | `US-191` |
-| `US-193` | FCT Classifier & Line-item calculations | Epic 2 | Todo | `US-191` |
-| `US-194` | FCT Form 01/NTNN Excel Exporter | Epic 2 | Todo | `US-193` |
-| `US-195` | Preferred CIT Rates, Tax Holidays & R&D Modeler | Epic 3 | Todo | `US-192` |
+| `US-191` | Database Schema & Catalog Management | Epic 1 | ✅ Completed | None |
+| `US-192` | Core EBITDA interest cap & Form 01/132 disclosures | Epic 1 | ✅ Completed | `US-191` |
+| `US-193` | FCT Classifier & Line-item calculations | Epic 2 | ✅ Completed | `US-191` |
+| `US-194` | FCT Form 01/NTNN Excel Exporter | Epic 2 | ✅ Completed | `US-193` |
+| `US-195` | Preferred CIT Rates, Tax Holidays & R&D Modeler | Epic 3 | ✅ Completed | `US-192` |
 | `US-196` | End-to-End Integration & Suite Verification | Epic 4 | Todo | All |
 
 ---

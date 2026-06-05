@@ -25,12 +25,12 @@ An ultra-secure, fraud-resistant tax compliance ledger utilizing network graph a
 
 | Story ID | Title | Epic | Status | Dependencies |
 | --- | --- | --- | --- | --- |
-| `US-330` | Taxpayer Network Graph Generator | Epic E94 | Todo | None |
-| `US-331` | VAT Fraud Ring Network Detector | Epic E94 | Todo | `US-330` |
-| `US-332` | Immutable Cryptographic Merkle Ledger | Epic E95 | Todo | None |
-| `US-333` | Zero-Knowledge Proof Tax Compliance | Epic E95 | Todo | `US-332` |
-| `US-334` | Customs XML Declaration Parser | Epic E96 | Todo | None |
-| `US-335` | Import VAT Reconciliation & Mitigation | Epic E96 | Todo | `US-334` |
+| `US-330` | Taxpayer Network Graph Generator | Epic E94 | ✅ Completed | None |
+| `US-331` | VAT Fraud Ring Network Detector | Epic E94 | ✅ Completed | `US-330` |
+| `US-332` | Immutable Cryptographic Merkle Ledger | Epic E95 | ✅ Completed | None |
+| `US-333` | Zero-Knowledge Proof Tax Compliance | Epic E95 | ✅ Completed | `US-332` |
+| `US-334` | Customs XML Declaration Parser | Epic E96 | ✅ Completed | None |
+| `US-335` | Import VAT Reconciliation & Mitigation | Epic E96 | ✅ Completed | `US-334` |
 
 ---
 
