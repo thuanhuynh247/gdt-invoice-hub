@@ -12,9 +12,12 @@ This repo uses Harness v2.0 (Hermes-Inspired multi-agent orchestration). Before 
 - `docs/FEATURE_INTAKE.md`
 - `docs/ARCHITECTURE.md`
 
+> [!IMPORTANT]
+> **Durable SQLite State**: In this project, all user stories and task states are stored internally within the SQLite database `harness.db` (no `.beads` directory exists). Direct execution of Beads CLI tools (`br` and `bv`) is NOT supported and will fail. Use `scripts/harness query matrix` or SQLite direct queries instead.
+
 ### Essential Workflow Protocol:
 
-1. **Kanban & Triage**: Inspect active tasks via `br ready --json` or `bv --robot-triage`.
+1. **Kanban & Triage**: Inspect active tasks via SQLite queries or `scripts/harness query matrix` instead of raw `br` / `bv` commands.
 2. **Retrieve Context**: Fetch active story context using: `scripts/harness context --story <story_id>`.
 3. **Risk Classification**: Check the spec risk lane using: `scripts/harness evaluate-risk --text "<spec>"`.
 4. **Execution & Sandboxing**: Execute work under the appropriate sandbox backend (`local`, `containerized`, `cloud`). Bypasses safety gates with `--yolo` flag ONLY in non-interactive pipeline states.

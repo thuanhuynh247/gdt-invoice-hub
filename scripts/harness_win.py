@@ -818,25 +818,64 @@ def cmd_context(story_id):
 # ── evaluate-risk ──────────────────────────────────────────────────
 def cmd_evaluate_risk(text):
     text_lower = text.lower()
-    keywords = ["auth", "token", "login", "password", "oauth", "payment", "migration", "drop table", "secret"]
-    flags_found = [kw for kw in keywords if kw in text_lower]
-    lane = "high_risk" if flags_found else "tiny"
+    
+    checklist = {
+        "auth": ["auth", "login", "logout", "session", "password", "token"],
+        "authorization": ["role", "permission", "tenant", "access control"],
+        "data_model": ["schema", "migration", "sqlite", "table", "column", "drop table"],
+        "security": ["audit", "security", "privacy", "access log", "secret", "oauth"],
+        "external": ["email", "payment", "sdk", "webhook", "queue", "api", "request", "http", "vietqr", "gdt"],
+        "contract": ["api shape", "response envelope", "client-visible", "contract"],
+        "cross_platform": ["desktop", "mobile", "browser", "native", "deep link"],
+        "existing_behavior": ["refactor", "change", "fix", "patch"],
+        "weak_proof": ["untested", "missing tests", "no test"],
+        "multi_domain": ["multi-domain", "multiple domain"]
+    }
+    
+    flags_found = []
+    for flag, kw_list in checklist.items():
+        if any(kw in text_lower for kw in kw_list):
+            flags_found.append(flag)
+            
+    hard_gates = ["auth", "authorization", "data_model", "security", "external"]
+    has_hard_gate = any(fg in hard_gates for fg in flags_found)
+    
+    num_flags = len(flags_found)
+    if has_hard_gate or num_flags >= 4:
+        lane = "high_risk"
+    elif num_flags >= 2:
+        lane = "normal"
+    else:
+        lane = "tiny"
+        
     res = {
         "suggested_lane": lane,
-        "flags_found": flags_found
+        "flags_found": flags_found,
+        "has_hard_gate": has_hard_gate,
+        "flag_count": num_flags
     }
     print(json.dumps(res, indent=2))
 
 # ── validate ───────────────────────────────────────────────────────
 def cmd_validate(cmd):
-    print(f"Running validation command: {cmd}")
-    proc = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-    print(proc.stdout)
-    if proc.stderr:
-        print(proc.stderr, file=sys.stderr)
-        
+    print(f"Running validation command (streamed): {cmd}")
+    proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1)
+    
+    output_lines = []
+    while True:
+        line = proc.stdout.readline()
+        if not line and proc.poll() is not None:
+            break
+        if line:
+            sys.stdout.write(line)
+            sys.stdout.flush()
+            output_lines.append(line)
+            
+    proc.communicate()
+    stdout_text = "".join(output_lines)
+    
     if proc.returncode != 0:
-        error_text = (proc.stdout + "\n" + proc.stderr)[-500:]
+        error_text = stdout_text[-500:]
         friction = f"Validation command '{cmd}' failed:\n{error_text}"
         conn = get_db()
         cur = conn.cursor()
@@ -1010,16 +1049,25 @@ def cmd_unified_gate(story_id, phase, summary, agent_name="Antigravity", actions
     start_time = datetime.now()
     
     if os.path.exists(validate_script):
-        print(f"   - Running: {validate_script}")
-        proc = subprocess.run([validate_script], shell=True, capture_output=True, text=True)
-        print(proc.stdout)
-        if proc.stderr:
-            print(proc.stderr, file=sys.stderr)
-            
+        print(f"   - Running (streamed): {validate_script}")
+        proc = subprocess.Popen([validate_script], shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1)
+        
+        output_lines = []
+        while True:
+            line = proc.stdout.readline()
+            if not line and proc.poll() is not None:
+                break
+            if line:
+                sys.stdout.write(line)
+                sys.stdout.flush()
+                output_lines.append(line)
+                
+        proc.communicate()
+        stdout_text = "".join(output_lines)
         duration = int((datetime.now() - start_time).total_seconds())
         
         if proc.returncode != 0:
-            error_text = (proc.stdout + "\n" + proc.stderr)[-500:]
+            error_text = stdout_text[-500:]
             friction = f"Validation command failed:\n{error_text}"
             print("❌ [GATE FAILURE] Automated tests failed! Recording trace to database.", file=sys.stderr)
             
