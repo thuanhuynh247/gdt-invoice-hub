@@ -8260,3 +8260,191 @@ def api_compliance_treasury_forecast():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
+# ── Version 28.0.0 Advanced Compliance Auto-Repair & Swarm Advisor Endpoints ──────
+
+@invoices_blueprint.get("/v28-compliance")
+def v28_compliance_page():
+    """Render the Version 28.0.0 XML Auto-Repair Hub & Swarm Advisor Panel."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("v28_compliance.html")
+
+
+@invoices_blueprint.post("/api/compliance/xml-audit")
+def api_compliance_xml_audit():
+    """US-397: Audit invoice XML compliance and structure."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    xml_content = body.get("xml_content", "")
+    if not xml_content:
+        return jsonify({"error": "Thiếu dữ liệu xml_content"}), 400
+
+    from invoices.v28_service import audit_xml_compliance
+    try:
+        result = audit_xml_compliance(xml_content)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/compliance/xml-auto-repair")
+def api_compliance_xml_auto_repair():
+    """US-397: Auto-repair schema errors, tags order, and generate sign-off XML."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    xml_content = body.get("xml_content", "")
+    if not xml_content:
+        return jsonify({"error": "Thiếu dữ liệu xml_content"}), 400
+
+    from invoices.v28_service import repair_xml_invoice
+    try:
+        result = repair_xml_invoice(xml_content)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/agents/swarm-chat")
+def api_agents_swarm_chat():
+    """US-396: Run interactive collaborative agent swarm simulation."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    query = body.get("query", "")
+    if not query:
+        return jsonify({"error": "Thiếu câu hỏi rà soát"}), 400
+
+    taxpayer_mst = session.get("taxpayer_mst") or "0109998887"
+    
+    from invoices.v28_service import simulate_swarm_step_by_step, JointAuditCoordinator
+    try:
+        # Simulate swarm communication logs
+        chat_steps = simulate_swarm_step_by_step(taxpayer_mst, query)
+        
+        # Also invoke the actual JointAuditCoordinator to get the final generated report markdown
+        coordinator = JointAuditCoordinator(taxpayer_mst=taxpayer_mst)
+        report_markdown = coordinator.execute_swarm(query)
+        
+        return jsonify({
+            "status": "success",
+            "chat_steps": chat_steps,
+            "report_markdown": report_markdown
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# ── Version 29.0.0 Advanced Ghost-Company Compliance & Tax Regulations Graph Endpoints ──────
+
+@invoices_blueprint.get("/v29-compliance")
+def v29_compliance_page():
+    """Render the Version 29.0.0 Ghost-Company Audit Hub & Tax Knowledge Graph."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("v29_compliance.html")
+
+
+@invoices_blueprint.post("/api/compliance/ghost-check")
+def api_compliance_ghost_check():
+    """US-400: Ghost Company Blacklist Scraper & Probability Index Engine."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    seller_mst = body.get("seller_mst", "")
+    seller_name = body.get("seller_name", "")
+    invoice_value = float(body.get("invoice_value", 0))
+
+    if not seller_mst:
+        return jsonify({"error": "Thiếu dữ liệu seller_mst"}), 400
+
+    from invoices.v29_service import check_ghost_company
+    try:
+        result = check_ghost_company(seller_mst, seller_name, invoice_value)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/compliance/defense-letter")
+def api_compliance_defense_letter():
+    """US-401: Generate Tax Audit Defense Letter & Rectification Plan."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    seller_mst = body.get("seller_mst", "")
+    seller_name = body.get("seller_name", "")
+    invoice_value = float(body.get("invoice_value", 0))
+    payment_method = body.get("payment_method", "Chuyển khoản qua Ngân hàng thương mại")
+
+    if not seller_mst or not seller_name:
+        return jsonify({"error": "Thiếu dữ liệu nhà cung cấp"}), 400
+
+    from invoices.v29_service import generate_audit_mitigation_letter
+    try:
+        letter_text = generate_audit_mitigation_letter(seller_mst, seller_name, invoice_value, payment_method)
+        return jsonify({
+            "success": True,
+            "letter": letter_text
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.get("/api/compliance/tax-knowledge-graph")
+def api_compliance_tax_knowledge_graph():
+    """US-402: Return Vietnamese Tax Regulations Knowledge Graph."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    from invoices.v29_service import get_tax_knowledge_graph
+    try:
+        graph_data = get_tax_knowledge_graph()
+        return jsonify(graph_data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/agents/swarm-v29-chat")
+def api_agents_swarm_v29_chat():
+    """US-401 Swarm: Run simulated multi-agent swarm discussion for invoice compliance defense."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    seller_mst = body.get("seller_mst", "")
+    seller_name = body.get("seller_name", "")
+    invoice_value = float(body.get("invoice_value", 0))
+    taxpayer_mst = body.get("mst", "0109998887")
+
+    if not seller_mst:
+        return jsonify({"error": "Thiếu dữ liệu seller_mst"}), 400
+
+    from invoices.v29_service import SwarmV29Advisor, generate_audit_mitigation_letter
+    try:
+        advisor = SwarmV29Advisor(taxpayer_mst=taxpayer_mst)
+        chat_steps = advisor.simulate_defense_chat(seller_mst, seller_name, invoice_value)
+        report_markdown = generate_audit_mitigation_letter(seller_mst, seller_name, invoice_value, "Chuyển khoản qua ngân hàng (CK)")
+        return jsonify({
+            "status": "success",
+            "chat_steps": chat_steps,
+            "report_markdown": report_markdown
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+

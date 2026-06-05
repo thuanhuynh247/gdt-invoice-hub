@@ -48,6 +48,15 @@
                         <a class="nav-link {% if request.path == '/v26-compliance' %}active{% endif %}" href="{{ url_for('invoices.v26_compliance_page') }}"><i class="bi bi-shield-check-fill text-warning" aria-hidden="true"></i> Tuân thủ v26</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/v27-compliance' %}active{% endif %}" href="{{ url_for('invoices.v27_compliance_page') }}"><i class="bi bi-shield-lock-fill text-info" aria-hidden="true"></i> Tuân thủ v27</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/v28-compliance' %}active{% endif %}" href="{{ url_for('invoices.v28_compliance_page') }}"><i class="bi bi-shield-shaded text-danger" aria-hidden="true"></i> Tuân thủ v28</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/v29-compliance' %}active{% endif %}" href="{{ url_for('invoices.v29_compliance_page') }}"><i class="bi bi-shield-slash-fill text-warning" aria-hidden="true"></i> Tuân thủ v29 <span class="badge bg-warning text-dark rounded-pill ms-1" style="font-size: 0.65em;">V29</span></a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link {% if request.path == '/harness' %}active{% endif %}" href="{{ url_for('invoices.harness_page') }}"><i class="bi bi-cpu-fill" aria-hidden="true"></i> Harness Agent</a>
                     </li>
                     {% if session.get('user_role') in ['admin', 'auditor'] %}
