@@ -8448,3 +8448,65 @@ def api_agents_swarm_v29_chat():
         return jsonify({"error": str(e)}), 500
 
 
+# ── Version 30.0.0 Advanced Related-Party Transfer Pricing Compliance Endpoints ──────
+
+@invoices_blueprint.get("/v30-compliance")
+def v30_compliance_page():
+    """Render the Version 30.0.0 Related-Party Transfer Pricing & Swarm Advisor portal."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("v30_compliance.html")
+
+
+@invoices_blueprint.post("/api/compliance/transfer-pricing-check")
+def api_compliance_transfer_pricing_check():
+    """US-410: Related-Party Transaction Markup & Interquartile (IQR) Margin Risk Analyzer."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    sector = body.get("sector", "manufacturing")
+    markup_pct = float(body.get("markup_pct", 0.0))
+    cost_of_goods = float(body.get("cost_of_goods", 0.0))
+
+    from invoices.v30_service import calculate_transfer_pricing_risk
+    try:
+        result = calculate_transfer_pricing_risk(markup_pct, cost_of_goods, sector)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/agents/swarm-v30-chat")
+def api_agents_swarm_v30_chat():
+    """US-412 Swarm: Run simulated multi-agent swarm discussion for related-party transfer pricing audit preparation."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    taxpayer_mst = body.get("taxpayer_mst", "0109998887")
+    taxpayer_name = body.get("taxpayer_name", "Doanh nghiệp mẫu")
+    sector = body.get("sector", "manufacturing")
+    markup_pct = float(body.get("markup_pct", 0.0))
+    cost_of_goods = float(body.get("cost_of_goods", 0.0))
+
+    from invoices.v30_service import SwarmV30Advisor, calculate_transfer_pricing_risk, generate_tp_audit_dossier
+    try:
+        advisor = SwarmV30Advisor(taxpayer_mst=taxpayer_mst)
+        chat_steps = advisor.simulate_tp_defense_chat(sector, markup_pct, cost_of_goods)
+        
+        risk_details = calculate_transfer_pricing_risk(markup_pct, cost_of_goods, sector)
+        dossier = generate_tp_audit_dossier(taxpayer_name, taxpayer_mst, sector, markup_pct, cost_of_goods, risk_details)
+        
+        return jsonify({
+            "status": "success",
+            "chat_steps": chat_steps,
+            "dossier": dossier
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+
