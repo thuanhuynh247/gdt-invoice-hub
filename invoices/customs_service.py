@@ -85,9 +85,63 @@ class CustomsReconciliationEngine:
 
     @staticmethod
     def run_reconciliation(taxpayer_mst: str) -> dict:
-        """Compares customs declarations against import VAT invoices in the system."""
+        """Compares customs declarations against import VAT invoices in the system.
+
+        Performs:
+          - Exchange rate variance audit against standard accounting rate and invoice notes.
+          - HS code risk category checks based on standard Customs audit warnings.
+          - Duty rate checks for potential under-reporting or abnormal tax rates.
+        """
+        import re
+        from invoices.tax_mapping import CurrencyExchangeBuffer
+
         declarations = CustomsDeclaration.query.filter_by(taxpayer_mst=taxpayer_mst).all()
         invoices = Invoice.query.filter_by(taxpayer_mst=taxpayer_mst, invoice_type="purchase").all()
+        exchange_buffer = CurrencyExchangeBuffer()
+
+        HIGH_RISK_HS_PREFIXES = {
+            "8471": "Thiết bị xử lý dữ liệu tự động (máy vi tính) - Rủi ro khai sai trị giá/áp sai thuế suất.",
+            "8517": "Điện thoại và thiết bị truyền phát thông tin - Rủi ro gian lận xuất xứ/thương hiệu.",
+            "72": "Sắt, thép và sản phẩm từ sắt, thép - Có nguy cơ áp thuế phòng vệ thương mại / thuế chống bán phá giá.",
+            "73": "Sản phẩm bằng sắt hoặc thép - Có nguy cơ áp thuế phòng vệ thương mại.",
+            "22": "Đồ uống, rượu và giấm - Thuộc đối tượng chịu Thuế Tiêu thụ Đặc biệt (SCT) và thuế suất cao.",
+            "24": "Thuốc lá và nguyên liệu thay thế thuốc lá - Thuộc đối tượng chịu Thuế Tiêu thụ Đặc biệt và kiểm soát nhập khẩu nghiêm ngặt.",
+            "87": "Xe cộ trừ phương tiện chạy trên đường sắt - Thuế suất cao, rủi ro khai sai trị giá hải quan.",
+            "3808": "Thuốc trừ dịch hại, chất khử trùng - Rủi ro về kiểm tra chuyên ngành và giấy phép môi trường.",
+        }
+
+        def extract_exchange_rate_from_text(text: str) -> float | None:
+            if not text:
+                return None
+            patterns = [
+                r"(?:tỷ giá|ty gia|rate|exchange\s*rate)[:\s]+([\d.,]+)",
+                r"tỷ\s*giá[:\s]+([\d.,]+)",
+            ]
+            for pattern in patterns:
+                match = re.search(pattern, text.lower())
+                if match:
+                    raw_val = match.group(1).strip("., ")
+                    # Standard parsing of commas/dots for Vietnamese & standard formats
+                    if "," in raw_val and "." in raw_val:
+                        if raw_val.find(",") < raw_val.find("."):
+                            raw_val = raw_val.replace(",", "")
+                        else:
+                            raw_val = raw_val.replace(".", "").replace(",", ".")
+                    elif "," in raw_val:
+                        if len(raw_val) - raw_val.rfind(",") == 4:
+                            raw_val = raw_val.replace(",", "")
+                        else:
+                            raw_val = raw_val.replace(",", ".")
+                    elif "." in raw_val:
+                        if len(raw_val) - raw_val.rfind(".") == 4:
+                            raw_val = raw_val.replace(".", "")
+                    try:
+                        rate = float(raw_val)
+                        if 100.0 < rate < 100000.0:
+                            return rate
+                    except ValueError:
+                        continue
+            return None
 
         results = {
             "processed": len(declarations),
@@ -97,13 +151,47 @@ class CustomsReconciliationEngine:
         }
 
         for decl in declarations:
+            # 1. HS code risk audit
+            hs_warnings = []
+            for hs in decl.hs_codes:
+                for prefix, desc in HIGH_RISK_HS_PREFIXES.items():
+                    if hs.startswith(prefix):
+                        hs_warnings.append(f"Mã HS {hs}: {desc}")
+
+            # 2. Exchange rate variance vs standard buffer rate
+            rate_warnings = []
+            if decl.currency and decl.currency.upper() != "VND":
+                buffer_rate = exchange_buffer.get_rate(decl.currency)
+                if buffer_rate and buffer_rate != 1.0:
+                    deviation = abs(decl.exchange_rate - buffer_rate) / buffer_rate
+                    if deviation > 0.02:
+                        rate_warnings.append(
+                            f"Tỷ giá tờ khai ({decl.exchange_rate:,.2f}) lệch > 2% so với tỷ giá kế toán chuẩn ({buffer_rate:,.2f}, lệch {deviation * 100:.2f}%)."
+                        )
+
+            # 3. Duty rate check
+            duty_warnings = []
+            if decl.customs_value_vnd > 0:
+                implied_duty_rate = decl.import_duty_vnd / decl.customs_value_vnd
+                if implied_duty_rate > 0.50:
+                    duty_warnings.append(
+                        f"Thuế suất nhập khẩu ngầm định rất cao ({implied_duty_rate * 100:.1f}%), cần kiểm tra lại cơ sở tính thuế."
+                    )
+                elif implied_duty_rate == 0.0:
+                    has_high_duty_hs = any(
+                        any(hs.startswith(prefix) for prefix in ["72", "73", "22", "24", "87"])
+                        for hs in decl.hs_codes
+                    )
+                    if has_high_duty_hs:
+                        duty_warnings.append(
+                            "Nhóm HS có thuế suất cao nhưng thuế nhập khẩu khai báo bằng 0. Cảnh báo rủi ro ấn định thuế."
+                        )
+
             # Look for a matching purchase invoice
-            # Strategy: matches by declaration number in notes/filename/number, or matches by exact tax amount
             matched_inv = None
 
             # First priority: reference code match
             for inv in invoices:
-                # Check if declaration number is mentioned in notes, number, or filename
                 desc_text = f"{inv.number} {inv.notes or ''} {inv.filename or ''}".lower()
                 if decl.declaration_number.lower() in desc_text:
                     matched_inv = inv
@@ -112,31 +200,51 @@ class CustomsReconciliationEngine:
             # Second priority: exact VAT tax amount match
             if not matched_inv:
                 for inv in invoices:
-                    # Look for input tax matching declaration import vat
                     if abs(inv.tax_amount - decl.import_vat_vnd) < 1.0:
                         matched_inv = inv
                         break
 
+            all_notes = []
+
             if matched_inv:
                 decl.matching_invoice_id = matched_inv.id
-                # Compare VAT amounts
                 variance = abs(matched_inv.tax_amount - decl.import_vat_vnd)
-                if variance < 10.0:  # Threshold for rounding differences
+
+                if variance < 10.0:
                     decl.status = "matched"
-                    decl.variance_notes = f"Khớp hoàn toàn với hóa đơn số {matched_inv.number}."
+                    all_notes.append(f"Khớp thuế GTGT hoàn toàn với hóa đơn số {matched_inv.number}.")
                     results["matched"] += 1
                 else:
                     decl.status = "variance_exceeded"
-                    decl.variance_notes = (
+                    all_notes.append(
                         f"Chênh lệch thuế GTGT nhập khẩu: Hải quan = {decl.import_vat_vnd:,.0f} VND, "
                         f"Hóa đơn mua vào = {matched_inv.tax_amount:,.0f} VND. "
                         f"Lệch = {matched_inv.tax_amount - decl.import_vat_vnd:,.0f} VND."
                     )
                     results["discrepancies"] += 1
+
+                # Audit exchange rate vs matched invoice
+                invoice_rate = extract_exchange_rate_from_text(matched_inv.notes or "")
+                if invoice_rate:
+                    inv_deviation = abs(decl.exchange_rate - invoice_rate) / invoice_rate
+                    if inv_deviation > 0.01:
+                        rate_warnings.append(
+                            f"Tỷ giá tờ khai ({decl.exchange_rate:,.2f}) lệch > 1% so với tỷ giá thực tế trên hóa đơn ({invoice_rate:,.2f}, lệch {inv_deviation * 100:.2f}%)."
+                        )
             else:
                 decl.status = "unreconciled"
-                decl.variance_notes = "Không tìm thấy hóa đơn thuế GTGT mua vào đối ứng."
+                all_notes.append("Không tìm thấy hóa đơn thuế GTGT mua vào đối ứng.")
                 results["unresolved"] += 1
+
+            # Append warning flags to notes
+            if rate_warnings:
+                all_notes.append("⚠️ Cảnh báo tỷ giá: " + " | ".join(rate_warnings))
+            if hs_warnings:
+                all_notes.append("⚠️ Cảnh báo mã HS: " + " | ".join(hs_warnings))
+            if duty_warnings:
+                all_notes.append("⚠️ Cảnh báo thuế suất: " + " | ".join(duty_warnings))
+
+            decl.variance_notes = " \n".join(all_notes)
 
         db.session.commit()
         return results

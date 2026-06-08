@@ -71,6 +71,66 @@ def clean_company_name_tokens(name: str) -> list[str]:
     return core_tokens if core_tokens else [t for t in tokens if len(t) > 1]
 
 
+def jaro_winkler_similarity(s1: str, s2: str) -> float:
+    """Calculate the Jaro-Winkler similarity between two strings."""
+    if not s1 or not s2:
+        return 0.0
+    s1 = s1.strip().upper()
+    s2 = s2.strip().upper()
+    if s1 == s2:
+        return 1.0
+
+    len1 = len(s1)
+    len2 = len(s2)
+    max_dist = max(len1, len2) // 2 - 1
+    if max_dist < 0:
+        max_dist = 0
+
+    match1 = [False] * len1
+    match2 = [False] * len2
+    matches = 0
+
+    for i in range(len1):
+        start = max(0, i - max_dist)
+        end = min(len2, i + max_dist + 1)
+        for j in range(start, end):
+            if not match2[j] and s1[i] == s2[j]:
+                match1[i] = True
+                match2[j] = True
+                matches += 1
+                break
+
+    if matches == 0:
+        return 0.0
+
+    t = 0.0
+    k = 0
+    for i in range(len1):
+        if match1[i]:
+            while not match2[k]:
+                k += 1
+            if s1[i] != s2[k]:
+                t += 1
+            k += 1
+    t /= 2.0
+
+    m = float(matches)
+    jaro = (m / len1 + m / len2 + (m - t) / m) / 3.0
+
+    # Winkler modification
+    prefix_len = 0
+    max_prefix = min(4, min(len1, len2))
+    for i in range(max_prefix):
+        if s1[i] == s2[i]:
+            prefix_len += 1
+        else:
+            break
+
+    # Standard scaling factor is 0.1
+    jw = jaro + prefix_len * 0.1 * (1.0 - jaro)
+    return min(jw, 1.0)
+
+
 def parse_bank_statement(file_path: str, bank_name: str | None = None) -> list[dict]:
     """Parse bank statement spreadsheet (Excel or CSV) and extract transactions."""
     transactions = []
@@ -157,18 +217,30 @@ def _map_row_to_tx_dict(row: list[str], headers: list[str], bank: str) -> dict |
     for idx, h in enumerate(headers):
         if not h:
             continue
-        if any(k in h for k in ["ngày", "date", "time"]):
-            if date_idx == -1:
-                date_idx = idx
-        elif any(k in h for k in ["nội dung", "mô tả", "description", "remark", "diễn giải"]):
+        h_clean = h.strip().lower()
+        
+        # 1. Date columns
+        if any(k in h_clean for k in ["ngày gd", "ngày giao dịch", "ngày chứng từ", "ngay_gd", "ngay_giao_dich"]):
+            date_idx = idx
+        elif any(k in h_clean for k in ["ngày", "date", "time"]) and date_idx == -1:
+            date_idx = idx
+            
+        # 2. Description columns
+        if any(k in h_clean for k in ["nội dung giao dịch", "nội dung", "mô tả", "diễn giải", "description", "remark", "dien_giai"]):
             desc_idx = idx
-        elif any(k in h for k in ["số gd", "ref", "mã giao dịch", "mã gd", "chứng từ"]):
+            
+        # 3. Transaction Reference columns
+        if any(k in h_clean for k in ["số bút toán", "số gd", "ref", "mã giao dịch", "mã gd", "chứng từ", "so_gd", "ma_gd"]):
             ref_idx = idx
-        elif any(k in h for k in ["ghi nợ", "nợ", "debit", "rút"]):
+            
+        # 4. Debit/Credit columns
+        if any(k in h_clean for k in ["số tiền ghi nợ", "giá trị ghi nợ", "phát sinh nợ", "ghi nợ", "nợ", "debit", "rút"]):
             debit_idx = idx
-        elif any(k in h for k in ["ghi có", "có", "credit", "nộp"]):
+        elif any(k in h_clean for k in ["số tiền ghi có", "giá trị ghi có", "phát sinh có", "ghi có", "có", "credit", "nộp"]):
             credit_idx = idx
-        elif any(k in h for k in ["số tiền", "amount", "giá trị"]):
+            
+        # 5. Generic Amount column
+        elif any(k in h_clean for k in ["số tiền", "amount", "giá trị", "so_tien", "gia_tri"]):
             amt_idx = idx
             
     # Parse transaction date
@@ -286,7 +358,7 @@ def find_matching_invoice(tx: BankTransaction) -> tuple[str | None, float]:
                     score += 0.60
                     break
                     
-        # --- Heuristic 2: Corporate Name Token Match ---
+        # --- Heuristic 2: Corporate Name Token & Similarity Match ---
         # Match buyer name for sales, or seller name for purchases
         partner_name = inv.buyer_name if invoice_type == "sale" else inv.seller_name
         if partner_name:
@@ -295,6 +367,13 @@ def find_matching_invoice(tx: BankTransaction) -> tuple[str | None, float]:
             if partner_tokens:
                 ratio = len(matched_tokens) / len(partner_tokens)
                 score += ratio * 0.30
+                
+            # Add Jaro-Winkler similarity for partner name comparison to boost fuzzy token matching
+            cleaned_partner = clean_vietnamese_text(partner_name)
+            jw_sim = jaro_winkler_similarity(cleaned_desc, cleaned_partner)
+            # If there's a strong fuzzy name overlap, boost the score
+            if jw_sim > 0.6:
+                score += (jw_sim - 0.6) * 0.25
                 
         # --- Heuristic 3: Exact Amount Alignment ---
         # Highly weighted check to prevent false positives
