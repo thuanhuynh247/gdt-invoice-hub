@@ -223,12 +223,12 @@
 <div class="row">
     <div class="col-12 mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div>
-            <h1 class="v29-title mb-1"><i class="bi bi-shield-slash-fill me-2"></i>Ghost-Company Inspector & Tax Regulations Graph</h1>
+            <h1 class="v29-title mb-1"><i class="bi bi-shield-slash-fill me-2" aria-hidden="true"></i>Ghost-Company Inspector & Tax Regulations Graph</h1>
             <p class="text-secondary mb-0">Hệ thống Giám sát Nhà cung cấp Rủi ro Đặc biệt, Tác tử Soạn thảo Giải trình Thuế & Bản đồ Tri thức Thuế SVG.</p>
         </div>
         <div>
             <span class="badge bg-warning text-dark px-3 py-2 fs-6 rounded-pill" style="box-shadow: 0 0 15px rgba(245, 158, 11, 0.3); font-family: var(--v29-font-title); font-weight: 700;">
-                <i class="bi bi-cpu-fill me-1"></i> Version 29.0.0 (High Compliance)
+                <i class="bi bi-cpu-fill me-1" aria-hidden="true"></i> Version 29.0.0 (High Compliance)
             </span>
         </div>
     </div>
@@ -240,17 +240,17 @@
         <ul class="nav nav-tabs nav-tabs-v29" id="v29Tabs" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="inspector-tab" data-bs-toggle="tab" data-bs-target="#inspector" type="button" role="tab" aria-controls="inspector" aria-selected="true">
-                    <i class="bi bi-search-heart me-2"></i> Ghost-Company Inspector
+                    <i class="bi bi-search-heart me-2" aria-hidden="true"></i> Ghost-Company Inspector
                 </button>
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="defense-tab" data-bs-toggle="tab" data-bs-target="#defense" type="button" role="tab" aria-controls="defense" aria-selected="false">
-                    <i class="bi bi-journal-check me-2"></i> Audit Defense Swarm Hub
+                    <i class="bi bi-journal-check me-2" aria-hidden="true"></i> Audit Defense Swarm Hub
                 </button>
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="graph-tab" data-bs-toggle="tab" data-bs-target="#graph" type="button" role="tab" aria-controls="graph" aria-selected="false">
-                    <i class="bi bi-diagram-3 me-2"></i> Tax Law Knowledge Graph
+                    <i class="bi bi-diagram-3 me-2" aria-hidden="true"></i> Tax Law Knowledge Graph
                 </button>
             </li>
         </ul>
@@ -281,22 +281,22 @@
                     
                     <div class="mb-3">
                         <label for="txtInspectorMst" class="form-label small text-secondary">Mã số thuế bên bán (Seller MST):</label>
-                        <input type="text" class="form-control bg-slate-900 border-slate-800 text-white" id="txtInspectorMst" placeholder="Nhập MST (Ví dụ: 0316482931)">
+                        <input type="text" class="form-control bg-slate-900 border-slate-800 text-white" id="txtInspectorMst" placeholder="Nhập MST (Ví dụ: 0316482931)" autocomplete="off">
                     </div>
 
                     <div class="mb-3">
                         <label for="txtInspectorName" class="form-label small text-secondary">Tên nhà cung cấp:</label>
-                        <input type="text" class="form-control bg-slate-900 border-slate-800 text-white" id="txtInspectorName" placeholder="Tên doanh nghiệp">
+                        <input type="text" class="form-control bg-slate-900 border-slate-800 text-white" id="txtInspectorName" placeholder="Tên doanh nghiệp" autocomplete="off">
                     </div>
 
                     <div class="mb-3">
                         <label for="txtInspectorValue" class="form-label small text-secondary">Giá trị hóa đơn (VNĐ):</label>
-                        <input type="number" class="form-control bg-slate-900 border-slate-800 text-white" id="txtInspectorValue" placeholder="Tổng tiền trước thuế">
+                        <input type="number" class="form-control bg-slate-900 border-slate-800 text-white" id="txtInspectorValue" placeholder="Tổng tiền trước thuế" autocomplete="off">
                     </div>
 
                     <div class="d-grid mt-4">
                         <button class="btn btn-info text-dark fw-bold" id="btnRunInspector">
-                            <i class="bi bi-shield-shaded me-1"></i> Rà Soát & Tính Toán Chỉ Số Rủi Ro
+                            <i class="bi bi-shield-shaded me-1" aria-hidden="true"></i> Rà Soát & Tính Toán Chỉ Số Rủi Ro
                         </button>
                     </div>
                 </div>
@@ -307,7 +307,7 @@
                     <h4 class="mb-3" style="font-family: var(--v29-font-title); font-weight: 600;">Chỉ Số Rủi Ro Hoạt Động (Risk Score Card)</h4>
                     
                     <div id="inspectorPlaceholder" class="text-center my-auto py-5">
-                        <i class="bi bi-shield-fill-exclamation display-2 text-secondary opacity-25"></i>
+                        <i class="bi bi-shield-fill-exclamation display-2 text-secondary opacity-25" aria-hidden="true"></i>
                         <p class="mt-3 text-secondary">Vui lòng chọn hoặc nhập thông tin doanh nghiệp cần kiểm tra rủi ro hóa đơn ma.</p>
                     </div>
 
@@ -346,7 +346,7 @@
 
                         <div class="mt-3 alert alert-secondary" id="boxInspectorWarnings" style="border-radius: 10px; display: none;">
                             <div class="d-flex gap-2">
-                                <i class="bi bi-exclamation-triangle-fill text-warning fs-5"></i>
+                                <i class="bi bi-exclamation-triangle-fill text-warning fs-5" aria-hidden="true"></i>
                                 <div id="lblInspectorWarningText" class="small text-white-50"></div>
                             </div>
                         </div>
@@ -366,17 +366,17 @@
 
                     <div class="mb-3">
                         <label for="txtDefenseMst" class="form-label small text-secondary">MST Doanh nghiệp bán:</label>
-                        <input type="text" class="form-control bg-slate-900 border-slate-800 text-white" id="txtDefenseMst" placeholder="Ví dụ: 0316482931" readonly>
+                        <input type="text" class="form-control bg-slate-900 border-slate-800 text-white" id="txtDefenseMst" placeholder="Ví dụ: 0316482931" readonly autocomplete="off">
                     </div>
 
                     <div class="mb-3">
                         <label for="txtDefenseName" class="form-label small text-secondary">Tên doanh nghiệp bán:</label>
-                        <input type="text" class="form-control bg-slate-900 border-slate-800 text-white" id="txtDefenseName" placeholder="Ví dụ: Công ty TNHH Khánh An" readonly>
+                        <input type="text" class="form-control bg-slate-900 border-slate-800 text-white" id="txtDefenseName" placeholder="Ví dụ: Công ty TNHH Khánh An" readonly autocomplete="off">
                     </div>
 
                     <div class="mb-3">
                         <label for="txtDefenseValue" class="form-label small text-secondary">Trị giá giao dịch giải trình (VNĐ):</label>
-                        <input type="number" class="form-control bg-slate-900 border-slate-800 text-white" id="txtDefenseValue" readonly>
+                        <input type="number" class="form-control bg-slate-900 border-slate-800 text-white" id="txtDefenseValue" readonly autocomplete="off">
                     </div>
 
                     <div class="mb-3">
@@ -390,7 +390,7 @@
 
                     <div class="d-grid mt-auto pt-3">
                         <button class="btn btn-warning text-dark fw-bold" id="btnRunDefenseSwarm">
-                            <i class="bi bi-chat-left-dots-fill me-1"></i> Khởi Chạy Swarm Lập Hồ Sơ Giải Trình
+                            <i class="bi bi-chat-left-dots-fill me-1" aria-hidden="true"></i> Khởi Chạy Swarm Lập Hồ Sơ Giải Trình
                         </button>
                     </div>
                 </div>
@@ -401,7 +401,7 @@
                     <h4 class="mb-3" style="font-family: var(--v29-font-title); font-weight: 600;">Luồng Quyết Định Swarm & Dự Thảo Văn Bản</h4>
                     
                     <div id="defensePlaceholder" class="text-center my-auto py-5">
-                        <i class="bi bi-chat-square-quote display-2 text-secondary opacity-25"></i>
+                        <i class="bi bi-chat-square-quote display-2 text-secondary opacity-25" aria-hidden="true"></i>
                         <p class="mt-3 text-secondary">Vui lòng chạy chức năng "Inspector" trước hoặc nhấn Khởi Chạy để soạn thảo văn bản giải trình.</p>
                     </div>
 
@@ -418,10 +418,10 @@
                             
                             <div class="d-flex justify-content-end gap-2">
                                 <button class="btn btn-outline-light" id="btnCopyLetter">
-                                    <i class="bi bi-clipboard me-1"></i> Sao chép
+                                    <i class="bi bi-clipboard me-1" aria-hidden="true"></i> Sao chép
                                 </button>
                                 <button class="btn btn-primary" id="btnDownloadLetter">
-                                    <i class="bi bi-download me-1"></i> Tải File Văn Bản
+                                    <i class="bi bi-download me-1" aria-hidden="true"></i> Tải File Văn Bản
                                 </button>
                             </div>
                         </div>
@@ -471,7 +471,7 @@
                     <h4 class="mb-3" style="font-family: var(--v29-font-title); font-weight: 600;">Nội Dung Quy Định</h4>
                     
                     <div id="nodeDetailPlaceholder" class="text-center my-auto py-5">
-                        <i class="bi bi-book display-2 text-secondary opacity-25"></i>
+                        <i class="bi bi-book display-2 text-secondary opacity-25" aria-hidden="true"></i>
                         <p class="mt-3 text-secondary">Hãy nhấp vào một nút quy định trên bản đồ mạng lưới để xem chi tiết điều khoản chi phối.</p>
                     </div>
 

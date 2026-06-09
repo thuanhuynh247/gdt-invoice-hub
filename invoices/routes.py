@@ -8509,4 +8509,128 @@ def api_agents_swarm_v30_chat():
         return jsonify({"error": str(e)}), 500
 
 
+# ── Version 31.0.0 Multi-Period VAT Reconciliation & AI Anomaly Detection ──────
+
+@invoices_blueprint.get("/v31-compliance")
+def v31_compliance_page():
+    """Render the Version 31.0.0 Multi-Period VAT Reconciliation & AI Anomaly Detection panel."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("v31_compliance.html")
+
+
+@invoices_blueprint.post("/api/compliance/vat-reconciliation")
+def api_compliance_vat_reconciliation():
+    """US-420: Multi-Period VAT Reconciliation Engine with Input/Output VAT Balancing."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    taxpayer_mst = body.get("taxpayer_mst") or session.get("taxpayer_mst") or "0109999999"
+    periods = body.get("periods")
+
+    from invoices.v31_service import vat_reconciliation_multi_period
+    try:
+        result = vat_reconciliation_multi_period(taxpayer_mst, periods)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/compliance/form01-gtgt-xml")
+def api_compliance_form01_gtgt_xml():
+    """US-421: Automated Form 01/GTGT VAT Declaration XML Builder."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    taxpayer_mst = body.get("taxpayer_mst") or session.get("taxpayer_mst") or "0109999999"
+    taxpayer_name = body.get("taxpayer_name") or "Công ty TNHH Giải pháp Phần mềm"
+    period = body.get("period") or ""
+    output_vat = float(body.get("output_vat", 0))
+    input_vat = float(body.get("input_vat", 0))
+    carry_forward_prev = float(body.get("carry_forward_prev", 0))
+
+    if not period:
+        return jsonify({"error": "Thiếu kỳ kê khai (period)"}), 400
+
+    from invoices.v31_service import build_form01_gtgt_xml
+    try:
+        result = build_form01_gtgt_xml(
+            taxpayer_mst, taxpayer_name, period,
+            output_vat, input_vat, carry_forward_prev,
+        )
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/agents/swarm-v31-chat")
+def api_agents_swarm_v31_chat():
+    """US-422: AI VAT Anomaly Detection Swarm and Cross-Period Audit Advisory."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    taxpayer_mst = body.get("taxpayer_mst") or session.get("taxpayer_mst") or "0109999999"
+    taxpayer_name = body.get("taxpayer_name") or "Doanh nghiệp phân tích"
+
+    from invoices.v31_service import run_vat_anomaly_swarm
+    try:
+        result = run_vat_anomaly_swarm(taxpayer_mst, taxpayer_name)
+        return jsonify({
+            "status": "success",
+            "chat_steps": result["chat_steps"],
+            "report_markdown": result["report_markdown"],
+            "reconciliation": result["reconciliation"],
+            "risk_level": result["risk_level"],
+            "total_anomalies": result["total_anomalies"],
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# ── Version 32.0.0 Exporter VAT Refund Wizard & AI Defense Swarm ────────────────
+
+@invoices_blueprint.get("/v32-compliance")
+def v32_compliance_page():
+    """Render the Version 32.0.0 Exporter VAT Refund Wizard panel."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("v32_refund.html")
+
+
+@invoices_blueprint.post("/api/agents/swarm-v32-chat")
+def api_agents_swarm_v32_chat():
+    """US-432: AI Swarm VAT Refund Justification Compiler & Multi-Agent Debate."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    taxpayer_mst = body.get("taxpayer_mst") or session.get("active_taxpayer_mst")
+    taxpayer_name = body.get("taxpayer_name") or "Doanh nghiệp hoàn thuế"
+    eligible_invoice_ids = body.get("eligible_invoice_ids")
+    customs_declarations = body.get("customs_declarations")
+
+    if not taxpayer_mst:
+        return jsonify({"error": "Missing taxpayer MST"}), 400
+
+    from invoices.v32_service import run_refund_audit_swarm
+    try:
+        result = run_refund_audit_swarm(
+            taxpayer_mst=taxpayer_mst,
+            taxpayer_name=taxpayer_name,
+            eligible_invoice_ids=eligible_invoice_ids,
+            customs_declarations=customs_declarations
+        )
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+
 

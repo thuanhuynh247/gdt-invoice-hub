@@ -222,7 +222,7 @@
         </div>
         <div>
             <span class="badge bg-primary px-3 py-2 fs-6 rounded-pill" style="box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);">
-                <i class="bi bi-shield-check-fill me-1"></i> Version 28.0.0
+                <i class="bi bi-shield-check-fill me-1" aria-hidden="true"></i> Version 28.0.0
             </span>
         </div>
     </div>
@@ -234,12 +234,12 @@
         <ul class="nav nav-tabs nav-tabs-v28" id="v28Tabs" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="xml-repair-tab" data-bs-toggle="tab" data-bs-target="#xml-repair" type="button" role="tab" aria-controls="xml-repair" aria-selected="true">
-                    <i class="bi bi-wrench-adjustable me-2"></i> XML Auto-Repair Hub
+                    <i class="bi bi-wrench-adjustable me-2" aria-hidden="true"></i> XML Auto-Repair Hub
                 </button>
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="swarm-chat-tab" data-bs-toggle="tab" data-bs-target="#swarm-chat" type="button" role="tab" aria-controls="swarm-chat" aria-selected="false">
-                    <i class="bi bi-chat-left-dots me-2"></i> Swarm Chat Advisor
+                    <i class="bi bi-chat-left-dots me-2" aria-hidden="true"></i> Swarm Chat Advisor
                 </button>
             </li>
         </ul>
@@ -256,19 +256,19 @@
                     <h4 class="mb-3 font-title d-flex justify-content-between align-items-center">
                         <span>Nhập XML Hóa Đơn</span>
                         <button class="btn btn-sm btn-outline-info" id="btnLoadSampleXml">
-                            <i class="bi bi-file-earmark-code me-1"></i> Nạp XML Lỗi Mẫu
+                            <i class="bi bi-file-earmark-code me-1" aria-hidden="true"></i> Nạp XML Lỗi Mẫu
                         </button>
                     </h4>
                     <p class="text-secondary small">Dán nội dung XML hóa đơn Nghị định 123 có lỗi để chạy rà soát cấu trúc, sắp xếp thứ tự thẻ con, và tự động ký Mock HSM.</p>
                     
-                    <textarea class="form-control mb-3" id="txtXmlInput" rows="16" placeholder="<?xml version='1.0' encoding='utf-8'?>..." style="font-family: var(--v28-font-mono); font-size: 12px; background: #020617; color: #34d399; border: 1px solid var(--v28-border-glass);"></textarea>
+                    <textarea class="form-control mb-3" id="txtXmlInput" rows="16" placeholder="<?xml version='1.0' encoding='utf-8'?>…" style="font-family: var(--v28-font-mono); font-size: 12px; background: #020617; color: #34d399; border: 1px solid var(--v28-border-glass);"></textarea>
                     
                     <div class="d-grid gap-2 d-flex">
                         <button class="btn btn-primary flex-grow-1" id="btnAuditXml">
-                            <i class="bi bi-search me-1"></i> Rà Soát Lỗi XML
+                            <i class="bi bi-search me-1" aria-hidden="true"></i> Rà Soát Lỗi XML
                         </button>
                         <button class="btn btn-success flex-grow-1" id="btnRepairXml">
-                            <i class="bi bi-magic me-1"></i> Sửa Lỗi Tự Động
+                            <i class="bi bi-magic me-1" aria-hidden="true"></i> Sửa Lỗi Tự Động
                         </button>
                     </div>
                 </div>
@@ -311,16 +311,16 @@
                     
                     <div class="mt-auto d-flex justify-content-end gap-2" id="downloadArea" style="display: none;">
                         <button class="btn btn-outline-light" id="btnCopyRepaired">
-                            <i class="bi bi-clipboard me-1"></i> Copy XML Đã Sửa
+                            <i class="bi bi-clipboard me-1" aria-hidden="true"></i> Copy XML Đã Sửa
                         </button>
                         <a class="btn btn-primary" id="btnDownloadRepaired" download="repaired_invoice.xml">
-                            <i class="bi bi-download me-1"></i> Tải XML Đã Sửa
+                            <i class="bi bi-download me-1" aria-hidden="true"></i> Tải XML Đã Sửa
                         </a>
                     </div>
 
                     <!-- Placeholder -->
                     <div class="text-center my-auto py-5" id="xmlPlaceholder">
-                        <i class="bi bi-code-slash display-1 text-secondary opacity-25"></i>
+                        <i class="bi bi-code-slash display-1 text-secondary opacity-25" aria-hidden="true"></i>
                         <p class="mt-3 text-secondary">Hãy dán nội dung XML hoặc nhấn "Nạp XML Lỗi Mẫu" rồi chọn "Rà Soát Lỗi XML" hoặc "Sửa Lỗi Tự Động" để hiển thị kết quả đối chiếu.</p>
                     </div>
                 </div>
@@ -346,12 +346,12 @@
 
                     <div class="mb-3">
                         <label for="txtSwarmQuery" class="form-label text-secondary small">Câu hỏi / Yêu cầu kiểm toán:</label>
-                        <textarea class="form-control" id="txtSwarmQuery" rows="6" placeholder="Ví dụ: Rà soát rủi ro thuế liên kết và ước tính dòng tiền thuế quý tới cho doanh nghiệp này..."></textarea>
+                        <textarea class="form-control" id="txtSwarmQuery" rows="6" placeholder="Ví dụ: Rà soát rủi ro thuế liên kết và ước tính dòng tiền thuế quý tới cho doanh nghiệp này…"></textarea>
                     </div>
                     
                     <div class="d-grid">
                         <button class="btn btn-primary" id="btnRunSwarm">
-                            <i class="bi bi-play-fill me-1"></i> Khởi Chạy Swarm Tư Vấn
+                            <i class="bi bi-play-fill me-1" aria-hidden="true"></i> Khởi Chạy Swarm Tư Vấn
                         </button>
                     </div>
 
@@ -396,7 +396,7 @@
 
                     <!-- Placeholder -->
                     <div class="text-center my-auto py-5" id="swarmPlaceholder">
-                        <i class="bi bi-chat-square-text display-1 text-secondary opacity-25"></i>
+                        <i class="bi bi-chat-square-text display-1 text-secondary opacity-25" aria-hidden="true"></i>
                         <p class="mt-3 text-secondary">Nhập câu hỏi và bấm "Khởi Chạy Swarm Tư Vấn" để theo dõi hội thoại giữa các tác tử AI.</p>
                     </div>
                 </div>

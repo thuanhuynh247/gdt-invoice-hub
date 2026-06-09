@@ -274,13 +274,42 @@ def auto_refresh_gdt_session() -> bool:
                 pass
             current_app.logger.info("Auto-refresh session completed successfully.")
             return True
-        except AuthenticationError as auth_err:
+        except (AuthenticationError, requests.RequestException) as auth_err:
             last_error = auth_err
-            if "captcha" in str(auth_err).lower():
+            msg = str(auth_err)
+            
+            # Check if this is a permanent credential/lock error
+            is_permanent = False
+            msg_lower = msg.lower()
+            permanent_terms = [
+                "mật khẩu không đúng",
+                "tên đăng nhập hoặc mật khẩu",
+                "tài khoản không tồn tại",
+                "tài khoản đang bị khóa",
+                "tài khoản chưa đăng ký",
+                "locked",
+                "thong tin dang nhap va captcha khong du"
+            ]
+            for term in permanent_terms:
+                if term in msg_lower:
+                    is_permanent = True
+                    break
+            
+            if is_permanent:
+                current_app.logger.error(f"Auto-refresh permanent credential failure: {msg}. Aborting refresh.")
+                break
+                
+            current_app.logger.warning(
+                f"Auto-refresh attempt {attempt+1} failed with transient error: {msg}. Retrying..."
+            )
+            
+            if "captcha" in msg_lower or isinstance(auth_err, AuthenticationError):
                 from auth.captcha_solver import captcha_analytics
                 captcha_analytics.record_fail()
-            else:
-                break
+                
+            if attempt < attempts - 1:
+                import time
+                time.sleep(0.5)
 
     current_app.logger.error(f"Auto-refresh failed after {attempts} attempts: {last_error}")
     return False

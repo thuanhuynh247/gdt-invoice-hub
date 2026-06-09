@@ -62,6 +62,11 @@ def app():
         from extensions import db
         db.session.remove()
         try:
+            from invoices.thread_local import clear_thread_local_context
+            clear_thread_local_context()
+        except Exception:
+            pass
+        try:
             db.drop_all()
         except Exception:
             pass

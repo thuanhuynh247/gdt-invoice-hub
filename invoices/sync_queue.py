@@ -219,10 +219,6 @@ class ResilientSyncQueue:
                 # 4. Perform isolated synchronization tasks
                 total_fetched = self._perform_sync(job, app)
 
-                # Update job state
-                job.status = "success"
-                job.invoices_fetched = total_fetched
-                job.completed_at = datetime.now()
                 elapsed = time.time() - start_time
 
                 # 5. Log execution success to the tenant database
@@ -236,6 +232,11 @@ class ResilientSyncQueue:
                 db.session.add(sync_log)
                 db.session.commit()
 
+                # Update job state (only after DB commit)
+                job.status = "success"
+                job.invoices_fetched = total_fetched
+                job.completed_at = datetime.now()
+
                 logger.info(f"Job {job_id} completed successfully. Fetched {total_fetched} invoices.")
                 self._notify_event(app, "job_completed", job.to_dict())
 
@@ -245,9 +246,6 @@ class ResilientSyncQueue:
                 elapsed = time.time() - start_time
                 error_msg = f"{type(e).__name__}: {str(e)}"
                 
-                job.status = "failed"
-                job.error_message = error_msg
-                job.completed_at = datetime.now()
                 logger.error(f"Job {job_id} failed with error: {error_msg}", exc_info=True)
 
                 try:
@@ -264,6 +262,10 @@ class ResilientSyncQueue:
                     db.session.commit()
                 except Exception as db_err:
                     logger.error(f"Failed to record sync log in tenant database: {db_err}")
+
+                job.status = "failed"
+                job.error_message = error_msg
+                job.completed_at = datetime.now()
 
                 self._notify_event(app, "job_failed", job.to_dict())
 

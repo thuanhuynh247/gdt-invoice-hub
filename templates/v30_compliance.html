@@ -156,12 +156,12 @@
 <div class="row">
     <div class="col-12 mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div>
-            <h1 class="v30-title mb-1"><i class="bi bi-shield-lock-fill me-2"></i>Giao Dịch Liên Kết & Xác Định Giá Chuyển Nhượng (Decree 132)</h1>
+            <h1 class="v30-title mb-1"><i class="bi bi-shield-lock-fill me-2" aria-hidden="true"></i>Giao Dịch Liên Kết & Xác Định Giá Chuyển Nhượng (Decree 132)</h1>
             <p class="text-secondary mb-0">Hệ thống phân tích khoảng giá độc lập (Arm's Length), Sandbox mô phỏng biên lợi nhuận & Tác tử Swarm tư vấn thanh tra giá.</p>
         </div>
         <div>
             <span class="badge bg-info text-dark px-3 py-2 fs-6 rounded-pill" style="box-shadow: 0 0 15px rgba(2, 132, 199, 0.3); font-family: var(--v30-font-title); font-weight: 700;">
-                <i class="bi bi-cpu-fill me-1"></i> Version 30.0.0 (Transfer Pricing)
+                <i class="bi bi-cpu-fill me-1" aria-hidden="true"></i> Version 30.0.0 (Transfer Pricing)
             </span>
         </div>
     </div>
@@ -173,12 +173,12 @@
         <ul class="nav nav-tabs nav-tabs-v30" id="v30Tabs" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="analyzer-tab" data-bs-toggle="tab" data-bs-target="#analyzer" type="button" role="tab" aria-controls="analyzer" aria-selected="true">
-                    <i class="bi bi-graph-up me-2"></i> Transfer Pricing Margin Risk Analyzer
+                    <i class="bi bi-graph-up me-2" aria-hidden="true"></i> Transfer Pricing Margin Risk Analyzer
                 </button>
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="swarm-tab" data-bs-toggle="tab" data-bs-target="#swarm" type="button" role="tab" aria-controls="swarm" aria-selected="false">
-                    <i class="bi bi-chat-dots-fill me-2"></i> AI Audit Prep Swarm & Dossier
+                    <i class="bi bi-chat-dots-fill me-2" aria-hidden="true"></i> AI Audit Prep Swarm & Dossier
                 </button>
             </li>
         </ul>
@@ -204,7 +204,7 @@
 
                     <div class="mb-3">
                         <label for="txtCostOfGoods" class="form-label small text-secondary">Giá vốn dịch vụ/hàng hóa bán liên kết (COGS - VNĐ):</label>
-                        <input type="number" class="form-control bg-slate-900 border-slate-800 text-white" id="txtCostOfGoods" value="10000000000" placeholder="Ví dụ: 10,000,000,000">
+                        <input type="number" class="form-control bg-slate-900 border-slate-800 text-white" id="txtCostOfGoods" value="10000000000" placeholder="Ví dụ: 10,000,000,000" autocomplete="off">
                     </div>
 
                     <div class="mb-4">
@@ -217,7 +217,7 @@
 
                     <div class="d-grid mt-auto pt-3">
                         <button class="btn btn-info text-dark fw-bold" id="btnRecalculateTP">
-                            <i class="bi bi-calculator-fill me-1"></i> Tính Toán & Kiểm Tra Khoảng Độc Lập
+                            <i class="bi bi-calculator-fill me-1" aria-hidden="true"></i> Tính Toán & Kiểm Tra Khoảng Độc Lập
                         </button>
                     </div>
                 </div>
@@ -320,17 +320,17 @@
                     
                     <div class="mb-3">
                         <label for="txtSwarmMst" class="form-label small text-secondary">MST doanh nghiệp người nộp thuế:</label>
-                        <input type="text" class="form-control bg-slate-900 border-slate-800 text-white" id="txtSwarmMst" placeholder="Nhập MST (Ví dụ: 0108924810)">
+                        <input type="text" class="form-control bg-slate-900 border-slate-800 text-white" id="txtSwarmMst" placeholder="Nhập MST (Ví dụ: 0108924810)" autocomplete="off">
                     </div>
 
                     <div class="mb-3">
                         <label for="txtSwarmName" class="form-label small text-secondary">Tên người nộp thuế:</label>
-                        <input type="text" class="form-control bg-slate-900 border-slate-800 text-white" id="txtSwarmName" placeholder="Tên doanh nghiệp">
+                        <input type="text" class="form-control bg-slate-900 border-slate-800 text-white" id="txtSwarmName" placeholder="Tên doanh nghiệp" autocomplete="off">
                     </div>
 
                     <div class="d-grid mt-auto pt-3">
                         <button class="btn btn-primary fw-bold" id="btnRunTPAuditSwarm">
-                            <i class="bi bi-cpu-fill me-1"></i> Chạy Swarm & Kết Xuất Hồ Sơ Biện Hộ
+                            <i class="bi bi-cpu-fill me-1" aria-hidden="true"></i> Chạy Swarm & Kết Xuất Hồ Sơ Biện Hộ
                         </button>
                     </div>
                 </div>
@@ -341,7 +341,7 @@
                     <h4 class="mb-3" style="font-family: var(--v30-font-title); font-weight: 600;">Nhật Ký Swarm & Hồ Sơ Kết Xuất (Dossier)</h4>
                     
                     <div id="swarmPlaceholder" class="text-center my-auto py-5">
-                        <i class="bi bi-chat-square-dots display-2 text-secondary opacity-25"></i>
+                        <i class="bi bi-chat-square-dots display-2 text-secondary opacity-25" aria-hidden="true"></i>
                         <p class="mt-3 text-secondary">Vui lòng thiết lập thông tin và khởi chạy Swarm để phân tích giá liên kết.</p>
                     </div>
 
@@ -358,10 +358,10 @@
                             
                             <div class="d-flex justify-content-end gap-2">
                                 <button class="btn btn-outline-light" id="btnCopyDossier">
-                                    <i class="bi bi-clipboard me-1"></i> Sao chép
+                                    <i class="bi bi-clipboard me-1" aria-hidden="true"></i> Sao chép
                                 </button>
                                 <button class="btn btn-primary" id="btnDownloadDossier">
-                                    <i class="bi bi-download me-1"></i> Tải Báo Cáo (.txt)
+                                    <i class="bi bi-download me-1" aria-hidden="true"></i> Tải Báo Cáo (.txt)
                                 </button>
                             </div>
                         </div>

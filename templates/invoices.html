@@ -1552,13 +1552,13 @@
                         </div>
                         
                         <div class="mt-3 p-2 rounded bg-success bg-opacity-10 border border-success border-opacity-15 d-flex justify-content-between align-items-center small text-success">
-                            <span><i class="bi bi-check-circle-fill"></i> Số thuế tiết kiệm tối đa:</span>
+                            <span><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Số thuế tiết kiệm tối đa:</span>
                             <strong class="fs-6" id="citTaxSavingsText">0 ₫</strong>
                         </div>
                         
                         <div class="d-flex gap-2 mt-3">
                             <button type="button" class="btn btn-sm btn-outline-secondary w-100" id="btnExportCitRecommendation" style="min-height: 38px;">
-                                <i class="bi bi-file-earmark-pdf"></i> Xuất Báo Cáo Khuyến Nghị
+                                <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i> Xuất Báo Cáo Khuyến Nghị
                             </button>
                         </div>
                     </div>
@@ -1578,7 +1578,7 @@
                             <i class="bi bi-shield-check text-primary-accent" aria-hidden="true"></i> Bảng Đối Soát Trạng Thái Hóa Đơn Tổng Cục Thuế (GDT)
                         </h4>
                         <button type="button" class="btn btn-sm btn-primary-accent" id="btnSyncGdtStatus" style="min-height: 38px;">
-                            <i class="bi bi-arrow-repeat"></i> Đồng Bộ Trực Tuyến GDT
+                            <i class="bi bi-arrow-repeat" aria-hidden="true"></i> Đồng Bộ Trực Tuyến GDT
                         </button>
                     </div>
                     <p class="text-secondary small mb-3">Theo dõi tính hợp pháp của chữ ký số XML-DSIG, trạng thái mã số thuế người bán, và mã phê duyệt hóa đơn GDT trực tuyến theo Nghị định 123/2020/NĐ-CP.</p>
@@ -1598,7 +1598,7 @@
                             <tbody id="gdtComplianceTableBody">
                                 <tr>
                                     <td colspan="6" class="text-center py-4 text-secondary">
-                                        <div class="spinner-border spinner-border-sm text-primary-accent" role="status"></div> Đang tải dữ liệu đối soát...
+                                        <div class="spinner-border spinner-border-sm text-primary-accent" role="status"></div> Đang tải dữ liệu đối soát…
                                     </td>
                                 </tr>
                             </tbody>
@@ -1634,32 +1634,32 @@
                         
                         <div class="col-md-6">
                             <label class="form-label fw-medium small mb-1" for="inputCorrectionBuyerMst">MST Người mua mới (nếu sửa)</label>
-                            <input type="text" class="form-control custom-input" id="inputCorrectionBuyerMst" placeholder="MST Người mua">
+                            <input type="text" class="form-control custom-input" id="inputCorrectionBuyerMst" placeholder="MST Người mua" autocomplete="off">
                         </div>
                         
                         <div class="col-md-12">
                             <label class="form-label fw-medium small mb-1" for="inputCorrectionBuyerName">Tên người mua mới (nếu sửa)</label>
-                            <input type="text" class="form-control custom-input" id="inputCorrectionBuyerName" placeholder="Tên đơn vị mua hàng">
+                            <input type="text" class="form-control custom-input" id="inputCorrectionBuyerName" placeholder="Tên đơn vị mua hàng" autocomplete="name">
                         </div>
                         
                         <div class="col-md-6">
                             <label class="form-label fw-medium small mb-1" for="inputCorrectionAmount">Thành tiền mới (VND)</label>
-                            <input type="number" class="form-control custom-input" id="inputCorrectionAmount" placeholder="Số tiền mới">
+                            <input type="number" class="form-control custom-input" id="inputCorrectionAmount" placeholder="Số tiền mới" autocomplete="off">
                         </div>
                         
                         <div class="col-md-6">
                             <label class="form-label fw-medium small mb-1" for="inputCorrectionTaxAmount">Tiền thuế mới (VND)</label>
-                            <input type="number" class="form-control custom-input" id="inputCorrectionTaxAmount" placeholder="Thuế GTGT mới">
+                            <input type="number" class="form-control custom-input" id="inputCorrectionTaxAmount" placeholder="Thuế GTGT mới" autocomplete="off">
                         </div>
                         
                         <div class="col-md-12">
                             <label class="form-label fw-medium small mb-1" for="inputCorrectionReason">Lý do điều chỉnh/thay thế</label>
-                            <textarea class="form-control custom-input" id="inputCorrectionReason" rows="2" placeholder="Nhập lý do chi tiết..." required></textarea>
+                            <textarea class="form-control custom-input" id="inputCorrectionReason" rows="2" placeholder="Nhập lý do chi tiết…" required></textarea>
                         </div>
                         
                         <div class="col-md-12 d-grid">
                             <button type="submit" class="btn btn-primary-accent" id="btnGenerateCorrectionXml" style="min-height: 44px;">
-                                <i class="bi bi-filetype-xml"></i> Tạo & Ký Số XML Thay Thế/Điều Chỉnh
+                                <i class="bi bi-filetype-xml" aria-hidden="true"></i> Tạo & Ký Số XML Thay Thế/Điều Chỉnh
                             </button>
                         </div>
                     </form>
@@ -1667,9 +1667,9 @@
                     <!-- Result Pane for Correction XML -->
                     <div id="correctionResultPanel" class="mt-4 p-3 rounded bg-white bg-opacity-5 border border-secondary border-opacity-15 d-none animate__animated animate__fadeIn">
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="text-success small fw-bold"><i class="bi bi-check-circle-fill"></i> XML đã tạo & ký số HSM thành công</span>
+                            <span class="text-success small fw-bold"><i class="bi bi-check-circle-fill" aria-hidden="true"></i> XML đã tạo & ký số HSM thành công</span>
                             <a href="#" class="btn btn-sm btn-success py-1 px-2 text-white" id="linkDownloadCorrectionXml" download style="font-size: 0.75rem;">
-                                <i class="bi bi-download"></i> Tải XML
+                                <i class="bi bi-download" aria-hidden="true"></i> Tải XML
                             </a>
                         </div>
                         <pre class="bg-dark p-2 rounded text-white-50 border border-secondary border-opacity-20 font-monospace mb-0" style="font-size: 0.75rem; max-height: 150px; overflow-y: auto;" id="textCorrectionXmlPreview"></pre>
@@ -1686,11 +1686,11 @@
                     <form id="transmitForm04ssForm" class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label fw-medium small mb-1" for="inputForm04TaxpayerMst">MST Người Nộp Thuế</label>
-                            <input type="text" class="form-control custom-input" id="inputForm04TaxpayerMst" value="0101234567" placeholder="MST công ty nộp tờ khai" required>
+                            <input type="text" class="form-control custom-input" id="inputForm04TaxpayerMst" value="0101234567" placeholder="MST công ty nộp tờ khai" required autocomplete="off">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-medium small mb-1" for="inputForm04TaxpayerName">Tên Người Nộp Thuế</label>
-                            <input type="text" class="form-control custom-input" id="inputForm04TaxpayerName" value="CÔNG TY CỔ PHẦN CÔNG NGHỆ XML VIỆT NAM" required>
+                            <input type="text" class="form-control custom-input" id="inputForm04TaxpayerName" value="CÔNG TY CỔ PHẦN CÔNG NGHỆ XML VIỆT NAM" required autocomplete="name">
                         </div>
                         
                         <div class="col-md-12">
@@ -1702,7 +1702,7 @@
                         
                         <div class="col-md-12 d-grid">
                             <button type="submit" class="btn btn-primary-accent" id="btnTransmitForm04ss" style="min-height: 44px;">
-                                <i class="bi bi-cloud-arrow-up"></i> Truyền Tờ Khai 04/SS sang GDT Gateway
+                                <i class="bi bi-cloud-arrow-up" aria-hidden="true"></i> Truyền Tờ Khai 04/SS sang GDT Gateway
                             </button>
                         </div>
                     </form>
@@ -1711,7 +1711,7 @@
                     <div id="form04ResultPanel" class="mt-4 p-3 rounded bg-white bg-opacity-5 border border-secondary border-opacity-15 d-none animate__animated animate__fadeIn">
                         <div class="p-2 bg-success bg-opacity-10 border border-success border-opacity-20 rounded mb-2">
                             <div class="d-flex justify-content-between align-items-center text-success small fw-bold">
-                                <span><i class="bi bi-cloud-check-fill"></i> ĐÃ NHẬN PHẢN HỒI GDT GATEWAY</span>
+                                <span><i class="bi bi-cloud-check-fill" aria-hidden="true"></i> ĐÃ NHẬN PHẢN HỒI GDT GATEWAY</span>
                                 <span class="badge bg-success" id="badgeForm04Status">200 OK</span>
                             </div>
                         </div>
@@ -1724,7 +1724,7 @@
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <span class="text-secondary small fw-bold">Preview XML Tờ Khai 04/SS (Đã ký HSM)</span>
                             <a href="#" class="btn btn-sm btn-outline-secondary py-0.5 px-2" id="linkDownloadForm04Xml" download style="font-size: 0.7rem;">
-                                <i class="bi bi-download"></i> Tải XML
+                                <i class="bi bi-download" aria-hidden="true"></i> Tải XML
                             </a>
                         </div>
                         <pre class="bg-dark p-2 rounded text-white-50 border border-secondary border-opacity-20 font-monospace mb-0" style="font-size: 0.72rem; max-height: 120px; overflow-y: auto;" id="textForm04XmlPreview"></pre>

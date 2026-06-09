@@ -93,7 +93,7 @@
 </style>
 
 <div class="mb-4">
-    <span class="badge badge-v27 mb-2"><i class="bi bi-shield-lock-fill me-1"></i>Version 27.0.0</span>
+    <span class="badge badge-v27 mb-2"><i class="bi bi-shield-lock-fill me-1" aria-hidden="true"></i>Version 27.0.0</span>
     <h1 class="h3 fw-bold mb-1" style="color: var(--text-primary, #f8fafc);">Wise Compliance, Tax Risk Radar & Treasury Sandbox</h1>
     <p class="text-secondary mb-0">Đối soát Phiếu xuất kho điện tử (PXK), Giám sát Rủi ro thuế liên kết 5 trục & Kịch bản Sandbox Kho quỹ.</p>
 </div>
@@ -102,17 +102,17 @@
 <ul class="nav nav-tabs nav-tabs-compliance mb-4" id="complianceV27Tabs" role="tablist">
     <li class="nav-item" role="presentation">
         <button class="nav-link active" id="pxk-tab" data-bs-toggle="tab" data-bs-target="#pxk-pane" type="button" role="tab" aria-controls="pxk-pane" aria-selected="true">
-            <i class="bi bi-truck me-2"></i>Đầu 1: Phiếu xuất kho (US-390/391)
+            <i class="bi bi-truck me-2" aria-hidden="true"></i>Đầu 1: Phiếu xuất kho (US-390/391)
         </button>
     </li>
     <li class="nav-item" role="presentation">
         <button class="nav-link" id="risk-tab" data-bs-toggle="tab" data-bs-target="#risk-pane" type="button" role="tab" aria-controls="risk-pane" aria-selected="false">
-            <i class="bi bi-activity me-2"></i>Đầu 2: Radar Rủi ro Thuế (US-392/393)
+            <i class="bi bi-activity me-2" aria-hidden="true"></i>Đầu 2: Radar Rủi ro Thuế (US-392/393)
         </button>
     </li>
     <li class="nav-item" role="presentation">
         <button class="nav-link" id="treasury-tab" data-bs-toggle="tab" data-bs-target="#treasury-pane" type="button" role="tab" aria-controls="treasury-pane" aria-selected="false">
-            <i class="bi bi-cash-coin me-2"></i>Đầu 3: Sandbox Kho quỹ & E-Contract (US-394/395)
+            <i class="bi bi-cash-coin me-2" aria-hidden="true"></i>Đầu 3: Sandbox Kho quỹ & E-Contract (US-394/395)
         </button>
     </li>
 </ul>
@@ -125,19 +125,19 @@
             <!-- Left: XML Ingestion & Parse -->
             <div class="col-lg-5">
                 <div class="glass-card mb-4">
-                    <h5 class="fw-bold mb-3"><i class="bi bi-filetype-xml me-2 text-info"></i>Đọc Phiếu Xuất Kho XML (Decree 123)</h5>
+                    <h5 class="fw-bold mb-3"><i class="bi bi-filetype-xml me-2 text-info" aria-hidden="true"></i>Đọc Phiếu Xuất Kho XML (Decree 123)</h5>
                     <div class="mb-3">
                         <label for="pxkXmlContent" class="form-label small text-secondary">Dán nội dung XML Phiếu xuất kho kiêm vận chuyển nội bộ:</label>
-                        <textarea class="form-control xml-textarea" id="pxkXmlContent" rows="10" placeholder="<?xml version='1.0' encoding='utf-8'?>..."></textarea>
+                        <textarea class="form-control xml-textarea" id="pxkXmlContent" rows="10" placeholder="<?xml version='1.0' encoding='utf-8'?>…"></textarea>
                     </div>
                     <div class="d-flex gap-2">
-                        <button class="btn btn-outline-info btn-sm" id="loadMockPxkBtn"><i class="bi bi-file-earmark-code me-1"></i>Mock XML mẫu</button>
-                        <button class="btn btn-primary btn-sm flex-fill" id="parsePxkBtn"><i class="bi bi-braces me-1"></i>Phân tích XML</button>
+                        <button class="btn btn-outline-info btn-sm" id="loadMockPxkBtn"><i class="bi bi-file-earmark-code me-1" aria-hidden="true"></i>Mock XML mẫu</button>
+                        <button class="btn btn-primary btn-sm flex-fill" id="parsePxkBtn"><i class="bi bi-braces me-1" aria-hidden="true"></i>Phân tích XML</button>
                     </div>
                 </div>
 
                 <div class="glass-card">
-                    <h5 class="fw-bold mb-3"><i class="bi bi-shield-check me-2 text-success"></i>Kết quả xác thực Chữ ký số</h5>
+                    <h5 class="fw-bold mb-3"><i class="bi bi-shield-check me-2 text-success" aria-hidden="true"></i>Kết quả xác thực Chữ ký số</h5>
                     <div id="pxkSignatureStatus" class="p-3 rounded text-center" style="background: rgba(255,255,255,0.02);">
                         <p class="text-secondary small mb-0">Chưa tải dữ liệu XML</p>
                     </div>
@@ -148,8 +148,8 @@
             <div class="col-lg-7">
                 <div class="glass-card h-100">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="fw-bold mb-0"><i class="bi bi-layers-half me-2 text-warning"></i>Đối soát số lượng: Phiếu xuất kho vs Hóa đơn</h5>
-                        <button class="btn btn-sm btn-outline-success" id="exportPxkCsvBtn" disabled><i class="bi bi-download me-1"></i>Tải Báo cáo CSV</button>
+                        <h5 class="fw-bold mb-0"><i class="bi bi-layers-half me-2 text-warning" aria-hidden="true"></i>Đối soát số lượng: Phiếu xuất kho vs Hóa đơn</h5>
+                        <button class="btn btn-sm btn-outline-success" id="exportPxkCsvBtn" disabled><i class="bi bi-download me-1" aria-hidden="true"></i>Tải Báo cáo CSV</button>
                     </div>
                     <p class="text-secondary small mb-3">So khớp chi tiết từng mã hàng (SKU Code) giữa PXK vận chuyển và hóa đơn thương mại thực tế.</p>
                     
@@ -168,7 +168,7 @@
                             <tbody id="pxkReconciliationTable">
                                 <tr>
                                     <td colspan="6" class="text-center text-secondary py-5">
-                                        <i class="bi bi-arrow-left-right display-6 mb-3 d-block"></i>
+                                        <i class="bi bi-arrow-left-right display-6 mb-3 d-block" aria-hidden="true"></i>
                                         Bấm nút "Phân tích XML" hoặc chạy Đối soát tự động để hiển thị kết quả.
                                     </td>
                                 </tr>
@@ -186,20 +186,20 @@
             <!-- Left: Configurations & Indicators -->
             <div class="col-lg-4">
                 <div class="glass-card mb-4">
-                    <h5 class="fw-bold mb-3"><i class="bi bi-bank2 me-2 text-primary"></i>Thông tin Giao dịch Liên kết</h5>
+                    <h5 class="fw-bold mb-3"><i class="bi bi-bank2 me-2 text-primary" aria-hidden="true"></i>Thông tin Giao dịch Liên kết</h5>
                     <div class="mb-3">
                         <label for="relatedEbitda" class="form-label small">Chỉ số EBITDA của Doanh nghiệp (VND):</label>
-                        <input type="number" class="form-control" id="relatedEbitda" value="5000000000" min="1">
+                        <input type="number" class="form-control" id="relatedEbitda" value="5000000000" min="1" autocomplete="off">
                     </div>
                     <div class="mb-3">
                         <label for="relatedNetInterest" class="form-label small">Tổng chi phí lãi vay ròng liên kết (VND):</label>
-                        <input type="number" class="form-control" id="relatedNetInterest" value="1800000000" min="0">
+                        <input type="number" class="form-control" id="relatedNetInterest" value="1800000000" min="0" autocomplete="off">
                     </div>
-                    <button class="btn btn-primary w-100" id="runTaxRiskBtn"><i class="bi bi-play-circle me-1"></i>Tính toán rủi ro thuế</button>
+                    <button class="btn btn-primary w-100" id="runTaxRiskBtn"><i class="bi bi-play-circle me-1" aria-hidden="true"></i>Tính toán rủi ro thuế</button>
                 </div>
 
                 <div class="glass-card">
-                    <h5 class="fw-bold mb-3"><i class="bi bi-calculator me-2 text-warning"></i>Khả năng thanh kiểm tra</h5>
+                    <h5 class="fw-bold mb-3"><i class="bi bi-calculator me-2 text-warning" aria-hidden="true"></i>Khả năng thanh kiểm tra</h5>
                     <div class="text-center py-3">
                         <h2 class="display-5 fw-bold text-danger" id="overallRiskScore">--</h2>
                         <span class="badge bg-danger-subtle text-danger px-3 py-2 fw-bold" id="overallRiskLabel">Chưa đánh giá</span>
@@ -224,7 +224,7 @@
             <!-- Right: Dynamic SVG Radar Chart Display -->
             <div class="col-lg-8">
                 <div class="glass-card h-100">
-                    <h5 class="fw-bold mb-3"><i class="bi bi-compass me-2 text-danger"></i>Bản đồ mạng nhện Rủi ro Thuế (5 Trục)</h5>
+                    <h5 class="fw-bold mb-3"><i class="bi bi-compass me-2 text-danger" aria-hidden="true"></i>Bản đồ mạng nhện Rủi ro Thuế (5 Trục)</h5>
                     <p class="text-secondary small mb-3">Xác định xác suất rủi ro dựa trên 5 chiều: Giao dịch liên kết, Nhà cung cấp thuộc danh sách đen, Độ trễ ký số, Hạn mức tiền mặt và Tần suất hủy hóa đơn.</p>
                     
                     <div class="row align-items-center">
@@ -285,10 +285,10 @@
             <!-- Left: E-Contract & Parameters -->
             <div class="col-lg-4">
                 <div class="glass-card mb-4">
-                    <h5 class="fw-bold mb-3"><i class="bi bi-file-earmark-text me-2 text-violet"></i>Khớp Hợp đồng & Tiến độ (Milestones)</h5>
+                    <h5 class="fw-bold mb-3"><i class="bi bi-file-earmark-text me-2 text-violet" aria-hidden="true"></i>Khớp Hợp đồng & Tiến độ (Milestones)</h5>
                     <div class="mb-3">
                         <label for="econtractJsonInput" class="form-label small text-secondary">JSON Hợp đồng điện tử:</label>
-                        <textarea class="form-control xml-textarea" id="econtractJsonInput" rows="6" placeholder="Nhập cấu trúc Hợp đồng..."></textarea>
+                        <textarea class="form-control xml-textarea" id="econtractJsonInput" rows="6" placeholder="Nhập cấu trúc Hợp đồng…"></textarea>
                     </div>
                     <div class="d-flex gap-2 mb-3">
                         <button class="btn btn-outline-secondary btn-sm" id="loadMockContractBtn">Mock hợp đồng</button>
@@ -301,13 +301,13 @@
                 </div>
 
                 <div class="glass-card sandbox-slider-card">
-                    <h5 class="fw-bold mb-3"><i class="bi bi-sliders2-vertical me-2 text-primary"></i>Thông số Sandbox Kho quỹ</h5>
+                    <h5 class="fw-bold mb-3"><i class="bi bi-sliders2-vertical me-2 text-primary" aria-hidden="true"></i>Thông số Sandbox Kho quỹ</h5>
                     <div class="mb-3">
                         <label for="startingCash" class="form-label d-flex justify-content-between small">
                             <span>Dòng tiền ban đầu:</span>
                             <strong class="text-primary" id="startingCashVal">1,000,000,000đ</strong>
                         </label>
-                        <input type="number" class="form-control form-control-sm" id="startingCash" value="1000000000" min="0">
+                        <input type="number" class="form-control form-control-sm" id="startingCash" value="1000000000" min="0" autocomplete="off">
                     </div>
                     <div class="mb-3">
                         <label for="delayDaysRange" class="form-label d-flex justify-content-between small">
@@ -323,14 +323,14 @@
                         </label>
                         <input type="range" class="form-range" id="citDiscountRange" min="0" max="50" step="5" value="0">
                     </div>
-                    <button class="btn btn-warning w-100 fw-bold" id="runForecastBtn"><i class="bi bi-magic me-1"></i>Chạy Dự báo Dòng tiền</button>
+                    <button class="btn btn-warning w-100 fw-bold" id="runForecastBtn"><i class="bi bi-magic me-1" aria-hidden="true"></i>Chạy Dự báo Dòng tiền</button>
                 </div>
             </div>
 
             <!-- Right: Projected Cash Flows & VAT/CIT Liabilites -->
             <div class="col-lg-8">
                 <div class="glass-card h-100">
-                    <h5 class="fw-bold mb-3"><i class="bi bi-graph-up-arrow me-2 text-success"></i>Dự phóng Dòng tiền 60 ngày & Thuế Phải nộp</h5>
+                    <h5 class="fw-bold mb-3"><i class="bi bi-graph-up-arrow me-2 text-success" aria-hidden="true"></i>Dự phóng Dòng tiền 60 ngày & Thuế Phải nộp</h5>
                     <p class="text-secondary small mb-3">Dự phóng biến động tài khoản thanh toán và các đợt quyết toán thuế giá trị gia tăng (VAT) & thuế thu nhập doanh nghiệp (CIT) tạm nộp.</p>
 
                     <div class="row g-3 mb-4">
