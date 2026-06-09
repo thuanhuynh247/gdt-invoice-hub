@@ -12,7 +12,13 @@ class AuthenticationError(Exception):
     """Raised when login fails due to invalid credentials or captcha."""
 
 
-def authenticate_user(username: str, password: str, captcha: str) -> dict:
+def authenticate_user(
+    username: str,
+    password: str,
+    captcha: str,
+    captcha_key: str | None = None,
+    captcha_cookies: dict | None = None,
+) -> dict:
     """Authenticate a user against mock mode or a future live GDT integration."""
 
     if not username or not password or not captcha:
@@ -23,7 +29,13 @@ def authenticate_user(username: str, password: str, captcha: str) -> dict:
             raise AuthenticationError("Tai khoan tam thoi khong the dang nhap.")
         return _build_mock_session_payload(username)
 
-    return _authenticate_live(username, password, captcha)
+    return _authenticate_live(
+        username,
+        password,
+        captcha,
+        captcha_key=captcha_key,
+        captcha_cookies=captcha_cookies,
+    )
 
 
 def _build_mock_session_payload(username: str) -> dict:
@@ -41,12 +53,18 @@ def _build_mock_session_payload(username: str) -> dict:
     }
 
 
-def _authenticate_live(username: str, password: str, captcha: str) -> dict:
+def _authenticate_live(
+    username: str,
+    password: str,
+    captcha: str,
+    captcha_key: str | None = None,
+    captcha_cookies: dict | None = None,
+) -> dict:
     """Authenticate against the real taxpayer endpoint using manual captcha."""
 
-    captcha_key = current_app.config.get("CURRENT_CAPTCHA_KEY") or ""
-    captcha_cookies = current_app.config.get("CURRENT_CAPTCHA_COOKIES") or {}
-    if not captcha_key:
+    key = captcha_key or current_app.config.get("CURRENT_CAPTCHA_KEY") or ""
+    cookies = captcha_cookies or current_app.config.get("CURRENT_CAPTCHA_COOKIES") or {}
+    if not key:
         raise AuthenticationError("Captcha da het han. Vui long tai lai captcha.")
 
     response = requests.post(
@@ -55,9 +73,9 @@ def _authenticate_live(username: str, password: str, captcha: str) -> dict:
             "username": username,
             "password": password,
             "cvalue": captcha,
-            "ckey": captcha_key,
+            "ckey": key,
         },
-        cookies=captcha_cookies,
+        cookies=cookies,
         timeout=current_app.config["GDT_TIMEOUT_SECONDS"],
     )
 
@@ -222,11 +240,14 @@ def auto_refresh_gdt_session() -> bool:
             last_error = ocr_err
             continue
 
-        current_app.config["CURRENT_CAPTCHA_KEY"] = captcha_key
-        current_app.config["CURRENT_CAPTCHA_COOKIES"] = captcha_cookies
-
         try:
-            auth_data = authenticate_user(username, password, solved_value)
+            auth_data = authenticate_user(
+                username,
+                password,
+                solved_value,
+                captcha_key=captcha_key,
+                captcha_cookies=captcha_cookies,
+            )
             from auth.captcha_solver import captcha_analytics
             captcha_analytics.record_success()
 
@@ -260,9 +281,6 @@ def auto_refresh_gdt_session() -> bool:
                 captcha_analytics.record_fail()
             else:
                 break
-        finally:
-            current_app.config["CURRENT_CAPTCHA_KEY"] = ""
-            current_app.config["CURRENT_CAPTCHA_COOKIES"] = {}
 
     current_app.logger.error(f"Auto-refresh failed after {attempts} attempts: {last_error}")
     return False

@@ -124,11 +124,14 @@ def api_login():
                     last_error = AuthenticationError(f"Loi giai ma captcha: {ocr_err}")
                     continue
 
-                current_app.config["CURRENT_CAPTCHA_KEY"] = current_captcha_key
-                current_app.config["CURRENT_CAPTCHA_COOKIES"] = current_captcha_cookies
-
                 try:
-                    auth_data = authenticate_user(username, password, solved_value)
+                    auth_data = authenticate_user(
+                        username,
+                        password,
+                        solved_value,
+                        captcha_key=current_captcha_key,
+                        captcha_cookies=current_captcha_cookies,
+                    )
                     from auth.captcha_solver import captcha_analytics
                     captcha_analytics.record_success()
                     break
@@ -148,16 +151,17 @@ def api_login():
             else:
                 raise last_error or AuthenticationError(f"Tu dong giaima captcha that bai sau {attempts} lan thu.")
         else:
-            current_app.config["CURRENT_CAPTCHA_KEY"] = session.get("auth_captcha_key", "")
-            current_app.config["CURRENT_CAPTCHA_COOKIES"] = session.get("auth_captcha_cookies", {})
-            auth_data = authenticate_user(username, password, captcha)
+            auth_data = authenticate_user(
+                username,
+                password,
+                captcha,
+                captcha_key=session.get("auth_captcha_key", ""),
+                captcha_cookies=session.get("auth_captcha_cookies", {}),
+            )
     except AuthenticationError as error:
         from invoices.security_audit_service import log_security_event
         log_security_event("AUTH", f"User login failed: {error}", username=username)
         return jsonify({"error": str(error)}), 401
-    finally:
-        current_app.config["CURRENT_CAPTCHA_KEY"] = ""
-        current_app.config["CURRENT_CAPTCHA_COOKIES"] = {}
 
 
     session.clear()

@@ -97,8 +97,10 @@ def solve_captcha_from_svg(svg_content: str) -> str:
                 return t.text.strip().upper()
 
         # 1. Locate all path elements across namespaces
-
         paths = [p for p in root.iter() if p.tag.endswith('path')]
+        
+        # Build parent map to safely remove nested paths in any XML structure
+        parent_map = {c: p for p in root.iter() for c in p}
         
         # 2. Separate noise paths and keep character paths
         character_paths = []
@@ -108,14 +110,9 @@ def solve_captcha_from_svg(svg_content: str) -> str:
 
             # Noise lines have fill="none" or a stroke value (like #777, #222)
             if fill == 'none' or stroke:
+                parent = parent_map.get(p, root)
                 try:
-                    # Remove noise path from its parent
-                    # Since parent can be root or nested, find container
-                    parent = root
-                    # If we need to find parent in element tree:
-                    # In python 3, we can use a helper or root.remove directly if it's direct child.
-                    # If it's a nested child, we can use search. But GDT SVGs are flat.
-                    root.remove(p)
+                    parent.remove(p)
                 except ValueError:
                     pass
             else:
@@ -152,8 +149,9 @@ def solve_captcha_from_svg(svg_content: str) -> str:
 
         # Remove keep-paths so we can append them back in sorted order
         for p in character_paths:
+            parent = parent_map.get(p, root)
             try:
-                root.remove(p)
+                parent.remove(p)
             except ValueError:
                 pass
 
