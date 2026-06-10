@@ -1,7 +1,7 @@
 # Spec: US-484 — AI Swarm CIT Finalization Advisory Consensus Chat
 
 ## Status
-planned
+completed
 
 ## Lane
 normal
@@ -12,6 +12,6 @@ The dashboard page features an **AI Swarm CIT Advisor Console** where multiple t
 
 ## Acceptance Criteria
 
-- [ ] API endpoint `/api/cit/swarm-chat` simulates a consensus debate between at least 3 advisor agent personas.
-- [ ] Swarm chat UI timeline matches the glassmorphic styling.
-- [ ] Provides a button to download the debate output as a print-ready CIT Advisory Memo in Markdown.
+- [x] API endpoint `/api/cit/swarm-chat` simulates a consensus debate between at least 3 advisor agent personas.
+- [x] Swarm chat UI timeline matches the glassmorphic styling.
+- [x] Provides a button to download the debate output as a print-ready CIT Advisory Memo in Markdown.

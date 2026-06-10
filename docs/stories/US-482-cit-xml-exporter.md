@@ -1,7 +1,7 @@
 # Spec: US-482 — Form 03/TNDN XML Exporter & GDT Schema Validator
 
 ## Status
-planned
+completed
 
 ## Lane
 normal
@@ -12,6 +12,6 @@ The system generates a **Form 03/TNDN XML dossier** matching the official XML st
 
 ## Acceptance Criteria
 
-- [ ] API endpoint `/api/cit/export-xml` returns a structured GDT-compliant Form 03/TNDN XML file.
-- [ ] Incorporates Phụ lục 03-1A (Business Results) and Phụ lục 03-2A (Loss Offset Schedule).
-- [ ] Validates output tags (e.g. `<ct21>`, `<ct22>`, `<ct23>`, `<ct31>`, `<ct36>`) to match the schemas.
+- [x] API endpoint `/api/cit/export-xml` returns a structured GDT-compliant Form 03/TNDN XML file.
+- [x] Incorporates Phụ lục 03-1A (Business Results) and Phụ lục 03-2A (Loss Offset Schedule).
+- [x] Validates output tags (e.g. `<ct21>`, `<ct22>`, `<ct23>`, `<ct31>`, `<ct36>`) to match the schemas.

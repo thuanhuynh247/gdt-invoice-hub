@@ -1,7 +1,7 @@
 # Spec: US-481 — AI-Driven Loss Carry-Forward & Tax Holiday Optimizer
 
 ## Status
-planned
+completed
 
 ## Lane
 normal
@@ -12,7 +12,7 @@ The system implements a **Loss Carry-Forward Optimizer** algorithm. It allows en
 
 ## Acceptance Criteria
 
-- [ ] Optimization engine parses historical losses and calculates offset eligibility (max 5 years expiration).
-- [ ] Incorporates tax holiday settings (exemption / reduction) to avoid offsetting losses in 100% tax-free years where possible.
-- [ ] Provides API endpoint `/api/cit/optimize-losses` which returns the optimal carry-forward matrix.
-- [ ] Updates the dashboard dynamically when sliders or inputs are modified.
+- [x] Optimization engine parses historical losses and calculates offset eligibility (max 5 years expiration).
+- [x] Incorporates tax holiday settings (exemption / reduction) to avoid offsetting losses in 100% tax-free years where possible.
+- [x] Provides API endpoint `/api/cit/optimize-losses` which returns the optimal carry-forward matrix.
+- [x] Updates the dashboard dynamically when sliders or inputs are modified.

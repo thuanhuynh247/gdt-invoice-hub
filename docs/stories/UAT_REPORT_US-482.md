@@ -1,5 +1,5 @@
 # 🏆 BIÊN BẢN NGHIỆM THU UAT CHẤT LƯỢNG CAO (UAT Sign-off Report)
-## 📌 Hạng mục: Interactive Form 03/TNDN Builder & CIT Finalization Hub (Story ID: US-480)
+## 📌 Hạng mục: Form 03/TNDN XML Exporter & GDT Schema Validator (Story ID: US-482)
 
 ---
 
@@ -31,9 +31,9 @@
 
 ### 📋 4. CHI TIẾT TÁC VỤ ĐÃ THỰC THI (Execution Trace Detail)
 - **Hành động đã làm (Actions Taken)**:
-  - `Designed and implemented glassmorphic dashboard for annual CIT finalization at /v36-cit-finalization`\n  - `Created form inputs for Revenue, COGS, Selling Expenses, Admin Expenses, and Non-Deductible items`\n  - `Linked CIT calculations dynamically and populated standard Form 03/TNDN parameters`\n  - `Rendered business results cards simulating standard GDT Phụ lục 03-1A template`\n- **Tệp tin đã đọc (Files Read)**:
-  - `invoices/v36_service.py`\n  - `invoices/routes.py`\n  - `templates/v36_compliance.html`\n- **Tệp tin đã thay đổi (Files Changed)**:
-  - `invoices/routes.py`\n  - `templates/v36_compliance.html`\n
+  - `Built GDT-compliant XML generation engine conforming to hoSoKhaiThue official tags`\n  - `Mapped calculations to schema attributes: ct21 (Revenue), ct22 (Expenses), ct23 (Non-deductible), ct28 (Taxable income), ct31 (Applied loss), ct36 (CIT payable)`\n  - `Created GDT-compliant Phụ lục 03-1A and Phụ lục 03-2A XML subsections`\n  - `Exposed export API endpoint at /api/cit/export-xml`\n- **Tệp tin đã đọc (Files Read)**:
+  - `invoices/v36_service.py`\n  - `invoices/routes.py`\n- **Tệp tin đã thay đổi (Files Changed)**:
+  - `invoices/v36_service.py`\n  - `invoices/routes.py`\n
 - **Ghi chú bổ sung (Notes)**: `Đã đối chiếu hoạt động và các kết quả đầu ra chuẩn xác.`
 
 ---

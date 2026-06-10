@@ -1,7 +1,7 @@
 # Spec: US-483 — SVG Corporate Tax Flow & Loss Absorption Graph
 
 ## Status
-planned
+completed
 
 ## Lane
 normal
@@ -12,6 +12,6 @@ The dashboard page displays an **Interactive SVG Tax Flow Map** illustrating cor
 
 ## Acceptance Criteria
 
-- [ ] Renders a zero-dependency responsive SVG diagram on `/v36-cit-finalization`.
-- [ ] Connects adjustments and loss absorption to final tax liabilities.
-- [ ] Displays interactive tooltips with detailed descriptions when nodes are hovered.
+- [x] Renders a zero-dependency responsive SVG diagram on `/v36-cit-finalization`.
+- [x] Connects adjustments and loss absorption to final tax liabilities.
+- [x] Displays interactive tooltips with detailed descriptions when nodes are hovered.

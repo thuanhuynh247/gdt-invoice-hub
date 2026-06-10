@@ -1,5 +1,5 @@
 # 🏆 BIÊN BẢN NGHIỆM THU UAT CHẤT LƯỢNG CAO (UAT Sign-off Report)
-## 📌 Hạng mục: Interactive Form 03/TNDN Builder & CIT Finalization Hub (Story ID: US-480)
+## 📌 Hạng mục: AI-Driven Loss Carry-Forward & Tax Holiday Optimizer (Story ID: US-481)
 
 ---
 
@@ -31,9 +31,9 @@
 
 ### 📋 4. CHI TIẾT TÁC VỤ ĐÃ THỰC THI (Execution Trace Detail)
 - **Hành động đã làm (Actions Taken)**:
-  - `Designed and implemented glassmorphic dashboard for annual CIT finalization at /v36-cit-finalization`\n  - `Created form inputs for Revenue, COGS, Selling Expenses, Admin Expenses, and Non-Deductible items`\n  - `Linked CIT calculations dynamically and populated standard Form 03/TNDN parameters`\n  - `Rendered business results cards simulating standard GDT Phụ lục 03-1A template`\n- **Tệp tin đã đọc (Files Read)**:
-  - `invoices/v36_service.py`\n  - `invoices/routes.py`\n  - `templates/v36_compliance.html`\n- **Tệp tin đã thay đổi (Files Changed)**:
-  - `invoices/routes.py`\n  - `templates/v36_compliance.html`\n
+  - `Developed the CIT loss carry-forward optimization algorithm in CITFinalizationService`\n  - `Implemented FIFO ordering and strict 5-year expiration validation for historical tax losses`\n  - `Integrated tax holidays (tax-free or reduction periods) to dynamically skip offsetting where inappropriate`\n  - `Exposed optimization API at /api/cit/optimize-losses`\n- **Tệp tin đã đọc (Files Read)**:
+  - `invoices/v36_service.py`\n  - `invoices/routes.py`\n- **Tệp tin đã thay đổi (Files Changed)**:
+  - `invoices/v36_service.py`\n  - `invoices/routes.py`\n
 - **Ghi chú bổ sung (Notes)**: `Đã đối chiếu hoạt động và các kết quả đầu ra chuẩn xác.`
 
 ---

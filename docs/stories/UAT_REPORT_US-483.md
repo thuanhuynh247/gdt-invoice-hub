@@ -1,5 +1,5 @@
 # 🏆 BIÊN BẢN NGHIỆM THU UAT CHẤT LƯỢNG CAO (UAT Sign-off Report)
-## 📌 Hạng mục: Interactive Form 03/TNDN Builder & CIT Finalization Hub (Story ID: US-480)
+## 📌 Hạng mục: SVG Corporate Tax Flow & Loss Absorption Graph (Story ID: US-483)
 
 ---
 
@@ -31,9 +31,9 @@
 
 ### 📋 4. CHI TIẾT TÁC VỤ ĐÃ THỰC THI (Execution Trace Detail)
 - **Hành động đã làm (Actions Taken)**:
-  - `Designed and implemented glassmorphic dashboard for annual CIT finalization at /v36-cit-finalization`\n  - `Created form inputs for Revenue, COGS, Selling Expenses, Admin Expenses, and Non-Deductible items`\n  - `Linked CIT calculations dynamically and populated standard Form 03/TNDN parameters`\n  - `Rendered business results cards simulating standard GDT Phụ lục 03-1A template`\n- **Tệp tin đã đọc (Files Read)**:
-  - `invoices/v36_service.py`\n  - `invoices/routes.py`\n  - `templates/v36_compliance.html`\n- **Tệp tin đã thay đổi (Files Changed)**:
-  - `invoices/routes.py`\n  - `templates/v36_compliance.html`\n
+  - `Designed interactive, zero-dependency responsive SVG flow graph of CIT calculations`\n  - `Visualized financial nodes (Revenue, Expenses, Non-Deductible adjustments, Pre-tax Profit, Loss Offsets, Taxable Income, CIT liability)`\n  - `Implemented dynamic green/red highlight lines showing profit absorption pathways`\n  - `Added hover tooltips with detailed metadata and remaining loss balances`\n- **Tệp tin đã đọc (Files Read)**:
+  - `templates/v36_compliance.html`\n- **Tệp tin đã thay đổi (Files Changed)**:
+  - `templates/v36_compliance.html`\n
 - **Ghi chú bổ sung (Notes)**: `Đã đối chiếu hoạt động và các kết quả đầu ra chuẩn xác.`
 
 ---
