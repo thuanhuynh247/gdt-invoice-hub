@@ -9094,5 +9094,126 @@ def api_agents_swarm_v32_chat():
         return jsonify({"error": str(e)}), 500
 
 
+# ── Version 33.0.0 CIT Quarterly Declaration & Tax Compliance Calendar ──────────
+
+@invoices_blueprint.get("/v33-compliance")
+def v33_compliance_page():
+    """Render the Version 33.0.0 CIT Quarterly & Tax Compliance Calendar panel."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("v33_compliance.html")
+
+
+@invoices_blueprint.post("/api/compliance/cit-quarterly")
+def api_compliance_cit_quarterly():
+    """US-450: CIT Quarterly Provisional Tax Calculation Engine."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    taxpayer_mst = body.get("taxpayer_mst") or session.get("taxpayer_mst") or "0109999999"
+    quarter = int(body.get("quarter", 1))
+    year = int(body.get("year", 2026))
+    revenue = float(body.get("revenue", 0))
+    cogs = float(body.get("cogs", 0))
+    operating_expenses = float(body.get("operating_expenses", 0))
+    other_income = float(body.get("other_income", 0))
+    other_expenses = float(body.get("other_expenses", 0))
+    preferential_rate = body.get("preferential_rate")
+    if preferential_rate is not None:
+        preferential_rate = float(preferential_rate)
+    carry_forward_loss = float(body.get("carry_forward_loss", 0))
+
+    from invoices.v33_service import calculate_cit_quarterly
+    try:
+        result = calculate_cit_quarterly(
+            taxpayer_mst, quarter, year, revenue, cogs,
+            operating_expenses, other_income, other_expenses,
+            preferential_rate, carry_forward_loss,
+        )
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/compliance/form01a-tndn-xml")
+def api_compliance_form01a_tndn_xml():
+    """US-450: Generate Form 01A/TNDN HTKK-compatible XML."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    taxpayer_mst = body.get("taxpayer_mst") or session.get("taxpayer_mst") or "0109999999"
+    taxpayer_name = body.get("taxpayer_name") or "Công ty TNHH Giải pháp Phần mềm"
+    quarter = int(body.get("quarter", 1))
+    year = int(body.get("year", 2026))
+    revenue = float(body.get("revenue", 0))
+    cogs = float(body.get("cogs", 0))
+    operating_expenses = float(body.get("operating_expenses", 0))
+    other_income = float(body.get("other_income", 0))
+    other_expenses = float(body.get("other_expenses", 0))
+    preferential_rate = body.get("preferential_rate")
+    if preferential_rate is not None:
+        preferential_rate = float(preferential_rate)
+    carry_forward_loss = float(body.get("carry_forward_loss", 0))
+
+    from invoices.v33_service import build_form01a_tndn_xml
+    try:
+        result = build_form01a_tndn_xml(
+            taxpayer_mst, taxpayer_name, quarter, year, revenue, cogs,
+            operating_expenses, other_income, other_expenses,
+            preferential_rate, carry_forward_loss,
+        )
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.get("/api/compliance/tax-calendar")
+def api_compliance_tax_calendar():
+    """US-451: Return Vietnamese tax compliance calendar for a given year."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    year = request.args.get("year", type=int) or 2026
+
+    from invoices.v33_service import get_tax_compliance_calendar
+    try:
+        cal = get_tax_compliance_calendar(year)
+        return jsonify(cal)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/agents/swarm-v33-chat")
+def api_agents_swarm_v33_chat():
+    """US-451: CIT Optimization Swarm Advisory for quarterly declaration."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    taxpayer_mst = body.get("taxpayer_mst") or session.get("taxpayer_mst") or "0109999999"
+    taxpayer_name = body.get("taxpayer_name") or "Doanh nghiệp phân tích"
+    quarter = int(body.get("quarter", 1))
+    year = int(body.get("year", 2026))
+    revenue = float(body.get("revenue", 0))
+    cogs = float(body.get("cogs", 0))
+    operating_expenses = float(body.get("operating_expenses", 0))
+
+    from invoices.v33_service import run_cit_optimization_swarm
+    try:
+        result = run_cit_optimization_swarm(
+            taxpayer_mst, taxpayer_name, quarter, year,
+            revenue, cogs, operating_expenses,
+        )
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 
 
