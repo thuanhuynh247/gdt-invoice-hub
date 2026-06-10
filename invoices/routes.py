@@ -9501,4 +9501,586 @@ def api_cit_swarm_chat():
         return jsonify({"error": str(e)}), 500
 
 
+# ==========================================
+# VERSION 37: CEO DASHBOARD, TAX PLANNING & ASSETS
+# ==========================================
+
+@invoices_blueprint.get("/v37-ceo-dashboard")
+def v37_ceo_dashboard_page():
+    """Render the CEO Intelligence & Tax Planning dashboard."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("v37_ceo_dashboard.html")
+
+
+@invoices_blueprint.get("/api/ceo-dashboard")
+def api_ceo_dashboard():
+    """US-490: Get financial indicators, health score and commentary."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    from invoices.v37_service import CEOIntelligenceService
+    try:
+        health = CEOIntelligenceService.calculate_financial_health_score(mst)
+        commentary = CEOIntelligenceService.generate_management_commentary(mst)
+        return jsonify({
+            "status": "success",
+            "health_score": health["overall_score"],
+            "sub_scores": health["sub_scores"],
+            "commentary": commentary,
+            "mst": mst
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.get("/api/ceo-dashboard/sankey")
+def api_ceo_dashboard_sankey():
+    """US-490: Generate Sankey diagram node/link structures."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    from invoices.v37_service import CEOIntelligenceService
+    try:
+        sankey_data = CEOIntelligenceService.generate_sankey_data(mst)
+        return jsonify(sankey_data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.get("/api/tax-planning/projection")
+def api_tax_planning_projection():
+    """US-491: Linear regression tax projection and NPV optimization analysis."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    years = int(request.args.get("years", 3))
+    rev_growth = float(request.args.get("rev_growth", 0.10))
+    cost_inflation = float(request.args.get("cost_inflation", 0.05))
+    discount_rate = float(request.args.get("discount_rate", 0.08))
+
+    from invoices.v37_service import MultiYearTaxPlanningService
+    try:
+        proj = MultiYearTaxPlanningService.generate_tax_projection(mst, years, rev_growth, cost_inflation)
+        npv_opt = MultiYearTaxPlanningService.optimize_tax_npv(proj, discount_rate)
+        return jsonify({
+            "status": "success",
+            "projection": proj["projection"],
+            "npv_optimization": npv_opt
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.get("/api/tax-planning/calendar")
+def api_tax_planning_calendar():
+    """US-492: Get or populate compliance deadline records."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    year = int(request.args.get("year", datetime.now().year))
+    from invoices.v37_service import TaxFilingCalendarService
+    from invoices.models import TaxFilingRecord
+    try:
+        # Populate calendar for current year if none exist
+        count = TaxFilingRecord.query.filter(TaxFilingRecord.period.like(f"{year}%")).count()
+        if count == 0:
+            TaxFilingCalendarService.populate_calendar_db(year)
+
+        records = TaxFilingRecord.query.all()
+        compliance_score = TaxFilingCalendarService.calculate_compliance_score()
+        return jsonify({
+            "status": "success",
+            "calendar": [r.to_dict() for r in records],
+            "compliance_score": compliance_score
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/tax-planning/calendar/mark-filed")
+def api_tax_planning_calendar_mark_filed():
+    """US-492: Mark a filing task as filed."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    record_id = body.get("record_id")
+    filed_date = body.get("filed_date") or date.today().isoformat()
+    xml_path = body.get("xml_file_path")
+
+    if not record_id:
+        return jsonify({"error": "Missing record_id"}), 400
+
+    from invoices.v37_service import TaxFilingCalendarService
+    try:
+        success = TaxFilingCalendarService.mark_filed(record_id, filed_date, xml_path)
+        if success:
+            return jsonify({"status": "success", "message": "Marked tax record as filed successfully."})
+        return jsonify({"error": "Filing record not found"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.get("/api/assets")
+def api_assets_list():
+    """US-493: List all registered fixed assets."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    from invoices.models import FixedAsset
+    try:
+        assets = FixedAsset.query.all()
+        return jsonify({
+            "status": "success",
+            "assets": [a.to_dict() for a in assets]
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/assets")
+def api_assets_create():
+    """US-493: Register a new fixed asset."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    code = body.get("asset_code")
+    name = body.get("name")
+    category = body.get("category")
+    acq_date = body.get("acquisition_date") or date.today().isoformat()
+    cost = float(body.get("original_cost", 0.0))
+    residual = float(body.get("residual_value", 0.0))
+    life = int(body.get("useful_life_months", 36))
+    method = body.get("depreciation_method", "straight_line")
+    linked_inv = body.get("linked_invoice_id")
+
+    if not code or not name or not category:
+        return jsonify({"error": "Missing required fields: code, name, or category"}), 400
+
+    from invoices.models import FixedAsset
+    try:
+        asset = FixedAsset(
+            asset_code=code,
+            name=name,
+            category=category,
+            acquisition_date=acq_date,
+            original_cost=cost,
+            residual_value=residual,
+            useful_life_months=life,
+            depreciation_method=method,
+            linked_invoice_id=linked_inv,
+            status="active"
+        )
+        db.session.add(asset)
+        db.session.commit()
+
+        # Seed depreciation schedule immediately in DB
+        from invoices.v37_service import FixedAssetDepreciationEngine
+        schedule = FixedAssetDepreciationEngine.generate_depreciation_schedule(asset.id)
+        from invoices.models import DepreciationEntry
+        for entry in schedule:
+            db_entry = DepreciationEntry(
+                asset_id=asset.id,
+                period=entry["period"],
+                depreciation_amount=entry["depreciation_amount"],
+                accumulated_depreciation=entry["accumulated_depreciation"],
+                net_book_value=entry["net_book_value"]
+            )
+            db.session.add(db_entry)
+        db.session.commit()
+
+        return jsonify({
+            "status": "success",
+            "message": "Fixed asset registered successfully.",
+            "asset": asset.to_dict()
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.get("/api/assets/schedule")
+def api_assets_schedule():
+    """US-493: Get full depreciation schedule for an asset."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    asset_id = request.args.get("asset_id")
+    if not asset_id:
+        return jsonify({"error": "Missing asset_id"}), 400
+
+    from invoices.models import DepreciationEntry
+    try:
+        entries = DepreciationEntry.query.filter_by(asset_id=int(asset_id)).order_by(DepreciationEntry.period.asc()).all()
+        return jsonify({
+            "status": "success",
+            "schedule": [e.to_dict() for e in entries]
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/assets/dispose")
+def api_assets_dispose():
+    """US-493: Dispose of an asset and record salvage gain/loss."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    asset_id = body.get("asset_id")
+    disposed_date = body.get("disposed_date") or date.today().isoformat()
+    proceeds = float(body.get("disposal_proceeds", 0.0))
+
+    if not asset_id:
+        return jsonify({"error": "Missing asset_id"}), 400
+
+    from invoices.v37_service import FixedAssetDepreciationEngine
+    try:
+        res = FixedAssetDepreciationEngine.dispose_asset(int(asset_id), disposed_date, proceeds)
+        if "error" in res:
+            return jsonify(res), 404
+        return jsonify({
+            "status": "success",
+            "message": "Asset disposed successfully.",
+            "result": res
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.get("/api/assets/auto-detect")
+def api_assets_auto_detect():
+    """US-494: Auto-detect fixed asset candidates from purchase invoices."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    from invoices.v37_service import AIInvoiceAssetLinker
+    try:
+        candidates = AIInvoiceAssetLinker.auto_detect_fixed_assets(mst)
+        return jsonify({
+            "status": "success",
+            "candidates": candidates
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.get("/api/assets/validate")
+def api_assets_validate():
+    """US-494: Check asset depreciation compliance against TT45 limits."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    asset_id = request.args.get("asset_id")
+    if not asset_id:
+        return jsonify({"error": "Missing asset_id"}), 400
+
+    from invoices.models import FixedAsset
+    from invoices.v37_service import AIInvoiceAssetLinker
+    try:
+        asset = db.session.get(FixedAsset, int(asset_id))
+        if not asset:
+            return jsonify({"error": "Asset not found"}), 404
+
+        val_res = AIInvoiceAssetLinker.validate_depreciation_compliance(asset)
+        return jsonify({
+            "status": "success",
+            "validation": val_res
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# ==========================================
+# VERSION 38: E-DELIVERY NOTE & LOGISTICS COST ALLOCATION
+# ==========================================
+
+@invoices_blueprint.get("/v38-delivery-reconciliation")
+def v38_delivery_reconciliation_page():
+    """Render the E-Delivery Note and Logistics Cost Allocation Dashboard UI."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("delivery_reconciliation.html")
+
+
+@invoices_blueprint.get("/api/v38/delivery-notes")
+def api_v38_delivery_notes():
+    """Get all parsed electronic delivery notes."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    from invoices.models import DeliveryNote
+    notes = DeliveryNote.query.all()
+    return jsonify({
+        "status": "success",
+        "delivery_notes": [n.to_dict() for n in notes]
+    })
+
+
+@invoices_blueprint.post("/api/v38/delivery-notes/upload")
+def api_v38_upload_delivery_note():
+    """Parse and upload a new GDT XML delivery note."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    xml_data = request.json.get("xml_content") if request.is_json else None
+    if not xml_data:
+        # Check files upload
+        file = request.files.get("file")
+        if file:
+            xml_data = file.read().decode("utf-8", errors="ignore")
+        else:
+            return jsonify({"error": "No XML content provided"}), 400
+
+    from invoices.v38_service import DeliveryNoteService
+    from invoices.models import DeliveryNote
+
+    try:
+        parsed = DeliveryNoteService.parse_delivery_note_xml(xml_data)
+        
+        # Check if already exists
+        existing = DeliveryNote.query.filter_by(note_number=parsed["note_number"]).first()
+        if existing:
+            # Update values
+            existing.note_date = parsed["note_date"]
+            existing.sender_mst = parsed["sender_mst"]
+            existing.receiver_mst = parsed["receiver_mst"]
+            existing.transport_contract = parsed["transport_contract"]
+            existing.total_value = parsed["total_value"]
+            db_note = existing
+        else:
+            db_note = DeliveryNote(
+                note_number=parsed["note_number"],
+                note_date=parsed["note_date"],
+                sender_mst=parsed["sender_mst"],
+                receiver_mst=parsed["receiver_mst"],
+                transport_contract=parsed["transport_contract"],
+                total_value=parsed["total_value"],
+                status="Pending"
+            )
+            db.session.add(db_note)
+
+        db.session.commit()
+
+        # Perform auto-matching
+        matched_inv = DeliveryNoteService.auto_match_invoice(db_note)
+        if matched_inv:
+            db_note.linked_invoice_id = matched_inv.id
+            # Calculate penalty
+            penalty_info = DeliveryNoteService.calculate_timing_penalty(db_note, matched_inv)
+            if penalty_info["is_violating"]:
+                db_note.status = "Overdue"
+            else:
+                db_note.status = "Invoiced"
+        else:
+            # Check if overdue without matching
+            try:
+                from datetime import datetime
+                dn_date = datetime.strptime(db_note.note_date, "%Y-%m-%d").date()
+                if (datetime.now().date() - dn_date).days > 10:
+                    db_note.status = "Overdue"
+            except Exception:
+                pass
+
+        db.session.commit()
+        return jsonify({
+            "status": "success",
+            "delivery_note": db_note.to_dict()
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/v38/delivery-notes/match")
+def api_v38_match_delivery_note():
+    """Manually map or clear match between delivery note and invoice."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    note_id = request.json.get("note_id")
+    invoice_id = request.json.get("invoice_id") # Null/empty to clear match
+
+    from invoices.models import DeliveryNote, Invoice
+    from invoices.v38_service import DeliveryNoteService
+
+    db_note = db.session.get(DeliveryNote, note_id)
+    if not db_note:
+        return jsonify({"error": "Delivery note not found"}), 404
+
+    if not invoice_id:
+        # Clear mapping
+        db_note.linked_invoice_id = None
+        db_note.status = "Pending"
+        # Check if overdue
+        try:
+            dn_date = datetime.strptime(db_note.note_date, "%Y-%m-%d").date()
+            if (datetime.now().date() - dn_date).days > 10:
+                db_note.status = "Overdue"
+        except Exception:
+            pass
+        db.session.commit()
+        return jsonify({"status": "success", "delivery_note": db_note.to_dict()})
+
+    inv = db.session.get(Invoice, invoice_id)
+    if not inv:
+        return jsonify({"error": "Invoice not found"}), 404
+
+    db_note.linked_invoice_id = inv.id
+    penalty_info = DeliveryNoteService.calculate_timing_penalty(db_note, inv)
+    if penalty_info["is_violating"]:
+        db_note.status = "Overdue"
+    else:
+        db_note.status = "Invoiced"
+    
+    db.session.commit()
+    return jsonify({
+        "status": "success",
+        "delivery_note": db_note.to_dict(),
+        "penalty": penalty_info
+    })
+
+
+@invoices_blueprint.get("/api/v38/delivery-notes/<int:note_id>/penalty")
+def api_v38_delivery_note_penalty(note_id):
+    """Retrieve timing and penalty information for a delivery note."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    from invoices.models import DeliveryNote, Invoice
+    from invoices.v38_service import DeliveryNoteService
+
+    db_note = db.session.get(DeliveryNote, note_id)
+    if not db_note:
+        return jsonify({"error": "Delivery note not found"}), 404
+
+    if not db_note.linked_invoice_id:
+        # Check if overdue without matching
+        try:
+            dn_date = datetime.strptime(db_note.note_date, "%Y-%m-%d").date()
+            days = (datetime.now().date() - dn_date).days
+            if days > 10:
+                return jsonify({
+                    "status": "success",
+                    "days_elapsed": days,
+                    "is_violating": True,
+                    "penalty_range": "10,000,000 - 25,000,000 VND (Overdue without commercial invoice)",
+                    "risk_level": "Critical"
+                })
+        except Exception:
+            pass
+        return jsonify({
+            "status": "success",
+            "days_elapsed": 0,
+            "is_violating": False,
+            "penalty_range": "0 VND",
+            "risk_level": "Low"
+        })
+
+    inv = db.session.get(Invoice, db_note.linked_invoice_id)
+    if not inv:
+        return jsonify({"error": "Linked invoice not found"}), 404
+
+    penalty_info = DeliveryNoteService.calculate_timing_penalty(db_note, inv)
+    return jsonify({
+        "status": "success",
+        **penalty_info
+    })
+
+
+@invoices_blueprint.get("/api/v38/logistics/eligible")
+def api_v38_logistics_eligible():
+    """List purchase invoices within range to allocate freight/logistics charges."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    logistics_invoice_id = request.args.get("logistics_invoice_id")
+    if not logistics_invoice_id:
+        return jsonify({"error": "Missing logistics_invoice_id"}), 400
+
+    from invoices.models import Invoice
+    from invoices.v38_service import LogisticsCostAllocatorService
+
+    log_inv = db.session.get(Invoice, logistics_invoice_id)
+    if not log_inv:
+        return jsonify({"error": "Logistics invoice not found"}), 404
+
+    eligible = LogisticsCostAllocatorService.find_eligible_purchase_invoices(log_inv)
+    return jsonify({
+        "status": "success",
+        "eligible_invoices": [
+            {
+                "id": p.id,
+                "invoice_number": p.invoice_number,
+                "imported_at": p.imported_at,
+                "total_amount": p.total_amount,
+                "seller_name": p.seller_name
+            } for p in eligible
+        ]
+    })
+
+
+@invoices_blueprint.post("/api/v38/logistics/allocate")
+def api_v38_logistics_allocate():
+    """Allocate a logistics invoice total cost to target purchase invoices."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    logistics_invoice_id = request.json.get("logistics_invoice_id")
+    purchase_invoice_ids = request.json.get("purchase_invoice_ids")
+    method = request.json.get("method", "value_ratio")
+
+    if not logistics_invoice_id or not purchase_invoice_ids:
+        return jsonify({"error": "Missing parameters"}), 400
+
+    from invoices.v38_service import LogisticsCostAllocatorService
+    res = LogisticsCostAllocatorService.allocate_logistics_cost(
+        logistics_invoice_id,
+        purchase_invoice_ids,
+        method=method
+    )
+    if res.get("status") == "error":
+        return jsonify(res), 400
+    return jsonify(res)
+
+
+@invoices_blueprint.get("/api/v38/logistics/valuation")
+def api_v38_logistics_valuation():
+    """Retrieve adjusted inventory valuation report per VAS 02."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    from invoices.v38_service import LogisticsCostAllocatorService
+    res = LogisticsCostAllocatorService.get_adjusted_inventory_valuation(mst)
+    return jsonify({
+        "status": "success",
+        "valuation": res
+    })
+
+
+
+
 

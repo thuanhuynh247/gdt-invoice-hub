@@ -78,6 +78,12 @@
                         <a class="nav-link {% if request.path == '/v36-cit-finalization' %}active{% endif %}" href="{{ url_for('invoices.v36_cit_finalization_page') }}"><i class="bi bi-file-earmark-spreadsheet text-success" aria-hidden="true"></i> Quyết toán TNDN v36 <span class="badge bg-success text-white rounded-pill ms-1" style="font-size: 0.65em;">V36</span></a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/v37-ceo-dashboard' %}active{% endif %}" href="{{ url_for('invoices.v37_ceo_dashboard_page') }}"><i class="bi bi-speedometer2 text-info" aria-hidden="true"></i> CEO Dashboard v37 <span class="badge bg-info text-dark rounded-pill ms-1" style="font-size: 0.65em;">V37</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/v38-delivery-reconciliation' %}active{% endif %}" href="{{ url_for('invoices.v38_delivery_reconciliation_page') }}"><i class="bi bi-shuffle text-warning" aria-hidden="true"></i> Đối soát kho v38 <span class="badge bg-warning text-dark rounded-pill ms-1" style="font-size: 0.65em;">V38</span></a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link {% if request.path == '/harness' %}active{% endif %}" href="{{ url_for('invoices.harness_page') }}"><i class="bi bi-cpu-fill" aria-hidden="true"></i> Harness Agent</a>
                     </li>
                     {% if session.get('user_role') in ['admin', 'auditor'] %}
