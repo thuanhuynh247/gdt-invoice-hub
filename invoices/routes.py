@@ -2406,6 +2406,292 @@ def api_summary_by_seller():
         return jsonify({"error": str(e)}), 500
 
 
+def get_supplier_pivot_data(mst, year_filter, value_type):
+    from extensions import db
+    from invoices.models import Invoice
+    from sqlalchemy import func
+
+    # Query input invoices (invoice_type = 'purchase')
+    query = db.session.query(
+        Invoice.seller_mst,
+        Invoice.seller_name,
+        func.substr(Invoice.date, 1, 7).label("month_str"),
+        func.count(Invoice.id).label("count"),
+        func.sum(Invoice.amount_before_tax).label("amount_before_tax"),
+        func.sum(Invoice.tax_amount).label("tax_amount"),
+        func.sum(Invoice.total_amount).label("total_amount")
+    ).filter(
+        Invoice.invoice_type == 'purchase'
+    )
+
+    if mst and mst != "all":
+        query = query.filter(Invoice.taxpayer_mst == mst)
+
+    if year_filter:
+        query = query.filter(Invoice.date.like(f"{year_filter}-%"))
+
+    results = query.group_by(
+        Invoice.seller_mst,
+        Invoice.seller_name,
+        func.substr(Invoice.date, 1, 7)
+    ).all()
+
+    # Build pivot structure
+    if year_filter:
+        months_list = [f"{i:02d}" for i in range(1, 13)]
+    else:
+        months_set = set()
+        for r in results:
+            if r.month_str and len(r.month_str) == 7:
+                months_set.add(r.month_str)
+        months_list = sorted(list(months_set))
+
+    sellers_map = {}
+    for r in results:
+        seller_mst = r.seller_mst or "UNKNOWN"
+        seller_name = r.seller_name or "Không rõ"
+        month_key = r.month_str
+        if year_filter and month_key:
+            month_key = month_key.split("-")[1]
+
+        val = 0.0
+        if value_type == "amount_before_tax":
+            val = r.amount_before_tax or 0.0
+        elif value_type == "tax_amount":
+            val = r.tax_amount or 0.0
+        elif value_type == "invoice_count":
+            val = r.count or 0
+        else:
+            val = r.total_amount or 0.0
+
+        if seller_mst not in sellers_map:
+            sellers_map[seller_mst] = {
+                "seller_mst": seller_mst,
+                "seller_name": seller_name,
+                "monthly_values": {m: 0.0 for m in months_list},
+                "row_total": 0.0
+            }
+        
+        if month_key in sellers_map[seller_mst]["monthly_values"]:
+            sellers_map[seller_mst]["monthly_values"][month_key] = val
+            sellers_map[seller_mst]["row_total"] += val
+
+    rows = list(sellers_map.values())
+    rows.sort(key=lambda x: x["row_total"], reverse=True)
+
+    column_totals = {m: 0.0 for m in months_list}
+    grand_total = 0.0
+
+    for r in rows:
+        for m in months_list:
+            val = r["monthly_values"].get(m, 0.0)
+            column_totals[m] += val
+            grand_total += val
+
+    return {
+        "year": year_filter or "Tất cả",
+        "value_type": value_type,
+        "months": months_list,
+        "rows": rows,
+        "column_totals": column_totals,
+        "grand_total": grand_total
+    }
+
+
+@invoices_blueprint.get("/api/invoices/supplier-pivot")
+def api_supplier_pivot():
+    """Aggregate input invoices by supplier and month/year in a pivot structure."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    try:
+        year_filter = request.args.get("year", "2026")
+        value_type = request.args.get("value_type", "total_amount")
+        mst = request.args.get("taxpayer_mst") or session.get("active_taxpayer_mst")
+        if mst == "all":
+            mst = None
+
+        data = get_supplier_pivot_data(mst, year_filter, value_type)
+        return jsonify({"success": True, **data})
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@invoices_blueprint.get("/api/invoices/supplier-pivot/export")
+def api_supplier_pivot_export():
+    """Export the supplier pivot table to a beautifully formatted Excel sheet."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    from io import BytesIO
+    from flask import send_file
+    import openpyxl
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+    from export.formatter import auto_adjust_column_widths
+
+    try:
+        year_filter = request.args.get("year", "2026")
+        value_type = request.args.get("value_type", "total_amount")
+        mst = request.args.get("taxpayer_mst") or session.get("active_taxpayer_mst")
+        if mst == "all":
+            mst = None
+
+        data = get_supplier_pivot_data(mst, year_filter, value_type)
+
+        workbook = Workbook()
+        ws = workbook.active
+        ws.title = "Pivot NCC"
+        ws.views.sheetView[0].showGridLines = True
+
+        # Titles
+        title_font = Font(name="Calibri", size=14, bold=True, color="1F4E78")
+        info_font = Font(name="Calibri", size=11, italic=True)
+        header_font = Font(name="Calibri", size=11, bold=True, color="FFFFFF")
+        bold_font = Font(name="Calibri", size=11, bold=True)
+        regular_font = Font(name="Calibri", size=11)
+
+        header_fill = PatternFill(start_color="1F4E78", end_color="1F4E78", fill_type="solid")
+        zebra_fill = PatternFill(start_color="F2F4F7", end_color="F2F4F7", fill_type="solid")
+        total_fill = PatternFill(start_color="DDEBF7", end_color="DDEBF7", fill_type="solid")
+
+        thin_border = Border(
+            left=Side(style='thin', color='BFBFBF'),
+            right=Side(style='thin', color='BFBFBF'),
+            top=Side(style='thin', color='BFBFBF'),
+            bottom=Side(style='thin', color='BFBFBF')
+        )
+        double_bottom_border = Border(
+            left=Side(style='thin', color='BFBFBF'),
+            right=Side(style='thin', color='BFBFBF'),
+            top=Side(style='thin', color='BFBFBF'),
+            bottom=Side(style='double', color='1F4E78')
+        )
+
+        ws["A1"] = f"BẢNG TỔNG HỢP HOÁ ĐƠN ĐẦU VÀO THEO NHÀ CUNG CẤP - NĂM {data['year']}"
+        ws["A1"].font = title_font
+        ws.row_dimensions[1].height = 25
+
+        value_type_titles = {
+            "total_amount": "Tổng tiền thanh toán (đồng)",
+            "amount_before_tax": "Doanh số trước thuế (đồng)",
+            "tax_amount": "Tiền thuế GTGT (đồng)",
+            "invoice_count": "Số lượng hóa đơn (tờ)"
+        }
+        value_title = value_type_titles.get(data["value_type"], "Tổng tiền thanh toán")
+
+        mst_str = mst if mst else "Tất cả Doanh nghiệp"
+        ws["A2"] = f"Mã số thuế Doanh nghiệp: {mst_str} | Chỉ số: {value_title}"
+        ws["A2"].font = info_font
+        ws.row_dimensions[2].height = 20
+
+        # Headers on row 4
+        headers = ["Mã số thuế", "Tên nhà cung cấp"]
+        for m in data["months"]:
+            if len(m) == 2:
+                headers.append(f"Tháng {m}")
+            else:
+                headers.append(m)
+        headers.append("Tổng cộng")
+
+        ws.append([]) # row 3 blank
+        ws.append(headers) # row 4
+        ws.row_dimensions[4].height = 25
+
+        for col_idx in range(1, len(headers) + 1):
+            cell = ws.cell(row=4, column=col_idx)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+            cell.border = thin_border
+
+        # Rows starting at row 5
+        current_row = 5
+        for row_idx, r in enumerate(data["rows"]):
+            row_data = [r["seller_mst"], r["seller_name"]]
+            for m in data["months"]:
+                row_data.append(r["monthly_values"].get(m, 0.0))
+            row_data.append(r["row_total"])
+
+            ws.append(row_data)
+            ws.row_dimensions[current_row].height = 20
+
+            # Format cells
+            is_even = row_idx % 2 == 1
+            for col_idx in range(1, len(row_data) + 1):
+                cell = ws.cell(row=current_row, column=col_idx)
+                cell.border = thin_border
+                
+                if col_idx == 1:
+                    cell.alignment = Alignment(horizontal="center", vertical="center")
+                    cell.font = regular_font
+                elif col_idx == 2:
+                    cell.alignment = Alignment(horizontal="left", vertical="center")
+                    cell.font = regular_font
+                else:
+                    cell.alignment = Alignment(horizontal="right", vertical="center")
+                    if value_type == "invoice_count":
+                        cell.number_format = "#,##0"
+                    else:
+                        cell.number_format = "#,##0"
+                    cell.font = regular_font
+
+                if is_even:
+                    cell.fill = zebra_fill
+
+            current_row += 1
+
+        # Totals Row at current_row
+        total_row_data = ["TỔNG CỘNG", ""]
+        for m in data["months"]:
+            total_row_data.append(data["column_totals"].get(m, 0.0))
+        total_row_data.append(data["grand_total"])
+
+        ws.append(total_row_data)
+        ws.merge_cells(start_row=current_row, start_column=1, end_row=current_row, end_column=2)
+        ws.row_dimensions[current_row].height = 22
+
+        for col_idx in range(1, len(total_row_data) + 1):
+            cell = ws.cell(row=current_row, column=col_idx)
+            cell.font = Font(name="Calibri", size=11, bold=True, color="1F4E78")
+            cell.fill = total_fill
+            cell.border = double_bottom_border
+            if col_idx >= 3:
+                cell.alignment = Alignment(horizontal="right", vertical="center")
+                if value_type == "invoice_count":
+                    cell.number_format = "#,##0"
+                else:
+                    cell.number_format = "#,##0"
+            else:
+                cell.alignment = Alignment(horizontal="center", vertical="center")
+
+        # Auto adjust column widths
+        auto_adjust_column_widths(ws)
+
+        # Set specific widths for MST and Name columns to look beautiful
+        ws.column_dimensions['A'].width = 16
+        ws.column_dimensions['B'].width = 38
+
+        # Output
+        excel_file = BytesIO()
+        workbook.save(excel_file)
+        excel_bytes = excel_file.getvalue()
+
+        filename = f"Pivot_NCC_{value_type}_{data['year']}.xlsx"
+        return send_file(
+            BytesIO(excel_bytes),
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            as_attachment=True,
+            download_name=filename
+        )
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @invoices_blueprint.get("/api/reports/vat-declaration")
 def api_reports_vat_declaration():
     """Generate a draft of the Vietnamese VAT Return Mẫu 01/GTGT and list of disputed/high-risk input invoices."""
@@ -4263,13 +4549,14 @@ def api_tax_rag_query():
     body = request.get_json(silent=True) or {}
     question = body.get("question")
     model = body.get("model", "gemma:2b")
+    deep_research = body.get("deep_research", False)
     
     if not question:
         return jsonify({"error": "Missing question parameter"}), 400
         
     try:
         from invoices.ai_tax_advisor import query_local_tax_rag
-        result = query_local_tax_rag(question, model_name=model)
+        result = query_local_tax_rag(question, model_name=model, deep_research=deep_research)
         return jsonify(result)
     except Exception as e:
         return jsonify({"error": f"Lỗi truy vấn RAG: {str(e)}"}), 500

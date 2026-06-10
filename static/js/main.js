@@ -1469,6 +1469,133 @@ async function loadPartnersSummary() {
 }
 
 
+let cachedPivotData = null;
+
+async function loadPartnersPivot() {
+    const year = document.getElementById("pivotYearFilter")?.value || "2026";
+    const metric = document.getElementById("pivotMetricType")?.value || "total_amount";
+    
+    const tbody = document.getElementById("pivotTableBody");
+    const thead = document.getElementById("pivotTableHeader");
+    const tfoot = document.getElementById("pivotTableFooter");
+    
+    if (!tbody) return;
+    
+    tbody.innerHTML = '<tr><td colspan="15" class="text-center py-4"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Đang tải dữ liệu tổng hợp pivot...</td></tr>';
+    if (thead) thead.innerHTML = '';
+    if (tfoot) tfoot.innerHTML = '';
+    
+    try {
+        const res = await apiCall(`/api/invoices/supplier-pivot?year=${year}&value_type=${metric}`);
+        if (!res || !res.success) {
+            throw new Error(res ? res.error : "Không thể lấy dữ liệu pivot");
+        }
+        
+        cachedPivotData = res;
+        renderPivotTable(res);
+    } catch (error) {
+        tbody.innerHTML = `<tr><td colspan="15" class="text-center text-danger py-4">Lỗi: ${error.message}</td></tr>`;
+    }
+}
+
+function renderPivotTable(data) {
+    const thead = document.getElementById("pivotTableHeader");
+    const tbody = document.getElementById("pivotTableBody");
+    const tfoot = document.getElementById("pivotTableFooter");
+    const searchQuery = document.getElementById("pivotSearchInput")?.value.toLowerCase().trim() || "";
+    
+    if (!thead || !tbody || !tfoot) return;
+    
+    const isCount = data.value_type === "invoice_count";
+    
+    // Render Header
+    let headerHtml = `
+        <tr style="background: rgba(255, 255, 255, 0.02);">
+            <th class="sticky-col text-center" style="width: 130px; min-width: 130px;">Mã số thuế</th>
+            <th class="sticky-col-2" style="width: 300px; min-width: 300px;">Tên nhà cung cấp</th>
+    `;
+    data.months.forEach(m => {
+        const displayMonth = m.length === 2 ? `Tháng ${m}` : m;
+        headerHtml += `<th class="text-end">${displayMonth}</th>`;
+    });
+    headerHtml += `
+            <th class="text-end pe-4" style="width: 150px; min-width: 150px;">Tổng cộng</th>
+        </tr>
+    `;
+    thead.innerHTML = headerHtml;
+    
+    // Filter rows
+    let filteredRows = data.rows || [];
+    if (searchQuery) {
+        filteredRows = filteredRows.filter(r => {
+            const mst = (r.seller_mst || "").toLowerCase();
+            const name = (r.seller_name || "").toLowerCase();
+            return mst.includes(searchQuery) || name.includes(searchQuery);
+        });
+    }
+    
+    if (filteredRows.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="${data.months.length + 3}" class="text-center text-secondary py-5">Không tìm thấy nhà cung cấp nào.</td></tr>`;
+        tfoot.innerHTML = "";
+        return;
+    }
+    
+    // Render Body
+    tbody.innerHTML = filteredRows.map(r => {
+        let cellsHtml = `
+            <tr>
+                <td class="sticky-col text-center font-monospace fw-semibold text-secondary" style="background-color: var(--card-bg, #1a1e29);">${r.seller_mst}</td>
+                <td class="sticky-col-2 fw-bold text-dark text-wrap" style="background-color: var(--card-bg, #1a1e29); max-width: 300px;">${r.seller_name}</td>
+        `;
+        data.months.forEach(m => {
+            const val = r.monthly_values[m] || 0;
+            const displayVal = val === 0 ? "-" : (isCount ? val.toLocaleString("vi-VN") : val.toLocaleString("vi-VN") + " ₫");
+            cellsHtml += `<td class="text-end">${displayVal}</td>`;
+        });
+        const totalVal = r.row_total === 0 ? "-" : (isCount ? r.row_total.toLocaleString("vi-VN") : r.row_total.toLocaleString("vi-VN") + " ₫");
+        cellsHtml += `
+                <td class="text-end fw-bold text-primary-accent pe-4">${totalVal}</td>
+            </tr>
+        `;
+        return cellsHtml;
+    }).join("");
+    
+    // Render Footer (Column Totals)
+    let footerTotals = {};
+    data.months.forEach(m => { footerTotals[m] = 0; });
+    let grandTotal = 0;
+    
+    filteredRows.forEach(r => {
+        data.months.forEach(m => {
+            footerTotals[m] += (r.monthly_values[m] || 0);
+        });
+        grandTotal += r.row_total;
+    });
+    
+    let footerHtml = `
+        <tr style="background: rgba(30, 41, 59, 0.6);">
+            <td colspan="2" class="text-center text-primary-accent sticky-col" style="background-color: var(--card-bg, #1a1e29);">TỔNG CỘNG</td>
+    `;
+    data.months.forEach(m => {
+        const val = footerTotals[m];
+        const displayVal = val === 0 ? "-" : (isCount ? val.toLocaleString("vi-VN") : val.toLocaleString("vi-VN") + " ₫");
+        footerHtml += `<td class="text-end text-primary-accent">${displayVal}</td>`;
+    });
+    const grandVal = grandTotal === 0 ? "-" : (isCount ? grandTotal.toLocaleString("vi-VN") : grandTotal.toLocaleString("vi-VN") + " ₫");
+    footerHtml += `
+            <td class="text-end text-primary-accent pe-4">${grandVal}</td>
+        </tr>
+    `;
+    tfoot.innerHTML = footerHtml;
+}
+
+function filterPivotRows() {
+    if (cachedPivotData) {
+        renderPivotTable(cachedPivotData);
+    }
+}
+
+
 // meInvoice-inspired: Load Tax Usage reports dynamically
 async function loadReportsData() {
     let from = "2026-05-01";
@@ -1556,19 +1683,24 @@ document.addEventListener("DOMContentLoaded", () => {
     const partnersTab = document.getElementById("partners-tab");
     partnersTab?.addEventListener("shown.bs.tab", () => {
         const viewModeSummary = document.getElementById("viewModeSummary");
+        const viewModePivot = document.getElementById("viewModePivot");
         if (viewModeSummary && viewModeSummary.checked) {
             loadPartnersSummary();
+        } else if (viewModePivot && viewModePivot.checked) {
+            loadPartnersPivot();
         } else {
             loadPartnersData();
         }
     });
 
-    // Toggle Partners View Modes (Cumulative vs Monthly/Quarterly Aggregated Summary)
+    // Toggle Partners View Modes (Cumulative vs Monthly/Quarterly Aggregated Summary vs Pivot)
     const viewModeAll = document.getElementById("viewModeAll");
     const viewModeSummary = document.getElementById("viewModeSummary");
+    const viewModePivot = document.getElementById("viewModePivot");
     const summaryPeriodSelector = document.getElementById("summaryPeriodSelector");
     const partnersCumulativeContainer = document.getElementById("partnersCumulativeContainer");
     const partnersSummaryContainer = document.getElementById("partnersSummaryContainer");
+    const partnersPivotContainer = document.getElementById("partnersPivotContainer");
     const btnDownloadPartnersPdf = document.getElementById("btnDownloadPartnersPdf");
     const partnersTitleText = document.getElementById("partnersTitleText");
 
@@ -1576,6 +1708,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (viewModeAll?.checked) {
             if (partnersCumulativeContainer) partnersCumulativeContainer.style.setProperty("display", "block", "important");
             if (partnersSummaryContainer) partnersSummaryContainer.style.setProperty("display", "none", "important");
+            if (partnersPivotContainer) partnersPivotContainer.style.setProperty("display", "none", "important");
             if (summaryPeriodSelector) summaryPeriodSelector.style.setProperty("display", "none", "important");
             if (btnDownloadPartnersPdf) btnDownloadPartnersPdf.style.setProperty("display", "block", "important");
             if (partnersTitleText) partnersTitleText.textContent = "Danh Bạ Đối Tác (Mua vào / Bán ra)";
@@ -1583,17 +1716,37 @@ document.addEventListener("DOMContentLoaded", () => {
         } else if (viewModeSummary?.checked) {
             if (partnersCumulativeContainer) partnersCumulativeContainer.style.setProperty("display", "none", "important");
             if (partnersSummaryContainer) partnersSummaryContainer.style.setProperty("display", "block", "important");
+            if (partnersPivotContainer) partnersPivotContainer.style.setProperty("display", "none", "important");
             if (summaryPeriodSelector) summaryPeriodSelector.style.setProperty("display", "flex", "important");
             if (btnDownloadPartnersPdf) btnDownloadPartnersPdf.style.setProperty("display", "none", "important");
             if (partnersTitleText) partnersTitleText.textContent = "Bảng Kê Tổng Hợp Hóa Đơn Đầu Vào";
             loadPartnersSummary();
+        } else if (viewModePivot?.checked) {
+            if (partnersCumulativeContainer) partnersCumulativeContainer.style.setProperty("display", "none", "important");
+            if (partnersSummaryContainer) partnersSummaryContainer.style.setProperty("display", "none", "important");
+            if (partnersPivotContainer) partnersPivotContainer.style.setProperty("display", "block", "important");
+            if (summaryPeriodSelector) summaryPeriodSelector.style.setProperty("display", "none", "important");
+            if (btnDownloadPartnersPdf) btnDownloadPartnersPdf.style.setProperty("display", "none", "important");
+            if (partnersTitleText) partnersTitleText.textContent = "Bảng Tổng Hợp Hóa Đơn Đầu Vào Theo Nhà Cung Cấp (Pivot)";
+            loadPartnersPivot();
         }
     };
 
     viewModeAll?.addEventListener("change", togglePartnerViews);
     viewModeSummary?.addEventListener("change", togglePartnerViews);
+    viewModePivot?.addEventListener("change", togglePartnerViews);
     document.getElementById("summaryPeriodType")?.addEventListener("change", loadPartnersSummary);
     document.getElementById("summaryYear")?.addEventListener("change", loadPartnersSummary);
+
+    // Bind Pivot Table events
+    document.getElementById("pivotYearFilter")?.addEventListener("change", loadPartnersPivot);
+    document.getElementById("pivotMetricType")?.addEventListener("change", loadPartnersPivot);
+    document.getElementById("pivotSearchInput")?.addEventListener("input", filterPivotRows);
+    document.getElementById("btnPivotExport")?.addEventListener("click", () => {
+        const year = document.getElementById("pivotYearFilter")?.value || "2026";
+        const metric = document.getElementById("pivotMetricType")?.value || "total_amount";
+        window.location.href = `/api/invoices/supplier-pivot/export?year=${year}&value_type=${metric}`;
+    });
 
 
     const reportsTab = document.getElementById("reports-tab");

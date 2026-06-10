@@ -576,13 +576,21 @@
                     <div class="card shadow-sm border-0 h-100 bg-glass card-hover-glow">
                         <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center py-3">
                             <h5 class="fw-bold mb-0 text-primary-emphasis"><i class="bi bi-cpu" aria-hidden="true"></i> Trợ lý Thuế AI (Local RAG Advisor)</h5>
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="badge bg-secondary-subtle text-secondary small">Model:</span>
-                                <select class="form-select form-select-sm bg-dark text-white border-secondary" id="rag-model-select" style="width: 120px;">
-                                    <option value="gemma:2b">Gemma 2B</option>
-                                    <option value="llama3">Llama 3</option>
-                                    <option value="qwen2:7b">Qwen 2 7B</option>
-                                </select>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="form-check form-switch mb-0">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="deep-research-toggle" style="cursor: pointer;">
+                                    <label class="form-check-label text-info small fw-bold" for="deep-research-toggle" style="cursor: pointer;">
+                                        <i class="bi bi-search" aria-hidden="true"></i> Deep Research
+                                    </label>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-secondary-subtle text-secondary small">Model:</span>
+                                    <select class="form-select form-select-sm bg-dark text-white border-secondary" id="rag-model-select" style="width: 120px;">
+                                        <option value="gemma:2b">Gemma 2B</option>
+                                        <option value="llama3">Llama 3</option>
+                                        <option value="qwen2:7b">Qwen 2 7B</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                         <div class="card-body d-flex flex-column" style="height: 520px;">
@@ -1631,6 +1639,24 @@ function updateDefenseInvoiceMeta() {
     }
 }
 
+function renderMarkdown(text) {
+    if (!text) return "";
+    let html = text;
+    // Replace headers
+    html = html.replace(/^### (.*$)/gim, '<h6 class="fw-bold text-primary-emphasis mt-3 mb-2"><i class="bi bi-chevron-right text-success"></i> $1</h6>');
+    html = html.replace(/^## (.*$)/gim, '<h5 class="fw-bold text-success-emphasis mt-3 mb-2">$1</h5>');
+    html = html.replace(/^# (.*$)/gim, '<h4 class="fw-bold text-primary border-bottom pb-2 mb-3">$1</h4>');
+    // Replace bold
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    // Replace bullet points
+    html = html.replace(/^\s*-\s*(.*$)/gim, '<li class="small mb-1">$1</li>');
+    // Replace numbered lists
+    html = html.replace(/^\s*\d+\.\s*(.*$)/gim, '<li class="small mb-1">$1</li>');
+    // Replace line breaks
+    html = html.replace(/\n/g, '<br>');
+    return html;
+}
+
 function sendRagQuestion() {
     const inputEl = document.getElementById("rag-chat-input");
     const question = inputEl.value.trim();
@@ -1638,11 +1664,14 @@ function sendRagQuestion() {
 
     const modelSelect = document.getElementById("rag-model-select");
     const model = modelSelect ? modelSelect.value : "gemma:2b";
+    
+    const deepToggle = document.getElementById("deep-research-toggle");
+    const isDeep = deepToggle ? deepToggle.checked : false;
 
     // Add user message to history UI
     const chatHistory = document.getElementById("rag-chat-history");
     const userMsg = document.createElement("div");
-    userMsg.className = "d-flex align-items-start gap-2 justify-content-end max-w-75 ms-auto";
+    userMsg.className = "d-flex align-items-start gap-2 justify-content-end max-w-75 ms-auto mb-3";
     userMsg.innerHTML = `
         <div class="p-3 rounded bg-primary text-white">
             <p class="mb-0 small">${escapeHtml(question)}</p>
@@ -1657,56 +1686,96 @@ function sendRagQuestion() {
     // Clear input
     inputEl.value = "";
 
-    // Show AI typing placeholder
+    // Show AI typing placeholder with step logging
     const aiPlaceholder = document.createElement("div");
-    aiPlaceholder.className = "d-flex align-items-start gap-2 max-w-75";
+    aiPlaceholder.className = "d-flex align-items-start gap-2 max-w-75 mb-3";
     aiPlaceholder.id = "rag-ai-typing";
-    aiPlaceholder.innerHTML = `
+    
+    let thinkingHtml = `
         <div class="rounded-circle bg-primary text-white p-2 flex-shrink-0 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
             <i class="bi bi-robot"></i>
         </div>
-        <div class="p-3 rounded bg-secondary-subtle text-dark border">
-            <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
-            <span class="small ms-2">Đang suy nghĩ và tra cứu RAG...</span>
+        <div class="p-3 rounded bg-secondary-subtle text-dark border w-100">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                <span class="fw-bold small text-primary-emphasis" id="rag-thinking-status">Đang khởi tạo RAG...</span>
+            </div>
+            <div id="rag-thinking-steps" class="small text-secondary" style="font-family: monospace; font-size: 11px;"></div>
         </div>
     `;
+    aiPlaceholder.innerHTML = thinkingHtml;
     chatHistory.appendChild(aiPlaceholder);
     chatHistory.scrollTop = chatHistory.scrollHeight;
+
+    const steps = [
+        "1. Phân tích ngữ nghĩa câu hỏi và trích xuất thực thể pháp luật thuế...",
+        "2. Truy vấn song song Kho dữ liệu Vectơ và Cơ sở dữ liệu SQLite FTS5...",
+        "3. Lọc và chuẩn hóa dữ liệu từ Luật 48, Luật 149, Thông tư 20, Nghị định 123/125/132...",
+        "4. Đánh giá tính khả thi ứng dụng Công cụ Thuế AI (Anomaly, ML predict, Graph, ZKP)...",
+        "5. Mô phỏng rủi ro tuân thủ và ước tính biểu phạt theo Nghị định 125/2020/NĐ-CP...",
+        "6. Tổng hợp phân tích đa chiều và xây dựng báo cáo khuyến nghị chi tiết..."
+    ];
+
+    let stepIdx = 0;
+    let stepInterval = null;
+    if (isDeep) {
+        const stepsContainer = document.getElementById("rag-thinking-steps");
+        const statusText = document.getElementById("rag-thinking-status");
+        statusText.innerText = "Chế độ Deep Research hoạt động...";
+        
+        stepInterval = setInterval(() => {
+            if (stepIdx < steps.length) {
+                const p = document.createElement("div");
+                p.className = "text-success border-start border-success ps-2 mb-1";
+                p.innerText = steps[stepIdx];
+                stepsContainer.appendChild(p);
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+                stepIdx++;
+            }
+        }, 1000);
+    }
 
     // Call API
     fetch("/api/audit/tax-rag-query", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: question, model: model })
+        body: JSON.stringify({ question: question, model: model, deep_research: isDeep })
     })
     .then(res => res.json())
     .then(data => {
+        if (stepInterval) clearInterval(stepInterval);
+        
         // Remove typing placeholder
         const typingEl = document.getElementById("rag-ai-typing");
         if (typingEl) typingEl.remove();
 
         const aiResponse = document.createElement("div");
-        aiResponse.className = "d-flex align-items-start gap-2 max-w-75";
+        aiResponse.className = "d-flex align-items-start gap-2 max-w-75 mb-3";
         
         let answer = data.answer || "Không nhận được phản hồi từ hệ thống RAG.";
         let citationsHtml = "";
         
         // Render citations/sources if available
         if (data.citations && data.citations.length > 0) {
-            citationsHtml = `<div class="mt-2 pt-2 border-top small text-secondary">
-                <strong>Nguồn trích dẫn:</strong><ul class="mb-0 ps-3">`;
-            data.citations.forEach(c => {
-                citationsHtml += `<li>${escapeHtml(c)}</li>`;
+            citationsHtml = `<div class="mt-3 pt-2 border-top small text-secondary">
+                <strong class="text-info"><i class="bi bi-journal-bookmark-fill"></i> Tài liệu tham khảo & Trích dẫn:</strong>
+                <div class="mt-1 d-flex flex-wrap gap-2">`;
+            data.citations.forEach((c) => {
+                const title = `${c.source} (Trang ${c.page})`;
+                const safeText = escapeHtml(c.text).replace(/'/g, "\\'");
+                citationsHtml += `<span class="badge bg-dark-subtle text-secondary border border-secondary-subtle px-2 py-1 card-hover-glow" style="cursor: pointer;" title="${safeText}" onclick="alert('Trích dẫn chi tiết:\\n\\n${safeText}')">
+                    <i class="bi bi-file-earmark-text text-primary"></i> ${escapeHtml(title)}
+                </span>`;
             });
-            citationsHtml += `</ul></div>`;
+            citationsHtml += `</div></div>`;
         }
 
         aiResponse.innerHTML = `
             <div class="rounded-circle bg-primary text-white p-2 flex-shrink-0 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
                 <i class="bi bi-robot"></i>
             </div>
-            <div class="p-3 rounded bg-secondary-subtle text-dark border">
-                <p class="mb-0 small">${escapeHtml(answer).replace(/\n/g, '<br>')}</p>
+            <div class="p-3 rounded bg-secondary-subtle text-dark border w-100">
+                <div class="mb-0 small text-wrap" style="line-height: 1.6;">${renderMarkdown(answer)}</div>
                 ${citationsHtml}
             </div>
         `;
@@ -1714,11 +1783,13 @@ function sendRagQuestion() {
         chatHistory.scrollTop = chatHistory.scrollHeight;
     })
     .catch(err => {
+        if (stepInterval) clearInterval(stepInterval);
+        
         const typingEl = document.getElementById("rag-ai-typing");
         if (typingEl) typingEl.remove();
 
         const aiResponse = document.createElement("div");
-        aiResponse.className = "d-flex align-items-start gap-2 max-w-75";
+        aiResponse.className = "d-flex align-items-start gap-2 max-w-75 mb-3";
         aiResponse.innerHTML = `
             <div class="rounded-circle bg-danger text-white p-2 flex-shrink-0 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
                 <i class="bi bi-exclamation-triangle"></i>

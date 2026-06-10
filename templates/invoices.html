@@ -253,8 +253,13 @@
                         </label>
 
                         <input type="radio" class="btn-check" name="partnerViewMode" id="viewModeSummary" autocomplete="off">
-                        <label class="btn btn-outline-primary-accent btn-sm py-1 px-3" for="viewModeSummary" style="font-size: 0.85rem; border-radius: 0 6px 6px 0;">
+                        <label class="btn btn-outline-primary-accent btn-sm py-1 px-3" for="viewModeSummary" style="font-size: 0.85rem; border-radius: 0;">
                             <i class="bi bi-calendar3" aria-hidden="true"></i> Bảng Kê Đầu Vào
+                        </label>
+
+                        <input type="radio" class="btn-check" name="partnerViewMode" id="viewModePivot" autocomplete="off">
+                        <label class="btn btn-outline-primary-accent btn-sm py-1 px-3" for="viewModePivot" style="font-size: 0.85rem; border-radius: 0 6px 6px 0;">
+                            <i class="bi bi-grid-3x3-gap-fill" aria-hidden="true"></i> Bảng Pivot NCC
                         </label>
                     </div>
 
@@ -313,6 +318,100 @@
                             <p class="mb-0">Đang truy vấn bảng kê hóa đơn đầu vào theo kỳ…</p>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Sub-view 3: Monthly Pivot Table by Supplier -->
+            <div id="partnersPivotContainer" class="mt-3" style="display: none;">
+                <!-- Pivot Toolbar -->
+                <div class="d-flex flex-column flex-md-row gap-3 justify-content-between align-items-md-center mb-3 p-3 glass-card" style="border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); border-radius: 8px;">
+                    <div class="d-flex flex-wrap align-items-center gap-3">
+                        <!-- Year Selector -->
+                        <div class="d-flex align-items-center gap-2">
+                            <label for="pivotYearFilter" class="text-secondary fw-semibold mb-0" style="font-size: 0.85rem; white-space: nowrap;">Năm:</label>
+                            <select class="form-select custom-select form-select-sm" id="pivotYearFilter" style="width: 100px; height: 32px; font-size: 0.85rem;">
+                                <option value="2026" selected>2026</option>
+                                <option value="2025">2025</option>
+                                <option value="2024">2024</option>
+                                <option value="">Tất cả</option>
+                            </select>
+                        </div>
+                        <!-- Metric Selector -->
+                        <div class="d-flex align-items-center gap-2">
+                            <label for="pivotMetricType" class="text-secondary fw-semibold mb-0" style="font-size: 0.85rem; white-space: nowrap;">Chỉ số:</label>
+                            <select class="form-select custom-select form-select-sm" id="pivotMetricType" style="width: 220px; height: 32px; font-size: 0.85rem;">
+                                <option value="total_amount" selected>Tổng thanh toán (chứa thuế)</option>
+                                <option value="amount_before_tax">Doanh số trước thuế</option>
+                                <option value="tax_amount">Tiền thuế GTGT</option>
+                                <option value="invoice_count">Số lượng hóa đơn</option>
+                            </select>
+                        </div>
+                        <!-- Search Box -->
+                        <div class="position-relative" style="width: 250px;">
+                            <input type="text" class="form-control form-control-sm ps-4" id="pivotSearchInput" placeholder="Tìm tên hoặc MST..." style="height: 32px; font-size: 0.85rem; background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); color: var(--text-color);">
+                            <i class="bi bi-search position-absolute text-muted" style="left: 10px; top: 50%; transform: translateY(-50%); font-size: 0.8rem;"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-outline-success btn-sm d-flex align-items-center gap-1" id="btnPivotExport" style="height: 32px; font-size: 0.85rem;">
+                            <i class="bi bi-file-earmark-excel"></i> Xuất Excel Pivot
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Pivot Grid Table Wrapper -->
+                <div class="table-responsive custom-table-wrapper" style="max-height: 600px; overflow-y: auto;">
+                    <style>
+                        /* Sticky first columns for Pivot Table */
+                        .table-pivot th.sticky-col,
+                        .table-pivot td.sticky-col {
+                            position: -webkit-sticky;
+                            position: sticky;
+                            left: 0;
+                            background-color: var(--card-bg, #1a1e29);
+                            z-index: 2;
+                        }
+                        .table-pivot th.sticky-col-2,
+                        .table-pivot td.sticky-col-2 {
+                            position: -webkit-sticky;
+                            position: sticky;
+                            left: 130px; /* MST width */
+                            background-color: var(--card-bg, #1a1e29);
+                            z-index: 2;
+                        }
+                        .table-pivot tr:hover td.sticky-col,
+                        .table-pivot tr:hover td.sticky-col-2 {
+                            background-color: var(--hover-bg, #2b3142) !important;
+                        }
+                        .table-pivot th {
+                            white-space: nowrap;
+                            font-size: 0.85rem;
+                            vertical-align: middle;
+                        }
+                        .table-pivot td {
+                            white-space: nowrap;
+                            font-size: 0.85rem;
+                            vertical-align: middle;
+                        }
+                    </style>
+                    <table class="table align-middle custom-table table-pivot" id="pivotTable">
+                        <thead id="pivotTableHeader">
+                            <!-- Injected dynamically -->
+                        </thead>
+                        <tbody id="pivotTableBody">
+                            <tr>
+                                <td colspan="15" class="text-center text-secondary py-5">
+                                    <div class="empty-state">
+                                        <span class="empty-icon"><i class="bi bi-grid-3x3-gap-fill" aria-hidden="true"></i></span>
+                                        <p class="mb-0">Đang tải dữ liệu tổng hợp pivot...</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot id="pivotTableFooter" class="fw-bold">
+                            <!-- Injected dynamically -->
+                        </tfoot>
+                    </table>
                 </div>
             </div>
         </section>

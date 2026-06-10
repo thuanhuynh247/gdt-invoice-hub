@@ -238,10 +238,13 @@ class TestTenantSQLAlchemyRouting:
         from invoices.multitenant_service import get_tenant_db_path
         import os
 
-        mst = "777888999"
+        mst = f"777888999_{os.getpid()}"
         db_path = get_tenant_db_path(mst).replace('\\', '/')
         if os.path.exists(db_path):
-            os.unlink(db_path)
+            try:
+                os.unlink(db_path)
+            except Exception:
+                pass
 
         # 1. Run in main app context with no tax_code in session (default db)
         with app.test_request_context():
