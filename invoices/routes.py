@@ -9215,5 +9215,70 @@ def api_agents_swarm_v33_chat():
         return jsonify({"error": str(e)}), 500
 
 
+# ── Version 34.0.0 Invoice Aging Analysis & AR/AP Management ───────────────────
 
+@invoices_blueprint.get("/v34-compliance")
+def v34_compliance_page():
+    """Render the Version 34.0.0 Invoice Aging & AR/AP Management panel."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("v34_compliance.html")
+
+
+@invoices_blueprint.post("/api/compliance/invoice-aging")
+def api_compliance_invoice_aging():
+    """US-460: Invoice Aging Analysis for AR and AP."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    taxpayer_mst = body.get("taxpayer_mst") or session.get("taxpayer_mst") or "0109999999"
+    as_of_date = body.get("as_of_date")
+
+    from invoices.v34_service import analyze_invoice_aging
+    try:
+        result = analyze_invoice_aging(taxpayer_mst, as_of_date)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/compliance/aging-heatmap")
+def api_compliance_aging_heatmap():
+    """US-461: Generate aging heatmap grid data."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    taxpayer_mst = body.get("taxpayer_mst") or session.get("taxpayer_mst") or "0109999999"
+    as_of_date = body.get("as_of_date")
+
+    from invoices.v34_service import analyze_invoice_aging, generate_aging_heatmap_data
+    try:
+        aging = analyze_invoice_aging(taxpayer_mst, as_of_date)
+        heatmap = generate_aging_heatmap_data(aging)
+        return jsonify(heatmap)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/agents/swarm-v34-chat")
+def api_agents_swarm_v34_chat():
+    """US-461: AR/AP Debt Collection Swarm Advisory."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    taxpayer_mst = body.get("taxpayer_mst") or session.get("taxpayer_mst") or "0109999999"
+    taxpayer_name = body.get("taxpayer_name") or "Doanh nghiệp phân tích"
+
+    from invoices.v34_service import run_aging_advisory_swarm
+    try:
+        result = run_aging_advisory_swarm(taxpayer_mst, taxpayer_name)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
