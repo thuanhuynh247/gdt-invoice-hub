@@ -84,8 +84,15 @@
                         <a class="nav-link {% if request.path == '/v38-delivery-reconciliation' %}active{% endif %}" href="{{ url_for('invoices.v38_delivery_reconciliation_page') }}"><i class="bi bi-shuffle text-warning" aria-hidden="true"></i> Đối soát kho v38 <span class="badge bg-warning text-dark rounded-pill ms-1" style="font-size: 0.65em;">V38</span></a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/v39-deferred-tax-and-risk' %}active{% endif %}" href="{{ url_for('invoices.v39_deferred_tax_and_risk') }}"><i class="bi bi-bank text-info" aria-hidden="true"></i> Hoãn thuế & Rủi ro v39 <span class="badge bg-info text-dark rounded-pill ms-1" style="font-size: 0.65em;">V39</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/v40-compliance-dashboard' %}active{% endif %}" href="{{ url_for('invoices.v40_compliance_dashboard') }}"><i class="bi bi-shield-check-fill text-warning" aria-hidden="true"></i> Tuân thủ v40 <span class="badge bg-warning text-dark rounded-pill ms-1" style="font-size: 0.65em;">V40</span></a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link {% if request.path == '/harness' %}active{% endif %}" href="{{ url_for('invoices.harness_page') }}"><i class="bi bi-cpu-fill" aria-hidden="true"></i> Harness Agent</a>
                     </li>
+
                     {% if session.get('user_role') in ['admin', 'auditor'] %}
                     <li class="nav-item">
                         <a class="nav-link {% if request.path == '/consolidated-dashboard' %}active{% endif %}" href="{{ url_for('invoices.consolidated_dashboard_page') }}"><i class="bi bi-ui-checks-grid" aria-hidden="true"></i> Hợp nhất</a>

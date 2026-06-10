@@ -890,3 +890,35 @@ class LogisticsAllocation(db.Model):
         }
 
 
+class RelatedPartyRelationship(db.Model):
+    """US-521: Related party relationships under Decree 132/2020/NĐ-CP."""
+
+    __tablename__ = "related_party_relationship"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    taxpayer_mst = db.Column(
+        db.String(20),
+        db.ForeignKey("taxpayer_profile.mst", ondelete="CASCADE"),
+        nullable=False,
+    )
+    partner_mst = db.Column(db.String(20), nullable=False)
+    partner_name = db.Column(db.String(255), nullable=False)
+    relationship_type = db.Column(db.String(100), nullable=False)  # ownership_ge_25, guarantee_ge_25_debt_ge_50, etc.
+    ownership_percentage = db.Column(db.Float, default=0.0)
+    details = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.String(30), nullable=False)
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "taxpayer_mst": self.taxpayer_mst,
+            "partner_mst": self.partner_mst,
+            "partner_name": self.partner_name,
+            "relationship_type": self.relationship_type,
+            "ownership_percentage": self.ownership_percentage,
+            "details": self.details or "",
+            "created_at": self.created_at,
+        }
+
+
+

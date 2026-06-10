@@ -10081,6 +10081,248 @@ def api_v38_logistics_valuation():
     })
 
 
+@invoices_blueprint.route("/v39-deferred-tax-and-risk")
+def v39_deferred_tax_and_risk():
+    """Render the dashboard command center page (US-511, US-512, US-513)."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    from invoices.models import TaxpayerProfile
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    profiles = TaxpayerProfile.query.filter_by(is_active=True).all()
+    if not any(p.mst == mst for p in profiles) and profiles:
+        mst = profiles[0].mst
+
+    return render_template(
+        "deferred_tax_and_risk.html",
+        active_page="deferred_tax_and_risk",
+        taxpayer_mst=mst,
+        profiles=profiles
+    )
+
+
+@invoices_blueprint.get("/api/v39/deferred-tax")
+def api_v39_deferred_tax():
+    """Retrieve VAS 17 deferred tax calculations (US-510)."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    year = request.args.get("year", default=datetime.now().year, type=int)
+    from invoices.v39_service import DeferredTaxService
+    res = DeferredTaxService.calculate_vas17_deferred_tax(mst, year)
+    return jsonify({
+        "status": "success",
+        "data": res
+    })
+
+
+@invoices_blueprint.get("/api/v39/journal-entries")
+def api_v39_journal_entries():
+    """Retrieve suggested double-entry journal postings (US-511)."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    year = request.args.get("year", default=datetime.now().year, type=int)
+    from invoices.v39_service import DeferredTaxService
+    entries = DeferredTaxService.generate_journal_entries(mst, year)
+    return jsonify({
+        "status": "success",
+        "journal_entries": entries
+    })
+
+
+@invoices_blueprint.get("/api/v39/cash-stress")
+def api_v39_cash_stress():
+    """Simulate runway under DSO/DPO changes (US-512)."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    dso = request.args.get("dso_days", default=0, type=int)
+    dpo = request.args.get("dpo_days", default=0, type=int)
+    from invoices.v39_service import CashFlowStressService
+    res = CashFlowStressService.run_cash_stress_simulation(mst, dso, dpo)
+    return jsonify({
+        "status": "success",
+        "simulation": res
+    })
+
+
+@invoices_blueprint.get("/api/v39/supplier-network")
+def api_v39_supplier_network():
+    """Retrieve supplier network nodes and links (US-513)."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    from invoices.v39_service import SupplierRiskNetworkService
+    res = SupplierRiskNetworkService.build_supplier_network_graph(mst)
+    return jsonify({
+        "status": "success",
+        "network": res
+    })
+
+
+@invoices_blueprint.post("/api/v39/supplier-scraper-check")
+def api_v39_supplier_scraper_check():
+    """Simulate checking GDT state (US-514)."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    seller_mst = request.json.get("seller_mst")
+    if not seller_mst:
+        return jsonify({"error": "Missing seller_mst"}), 400
+
+    from invoices.v39_service import SupplierRiskNetworkService
+    res = SupplierRiskNetworkService.simulate_gdt_scraper_check(seller_mst)
+    return jsonify({
+        "status": "success",
+        "check_result": res
+    })
+
+
+@invoices_blueprint.route("/v40-compliance-dashboard")
+def v40_compliance_dashboard():
+    """Render the dashboard command center page for FCT, Related Party & XML Signature (US-523)."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    from invoices.models import TaxpayerProfile
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    profiles = TaxpayerProfile.query.filter_by(is_active=True).all()
+    if not any(p.mst == mst for p in profiles) and profiles:
+        mst = profiles[0].mst
+
+    return render_template(
+        "v40_compliance_dashboard.html",
+        active_page="v40_compliance",
+        taxpayer_mst=mst,
+        profiles=profiles
+    )
+
+
+@invoices_blueprint.post("/api/v40/fct/calculate")
+def api_v40_fct_calculate():
+    """Calculate FCT withholding tax under Circular 103 (US-520)."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    val = float(data.get("contract_value", 0.0))
+    ctype = data.get("contract_type", "gross")
+    cat = data.get("service_category", "services")
+
+    from invoices.v40_service import FCTService
+    res = FCTService.calculate_fct_withholding(val, ctype, cat)
+    return jsonify({
+        "status": "success",
+        "calculation": res
+    })
+
+
+@invoices_blueprint.get("/api/v40/fct/declaration")
+def api_v40_fct_declaration():
+    """Retrieve FCT Form 01/NTNN declaration mappings (US-520)."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    period = request.args.get("period", datetime.now().strftime("%Y-%m"))
+    from invoices.v40_service import FCTService
+    res = FCTService.generate_fct_declaration(mst, period)
+    return jsonify({
+        "status": "success",
+        "declaration": res
+    })
+
+
+@invoices_blueprint.post("/api/v40/related-party/relationship")
+def api_v40_related_party_relationship():
+    """Register a new related party relationship (US-521)."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    partner_mst = data.get("partner_mst")
+    partner_name = data.get("partner_name")
+    rel_type = data.get("relationship_type")
+    ownership = float(data.get("ownership_percentage", 0.0))
+    details = data.get("details", "")
+
+    if not partner_mst or not partner_name or not rel_type:
+        return jsonify({"error": "Missing partner_mst, partner_name, or relationship_type"}), 400
+
+    from invoices.v40_service import RelatedPartyService
+    rel = RelatedPartyService.add_related_party_relationship(
+        mst, partner_mst, partner_name, rel_type, ownership, details
+    )
+    return jsonify({
+        "status": "success",
+        "relationship": rel.to_dict()
+    })
+
+
+@invoices_blueprint.get("/api/v40/related-party/ebitda-limit")
+def api_v40_related_party_ebitda_limit():
+    """Calculate Decree 132 30% EBITDA interest expense cap limit (US-521)."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    year = request.args.get("year", default=datetime.now().year, type=int)
+    profit = float(request.args.get("profit_before_tax", 0.0))
+    expense = float(request.args.get("interest_expense", 0.0))
+    income = float(request.args.get("interest_income", 0.0))
+    depr = float(request.args.get("depreciation_amortization", 0.0))
+
+    from invoices.v40_service import RelatedPartyService
+    res = RelatedPartyService.calculate_ebitda_limit(mst, year, profit, expense, income, depr)
+    return jsonify({
+        "status": "success",
+        "audit": res
+    })
+
+
+@invoices_blueprint.post("/api/v40/xml/verify")
+def api_v40_xml_verify():
+    """Audit digital signature & X.509 cert inside e-invoice XML (US-522)."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    xml_text = None
+    if "file" in request.files:
+        file = request.files["file"]
+        xml_text = file.read().decode("utf-8", errors="ignore")
+    elif request.json and "xml_content" in request.json:
+        xml_text = request.json["xml_content"]
+    else:
+        xml_text = request.data.decode("utf-8", errors="ignore")
+
+    from invoices.v40_service import InvoiceSignatureService
+    res = InvoiceSignatureService.verify_invoice_xml_signature(xml_text)
+    return jsonify({
+        "status": "success",
+        "verification": res
+    })
+
+
+
+
 
 
 
