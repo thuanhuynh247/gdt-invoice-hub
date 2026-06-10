@@ -158,3 +158,53 @@ def test_harness_page_success(logged_in_client):
     response = logged_in_client.get("/harness")
     assert response.status_code == 200
     assert b"Harness Control Center" in response.data
+
+
+def test_harness_risk_evaluate(logged_in_client):
+    """Test the risk evaluation API endpoint."""
+    payload = {"text": "Implement secure auth with database schema changes using sqlite migrate and payment api"}
+    response = logged_in_client.post(
+        "/api/harness/risk/evaluate",
+        data=json.dumps(payload),
+        content_type="application/json"
+    )
+    assert response.status_code == 200
+    data = response.get_json()
+    assert "suggested_lane" in data
+    assert data["suggested_lane"] == "high_risk"
+    assert "auth" in data["flags_found"]
+    assert "data_model" in data["flags_found"]
+
+
+def test_harness_db_stats(logged_in_client):
+    """Test retrieving database statistics."""
+    response = logged_in_client.get("/api/harness/db/stats")
+    assert response.status_code == 200
+    data = response.get_json()
+    assert "file_name" in data
+    assert "size_mb" in data
+    assert "table_counts" in data
+    assert "story" in data["table_counts"]
+
+
+def test_harness_db_backup(logged_in_client):
+    """Test database backup endpoint."""
+    response = logged_in_client.post("/api/harness/db/backup")
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["success"] is True
+    assert "backup_file" in data
+
+
+def test_harness_db_download(logged_in_client):
+    """Test downloading the harness DB."""
+    response = logged_in_client.get("/api/harness/db/download")
+    assert response.status_code == 200
+    assert response.headers["Content-Disposition"].startswith("attachment")
+
+
+def test_harness_validate_stream(logged_in_client):
+    """Test validation output SSE stream."""
+    response = logged_in_client.get("/api/harness/validate/stream")
+    assert response.status_code == 200
+    assert "text/event-stream" in response.headers["Content-Type"]

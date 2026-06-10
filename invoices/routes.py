@@ -6345,6 +6345,181 @@ def api_agent_stream():
     return Response(generate(), mimetype="text/event-stream")
 
 
+@invoices_blueprint.post("/api/harness/risk/evaluate")
+def api_harness_risk_evaluate():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+    body = request.get_json(force=True) or {}
+    text = body.get("text", "").strip()
+    if not text:
+        return jsonify({"error": "No spec text provided"}), 400
+
+    text_lower = text.lower()
+    
+    checklist = {
+        "auth": ["auth", "login", "logout", "session", "password", "token"],
+        "authorization": ["role", "permission", "tenant", "access control"],
+        "data_model": ["schema", "migration", "sqlite", "table", "column", "drop table"],
+        "security": ["audit", "security", "privacy", "access log", "secret", "oauth"],
+        "external": ["email", "payment", "sdk", "webhook", "queue", "api", "request", "http", "vietqr", "gdt"],
+        "contract": ["api shape", "response envelope", "client-visible", "contract"],
+        "cross_platform": ["desktop", "mobile", "browser", "native", "deep link"],
+        "existing_behavior": ["refactor", "change", "fix", "patch"],
+        "weak_proof": ["untested", "missing tests", "no test"],
+        "multi_domain": ["multi-domain", "multiple domain"]
+    }
+    
+    flags_found = []
+    for flag, kw_list in checklist.items():
+        if any(kw in text_lower for kw in kw_list):
+            flags_found.append(flag)
+            
+    hard_gates = ["auth", "authorization", "data_model", "security", "external"]
+    has_hard_gate = any(fg in hard_gates for fg in flags_found)
+    
+    num_flags = len(flags_found)
+    if has_hard_gate or num_flags >= 4:
+        lane = "high_risk"
+    elif num_flags >= 2:
+        lane = "normal"
+    else:
+        lane = "tiny"
+        
+    return jsonify({
+        "suggested_lane": lane,
+        "flags_found": flags_found,
+        "has_hard_gate": has_hard_gate,
+        "flag_count": num_flags
+    })
+
+
+@invoices_blueprint.get("/api/harness/db/stats")
+def api_harness_db_stats():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+    
+    db_file = "harness.db"
+    size_mb = 0.0
+    last_modified = "unknown"
+    if os.path.exists(db_file):
+        size_bytes = os.path.getsize(db_file)
+        size_mb = round(size_bytes / (1024 * 1024), 2)
+        mtime = os.path.getmtime(db_file)
+        last_modified = datetime.fromtimestamp(mtime).strftime("%Y-%m-%d %H:%M:%S")
+
+    conn = None
+    try:
+        conn = get_harness_db()
+        cur = conn.cursor()
+        
+        tables = {}
+        for tbl in ["story", "decision", "backlog", "trace"]:
+            cur.execute(f"SELECT COUNT(*) as count FROM {tbl}")
+            tables[tbl] = cur.fetchone()["count"]
+            
+        return jsonify({
+            "file_name": db_file,
+            "size_mb": size_mb,
+            "last_modified": last_modified,
+            "table_counts": tables
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
+
+
+@invoices_blueprint.post("/api/harness/db/backup")
+def api_harness_db_backup():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+    
+    import shutil
+    db_file = "harness.db"
+    if not os.path.exists(db_file):
+        return jsonify({"error": "Database file not found"}), 404
+        
+    try:
+        backup_dir = "data/backup"
+        if not os.path.exists(backup_dir):
+            os.makedirs(backup_dir)
+            
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        backup_file = os.path.join(backup_dir, f"harness_backup_{timestamp}.db")
+        shutil.copy2(db_file, backup_file)
+        return jsonify({
+            "success": True, 
+            "message": f"Successfully backed up database to {backup_file}",
+            "backup_file": backup_file
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.get("/api/harness/db/download")
+def api_harness_db_download():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+    
+    db_file = "harness.db"
+    if not os.path.exists(db_file):
+        return jsonify({"error": "Database file not found"}), 404
+        
+    return send_file(db_file, as_attachment=True, download_name="harness.db")
+
+
+@invoices_blueprint.get("/api/harness/validate/stream")
+def api_harness_validate_stream():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    from flask import Response
+    
+    def generate_validation():
+        import subprocess
+        import os
+        import json
+        
+        validate_script = os.path.join("scripts", "validate.bat")
+        
+        if not os.path.exists(validate_script):
+            yield f"data: {json.dumps({'type': 'error', 'message': 'Validation script scripts/validate.bat not found.'})}\n\n"
+            return
+            
+        proc = subprocess.Popen(
+            [validate_script],
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1
+        )
+        
+        yield f"data: {json.dumps({'type': 'status', 'message': 'Running system validation checks...'})}\n\n"
+        
+        while True:
+            line = proc.stdout.readline()
+            if not line and proc.poll() is not None:
+                break
+            if line:
+                yield f"data: {json.dumps({'type': 'output', 'text': line})}\n\n"
+                
+        proc.wait()
+        
+        if proc.returncode == 0:
+            yield f"data: {json.dumps({'type': 'status', 'message': 'Validation PASSED. All tests and checks passed successfully.'})}\n\n"
+            yield f"data: {json.dumps({'type': 'done', 'success': True})}\n\n"
+        else:
+            yield f"data: {json.dumps({'type': 'status', 'message': f'Validation FAILED with exit code {proc.returncode}.'})}\n\n"
+            yield f"data: {json.dumps({'type': 'done', 'success': False})}\n\n"
+            
+    return Response(generate_validation(), mimetype="text/event-stream")
 @invoices_blueprint.post("/api/bctc/compile")
 @roles_required("admin", "auditor")
 def api_bctc_compile():
