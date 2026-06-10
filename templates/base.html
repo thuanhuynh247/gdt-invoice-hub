@@ -66,6 +66,18 @@
                         <a class="nav-link {% if request.path == '/v32-compliance' %}active{% endif %}" href="{{ url_for('invoices.v32_compliance_page') }}"><i class="bi bi-gift-fill text-success" aria-hidden="true"></i> Hoàn thuế v32 <span class="badge bg-success text-white rounded-pill ms-1" style="font-size: 0.65em;">V32</span></a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/v33-compliance' %}active{% endif %}" href="{{ url_for('invoices.v33_compliance_page') }}"><i class="bi bi-file-earmark-bar-graph text-warning" aria-hidden="true"></i> Quyết toán v33 <span class="badge bg-warning text-dark rounded-pill ms-1" style="font-size: 0.65em;">V33</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/v34-compliance' %}active{% endif %}" href="{{ url_for('invoices.v34_compliance_page') }}"><i class="bi bi-clock-history text-danger" aria-hidden="true"></i> Tuổi nợ v34 <span class="badge bg-danger text-white rounded-pill ms-1" style="font-size: 0.65em;">V34</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/v35-compliance' %}active{% endif %}" href="{{ url_for('invoices.v35_compliance_page') }}"><i class="bi bi-shield-shaded text-primary" aria-hidden="true"></i> Stress Test v35 <span class="badge bg-primary text-white rounded-pill ms-1" style="font-size: 0.65em;">V35</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/v36-cit-finalization' %}active{% endif %}" href="{{ url_for('invoices.v36_cit_finalization_page') }}"><i class="bi bi-file-earmark-spreadsheet text-success" aria-hidden="true"></i> Quyết toán TNDN v36 <span class="badge bg-success text-white rounded-pill ms-1" style="font-size: 0.65em;">V36</span></a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link {% if request.path == '/harness' %}active{% endif %}" href="{{ url_for('invoices.harness_page') }}"><i class="bi bi-cpu-fill" aria-hidden="true"></i> Harness Agent</a>
                     </li>
                     {% if session.get('user_role') in ['admin', 'auditor'] %}

@@ -1,7 +1,7 @@
 # Spec: US-472 — Automated Audit Defense Briefcase & Auto-Correction Package
 
 ## Status
-planned
+completed
 
 ## Lane
 normal
@@ -12,7 +12,7 @@ The system provides a service to build a downloadable **Audit Defense Briefcase*
 
 ## Acceptance Criteria
 
-- [ ] Backend endpoint `/api/compliance/defense-package` accepts a list of invoice UUIDs/numbers.
-- [ ] Packs matching invoice XMLs, generated invoice PDFs, matching bank transaction lines, and AI-compiled defense descriptions into a single ZIP archive.
-- [ ] Auto-generates the official GDT Form 04/SS-HĐĐT XML schema template matching GDT specifications for correction/replacement invoice notification.
-- [ ] Exposes a download button in the web application UI.
+- [x] Backend endpoint `/api/compliance/defense-package` accepts a list of invoice UUIDs/numbers.
+- [x] Packs matching invoice XMLs, generated invoice PDFs, matching bank transaction lines, and AI-compiled defense descriptions into a single ZIP archive.
+- [x] Auto-generates the official GDT Form 04/SS-HĐĐT XML schema template matching GDT specifications for correction/replacement invoice notification.
+- [x] Exposes a download button in the web application UI.

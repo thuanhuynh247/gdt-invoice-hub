@@ -1,7 +1,7 @@
 # Spec: US-473 — Multi-Period Interactive Tax Map Explainer UI
 
 ## Status
-planned
+completed
 
 ## Lane
 normal
@@ -12,7 +12,7 @@ The system provides an **Interactive Tax Map Explainer UI** displaying the flow 
 
 ## Acceptance Criteria
 
-- [ ] Web component renders dynamic SVG/HTML tax mapping visual showing fund tracing.
-- [ ] Tax map contains clickable nodes with live numeric tooltips showing details.
-- [ ] Connects disallowance events to related indicators, highlighting disallowance flow in red.
-- [ ] Zero-dependency CSS/SVG implementation for performance.
+- [x] Web component renders dynamic SVG/HTML tax mapping visual showing fund tracing.
+- [x] Tax map contains clickable nodes with live numeric tooltips showing details.
+- [x] Connects disallowance events to related indicators, highlighting disallowance flow in red.
+- [x] Zero-dependency CSS/SVG implementation for performance.

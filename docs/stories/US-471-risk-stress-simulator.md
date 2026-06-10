@@ -1,7 +1,7 @@
 # Spec: US-471 — Dynamic Tax Audit Risk Stress Simulator Engine
 
 ## Status
-planned
+completed
 
 ## Lane
 normal
@@ -12,10 +12,10 @@ The system provides a **Tax Audit Risk Stress Simulator Engine** allowing users 
 
 ## Acceptance Criteria
 
-- [ ] Backend API endpoint `/api/compliance/stress-test` accepts taxpayer MST, scan rate (0.0 - 1.0), and strictness level ("lenient", "medium", "strict").
-- [ ] Computes underpayment penalties based on rule-based disallowances:
+- [x] Backend API endpoint `/api/compliance/stress-test` accepts taxpayer MST, scan rate (0.0 - 1.0), and strictness level ("lenient", "medium", "strict").
+- [x] Computes underpayment penalties based on rule-based disallowances:
   - "lenient" -> only cash payment violations.
   - "medium" -> cash payments + late signing.
   - "strict" -> cash payments + late signing + blacklisted MSTs + TP markup violations.
-- [ ] Calculates late payment interest at 0.03% per day on the total tax underpaid for a baseline period.
-- [ ] Integrates with a visual control panel in the V35 dashboard.
+- [x] Calculates late payment interest at 0.03% per day on the total tax underpaid for a baseline period.
+- [x] Integrates with a visual control panel in the V35 dashboard.

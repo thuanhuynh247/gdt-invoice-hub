@@ -9282,3 +9282,223 @@ def api_agents_swarm_v34_chat():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
+# ── Version 35.0.0 Unified Audit Control Room & Tax Stress Simulator ───────────
+
+@invoices_blueprint.get("/v35-compliance")
+def v35_compliance_page():
+    """Render the Version 35.0.0 Unified Audit Control Room panel."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("v35_compliance.html")
+
+
+@invoices_blueprint.post("/api/compliance/v35-health")
+def api_compliance_v35_health():
+    """US-470: Calculate compliance health score & risk tree nodes."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    taxpayer_mst = body.get("taxpayer_mst") or session.get("taxpayer_mst") or "0109999999"
+
+    from invoices.v35_service import calculate_tax_health_score
+    try:
+        result = calculate_tax_health_score(taxpayer_mst)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/compliance/stress-test")
+def api_compliance_stress_test():
+    """US-471: Run tax audit risk stress simulation."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    taxpayer_mst = body.get("taxpayer_mst") or session.get("taxpayer_mst") or "0109999999"
+    scan_rate = float(body.get("scan_rate", 0.5))
+    strictness = body.get("strictness", "medium")
+
+    from invoices.v35_service import run_tax_stress_simulation
+    try:
+        result = run_tax_stress_simulation(taxpayer_mst, scan_rate, strictness)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/compliance/defense-package")
+def api_compliance_defense_package():
+    """US-472: Generate and download defense briefcase ZIP."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    taxpayer_mst = body.get("taxpayer_mst") or session.get("taxpayer_mst") or "0109999999"
+    invoice_ids = body.get("invoice_ids", [])
+
+    from invoices.v35_service import build_defense_briefcase
+    import os
+    try:
+        zip_path = build_defense_briefcase(taxpayer_mst, invoice_ids)
+        from flask import send_file
+        return send_file(
+            zip_path,
+            mimetype="application/zip",
+            as_attachment=True,
+            download_name=os.path.basename(zip_path)
+        )
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/agents/swarm-v35-chat")
+def api_agents_swarm_v35_chat():
+    """US-474: AI Swarm Defense Chat mock debate."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    taxpayer_mst = body.get("taxpayer_mst") or session.get("taxpayer_mst") or "0109999999"
+
+    from invoices.v35_service import run_v35_swarm
+    try:
+        result = run_v35_swarm(taxpayer_mst)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# ── Version 36.0.0 Annual CIT Finalization & Loss Carry-Forward Suite ───────────
+
+@invoices_blueprint.get("/v36-cit-finalization")
+def v36_cit_finalization_page():
+    """Render the Version 36.0.0 Annual CIT Finalization & Optimizer panel."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("v36_compliance.html")
+
+
+@invoices_blueprint.post("/api/cit/calculate")
+def api_cit_calculate():
+    """US-480: Calculate CIT liability."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    revenue = float(body.get("revenue", 0.0))
+    cogs = float(body.get("cogs", 0.0))
+    selling_expenses = float(body.get("selling_expenses", 0.0))
+    admin_expenses = float(body.get("admin_expenses", 0.0))
+    non_deductible_adjustments = float(body.get("non_deductible_adjustments", 0.0))
+    loss_offset = float(body.get("loss_offset", 0.0))
+    cit_rate = float(body.get("cit_rate", 0.20))
+    holiday_discount = float(body.get("holiday_discount", 0.0))
+
+    from invoices.v36_service import CITFinalizationService
+    try:
+        result = CITFinalizationService.calculate_cit(
+            revenue, cogs, selling_expenses, admin_expenses, 
+            non_deductible_adjustments, loss_offset, cit_rate, holiday_discount
+        )
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/cit/optimize-losses")
+def api_cit_optimize_losses():
+    """US-481: Compute optimal carry-forward matrix."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    # Parse historical losses: keys should be ints
+    hist_losses_raw = body.get("historical_losses", {})
+    hist_losses = {int(k): float(v) for k, v in hist_losses_raw.items()}
+    
+    # Parse projected profits: keys should be ints
+    proj_profits_raw = body.get("projected_profits", {})
+    proj_profits = {int(k): float(v) for k, v in proj_profits_raw.items()}
+    
+    # Parse holidays: keys should be ints
+    holidays_raw = body.get("tax_holidays", {})
+    holidays = {}
+    for k, v in holidays_raw.items():
+        holidays[int(k)] = {
+            "tax_free": bool(v.get("tax_free", False)),
+            "reduction": float(v.get("reduction", 0.0))
+        }
+        
+    cit_rate = float(body.get("cit_rate", 0.20))
+
+    from invoices.v36_service import CITFinalizationService
+    try:
+        result = CITFinalizationService.optimize_loss_carry_forward(
+            hist_losses, proj_profits, holidays, cit_rate
+        )
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/cit/export-xml")
+def api_cit_export_xml():
+    """US-482: Generate GDT Form 03/TNDN XML."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    mst = body.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    taxpayer_name = body.get("taxpayer_name") or "CÔNG TY CỔ PHẦN CÔNG NGHỆ ANTIGRAVITY"
+    year = int(body.get("year", 2026))
+    
+    cit_data = body.get("cit_data", {})
+    loss_data = body.get("loss_data", {})
+
+    from invoices.v36_service import CITFinalizationService
+    try:
+        xml_content = CITFinalizationService.generate_cit_xml(
+            mst, taxpayer_name, year, cit_data, loss_data
+        )
+        return Response(
+            xml_content,
+            mimetype="application/xml",
+            headers={"Content-Disposition": f'attachment; filename="Form_03_TNDN_{year}.xml"'}
+        )
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/cit/swarm-chat")
+def api_cit_swarm_chat():
+    """US-484: AI Swarm Consensus debate simulation."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    cit_data = body.get("cit_data", {})
+    loss_data = body.get("loss_data", {})
+
+    from invoices.v36_service import CITFinalizationService
+    try:
+        debate, memo = CITFinalizationService.simulate_cit_swarm_debate(cit_data, loss_data)
+        return jsonify({
+            "debate": debate,
+            "memo": memo
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+

@@ -1,7 +1,7 @@
 # Spec: US-470 — Interactive Systems-Level Tax Audit Control Room UI
 
 ## Status
-planned
+completed
 
 ## Lane
 normal
@@ -12,7 +12,7 @@ The system provides a **Unified Tax Audit Control Room** dashboard that aggregat
 
 ## Acceptance Criteria
 
-- [ ] Web view `/v35-compliance` exposes the Control Room UI with dark/light mode glassmorphic styling.
-- [ ] Displays **System Tax Health Score** (0-100) calculated by penalizing critical/major/minor issues from the database.
-- [ ] Implements an **Interactive Risk Tree** in SVG/CSS allowing the user to click nodes to expand/collapse and see specific violating invoices.
-- [ ] Fully integrates data from models and compliance services dynamically.
+- [x] Web view `/v35-compliance` exposes the Control Room UI with dark/light mode glassmorphic styling.
+- [x] Displays **System Tax Health Score** (0-100) calculated by penalizing critical/major/minor issues from the database.
+- [x] Implements an **Interactive Risk Tree** in SVG/CSS allowing the user to click nodes to expand/collapse and see specific violating invoices.
+- [x] Fully integrates data from models and compliance services dynamically.
