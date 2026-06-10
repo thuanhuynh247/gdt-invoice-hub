@@ -82,9 +82,9 @@ timeline
 
 | Epic ID | Epic Title | Story ID | Story Title | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **E117** | Annual CIT Finalization Suite | **US-480** | Interactive Form 03/TNDN Builder & CIT Finalization Hub | ⏳ Planned |
-| **E117** | Annual CIT Finalization Suite | **US-481** | AI-Driven Loss Carry-Forward & Tax Holiday Optimizer | ⏳ Planned |
-| **E117** | Annual CIT Finalization Suite | **US-482** | Form 03/TNDN XML Exporter & GDT Schema Validator | ⏳ Planned |
-| **E117** | Annual CIT Finalization Suite | **US-483** | SVG Corporate Tax Flow & Loss Absorption Graph | ⏳ Planned |
-| **E117** | Annual CIT Finalization Suite | **US-484** | AI Swarm CIT Finalization Advisory Consensus Chat | ⏳ Planned |
-| **E117** | Annual CIT Finalization Suite | **US-485** | End-to-End CIT Finalization Validation Suite | ⏳ Planned |
+| **E117** | Annual CIT Finalization Suite | **US-480** | Interactive Form 03/TNDN Builder & CIT Finalization Hub | ✅ Completed |
+| **E117** | Annual CIT Finalization Suite | **US-481** | AI-Driven Loss Carry-Forward & Tax Holiday Optimizer | ✅ Completed |
+| **E117** | Annual CIT Finalization Suite | **US-482** | Form 03/TNDN XML Exporter & GDT Schema Validator | ✅ Completed |
+| **E117** | Annual CIT Finalization Suite | **US-483** | SVG Corporate Tax Flow & Loss Absorption Graph | ✅ Completed |
+| **E117** | Annual CIT Finalization Suite | **US-484** | AI Swarm CIT Finalization Advisory Consensus Chat | ✅ Completed |
+| **E117** | Annual CIT Finalization Suite | **US-485** | End-to-End CIT Finalization Validation Suite | ✅ Completed |
