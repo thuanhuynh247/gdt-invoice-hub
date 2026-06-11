@@ -90,6 +90,12 @@
                         <a class="nav-link {% if request.path == '/v40-compliance-dashboard' %}active{% endif %}" href="{{ url_for('invoices.v40_compliance_dashboard') }}"><i class="bi bi-shield-check-fill text-warning" aria-hidden="true"></i> Tuân thủ v40 <span class="badge bg-warning text-dark rounded-pill ms-1" style="font-size: 0.65em;">V40</span></a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/v41-export-refund' %}active{% endif %}" href="{{ url_for('invoices.v41_export_refund_page') }}"><i class="bi bi-shield-check-fill text-success" aria-hidden="true"></i> Hoàn thuế v41 <span class="badge bg-success text-white rounded-pill ms-1" style="font-size: 0.65em;">V41</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/v42-advanced-audit' %}active{% endif %}" href="{{ url_for('invoices.v42_advanced_audit_page') }}"><i class="bi bi-briefcase-fill text-warning" aria-hidden="true"></i> Quyết toán nâng cao v42 <span class="badge bg-warning text-dark rounded-pill ms-1" style="font-size: 0.65em;">V42</span></a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link {% if request.path == '/harness' %}active{% endif %}" href="{{ url_for('invoices.harness_page') }}"><i class="bi bi-cpu-fill" aria-hidden="true"></i> Harness Agent</a>
                     </li>
 

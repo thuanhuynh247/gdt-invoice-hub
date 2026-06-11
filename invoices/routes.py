@@ -10321,6 +10321,252 @@ def api_v40_xml_verify():
     })
 
 
+@invoices_blueprint.get("/v41-export-refund")
+def v41_export_refund_page():
+    """Render the V41 Export Customs & VAT Refund Hub (Circular 80) screen."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    
+    from invoices.models import TaxpayerProfile
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    profiles = TaxpayerProfile.query.filter_by(is_active=True).all()
+    if not any(p.mst == mst for p in profiles) and profiles:
+        mst = profiles[0].mst
+
+    return render_template(
+        "v41_export_refund.html",
+        active_page="v41_export_refund",
+        taxpayer_mst=mst,
+        profiles=profiles
+    )
+
+
+@invoices_blueprint.post("/api/v41/customs/upload")
+def api_v41_customs_upload():
+    """Upload and parse Customs XML Declaration (US-530)."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    xml_content = None
+    if "file" in request.files:
+        xml_content = request.files["file"].read().decode("utf-8", errors="ignore")
+    elif request.json and "xml_content" in request.json:
+        xml_content = request.json["xml_content"]
+
+    if not xml_content:
+        return jsonify({"error": "No XML content provided"}), 400
+
+    from invoices.v41_service import ExportVatRefundService
+    try:
+        res = ExportVatRefundService.parse_customs_xml(xml_content, mst)
+        return jsonify({"status": "success", "declaration": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.post("/api/v41/customs/reconcile")
+def api_v41_customs_reconcile():
+    """Reconcile pending Customs Declarations with GTGT invoices (US-531)."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.json.get("mst") if request.json else None
+    mst = mst or request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v41_service import ExportVatRefundService
+    matches = ExportVatRefundService.reconcile_declarations(mst)
+    return jsonify({"status": "success", "matches": matches})
+
+
+@invoices_blueprint.get("/api/v41/customs/form-01-1")
+def api_v41_customs_form_01_1():
+    """Retrieve Form 01-1/GTGT Circular 80 Export Goods List (US-532)."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    period_start = request.args.get("period_start", "2026-01-01")
+    period_end = request.args.get("period_end", "2026-12-31")
+
+    from invoices.v41_service import ExportVatRefundService
+    form_data = ExportVatRefundService.build_form_01_1_gtgt(mst, period_start, period_end)
+    return jsonify({"status": "success", "form_data": form_data})
+
+
+@invoices_blueprint.get("/api/v41/customs/refund-limits")
+def api_v41_customs_refund_limits():
+    """Get calculated tax refund limits and eligibility (US-533)."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    period_start = request.args.get("period_start", "2026-01-01")
+    period_end = request.args.get("period_end", "2026-12-31")
+    total_input = float(request.args.get("total_input_vat", 0.0))
+
+    from invoices.v41_service import ExportVatRefundService
+    limits = ExportVatRefundService.calculate_refund_limits(mst, period_start, period_end, total_input)
+    return jsonify({"status": "success", "limits": limits})
+
+
+@invoices_blueprint.post("/api/v41/customs/refund-submit")
+def api_v41_customs_refund_submit():
+    """Submit a tax refund application Form 01/ĐNHT (US-533)."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    period_start = data.get("period_start", "2026-01-01")
+    period_end = data.get("period_end", "2026-12-31")
+    total_input = float(data.get("total_input_vat", 0.0))
+    requested_amount = float(data.get("requested_amount", 0.0))
+
+    from invoices.v41_service import ExportVatRefundService
+    try:
+        app_dict = ExportVatRefundService.submit_refund_application(
+            mst, period_start, period_end, total_input, requested_amount
+        )
+        return jsonify({"status": "success", "application": app_dict})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.get("/api/v41/customs/dashboard")
+def api_v41_customs_dashboard():
+    """Get dashboard compliance aggregate statistics (US-534)."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v41_service import ExportVatRefundService
+    stats = ExportVatRefundService.get_refund_dashboard_data(mst)
+    return jsonify({"status": "success", "stats": stats})
+
+
+@invoices_blueprint.get("/v42-advanced-audit")
+def v42_advanced_audit_page():
+    """Render the V42 Advanced Audit: Transfer Pricing & E-Commerce Hub (US-543)."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    
+    from invoices.models import TaxpayerProfile
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    profiles = TaxpayerProfile.query.filter_by(is_active=True).all()
+    if not any(p.mst == mst for p in profiles) and profiles:
+        mst = profiles[0].mst
+
+    return render_template(
+        "v42_advanced_audit.html",
+        active_page="v42_advanced_audit",
+        taxpayer_mst=mst,
+        profiles=profiles
+    )
+
+
+@invoices_blueprint.post("/api/v42/transfer-pricing/calculate")
+def api_v42_transfer_pricing_calculate():
+    """Calculate related-party benchmarking and adjustments (US-540)."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    transactions = data.get("transactions", [])
+
+    from invoices.v42_service import AdvancedAuditService
+    try:
+        res = AdvancedAuditService.calculate_transfer_pricing_benchmarks(mst, transactions)
+        return jsonify({"status": "success", "data": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.post("/api/v42/transfer-pricing/export-xml")
+def api_v42_transfer_pricing_export_xml():
+    """Export Form 01/132 related-party disclosure XML (US-541)."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    taxpayer_name = data.get("taxpayer_name", "Viet Taxpayer Corp")
+    year = data.get("year", datetime.now().year)
+    tp_items = data.get("tp_items", [])
+
+    from invoices.v42_service import AdvancedAuditService
+    try:
+        xml_content = AdvancedAuditService.generate_form_01_132_xml(mst, taxpayer_name, year, tp_items)
+        return jsonify({"status": "success", "xml_content": xml_content})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.post("/api/v42/ecommerce/reconcile")
+def api_v42_ecommerce_reconcile():
+    """Reconcile e-commerce platform transactions (US-542)."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    transactions = data.get("transactions", [])
+
+    from invoices.v42_service import AdvancedAuditService
+    try:
+        res = AdvancedAuditService.reconcile_ecommerce_transactions(mst, transactions)
+        return jsonify({"status": "success", "data": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.get("/api/v42/dashboard-data")
+def api_v42_dashboard_data():
+    """Retrieve V42 aggregated compliance data and swarm memo (US-543)."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.models import TransferPricingBenchmark, ECommerceReconciliationReport
+    tp_items = TransferPricingBenchmark.query.filter_by(taxpayer_mst=mst).all()
+    report = ECommerceReconciliationReport.query.filter_by(taxpayer_mst=mst).order_by(ECommerceReconciliationReport.id.desc()).first()
+
+    tp_dict = {
+        "items": [item.to_dict() for item in tp_items],
+        "total_cit_adjustment": sum(item.adjustment_amount for item in tp_items)
+    }
+
+    eco_dict = {
+        "report": report.to_dict() if report else {}
+    }
+
+    from invoices.v42_service import AdvancedAuditService
+    debate, memo = AdvancedAuditService.simulate_advisor_debate(tp_dict, eco_dict)
+
+    return jsonify({
+        "status": "success",
+        "transfer_pricing": tp_dict,
+        "ecommerce": eco_dict,
+        "debate": debate,
+        "memo": memo
+    })
+
+
+
+
 
 
 

@@ -921,4 +921,192 @@ class RelatedPartyRelationship(db.Model):
         }
 
 
+class ExportCustomsDeclaration(db.Model):
+    """US-530: Export Customs Declaration XML representation."""
+
+    __tablename__ = "export_customs_declaration"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    declaration_num = db.Column(db.String(100), nullable=False, unique=True)
+    registration_date = db.Column(db.String(20), nullable=False)  # YYYY-MM-DD
+    clearance_date = db.Column(db.String(20), nullable=False)  # YYYY-MM-DD
+    taxpayer_mst = db.Column(db.String(20), nullable=False)
+    export_value_usd = db.Column(db.Float, nullable=False, default=0.0)
+    exchange_rate = db.Column(db.Float, nullable=False, default=0.0)
+    export_value_vnd = db.Column(db.Float, nullable=False, default=0.0)
+    hs_codes = db.Column(db.String(255), nullable=True)
+    status = db.Column(db.String(50), nullable=False, default="Pending")  # Pending, Reconciled, Discrepancy
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "declaration_num": self.declaration_num,
+            "registration_date": self.registration_date,
+            "clearance_date": self.clearance_date,
+            "taxpayer_mst": self.taxpayer_mst,
+            "export_value_usd": self.export_value_usd,
+            "exchange_rate": self.exchange_rate,
+            "export_value_vnd": self.export_value_vnd,
+            "hs_codes": self.hs_codes or "",
+            "status": self.status,
+        }
+
+
+class ExportDeclarationInvoiceMatch(db.Model):
+    """US-531: Reconciliation matches between export customs declaration and export invoices."""
+
+    __tablename__ = "export_declaration_invoice_match"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    declaration_id = db.Column(
+        db.Integer,
+        db.ForeignKey("export_customs_declaration.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    invoice_id = db.Column(
+        db.String(100),
+        db.ForeignKey("invoice.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    match_status = db.Column(db.String(50), nullable=False, default="matched")  # matched, value_mismatch
+    value_difference = db.Column(db.Float, nullable=False, default=0.0)
+    notes = db.Column(db.Text, nullable=True)
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "declaration_id": self.declaration_id,
+            "invoice_id": self.invoice_id,
+            "match_status": self.match_status,
+            "value_difference": self.value_difference,
+            "notes": self.notes or "",
+        }
+
+
+class VatRefundApplication(db.Model):
+    """US-533: Export VAT Refund Application Form 01/ĐNHT."""
+
+    __tablename__ = "vat_refund_application"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    taxpayer_mst = db.Column(db.String(20), nullable=False)
+    period_start = db.Column(db.String(20), nullable=False)  # YYYY-MM
+    period_end = db.Column(db.String(20), nullable=False)  # YYYY-MM
+    total_input_vat = db.Column(db.Float, nullable=False, default=0.0)
+    allocated_export_vat = db.Column(db.Float, nullable=False, default=0.0)
+    refund_requested_amount = db.Column(db.Float, nullable=False, default=0.0)
+    status = db.Column(db.String(50), nullable=False, default="Draft")  # Draft, Submitted, Approved, Rejected
+    created_at = db.Column(db.String(30), nullable=False)
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "taxpayer_mst": self.taxpayer_mst,
+            "period_start": self.period_start,
+            "period_end": self.period_end,
+            "total_input_vat": self.total_input_vat,
+            "allocated_export_vat": self.allocated_export_vat,
+            "refund_requested_amount": self.refund_requested_amount,
+            "status": self.status,
+            "created_at": self.created_at,
+        }
+
+
+class TransferPricingBenchmark(db.Model):
+    """US-540: Transfer Pricing benchmarking comparison under Decree 132."""
+
+    __tablename__ = "transfer_pricing_benchmark"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    taxpayer_mst = db.Column(db.String(20), nullable=False)
+    transaction_type = db.Column(db.String(100), nullable=False)
+    method_used = db.Column(db.String(50), nullable=False)
+    taxpayer_margin = db.Column(db.Float, nullable=False)
+    benchmark_p25 = db.Column(db.Float, nullable=False)
+    benchmark_median = db.Column(db.Float, nullable=False)
+    benchmark_p75 = db.Column(db.Float, nullable=False)
+    adjustment_amount = db.Column(db.Float, nullable=False, default=0.0)
+    status = db.Column(db.String(50), nullable=False, default="Compliant")  # Compliant, Adjusted
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "taxpayer_mst": self.taxpayer_mst,
+            "transaction_type": self.transaction_type,
+            "method_used": self.method_used,
+            "taxpayer_margin": self.taxpayer_margin,
+            "benchmark_p25": self.benchmark_p25,
+            "benchmark_median": self.benchmark_median,
+            "benchmark_p75": self.benchmark_p75,
+            "adjustment_amount": self.adjustment_amount,
+            "status": self.status,
+        }
+
+
+class ECommercePlatformTransaction(db.Model):
+    """US-542: Simulated E-Commerce platform transaction log."""
+
+    __tablename__ = "ecommerce_platform_transaction"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    taxpayer_mst = db.Column(db.String(20), nullable=False)
+    platform_name = db.Column(db.String(100), nullable=False)
+    transaction_id = db.Column(db.String(100), nullable=False)
+    transaction_date = db.Column(db.String(20), nullable=False)  # YYYY-MM-DD
+    buyer_name = db.Column(db.String(255), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    vat_withheld = db.Column(db.Float, nullable=False, default=0.0)
+    pit_withheld = db.Column(db.Float, nullable=False, default=0.0)
+    invoice_matched_id = db.Column(db.String(100), nullable=True)
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "taxpayer_mst": self.taxpayer_mst,
+            "platform_name": self.platform_name,
+            "transaction_id": self.transaction_id,
+            "transaction_date": self.transaction_date,
+            "buyer_name": self.buyer_name,
+            "amount": self.amount,
+            "vat_withheld": self.vat_withheld,
+            "pit_withheld": self.pit_withheld,
+            "invoice_matched_id": self.invoice_matched_id,
+        }
+
+
+class ECommerceReconciliationReport(db.Model):
+    """US-542: Reconciliation report between e-commerce logs and invoices."""
+
+    __tablename__ = "ecommerce_reconciliation_report"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    taxpayer_mst = db.Column(db.String(20), nullable=False)
+    platform_name = db.Column(db.String(100), nullable=False)
+    reconciliation_date = db.Column(db.String(20), nullable=False)  # YYYY-MM-DD
+    total_platform_transactions = db.Column(db.Integer, nullable=False, default=0)
+    matched_count = db.Column(db.Integer, nullable=False, default=0)
+    mismatch_count = db.Column(db.Integer, nullable=False, default=0)
+    total_platform_revenue = db.Column(db.Float, nullable=False, default=0.0)
+    total_invoiced_revenue = db.Column(db.Float, nullable=False, default=0.0)
+    gap_amount = db.Column(db.Float, nullable=False, default=0.0)
+    compliance_status = db.Column(db.String(50), nullable=False, default="Compliant")  # Compliant, GapsFound
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "taxpayer_mst": self.taxpayer_mst,
+            "platform_name": self.platform_name,
+            "reconciliation_date": self.reconciliation_date,
+            "total_platform_transactions": self.total_platform_transactions,
+            "matched_count": self.matched_count,
+            "mismatch_count": self.mismatch_count,
+            "total_platform_revenue": self.total_platform_revenue,
+            "total_invoiced_revenue": self.total_invoiced_revenue,
+            "gap_amount": self.gap_amount,
+            "compliance_status": self.compliance_status,
+        }
+
+
+
+
 
