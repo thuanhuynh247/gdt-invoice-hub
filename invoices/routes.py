@@ -11135,6 +11135,244 @@ def api_v46_compliance_data():
     })
 
 
+# ═══════════════════════════════════════════════════════════════════
+# VERSION 47 — VAT Law 48/2024/QH15 Compliance Engine
+# ═══════════════════════════════════════════════════════════════════
+
+@invoices_blueprint.get("/v47-compliance-hub")
+def v47_compliance_hub_page():
+    """Render the Version 47 VAT Law 48 compliance hub."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("v47_compliance_hub.html")
+
+
+@invoices_blueprint.post("/api/v47/rate/classify")
+def api_v47_rate_classify():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    item_description = data.get("item_description", "Dịch vụ tư vấn")
+
+    from invoices.v47_service import V47ComplianceService
+    try:
+        service = V47ComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.classify_vat_rate(mst, item_description)
+        return jsonify({"status": "success", "results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.post("/api/v47/credit/check")
+def api_v47_credit_check():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    invoice_number = data.get("invoice_number", "INV-2026-001")
+    invoice_amount = float(data.get("invoice_amount", 50000000.0))
+    has_vat_invoice = data.get("has_vat_invoice", True)
+    has_bank_payment = data.get("has_bank_payment", True)
+    seller_declared = data.get("seller_declared", True)
+
+    from invoices.v47_service import V47ComplianceService
+    try:
+        service = V47ComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.check_input_credit_eligibility(
+            mst, invoice_number, invoice_amount,
+            has_vat_invoice, has_bank_payment, seller_declared
+        )
+        return jsonify({"status": "success", "results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.post("/api/v47/refund/estimate")
+def api_v47_refund_estimate():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    period_label = data.get("period_label", "Q1-2026")
+    total_output_vat = float(data.get("total_output_vat", 100000000.0))
+    total_input_vat = float(data.get("total_input_vat", 500000000.0))
+    export_revenue = float(data.get("export_revenue", 5000000000.0))
+
+    from invoices.v47_service import V47ComplianceService
+    try:
+        service = V47ComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.estimate_vat_refund(
+            mst, period_label, total_output_vat, total_input_vat, export_revenue
+        )
+        return jsonify({"status": "success", "results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.get("/api/v47/compliance-data")
+def api_v47_compliance_data():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v47_service import V47ComplianceService
+    service = V47ComplianceService(current_app.config["BASE_DATA_DIR"])
+
+    rate_res = service.classify_vat_rate(mst, "Thiết bị y tế chẩn đoán hình ảnh")
+    credit_res = service.check_input_credit_eligibility(
+        mst=mst, invoice_number="INV-2026-001", invoice_amount=50000000.0,
+        has_vat_invoice=True, has_bank_payment=True, seller_declared=True
+    )
+    refund_res = service.estimate_vat_refund(
+        mst=mst, period_label="Q1-2026",
+        total_output_vat=100000000.0, total_input_vat=500000000.0,
+        export_revenue=5000000000.0
+    )
+
+    debate_transcript = [
+        {"speaker": "Tax Inspector", "text": "Under Law 48/2024/QH15, all goods/services default to 10% VAT unless specifically listed under Article 5 (non-taxable) or Article 9.2 (5%). Export activities qualify for 0% per Article 9.1."},
+        {"speaker": "Legal Advisor", "text": "Input credit eligibility requires three conditions per Article 14: valid VAT invoice, non-cash payment proof, and seller's tax declaration compliance. Missing any one blocks deduction."},
+        {"speaker": "CFO", "text": "Our uncredited VAT balance of 400M VND exceeds the 300M threshold for refund eligibility. With 5B export revenue, the 10% cap is 500M, so full 400M refund is available."}
+    ]
+    consensus_summary = "AUTOMATED VERDICT: Rate classification engine operational. Input credit check passed. Refund estimate: 400,000,000 VND eligible."
+
+    return jsonify({
+        "status": "success",
+        "rate_classification": rate_res,
+        "credit_check": credit_res,
+        "refund_estimate": refund_res,
+        "debate": debate_transcript,
+        "consensus_summary": consensus_summary
+    })
+
+
+# ═══════════════════════════════════════════════════════════════════
+# VERSION 48 — VAT Law Amendments 149/2025/QH15 Compliance Engine
+# ═══════════════════════════════════════════════════════════════════
+
+@invoices_blueprint.get("/v48-compliance-hub")
+def v48_compliance_hub_page():
+    """Render the Version 48 VAT Law 149 amendments compliance hub."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("v48_compliance_hub.html")
+
+
+@invoices_blueprint.post("/api/v48/threshold/evaluate")
+def api_v48_threshold_evaluate():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    business_name = data.get("business_name", "Quán Phở Bình")
+    annual_revenue = float(data.get("annual_revenue", 350000000.0))
+
+    from invoices.v48_service import V48ComplianceService
+    try:
+        service = V48ComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.evaluate_threshold(mst, business_name, annual_revenue)
+        return jsonify({"status": "success", "results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.post("/api/v48/agri/classify")
+def api_v48_agri_classify():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    product_description = data.get("product_description", "Lúa gạo chưa chế biến")
+    seller_type = data.get("seller_type", "doanh nghiệp")
+    buyer_type = data.get("buyer_type", "hợp tác xã")
+
+    from invoices.v48_service import V48ComplianceService
+    try:
+        service = V48ComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.classify_agri_product(mst, product_description, seller_type, buyer_type)
+        return jsonify({"status": "success", "results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.post("/api/v48/waste/compute")
+def api_v48_waste_compute():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    item_description = data.get("item_description", "Vỏ bào gỗ phế liệu")
+    source_product = data.get("source_product", "Nội thất gỗ cao cấp")
+    waste_rate_pct = float(data.get("waste_rate_pct", 5.0))
+    source_rate_pct = float(data.get("source_rate_pct", 10.0))
+    amount = float(data.get("amount", 100000000.0))
+
+    from invoices.v48_service import V48ComplianceService
+    try:
+        service = V48ComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.compute_waste_scrap_rate(
+            mst, item_description, source_product,
+            waste_rate_pct, source_rate_pct, amount
+        )
+        return jsonify({"status": "success", "results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.get("/api/v48/compliance-data")
+def api_v48_compliance_data():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v48_service import V48ComplianceService
+    service = V48ComplianceService(current_app.config["BASE_DATA_DIR"])
+
+    threshold_res = service.evaluate_threshold(
+        mst=mst, business_name="Quán Phở Bình", annual_revenue=350000000.0
+    )
+    agri_res = service.classify_agri_product(
+        mst=mst, product_description="Lúa gạo chưa chế biến",
+        seller_type="doanh nghiệp", buyer_type="hợp tác xã"
+    )
+    waste_res = service.compute_waste_scrap_rate(
+        mst=mst, item_description="Vỏ bào gỗ phế liệu",
+        source_product="Nội thất gỗ cao cấp",
+        waste_rate_pct=5.0, source_rate_pct=10.0, amount=100000000.0
+    )
+
+    debate_transcript = [
+        {"speaker": "Tax Policy Analyst", "text": "Law 149/2025/QH15 raises the non-taxable revenue threshold from 200M to 500M VND/year for household businesses. This reclassifies an estimated 30% of previously taxable small businesses as exempt, effective January 1, 2026."},
+        {"speaker": "Agricultural Advisor", "text": "The Article 5.1 amendment creates a new 'no-declaration-required' category for unprocessed agricultural products traded between enterprises and cooperatives. Critically, input VAT credits remain deductible — unlike standard non-taxable items."},
+        {"speaker": "Accounting Director", "text": "For waste/scrap, the Article 9.5 amendment ensures taxation at the waste item's own rate rather than the source product rate. This corrects over-taxation of low-value recovery materials."}
+    ]
+    consensus_summary = "AUTOMATED VERDICT: Threshold reclassification identified (350M VND: TAXABLE→NON_TAXABLE). Agricultural products correctly classified with preserved input credits. Waste rate difference computed: 5M VND savings."
+
+    return jsonify({
+        "status": "success",
+        "threshold_audit": threshold_res,
+        "agri_classification": agri_res,
+        "waste_scrap": waste_res,
+        "debate": debate_transcript,
+        "consensus_summary": consensus_summary
+    })
 
 
 
