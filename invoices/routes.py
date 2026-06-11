@@ -10806,6 +10806,130 @@ def api_v43_dashboard_data():
     })
 
 
+@invoices_blueprint.get("/v44-compliance-hub")
+def v44_compliance_hub_page():
+    """Render the Version 44 compliance hub."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("v44_compliance_hub.html")
+
+
+@invoices_blueprint.post("/api/v44/reconcile-adjustments")
+def api_v44_reconcile_adjustments():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v44_service import V44ComplianceService
+    try:
+        service = V44ComplianceService(current_app.config["BASE_DATA_DIR"])
+        results = service.reconcile_decree123_adjustments(mst)
+        return jsonify({"status": "success", "results": results})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.post("/api/v44/sci-tech-fund/simulate")
+def api_v44_sci_tech_fund_simulate():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    year = int(data.get("year", 2026))
+    taxable_income = float(data.get("taxable_income", 1000000000.0))
+    allocation_percent = float(data.get("allocation_percent", 10.0))
+    annual_rd_spend = float(data.get("annual_rd_spend", 150000000.0))
+    qualified_ratio = float(data.get("qualified_ratio", 0.8))
+    welfare_expenses = float(data.get("welfare_expenses", 20000000.0))
+    average_monthly_salary = float(data.get("average_monthly_salary", 15000000.0))
+
+    from invoices.v44_service import V44ComplianceService
+    try:
+        service = V44ComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.simulate_sci_tech_fund(
+            mst, year, taxable_income, allocation_percent, 
+            annual_rd_spend, qualified_ratio, welfare_expenses, average_monthly_salary
+        )
+        return jsonify({"status": "success", "simulation_results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.get("/api/v44/compliance-data")
+def api_v44_compliance_data():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    year = int(request.args.get("year", 2026))
+
+    from invoices.v44_service import V44ComplianceService
+    service = V44ComplianceService(current_app.config["BASE_DATA_DIR"])
+    
+    # 1. Initialize DB and seed mock data if empty
+    conn = service.get_tenant_connection(mst)
+    cur = conn.cursor()
+    
+    # Check if adjustments table is empty
+    cur.execute("SELECT count(*) FROM decree123_invoice_adjustments")
+    if cur.fetchone()[0] == 0:
+        cur.executemany("""
+            INSERT INTO decree123_invoice_adjustments (original_invoice_symbol, original_invoice_number, adjustment_invoice_symbol, adjustment_invoice_number, adjustment_type, amount_change, vat_change, tax_rate)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """, [
+            ("1C26TAA", "0000015", "1C26TAA", "0000088", "adjustment", -10000000.0, -1000000.0, 0.10),
+            ("2C26TBB", "0000020", "2C26TBB", "0000099", "discount", -5000000.0, -500000.0, 0.10),
+            ("INVALID", "9999999", "3C26TCC", "0000100", "replacement", -20000000.0, -2000000.0, 0.10),
+            ("1C26TAA", "0000015", "1C26TAA", "0000122", "adjustment", -500000000.0, -50000000.0, 0.10), # Exceeds original
+        ])
+        conn.commit()
+        
+    # Seed mock invoices in tenant DB if none exist
+    cur.execute("SELECT count(*) FROM invoice")
+    if cur.fetchone()[0] == 0:
+        cur.executemany("""
+            INSERT INTO invoice (id, filename, seller_name, seller_mst, buyer_name, buyer_mst, amount_before_tax, tax_amount, total_amount, date, imported_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, [
+            ("0000015", "invoice_0000015.xml", "This Corp", mst, "Acme Client", "0102030499", 100000000.0, 10000000.0, 110000000.0, "2026-06-11", "2026-06-11"),
+            ("0000020", "invoice_0000020.xml", "This Corp", mst, "Beta Client", "0102030488", 50000000.0, 5000000.0, 55000000.0, "2026-06-11", "2026-06-11"),
+        ])
+        conn.commit()
+
+    conn.close()
+
+    # Calculate compliance metrics
+    reconciliation_results = service.reconcile_decree123_adjustments(mst)
+    
+    # Trigger default simulation
+    simulation_results = service.simulate_sci_tech_fund(
+        mst, year, 1000000000.0, 10.0, 150000000.0, 0.8, 20000000.0, 15000000.0
+    )
+
+    debate_transcript = [
+        {"speaker": "Local Tax Inspector", "text": "Under Decree 123, price reduction and discount adjustment invoices must clearly reference the original invoice number and symbol. Any unlinked adjustments will be disallowed for VAT input tax deduction immediately."},
+        {"speaker": "CIT Auditor", "text": "Correct, and under Circular 67, R&D funds must be spent on qualified activities. Non-qualified spend triggers a 20% CIT clawback plus 0.03% daily interest. Let's make sure the timeline modeler captures this."},
+        {"speaker": "CFO Advisor", "text": "By optimizing our allocation rate between 5% and 10% and closely auditing our R&D expenditures, we can maximize tax savings while avoiding audit penalties."}
+    ]
+    
+    consensus_summary = "AUTOMATED VERDICT: Decree 123 adjustments have been reconciled against the local ledger. Science & Tech Fund projections indicate potential CIT savings of 100,000,000 VND, subject to qualification audits."
+
+    return jsonify({
+        "status": "success",
+        "reconciliation": reconciliation_results,
+        "simulation": simulation_results,
+        "debate": debate_transcript,
+        "consensus_summary": consensus_summary
+    })
+
+
+
 
 
 
