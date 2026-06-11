@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}V34 — Phân Tích Tuổi Nợ & Quản Lý Công Nợ{% endblock %}
+{% block title %}V34 - Phân Tích Tuổi Nợ & Quản Lý Công Nợ{% endblock %}
 {% block content %}
 <div class="container-fluid px-4 py-4">
   <div class="d-flex align-items-center justify-content-between mb-4">
@@ -7,7 +7,7 @@
       <h2 class="fw-bold mb-1" style="letter-spacing:-0.5px">
         <i class="bi bi-graph-up-arrow me-2 text-danger"></i>Phân Tích Tuổi Nợ & Quản Lý Công Nợ AR/AP
       </h2>
-      <p class="text-secondary mb-0">Version 34.0.0 — Invoice Aging Analysis & Accounts Receivable/Payable Management</p>
+      <p class="text-secondary mb-0">Version 34.0.0 - Invoice Aging Analysis & Accounts Receivable/Payable Management</p>
     </div>
     <span class="badge bg-danger bg-opacity-25 text-danger px-3 py-2 fs-6 rounded-pill">US-460 • US-461</span>
   </div>
@@ -17,22 +17,22 @@
     <div class="col-md-3"><div class="card border-0 shadow-sm h-100" style="border-radius:14px"><div class="card-body text-center">
       <div class="text-primary mb-1"><i class="bi bi-arrow-down-circle fs-3"></i></div>
       <div class="small text-muted">Tổng phải thu (AR)</div>
-      <div class="fw-bold fs-5" id="kpiAR">—</div>
+      <div class="fw-bold fs-5" id="kpiAR">-</div>
     </div></div></div>
     <div class="col-md-3"><div class="card border-0 shadow-sm h-100" style="border-radius:14px"><div class="card-body text-center">
       <div class="text-warning mb-1"><i class="bi bi-arrow-up-circle fs-3"></i></div>
       <div class="small text-muted">Tổng phải trả (AP)</div>
-      <div class="fw-bold fs-5" id="kpiAP">—</div>
+      <div class="fw-bold fs-5" id="kpiAP">-</div>
     </div></div></div>
     <div class="col-md-3"><div class="card border-0 shadow-sm h-100" style="border-radius:14px"><div class="card-body text-center">
       <div class="text-danger mb-1"><i class="bi bi-exclamation-triangle fs-3"></i></div>
       <div class="small text-muted">AR quá hạn</div>
-      <div class="fw-bold fs-5" id="kpiOverdue">—</div>
+      <div class="fw-bold fs-5" id="kpiOverdue">-</div>
     </div></div></div>
     <div class="col-md-3"><div class="card border-0 shadow-sm h-100" style="border-radius:14px"><div class="card-body text-center">
       <div class="text-success mb-1"><i class="bi bi-cash-stack fs-3"></i></div>
       <div class="small text-muted">Vị thế ròng</div>
-      <div class="fw-bold fs-5" id="kpiNet">—</div>
+      <div class="fw-bold fs-5" id="kpiNet">-</div>
     </div></div></div>
   </div>
 
@@ -128,7 +128,7 @@ function runSwarm(){
       const div=document.createElement('div');div.className='mb-3';
       div.innerHTML=`<div class="d-flex gap-2 align-items-start">
         <span class="badge ${s.avatar_class} rounded-circle p-2 flex-shrink-0" style="width:34px;height:34px;display:flex;align-items:center;justify-content:center"><i class="bi bi-robot"></i></span>
-        <div><div class="fw-bold small">${s.agent} <span class="text-muted fw-normal">— ${s.role}</span><span class="text-muted ms-2" style="font-size:0.7rem">${s.timestamp}</span></div>
+        <div><div class="fw-bold small">${s.agent} <span class="text-muted fw-normal">: ${s.role}</span><span class="text-muted ms-2" style="font-size:0.7rem">${s.timestamp}</span></div>
         <div class="small mt-1">${s.message}</div></div></div>`;
       chat.appendChild(div);
     });

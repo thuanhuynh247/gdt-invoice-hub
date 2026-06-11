@@ -24,7 +24,7 @@
                     <span class="small text-secondary"><i class="bi bi-building me-1"></i> MST Đang chọn:</span>
                     <select class="form-select form-select-sm border-0 bg-transparent fw-bold text-white" id="mstSelector" style="width: auto; cursor: pointer;">
                         {% for p in profiles %}
-                        <option value="{{ p.mst }}" {% if p.mst == taxpayer_mst %}selected{% endif %} class="bg-dark text-white">{{ p.mst }} - {{ p.company_name }}</option>
+                        <option value="{{ p.mst }}" {% if p.mst == taxpayer_mst %}selected{% endif %} class="bg-obsidian text-white">{{ p.mst }} - {{ p.company_name }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -122,28 +122,28 @@
                                         <tbody>
                                             <tr>
                                                 <td>
-                                                    <select class="form-select form-select-sm bg-dark text-white border-slate txn-type">
+                                                    <select class="form-select form-select-sm bg-obsidian text-white border-slate txn-type">
                                                         <option value="Sale">Bán hàng (Sale)</option>
                                                         <option value="Purchase">Mua hàng (Purchase)</option>
                                                         <option value="Service">Cung cấp dịch vụ (Service)</option>
                                                         <option value="Loan">Hợp đồng vay (Loan)</option>
                                                     </select>
                                                 </td>
-                                                <td><input type="number" class="form-control form-control-sm bg-dark text-white border-slate txn-amount" value="5000000000"></td>
-                                                <td><input type="number" step="0.01" class="form-control form-control-sm bg-dark text-white border-slate txn-margin" value="3.5"></td>
+                                                <td><input type="number" class="form-control form-control-sm bg-obsidian text-white border-slate txn-amount" value="5000000000"></td>
+                                                <td><input type="number" step="0.01" class="form-control form-control-sm bg-obsidian text-white border-slate txn-margin" value="3.5"></td>
                                                 <td class="text-center"><button class="btn btn-sm btn-outline-danger border-0 btn-remove-row"><i class="bi bi-trash"></i></button></td>
                                             </tr>
                                             <tr>
                                                 <td>
-                                                    <select class="form-select form-select-sm bg-dark text-white border-slate txn-type">
+                                                    <select class="form-select form-select-sm bg-obsidian text-white border-slate txn-type">
                                                         <option value="Loan">Hợp đồng vay (Loan)</option>
                                                         <option value="Sale">Bán hàng (Sale)</option>
                                                         <option value="Purchase">Mua hàng (Purchase)</option>
                                                         <option value="Service">Cung cấp dịch vụ (Service)</option>
                                                     </select>
                                                 </td>
-                                                <td><input type="number" class="form-control form-control-sm bg-dark text-white border-slate txn-amount" value="2000000000"></td>
-                                                <td><input type="number" step="0.01" class="form-control form-control-sm bg-dark text-white border-slate txn-margin" value="8.0"></td>
+                                                <td><input type="number" class="form-control form-control-sm bg-obsidian text-white border-slate txn-amount" value="2000000000"></td>
+                                                <td><input type="number" step="0.01" class="form-control form-control-sm bg-obsidian text-white border-slate txn-margin" value="8.0"></td>
                                                 <td class="text-center"><button class="btn btn-sm btn-outline-danger border-0 btn-remove-row"><i class="bi bi-trash"></i></button></td>
                                             </tr>
                                         </tbody>
@@ -280,7 +280,7 @@
                                 <h4 class="fw-bold text-gradient-gold mb-3"><i class="bi bi-file-earmark-medical me-2"></i>Biên bản tư vấn & Khuyến nghị thuế</h4>
                                 <p class="text-secondary small">Văn bản tóm tắt các rủi ro phát hiện và khuyến nghị điều chỉnh số liệu kế toán trước thanh tra.</p>
 
-                                <textarea class="form-control bg-dark text-slate border-slate flex-grow-1 font-monospace p-3 small mb-3" id="swarmMemoArea" readonly style="min-height: 250px; color: #A0AEC0;">
+                                <textarea class="form-control bg-obsidian text-slate border-slate flex-grow-1 font-monospace p-3 small mb-3" id="swarmMemoArea" readonly style="min-height: 250px; color: #A0AEC0;">
 Chưa có biên bản khuyến nghị. Vui lòng hoàn thành phân tích.
                                 </textarea>
 
@@ -465,15 +465,15 @@ document.addEventListener("DOMContentLoaded", function () {
         const tr = document.createElement("tr");
         tr.innerHTML = `
             <td>
-                <select class="form-select form-select-sm bg-dark text-white border-slate txn-type">
+                <select class="form-select form-select-sm bg-obsidian text-white border-slate txn-type">
                     <option value="Sale">Bán hàng (Sale)</option>
                     <option value="Purchase">Mua hàng (Purchase)</option>
                     <option value="Service">Cung cấp dịch vụ (Service)</option>
                     <option value="Loan">Hợp đồng vay (Loan)</option>
                 </select>
             </td>
-            <td><input type="number" class="form-control form-control-sm bg-dark text-white border-slate txn-amount" value="1000000000"></td>
-            <td><input type="number" step="0.01" class="form-control form-control-sm bg-dark text-white border-slate txn-margin" value="5.0"></td>
+            <td><input type="number" class="form-control form-control-sm bg-obsidian text-white border-slate txn-amount" value="1000000000"></td>
+            <td><input type="number" step="0.01" class="form-control form-control-sm bg-obsidian text-white border-slate txn-margin" value="5.0"></td>
             <td class="text-center"><button class="btn btn-sm btn-outline-danger border-0 btn-remove-row"><i class="bi bi-trash"></i></button></td>
         `;
         tblTpInput.appendChild(tr);

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}V36 — Quyết Toán Thuế TNDN Hàng Năm & Tối Ưu Hóa Chuyển Lỗ{% endblock %}
+{% block title %}V36 - Quyết Toán Thuế TNDN Hàng Năm & Tối Ưu Hóa Chuyển Lỗ{% endblock %}
 {% block content %}
 <style>
   :root {
@@ -104,7 +104,7 @@
       <div class="glass-card p-3 h-100 d-flex align-items-center justify-content-between">
         <div>
           <span class="small text-muted d-block">Thuế TNDN Phải Nộp</span>
-          <h3 class="fw-bold text-danger mt-1 mb-0" id="txtCitLiability">—</h3>
+          <h3 class="fw-bold text-danger mt-1 mb-0" id="txtCitLiability">-</h3>
           <span class="text-secondary small">Thuế suất chuẩn: 20%</span>
         </div>
         <div class="p-3 bg-danger bg-opacity-10 text-danger rounded-circle">
@@ -116,8 +116,8 @@
       <div class="glass-card p-3 h-100 d-flex align-items-center justify-content-between">
         <div>
           <span class="small text-muted d-block">Thu Nhập Tính Thuế (B14)</span>
-          <h3 class="fw-bold text-primary mt-1 mb-0" id="txtTaxableIncome">—</h3>
-          <span class="text-secondary small" id="txtAccountingProfit">Lợi nhuận KT: —</span>
+          <h3 class="fw-bold text-primary mt-1 mb-0" id="txtTaxableIncome">-</h3>
+          <span class="text-secondary small" id="txtAccountingProfit">Lợi nhuận KT: -</span>
         </div>
         <div class="p-3 bg-primary bg-opacity-10 text-primary rounded-circle">
           <i class="bi bi-bank fs-4"></i>
@@ -128,8 +128,8 @@
       <div class="glass-card p-3 h-100 d-flex align-items-center justify-content-between">
         <div>
           <span class="small text-muted d-block">Số Lỗ Khấu Trừ Kỳ Này (C3a)</span>
-          <h3 class="fw-bold text-success mt-1 mb-0" id="txtAppliedLoss">—</h3>
-          <span class="text-secondary small" id="txtPriorLossesTotal">Tổng lỗ lũy kế: —</span>
+          <h3 class="fw-bold text-success mt-1 mb-0" id="txtAppliedLoss">-</h3>
+          <span class="text-secondary small" id="txtPriorLossesTotal">Tổng lỗ lũy kế: -</span>
         </div>
         <div class="p-3 bg-success bg-opacity-10 text-success rounded-circle">
           <i class="bi bi-arrow-down-left-square fs-4"></i>
@@ -140,7 +140,7 @@
       <div class="glass-card p-3 h-100 d-flex align-items-center justify-content-between">
         <div>
           <span class="small text-muted d-block">Số Thuế Tiết Kiệm (NPV)</span>
-          <h3 class="fw-bold text-info mt-1 mb-0" id="txtTaxSavings">—</h3>
+          <h3 class="fw-bold text-info mt-1 mb-0" id="txtTaxSavings">-</h3>
           <span class="text-secondary small" id="txtOptimizationStatus">Tối ưu hóa thành công</span>
         </div>
         <div class="p-3 bg-info bg-opacity-10 text-info rounded-circle">
@@ -344,7 +344,7 @@
         </h5>
 
         <!-- Debate Message Container -->
-        <div id="swarmDebateContainer" class="overflow-auto p-3 bg-light bg-opacity-5 rounded-3 mb-3" style="min-height: 250px; max-height: 350px;">
+        <div id="swarmDebateContainer" class="overflow-auto p-3 bg-light-custom bg-opacity-5 rounded-3 mb-3" style="min-height: 250px; max-height: 350px;">
           <div class="text-center py-5 text-muted">
             <i class="bi bi-chat-dots fs-1 d-block mb-2 text-secondary"></i>
             Chưa khởi chạy thảo luận tư vấn quyết toán thuế. Bấm nút bên phải để khởi động Swarm.
@@ -648,10 +648,10 @@
           div.className = `d-flex gap-3 align-items-start mb-3 ${isLeft ? '' : 'flex-row-reverse'}`;
           
           div.innerHTML = `
-            <span class="badge ${av.class} rounded-circle p-2 flex-shrink-0 text-white" style="width:38px;height:38px;display:flex;align-items:center;justify-content:center;">
+            <span class="badge ${av.class} rounded-circle p-2 flex-shrink-0 text-snow" style="width:38px;height:38px;display:flex;align-items:center;justify-content:center;">
               <i class="bi bi-robot"></i>
             </span>
-            <div class="chat-bubble ${isLeft ? 'bg-light bg-opacity-75 text-dark' : 'bg-primary text-white'} rounded-3">
+            <div class="chat-bubble ${isLeft ? 'bg-light-custom bg-opacity-75 text-dark' : 'bg-primary text-snow'} rounded-3">
               <div class="fw-bold small">${av.name}</div>
               <div class="small mt-1.5" style="line-height:1.4">${s.message}</div>
             </div>

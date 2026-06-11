@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}V35 — Phòng Kiểm Soát Tuân Thủ & Mô Phỏng Thuế{% endblock %}
+{% block title %}V35 - Phòng Kiểm Soát Tuân Thủ & Mô Phỏng Thuế{% endblock %}
 {% block content %}
 <style>
   :root {
@@ -120,8 +120,8 @@
       <div class="glass-card p-3 h-100 d-flex align-items-center justify-content-between">
         <div>
           <span class="small text-muted d-block">Điểm An Toàn Thuế</span>
-          <h3 class="fw-bold mt-1 mb-0" id="txtHealthScore">—</h3>
-          <span class="text-success small fw-semibold" id="txtRatingBadge">—</span>
+          <h3 class="fw-bold mt-1 mb-0" id="txtHealthScore">-</h3>
+          <span class="text-success small fw-semibold" id="txtRatingBadge">-</span>
         </div>
         <div style="width: 75px; height: 75px; position: relative;">
           <svg width="75" height="75" viewBox="0 0 36 36">
@@ -136,7 +136,7 @@
       <div class="glass-card p-3 h-100 d-flex align-items-center justify-content-between">
         <div>
           <span class="small text-muted d-block">Số Tiền Truy Thu Bị Loại</span>
-          <h3 class="fw-bold text-danger mt-1 mb-0" id="txtDisallowedTax">—</h3>
+          <h3 class="fw-bold text-danger mt-1 mb-0" id="txtDisallowedTax">-</h3>
           <span class="text-secondary small" id="txtDisallowedCount">0 hóa đơn bị loại</span>
         </div>
         <div class="p-3 bg-danger bg-opacity-10 text-danger rounded-circle">
@@ -148,7 +148,7 @@
       <div class="glass-card p-3 h-100 d-flex align-items-center justify-content-between">
         <div>
           <span class="small text-muted d-block">Phạt & Tiền Chậm Nộp (180 ngày)</span>
-          <h3 class="fw-bold text-warning mt-1 mb-0" id="txtFineAndInterest">—</h3>
+          <h3 class="fw-bold text-warning mt-1 mb-0" id="txtFineAndInterest">-</h3>
           <span class="text-secondary small">Lãi suất 0.03%/ngày</span>
         </div>
         <div class="p-3 bg-warning bg-opacity-10 text-warning rounded-circle">
@@ -160,7 +160,7 @@
       <div class="glass-card p-3 h-100 d-flex align-items-center justify-content-between">
         <div>
           <span class="small text-muted d-block">Tổng Rủi Ro Phơi Nhiễm</span>
-          <h3 class="fw-bold text-info mt-1 mb-0" id="txtTotalExposure">—</h3>
+          <h3 class="fw-bold text-info mt-1 mb-0" id="txtTotalExposure">-</h3>
           <span class="text-secondary small" id="txtRiskLevelBadge">Nguy cơ: Thấp</span>
         </div>
         <div class="p-3 bg-info bg-opacity-10 text-info rounded-circle">
@@ -286,7 +286,7 @@
             <svg id="riskTreeSvg" viewBox="0 0 1000 380" width="100%" height="380" style="background: transparent;">
               <!-- Graph links and nodes will be dynamically loaded here -->
             </svg>
-            <div id="treeTooltip" class="p-3 bg-dark text-white rounded-3 shadow text-start border border-secondary" style="position: absolute; display: none; pointer-events: none; z-index:100; font-size: 0.8rem; max-width: 280px; backdrop-filter: blur(8px);"></div>
+            <div id="treeTooltip" class="p-3 bg-dark text-snow rounded-3 shadow text-start border border-secondary" style="position: absolute; display: none; pointer-events: none; z-index:100; font-size: 0.8rem; max-width: 280px; backdrop-filter: blur(8px);"></div>
           </div>
         </div>
         
@@ -305,7 +305,7 @@
         </h5>
 
         <!-- Debate Message Container -->
-        <div id="swarmDebateContainer" class="flex-grow-1 overflow-auto p-3 bg-light bg-opacity-5 rounded-3 mb-3" style="min-height: 300px; max-height: 380px;">
+        <div id="swarmDebateContainer" class="flex-grow-1 overflow-auto p-3 bg-light-custom bg-opacity-5 rounded-3 mb-3" style="min-height: 300px; max-height: 380px;">
           <div class="text-center py-5 text-muted">
             <i class="bi bi-chat-dots fs-1 d-block mb-2 text-secondary"></i>
             Chưa khởi chạy thảo luận phòng vệ thuế. Click nút bên dưới để khởi tạo Agent Swarm.
@@ -456,7 +456,7 @@
       // Check for cancel status or low scores to flag as warning
       if(inv.is_cancelled || inv.invoice_status === "Bị hủy") {
         aiAuditBadge = `<span class="badge bg-danger bg-opacity-15 text-danger rounded-pill px-2 py-1 fs-xs">Đã Hủy</span>`;
-        statusBadge = `<span class="badge bg-danger text-white rounded-pill px-2 py-1 fs-xs">Hủy Kê Khai</span>`;
+        statusBadge = `<span class="badge bg-danger text-snow rounded-pill px-2 py-1 fs-xs">Hủy Kê Khai</span>`;
       } else if(inv.t_score < 90) {
         aiAuditBadge = `<span class="badge bg-warning bg-opacity-15 text-warning rounded-pill px-2 py-1 fs-xs">Cảnh Báo (T-Score: ${inv.t_score})</span>`;
       }
@@ -655,12 +655,12 @@
           div.className = `d-flex gap-3 align-items-start mb-3 ${isLeft ? '' : 'flex-row-reverse'}`;
           
           div.innerHTML = `
-            <span class="badge ${s.avatar_class} rounded-circle p-2 flex-shrink-0 text-white" style="width:38px;height:38px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 10px rgba(0,0,0,0.1)">
+            <span class="badge ${s.avatar_class} rounded-circle p-2 flex-shrink-0 text-snow" style="width:38px;height:38px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 10px rgba(0,0,0,0.1)">
               <i class="bi bi-robot"></i>
             </span>
-            <div class="chat-bubble ${isLeft ? 'bg-light bg-opacity-75 text-dark' : 'bg-primary text-white'} rounded-3">
+            <div class="chat-bubble ${isLeft ? 'bg-light bg-opacity-75 text-dark' : 'bg-primary text-snow'} rounded-3">
               <div class="fw-bold small d-flex align-items-center justify-content-between">
-                <span>${s.agent} <span class="fw-normal opacity-75">— ${s.role}</span></span>
+                <span>${s.agent} <span class="fw-normal opacity-75">: ${s.role}</span></span>
                 <span class="opacity-50 ms-3" style="font-size:0.7rem">${s.timestamp}</span>
               </div>
               <div class="small mt-1.5" style="line-height:1.4">${s.message}</div>

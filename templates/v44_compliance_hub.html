@@ -208,7 +208,7 @@
 
     <!-- Swarm Advisory Debate Panel -->
     <div class="card shadow-sm border-light">
-        <div class="card-header bg-dark text-white py-3 d-flex align-items-center justify-content-between">
+        <div class="card-header bg-obsidian text-white py-3 d-flex align-items-center justify-content-between">
             <h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-success me-2"></i>Multi-Agent Advisory Board Debate</h5>
             <span class="badge bg-secondary-subtle text-secondary border border-secondary">Consensus Simulator</span>
         </div>
@@ -317,7 +317,7 @@ document.addEventListener("DOMContentLoaded", () => {
             tr.innerHTML = `
                 <td><strong>${item.adjustment_invoice_symbol} / ${item.adjustment_invoice_number}</strong></td>
                 <td>${item.original_invoice_symbol} / ${item.original_invoice_number}</td>
-                <td><span class="badge bg-dark text-capitalize">${item.adjustment_type}</span></td>
+                <td><span class="badge bg-obsidian text-capitalize">${item.adjustment_type}</span></td>
                 <td class="text-end fw-semibold text-danger">${formatVND(item.amount_change)}</td>
                 <td class="text-end text-danger">${formatVND(item.vat_change)}</td>
                 <td class="text-center">${Math.round(item.tax_rate * 100)}%</td>

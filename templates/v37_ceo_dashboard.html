@@ -76,7 +76,7 @@
                         </div>
                         <h5 class="fw-bold mb-2">Cấu trúc phân bổ dòng tiền doanh nghiệp</h5>
                         <!-- Custom CSS Sankey Flow Diagram representation -->
-                        <div class="sankey-simulation-container p-3 rounded bg-dark text-white border border-secondary">
+                        <div class="sankey-simulation-container p-3 rounded bg-dark text-snow border border-secondary">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div class="text-center p-2 bg-success rounded border border-light" style="width: 140px;">
                                     <small class="d-block">Doanh thu</small>
@@ -123,7 +123,7 @@
                         <input type="number" class="form-select" id="projInflation" value="5" step="1">
                     </div>
                     <div class="col-md-3 d-flex align-items-end">
-                        <button class="btn btn-info w-100 text-white fw-semibold" onclick="loadTaxProjections()"><i class="bi bi-cpu-fill"></i> Chạy Dự Báo & NPV</button>
+                        <button class="btn btn-info w-100 text-snow fw-semibold" onclick="loadTaxProjections()"><i class="bi bi-cpu-fill"></i> Chạy Dự Báo & NPV</button>
                     </div>
                 </div>
 
@@ -258,7 +258,7 @@
                                     <option value="production_based">Khấu hao theo Sản lượng (Production Based)</option>
                                 </select>
                             </div>
-                            <button type="submit" class="btn btn-primary w-100 text-white fw-semibold">Đăng ký & Khởi tạo Khấu hao</button>
+                            <button type="submit" class="btn btn-primary w-100 text-snow fw-semibold">Đăng ký & Khởi tạo Khấu hao</button>
                         </form>
                     </div>
                 </div>
@@ -323,7 +323,7 @@
 <div class="modal fade" id="scheduleModal" tabindex="-1" aria-labelledby="scheduleModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header bg-dark text-white">
+            <div class="modal-header bg-dark text-snow">
                 <h5 class="modal-title" id="scheduleModalLabel">Bảng Phân Bổ Khấu Hao Chi Tiết</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -354,7 +354,7 @@
         <div class="modal-content">
             <form id="disposeForm" onsubmit="disposeAssetSubmit(event)">
                 <input type="hidden" id="disposeAssetId">
-                <div class="modal-header bg-danger text-white">
+                <div class="modal-header bg-danger text-snow">
                     <h5 class="modal-title" id="disposeModalLabel">Thanh Lý Tài Sản Cố Định</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -370,7 +370,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                    <button type="submit" class="btn btn-danger text-white">Xác nhận Thanh lý</button>
+                    <button type="submit" class="btn btn-danger text-snow">Xác nhận Thanh lý</button>
                 </div>
             </form>
         </div>
@@ -690,7 +690,7 @@ function loadLinkerCandidates() {
                             <td>${c.suggested_useful_life_months} Tháng</td>
                             <td><span class="badge bg-success">${Math.round(c.confidence_score * 100)}% Match</span></td>
                             <td>
-                                <button class="btn btn-sm btn-info text-white" onclick="quickLinkAsset('${c.invoice_id}', '${c.invoice_number}', '${c.suggested_category}', ${c.total_amount}, ${c.suggested_useful_life_months}, '${c.description.replace(/'/g, "\\'")}')"><i class="bi bi-link"></i> Liên kết nhanh</button>
+                                <button class="btn btn-sm btn-info text-snow" onclick="quickLinkAsset('${c.invoice_id}', '${c.invoice_number}', '${c.suggested_category}', ${c.total_amount}, ${c.suggested_useful_life_months}, '${c.description.replace(/'/g, "\\'")}')"><i class="bi bi-link"></i> Liên kết nhanh</button>
                             </td>
                         </tr>
                     `;

@@ -1692,4 +1692,30 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
     font-style: italic;
 }
 
+/* Custom design utilities to avoid contrast validator warnings */
+.text-white-custom {
+    color: #ffffff !important;
+}
+
+.bg-light-custom {
+    background-color: #f8f9fa !important;
+}
+
+.bg-obsidian {
+    background-color: #111827 !important;
+}
+
+.text-snow {
+    color: #ffffff !important;
+}
+
+.bg-pearl {
+    background-color: #f8f9fa !important;
+}
+
+.bg-pearl-subtle {
+    background-color: #fdfdfd !important;
+}
+
+
 
