@@ -54,6 +54,6 @@ timeline
 
 | Epic ID | Epic Title | Story ID | Story Title | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **E115** | Transfer Pricing Compliance | **US-410** | Transfer Pricing & Arm's Length Transaction Analysis Engine | ⏳ Planned |
-| **E115** | Transfer Pricing Compliance | **US-411** | Interactive SVG Arm's Length Visualizer & Markup Sensitivity Modeler | ⏳ Planned |
-| **E115** | Transfer Pricing Compliance | **US-412** | AI Tax Audit Prep Advisor & Multi-Agent Swarm Collaboration Hub | ⏳ Planned |
+| **E115** | Transfer Pricing Compliance | **US-410** | Transfer Pricing & Arm's Length Transaction Analysis Engine | ✅ Completed |
+| **E115** | Transfer Pricing Compliance | **US-411** | Interactive SVG Arm's Length Visualizer & Markup Sensitivity Modeler | ✅ Completed |
+| **E115** | Transfer Pricing Compliance | **US-412** | AI Tax Audit Prep Advisor & Multi-Agent Swarm Collaboration Hub | ✅ Completed |

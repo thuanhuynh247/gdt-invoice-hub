@@ -58,9 +58,9 @@ timeline
 
 | Epic ID | Epic Title | Story ID | Story Title | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **E109** | Social Insurance Compliance | **US-380** | Social Insurance (BHXH/BHYT/BHTN) Reconciliation & Auditing Engine | ⏳ Planned |
-| **E109** | Social Insurance Compliance | **US-381** | PIT Finalization Settlement & Insurance Reconciliation Dashboard UI | ⏳ Planned |
-| **E110** | Dynamic Tax Payments & e-Ledger | **US-382** | Electronic Tax Ledger (Sổ thuế điện tử) Sync & Reconciliation Engine | ⏳ Planned |
-| **E110** | Dynamic Tax Payments & e-Ledger | **US-383** | VietQR Dynamic Payment Slip Generator & Interactive Tax Payment Status Panel UI | ⏳ Planned |
-| **E111** | Interactive Tax Advisory & KG | **US-384** | Vietnamese Tax Law Knowledge Graph Constructor & Vector Store Indexer | ⏳ Planned |
-| **E111** | Interactive Tax Advisory & KG | **US-385** | Dynamic Audit Defense Document Composer & Socratic Advisory Panel UI | ⏳ Planned |
+| **E109** | Social Insurance Compliance | **US-380** | Social Insurance (BHXH/BHYT/BHTN) Reconciliation & Auditing Engine | ✅ Completed |
+| **E109** | Social Insurance Compliance | **US-381** | PIT Finalization Settlement & Insurance Reconciliation Dashboard UI | ✅ Completed |
+| **E110** | Dynamic Tax Payments & e-Ledger | **US-382** | Electronic Tax Ledger (Sổ thuế điện tử) Sync & Reconciliation Engine | ✅ Completed |
+| **E110** | Dynamic Tax Payments & e-Ledger | **US-383** | VietQR Dynamic Payment Slip Generator & Interactive Tax Payment Status Panel UI | ✅ Completed |
+| **E111** | Interactive Tax Advisory & KG | **US-384** | Vietnamese Tax Law Knowledge Graph Constructor & Vector Store Indexer | ✅ Completed |
+| **E111** | Interactive Tax Advisory & KG | **US-385** | Dynamic Audit Defense Document Composer & Socratic Advisory Panel UI | ✅ Completed |

@@ -69,9 +69,9 @@ timeline
 
 | Epic ID | Epic Title | Story ID | Story Title | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **E116** | Unified Audit & Stress Simulation | **US-470** | Interactive Systems-Level Tax Audit Control Room UI | ⏳ Planned |
-| **E116** | Unified Audit & Stress Simulation | **US-471** | Dynamic Tax Audit Risk Stress Simulator Engine | ⏳ Planned |
-| **E116** | Unified Audit & Stress Simulation | **US-472** | Automated Audit Defense Briefcase & Auto-Correction Package | ⏳ Planned |
-| **E116** | Unified Audit & Stress Simulation | **US-473** | Multi-Period Interactive Tax Map Explainer UI | ⏳ Planned |
-| **E116** | Unified Audit & Stress Simulation | **US-474** | Enterprise Swarm Collaborative Audit Copilot | ⏳ Planned |
-| **E116** | Unified Audit & Stress Simulation | **US-475** | End-to-End System-Wide Validation Suite | ⏳ Planned |
+| **E116** | Unified Audit & Stress Simulation | **US-470** | Interactive Systems-Level Tax Audit Control Room UI | ✅ Completed |
+| **E116** | Unified Audit & Stress Simulation | **US-471** | Dynamic Tax Audit Risk Stress Simulator Engine | ✅ Completed |
+| **E116** | Unified Audit & Stress Simulation | **US-472** | Automated Audit Defense Briefcase & Auto-Correction Package | ✅ Completed |
+| **E116** | Unified Audit & Stress Simulation | **US-473** | Multi-Period Interactive Tax Map Explainer UI | ✅ Completed |
+| **E116** | Unified Audit & Stress Simulation | **US-474** | Enterprise Swarm Collaborative Audit Copilot | ✅ Completed |
+| **E116** | Unified Audit & Stress Simulation | **US-475** | End-to-End System-Wide Validation Suite | ✅ Completed |

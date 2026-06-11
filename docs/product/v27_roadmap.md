@@ -58,9 +58,9 @@ timeline
 
 | Epic ID | Epic Title | Story ID | Story Title | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **E112** | Delivery Notes Compliance | **US-390** | Electronic Delivery Notes XML Sync & Validation Parser | ⏳ Planned |
-| **E112** | Delivery Notes Compliance | **US-391** | Delivery-to-Invoice Reconciliation Dashboard UI | ⏳ Planned |
-| **E113** | Pre-Audit Analytics | **US-392** | Pre-Audit Corporate Tax Risk Scoring Engine | ⏳ Planned |
-| **E113** | Pre-Audit Analytics | **US-393** | Interactive Tax Risk Radar SVG & Audit Advisory Dashboard UI | ⏳ Planned |
-| **E114** | Contracts & Treasury | **US-394** | E-Contract XML Metadata Parser and Milestone Tracker | ⏳ Planned |
-| **E114** | Contracts & Treasury | **US-395** | Smart Treasury & VAT Forecast Scenario Sandbox UI | ⏳ Planned |
+| **E112** | Delivery Notes Compliance | **US-390** | Electronic Delivery Notes XML Sync & Validation Parser | ✅ Completed |
+| **E112** | Delivery Notes Compliance | **US-391** | Delivery-to-Invoice Reconciliation Dashboard UI | ✅ Completed |
+| **E113** | Pre-Audit Analytics | **US-392** | Pre-Audit Corporate Tax Risk Scoring Engine | ✅ Completed |
+| **E113** | Pre-Audit Analytics | **US-393** | Interactive Tax Risk Radar SVG & Audit Advisory Dashboard UI | ✅ Completed |
+| **E114** | Contracts & Treasury | **US-394** | E-Contract XML Metadata Parser and Milestone Tracker | ✅ Completed |
+| **E114** | Contracts & Treasury | **US-395** | Smart Treasury & VAT Forecast Scenario Sandbox UI | ✅ Completed |

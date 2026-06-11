@@ -58,9 +58,9 @@ timeline
 
 | Epic ID | Epic Title | Story ID | Story Title | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **E106** | GDT Portal Syncing & Monitoring Agent | **US-370** | GDT Portal Syncing & Status Verification Crawler/Agent | ⏳ Planned |
-| **E106** | GDT Portal Syncing & Monitoring Agent | **US-371** | Invoice Verification Status Dashboard UI | ⏳ Planned |
-| **E107** | E-Invoice Corrections & Decree 123 | **US-372** | E-Invoice Correction & Replacement XML Generator | ⏳ Planned |
-| **E107** | E-Invoice Corrections & Decree 123 | **US-373** | Form 04/SS-HĐĐT XML Generator & GDT Transmission Wizard | ⏳ Planned |
-| **E108** | Corporate Tax Optimization & Scenarios | **US-374** | Corporate Tax Optimization & Scenario Modeler Engine | ⏳ Planned |
-| **E108** | Corporate Tax Optimization & Scenarios | **US-375** | Tax Scenario Sandbox & Optimization Advisory Panel UI | ⏳ Planned |
+| **E106** | GDT Portal Syncing & Monitoring Agent | **US-370** | GDT Portal Syncing & Status Verification Crawler/Agent | ✅ Completed |
+| **E106** | GDT Portal Syncing & Monitoring Agent | **US-371** | Invoice Verification Status Dashboard UI | ✅ Completed |
+| **E107** | E-Invoice Corrections & Decree 123 | **US-372** | E-Invoice Correction & Replacement XML Generator | ✅ Completed |
+| **E107** | E-Invoice Corrections & Decree 123 | **US-373** | Form 04/SS-HĐĐT XML Generator & GDT Transmission Wizard | ✅ Completed |
+| **E108** | Corporate Tax Optimization & Scenarios | **US-374** | Corporate Tax Optimization & Scenario Modeler Engine | ✅ Completed |
+| **E108** | Corporate Tax Optimization & Scenarios | **US-375** | Tax Scenario Sandbox & Optimization Advisory Panel UI | ✅ Completed |

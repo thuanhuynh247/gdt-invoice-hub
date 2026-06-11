@@ -99,9 +99,9 @@ timeline
 
 | Epic ID | Epic Title | Story ID | Story Title | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **E118** | CEO Intelligence, Tax Planning & Asset Management | **US-490** | CEO Executive KPI Dashboard & Financial Health Score | ⏳ Planned |
-| **E118** | CEO Intelligence, Tax Planning & Asset Management | **US-491** | Multi-Year Tax Projection Engine & Optimization Simulator | ⏳ Planned |
-| **E118** | CEO Intelligence, Tax Planning & Asset Management | **US-492** | Comprehensive Tax Filing Calendar & Compliance Tracker | ⏳ Planned |
-| **E118** | CEO Intelligence, Tax Planning & Asset Management | **US-493** | Fixed Asset Registry & Depreciation Engine (TT45/2013) | ⏳ Planned |
-| **E118** | CEO Intelligence, Tax Planning & Asset Management | **US-494** | AI Invoice-to-Asset Linker & CIT Depreciation Validator | ⏳ Planned |
-| **E118** | CEO Intelligence, Tax Planning & Asset Management | **US-495** | End-to-End V37 Financial Intelligence Validation Suite | ⏳ Planned |
+| **E118** | CEO Intelligence, Tax Planning & Asset Management | **US-490** | CEO Executive KPI Dashboard & Financial Health Score | ✅ Completed |
+| **E118** | CEO Intelligence, Tax Planning & Asset Management | **US-491** | Multi-Year Tax Projection Engine & Optimization Simulator | ✅ Completed |
+| **E118** | CEO Intelligence, Tax Planning & Asset Management | **US-492** | Comprehensive Tax Filing Calendar & Compliance Tracker | ✅ Completed |
+| **E118** | CEO Intelligence, Tax Planning & Asset Management | **US-493** | Fixed Asset Registry & Depreciation Engine (TT45/2013) | ✅ Completed |
+| **E118** | CEO Intelligence, Tax Planning & Asset Management | **US-494** | AI Invoice-to-Asset Linker & CIT Depreciation Validator | ✅ Completed |
+| **E118** | CEO Intelligence, Tax Planning & Asset Management | **US-495** | End-to-End V37 Financial Intelligence Validation Suite | ✅ Completed |
