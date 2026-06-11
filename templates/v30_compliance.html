@@ -487,13 +487,13 @@
         // Format statuses
         if (data.status === "Compliant") {
             statusEl.className = "fs-5 text-success";
-            statusEl.innerHTML = `<i class="bi bi-shield-check-fill me-1"></i>Tuân Thủ (Arm's Length)`;
+            statusEl.innerHTML = `<i class="bi bi-shield-check-fill me-1" aria-hidden="true"></i>Tuân Thủ (Arm's Length)`;
             scoreEl.className = "fs-5 text-success";
             scoreEl.textContent = "0/100 (An toàn)";
             boxPenalty.style.display = "none";
         } else if (data.status === "Under-priced Risk") {
             statusEl.className = "fs-5 text-warning";
-            statusEl.innerHTML = `<i class="bi bi-exclamation-triangle-fill me-1"></i>Rủi ro định giá thấp`;
+            statusEl.innerHTML = `<i class="bi bi-exclamation-triangle-fill me-1" aria-hidden="true"></i>Rủi ro định giá thấp`;
             scoreEl.className = "fs-5 text-warning";
             scoreEl.textContent = `${data.risk_score}/100`;
             boxPenalty.style.display = "block";
@@ -506,7 +506,7 @@
             document.getElementById("lblValTotalImpact").textContent = data.total_financial_impact.toLocaleString('vi-VN') + " VNĐ";
         } else {
             statusEl.className = "fs-5 text-danger";
-            statusEl.innerHTML = `<i class="bi bi-exclamation-circle-fill me-1"></i>Rủi ro định giá cao`;
+            statusEl.innerHTML = `<i class="bi bi-exclamation-circle-fill me-1" aria-hidden="true"></i>Rủi ro định giá cao`;
             scoreEl.className = "fs-5 text-danger";
             scoreEl.textContent = `${data.risk_score}/100`;
             boxPenalty.style.display = "none";

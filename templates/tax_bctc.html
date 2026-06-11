@@ -798,7 +798,7 @@
                             </thead>
                             <tbody id="blacklistTableBody">
                                 <tr>
-                                    <td colspan="3" class="text-center py-3 text-muted">Đang tải danh sách đen...</td>
+                                    <td colspan="3" class="text-center py-3 text-muted">Đang tải danh sách đen…</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -838,7 +838,7 @@
                                 <tr>
                                     <td colspan="5" class="text-center py-5 text-muted">
                                         <div class="spinner-border spinner-border-sm text-primary" role="status" class="mb-2"></div>
-                                        <span class="d-block">Đang tải danh sách nhà cung cấp rủi ro...</span>
+                                        <span class="d-block">Đang tải danh sách nhà cung cấp rủi ro…</span>
                                     </td>
                                 </tr>
                             </tbody>
@@ -2106,7 +2106,7 @@
     async function loadIfrsInvoices() {
         const mst = document.getElementById("ifrsMst").value.trim();
         const tbody = document.getElementById("ifrsInvoicesSelectBody");
-        tbody.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Đang tải danh sách...</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Đang tải danh sách…</td></tr>`;
 
         try {
             const response = await fetch(`/api/invoices/local?taxpayer_mst=${mst}`);
@@ -2164,8 +2164,8 @@
         const ledgerBody = document.getElementById("ifrsLedgerTableBody");
         const detailsBody = document.getElementById("ifrsDetailsTableBody");
 
-        ledgerBody.innerHTML = `<tr><td colspan="5" class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Đang tiến hành ánh xạ IFRS & Sổ Nhật ký...</td></tr>`;
-        detailsBody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">Đang tải...</td></tr>`;
+        ledgerBody.innerHTML = `<tr><td colspan="5" class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Đang tiến hành ánh xạ IFRS & Sổ Nhật ký…</td></tr>`;
+        detailsBody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">Đang tải…</td></tr>`;
 
         try {
             const response = await fetch("/api/compliance/map-ifrs", {
@@ -2282,7 +2282,7 @@
         const year = document.getElementById("fctYear").value;
         const tbody = document.getElementById("fctDeclarationTableBody");
 
-        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Đang đối soát và tập hợp danh sách...</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Đang đối soát và tập hợp danh sách…</td></tr>`;
 
         try {
             const url = `/api/reports/fct-declaration?period_type=${periodType}&period_value=${periodValue}&year=${year}`;
@@ -2351,7 +2351,7 @@
         const year = document.getElementById("ias12Year").value;
         const tbody = document.getElementById("ias12TableBody");
 
-        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Đang đối soát và tính toán thuế hoãn lại...</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Đang đối soát và tính toán thuế hoãn lại…</td></tr>`;
 
         try {
             const response = await fetch("/api/compliance/ias12-deferred-tax", {
@@ -2469,7 +2469,7 @@
             return;
         }
 
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Đang lập lịch khấu hao thuê tài sản...</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Đang lập lịch khấu hao thuê tài sản…</td></tr>`;
 
         try {
             const response = await fetch("/api/compliance/ifrs16-lease-schedule", {
@@ -2544,7 +2544,7 @@
         }
 
         // Show spinner / load status
-        document.getElementById("pillar2TableBody").innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Đang mô phỏng ETR Tập đoàn...</td></tr>`;
+        document.getElementById("pillar2TableBody").innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Đang mô phỏng ETR Tập đoàn…</td></tr>`;
         resultRow.classList.remove("d-none");
 
         try {

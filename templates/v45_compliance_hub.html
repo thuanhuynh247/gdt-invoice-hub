@@ -13,10 +13,10 @@
         </div>
         <div class="d-flex gap-2 mt-3 mt-md-0">
             <button id="btn-recalculate" class="btn btn-success d-flex align-items-center gap-2">
-                <i class="bi bi-arrow-clockwise"></i> Recalculate Compliance
+                <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Recalculate Compliance
             </button>
             <span id="sync-status" class="badge bg-success-subtle text-success border border-success d-flex align-items-center px-3">
-                <i class="bi bi-check-circle-fill me-1"></i> Isolated Tenant DB
+                <i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Isolated Tenant DB
             </span>
         </div>
     </div>
@@ -27,7 +27,7 @@
         <div class="col-lg-6">
             <div class="card shadow-sm h-100 border-light">
                 <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-sliders text-success me-2"></i>Circular 80 CIT Incentives Model</h5>
+                    <h5 class="fw-bold mb-1"><i class="bi bi-sliders text-success me-2" aria-hidden="true"></i>Circular 80 CIT Incentives Model</h5>
                     <p class="text-muted small mb-0">Adjust income allocations, preferential tax rates, and tax holidays exemptions.</p>
                 </div>
                 <div class="card-body">
@@ -57,20 +57,20 @@
                         </div>
                         <div class="col-md-6">
                             <label for="input-start-year" class="form-label small mb-1">Holiday Start Year:</label>
-                            <input type="number" id="input-start-year" class="form-control form-control-sm" value="2024">
+                            <input type="number" id="input-start-year" class="form-control form-control-sm" value="2024" autocomplete="off">
                         </div>
                         <div class="col-md-6">
                             <label for="input-exemption-years" class="form-label small mb-1">Exemption Years (100%):</label>
-                            <input type="number" id="input-exemption-years" class="form-control form-control-sm" value="2" min="0" max="4">
+                            <input type="number" id="input-exemption-years" class="form-control form-control-sm" value="2" min="0" max="4" autocomplete="off">
                         </div>
                         <div class="col-md-6">
                             <label for="input-reduction-years" class="form-label small mb-1">Reduction Years (50%):</label>
-                            <input type="number" id="input-reduction-years" class="form-control form-control-sm" value="4" min="0" max="9">
+                            <input type="number" id="input-reduction-years" class="form-control form-control-sm" value="4" min="0" max="9" autocomplete="off">
                         </div>
                     </div>
 
                     <div class="mt-4 p-3 bg-light rounded border">
-                        <h6 class="fw-bold mb-2 text-success"><i class="bi bi-calculator me-2"></i>CIT Optimization Result</h6>
+                        <h6 class="fw-bold mb-2 text-success"><i class="bi bi-calculator me-2" aria-hidden="true"></i>CIT Optimization Result</h6>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>Standard Tax Liability:</span>
                             <span id="res-standard-tax">0 VND</span>
@@ -88,7 +88,7 @@
                             <span id="res-savings">0 VND</span>
                         </div>
                         <div class="mt-2 text-center text-muted small">
-                            Holiday status: <span id="res-holiday-status" class="badge bg-primary">Loading...</span>
+                            Holiday status: <span id="res-holiday-status" class="badge bg-primary">Loading…</span>
                         </div>
                     </div>
                 </div>
@@ -99,7 +99,7 @@
         <div class="col-lg-6">
             <div class="card shadow-sm h-100 border-light">
                 <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-diagram-3 text-primary me-2"></i>Decree 132 Transfer Pricing Auditor</h5>
+                    <h5 class="fw-bold mb-1"><i class="bi bi-diagram-3 text-primary me-2" aria-hidden="true"></i>Decree 132 Transfer Pricing Auditor</h5>
                     <p class="text-muted small mb-0">Evaluate Safe Harbor conditions and log APA interquartile ranges compliance.</p>
                 </div>
                 <div class="card-body">
@@ -135,20 +135,20 @@
                         </div>
                         <div class="col-md-4">
                             <label for="input-apa-lower" class="form-label small mb-1">APA Lower Bound:</label>
-                            <input type="number" id="input-apa-lower" class="form-control form-control-sm" value="0.03" step="0.01">
+                            <input type="number" id="input-apa-lower" class="form-control form-control-sm" value="0.03" step="0.01" autocomplete="off">
                         </div>
                         <div class="col-md-4">
                             <label for="input-apa-upper" class="form-label small mb-1">APA Upper Bound:</label>
-                            <input type="number" id="input-apa-upper" class="form-control form-control-sm" value="0.05" step="0.01">
+                            <input type="number" id="input-apa-upper" class="form-control form-control-sm" value="0.05" step="0.01" autocomplete="off">
                         </div>
                         <div class="col-md-4">
                             <label for="input-apa-actual" class="form-label small mb-1">APA Actual Margin:</label>
-                            <input type="number" id="input-apa-actual" class="form-control form-control-sm" value="0.04" step="0.01">
+                            <input type="number" id="input-apa-actual" class="form-control form-control-sm" value="0.04" step="0.01" autocomplete="off">
                         </div>
                     </div>
 
                     <div class="mt-4 p-3 bg-light rounded border">
-                        <h6 class="fw-bold mb-2 text-primary"><i class="bi bi-shield-check me-2"></i>Transfer Pricing Verdict</h6>
+                        <h6 class="fw-bold mb-2 text-primary"><i class="bi bi-shield-check me-2" aria-hidden="true"></i>Transfer Pricing Verdict</h6>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>Safe Harbor Status:</span>
                             <span id="res-safe-harbor" class="badge bg-success">Eligible</span>
@@ -158,7 +158,7 @@
                             <span id="res-apa-status" class="badge bg-primary">Compliant</span>
                         </div>
                         <div class="small text-muted border-top pt-2">
-                            <strong>Audit Reason:</strong> <span id="res-sh-reason">Loading assessment reason details...</span>
+                            <strong>Audit Reason:</strong> <span id="res-sh-reason">Loading assessment reason details…</span>
                         </div>
                     </div>
                 </div>
@@ -169,7 +169,7 @@
         <div class="col-12 mt-4">
             <div class="card shadow-sm border-light">
                 <div class="card-header bg-obsidian text-snow py-3 d-flex align-items-center justify-content-between">
-                    <h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-success me-2"></i>Multi-Agent Advisory Board Debate</h5>
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-success me-2" aria-hidden="true"></i>Multi-Agent Advisory Board Debate</h5>
                     <span class="badge bg-secondary border border-secondary">Consensus Simulator</span>
                 </div>
                 <div class="card-body">
@@ -177,8 +177,8 @@
                         <!-- Debate Messages -->
                     </div>
                     <div class="p-3 bg-light rounded border border-light-subtle">
-                        <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2"></i>Consensus Summary Statement:</h6>
-                        <p id="consensus-text" class="text-muted small mb-0">Awaiting simulation data execution...</p>
+                        <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus Summary Statement:</h6>
+                        <p id="consensus-text" class="text-muted small mb-0">Awaiting simulation data execution…</p>
                     </div>
                 </div>
             </div>

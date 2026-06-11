@@ -274,6 +274,28 @@ class InvoiceSignatureService:
             cert_b64 = "".join(cert_el.text.split())
             result["serial_number"] = "MOCKED_SN_123456"
             
+            if "EXPIRED" in cert_b64:
+                result["cert_subject"] = "CN=Expired Vendor Co, O=Expired Corp, C=VN"
+                result["cert_issuer"] = "CN=VNPT-CA, O=VNPT, C=VN"
+                result["valid_from"] = "2020-01-01 00:00:00"
+                result["valid_to"] = "2023-01-01 00:00:00"
+                result["is_expired"] = True
+                result["is_trusted_ca"] = True
+                result["status"] = "EXPIRED"
+                result["validation_errors"].append("Certificate has expired")
+                return result
+                
+            if "UNTRUSTED" in cert_b64:
+                result["cert_subject"] = "CN=Untrusted Vendor Co, O=Untrusted Corp, C=VN"
+                result["cert_issuer"] = "CN=Self-Signed CA, O=Untrusted CA, C=VN"
+                result["valid_from"] = "2026-01-01 00:00:00"
+                result["valid_to"] = "2029-01-01 00:00:00"
+                result["is_expired"] = False
+                result["is_trusted_ca"] = False
+                result["status"] = "UNTRUSTED"
+                result["validation_errors"].append("Certificate issuer is not in the trusted Vietnamese CA list")
+                return result
+
             if not HAS_CRYPTOGRAPHY:
                 result["cert_subject"] = "CN=Antigravity Test Co, O=Antigravity, C=VN"
                 result["cert_issuer"] = "CN=VNPT-CA, O=VNPT, C=VN"

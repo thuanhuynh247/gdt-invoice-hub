@@ -59,7 +59,7 @@
                     <div class="card h-100 shadow-sm border-0 bg-glass card-hover-glow">
                         <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center py-3">
                             <h5 class="fw-bold mb-0"><i class="bi bi-map" aria-hidden="true"></i> Bản đồ Mạng lưới Giao dịch (Dự báo D3/SVG)</h5>
-                            <span class="badge bg-secondary-subtle text-secondary" id="graph-mst-label">MST: Đang tải...</span>
+                            <span class="badge bg-secondary-subtle text-secondary" id="graph-mst-label">MST: Đang tải…</span>
                         </div>
                         <div class="card-body d-flex flex-column align-items-center justify-content-center position-relative" style="min-height: 480px; background: rgba(0, 0, 0, 0.05); border-radius: 8px;">
                             <!-- SVG network canvas -->
@@ -92,7 +92,7 @@
                                         </thead>
                                         <tbody id="hits-table-body">
                                             <tr>
-                                                <td colspan="3" class="text-center py-3 text-secondary">Đang tải chỉ số...</td>
+                                                <td colspan="3" class="text-center py-3 text-secondary">Đang tải chỉ số…</td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -108,7 +108,7 @@
                                 </h5>
                             </div>
                             <div class="card-body d-flex flex-column gap-3 overflow-auto" id="fraud-alerts-container" style="max-height: 320px;">
-                                <div class="text-center py-4 text-secondary">Đang phân tích dữ liệu giao dịch...</div>
+                                <div class="text-center py-4 text-secondary">Đang phân tích dữ liệu giao dịch…</div>
                             </div>
                         </div>
                     </div>
@@ -146,7 +146,7 @@
                                 Đồng thời, giao thức **Zero-Knowledge Proofs (ZKP)** cho phép doanh nghiệp chứng minh thuế suất GTGT tuân thủ đầy đủ các tiêu chuẩn của GDT mà hoàn toàn không cần tiết lộ doanh thu hoặc tiền thuế cụ thể.
                             </p>
                             <div class="p-3 bg-secondary-subtle rounded border small font-monospace" style="word-break: break-all;">
-                                <strong>Merkle Root hiện tại:</strong> <span id="current-merkle-root-label" class="text-primary">Đang tạo...</span>
+                                <strong>Merkle Root hiện tại:</strong> <span id="current-merkle-root-label" class="text-primary">Đang tạo…</span>
                             </div>
                         </div>
                     </div>
@@ -174,7 +174,7 @@
                             </thead>
                             <tbody id="invoice-zkp-table-body">
                                 <tr>
-                                    <td colspan="7" class="text-center py-4 text-secondary">Đang tải danh sách hóa đơn...</td>
+                                    <td colspan="7" class="text-center py-4 text-secondary">Đang tải danh sách hóa đơn…</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -254,7 +254,7 @@
                             </thead>
                             <tbody id="customs-table-body">
                                 <tr>
-                                    <td colspan="8" class="text-center py-4 text-secondary">Đang tải danh sách tờ khai hải quan...</td>
+                                    <td colspan="8" class="text-center py-4 text-secondary">Đang tải danh sách tờ khai hải quan…</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -337,7 +337,7 @@
                                 </thead>
                                 <tbody id="ecom-orders-table-body">
                                     <tr>
-                                        <td colspan="5" class="text-center py-4 text-secondary">Chọn MST để bắt đầu đối chiếu dữ liệu sàn...</td>
+                                        <td colspan="5" class="text-center py-4 text-secondary">Chọn MST để bắt đầu đối chiếu dữ liệu sàn…</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -476,7 +476,7 @@
                                 </thead>
                                 <tbody id="payroll-employees-table-body">
                                     <tr>
-                                        <td colspan="5" class="text-center py-4 text-secondary">Chọn MST để bắt đầu kiểm toán lương...</td>
+                                        <td colspan="5" class="text-center py-4 text-secondary">Chọn MST để bắt đầu kiểm toán lương…</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -688,8 +688,8 @@
             <div class="modal-body pt-3">
                 <div id="zkp-step-1" class="text-center py-4">
                     <div class="spinner-border text-primary mb-3" role="status"></div>
-                    <h5>Đang tính toán các cam kết mật mã...</h5>
-                    <p class="small text-secondary">Hệ thống đang sinh số ngẫu nhiên che giấu (blinding factors) và điểm đường cong elliptic...</p>
+                    <h5>Đang tính toán các cam kết mật mã…</h5>
+                    <p class="small text-secondary">Hệ thống đang sinh số ngẫu nhiên che giấu (blinding factors) và điểm đường cong elliptic…</p>
                 </div>
                 <div id="zkp-step-2" class="d-none">
                     <div class="p-3 bg-dark text-white rounded mb-4 font-monospace small">
@@ -1007,7 +1007,7 @@ function renderFraudAlerts(alerts) {
     if (ringAlerts.length === 0) {
         container.innerHTML = `
             <div class="text-center py-4 text-success">
-                <i class="bi bi-shield-fill-check fs-2 mb-2"></i>
+                <i class="bi bi-shield-fill-check fs-2 mb-2" aria-hidden="true"></i>
                 <p class="small mb-0 fw-bold">An toàn: Không phát hiện vòng giao dịch khép kín.</p>
             </div>
         `;
@@ -1019,7 +1019,7 @@ function renderFraudAlerts(alerts) {
         item.className = "alert alert-danger border-0 bg-danger-subtle p-3 mb-0 rounded";
         item.innerHTML = `
             <div class="d-flex align-items-start gap-2">
-                <i class="bi bi-exclamation-octagon-fill text-danger fs-5 mt-1"></i>
+                <i class="bi bi-exclamation-octagon-fill text-danger fs-5 mt-1" aria-hidden="true"></i>
                 <div>
                     <h6 class="fw-bold text-danger mb-1">${alert.message}</h6>
                     <p class="small text-secondary mb-2">
@@ -1103,7 +1103,7 @@ function loadInvoicesAndMerkle() {
                     <td class="text-end text-success fw-semibold small">${inv.tax_amount.toLocaleString()} VND</td>
                     <td class="text-center">
                         <button class="btn btn-sm btn-outline-primary py-1" onclick="generateZkpProof('${inv.id}')">
-                            <i class="bi bi-shield-check"></i> Sinh ZKP Proof
+                            <i class="bi bi-shield-check" aria-hidden="true"></i> Sinh ZKP Proof
                         </button>
                     </td>
                 `;
@@ -1133,11 +1133,11 @@ function verifyLedgerIntegrity() {
     .then(data => {
         if (data.status === "success") {
             if (data.is_valid) {
-                icon.innerHTML = `<i class="bi bi-shield-fill-check text-success fs-1"></i>`;
+                icon.innerHTML = `<i class="bi bi-shield-fill-check text-success fs-1" aria-hidden="true"></i>`;
                 card.style.borderColor = "var(--bs-success)";
                 text.innerHTML = `<strong class="text-success">Sổ cái hoàn toàn hợp lệ</strong><br>${data.message}`;
             } else {
-                icon.innerHTML = `<i class="bi bi-shield-fill-x text-danger fs-1"></i>`;
+                icon.innerHTML = `<i class="bi bi-shield-fill-x text-danger fs-1" aria-hidden="true"></i>`;
                 card.style.borderColor = "var(--bs-danger)";
                 text.innerHTML = `<strong class="text-danger">CẢNH BÁO CAN THIỆP</strong><br>${data.message}`;
             }
@@ -1145,7 +1145,7 @@ function verifyLedgerIntegrity() {
         }
     })
     .catch(err => {
-        icon.innerHTML = `<i class="bi bi-exclamation-triangle-fill text-warning fs-1"></i>`;
+        icon.innerHTML = `<i class="bi bi-exclamation-triangle-fill text-warning fs-1" aria-hidden="true"></i>`;
         text.innerText = "Xác minh thất bại.";
     });
 }
@@ -1643,7 +1643,7 @@ function renderMarkdown(text) {
     if (!text) return "";
     let html = text;
     // Replace headers
-    html = html.replace(/^### (.*$)/gim, '<h6 class="fw-bold text-primary-emphasis mt-3 mb-2"><i class="bi bi-chevron-right text-success"></i> $1</h6>');
+    html = html.replace(/^### (.*$)/gim, '<h6 class="fw-bold text-primary-emphasis mt-3 mb-2"><i class="bi bi-chevron-right text-success" aria-hidden="true"></i> $1</h6>');
     html = html.replace(/^## (.*$)/gim, '<h5 class="fw-bold text-success-emphasis mt-3 mb-2">$1</h5>');
     html = html.replace(/^# (.*$)/gim, '<h4 class="fw-bold text-primary border-bottom pb-2 mb-3">$1</h4>');
     // Replace bold
@@ -1677,7 +1677,7 @@ function sendRagQuestion() {
             <p class="mb-0 small">${escapeHtml(question)}</p>
         </div>
         <div class="rounded-circle bg-secondary text-dark p-2 flex-shrink-0 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
-            <i class="bi bi-person-fill text-white"></i>
+            <i class="bi bi-person-fill text-white" aria-hidden="true"></i>
         </div>
     `;
     chatHistory.appendChild(userMsg);
@@ -1693,12 +1693,12 @@ function sendRagQuestion() {
     
     let thinkingHtml = `
         <div class="rounded-circle bg-primary text-white p-2 flex-shrink-0 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
-            <i class="bi bi-robot"></i>
+            <i class="bi bi-robot" aria-hidden="true"></i>
         </div>
         <div class="p-3 rounded bg-secondary-subtle text-dark border w-100">
             <div class="d-flex align-items-center gap-2 mb-2">
                 <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
-                <span class="fw-bold small text-primary-emphasis" id="rag-thinking-status">Đang khởi tạo RAG...</span>
+                <span class="fw-bold small text-primary-emphasis" id="rag-thinking-status">Đang khởi tạo RAG…</span>
             </div>
             <div id="rag-thinking-steps" class="small text-secondary" style="font-family: monospace; font-size: 11px;"></div>
         </div>
@@ -1758,13 +1758,13 @@ function sendRagQuestion() {
         // Render citations/sources if available
         if (data.citations && data.citations.length > 0) {
             citationsHtml = `<div class="mt-3 pt-2 border-top small text-secondary">
-                <strong class="text-info"><i class="bi bi-journal-bookmark-fill"></i> Tài liệu tham khảo & Trích dẫn:</strong>
+                <strong class="text-info"><i class="bi bi-journal-bookmark-fill" aria-hidden="true"></i> Tài liệu tham khảo & Trích dẫn:</strong>
                 <div class="mt-1 d-flex flex-wrap gap-2">`;
             data.citations.forEach((c) => {
                 const title = `${c.source} (Trang ${c.page})`;
                 const safeText = escapeHtml(c.text).replace(/'/g, "\\'");
                 citationsHtml += `<span class="badge bg-dark-subtle text-secondary border border-secondary-subtle px-2 py-1 card-hover-glow" style="cursor: pointer;" title="${safeText}" onclick="alert('Trích dẫn chi tiết:\\n\\n${safeText}')">
-                    <i class="bi bi-file-earmark-text text-primary"></i> ${escapeHtml(title)}
+                    <i class="bi bi-file-earmark-text text-primary" aria-hidden="true"></i> ${escapeHtml(title)}
                 </span>`;
             });
             citationsHtml += `</div></div>`;
@@ -1772,7 +1772,7 @@ function sendRagQuestion() {
 
         aiResponse.innerHTML = `
             <div class="rounded-circle bg-primary text-white p-2 flex-shrink-0 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
-                <i class="bi bi-robot"></i>
+                <i class="bi bi-robot" aria-hidden="true"></i>
             </div>
             <div class="p-3 rounded bg-secondary-subtle text-dark border w-100">
                 <div class="mb-0 small text-wrap" style="line-height: 1.6;">${renderMarkdown(answer)}</div>
@@ -1792,7 +1792,7 @@ function sendRagQuestion() {
         aiResponse.className = "d-flex align-items-start gap-2 max-w-75 mb-3";
         aiResponse.innerHTML = `
             <div class="rounded-circle bg-danger text-white p-2 flex-shrink-0 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
-                <i class="bi bi-exclamation-triangle"></i>
+                <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
             </div>
             <div class="p-3 rounded bg-danger-subtle text-danger border">
                 <p class="mb-0 small">Lỗi kết nối hoặc xử lý RAG: ${escapeHtml(err.message)}</p>
@@ -1836,7 +1836,7 @@ function generateDefenseLetter() {
     .then(res => res.json())
     .then(data => {
         genBtn.disabled = false;
-        genBtn.innerHTML = `<i class="bi bi-magic"></i> Tạo Báo cáo / Biên bản Giải trình`;
+        genBtn.innerHTML = `<i class="bi bi-magic" aria-hidden="true"></i> Tạo Báo cáo / Biên bản Giải trình`;
         
         if (data.status === "success") {
             document.getElementById("defense-letter-preview").value = data.draft_letter;
@@ -1846,7 +1846,7 @@ function generateDefenseLetter() {
     })
     .catch(err => {
         genBtn.disabled = false;
-        genBtn.innerHTML = `<i class="bi bi-magic"></i> Tạo Báo cáo / Biên bản Giải trình`;
+        genBtn.innerHTML = `<i class="bi bi-magic" aria-hidden="true"></i> Tạo Báo cáo / Biên bản Giải trình`;
         alert("Có lỗi xảy ra khi tạo văn bản giải trình.");
     });
 }

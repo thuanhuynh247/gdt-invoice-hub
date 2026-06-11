@@ -21,7 +21,7 @@
             </div>
             <div class="col-auto">
                 <div class="glass-card-dark p-2 d-flex gap-3 align-items-center">
-                    <span class="small text-secondary"><i class="bi bi-building me-1"></i> MST Đang chọn:</span>
+                    <span class="small text-secondary"><i class="bi bi-building me-1" aria-hidden="true"></i> MST Đang chọn:</span>
                     <select class="form-select form-select-sm border-0 bg-transparent fw-bold text-white" id="mstSelector" style="width: auto; cursor: pointer;">
                         {% for p in profiles %}
                         <option value="{{ p.mst }}" {% if p.mst == taxpayer_mst %}selected{% endif %} class="bg-obsidian text-white">{{ p.mst }} - {{ p.company_name }}</option>
@@ -36,7 +36,7 @@
             <!-- Card 1: Total Transfer Pricing CIT Adjustment -->
             <div class="col-md-3">
                 <div class="bento-card bg-sapphire-dark border-gold">
-                    <div class="card-icon text-gold"><i class="bi bi-bank2"></i></div>
+                    <div class="card-icon text-gold"><i class="bi bi-bank2" aria-hidden="true"></i></div>
                     <div class="card-body">
                         <div class="card-label">Tổng điều chỉnh TNDN (Decree 132)</div>
                         <div class="card-value text-gold" id="statTpAdjustment">0 VND</div>
@@ -47,7 +47,7 @@
             <!-- Card 2: Related Transactions Audited -->
             <div class="col-md-3">
                 <div class="bento-card bg-sapphire-dark border-indigo">
-                    <div class="card-icon text-indigo"><i class="bi bi-link-45deg"></i></div>
+                    <div class="card-icon text-indigo"><i class="bi bi-link-45deg" aria-hidden="true"></i></div>
                     <div class="card-body">
                         <div class="card-label">Giao dịch liên kết kiểm tra</div>
                         <div class="card-value text-indigo" id="statTpCount">0 giao dịch</div>
@@ -58,7 +58,7 @@
             <!-- Card 3: E-Commerce Gap Revenue -->
             <div class="col-md-3">
                 <div class="bento-card bg-sapphire-dark border-danger">
-                    <div class="card-icon text-danger"><i class="bi bi-shop-window"></i></div>
+                    <div class="card-icon text-danger"><i class="bi bi-shop-window" aria-hidden="true"></i></div>
                     <div class="card-body">
                         <div class="card-label">Chênh lệch doanh thu TMĐT</div>
                         <div class="card-value text-danger" id="statEcoGap">0 VND</div>
@@ -69,7 +69,7 @@
             <!-- Card 4: Audited Platforms Withholding -->
             <div class="col-md-3">
                 <div class="bento-card bg-sapphire-dark border-success">
-                    <div class="card-icon text-success"><i class="bi bi-check2-circle"></i></div>
+                    <div class="card-icon text-success"><i class="bi bi-check2-circle" aria-hidden="true"></i></div>
                     <div class="card-body">
                         <div class="card-label">Thuế nộp thay đã khấu trừ</div>
                         <div class="card-value text-success" id="statEcoWithheld">0 VND</div>
@@ -84,17 +84,17 @@
             <ul class="nav nav-pills nav-fill p-2 gap-2" id="complianceTab" role="tablist" style="background-color: #11182B; border-radius: 12px 12px 0 0;">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active fw-bold py-3 px-4 rounded-3 border-0 transition-all text-white" id="tp-tab" data-bs-toggle="tab" data-bs-target="#tp-pane" type="button" role="tab" aria-controls="tp-pane" aria-selected="true">
-                        <i class="bi bi-graph-up me-2"></i> 1. Giá chuyển nhượng (Decree 132)
+                        <i class="bi bi-graph-up me-2" aria-hidden="true"></i> 1. Giá chuyển nhượng (Decree 132)
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link fw-bold py-3 px-4 rounded-3 border-0 transition-all text-white" id="eco-tab" data-bs-toggle="tab" data-bs-target="#eco-pane" type="button" role="tab" aria-controls="eco-pane" aria-selected="false">
-                        <i class="bi bi-cart3 me-2"></i> 2. Thuế sàn TMĐT (Circular 80)
+                        <i class="bi bi-cart3 me-2" aria-hidden="true"></i> 2. Thuế sàn TMĐT (Circular 80)
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link fw-bold py-3 px-4 rounded-3 border-0 transition-all text-white" id="swarm-tab" data-bs-toggle="tab" data-bs-target="#swarm-pane" type="button" role="tab" aria-controls="swarm-pane" aria-selected="false">
-                        <i class="bi bi-chat-square-dots me-2"></i> 3. Ý kiến Swarm Advisors & Biên bản
+                        <i class="bi bi-chat-square-dots me-2" aria-hidden="true"></i> 3. Ý kiến Swarm Advisors & Biên bản
                     </button>
                 </li>
             </ul>
@@ -106,7 +106,7 @@
                         <!-- Left Panel: Calculation input / run benchmarking -->
                         <div class="col-lg-6">
                             <div class="p-4 rounded-4 bg-sapphire-card border-slate h-100">
-                                <h4 class="fw-bold text-gradient-gold mb-3"><i class="bi bi-sliders me-2"></i>Thiết lập giao dịch liên kết</h4>
+                                <h4 class="fw-bold text-gradient-gold mb-3"><i class="bi bi-sliders me-2" aria-hidden="true"></i>Thiết lập giao dịch liên kết</h4>
                                 <p class="text-secondary small">Nhập danh sách các giao dịch phát sinh với bên liên kết để so sánh với cơ sở dữ liệu tỷ suất lợi nhuận chuẩn (Interquartile Range).</p>
 
                                 <div class="table-responsive mb-4">
@@ -129,9 +129,9 @@
                                                         <option value="Loan">Hợp đồng vay (Loan)</option>
                                                     </select>
                                                 </td>
-                                                <td><input type="number" class="form-control form-control-sm bg-obsidian text-white border-slate txn-amount" value="5000000000"></td>
-                                                <td><input type="number" step="0.01" class="form-control form-control-sm bg-obsidian text-white border-slate txn-margin" value="3.5"></td>
-                                                <td class="text-center"><button class="btn btn-sm btn-outline-danger border-0 btn-remove-row"><i class="bi bi-trash"></i></button></td>
+                                                <td><input type="number" class="form-control form-control-sm bg-obsidian text-white border-slate txn-amount" value="5000000000" autocomplete="off" aria-label="Trường nhập liệu"></td>
+                                                <td><input type="number" step="0.01" class="form-control form-control-sm bg-obsidian text-white border-slate txn-margin" value="3.5" autocomplete="off" aria-label="Trường nhập liệu"></td>
+                                                <td class="text-center"><button class="btn btn-sm btn-outline-danger border-0 btn-remove-row"><i class="bi bi-trash" aria-hidden="true"></i></button></td>
                                             </tr>
                                             <tr>
                                                 <td>
@@ -142,21 +142,21 @@
                                                         <option value="Service">Cung cấp dịch vụ (Service)</option>
                                                     </select>
                                                 </td>
-                                                <td><input type="number" class="form-control form-control-sm bg-obsidian text-white border-slate txn-amount" value="2000000000"></td>
-                                                <td><input type="number" step="0.01" class="form-control form-control-sm bg-obsidian text-white border-slate txn-margin" value="8.0"></td>
-                                                <td class="text-center"><button class="btn btn-sm btn-outline-danger border-0 btn-remove-row"><i class="bi bi-trash"></i></button></td>
+                                                <td><input type="number" class="form-control form-control-sm bg-obsidian text-white border-slate txn-amount" value="2000000000" autocomplete="off" aria-label="Trường nhập liệu"></td>
+                                                <td><input type="number" step="0.01" class="form-control form-control-sm bg-obsidian text-white border-slate txn-margin" value="8.0" autocomplete="off" aria-label="Trường nhập liệu"></td>
+                                                <td class="text-center"><button class="btn btn-sm btn-outline-danger border-0 btn-remove-row"><i class="bi bi-trash" aria-hidden="true"></i></button></td>
                                             </tr>
                                         </tbody>
                                     </table>
                                 </div>
 
                                 <div class="d-flex justify-content-between mb-4">
-                                    <button class="btn btn-sm btn-outline-secondary font-outfit" id="btnAddTpRow" type="button"><i class="bi bi-plus-circle me-1"></i>Thêm dòng giao dịch</button>
-                                    <button class="btn btn-gold text-dark fw-bold font-outfit px-4" id="btnCalculateTp" type="button"><i class="bi bi-calculator me-1"></i>Khởi chạy Benchmarking</button>
+                                    <button class="btn btn-sm btn-outline-secondary font-outfit" id="btnAddTpRow" type="button"><i class="bi bi-plus-circle me-1" aria-hidden="true"></i>Thêm dòng giao dịch</button>
+                                    <button class="btn btn-gold text-dark fw-bold font-outfit px-4" id="btnCalculateTp" type="button"><i class="bi bi-calculator me-1" aria-hidden="true"></i>Khởi chạy Benchmarking</button>
                                 </div>
 
                                 <div class="d-grid">
-                                    <button class="btn btn-outline-gold font-outfit" id="btnExportXmlTp" type="button" disabled><i class="bi bi-file-earmark-code me-2"></i>Kết xuất tờ khai XML Phụ lục I (Mẫu 01/132)</button>
+                                    <button class="btn btn-outline-gold font-outfit" id="btnExportXmlTp" type="button" disabled><i class="bi bi-file-earmark-code me-2" aria-hidden="true"></i>Kết xuất tờ khai XML Phụ lục I (Mẫu 01/132)</button>
                                 </div>
                             </div>
                         </div>
@@ -164,7 +164,7 @@
                         <!-- Right Panel: Visual Interquartile Range Graph & Results -->
                         <div class="col-lg-6">
                             <div class="p-4 rounded-4 bg-sapphire-card border-slate h-100">
-                                <h4 class="fw-bold text-gradient-indigo mb-3"><i class="bi bi-bar-chart-line me-2"></i>Đồ thị Khoảng chuẩn & Đối chiếu</h4>
+                                <h4 class="fw-bold text-gradient-indigo mb-3"><i class="bi bi-bar-chart-line me-2" aria-hidden="true"></i>Đồ thị Khoảng chuẩn & Đối chiếu</h4>
 
                                 <!-- SVG Interquartile range chart (US-543) -->
                                 <div class="chart-container py-3 text-center mb-4" style="background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid #1E293B;">
@@ -194,7 +194,7 @@
                                 </div>
 
                                 <div class="results-container">
-                                    <h5 class="fw-bold mb-3"><i class="bi bi-file-text me-2"></i>Báo cáo phân tích điều chỉnh</h5>
+                                    <h5 class="fw-bold mb-3"><i class="bi bi-file-text me-2" aria-hidden="true"></i>Báo cáo phân tích điều chỉnh</h5>
                                     <div class="table-responsive">
                                         <table class="table table-dark table-striped table-hover table-sm small text-nowrap" id="tblTpResults">
                                             <thead>
@@ -224,11 +224,11 @@
                     <div class="p-4 rounded-4 bg-sapphire-card border-slate">
                         <div class="row align-items-end g-3 mb-4">
                             <div class="col-md-8">
-                                <h4 class="fw-bold text-gradient-gold"><i class="bi bi-cart3 me-2"></i>Đối soát doanh thu sàn TMĐT với Hóa đơn thuế</h4>
+                                <h4 class="fw-bold text-gradient-gold"><i class="bi bi-cart3 me-2" aria-hidden="true"></i>Đối soát doanh thu sàn TMĐT với Hóa đơn thuế</h4>
                                 <p class="text-secondary small mb-0">Rà soát các đơn hàng từ sàn thương mại điện tử Shopee, Lazada, TikTok Shop để đối chiếu trùng khớp với hóa đơn điện tử của người nộp thuế.</p>
                             </div>
                             <div class="col-md-4 text-end">
-                                <button class="btn btn-gold text-dark fw-bold font-outfit px-4" id="btnRunEcoReconciliation" type="button"><i class="bi bi-shuffle me-1"></i>Bắt đầu đối soát Circular 80</button>
+                                <button class="btn btn-gold text-dark fw-bold font-outfit px-4" id="btnRunEcoReconciliation" type="button"><i class="bi bi-shuffle me-1" aria-hidden="true"></i>Bắt đầu đối soát Circular 80</button>
                             </div>
                         </div>
 
@@ -265,7 +265,7 @@
                         <!-- Left: Live chat discussion -->
                         <div class="col-lg-6">
                             <div class="p-4 rounded-4 bg-sapphire-card border-slate h-100">
-                                <h4 class="fw-bold text-gradient-indigo mb-3"><i class="bi bi-chat-square-dots me-2"></i>Hội đồng tư vấn Swarm (AI Debate)</h4>
+                                <h4 class="fw-bold text-gradient-indigo mb-3"><i class="bi bi-chat-square-dots me-2" aria-hidden="true"></i>Hội đồng tư vấn Swarm (AI Debate)</h4>
                                 <p class="text-secondary small">Ý kiến trao đổi thời gian thực giữa các chuyên gia thuế nhằm tìm phương án giải trình tối ưu.</p>
 
                                 <div class="swarm-debate-box p-3 mb-3" id="swarmDebateBox" style="height: 320px; overflow-y: auto; background: rgba(0,0,0,0.3); border-radius: 12px; border: 1px solid #1E293B;">
@@ -277,14 +277,14 @@
                         <!-- Right: Swarm memo output -->
                         <div class="col-lg-6">
                             <div class="p-4 rounded-4 bg-sapphire-card border-slate h-100 d-flex flex-column">
-                                <h4 class="fw-bold text-gradient-gold mb-3"><i class="bi bi-file-earmark-medical me-2"></i>Biên bản tư vấn & Khuyến nghị thuế</h4>
+                                <h4 class="fw-bold text-gradient-gold mb-3"><i class="bi bi-file-earmark-medical me-2" aria-hidden="true"></i>Biên bản tư vấn & Khuyến nghị thuế</h4>
                                 <p class="text-secondary small">Văn bản tóm tắt các rủi ro phát hiện và khuyến nghị điều chỉnh số liệu kế toán trước thanh tra.</p>
 
                                 <textarea class="form-control bg-obsidian text-slate border-slate flex-grow-1 font-monospace p-3 small mb-3" id="swarmMemoArea" readonly style="min-height: 250px; color: #A0AEC0;">
 Chưa có biên bản khuyến nghị. Vui lòng hoàn thành phân tích.
                                 </textarea>
 
-                                <button class="btn btn-outline-gold font-outfit" id="btnDownloadMemo" type="button" disabled><i class="bi bi-download me-2"></i>Tải Biên bản Khuyến nghị (.MD)</button>
+                                <button class="btn btn-outline-gold font-outfit" id="btnDownloadMemo" type="button" disabled><i class="bi bi-download me-2" aria-hidden="true"></i>Tải Biên bản Khuyến nghị (.MD)</button>
                             </div>
                         </div>
                     </div>
@@ -472,9 +472,9 @@ document.addEventListener("DOMContentLoaded", function () {
                     <option value="Loan">Hợp đồng vay (Loan)</option>
                 </select>
             </td>
-            <td><input type="number" class="form-control form-control-sm bg-obsidian text-white border-slate txn-amount" value="1000000000"></td>
-            <td><input type="number" step="0.01" class="form-control form-control-sm bg-obsidian text-white border-slate txn-margin" value="5.0"></td>
-            <td class="text-center"><button class="btn btn-sm btn-outline-danger border-0 btn-remove-row"><i class="bi bi-trash"></i></button></td>
+            <td><input type="number" class="form-control form-control-sm bg-obsidian text-white border-slate txn-amount" value="1000000000" autocomplete="off" aria-label="Trường nhập liệu"></td>
+            <td><input type="number" step="0.01" class="form-control form-control-sm bg-obsidian text-white border-slate txn-margin" value="5.0" autocomplete="off" aria-label="Trường nhập liệu"></td>
+            <td class="text-center"><button class="btn btn-sm btn-outline-danger border-0 btn-remove-row"><i class="bi bi-trash" aria-hidden="true"></i></button></td>
         `;
         tblTpInput.appendChild(tr);
         bindRowRemoveEvents();

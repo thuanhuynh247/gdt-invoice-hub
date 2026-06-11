@@ -348,13 +348,13 @@
                         </div>
                         <!-- Search Box -->
                         <div class="position-relative" style="width: 250px;">
-                            <input type="text" class="form-control form-control-sm ps-4" id="pivotSearchInput" placeholder="Tìm tên hoặc MST..." style="height: 32px; font-size: 0.85rem; background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); color: var(--text-color);">
-                            <i class="bi bi-search position-absolute text-muted" style="left: 10px; top: 50%; transform: translateY(-50%); font-size: 0.8rem;"></i>
+                            <input type="text" class="form-control form-control-sm ps-4" id="pivotSearchInput" placeholder="Tìm tên hoặc MST…" style="height: 32px; font-size: 0.85rem; background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); color: var(--text-color);" autocomplete="off" aria-label="Tìm tên hoặc MST…">
+                            <i class="bi bi-search position-absolute text-muted" style="left: 10px; top: 50%; transform: translateY(-50%); font-size: 0.8rem;" aria-hidden="true"></i>
                         </div>
                     </div>
                     <div>
                         <button type="button" class="btn btn-outline-success btn-sm d-flex align-items-center gap-1" id="btnPivotExport" style="height: 32px; font-size: 0.85rem;">
-                            <i class="bi bi-file-earmark-excel"></i> Xuất Excel Pivot
+                            <i class="bi bi-file-earmark-excel" aria-hidden="true"></i> Xuất Excel Pivot
                         </button>
                     </div>
                 </div>
@@ -403,7 +403,7 @@
                                 <td colspan="15" class="text-center text-secondary py-5">
                                     <div class="empty-state">
                                         <span class="empty-icon"><i class="bi bi-grid-3x3-gap-fill" aria-hidden="true"></i></span>
-                                        <p class="mb-0">Đang tải dữ liệu tổng hợp pivot...</p>
+                                        <p class="mb-0">Đang tải dữ liệu tổng hợp pivot…</p>
                                     </div>
                                 </td>
                             </tr>

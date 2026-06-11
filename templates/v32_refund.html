@@ -279,7 +279,7 @@
                 </div>
                 <div class="col-md-6">
                     <label for="txtRefundName" class="form-label small text-secondary">Tên người nộp thuế:</label>
-                    <input type="text" class="form-control glass-input" id="txtRefundName" placeholder="Tên doanh nghiệp sẽ tải tự động..." readonly autocomplete="off">
+                    <input type="text" class="form-control glass-input" id="txtRefundName" placeholder="Tên doanh nghiệp sẽ tải tự động…" readonly autocomplete="off">
                 </div>
                 <div class="col-md-6">
                     <label for="txtBankName" class="form-label small text-secondary">Tên ngân hàng thụ hưởng:</label>
@@ -351,20 +351,20 @@
                     <form id="frmCustoms" onsubmit="addCustomsRow(event)">
                         <div class="mb-3">
                             <label class="form-label small text-secondary">Số tờ khai hải quan:</label>
-                            <input type="text" class="form-control glass-input" id="txtCustomsNo" placeholder="Ví dụ: HQ-2026-001" required autocomplete="off">
+                            <input type="text" class="form-control glass-input" id="txtCustomsNo" placeholder="Ví dụ: HQ-2026-001" required autocomplete="off" aria-label="Ví dụ: HQ-2026-001">
                         </div>
                         <div class="mb-3">
                             <label class="form-label small text-secondary">Mô tả sản phẩm xuất khẩu:</label>
-                            <input type="text" class="form-control glass-input" id="txtCustomsDesc" placeholder="Ví dụ: Phan mem xuat khau" required autocomplete="off">
+                            <input type="text" class="form-control glass-input" id="txtCustomsDesc" placeholder="Ví dụ: Phan mem xuat khau" required autocomplete="off" aria-label="Ví dụ: Phan mem xuat khau">
                         </div>
                         <div class="row g-2 mb-3">
                             <div class="col-6">
                                 <label class="form-label small text-secondary">Số lượng:</label>
-                                <input type="number" class="form-control glass-input" id="numCustomsQty" value="1" min="0" step="any" required autocomplete="off">
+                                <input type="number" class="form-control glass-input" id="numCustomsQty" value="1" min="0" step="any" required autocomplete="off" aria-label="Numcustomsqty">
                             </div>
                             <div class="col-6">
                                 <label class="form-label small text-secondary">Trị giá khai hải quan (VND):</label>
-                                <input type="number" class="form-control glass-input" id="numCustomsVal" value="200000000" min="0" required autocomplete="off">
+                                <input type="number" class="form-control glass-input" id="numCustomsVal" value="200000000" min="0" required autocomplete="off" aria-label="Numcustomsval">
                             </div>
                         </div>
                         <button type="submit" class="btn btn-outline-success w-100 fw-bold">
@@ -556,10 +556,10 @@
             // Combine eligible and ineligible invoices for wizard display
             const allInvoices = [];
             data.eligible_invoices.forEach(inv => {
-                allInvoices.push({ ...inv, is_eligible: true, checked: true });
+                allInvoices.push({ …inv, is_eligible: true, checked: true });
             });
             data.ineligible_invoices.forEach(inv => {
-                allInvoices.push({ ...inv, is_eligible: false, checked: false });
+                allInvoices.push({ …inv, is_eligible: false, checked: false });
             });
 
             if (allInvoices.length === 0) {
@@ -746,7 +746,7 @@
 
         // Reset elements
         const timeline = document.getElementById("swarmTimeline");
-        timeline.innerHTML = '<div class="text-secondary small"><i class="bi bi-arrow-repeat spin me-2" aria-hidden="true"></i>Đang khởi chạy AI Agent Swarm rà soát hoàn thuế...</div>';
+        timeline.innerHTML = '<div class="text-secondary small"><i class="bi bi-arrow-repeat spin me-2" aria-hidden="true"></i>Đang khởi chạy AI Agent Swarm rà soát hoàn thuế…</div>';
         document.getElementById("txtSwarmReport").value = "";
         document.getElementById("txtGeneratedXml").value = "";
 

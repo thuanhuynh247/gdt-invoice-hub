@@ -103,7 +103,7 @@
     <div>
       <h2 class="fw-bold mb-1 d-flex align-items-center" style="letter-spacing:-0.5px">
         <span class="p-2 bg-primary bg-opacity-10 text-primary rounded-3 me-3">
-          <i class="bi bi-shield-shaded"></i>
+          <i class="bi bi-shield-shaded" aria-hidden="true"></i>
         </span>
         Phòng Kiểm Soát Tuân Thủ & Mô Phỏng Thuế V35
       </h2>
@@ -140,7 +140,7 @@
           <span class="text-secondary small" id="txtDisallowedCount">0 hóa đơn bị loại</span>
         </div>
         <div class="p-3 bg-danger bg-opacity-10 text-danger rounded-circle">
-          <i class="bi bi-x-circle fs-4"></i>
+          <i class="bi bi-x-circle fs-4" aria-hidden="true"></i>
         </div>
       </div>
     </div>
@@ -152,7 +152,7 @@
           <span class="text-secondary small">Lãi suất 0.03%/ngày</span>
         </div>
         <div class="p-3 bg-warning bg-opacity-10 text-warning rounded-circle">
-          <i class="bi bi-exclamation-triangle fs-4"></i>
+          <i class="bi bi-exclamation-triangle fs-4" aria-hidden="true"></i>
         </div>
       </div>
     </div>
@@ -164,7 +164,7 @@
           <span class="text-secondary small" id="txtRiskLevelBadge">Nguy cơ: Thấp</span>
         </div>
         <div class="p-3 bg-info bg-opacity-10 text-info rounded-circle">
-          <i class="bi bi-radioactive fs-4"></i>
+          <i class="bi bi-radioactive fs-4" aria-hidden="true"></i>
         </div>
       </div>
     </div>
@@ -177,7 +177,7 @@
       <div class="glass-card p-4 h-100 d-flex flex-column justify-content-between">
         <div>
           <h5 class="fw-bold mb-3 d-flex align-items-center">
-            <i class="bi bi-sliders me-2 text-primary"></i>Stress Test Simulator Controls
+            <i class="bi bi-sliders me-2 text-primary" aria-hidden="true"></i>Stress Test Simulator Controls
           </h5>
           
           <div class="mb-4">
@@ -201,10 +201,10 @@
 
         <div>
           <button class="btn btn-primary w-100 py-2.5 rounded-pill mb-3" onclick="runSimulation()">
-            <i class="bi bi-play-circle-fill me-2"></i>Chạy Mô Phỏng Stress Test
+            <i class="bi bi-play-circle-fill me-2" aria-hidden="true"></i>Chạy Mô Phỏng Stress Test
           </button>
           <button class="btn btn-outline-secondary w-100 py-2 rounded-pill" onclick="initDashboard()">
-            <i class="bi bi-arrow-clockwise me-2"></i>Tải Lại Hồ Sơ Gốc
+            <i class="bi bi-arrow-clockwise me-2" aria-hidden="true"></i>Tải Lại Hồ Sơ Gốc
           </button>
         </div>
       </div>
@@ -214,7 +214,7 @@
     <div class="col-lg-8">
       <div class="glass-card p-4 h-100">
         <h5 class="fw-bold mb-3 d-flex align-items-center justify-content-between">
-          <span><i class="bi bi-diagram-3 me-2 text-success"></i>Bản Đồ Dòng Thuế & Hệ Thống Phân Tích (US-473)</span>
+          <span><i class="bi bi-diagram-3 me-2 text-success" aria-hidden="true"></i>Bản Đồ Dòng Thuế & Hệ Thống Phân Tích (US-473)</span>
           <span class="badge bg-success bg-opacity-15 text-success rounded-pill px-3 py-1 text-uppercase" style="font-size: 0.7rem">Realtime SVG Flow</span>
         </h5>
         
@@ -278,7 +278,7 @@
       <div class="glass-card p-4 h-100 d-flex flex-column justify-content-between">
         <div>
           <h5 class="fw-bold mb-3 d-flex align-items-center justify-content-between">
-            <span><i class="bi bi-bezier2 me-2 text-danger"></i>Sơ Đồ Cấu Trúc Rủi Ro Hồ Sơ (SVG Risk Tree)</span>
+            <span><i class="bi bi-bezier2 me-2 text-danger" aria-hidden="true"></i>Sơ Đồ Cấu Trúc Rủi Ro Hồ Sơ (SVG Risk Tree)</span>
             <button class="btn btn-outline-danger btn-xs py-0.5 px-2 rounded-pill text-uppercase" style="font-size:0.65rem;" onclick="resetTreeSelection()">Reset Tree</button>
           </h5>
           
@@ -291,7 +291,7 @@
         </div>
         
         <div class="mt-3">
-          <span class="small text-secondary"><i class="bi bi-info-circle me-1"></i>Di chuyển chuột vào các nút để kiểm tra nhanh mô tả sai sót của từng hóa đơn đầu vào.</span>
+          <span class="small text-secondary"><i class="bi bi-info-circle me-1" aria-hidden="true"></i>Di chuyển chuột vào các nút để kiểm tra nhanh mô tả sai sót của từng hóa đơn đầu vào.</span>
         </div>
       </div>
     </div>
@@ -300,20 +300,20 @@
     <div class="col-lg-5">
       <div class="glass-card p-4 h-100 d-flex flex-column">
         <h5 class="fw-bold mb-3 d-flex align-items-center justify-content-between">
-          <span><i class="bi bi-chat-left-dots text-warning me-2"></i>Multi-Agent Swarm Defense Debate (US-474)</span>
+          <span><i class="bi bi-chat-left-dots text-warning me-2" aria-hidden="true"></i>Multi-Agent Swarm Defense Debate (US-474)</span>
           <span class="badge bg-warning bg-opacity-15 text-warning rounded-pill px-2 py-0.5" style="font-size:0.65rem">AI Swarm</span>
         </h5>
 
         <!-- Debate Message Container -->
         <div id="swarmDebateContainer" class="flex-grow-1 overflow-auto p-3 bg-light-custom bg-opacity-5 rounded-3 mb-3" style="min-height: 300px; max-height: 380px;">
           <div class="text-center py-5 text-muted">
-            <i class="bi bi-chat-dots fs-1 d-block mb-2 text-secondary"></i>
+            <i class="bi bi-chat-dots fs-1 d-block mb-2 text-secondary" aria-hidden="true"></i>
             Chưa khởi chạy thảo luận phòng vệ thuế. Click nút bên dưới để khởi tạo Agent Swarm.
           </div>
         </div>
 
         <button class="btn btn-warning w-100 py-2.5 rounded-pill" onclick="triggerSwarmChat()" id="btnStartSwarm">
-          <i class="bi bi-lightning-charge-fill me-2"></i>Khởi Chạy Tranh Luận Phản Biện AI
+          <i class="bi bi-lightning-charge-fill me-2" aria-hidden="true"></i>Khởi Chạy Tranh Luận Phản Biện AI
         </button>
       </div>
     </div>
@@ -323,7 +323,7 @@
   <div class="glass-card p-4 mb-4">
     <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
       <div>
-        <h5 class="fw-bold mb-1"><i class="bi bi-table text-primary me-2"></i>Bảng Kê Hóa Đơn Rà Soát & Phòng Vệ</h5>
+        <h5 class="fw-bold mb-1"><i class="bi bi-table text-primary me-2" aria-hidden="true"></i>Bảng Kê Hóa Đơn Rà Soát & Phòng Vệ</h5>
         <p class="text-muted small mb-0">Tích chọn các hóa đơn rủi ro để tạo Bộ hồ sơ phòng vệ nén ZIP (Form 04/SS-HĐĐT và văn bản giải trình).</p>
       </div>
       <div class="d-flex gap-2">
@@ -334,7 +334,7 @@
           Bỏ Chọn
         </button>
         <button class="btn btn-success rounded-pill btn-sm px-4" onclick="downloadDefensePackage()">
-          <i class="bi bi-file-earmark-zip-fill me-2"></i>Tải Briefcase ZIP & XML 04/SS
+          <i class="bi bi-file-earmark-zip-fill me-2" aria-hidden="true"></i>Tải Briefcase ZIP & XML 04/SS
         </button>
       </div>
     </div>
@@ -357,10 +357,86 @@
           </tr>
         </thead>
         <tbody id="tblInvoicesBody">
-          <tr>
-            <td colspan="8" class="text-center py-5 text-secondary">
-              <div class="spinner-border spinner-border-sm text-primary me-2"></div> Đang kết nối dữ liệu tuân thủ...
+          <!-- Premium Loading Skeletons -->
+          <tr class="skeleton-row">
+            <td><div class="skeleton-loading" style="height: 16px; width: 16px;"></div></td>
+            <td>
+              <div class="skeleton-loading" style="height: 18px; width: 110px; margin-bottom: 6px;"></div>
+              <div class="skeleton-loading" style="height: 12px; width: 70px;"></div>
             </td>
+            <td><div class="skeleton-loading" style="height: 16px; width: 80px;"></div></td>
+            <td>
+              <div class="skeleton-loading" style="height: 16px; width: 180px; margin-bottom: 6px;"></div>
+              <div class="skeleton-loading" style="height: 12px; width: 110px;"></div>
+            </td>
+            <td><div class="skeleton-loading ms-auto" style="height: 16px; width: 95px;"></div></td>
+            <td><div class="skeleton-loading ms-auto" style="height: 16px; width: 75px;"></div></td>
+            <td><div class="skeleton-loading mx-auto" style="height: 22px; width: 70px; border-radius: 9999px;"></div></td>
+            <td><div class="skeleton-loading mx-auto" style="height: 22px; width: 60px; border-radius: 9999px;"></div></td>
+          </tr>
+          <tr class="skeleton-row">
+            <td><div class="skeleton-loading" style="height: 16px; width: 16px;"></div></td>
+            <td>
+              <div class="skeleton-loading" style="height: 18px; width: 95px; margin-bottom: 6px;"></div>
+              <div class="skeleton-loading" style="height: 12px; width: 65px;"></div>
+            </td>
+            <td><div class="skeleton-loading" style="height: 16px; width: 80px;"></div></td>
+            <td>
+              <div class="skeleton-loading" style="height: 16px; width: 210px; margin-bottom: 6px;"></div>
+              <div class="skeleton-loading" style="height: 12px; width: 120px;"></div>
+            </td>
+            <td><div class="skeleton-loading ms-auto" style="height: 16px; width: 105px;"></div></td>
+            <td><div class="skeleton-loading ms-auto" style="height: 16px; width: 80px;"></div></td>
+            <td><div class="skeleton-loading mx-auto" style="height: 22px; width: 70px; border-radius: 9999px;"></div></td>
+            <td><div class="skeleton-loading mx-auto" style="height: 22px; width: 60px; border-radius: 9999px;"></div></td>
+          </tr>
+          <tr class="skeleton-row">
+            <td><div class="skeleton-loading" style="height: 16px; width: 16px;"></div></td>
+            <td>
+              <div class="skeleton-loading" style="height: 18px; width: 105px; margin-bottom: 6px;"></div>
+              <div class="skeleton-loading" style="height: 12px; width: 60px;"></div>
+            </td>
+            <td><div class="skeleton-loading" style="height: 16px; width: 80px;"></div></td>
+            <td>
+              <div class="skeleton-loading" style="height: 16px; width: 160px; margin-bottom: 6px;"></div>
+              <div class="skeleton-loading" style="height: 12px; width: 95px;"></div>
+            </td>
+            <td><div class="skeleton-loading ms-auto" style="height: 16px; width: 85px;"></div></td>
+            <td><div class="skeleton-loading ms-auto" style="height: 16px; width: 70px;"></div></td>
+            <td><div class="skeleton-loading mx-auto" style="height: 22px; width: 70px; border-radius: 9999px;"></div></td>
+            <td><div class="skeleton-loading mx-auto" style="height: 22px; width: 60px; border-radius: 9999px;"></div></td>
+          </tr>
+          <tr class="skeleton-row">
+            <td><div class="skeleton-loading" style="height: 16px; width: 16px;"></div></td>
+            <td>
+              <div class="skeleton-loading" style="height: 18px; width: 115px; margin-bottom: 6px;"></div>
+              <div class="skeleton-loading" style="height: 12px; width: 75px;"></div>
+            </td>
+            <td><div class="skeleton-loading" style="height: 16px; width: 80px;"></div></td>
+            <td>
+              <div class="skeleton-loading" style="height: 16px; width: 195px; margin-bottom: 6px;"></div>
+              <div class="skeleton-loading" style="height: 12px; width: 105px;"></div>
+            </td>
+            <td><div class="skeleton-loading ms-auto" style="height: 16px; width: 90px;"></div></td>
+            <td><div class="skeleton-loading ms-auto" style="height: 16px; width: 75px;"></div></td>
+            <td><div class="skeleton-loading mx-auto" style="height: 22px; width: 70px; border-radius: 9999px;"></div></td>
+            <td><div class="skeleton-loading mx-auto" style="height: 22px; width: 60px; border-radius: 9999px;"></div></td>
+          </tr>
+          <tr class="skeleton-row">
+            <td><div class="skeleton-loading" style="height: 16px; width: 16px;"></div></td>
+            <td>
+              <div class="skeleton-loading" style="height: 18px; width: 100px; margin-bottom: 6px;"></div>
+              <div class="skeleton-loading" style="height: 12px; width: 60px;"></div>
+            </td>
+            <td><div class="skeleton-loading" style="height: 16px; width: 80px;"></div></td>
+            <td>
+              <div class="skeleton-loading" style="height: 16px; width: 175px; margin-bottom: 6px;"></div>
+              <div class="skeleton-loading" style="height: 12px; width: 100px;"></div>
+            </td>
+            <td><div class="skeleton-loading ms-auto" style="height: 16px; width: 100px;"></div></td>
+            <td><div class="skeleton-loading ms-auto" style="height: 16px; width: 80px;"></div></td>
+            <td><div class="skeleton-loading mx-auto" style="height: 22px; width: 70px; border-radius: 9999px;"></div></td>
+            <td><div class="skeleton-loading mx-auto" style="height: 22px; width: 60px; border-radius: 9999px;"></div></td>
           </tr>
         </tbody>
       </table>
@@ -639,7 +715,7 @@
 
   function triggerSwarmChat() {
     const container = document.getElementById("swarmDebateContainer");
-    container.innerHTML = `<div class="text-center py-5"><div class="spinner-border text-warning"></div><div class="mt-2 text-muted small">AI Agents đang tiến hành tranh luận và đối chất...</div></div>`;
+    container.innerHTML = `<div class="text-center py-5"><div class="spinner-border text-warning"></div><div class="mt-2 text-muted small">AI Agents đang tiến hành tranh luận và đối chất…</div></div>`;
     
     fetch("/api/agents/swarm-v35-chat", {
       method: "POST",
@@ -656,7 +732,7 @@
           
           div.innerHTML = `
             <span class="badge ${s.avatar_class} rounded-circle p-2 flex-shrink-0 text-snow" style="width:38px;height:38px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 10px rgba(0,0,0,0.1)">
-              <i class="bi bi-robot"></i>
+              <i class="bi bi-robot" aria-hidden="true"></i>
             </span>
             <div class="chat-bubble ${isLeft ? 'bg-light bg-opacity-75 text-dark' : 'bg-primary text-snow'} rounded-3">
               <div class="fw-bold small d-flex align-items-center justify-content-between">
@@ -673,7 +749,7 @@
     })
     .catch(err => {
       console.error("Swarm chat initiation failed:", err);
-      container.innerHTML = `<div class="text-center text-danger py-4"><i class="bi bi-exclamation-triangle fs-3"></i> Lỗi kết nối Swarm.</div>`;
+      container.innerHTML = `<div class="text-center text-danger py-4"><i class="bi bi-exclamation-triangle fs-3" aria-hidden="true"></i> Lỗi kết nối Swarm.</div>`;
     });
   }
 

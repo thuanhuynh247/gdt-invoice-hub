@@ -5,7 +5,7 @@
   <div class="d-flex align-items-center justify-content-between mb-4">
     <div>
       <h2 class="fw-bold mb-1" style="letter-spacing:-0.5px">
-        <i class="bi bi-calendar3 me-2 text-info"></i>Thuế TNDN Tạm Tính & Lịch Tuân Thủ Thuế
+        <i class="bi bi-calendar3 me-2 text-info" aria-hidden="true"></i>Thuế TNDN Tạm Tính & Lịch Tuân Thủ Thuế
       </h2>
       <p class="text-secondary mb-0">Version 33.0.0 - CIT Quarterly Provisional Declaration & Tax Compliance Calendar</p>
     </div>
@@ -16,7 +16,7 @@
   <div class="card border-0 shadow-sm mb-4" style="border-radius:16px;background:var(--bs-body-bg)">
     <div class="card-header bg-transparent border-0 pt-4 pb-2 px-4">
       <div class="d-flex align-items-center justify-content-between">
-        <h5 class="fw-bold mb-0"><i class="bi bi-calendar-event me-2 text-primary"></i>Lịch Tuân Thủ Thuế Năm
+        <h5 class="fw-bold mb-0"><i class="bi bi-calendar-event me-2 text-primary" aria-hidden="true"></i>Lịch Tuân Thủ Thuế Năm
           <select id="calendarYear" class="form-select form-select-sm d-inline-block w-auto ms-2" style="border-radius:8px">
             <option value="2025">2025</option>
             <option value="2026" selected>2026</option>
@@ -24,14 +24,14 @@
           </select>
         </h5>
         <button class="btn btn-outline-primary btn-sm rounded-pill px-3" onclick="loadTaxCalendar()">
-          <i class="bi bi-arrow-clockwise me-1"></i>Tải lịch
+          <i class="bi bi-arrow-clockwise me-1" aria-hidden="true"></i>Tải lịch
         </button>
       </div>
     </div>
     <div class="card-body px-4 pb-4">
       <div id="calendarGrid" class="row g-3">
         <div class="col-12 text-center text-secondary py-5">
-          <i class="bi bi-hourglass-split fs-1 d-block mb-2"></i>
+          <i class="bi bi-hourglass-split fs-1 d-block mb-2" aria-hidden="true"></i>
           Nhấn <strong>Tải lịch</strong> để hiển thị lịch tuân thủ thuế.
         </div>
       </div>
@@ -43,7 +43,7 @@
     <div class="col-lg-6">
       <div class="card border-0 shadow-sm h-100" style="border-radius:16px;background:var(--bs-body-bg)">
         <div class="card-header bg-transparent border-0 pt-4 pb-2 px-4">
-          <h5 class="fw-bold mb-0"><i class="bi bi-calculator me-2 text-success"></i>Tính Thuế TNDN Tạm Tính Theo Quý</h5>
+          <h5 class="fw-bold mb-0"><i class="bi bi-calculator me-2 text-success" aria-hidden="true"></i>Tính Thuế TNDN Tạm Tính Theo Quý</h5>
         </div>
         <div class="card-body px-4 pb-4">
           <div class="row g-3 mb-3">
@@ -58,32 +58,32 @@
             </div>
             <div class="col-6">
               <label class="form-label small fw-semibold">Năm</label>
-              <input type="number" id="citYear" class="form-control" value="2026" style="border-radius:10px">
+              <input type="number" id="citYear" class="form-control" value="2026" style="border-radius:10px" autocomplete="off" aria-label="Cityear">
             </div>
           </div>
           <div class="mb-3">
             <label class="form-label small fw-semibold">Doanh thu (VND)</label>
-            <input type="number" id="citRevenue" class="form-control" value="5000000000" style="border-radius:10px">
+            <input type="number" id="citRevenue" class="form-control" value="5000000000" style="border-radius:10px" autocomplete="off" aria-label="Citrevenue">
           </div>
           <div class="mb-3">
             <label class="form-label small fw-semibold">Giá vốn hàng bán (VND)</label>
-            <input type="number" id="citCOGS" class="form-control" value="3000000000" style="border-radius:10px">
+            <input type="number" id="citCOGS" class="form-control" value="3000000000" style="border-radius:10px" autocomplete="off" aria-label="Citcogs">
           </div>
           <div class="mb-3">
             <label class="form-label small fw-semibold">Chi phí hoạt động (VND)</label>
-            <input type="number" id="citOpex" class="form-control" value="800000000" style="border-radius:10px">
+            <input type="number" id="citOpex" class="form-control" value="800000000" style="border-radius:10px" autocomplete="off" aria-label="Citopex">
           </div>
           <div class="d-flex gap-2">
             <button class="btn btn-success rounded-pill px-4 flex-fill" onclick="calculateCIT()">
-              <i class="bi bi-calculator me-1"></i>Tính thuế
+              <i class="bi bi-calculator me-1" aria-hidden="true"></i>Tính thuế
             </button>
             <button class="btn btn-outline-info rounded-pill px-3" onclick="generateXML()" id="btnXML" disabled>
-              <i class="bi bi-filetype-xml me-1"></i>Xuất XML
+              <i class="bi bi-filetype-xml me-1" aria-hidden="true"></i>Xuất XML
             </button>
           </div>
           <div id="citResult" class="mt-3" style="display:none">
             <div class="p-3 rounded-3" style="background:var(--bs-success-bg-subtle);border:1px solid var(--bs-success-border-subtle);border-radius:12px!important">
-              <h6 class="fw-bold text-success mb-2"><i class="bi bi-check-circle me-1"></i>Kết quả tính thuế</h6>
+              <h6 class="fw-bold text-success mb-2"><i class="bi bi-check-circle me-1" aria-hidden="true"></i>Kết quả tính thuế</h6>
               <table class="table table-sm table-borderless mb-0 small">
                 <tbody id="citResultBody"></tbody>
               </table>
@@ -97,18 +97,18 @@
     <div class="col-lg-6">
       <div class="card border-0 shadow-sm h-100" style="border-radius:16px;background:var(--bs-body-bg)">
         <div class="card-header bg-transparent border-0 pt-4 pb-2 px-4">
-          <h5 class="fw-bold mb-0"><i class="bi bi-robot me-2 text-warning"></i>AI Swarm Tư Vấn Thuế TNDN</h5>
+          <h5 class="fw-bold mb-0"><i class="bi bi-robot me-2 text-warning" aria-hidden="true"></i>AI Swarm Tư Vấn Thuế TNDN</h5>
         </div>
         <div class="card-body px-4 pb-4 d-flex flex-column">
           <div id="swarmChat" class="flex-grow-1 overflow-auto mb-3 p-3 rounded-3"
                style="background:var(--bs-tertiary-bg);min-height:320px;max-height:450px;border-radius:12px!important">
             <div class="text-center text-secondary py-5">
-              <i class="bi bi-chat-dots fs-1 d-block mb-2"></i>
+              <i class="bi bi-chat-dots fs-1 d-block mb-2" aria-hidden="true"></i>
               Nhấn <strong>Tính thuế</strong> rồi nhấn <strong>Phân tích Swarm</strong> để khởi động.
             </div>
           </div>
           <button class="btn btn-warning rounded-pill px-4" onclick="runSwarm()" id="btnSwarm" disabled>
-            <i class="bi bi-lightning me-1"></i>Phân tích Swarm AI
+            <i class="bi bi-lightning me-1" aria-hidden="true"></i>Phân tích Swarm AI
           </button>
         </div>
       </div>
@@ -120,7 +120,7 @@
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
       <div class="modal-content border-0" style="border-radius:16px">
         <div class="modal-header border-0">
-          <h5 class="modal-title fw-bold"><i class="bi bi-filetype-xml me-2 text-info"></i>Form 01A/TNDN XML</h5>
+          <h5 class="modal-title fw-bold"><i class="bi bi-filetype-xml me-2 text-info" aria-hidden="true"></i>Form 01A/TNDN XML</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
@@ -128,7 +128,7 @@
         </div>
         <div class="modal-footer border-0">
           <button class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Đóng</button>
-          <button class="btn btn-info rounded-pill px-4" onclick="copyXML()"><i class="bi bi-clipboard me-1"></i>Sao chép XML</button>
+          <button class="btn btn-info rounded-pill px-4" onclick="copyXML()"><i class="bi bi-clipboard me-1" aria-hidden="true"></i>Sao chép XML</button>
         </div>
       </div>
     </div>
@@ -156,7 +156,7 @@ function loadTaxCalendar() {
           const ic = statusIcons[d.status] || 'circle text-secondary';
           const tc = typeColors[d.type] || 'secondary';
           return `<div class="d-flex align-items-start gap-2 mb-2">
-            <i class="bi bi-${ic} mt-1 flex-shrink-0"></i>
+            <i class="bi bi-${ic} mt-1 flex-shrink-0" aria-hidden="true"></i>
             <div class="small">
               <span class="badge bg-${tc} bg-opacity-25 text-${tc} me-1">${d.type}</span>
               <span class="fw-medium">${d.label}</span>
@@ -184,7 +184,7 @@ function calculateCIT() {
   fetch('/api/compliance/cit-quarterly', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
     .then(r => r.json())
     .then(d => {
-      lastCITCalc = {...body, ...d};
+      lastCITCalc = {...body, …d};
       const rows = [
         ['Doanh thu', fmt(d.revenue)],['Giá vốn hàng bán', fmt(d.cogs)],
         ['Lợi nhuận gộp', fmt(d.gross_profit)],['Chi phí hoạt động', fmt(d.operating_expenses)],
@@ -223,7 +223,7 @@ function copyXML() {
 function runSwarm() {
   if(!lastCITCalc) return;
   const chat = document.getElementById('swarmChat');
-  chat.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-warning"></div><p class="mt-2 text-secondary">Đang phân tích...</p></div>';
+  chat.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-warning"></div><p class="mt-2 text-secondary">Đang phân tích…</p></div>';
   const body = {
     taxpayer_name: 'Công ty TNHH Giải pháp Phần mềm',
     quarter: lastCITCalc.quarter, year: lastCITCalc.year,
@@ -240,7 +240,7 @@ function runSwarm() {
         div.style.animationDelay = (i*0.15)+'s';
         div.innerHTML = `<div class="d-flex gap-2 align-items-start">
           <span class="badge ${s.avatar_class} rounded-circle p-2 flex-shrink-0" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center">
-            <i class="bi bi-robot"></i>
+            <i class="bi bi-robot" aria-hidden="true"></i>
           </span>
           <div>
             <div class="fw-bold small">${s.agent} <span class="text-muted fw-normal">: ${s.role}</span>

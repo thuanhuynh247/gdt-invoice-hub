@@ -5,7 +5,7 @@
   <div class="d-flex align-items-center justify-content-between mb-4">
     <div>
       <h2 class="fw-bold mb-1" style="letter-spacing:-0.5px">
-        <i class="bi bi-graph-up-arrow me-2 text-danger"></i>Phân Tích Tuổi Nợ & Quản Lý Công Nợ AR/AP
+        <i class="bi bi-graph-up-arrow me-2 text-danger" aria-hidden="true"></i>Phân Tích Tuổi Nợ & Quản Lý Công Nợ AR/AP
       </h2>
       <p class="text-secondary mb-0">Version 34.0.0 - Invoice Aging Analysis & Accounts Receivable/Payable Management</p>
     </div>
@@ -15,22 +15,22 @@
   <!-- KPI Summary Cards -->
   <div class="row g-3 mb-4" id="kpiCards" style="display:none">
     <div class="col-md-3"><div class="card border-0 shadow-sm h-100" style="border-radius:14px"><div class="card-body text-center">
-      <div class="text-primary mb-1"><i class="bi bi-arrow-down-circle fs-3"></i></div>
+      <div class="text-primary mb-1"><i class="bi bi-arrow-down-circle fs-3" aria-hidden="true"></i></div>
       <div class="small text-muted">Tổng phải thu (AR)</div>
       <div class="fw-bold fs-5" id="kpiAR">-</div>
     </div></div></div>
     <div class="col-md-3"><div class="card border-0 shadow-sm h-100" style="border-radius:14px"><div class="card-body text-center">
-      <div class="text-warning mb-1"><i class="bi bi-arrow-up-circle fs-3"></i></div>
+      <div class="text-warning mb-1"><i class="bi bi-arrow-up-circle fs-3" aria-hidden="true"></i></div>
       <div class="small text-muted">Tổng phải trả (AP)</div>
       <div class="fw-bold fs-5" id="kpiAP">-</div>
     </div></div></div>
     <div class="col-md-3"><div class="card border-0 shadow-sm h-100" style="border-radius:14px"><div class="card-body text-center">
-      <div class="text-danger mb-1"><i class="bi bi-exclamation-triangle fs-3"></i></div>
+      <div class="text-danger mb-1"><i class="bi bi-exclamation-triangle fs-3" aria-hidden="true"></i></div>
       <div class="small text-muted">AR quá hạn</div>
       <div class="fw-bold fs-5" id="kpiOverdue">-</div>
     </div></div></div>
     <div class="col-md-3"><div class="card border-0 shadow-sm h-100" style="border-radius:14px"><div class="card-body text-center">
-      <div class="text-success mb-1"><i class="bi bi-cash-stack fs-3"></i></div>
+      <div class="text-success mb-1"><i class="bi bi-cash-stack fs-3" aria-hidden="true"></i></div>
       <div class="small text-muted">Vị thế ròng</div>
       <div class="fw-bold fs-5" id="kpiNet">-</div>
     </div></div></div>
@@ -40,8 +40,8 @@
   <div class="card border-0 shadow-sm mb-4" style="border-radius:14px">
     <div class="card-body px-4 py-3 d-flex align-items-center gap-3">
       <label class="form-label mb-0 fw-semibold small">Ngày phân tích:</label>
-      <input type="date" id="asOfDate" class="form-control form-control-sm w-auto" value="2026-06-10" style="border-radius:8px">
-      <button class="btn btn-danger btn-sm rounded-pill px-4" onclick="runAging()"><i class="bi bi-bar-chart me-1"></i>Phân tích</button>
+      <input type="date" id="asOfDate" class="form-control form-control-sm w-auto" value="2026-06-10" style="border-radius:8px" autocomplete="off" aria-label="Asofdate">
+      <button class="btn btn-danger btn-sm rounded-pill px-4" onclick="runAging()"><i class="bi bi-bar-chart me-1" aria-hidden="true"></i>Phân tích</button>
     </div>
   </div>
 
@@ -50,11 +50,11 @@
     <div class="col-lg-7">
       <div class="card border-0 shadow-sm h-100" style="border-radius:16px">
         <div class="card-header bg-transparent border-0 pt-4 pb-2 px-4">
-          <h5 class="fw-bold mb-0"><i class="bi bi-grid-3x3-gap me-2 text-danger"></i>Bản Đồ Nhiệt Tuổi Nợ</h5>
+          <h5 class="fw-bold mb-0"><i class="bi bi-grid-3x3-gap me-2 text-danger" aria-hidden="true"></i>Bản Đồ Nhiệt Tuổi Nợ</h5>
         </div>
         <div class="card-body px-4 pb-4">
           <div id="heatmapContainer" class="text-center text-secondary py-5">
-            <i class="bi bi-grid-3x3 fs-1 d-block mb-2"></i>Nhấn <strong>Phân tích</strong> để hiển thị.
+            <i class="bi bi-grid-3x3 fs-1 d-block mb-2" aria-hidden="true"></i>Nhấn <strong>Phân tích</strong> để hiển thị.
           </div>
         </div>
       </div>
@@ -64,15 +64,15 @@
     <div class="col-lg-5">
       <div class="card border-0 shadow-sm h-100" style="border-radius:16px">
         <div class="card-header bg-transparent border-0 pt-4 pb-2 px-4">
-          <h5 class="fw-bold mb-0"><i class="bi bi-robot me-2 text-warning"></i>AI Swarm Tư Vấn Công Nợ</h5>
+          <h5 class="fw-bold mb-0"><i class="bi bi-robot me-2 text-warning" aria-hidden="true"></i>AI Swarm Tư Vấn Công Nợ</h5>
         </div>
         <div class="card-body px-4 pb-4 d-flex flex-column">
           <div id="swarmChat" class="flex-grow-1 overflow-auto mb-3 p-3 rounded-3"
                style="background:var(--bs-tertiary-bg);min-height:300px;max-height:420px;border-radius:12px!important">
-            <div class="text-center text-secondary py-5"><i class="bi bi-chat-dots fs-1 d-block mb-2"></i>Nhấn <strong>Phân tích Swarm</strong> sau khi phân tích tuổi nợ.</div>
+            <div class="text-center text-secondary py-5"><i class="bi bi-chat-dots fs-1 d-block mb-2" aria-hidden="true"></i>Nhấn <strong>Phân tích Swarm</strong> sau khi phân tích tuổi nợ.</div>
           </div>
           <button class="btn btn-warning rounded-pill px-4" onclick="runSwarm()" id="btnSwarm" disabled>
-            <i class="bi bi-lightning me-1"></i>Phân tích Swarm AI
+            <i class="bi bi-lightning me-1" aria-hidden="true"></i>Phân tích Swarm AI
           </button>
         </div>
       </div>
@@ -127,7 +127,7 @@ function runSwarm(){
     d.chat_steps.forEach((s,i)=>{
       const div=document.createElement('div');div.className='mb-3';
       div.innerHTML=`<div class="d-flex gap-2 align-items-start">
-        <span class="badge ${s.avatar_class} rounded-circle p-2 flex-shrink-0" style="width:34px;height:34px;display:flex;align-items:center;justify-content:center"><i class="bi bi-robot"></i></span>
+        <span class="badge ${s.avatar_class} rounded-circle p-2 flex-shrink-0" style="width:34px;height:34px;display:flex;align-items:center;justify-content:center"><i class="bi bi-robot" aria-hidden="true"></i></span>
         <div><div class="fw-bold small">${s.agent} <span class="text-muted fw-normal">: ${s.role}</span><span class="text-muted ms-2" style="font-size:0.7rem">${s.timestamp}</span></div>
         <div class="small mt-1">${s.message}</div></div></div>`;
       chat.appendChild(div);

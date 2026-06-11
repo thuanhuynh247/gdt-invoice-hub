@@ -87,7 +87,7 @@
     <div>
       <h2 class="fw-bold mb-1 d-flex align-items-center" style="letter-spacing:-0.5px">
         <span class="p-2 bg-primary bg-opacity-10 text-primary rounded-3 me-3">
-          <i class="bi bi-file-earmark-spreadsheet"></i>
+          <i class="bi bi-file-earmark-spreadsheet" aria-hidden="true"></i>
         </span>
         Quyết Toán Thuế TNDN Hàng Năm & Tối Ưu Hóa Chuyển Lỗ V36
       </h2>
@@ -108,7 +108,7 @@
           <span class="text-secondary small">Thuế suất chuẩn: 20%</span>
         </div>
         <div class="p-3 bg-danger bg-opacity-10 text-danger rounded-circle">
-          <i class="bi bi-cash-coin fs-4"></i>
+          <i class="bi bi-cash-coin fs-4" aria-hidden="true"></i>
         </div>
       </div>
     </div>
@@ -120,7 +120,7 @@
           <span class="text-secondary small" id="txtAccountingProfit">Lợi nhuận KT: -</span>
         </div>
         <div class="p-3 bg-primary bg-opacity-10 text-primary rounded-circle">
-          <i class="bi bi-bank fs-4"></i>
+          <i class="bi bi-bank fs-4" aria-hidden="true"></i>
         </div>
       </div>
     </div>
@@ -132,7 +132,7 @@
           <span class="text-secondary small" id="txtPriorLossesTotal">Tổng lỗ lũy kế: -</span>
         </div>
         <div class="p-3 bg-success bg-opacity-10 text-success rounded-circle">
-          <i class="bi bi-arrow-down-left-square fs-4"></i>
+          <i class="bi bi-arrow-down-left-square fs-4" aria-hidden="true"></i>
         </div>
       </div>
     </div>
@@ -144,7 +144,7 @@
           <span class="text-secondary small" id="txtOptimizationStatus">Tối ưu hóa thành công</span>
         </div>
         <div class="p-3 bg-info bg-opacity-10 text-info rounded-circle">
-          <i class="bi bi-shield-check fs-4"></i>
+          <i class="bi bi-shield-check fs-4" aria-hidden="true"></i>
         </div>
       </div>
     </div>
@@ -157,34 +157,34 @@
       <div class="glass-card p-4 h-100 d-flex flex-column justify-content-between">
         <div>
           <h5 class="fw-bold mb-3 d-flex align-items-center">
-            <i class="bi bi-sliders me-2 text-primary"></i>Thông số quyết toán & ưu đãi
+            <i class="bi bi-sliders me-2 text-primary" aria-hidden="true"></i>Thông số quyết toán & ưu đãi
           </h5>
           
           <div class="row g-2 mb-3">
             <div class="col-6">
               <label class="form-label small fw-semibold">Doanh Thu (Revenue)</label>
-              <input type="number" class="form-control form-control-sm" id="numRevenue" value="1000000000" oninput="runCITCalculation()">
+              <input type="number" class="form-control form-control-sm" id="numRevenue" value="1000000000" oninput="runCITCalculation()" autocomplete="off" aria-label="Numrevenue">
             </div>
             <div class="col-6">
               <label class="form-label small fw-semibold">Giá Vốn (COGS)</label>
-              <input type="number" class="form-control form-control-sm" id="numCogs" value="600000000" oninput="runCITCalculation()">
+              <input type="number" class="form-control form-control-sm" id="numCogs" value="600000000" oninput="runCITCalculation()" autocomplete="off" aria-label="Numcogs">
             </div>
           </div>
 
           <div class="row g-2 mb-3">
             <div class="col-6">
               <label class="form-label small fw-semibold">CP Bán Hàng (Selling)</label>
-              <input type="number" class="form-control form-control-sm" id="numSelling" value="150000000" oninput="runCITCalculation()">
+              <input type="number" class="form-control form-control-sm" id="numSelling" value="150000000" oninput="runCITCalculation()" autocomplete="off" aria-label="Numselling">
             </div>
             <div class="col-6">
               <label class="form-label small fw-semibold">CP QL Doanh Nghiệp</label>
-              <input type="number" class="form-control form-control-sm" id="numAdmin" value="100000000" oninput="runCITCalculation()">
+              <input type="number" class="form-control form-control-sm" id="numAdmin" value="100000000" oninput="runCITCalculation()" autocomplete="off" aria-label="Numadmin">
             </div>
           </div>
 
           <div class="mb-3">
             <label class="form-label small fw-semibold">CP Không Được Trừ (B4)</label>
-            <input type="number" class="form-control form-control-sm" id="numNonDeductible" value="80000000" oninput="runCITCalculation()">
+            <input type="number" class="form-control form-control-sm" id="numNonDeductible" value="80000000" oninput="runCITCalculation()" autocomplete="off" aria-label="Numnondeductible">
             <span class="text-muted" style="font-size:0.7rem;">Các khoản chi phí bị loại trừ tăng thu nhập tính thuế.</span>
           </div>
 
@@ -201,35 +201,35 @@
           <div class="row g-2">
             <div class="col-4">
               <label class="form-label small fw-semibold" style="font-size:0.7rem">N-5 (2021)</label>
-              <input type="number" class="form-control form-control-sm" id="loss2021" value="120000000">
+              <input type="number" class="form-control form-control-sm" id="loss2021" value="120000000" autocomplete="off" aria-label="Loss2021">
             </div>
             <div class="col-4">
               <label class="form-label small fw-semibold" style="font-size:0.7rem">N-4 (2022)</label>
-              <input type="number" class="form-control form-control-sm" id="loss2022" value="80000000">
+              <input type="number" class="form-control form-control-sm" id="loss2022" value="80000000" autocomplete="off" aria-label="Loss2022">
             </div>
             <div class="col-4">
               <label class="form-label small fw-semibold" style="font-size:0.7rem">N-3 (2023)</label>
-              <input type="number" class="form-control form-control-sm" id="loss2023" value="150000000">
+              <input type="number" class="form-control form-control-sm" id="loss2023" value="150000000" autocomplete="off" aria-label="Loss2023">
             </div>
           </div>
           <div class="row g-2 mt-1">
             <div class="col-6">
               <label class="form-label small fw-semibold" style="font-size:0.7rem">N-2 (2024)</label>
-              <input type="number" class="form-control form-control-sm" id="loss2024" value="0">
+              <input type="number" class="form-control form-control-sm" id="loss2024" value="0" autocomplete="off" aria-label="Loss2024">
             </div>
             <div class="col-6">
               <label class="form-label small fw-semibold" style="font-size:0.7rem">N-1 (2025)</label>
-              <input type="number" class="form-control form-control-sm" id="loss2025" value="60000000">
+              <input type="number" class="form-control form-control-sm" id="loss2025" value="60000000" autocomplete="off" aria-label="Loss2025">
             </div>
           </div>
         </div>
 
         <div class="mt-4">
           <button class="btn btn-primary w-100 py-2.5 rounded-pill mb-2" onclick="optimizeLossOffset()">
-            <i class="bi bi-cpu-fill me-2"></i>AI Tối Ưu Hóa Chuyển Lỗ
+            <i class="bi bi-cpu-fill me-2" aria-hidden="true"></i>AI Tối Ưu Hóa Chuyển Lỗ
           </button>
           <button class="btn btn-outline-secondary w-100 py-2 rounded-pill" onclick="resetCITInputs()">
-            <i class="bi-arrow-clockwise me-2"></i>Tải Lại Số Liệu Gốc
+            <i class="bi-arrow-clockwise me-2" aria-hidden="true"></i>Tải Lại Số Liệu Gốc
           </button>
         </div>
       </div>
@@ -239,7 +239,7 @@
     <div class="col-lg-8">
       <div class="glass-card p-4 h-100">
         <h5 class="fw-bold mb-3 d-flex align-items-center justify-content-between">
-          <span><i class="bi bi-diagram-3 me-2 text-success"></i>Bản đồ Dòng Thuế & Khấu trừ Lỗ TNDN (US-483)</span>
+          <span><i class="bi bi-diagram-3 me-2 text-success" aria-hidden="true"></i>Bản đồ Dòng Thuế & Khấu trừ Lỗ TNDN (US-483)</span>
           <span class="badge bg-success bg-opacity-15 text-success rounded-pill px-3 py-1 text-uppercase" style="font-size: 0.7rem">Realtime SVG Flow</span>
         </h5>
         
@@ -300,12 +300,12 @@
   <div class="glass-card p-4 mb-4">
     <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
       <div>
-        <h5 class="fw-bold mb-1"><i class="bi bi-table text-primary me-2"></i>Bảng Kê Chuyển Lỗ Thuế TNDN (Phụ lục 03-2A)</h5>
+        <h5 class="fw-bold mb-1"><i class="bi bi-table text-primary me-2" aria-hidden="true"></i>Bảng Kê Chuyển Lỗ Thuế TNDN (Phụ lục 03-2A)</h5>
         <p class="text-muted small mb-0">Hiển thị lịch trình chuyển lỗ theo thứ tự phát sinh và hạn định 5 năm liên tục.</p>
       </div>
       <div class="d-flex gap-2">
         <button class="btn btn-success rounded-pill btn-sm px-4" onclick="exportCITXml()">
-          <i class="bi bi-file-earmark-xml-fill me-2"></i>Xuất Tờ Khai XML GDT Mẫu 03/TNDN
+          <i class="bi bi-file-earmark-xml-fill me-2" aria-hidden="true"></i>Xuất Tờ Khai XML GDT Mẫu 03/TNDN
         </button>
       </div>
     </div>
@@ -339,14 +339,14 @@
     <div class="row g-4">
       <div class="col-lg-7">
         <h5 class="fw-bold mb-3 d-flex align-items-center justify-content-between">
-          <span><i class="bi bi-chat-left-dots text-warning me-2"></i>Multi-Agent Swarm CIT Consensus Debate (US-484)</span>
+          <span><i class="bi bi-chat-left-dots text-warning me-2" aria-hidden="true"></i>Multi-Agent Swarm CIT Consensus Debate (US-484)</span>
           <span class="badge bg-warning bg-opacity-15 text-warning rounded-pill px-2 py-0.5" style="font-size:0.65rem">AI Swarm</span>
         </h5>
 
         <!-- Debate Message Container -->
         <div id="swarmDebateContainer" class="overflow-auto p-3 bg-light-custom bg-opacity-5 rounded-3 mb-3" style="min-height: 250px; max-height: 350px;">
           <div class="text-center py-5 text-muted">
-            <i class="bi bi-chat-dots fs-1 d-block mb-2 text-secondary"></i>
+            <i class="bi bi-chat-dots fs-1 d-block mb-2 text-secondary" aria-hidden="true"></i>
             Chưa khởi chạy thảo luận tư vấn quyết toán thuế. Bấm nút bên phải để khởi động Swarm.
           </div>
         </div>
@@ -363,10 +363,10 @@
           </div>
           <div class="mt-3">
             <button class="btn btn-warning w-100 py-2.5 rounded-pill mb-2" onclick="runSwarmDebate()">
-              <i class="bi bi-lightning-charge-fill me-2"></i>Khởi Chạy Swarm Consensus
+              <i class="bi bi-lightning-charge-fill me-2" aria-hidden="true"></i>Khởi Chạy Swarm Consensus
             </button>
             <button class="btn btn-outline-warning w-100 py-2 rounded-pill" onclick="downloadCITMemo()" id="btnDownloadMemo" disabled>
-              <i class="bi bi-download me-2"></i>Tải Biên Bản Tư Vấn (.md)
+              <i class="bi bi-download me-2" aria-hidden="true"></i>Tải Biên Bản Tư Vấn (.md)
             </button>
           </div>
         </div>
@@ -613,7 +613,7 @@
     }
 
     const container = document.getElementById("swarmDebateContainer");
-    container.innerHTML = `<div class="text-center py-5"><div class="spinner-border text-warning"></div><div class="mt-2 text-muted small">Swarm Advisors đang phản biện giải pháp quyết toán...</div></div>`;
+    container.innerHTML = `<div class="text-center py-5"><div class="spinner-border text-warning"></div><div class="mt-2 text-muted small">Swarm Advisors đang phản biện giải pháp quyết toán…</div></div>`;
 
     const payload = getCITFormPayload();
 
@@ -649,7 +649,7 @@
           
           div.innerHTML = `
             <span class="badge ${av.class} rounded-circle p-2 flex-shrink-0 text-snow" style="width:38px;height:38px;display:flex;align-items:center;justify-content:center;">
-              <i class="bi bi-robot"></i>
+              <i class="bi bi-robot" aria-hidden="true"></i>
             </span>
             <div class="chat-bubble ${isLeft ? 'bg-light-custom bg-opacity-75 text-dark' : 'bg-primary text-snow'} rounded-3">
               <div class="fw-bold small">${av.name}</div>
@@ -668,7 +668,7 @@
     })
     .catch(err => {
       console.error("Swarm failure:", err);
-      container.innerHTML = `<div class="text-center text-danger py-4"><i class="bi bi-exclamation-triangle fs-3"></i> Lỗi Swarm.</div>`;
+      container.innerHTML = `<div class="text-center text-danger py-4"><i class="bi bi-exclamation-triangle fs-3" aria-hidden="true"></i> Lỗi Swarm.</div>`;
     });
   }
 

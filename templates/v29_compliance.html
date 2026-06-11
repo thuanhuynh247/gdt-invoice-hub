@@ -586,10 +586,10 @@
             let flagsHtml = "";
             if (data.flags.length > 0) {
                 data.flags.forEach(f => {
-                    flagsHtml += `<li class="list-group-item bg-transparent text-slate-300 border-0 p-1 small"><i class="bi bi-flag-fill text-info me-2"></i>${f}</li>`;
+                    flagsHtml += `<li class="list-group-item bg-transparent text-slate-300 border-0 p-1 small"><i class="bi bi-flag-fill text-info me-2" aria-hidden="true"></i>${f}</li>`;
                 });
             } else {
-                flagsHtml = `<li class="list-group-item bg-transparent text-success border-0 p-1 small"><i class="bi bi-shield-check me-2"></i>Không phát hiện dấu hiệu bất thường về điều lệ hay thâm niên.</li>`;
+                flagsHtml = `<li class="list-group-item bg-transparent text-success border-0 p-1 small"><i class="bi bi-shield-check me-2" aria-hidden="true"></i>Không phát hiện dấu hiệu bất thường về điều lệ hay thâm niên.</li>`;
             }
             lstInspectorFlags.innerHTML = flagsHtml;
 
@@ -665,7 +665,7 @@
         swarmV29Timeline.innerHTML = `
             <div class="text-center py-4">
                 <div class="spinner-border text-info" role="status"></div>
-                <p class="mt-2 text-secondary small">Kích hoạt Swarm Agent tư vấn pháp lý. Xin chờ...</p>
+                <p class="mt-2 text-secondary small">Kích hoạt Swarm Agent tư vấn pháp lý. Xin chờ…</p>
             </div>
         `;
 
@@ -882,7 +882,7 @@
                 const targetNode = globalGraphData.nodes.find(n => n.id === edge.to);
                 edgesHtml += `
                     <div class="list-group-item bg-transparent border-0 ps-0 text-slate-300 small">
-                        <i class="bi bi-arrow-right-short text-info fs-5 align-middle"></i>
+                        <i class="bi bi-arrow-right-short text-info fs-5 align-middle" aria-hidden="true"></i>
                         Liên kết sang <strong>${targetNode.label}</strong>: ${edge.desc}
                     </div>
                 `;
@@ -890,7 +890,7 @@
                 const sourceNode = globalGraphData.nodes.find(n => n.id === edge.from);
                 edgesHtml += `
                     <div class="list-group-item bg-transparent border-0 ps-0 text-slate-300 small">
-                        <i class="bi bi-arrow-left-short text-warning fs-5 align-middle"></i>
+                        <i class="bi bi-arrow-left-short text-warning fs-5 align-middle" aria-hidden="true"></i>
                         Được dẫn chiếu bởi <strong>${sourceNode.label}</strong>: ${edge.desc}
                     </div>
                 `;

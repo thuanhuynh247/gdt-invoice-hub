@@ -505,17 +505,17 @@
                 if (parsedData.error) {
                     alert(parsedData.error);
                     parsePxkBtn.disabled = false;
-                    parsePxkBtn.innerHTML = `<i class="bi bi-braces me-1"></i>Phân tích XML`;
+                    parsePxkBtn.innerHTML = `<i class="bi bi-braces me-1" aria-hidden="true"></i>Phân tích XML`;
                     return;
                 }
 
                 // Render signature status
                 if (parsedData.signature_valid) {
                     pxkSignatureStatus.className = "p-3 rounded text-center bg-success-subtle text-success";
-                    pxkSignatureStatus.innerHTML = `<i class="bi bi-patch-check-fill fs-3 mb-2 d-block"></i><strong>Chữ ký số HỢP LỆ</strong><br><small class="text-secondary">Thuật toán: SHA256withRSA</small>`;
+                    pxkSignatureStatus.innerHTML = `<i class="bi bi-patch-check-fill fs-3 mb-2 d-block" aria-hidden="true"></i><strong>Chữ ký số HỢP LỆ</strong><br><small class="text-secondary">Thuật toán: SHA256withRSA</small>`;
                 } else {
                     pxkSignatureStatus.className = "p-3 rounded text-center bg-danger-subtle text-danger";
-                    pxkSignatureStatus.innerHTML = `<i class="bi bi-patch-exclamation-fill fs-3 mb-2 d-block"></i><strong>Chữ ký số KHÔNG HỢP LỆ hoặc Thiếu chữ ký</strong>`;
+                    pxkSignatureStatus.innerHTML = `<i class="bi bi-patch-exclamation-fill fs-3 mb-2 d-block" aria-hidden="true"></i><strong>Chữ ký số KHÔNG HỢP LỆ hoặc Thiếu chữ ký</strong>`;
                 }
 
                 // Run Reconciliation
@@ -529,7 +529,7 @@
             .then(res => res.json())
             .then(reconciliationReport => {
                 parsePxkBtn.disabled = false;
-                parsePxkBtn.innerHTML = `<i class="bi bi-braces me-1"></i>Phân tích XML`;
+                parsePxkBtn.innerHTML = `<i class="bi bi-braces me-1" aria-hidden="true"></i>Phân tích XML`;
                 
                 if (!reconciliationReport) return;
 
@@ -557,7 +557,7 @@
             })
             .catch(err => {
                 parsePxkBtn.disabled = false;
-                parsePxkBtn.innerHTML = `<i class="bi bi-braces me-1"></i>Phân tích XML`;
+                parsePxkBtn.innerHTML = `<i class="bi bi-braces me-1" aria-hidden="true"></i>Phân tích XML`;
                 console.error(err);
                 alert("Lỗi phân tích hoặc đối soát XML");
             });
@@ -632,7 +632,7 @@
             .then(res => res.json())
             .then(report => {
                 runTaxRiskBtn.disabled = false;
-                runTaxRiskBtn.innerHTML = `<i class="bi bi-play-circle me-1"></i>Tính toán rủi ro thuế`;
+                runTaxRiskBtn.innerHTML = `<i class="bi bi-play-circle me-1" aria-hidden="true"></i>Tính toán rủi ro thuế`;
 
                 if (report.error) {
                     alert(report.error);
@@ -680,7 +680,7 @@
             })
             .catch(err => {
                 runTaxRiskBtn.disabled = false;
-                runTaxRiskBtn.innerHTML = `<i class="bi bi-play-circle me-1"></i>Tính toán rủi ro thuế`;
+                runTaxRiskBtn.innerHTML = `<i class="bi bi-play-circle me-1" aria-hidden="true"></i>Tính toán rủi ro thuế`;
                 console.error(err);
             });
         });
@@ -805,7 +805,7 @@
             .then(res => res.json())
             .then(forecast => {
                 runForecastBtn.disabled = false;
-                runForecastBtn.innerHTML = `<i class="bi bi-magic me-1"></i>Chạy Dự báo Dòng tiền`;
+                runForecastBtn.innerHTML = `<i class="bi bi-magic me-1" aria-hidden="true"></i>Chạy Dự báo Dòng tiền`;
 
                 if (forecast.error) {
                     alert(forecast.error);
@@ -849,7 +849,7 @@
             })
             .catch(err => {
                 runForecastBtn.disabled = false;
-                runForecastBtn.innerHTML = `<i class="bi bi-magic me-1"></i>Chạy Dự báo Dòng tiền`;
+                runForecastBtn.innerHTML = `<i class="bi bi-magic me-1" aria-hidden="true"></i>Chạy Dự báo Dòng tiền`;
                 console.error(err);
             });
         });

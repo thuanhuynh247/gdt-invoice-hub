@@ -5,6 +5,39 @@
 
 let sessionWarningShown = false;
 
+// Skeleton screen placeholder generator for data tables
+function getSkeletonRows(columnCount, rowCount = 5) {
+    let rowsHtml = "";
+    for (let r = 0; r < rowCount; r++) {
+        rowsHtml += `<tr>`;
+        for (let c = 0; c < columnCount; c++) {
+            let width = "80%";
+            if (c === 0) width = "50%";
+            else if (c === 1) width = "65%";
+            else if (c === columnCount - 1) width = "40%";
+            
+            let cellClass = "";
+            if (columnCount === 7) {
+                if (c === 2) cellClass = "text-end";
+                else if (c === 6) cellClass = "text-center";
+            } else if (columnCount === 8) {
+                if (c === 2 || c === 4 || c === 5) cellClass = "text-end";
+                else if (c === 3 || c === 7) cellClass = "text-center";
+            } else if (columnCount === 9) {
+                if (c === 4 || c === 5 || c === 6) cellClass = "text-end";
+                else if (c === 7 || c === 8) cellClass = "text-center";
+            }
+            rowsHtml += `
+                <td class="${cellClass}">
+                    <div class="skeleton-loading" style="height: 18px; width: ${width}; display: inline-block;"></div>
+                </td>
+            `;
+        }
+        rowsHtml += `</tr>`;
+    }
+    return rowsHtml;
+}
+
 // 1. Alert Banner Helper
 function renderAlert(message, type = "info") {
     const region = document.getElementById("appAlertRegion");
@@ -1122,18 +1155,28 @@ async function handleInvoiceSearch(event) {
     const cancelledOnly = document.getElementById("cancelledOnly").checked;
     const direction = document.getElementById("invoiceDirection").value;
 
+    const body = document.getElementById("invoiceTableBody");
+    if (body) {
+        body.innerHTML = getSkeletonRows(7, 5);
+    }
+
     try {
         const data = await apiCall(`/api/invoices?from=${from}&to=${to}&cancelled_only=${cancelledOnly}&direction=${direction}`);
-        const body = document.getElementById("invoiceTableBody");
         const count = document.getElementById("resultsCount");
 
-        count.textContent = `Tổng cộng: ${data.total_count} hóa đơn`;
+        if (count) {
+            count.textContent = `Tổng cộng: ${data.total_count} hóa đơn`;
+        }
         if (!data.invoices.length) {
-            body.innerHTML = '<tr><td colspan="7" class="text-center text-secondary py-5"><div class="empty-state"><span class="empty-icon"><i class="bi bi-folder2-open"></i></span><p class="mb-0">Không tìm thấy hóa đơn nào trong khoảng thời gian này.</p></div></td></tr>';
+            if (body) {
+                body.innerHTML = '<tr><td colspan="7" class="text-center text-secondary py-5"><div class="empty-state"><span class="empty-icon"><i class="bi bi-folder2-open"></i></span><p class="mb-0">Không tìm thấy hóa đơn nào trong khoảng thời gian này.</p></div></td></tr>';
+            }
             return;
         }
 
-        body.innerHTML = data.invoices.map(buildInvoiceRow).join("");
+        if (body) {
+            body.innerHTML = data.invoices.map(buildInvoiceRow).join("");
+        }
 
         // Double-click row handler binding
         const rows = body.querySelectorAll("tr");
@@ -1323,7 +1366,7 @@ async function loadPartnersData() {
     const countBadge = document.getElementById("partnersCount");
     if (!tbody) return;
 
-    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Đang tải dữ liệu đối tác...</td></tr>';
+    tbody.innerHTML = getSkeletonRows(7, 5);
 
     try {
         const data = await apiCall(`/api/partners?from=${from}&to=${to}&direction=${direction}`);
@@ -1481,7 +1524,7 @@ async function loadPartnersPivot() {
     
     if (!tbody) return;
     
-    tbody.innerHTML = '<tr><td colspan="15" class="text-center py-4"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Đang tải dữ liệu tổng hợp pivot...</td></tr>';
+    tbody.innerHTML = getSkeletonRows(15, 5);
     if (thead) thead.innerHTML = '';
     if (tfoot) tfoot.innerHTML = '';
     
@@ -1627,7 +1670,7 @@ async function loadReportsData() {
     const tbody = document.getElementById("reportsTableBody");
     if (!tbody) return;
 
-    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Đang xuất báo cáo thuế...</td></tr>';
+    tbody.innerHTML = getSkeletonRows(7, 4);
 
     try {
         const data = await apiCall(`/api/reports/usage?from=${from}&to=${to}&direction=${direction}`);
@@ -2068,7 +2111,7 @@ async function loadLocalInvoices() {
     const tbody = document.getElementById("localInvoicesTableBody");
     if (!tbody) return;
 
-    tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Đang tải kho dữ liệu cục bộ...</td></tr>';
+    tbody.innerHTML = getSkeletonRows(9, 5);
 
     try {
         const data = await apiCall("/api/invoices/local");
@@ -2347,6 +2390,20 @@ async function uploadFiles(files) {
     const duplicateStrategy = dupSelect ? dupSelect.value : "overwrite";
     formData.append("duplicate_strategy", duplicateStrategy);
 
+    const dropZone = document.getElementById("dropZone");
+    const originalContent = dropZone ? dropZone.innerHTML : null;
+    
+    if (dropZone) {
+        dropZone.style.pointerEvents = "none";
+        dropZone.innerHTML = `
+            <div class="drop-zone-content animate-pulse">
+                <span class="spinner-border spinner-border-lg text-primary-accent mb-3" role="status" aria-hidden="true" style="width: 2.5rem; height: 2.5rem; border-width: 0.25em;"></span>
+                <p class="mb-1 fw-bold text-light">Đang tải & trích xuất XML...</p>
+                <p class="text-secondary small mb-0">Đang đối soát chữ ký số & thông tin hóa đơn</p>
+            </div>
+        `;
+    }
+
     renderAlert("Đang trích xuất thông tin hóa đơn và chữ ký số...", "info");
 
     try {
@@ -2371,6 +2428,11 @@ async function uploadFiles(files) {
         await loadLocalInvoices();
     } catch (error) {
         renderAlert(error.message, "danger");
+    } finally {
+        if (dropZone && originalContent) {
+            dropZone.style.pointerEvents = "";
+            dropZone.innerHTML = originalContent;
+        }
     }
 }
 
@@ -2386,7 +2448,7 @@ async function handleItemSearch() {
         return;
     }
 
-    tbody.innerHTML = '<tr><td colspan="8" class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Đang tìm kiếm sản phẩm...</td></tr>';
+    tbody.innerHTML = getSkeletonRows(8, 3);
     wrapper.style.display = "block";
 
     try {

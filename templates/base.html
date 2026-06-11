@@ -31,97 +31,107 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto mb-2 mb-xl-0 ms-0 ms-xl-4">
+                <ul class="navbar-nav me-auto mb-2 mb-xl-0 ms-0 ms-xl-3">
+                    <!-- Core: Direct links -->
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/invoices' %}active{% endif %}" href="{{ url_for('invoices.invoices_page') }}"><i class="bi bi-receipt" aria-hidden="true"></i> Tra cứu Hóa đơn</a>
+                        <a class="nav-link {% if request.path == '/invoices' %}active{% endif %}" href="{{ url_for('invoices.invoices_page') }}"><i class="bi bi-receipt" aria-hidden="true"></i> Hóa đơn</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/issue-invoice' %}active{% endif %}" href="{{ url_for('invoices.issue_invoice_page') }}"><i class="bi bi-file-earmark-plus" aria-hidden="true"></i> Phát hành Hóa đơn</a>
+                        <a class="nav-link {% if request.path == '/issue-invoice' %}active{% endif %}" href="{{ url_for('invoices.issue_invoice_page') }}"><i class="bi bi-file-earmark-plus" aria-hidden="true"></i> Phát hành</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/cashflow' %}active{% endif %}" href="{{ url_for('invoices.cashflow_page') }}"><i class="bi bi-graph-up-arrow" aria-hidden="true"></i> Dự báo Dòng tiền</a>
+                        <a class="nav-link {% if request.path == '/cashflow' %}active{% endif %}" href="{{ url_for('invoices.cashflow_page') }}"><i class="bi bi-graph-up-arrow" aria-hidden="true"></i> Dòng tiền</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if request.path == '/tax-bctc' %}active{% endif %}" href="{{ url_for('invoices.tax_bctc_page') }}"><i class="bi bi-file-earmark-bar-graph" aria-hidden="true"></i> Thuế & BCTC</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/v26-compliance' %}active{% endif %}" href="{{ url_for('invoices.v26_compliance_page') }}"><i class="bi bi-shield-check-fill text-warning" aria-hidden="true"></i> Tuân thủ v26</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/v27-compliance' %}active{% endif %}" href="{{ url_for('invoices.v27_compliance_page') }}"><i class="bi bi-shield-lock-fill text-info" aria-hidden="true"></i> Tuân thủ v27</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/v28-compliance' %}active{% endif %}" href="{{ url_for('invoices.v28_compliance_page') }}"><i class="bi bi-shield-shaded text-danger" aria-hidden="true"></i> Tuân thủ v28</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/v29-compliance' %}active{% endif %}" href="{{ url_for('invoices.v29_compliance_page') }}"><i class="bi bi-shield-slash-fill text-warning" aria-hidden="true"></i> Tuân thủ v29 <span class="badge bg-warning text-dark rounded-pill ms-1" style="font-size: 0.65em;">V29</span></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/v30-compliance' %}active{% endif %}" href="{{ url_for('invoices.v30_compliance_page') }}"><i class="bi bi-shield-lock-fill text-info" aria-hidden="true"></i> Tuân thủ v30 <span class="badge bg-info text-dark rounded-pill ms-1" style="font-size: 0.65em;">V30</span></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/v31-compliance' %}active{% endif %}" href="{{ url_for('invoices.v31_compliance_page') }}"><i class="bi bi-shield-check-fill text-primary" aria-hidden="true"></i> Tuân thủ v31 <span class="badge bg-primary text-white rounded-pill ms-1" style="font-size: 0.65em;">V31</span></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/v32-compliance' %}active{% endif %}" href="{{ url_for('invoices.v32_compliance_page') }}"><i class="bi bi-gift-fill text-success" aria-hidden="true"></i> Hoàn thuế v32 <span class="badge bg-success text-white rounded-pill ms-1" style="font-size: 0.65em;">V32</span></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/v33-compliance' %}active{% endif %}" href="{{ url_for('invoices.v33_compliance_page') }}"><i class="bi bi-file-earmark-bar-graph text-warning" aria-hidden="true"></i> Quyết toán v33 <span class="badge bg-warning text-dark rounded-pill ms-1" style="font-size: 0.65em;">V33</span></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/v34-compliance' %}active{% endif %}" href="{{ url_for('invoices.v34_compliance_page') }}"><i class="bi bi-clock-history text-danger" aria-hidden="true"></i> Tuổi nợ v34 <span class="badge bg-danger text-white rounded-pill ms-1" style="font-size: 0.65em;">V34</span></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/v35-compliance' %}active{% endif %}" href="{{ url_for('invoices.v35_compliance_page') }}"><i class="bi bi-shield-shaded text-primary" aria-hidden="true"></i> Stress Test v35 <span class="badge bg-primary text-white rounded-pill ms-1" style="font-size: 0.65em;">V35</span></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/v36-cit-finalization' %}active{% endif %}" href="{{ url_for('invoices.v36_cit_finalization_page') }}"><i class="bi bi-file-earmark-spreadsheet text-success" aria-hidden="true"></i> Quyết toán TNDN v36 <span class="badge bg-success text-white rounded-pill ms-1" style="font-size: 0.65em;">V36</span></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/v37-ceo-dashboard' %}active{% endif %}" href="{{ url_for('invoices.v37_ceo_dashboard_page') }}"><i class="bi bi-speedometer2 text-info" aria-hidden="true"></i> CEO Dashboard v37 <span class="badge bg-info text-dark rounded-pill ms-1" style="font-size: 0.65em;">V37</span></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/v38-delivery-reconciliation' %}active{% endif %}" href="{{ url_for('invoices.v38_delivery_reconciliation_page') }}"><i class="bi bi-shuffle text-warning" aria-hidden="true"></i> Đối soát kho v38 <span class="badge bg-warning text-dark rounded-pill ms-1" style="font-size: 0.65em;">V38</span></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/v39-deferred-tax-and-risk' %}active{% endif %}" href="{{ url_for('invoices.v39_deferred_tax_and_risk') }}"><i class="bi bi-bank text-info" aria-hidden="true"></i> Hoãn thuế & Rủi ro v39 <span class="badge bg-info text-dark rounded-pill ms-1" style="font-size: 0.65em;">V39</span></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/v40-compliance-dashboard' %}active{% endif %}" href="{{ url_for('invoices.v40_compliance_dashboard') }}"><i class="bi bi-shield-check-fill text-warning" aria-hidden="true"></i> Tuân thủ v40 <span class="badge bg-warning text-dark rounded-pill ms-1" style="font-size: 0.65em;">V40</span></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/v41-export-refund' %}active{% endif %}" href="{{ url_for('invoices.v41_export_refund_page') }}"><i class="bi bi-shield-check-fill text-success" aria-hidden="true"></i> Hoàn thuế v41 <span class="badge bg-success text-white rounded-pill ms-1" style="font-size: 0.65em;">V41</span></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/v42-advanced-audit' %}active{% endif %}" href="{{ url_for('invoices.v42_advanced_audit_page') }}"><i class="bi bi-briefcase-fill text-warning" aria-hidden="true"></i> Quyết toán nâng cao v42 <span class="badge bg-warning text-dark rounded-pill ms-1" style="font-size: 0.65em;">V42</span></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/v43-ifrs-dashboard' %}active{% endif %}" href="{{ url_for('invoices.v43_ifrs_dashboard_page') }}"><i class="bi bi-globe2 text-info" aria-hidden="true"></i> IFRS Console v43 <span class="badge bg-info text-dark rounded-pill ms-1" style="font-size: 0.65em;">V43</span></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/v44-compliance-hub' %}active{% endif %}" href="{{ url_for('invoices.v44_compliance_hub_page') }}"><i class="bi bi-shield-shaded text-success" aria-hidden="true"></i> Compliance Hub v44 <span class="badge bg-success text-white rounded-pill ms-1" style="font-size: 0.65em;">V44</span></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/v45-compliance-hub' %}active{% endif %}" href="{{ url_for('invoices.v45_compliance_hub_page') }}"><i class="bi bi-shield-check text-info" aria-hidden="true"></i> CIT & TP Hub v45 <span class="badge bg-info text-dark rounded-pill ms-1" style="font-size: 0.65em;">V45</span></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/v46-compliance-hub' %}active{% endif %}" href="{{ url_for('invoices.v46_compliance_hub_page') }}"><i class="bi bi-shield-fill text-warning" aria-hidden="true"></i> Error & Conversion v46 <span class="badge bg-warning text-dark rounded-pill ms-1" style="font-size: 0.65em;">V46</span></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/harness' %}active{% endif %}" href="{{ url_for('invoices.harness_page') }}"><i class="bi bi-cpu-fill" aria-hidden="true"></i> Harness Agent</a>
+
+                    <!-- Compliance Dropdown (v26-v31) -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle {% if request.path in ['/v26-compliance','/v27-compliance','/v28-compliance','/v29-compliance','/v30-compliance','/v31-compliance'] %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-shield-check" aria-hidden="true"></i> Tuân thủ
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-premium">
+                            <li><h6 class="dropdown-header"><i class="bi bi-shield-fill me-1" aria-hidden="true"></i> Kiểm tra Tuân thủ</h6></li>
+                            <li><a class="dropdown-item {% if request.path == '/v26-compliance' %}active{% endif %}" href="{{ url_for('invoices.v26_compliance_page') }}"><i class="bi bi-shield-check-fill text-warning me-2" aria-hidden="true"></i>Tuân thủ v26</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/v27-compliance' %}active{% endif %}" href="{{ url_for('invoices.v27_compliance_page') }}"><i class="bi bi-shield-lock-fill text-info me-2" aria-hidden="true"></i>Tuân thủ v27</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/v28-compliance' %}active{% endif %}" href="{{ url_for('invoices.v28_compliance_page') }}"><i class="bi bi-shield-shaded text-danger me-2" aria-hidden="true"></i>Tuân thủ v28</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/v29-compliance' %}active{% endif %}" href="{{ url_for('invoices.v29_compliance_page') }}"><i class="bi bi-shield-slash-fill text-warning me-2" aria-hidden="true"></i>Tuân thủ v29</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/v30-compliance' %}active{% endif %}" href="{{ url_for('invoices.v30_compliance_page') }}"><i class="bi bi-shield-lock-fill text-info me-2" aria-hidden="true"></i>Tuân thủ v30</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/v31-compliance' %}active{% endif %}" href="{{ url_for('invoices.v31_compliance_page') }}"><i class="bi bi-shield-check-fill text-primary me-2" aria-hidden="true"></i>Tuân thủ v31</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item {% if request.path == '/v40-compliance-dashboard' %}active{% endif %}" href="{{ url_for('invoices.v40_compliance_dashboard') }}"><i class="bi bi-speedometer text-warning me-2" aria-hidden="true"></i>Dashboard Tuân thủ v40</a></li>
+                        </ul>
                     </li>
 
-                    {% if session.get('user_role') in ['admin', 'auditor'] %}
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/consolidated-dashboard' %}active{% endif %}" href="{{ url_for('invoices.consolidated_dashboard_page') }}"><i class="bi bi-ui-checks-grid" aria-hidden="true"></i> Hợp nhất</a>
+                    <!-- Tax Modules Dropdown (v32-v36) -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle {% if request.path in ['/v32-compliance','/v33-compliance','/v34-compliance','/v35-compliance','/v36-cit-finalization'] %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-calculator" aria-hidden="true"></i> Thuế chuyên sâu
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-premium">
+                            <li><h6 class="dropdown-header"><i class="bi bi-calculator-fill me-1" aria-hidden="true"></i> Phân tích Thuế</h6></li>
+                            <li><a class="dropdown-item {% if request.path == '/v32-compliance' %}active{% endif %}" href="{{ url_for('invoices.v32_compliance_page') }}"><i class="bi bi-gift-fill text-success me-2" aria-hidden="true"></i>Hoàn thuế v32</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/v33-compliance' %}active{% endif %}" href="{{ url_for('invoices.v33_compliance_page') }}"><i class="bi bi-file-earmark-bar-graph text-warning me-2" aria-hidden="true"></i>Quyết toán v33</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/v34-compliance' %}active{% endif %}" href="{{ url_for('invoices.v34_compliance_page') }}"><i class="bi bi-clock-history text-danger me-2" aria-hidden="true"></i>Tuổi nợ v34</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/v35-compliance' %}active{% endif %}" href="{{ url_for('invoices.v35_compliance_page') }}"><i class="bi bi-shield-shaded text-primary me-2" aria-hidden="true"></i>Stress Test v35</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/v36-cit-finalization' %}active{% endif %}" href="{{ url_for('invoices.v36_cit_finalization_page') }}"><i class="bi bi-file-earmark-spreadsheet text-success me-2" aria-hidden="true"></i>Quyết toán TNDN v36</a></li>
+                        </ul>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/advanced-audit' %}active{% endif %}" href="{{ url_for('invoices.advanced_audit_page') }}"><i class="bi bi-shield-check" aria-hidden="true"></i> Kiểm toán Nâng cao</a>
+
+                    <!-- Dashboards Dropdown (v37-v39) -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle {% if request.path in ['/v37-ceo-dashboard','/v38-delivery-reconciliation','/v39-deferred-tax-and-risk'] %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-speedometer2" aria-hidden="true"></i> Dashboard
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-premium">
+                            <li><h6 class="dropdown-header"><i class="bi bi-bar-chart-line-fill me-1" aria-hidden="true"></i> Bảng điều khiển</h6></li>
+                            <li><a class="dropdown-item {% if request.path == '/v37-ceo-dashboard' %}active{% endif %}" href="{{ url_for('invoices.v37_ceo_dashboard_page') }}"><i class="bi bi-speedometer2 text-info me-2" aria-hidden="true"></i>CEO Dashboard v37</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/v38-delivery-reconciliation' %}active{% endif %}" href="{{ url_for('invoices.v38_delivery_reconciliation_page') }}"><i class="bi bi-shuffle text-warning me-2" aria-hidden="true"></i>Đối soát kho v38</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/v39-deferred-tax-and-risk' %}active{% endif %}" href="{{ url_for('invoices.v39_deferred_tax_and_risk') }}"><i class="bi bi-bank text-info me-2" aria-hidden="true"></i>Hoãn thuế & Rủi ro v39</a></li>
+                        </ul>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/audit-trail' %}active{% endif %}" href="{{ url_for('invoices.audit_trail_page') }}"><i class="bi bi-shield-lock" aria-hidden="true"></i> Nhật ký</a>
+
+                    <!-- Advanced Modules Dropdown (v41-v52) -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle {% if request.path in ['/v41-export-refund','/v42-advanced-audit','/v43-ifrs-dashboard','/v44-compliance-hub','/v45-compliance-hub','/v46-compliance-hub','/v47-compliance-hub','/v48-compliance-hub','/v49-compliance-hub','/v50-compliance-hub','/v51-compliance-hub','/v52-compliance-hub'] %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-stars" aria-hidden="true"></i> Nâng cao
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-premium">
+                            <li><h6 class="dropdown-header"><i class="bi bi-stars me-1" aria-hidden="true"></i> Module Nâng cao</h6></li>
+                            <li><a class="dropdown-item {% if request.path == '/v41-export-refund' %}active{% endif %}" href="{{ url_for('invoices.v41_export_refund_page') }}"><i class="bi bi-box-arrow-up-right text-success me-2" aria-hidden="true"></i>Hoàn thuế XK v41</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/v42-advanced-audit' %}active{% endif %}" href="{{ url_for('invoices.v42_advanced_audit_page') }}"><i class="bi bi-briefcase-fill text-warning me-2" aria-hidden="true"></i>Quyết toán nâng cao v42</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/v43-ifrs-dashboard' %}active{% endif %}" href="{{ url_for('invoices.v43_ifrs_dashboard_page') }}"><i class="bi bi-globe2 text-info me-2" aria-hidden="true"></i>IFRS Console v43</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><h6 class="dropdown-header"><i class="bi bi-puzzle me-1" aria-hidden="true"></i> Compliance Hub</h6></li>
+                            <li><a class="dropdown-item {% if request.path == '/v44-compliance-hub' %}active{% endif %}" href="{{ url_for('invoices.v44_compliance_hub_page') }}"><i class="bi bi-shield-shaded text-success me-2" aria-hidden="true"></i>Compliance Hub v44</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/v45-compliance-hub' %}active{% endif %}" href="{{ url_for('invoices.v45_compliance_hub_page') }}"><i class="bi bi-shield-check text-info me-2" aria-hidden="true"></i>CIT & TP Hub v45</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/v46-compliance-hub' %}active{% endif %}" href="{{ url_for('invoices.v46_compliance_hub_page') }}"><i class="bi bi-shield-fill text-warning me-2" aria-hidden="true"></i>Error & Conversion v46</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/v47-compliance-hub' %}active{% endif %}" href="{{ url_for('invoices.v47_compliance_hub_page') }}"><i class="bi bi-shield text-primary me-2" aria-hidden="true"></i>VAT Rate Hub v47</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/v48-compliance-hub' %}active{% endif %}" href="{{ url_for('invoices.v48_compliance_hub_page') }}"><i class="bi bi-shield-shaded text-danger me-2" aria-hidden="true"></i>Agricultural Hub v48</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/v49-compliance-hub' %}active{% endif %}" href="{{ url_for('invoices.v49_compliance_hub_page') }}"><i class="bi bi-shield text-info me-2" aria-hidden="true"></i>CIT Law 67 Hub v49</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/v50-compliance-hub' %}active{% endif %}" href="{{ url_for('invoices.v50_compliance_hub_page') }}"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>PIT Law 109 Hub v50</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/v51-compliance-hub' %}active{% endif %}" href="{{ url_for('invoices.v51_compliance_hub_page') }}"><i class="bi bi-shield-fill text-warning me-2" aria-hidden="true"></i>Admin Law 108 Hub v51</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/v52-compliance-hub' %}active{% endif %}" href="{{ url_for('invoices.v52_compliance_hub_page') }}"><i class="bi bi-shield-fill text-danger me-2" aria-hidden="true"></i>SCT Law 66 Hub v52</a></li>
+                        </ul>
                     </li>
-                    {% endif %}
+
+                    <!-- Admin Tools -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle {% if request.path in ['/harness','/consolidated-dashboard','/advanced-audit','/audit-trail'] %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-gear" aria-hidden="true"></i> Công cụ
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-premium">
+                            <li><a class="dropdown-item {% if request.path == '/harness' %}active{% endif %}" href="{{ url_for('invoices.harness_page') }}"><i class="bi bi-cpu-fill me-2" aria-hidden="true"></i>Harness Agent</a></li>
+                            {% if session.get('user_role') in ['admin', 'auditor'] %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><h6 class="dropdown-header"><i class="bi bi-shield-lock me-1" aria-hidden="true"></i> Quản trị</h6></li>
+                            <li><a class="dropdown-item {% if request.path == '/consolidated-dashboard' %}active{% endif %}" href="{{ url_for('invoices.consolidated_dashboard_page') }}"><i class="bi bi-ui-checks-grid me-2" aria-hidden="true"></i>Hợp nhất</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/advanced-audit' %}active{% endif %}" href="{{ url_for('invoices.advanced_audit_page') }}"><i class="bi bi-shield-check me-2" aria-hidden="true"></i>Kiểm toán Nâng cao</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/audit-trail' %}active{% endif %}" href="{{ url_for('invoices.audit_trail_page') }}"><i class="bi bi-shield-lock me-2" aria-hidden="true"></i>Nhật ký</a></li>
+                            {% endif %}
+                        </ul>
+                    </li>
                 </ul>
                 <div class="d-flex flex-column flex-xl-row align-items-start align-items-xl-center gap-3 ms-auto mt-2 mt-xl-0">
                     {% if logged_in %}

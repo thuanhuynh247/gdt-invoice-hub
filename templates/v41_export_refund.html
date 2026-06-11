@@ -20,7 +20,7 @@
         </div>
         <div class="col-auto">
             <div class="glass-card p-2 d-flex gap-3 align-items-center" style="border-radius: 15px !important; padding: 12px !important;">
-                <span class="small text-secondary"><i class="bi bi-building me-1"></i> MST Đang chọn:</span>
+                <span class="small text-secondary"><i class="bi bi-building me-1" aria-hidden="true"></i> MST Đang chọn:</span>
                 <select class="form-select form-select-sm border-0 bg-transparent fw-bold" id="mstSelector" style="width: auto;">
                     {% for p in profiles %}
                     <option value="{{ p.mst }}" {% if p.mst == taxpayer_mst %}selected{% endif %}>{{ p.mst }} - {{ p.company_name }}</option>
@@ -35,7 +35,7 @@
         <!-- Card 1: Total Export Revenue -->
         <div class="col-md-3">
             <div class="stat-card" style="background-color: var(--stat-card-spend-bg);">
-                <div class="stat-icon icon-spend"><i class="bi bi-currency-exchange"></i></div>
+                <div class="stat-icon icon-spend"><i class="bi bi-currency-exchange" aria-hidden="true"></i></div>
                 <div class="stat-content">
                     <div class="stat-label">Tổng Kim ngạch Xuất khẩu</div>
                     <div class="stat-value text-gradient" id="statTotalExport" style="background: linear-gradient(135deg, var(--primary-accent) 0%, var(--color-deep-teal) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">0 VND</div>
@@ -46,7 +46,7 @@
         <!-- Card 2: Reconciled Status -->
         <div class="col-md-3">
             <div class="stat-card" style="background-color: var(--stat-card-active-bg);">
-                <div class="stat-icon icon-active"><i class="bi bi-link-45deg"></i></div>
+                <div class="stat-icon icon-active"><i class="bi bi-link-45deg" aria-hidden="true"></i></div>
                 <div class="stat-content">
                     <div class="stat-label">Tỷ lệ Đối soát Tờ khai</div>
                     <div class="stat-value" id="statReconciledRate">0%</div>
@@ -57,7 +57,7 @@
         <!-- Card 3: Refund Headroom Limit -->
         <div class="col-md-3">
             <div class="stat-card" style="background-color: var(--stat-card-tax-bg);">
-                <div class="stat-icon icon-tax"><i class="bi bi-safe-fill"></i></div>
+                <div class="stat-icon icon-tax"><i class="bi bi-safe-fill" aria-hidden="true"></i></div>
                 <div class="stat-content">
                     <div class="stat-label">Hạn mức Hoàn thuế Tối đa</div>
                     <div class="stat-value" id="statRefundLimit">0 VND</div>
@@ -68,7 +68,7 @@
         <!-- Card 4: Discrepancy Warnings -->
         <div class="col-md-3">
             <div class="stat-card" style="background-color: var(--stat-card-cancelled-bg);">
-                <div class="stat-icon icon-cancelled"><i class="bi bi-exclamation-triangle"></i></div>
+                <div class="stat-icon icon-cancelled"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i></div>
                 <div class="stat-content">
                     <div class="stat-label">Cảnh báo lệch giá trị</div>
                     <div class="stat-value text-danger" id="statDiscrepancies">0</div>
@@ -83,17 +83,17 @@
         <ul class="nav nav-pills nav-fill p-2 gap-2" id="complianceTab" role="tablist" style="background-color: var(--table-header-bg); border-radius: 12px 12px 0 0;">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active fw-bold py-3 px-4 rounded-3 border-0 transition-all font-outfit" id="parser-tab" data-bs-toggle="tab" data-bs-target="#parser-pane" type="button" role="tab" aria-controls="parser-pane" aria-selected="true">
-                    <i class="bi bi-file-earmark-code me-2"></i> Thông quan & Đối soát
+                    <i class="bi bi-file-earmark-code me-2" aria-hidden="true"></i> Thông quan & Đối soát
                 </button>
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link fw-bold py-3 px-4 rounded-3 border-0 transition-all font-outfit" id="report-tab" data-bs-toggle="tab" data-bs-target="#report-pane" type="button" role="tab" aria-controls="report-pane" aria-selected="false">
-                    <i class="bi bi-file-earmark-spreadsheet me-2"></i> Bảng kê 01-1/GTGT
+                    <i class="bi bi-file-earmark-spreadsheet me-2" aria-hidden="true"></i> Bảng kê 01-1/GTGT
                 </button>
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link fw-bold py-3 px-4 rounded-3 border-0 transition-all font-outfit" id="wizard-tab" data-bs-toggle="tab" data-bs-target="#wizard-pane" type="button" role="tab" aria-controls="wizard-pane" aria-selected="false">
-                    <i class="bi bi-wizard me-2"></i> Wizard Hoàn thuế 01/ĐNHT
+                    <i class="bi bi-wizard me-2" aria-hidden="true"></i> Wizard Hoàn thuế 01/ĐNHT
                 </button>
             </li>
         </ul>
@@ -105,23 +105,23 @@
                     <!-- Left: Upload Dropzone & Sample XMLs -->
                     <div class="col-lg-5">
                         <div class="p-3 bg-light-subtle rounded-4 border h-100">
-                            <h4 class="fw-bold font-outfit mb-3"><i class="bi bi-file-earmark-arrow-up text-success me-2"></i>Tải lên Tờ khai Hải quan XML</h4>
+                            <h4 class="fw-bold font-outfit mb-3"><i class="bi bi-file-earmark-arrow-up text-success me-2" aria-hidden="true"></i>Tải lên Tờ khai Hải quan XML</h4>
                             <p class="text-secondary small">Kéo thả tệp XML Thông quan hải quan theo chuẩn Tổng Cục Hải Quan để trích xuất dữ liệu.</p>
                             
                             <div class="dropzone-area p-5 border border-2 border-dashed rounded-4 text-center cursor-pointer transition-all mb-4" id="customsDropzone" style="background-color: rgba(0,0,0,0.01); border-color: var(--border-card) !important;">
-                                <i class="bi bi-cloud-arrow-up text-success display-4 mb-3"></i>
+                                <i class="bi bi-cloud-arrow-up text-success display-4 mb-3" aria-hidden="true"></i>
                                 <h5 class="fw-bold font-outfit">Kéo thả XML Hải quan vào đây</h5>
                                 <p class="text-secondary small mb-3">Hoặc nhấn để chọn file</p>
                                 <input type="file" id="customsFileInput" accept=".xml" class="d-none">
                             </div>
 
-                            <h5 class="fw-bold font-outfit mb-3"><i class="bi bi-file-code me-2 text-primary"></i>Chọn Mẫu XML Giả Lập</h5>
+                            <h5 class="fw-bold font-outfit mb-3"><i class="bi bi-file-code me-2 text-primary" aria-hidden="true"></i>Chọn Mẫu XML Giả Lập</h5>
                             <div class="d-grid gap-2">
                                 <button class="btn btn-outline-secondary text-start font-outfit" id="btnLoadValidCustoms" type="button">
-                                    <i class="bi bi-check-circle-fill text-success me-2"></i> Tờ khai Hợp lệ (Khớp 100% Hóa đơn)
+                                    <i class="bi bi-check-circle-fill text-success me-2" aria-hidden="true"></i> Tờ khai Hợp lệ (Khớp 100% Hóa đơn)
                                 </button>
                                 <button class="btn btn-outline-secondary text-start font-outfit" id="btnLoadInvalidCustoms" type="button">
-                                    <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i> Tờ khai chênh lệch giá trị (Discrepancy)
+                                    <i class="bi bi-exclamation-triangle-fill text-warning me-2" aria-hidden="true"></i> Tờ khai chênh lệch giá trị (Discrepancy)
                                 </button>
                             </div>
 
@@ -129,7 +129,7 @@
 
                             <div class="d-grid">
                                 <button class="btn btn-primary-accent btn-lg font-outfit" id="btnRunReconciliation" type="button">
-                                    <i class="bi bi-shuffle me-2"></i> Khởi chạy thuật toán đối soát tự động
+                                    <i class="bi bi-shuffle me-2" aria-hidden="true"></i> Khởi chạy thuật toán đối soát tự động
                                 </button>
                             </div>
                         </div>
@@ -138,12 +138,12 @@
                     <!-- Right: Parsed Result and Match Panel -->
                     <div class="col-lg-7">
                         <div class="p-3 bg-light-subtle rounded-4 border h-100">
-                            <h4 class="fw-bold font-outfit mb-3"><i class="bi bi-card-checklist text-success me-2"></i>Kết Quả Trích Xuất & Đối Soát</h4>
+                            <h4 class="fw-bold font-outfit mb-3"><i class="bi bi-card-checklist text-success me-2" aria-hidden="true"></i>Kết Quả Trích Xuất & Đối Soát</h4>
                             
                             <!-- Parser Results -->
                             <div id="parserResultSection" style="display: none;">
                                 <div class="alert alert-success d-flex align-items-center py-2 px-3 small border-0 mb-3" role="alert">
-                                    <i class="bi bi-patch-check-fill me-2"></i>
+                                    <i class="bi bi-patch-check-fill me-2" aria-hidden="true"></i>
                                     <span>Đã trích xuất thành công tờ khai hải quan!</span>
                                 </div>
                                 <table class="table table-sm table-bordered bg-white small mb-4">
@@ -173,7 +173,7 @@
                             </div>
 
                             <!-- Match Status Summary Table -->
-                            <h5 class="fw-bold font-outfit mb-3"><i class="bi bi-table me-2 text-secondary"></i>Danh Sách Đối Soát Hóa Đơn - Hải Quan</h5>
+                            <h5 class="fw-bold font-outfit mb-3"><i class="bi bi-table me-2 text-secondary" aria-hidden="true"></i>Danh Sách Đối Soát Hóa Đơn - Hải Quan</h5>
                             <div class="table-responsive">
                                 <table class="table table-hover align-middle small" id="tblReconciliationMatches">
                                     <thead class="table-light">
@@ -202,22 +202,22 @@
                     <div class="row align-items-end g-3 mb-4">
                         <div class="col-md-4">
                             <label for="periodStart" class="form-label">Từ ngày đăng ký</label>
-                            <input type="date" class="form-control custom-input w-100" id="periodStart" value="2026-01-01">
+                            <input type="date" class="form-control custom-input w-100" id="periodStart" value="2026-01-01" autocomplete="off">
                         </div>
                         <div class="col-md-4">
                             <label for="periodEnd" class="form-label">Đến ngày đăng ký</label>
-                            <input type="date" class="form-control custom-input w-100" id="periodEnd" value="2026-12-31">
+                            <input type="date" class="form-control custom-input w-100" id="periodEnd" value="2026-12-31" autocomplete="off">
                         </div>
                         <div class="col-md-4">
                             <button class="btn btn-primary-accent w-100" id="btnGenerateReport" type="button" style="min-height: 44px;">
-                                <i class="bi bi-file-earmark-spreadsheet me-2"></i> Lập Bảng kê 01-1/GTGT
+                                <i class="bi bi-file-earmark-spreadsheet me-2" aria-hidden="true"></i> Lập Bảng kê 01-1/GTGT
                             </button>
                         </div>
                     </div>
 
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h4 class="fw-bold font-outfit text-dark mb-0"><i class="bi bi-list-stars text-success me-2"></i>Bảng kê Hàng hóa Xuất khẩu (Thông tư 80/2021/TT-BTC)</h4>
-                        <button class="btn btn-outline-excel fw-bold" id="btnExportExcel" style="display: none;"><i class="bi bi-file-earmark-excel me-1"></i> Xuất Excel</button>
+                        <h4 class="fw-bold font-outfit text-dark mb-0"><i class="bi bi-list-stars text-success me-2" aria-hidden="true"></i>Bảng kê Hàng hóa Xuất khẩu (Thông tư 80/2021/TT-BTC)</h4>
+                        <button class="btn btn-outline-excel fw-bold" id="btnExportExcel" style="display: none;"><i class="bi bi-file-earmark-excel me-1" aria-hidden="true"></i> Xuất Excel</button>
                     </div>
 
                     <div class="table-responsive custom-table-wrapper">
@@ -292,31 +292,31 @@
                             
                             <!-- STEP 1 PANEL -->
                             <div class="wizard-panel" id="wizard-step1">
-                                <h4 class="fw-bold font-outfit mb-3"><i class="bi bi-calculator-fill text-primary me-2"></i>Bước 1: Thiết lập tham số kỳ hoàn thuế</h4>
+                                <h4 class="fw-bold font-outfit mb-3"><i class="bi bi-calculator-fill text-primary me-2" aria-hidden="true"></i>Bước 1: Thiết lập tham số kỳ hoàn thuế</h4>
                                 <p class="text-secondary small">Nhập thông tin kỳ hoàn thuế xuất khẩu và tổng số thuế GTGT đầu vào chưa được khấu trừ hết phát sinh trong kỳ.</p>
                                 
                                 <div class="row g-3 mb-4">
                                     <div class="col-md-6">
                                         <label for="wizPeriodStart" class="form-label">Kỳ hoàn thuế - Từ ngày</label>
-                                        <input type="date" class="form-control custom-input" id="wizPeriodStart" value="2026-01-01">
+                                        <input type="date" class="form-control custom-input" id="wizPeriodStart" value="2026-01-01" autocomplete="off">
                                     </div>
                                     <div class="col-md-6">
                                         <label for="wizPeriodEnd" class="form-label">Kỳ hoàn thuế - Đến ngày</label>
-                                        <input type="date" class="form-control custom-input" id="wizPeriodEnd" value="2026-12-31">
+                                        <input type="date" class="form-control custom-input" id="wizPeriodEnd" value="2026-12-31" autocomplete="off">
                                     </div>
                                     <div class="col-md-12">
                                         <label for="wizInputVat" class="form-label">Tổng thuế GTGT đầu vào hàng XK trong kỳ (VND)</label>
-                                        <input type="number" class="form-control custom-input fw-bold" id="wizInputVat" value="30000000" min="0">
+                                        <input type="number" class="form-control custom-input fw-bold" id="wizInputVat" value="30000000" min="0" autocomplete="off">
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-end">
-                                    <button class="btn btn-primary-accent" id="btnWizNext1" type="button">Tiếp tục bước 2 <i class="bi bi-arrow-right ms-1"></i></button>
+                                    <button class="btn btn-primary-accent" id="btnWizNext1" type="button">Tiếp tục bước 2 <i class="bi bi-arrow-right ms-1" aria-hidden="true"></i></button>
                                 </div>
                             </div>
 
                             <!-- STEP 2 PANEL -->
                             <div class="wizard-panel" id="wizard-step2" style="display: none;">
-                                <h4 class="fw-bold font-outfit mb-3"><i class="bi bi-safe2 text-success me-2"></i>Bước 2: Phân tích & Tính toán hạn mức hoàn thuế</h4>
+                                <h4 class="fw-bold font-outfit mb-3"><i class="bi bi-safe2 text-success me-2" aria-hidden="true"></i>Bước 2: Phân tích & Tính toán hạn mức hoàn thuế</h4>
                                 <p class="text-secondary small">Thuật toán tự động đối soát trị giá xuất khẩu đã thông quan và tính toán số thuế được hoàn tối đa theo quy định (nhỏ hơn giữa Thuế đầu vào và 10% doanh thu xuất khẩu).</p>
                                 
                                 <div class="bg-light rounded-4 p-4 border mb-4">
@@ -347,18 +347,18 @@
                                 </div>
 
                                 <div class="alert alert-info py-2 px-3 small border-0 mb-4" id="wizEligibilityAlert">
-                                    <i class="bi bi-info-circle-fill me-2"></i> Phân tích tính hợp lệ...
+                                    <i class="bi bi-info-circle-fill me-2" aria-hidden="true"></i> Phân tích tính hợp lệ…
                                 </div>
 
                                 <div class="d-flex justify-content-between">
-                                    <button class="btn btn-outline-secondary" id="btnWizBack2" type="button"><i class="bi bi-arrow-left me-1"></i> Quay lại</button>
-                                    <button class="btn btn-primary-accent" id="btnWizNext2" type="button">Tiếp tục bước 3 <i class="bi bi-arrow-right ms-1"></i></button>
+                                    <button class="btn btn-outline-secondary" id="btnWizBack2" type="button"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i> Quay lại</button>
+                                    <button class="btn btn-primary-accent" id="btnWizNext2" type="button">Tiếp tục bước 3 <i class="bi bi-arrow-right ms-1" aria-hidden="true"></i></button>
                                 </div>
                             </div>
 
                             <!-- STEP 3 PANEL -->
                             <div class="wizard-panel" id="wizard-step3" style="display: none;">
-                                <h4 class="fw-bold font-outfit mb-3"><i class="bi bi-file-earmark-check text-warning me-2"></i>Bước 3: Checklists hồ sơ & Điều kiện hoàn thuế</h4>
+                                <h4 class="fw-bold font-outfit mb-3"><i class="bi bi-file-earmark-check text-warning me-2" aria-hidden="true"></i>Bước 3: Checklists hồ sơ & Điều kiện hoàn thuế</h4>
                                 <p class="text-secondary small">Để đủ điều kiện hoàn thuế theo Thông tư 80/2021/TT-BTC, doanh nghiệp phải đáp ứng đầy đủ các tài liệu pháp lý đi kèm sau.</p>
                                 
                                 <div class="list-group mb-4">
@@ -393,31 +393,31 @@
                                 </div>
 
                                 <div class="d-flex justify-content-between">
-                                    <button class="btn btn-outline-secondary" id="btnWizBack3" type="button"><i class="bi bi-arrow-left me-1"></i> Quay lại</button>
-                                    <button class="btn btn-primary-accent" id="btnWizNext3" type="button">Tiếp tục bước 4 <i class="bi bi-arrow-right ms-1"></i></button>
+                                    <button class="btn btn-outline-secondary" id="btnWizBack3" type="button"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i> Quay lại</button>
+                                    <button class="btn btn-primary-accent" id="btnWizNext3" type="button">Tiếp tục bước 4 <i class="bi bi-arrow-right ms-1" aria-hidden="true"></i></button>
                                 </div>
                             </div>
 
                             <!-- STEP 4 PANEL -->
                             <div class="wizard-panel" id="wizard-step4" style="display: none;">
-                                <h4 class="fw-bold font-outfit mb-3"><i class="bi bi-cloud-upload text-danger me-2"></i>Bước 4: Nộp hồ sơ hoàn thuế 01/ĐNHT</h4>
+                                <h4 class="fw-bold font-outfit mb-3"><i class="bi bi-cloud-upload text-danger me-2" aria-hidden="true"></i>Bước 4: Nộp hồ sơ hoàn thuế 01/ĐNHT</h4>
                                 <p class="text-secondary small">Xác nhận số tiền đề nghị hoàn thuế cuối cùng. Hệ thống sẽ tạo và lưu trữ tờ khai XML hoàn thuế để chuẩn bị gửi sang cổng thông tin của Tổng Cục Thuế.</p>
                                 
                                 <div class="mb-4">
                                     <label for="wizRequestedAmount" class="form-label">Số tiền đề nghị hoàn thuế cuối cùng (VND)</label>
-                                    <input type="number" class="form-control form-control-lg custom-input fw-bold text-success" id="wizRequestedAmount" value="30000000" min="0">
+                                    <input type="number" class="form-control form-control-lg custom-input fw-bold text-success" id="wizRequestedAmount" value="30000000" min="0" autocomplete="off">
                                     <div id="wizAmountWarning" class="form-text text-danger small" style="display: none;">Số tiền yêu cầu vượt quá hạn mức hoàn tối đa được phép!</div>
                                 </div>
 
                                 <div class="d-grid mb-4">
                                     <button class="btn btn-success btn-lg fw-bold font-outfit text-snow" id="btnSubmitApplication" type="button" style="min-height: 50px;">
-                                        <i class="bi bi-send-check-fill me-2"></i> Xác nhận & Gửi hồ sơ hoàn thuế (XML 01/ĐNHT)
+                                        <i class="bi bi-send-check-fill me-2" aria-hidden="true"></i> Xác nhận & Gửi hồ sơ hoàn thuế (XML 01/ĐNHT)
                                     </button>
                                 </div>
 
                                 <div id="submissionResult" style="display: none;">
                                     <div class="alert alert-success p-3 border-0 rounded-4">
-                                        <h5 class="alert-heading fw-bold font-outfit"><i class="bi bi-check-circle-fill me-2"></i>Nộp hồ sơ thành công!</h5>
+                                        <h5 class="alert-heading fw-bold font-outfit"><i class="bi bi-check-circle-fill me-2" aria-hidden="true"></i>Nộp hồ sơ thành công!</h5>
                                         <p class="small mb-0">Hồ sơ hoàn thuế đã được ghi nhận vào cơ sở dữ liệu XML Hub. Hệ thống đã tạo tệp tờ khai điện tử XML mã hóa.</p>
                                         <hr>
                                         <div class="small">
@@ -429,7 +429,7 @@
                                 </div>
 
                                 <div class="d-flex justify-content-between">
-                                    <button class="btn btn-outline-secondary" id="btnWizBack4" type="button"><i class="bi bi-arrow-left me-1"></i> Quay lại</button>
+                                    <button class="btn btn-outline-secondary" id="btnWizBack4" type="button"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i> Quay lại</button>
                                 </div>
                             </div>
                         </div>
@@ -785,10 +785,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 const alertEl = document.getElementById("wizEligibilityAlert");
                 if (limitData.is_eligible) {
                     alertEl.className = "alert alert-success py-2 px-3 small border-0 mb-4";
-                    alertEl.innerHTML = `<i class="bi bi-check-circle-fill me-2"></i> Hồ sơ ĐỦ ĐIỀU KIỆN khởi tạo đề nghị hoàn thuế. Số tiền đề nghị hoàn tối đa là ${limitData.proposed_refund_amount.toLocaleString()} VND.`;
+                    alertEl.innerHTML = `<i class="bi bi-check-circle-fill me-2" aria-hidden="true"></i> Hồ sơ ĐỦ ĐIỀU KIỆN khởi tạo đề nghị hoàn thuế. Số tiền đề nghị hoàn tối đa là ${limitData.proposed_refund_amount.toLocaleString()} VND.`;
                 } else {
                     alertEl.className = "alert alert-danger py-2 px-3 small border-0 mb-4";
-                    alertEl.innerHTML = `<i class="bi bi-x-circle-fill me-2"></i> KHÔNG ĐỦ ĐIỀU KIỆN hoàn thuế: ${limitData.explanation}`;
+                    alertEl.innerHTML = `<i class="bi bi-x-circle-fill me-2" aria-hidden="true"></i> KHÔNG ĐỦ ĐIỀU KIỆN hoàn thuế: ${limitData.explanation}`;
                 }
                 
                 showWizardStep(2);

@@ -362,7 +362,7 @@
             .then(res => res.json())
             .then(data => {
                 runSiAuditBtn.disabled = false;
-                runSiAuditBtn.innerHTML = `<i class="bi bi-play-fill me-1"></i>Chạy đối soát BHXH`;
+                runSiAuditBtn.innerHTML = `<i class="bi bi-play-fill me-1" aria-hidden="true"></i>Chạy đối soát BHXH`;
                 
                 if (data.error) {
                     alert(data.error);
@@ -411,7 +411,7 @@
             })
             .catch(err => {
                 runSiAuditBtn.disabled = false;
-                runSiAuditBtn.innerHTML = `<i class="bi bi-play-fill me-1"></i>Chạy đối soát BHXH`;
+                runSiAuditBtn.innerHTML = `<i class="bi bi-play-fill me-1" aria-hidden="true"></i>Chạy đối soát BHXH`;
                 console.error(err);
                 alert("Lỗi kết nối máy chủ");
             });
@@ -446,7 +446,7 @@
             .then(res => res.json())
             .then(data => {
                 syncEtaxBtn.disabled = false;
-                syncEtaxBtn.innerHTML = `<i class="bi bi-arrow-repeat me-1"></i>Đồng bộ GDT`;
+                syncEtaxBtn.innerHTML = `<i class="bi bi-arrow-repeat me-1" aria-hidden="true"></i>Đồng bộ GDT`;
                 
                 // Fill Table
                 etaxLedgerBody.innerHTML = "";
@@ -465,14 +465,14 @@
                 // Reconciliation Messages
                 etaxReconciliationResults.innerHTML = "";
                 if (data.recompiled.discrepancies.length === 0) {
-                    etaxReconciliationResults.innerHTML = `<div class="alert alert-success mb-0"><i class="bi bi-check-circle-fill me-2"></i>Tất cả sắc thuế khớp với Sổ cái Kế toán!</div>`;
+                    etaxReconciliationResults.innerHTML = `<div class="alert alert-success mb-0"><i class="bi bi-check-circle-fill me-2" aria-hidden="true"></i>Tất cả sắc thuế khớp với Sổ cái Kế toán!</div>`;
                 } else {
                     const ul = document.createElement("ul");
                     ul.className = "list-group";
                     data.recompiled.discrepancies.forEach(d => {
                         const li = document.createElement("li");
                         li.className = "list-group-item list-group-item-warning small py-2";
-                        li.innerHTML = `<i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>${d.message}`;
+                        li.innerHTML = `<i class="bi bi-exclamation-triangle-fill text-warning me-2" aria-hidden="true"></i>${d.message}`;
                         ul.appendChild(li);
                     });
                     etaxReconciliationResults.appendChild(ul);
@@ -508,7 +508,7 @@
                 // Draw dynamic text / details
                 vietqrCodeVisual.innerHTML = `
                     <div style="text-align:center;">
-                        <i class="bi bi-qr-code fs-1 d-block mb-1 text-dark"></i>
+                        <i class="bi bi-qr-code fs-1 d-block mb-1 text-dark" aria-hidden="true"></i>
                         <span class="badge bg-warning text-dark font-monospace" style="font-size:0.75rem;">${data.transaction_id}</span>
                         <strong class="d-block text-dark mt-1" style="font-size: 0.9em;">${data.amount.toLocaleString('vi-VN')} VND</strong>
                     </div>
@@ -592,7 +592,7 @@
                 questionnaireFields.innerHTML = `
                     <div class="mb-3">
                         <label class="form-label small">Kỳ khai thuế áp dụng (ví dụ: Tháng 03/2026 hoặc Quý 1/2026):</label>
-                        <input type="text" class="form-control form-control-sm" id="q_period" value="Tháng lập hóa đơn">
+                        <input type="text" class="form-control form-control-sm" id="q_period" value="Tháng lập hóa đơn" autocomplete="off" aria-label="Q period">
                     </div>
                 `;
             } else if (warningType === "CASH_PAYMENT_LIMIT") {
@@ -604,7 +604,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label small">Số Hợp đồng mua bán / Điều khoản trả chậm:</label>
-                        <input type="text" class="form-control form-control-sm" id="q_contract" value="HĐ-099/BTC">
+                        <input type="text" class="form-control form-control-sm" id="q_contract" value="HĐ-099/BTC" autocomplete="off" aria-label="Q contract">
                     </div>
                 `;
             } else if (warningType === "RELATED_PARTY_EBITDA") {
@@ -613,11 +613,11 @@
                     <div class="row g-2">
                         <div class="col-md-6 mb-2">
                             <label class="form-label small">Chỉ số EBITDA năm (VND):</label>
-                            <input type="number" class="form-control form-control-sm" id="q_ebitda" value="5000000000">
+                            <input type="number" class="form-control form-control-sm" id="q_ebitda" value="5000000000" autocomplete="off" aria-label="Q ebitda">
                         </div>
                         <div class="col-md-6 mb-2">
                             <label class="form-label small">Chi phí lãi vay ròng (VND):</label>
-                            <input type="number" class="form-control form-control-sm" id="q_net_interest" value="1800000000">
+                            <input type="number" class="form-control form-control-sm" id="q_net_interest" value="1800000000" autocomplete="off" aria-label="Q net interest">
                         </div>
                     </div>
                 `;

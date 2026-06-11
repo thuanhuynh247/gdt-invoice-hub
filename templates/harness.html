@@ -164,7 +164,7 @@
                         
                         <!-- Log Filter Controls -->
                         <div class="d-flex align-items-center gap-2 flex-wrap">
-                            <input type="text" id="consoleSearch" class="form-control form-control-sm bg-dark text-light border-secondary" style="max-width: 150px;" placeholder="Search logs..." oninput="filterConsoleLogs()">
+                            <input type="text" id="consoleSearch" class="form-control form-control-sm bg-dark text-light border-secondary" style="max-width: 150px;" placeholder="Search logs…" oninput="filterConsoleLogs()" autocomplete="off" aria-label="Search logs…">
                             
                             <select id="consoleFilter" class="form-select form-select-sm bg-dark text-light border-secondary" style="max-width: 130px;" onchange="filterConsoleLogs()">
                                 <option value="all">Show All</option>
@@ -197,7 +197,7 @@
                     <p class="text-secondary small mb-3">Paste your feature description or technical spec draft to classify it into the recommended risk lane and generate a Socratic checklist.</p>
                     <div class="row g-3">
                         <div class="col-12">
-                            <textarea id="specText" class="form-control custom-input" rows="3" placeholder="e.g. Implement user login, database schema migration for sessions and integrate VietQR payment API..."></textarea>
+                            <textarea id="specText" class="form-control custom-input" rows="3" placeholder="e.g. Implement user login, database schema migration for sessions and integrate VietQR payment API…"></textarea>
                         </div>
                         <div class="col-12 text-end">
                             <button type="button" class="btn btn-sm btn-primary-accent" onclick="analyzeSpec()"><i class="bi bi-cpu" aria-hidden="true"></i> Evaluate Risk Lane</button>
@@ -205,7 +205,7 @@
                         <div id="specResult" class="col-12 mt-3" style="display: none;">
                             <div class="p-3 bg-dark border border-secondary border-opacity-50 rounded-3 text-light">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <h4 class="h6 mb-0 text-info fw-bold"><i class="bi bi-info-circle-fill me-1"></i>Classification Result</h4>
+                                    <h4 class="h6 mb-0 text-info fw-bold"><i class="bi bi-info-circle-fill me-1" aria-hidden="true"></i>Classification Result</h4>
                                     <span id="specResultLane" class="badge"></span>
                                 </div>
                                 <div class="mb-2 text-secondary small"><strong>Risk Flags:</strong> <span id="specResultFlags" class="text-warning font-monospace"></span></div>
@@ -705,20 +705,20 @@
             checklistItems.innerHTML = "";
             if (data.suggested_lane === "high_risk") {
                 checklistItems.innerHTML = `
-                    <li class="mb-1"><i class="bi bi-square me-2 text-danger"></i>Has a detailed Architecture Decision Record (ADR) been logged in docs/decisions/?</li>
-                    <li class="mb-1"><i class="bi bi-square me-2 text-danger"></i>Have you verified the data model migration rollback strategy?</li>
-                    <li class="mb-1"><i class="bi bi-square me-2 text-danger"></i>Is the public API contract backward compatible?</li>
-                    <li class="mb-1"><i class="bi bi-square me-2 text-danger"></i>Does the intake need an security review (Auth/Secret/Audit)?</li>
+                    <li class="mb-1"><i class="bi bi-square me-2 text-danger" aria-hidden="true"></i>Has a detailed Architecture Decision Record (ADR) been logged in docs/decisions/?</li>
+                    <li class="mb-1"><i class="bi bi-square me-2 text-danger" aria-hidden="true"></i>Have you verified the data model migration rollback strategy?</li>
+                    <li class="mb-1"><i class="bi bi-square me-2 text-danger" aria-hidden="true"></i>Is the public API contract backward compatible?</li>
+                    <li class="mb-1"><i class="bi bi-square me-2 text-danger" aria-hidden="true"></i>Does the intake need an security review (Auth/Secret/Audit)?</li>
                 `;
             } else if (data.suggested_lane === "normal") {
                 checklistItems.innerHTML = `
-                    <li class="mb-1"><i class="bi bi-square me-2 text-warning"></i>Are the unit/integration validation commands verified?</li>
-                    <li class="mb-1"><i class="bi bi-square me-2 text-warning"></i>Has the test matrix in docs/TEST_MATRIX.md been updated?</li>
-                    <li class="mb-1"><i class="bi bi-square me-2 text-warning"></i>Have client-visible fields changed (API shape contracts)?</li>
+                    <li class="mb-1"><i class="bi bi-square me-2 text-warning" aria-hidden="true"></i>Are the unit/integration validation commands verified?</li>
+                    <li class="mb-1"><i class="bi bi-square me-2 text-warning" aria-hidden="true"></i>Has the test matrix in docs/TEST_MATRIX.md been updated?</li>
+                    <li class="mb-1"><i class="bi bi-square me-2 text-warning" aria-hidden="true"></i>Have client-visible fields changed (API shape contracts)?</li>
                 `;
             } else {
                 checklistItems.innerHTML = `
-                    <li class="mb-1"><i class="bi bi-square me-2 text-info"></i>Verification via standard test suite check is sufficient.</li>
+                    <li class="mb-1"><i class="bi bi-square me-2 text-info" aria-hidden="true"></i>Verification via standard test suite check is sufficient.</li>
                 `;
             }
         })
@@ -784,7 +784,7 @@
                 <div class="fw-semibold text-light mb-2 small text-truncate-2" title="${s.title}">${s.title}</div>
                 <div class="d-flex align-items-center justify-content-between mt-2 pt-2 border-top border-secondary border-opacity-10">
                     <div class="proofs-list d-flex gap-1">${proofsHtml || '<span class="text-secondary small" style="font-size:0.75rem;">no proofs</span>'}</div>
-                    <i class="bi bi-chevron-right text-secondary small"></i>
+                    <i class="bi bi-chevron-right text-secondary small" aria-hidden="true"></i>
                 </div>
             `;
             container.appendChild(card);

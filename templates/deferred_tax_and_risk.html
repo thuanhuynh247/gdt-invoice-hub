@@ -33,7 +33,7 @@
             </div>
             <div class="col-md-5 d-flex justify-content-md-end align-items-end pt-2">
                 <button class="btn btn-primary text-snow fw-semibold px-4" onclick="refreshAllV39Data()">
-                    <i class="bi bi-arrow-clockwise me-2"></i> Tải Lại Toàn Bộ Dữ Liệu
+                    <i class="bi bi-arrow-clockwise me-2" aria-hidden="true"></i> Tải Lại Toàn Bộ Dữ Liệu
                 </button>
             </div>
         </div>
@@ -42,13 +42,13 @@
     <!-- Navigation Tabs (Bento Grid View Options) -->
     <ul class="nav nav-pills nav-fill mb-4 p-1 bg-dark-subtle rounded-3 shadow-sm" id="v39Tabs" role="tablist">
         <li class="nav-item" role="presentation">
-            <button class="nav-link active fw-semibold py-2.5 rounded-3 d-flex align-items-center justify-content-center gap-2" id="tax-tab" data-bs-toggle="tab" data-bs-target="#tax-panel" type="button" role="tab"><i class="bi bi-bank"></i> Hoãn Thuế (VAS 17)</button>
+            <button class="nav-link active fw-semibold py-2.5 rounded-3 d-flex align-items-center justify-content-center gap-2" id="tax-tab" data-bs-toggle="tab" data-bs-target="#tax-panel" type="button" role="tab"><i class="bi bi-bank" aria-hidden="true"></i> Hoãn Thuế (VAS 17)</button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link fw-semibold py-2.5 rounded-3 d-flex align-items-center justify-content-center gap-2" id="stress-tab" data-bs-toggle="tab" data-bs-target="#stress-panel" type="button" role="tab"><i class="bi bi-graph-down-arrow"></i> Stress Test Dòng Tiền</button>
+            <button class="nav-link fw-semibold py-2.5 rounded-3 d-flex align-items-center justify-content-center gap-2" id="stress-tab" data-bs-toggle="tab" data-bs-target="#stress-panel" type="button" role="tab"><i class="bi bi-graph-down-arrow" aria-hidden="true"></i> Stress Test Dòng Tiền</button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link fw-semibold py-2.5 rounded-3 d-flex align-items-center justify-content-center gap-2" id="risk-tab" data-bs-toggle="tab" data-bs-target="#risk-panel" type="button" role="tab"><i class="bi bi-shield-exclamation"></i> Rủi Ro Nhà Cung Cấp</button>
+            <button class="nav-link fw-semibold py-2.5 rounded-3 d-flex align-items-center justify-content-center gap-2" id="risk-tab" data-bs-toggle="tab" data-bs-target="#risk-panel" type="button" role="tab"><i class="bi bi-shield-exclamation" aria-hidden="true"></i> Rủi Ro Nhà Cung Cấp</button>
         </li>
     </ul>
 
@@ -91,7 +91,7 @@
                 <!-- Temporary & Permanent Differences Tables -->
                 <div class="col-lg-8">
                     <div class="card border-0 shadow-sm glass-card p-4 mb-4">
-                        <h4 class="fw-bold mb-3" style="font-family: 'Outfit', sans-serif;"><i class="bi bi-calculator text-primary"></i> Chi Tiết Chênh Lệch Tạm Thời (Temporary Differences)</h4>
+                        <h4 class="fw-bold mb-3" style="font-family: 'Outfit', sans-serif;"><i class="bi bi-calculator text-primary" aria-hidden="true"></i> Chi Tiết Chênh Lệch Tạm Thời (Temporary Differences)</h4>
                         <div class="table-responsive">
                             <table class="table table-hover align-middle border">
                                 <thead class="table-dark">
@@ -109,7 +109,7 @@
                             </table>
                         </div>
 
-                        <h4 class="fw-bold mt-4 mb-3" style="font-family: 'Outfit', sans-serif;"><i class="bi bi-exclamation-triangle text-warning"></i> Chênh Lệch Vĩnh Viễn (Disallowed Expenses)</h4>
+                        <h4 class="fw-bold mt-4 mb-3" style="font-family: 'Outfit', sans-serif;"><i class="bi bi-exclamation-triangle text-warning" aria-hidden="true"></i> Chênh Lệch Vĩnh Viễn (Disallowed Expenses)</h4>
                         <div class="table-responsive">
                             <table class="table table-hover align-middle border">
                                 <thead class="table-dark">
@@ -130,7 +130,7 @@
                 <!-- Journal Entry Scaffolder -->
                 <div class="col-lg-4">
                     <div class="card border-info border-2 shadow-sm rounded-3 p-4 bg-info-subtle mb-4">
-                        <h4 class="fw-bold text-info-emphasis mb-3" style="font-family: 'Outfit', sans-serif;"><i class="bi bi-book-half"></i> Bút Toán Ghi Nhận Đề Xuất</h4>
+                        <h4 class="fw-bold text-info-emphasis mb-3" style="font-family: 'Outfit', sans-serif;"><i class="bi bi-book-half" aria-hidden="true"></i> Bút Toán Ghi Nhận Đề Xuất</h4>
                         <p class="small text-secondary-emphasis">Bút toán định khoản tự động cho chênh lệch thuế thu nhập hoãn lại theo Thông tư 200 & VAS 17:</p>
                         
                         <div id="journalEntriesContainer">
@@ -139,7 +139,7 @@
 
                         <div class="mt-4 text-center">
                             <button class="btn btn-outline-info text-dark fw-bold w-100" onclick="exportJournalJSON()">
-                                <i class="bi bi-file-earmark-arrow-down-fill me-2"></i> Xuất Bút Toán JSON
+                                <i class="bi bi-file-earmark-arrow-down-fill me-2" aria-hidden="true"></i> Xuất Bút Toán JSON
                             </button>
                         </div>
                     </div>
@@ -153,7 +153,7 @@
                 <!-- Sliders & Inputs -->
                 <div class="col-lg-5">
                     <div class="card border-0 shadow-sm glass-card p-4 h-100">
-                        <h4 class="fw-bold mb-3" style="font-family: 'Outfit', sans-serif;"><i class="bi bi-sliders text-primary"></i> Thanh Trượt Kịch Bản Stress Test</h4>
+                        <h4 class="fw-bold mb-3" style="font-family: 'Outfit', sans-serif;"><i class="bi bi-sliders text-primary" aria-hidden="true"></i> Thanh Trượt Kịch Bản Stress Test</h4>
                         <p class="text-secondary small">Kéo các thanh trượt để mô phỏng sự biến động của chu kỳ thu hồi nợ (DSO) và chu kỳ thanh toán cho nhà cung cấp (DPO).</p>
                         
                         <!-- DSO Slider -->
@@ -213,7 +213,7 @@
                 <div class="col-lg-7">
                     <div class="card border-0 shadow-sm glass-card p-4 h-100 text-center d-flex flex-column justify-content-between">
                         <div>
-                            <h4 class="fw-bold mb-3 text-start" style="font-family: 'Outfit', sans-serif;"><i class="bi bi-speedometer text-info"></i> Chỉ Số Duy Trì Dòng Tiền (Cash Runway Gauge)</h4>
+                            <h4 class="fw-bold mb-3 text-start" style="font-family: 'Outfit', sans-serif;"><i class="bi bi-speedometer text-info" aria-hidden="true"></i> Chỉ Số Duy Trì Dòng Tiền (Cash Runway Gauge)</h4>
                             <p class="text-secondary small text-start">Thời gian tối đa doanh nghiệp có thể hoạt động bằng dòng tiền hiện tại trước khi cạn kiệt nguồn lực.</p>
                         </div>
 
@@ -223,7 +223,7 @@
                         </div>
 
                         <div class="p-3 rounded-3 border border-secondary-subtle" id="runwayAlertBox">
-                            <h5 class="fw-bold mb-1" id="lblRunwayStatus">Đang phân tích...</h5>
+                            <h5 class="fw-bold mb-1" id="lblRunwayStatus">Đang phân tích…</h5>
                             <p class="mb-0 small" id="lblRunwayMsg">Vui lòng điều chỉnh thanh trượt để kiểm tra.</p>
                         </div>
                     </div>
@@ -238,7 +238,7 @@
                 <div class="col-lg-7">
                     <div class="card border-0 shadow-sm glass-card p-4 h-100">
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h4 class="fw-bold mb-0" style="font-family: 'Outfit', sans-serif;"><i class="bi bi-diagram-3-fill text-primary"></i> Bản Đồ Mạng Lưới Rủi Ro Đối Tác</h4>
+                            <h4 class="fw-bold mb-0" style="font-family: 'Outfit', sans-serif;"><i class="bi bi-diagram-3-fill text-primary" aria-hidden="true"></i> Bản Đồ Mạng Lưới Rủi Ro Đối Tác</h4>
                             <span class="badge bg-secondary">Nhà cung cấp ngoại vi</span>
                         </div>
                         <p class="text-secondary small">Kích thước nút thể hiện quy mô giao dịch. Màu sắc thể hiện xếp hạng tín nhiệm của nhà cung cấp. Bấm vào nút để xem thông tin chi tiết.</p>
@@ -253,16 +253,16 @@
                 <!-- Supplier Scorecard and Live GDT Auditor Column -->
                 <div class="col-lg-5">
                     <div class="card border-0 shadow-sm glass-card p-4 h-100">
-                        <h4 class="fw-bold mb-3" style="font-family: 'Outfit', sans-serif;"><i class="bi bi-shield-check text-success"></i> Kiểm Tra Nhanh Trạng Thái MST Tổng Cục Thuế</h4>
+                        <h4 class="fw-bold mb-3" style="font-family: 'Outfit', sans-serif;"><i class="bi bi-shield-check text-success" aria-hidden="true"></i> Kiểm Tra Nhanh Trạng Thái MST Tổng Cục Thuế</h4>
                         <p class="text-secondary small">Trực tiếp mô phỏng việc truy vấn cổng thông tin Tổng cục Thuế để xác minh trạng thái pháp lý của đối tác.</p>
                         
                         <div class="row g-2 mb-4">
                             <div class="col-8">
-                                <input type="text" class="form-control" id="txtScraperMst" placeholder="Nhập MST nhà cung cấp">
+                                <input type="text" class="form-control" id="txtScraperMst" placeholder="Nhập MST nhà cung cấp" autocomplete="off" aria-label="Nhập MST nhà cung cấp">
                             </div>
                             <div class="col-4">
                                 <button class="btn btn-success text-snow w-100 fw-semibold" onclick="simulateGdtCheck()">
-                                    <i class="bi bi-search"></i> Kiểm Tra
+                                    <i class="bi bi-search" aria-hidden="true"></i> Kiểm Tra
                                 </button>
                             </div>
                         </div>
@@ -274,14 +274,14 @@
                                 <span class="badge bg-success" id="scraperStatus">ACTIVE</span>
                             </div>
                             <div class="small text-secondary mb-2">
-                                <i class="bi bi-clock-history"></i> Kiểm tra lúc: <span id="scraperTime">--</span>
+                                <i class="bi bi-clock-history" aria-hidden="true"></i> Kiểm tra lúc: <span id="scraperTime">--</span>
                             </div>
                             <p class="small mb-0 text-dark" id="scraperMsg">Thông tin chi tiết tuân thủ.</p>
                         </div>
 
                         <hr>
 
-                        <h4 class="fw-bold mb-3" style="font-family: 'Outfit', sans-serif;"><i class="bi bi-file-earmark-ruled text-info"></i> Danh Sách Xếp Hạng Rủi Ro Đối Tác</h4>
+                        <h4 class="fw-bold mb-3" style="font-family: 'Outfit', sans-serif;"><i class="bi bi-file-earmark-ruled text-info" aria-hidden="true"></i> Danh Sách Xếp Hạng Rủi Ro Đối Tác</h4>
                         <div class="table-responsive" style="max-height: 250px;">
                             <table class="table table-hover align-middle border text-center">
                                 <thead class="table-dark">
@@ -308,7 +308,7 @@
 <!-- Supplier Audit Side Drawer (Offcanvas) -->
 <div class="offcanvas offcanvas-end glass-card border-start-0" tabindex="-1" id="supplierAuditOffcanvas" aria-labelledby="supplierAuditLabel" style="width: 450px;">
     <div class="offcanvas-header bg-dark text-snow">
-        <h5 class="offcanvas-title fw-bold" id="supplierAuditLabel" style="font-family: 'Outfit', sans-serif;"><i class="bi bi-shield-shaded me-2"></i> Hồ Sơ Rủi Ro Đối Tác</h5>
+        <h5 class="offcanvas-title fw-bold" id="supplierAuditLabel" style="font-family: 'Outfit', sans-serif;"><i class="bi bi-shield-shaded me-2" aria-hidden="true"></i> Hồ Sơ Rủi Ro Đối Tác</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
     <div class="offcanvas-body">
@@ -340,7 +340,7 @@
 
         <div class="mt-4 pt-2">
             <button class="btn btn-outline-danger w-100 fw-semibold" id="btnSyncGdtDraw">
-                <i class="bi bi-arrow-repeat me-2"></i> Buộc Đồng Bộ Lại GDT Portal
+                <i class="bi bi-arrow-repeat me-2" aria-hidden="true"></i> Buộc Đồng Bộ Lại GDT Portal
             </button>
         </div>
     </div>
@@ -564,7 +564,7 @@ function loadSupplierRiskNetwork() {
                             <td class="fw-bold">${s.risk_score}/100</td>
                             <td>
                                 <button class="btn btn-sm btn-outline-primary" onclick="openSupplierAudit('${s.id}')">
-                                    <i class="bi bi-file-earmark-text"></i> Xem hồ sơ
+                                    <i class="bi bi-file-earmark-text" aria-hidden="true"></i> Xem hồ sơ
                                 </button>
                             </td>
                         </tr>

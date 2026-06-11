@@ -16,19 +16,19 @@
     <!-- Navigation Tabs -->
     <ul class="nav nav-pills nav-fill mb-4 p-1 bg-dark-subtle rounded-3 shadow-sm" id="v37Tabs" role="tablist">
         <li class="nav-item" role="presentation">
-            <button class="nav-link active fw-semibold py-2.5 rounded-3 d-flex align-items-center justify-content-center gap-2" id="ceo-tab" data-bs-toggle="tab" data-bs-target="#ceo-panel" type="button" role="tab"><i class="bi bi-speedometer2"></i> CEO Intelligence</button>
+            <button class="nav-link active fw-semibold py-2.5 rounded-3 d-flex align-items-center justify-content-center gap-2" id="ceo-tab" data-bs-toggle="tab" data-bs-target="#ceo-panel" type="button" role="tab"><i class="bi bi-speedometer2" aria-hidden="true"></i> CEO Intelligence</button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link fw-semibold py-2.5 rounded-3 d-flex align-items-center justify-content-center gap-2" id="planning-tab" data-bs-toggle="tab" data-bs-target="#planning-panel" type="button" role="tab"><i class="bi bi-calendar-range"></i> Kế hoạch Thuế Đa Niên</button>
+            <button class="nav-link fw-semibold py-2.5 rounded-3 d-flex align-items-center justify-content-center gap-2" id="planning-tab" data-bs-toggle="tab" data-bs-target="#planning-panel" type="button" role="tab"><i class="bi bi-calendar-range" aria-hidden="true"></i> Kế hoạch Thuế Đa Niên</button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link fw-semibold py-2.5 rounded-3 d-flex align-items-center justify-content-center gap-2" id="calendar-tab" data-bs-toggle="tab" data-bs-target="#calendar-panel" type="button" role="tab"><i class="bi bi-calendar-check"></i> Lịch Tuân thủ Thuế</button>
+            <button class="nav-link fw-semibold py-2.5 rounded-3 d-flex align-items-center justify-content-center gap-2" id="calendar-tab" data-bs-toggle="tab" data-bs-target="#calendar-panel" type="button" role="tab"><i class="bi bi-calendar-check" aria-hidden="true"></i> Lịch Tuân thủ Thuế</button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link fw-semibold py-2.5 rounded-3 d-flex align-items-center justify-content-center gap-2" id="assets-tab" data-bs-toggle="tab" data-bs-target="#assets-panel" type="button" role="tab"><i class="bi bi-cpu"></i> Quản lý Tài Sản Cố Định</button>
+            <button class="nav-link fw-semibold py-2.5 rounded-3 d-flex align-items-center justify-content-center gap-2" id="assets-tab" data-bs-toggle="tab" data-bs-target="#assets-panel" type="button" role="tab"><i class="bi bi-cpu" aria-hidden="true"></i> Quản lý Tài Sản Cố Định</button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link fw-semibold py-2.5 rounded-3 d-flex align-items-center justify-content-center gap-2" id="linker-tab" data-bs-toggle="tab" data-bs-target="#linker-panel" type="button" role="tab"><i class="bi bi-link-45deg"></i> AI Invoice Linker</button>
+            <button class="nav-link fw-semibold py-2.5 rounded-3 d-flex align-items-center justify-content-center gap-2" id="linker-tab" data-bs-toggle="tab" data-bs-target="#linker-panel" type="button" role="tab"><i class="bi bi-link-45deg" aria-hidden="true"></i> AI Invoice Linker</button>
         </li>
     </ul>
 
@@ -70,9 +70,9 @@
                 <!-- AI Commentary & Insights -->
                 <div class="col-lg-8">
                     <div class="card border-0 shadow-sm glass-card h-100 p-4">
-                        <h4 class="fw-bold mb-3" style="font-family: 'Outfit', sans-serif;"><i class="bi bi-chat-left-quote text-info"></i> Khuyến Nghị Điều Hành (AI Commentary)</h4>
+                        <h4 class="fw-bold mb-3" style="font-family: 'Outfit', sans-serif;"><i class="bi bi-chat-left-quote text-info" aria-hidden="true"></i> Khuyến Nghị Điều Hành (AI Commentary)</h4>
                         <div class="p-3 bg-light rounded-3 border border-info-subtle mb-3" style="min-height: 150px;">
-                            <p class="text-dark mb-0 whitespace-pre-line" id="managementCommentaryText">Đang tải phân tích thông minh...</p>
+                            <p class="text-dark mb-0 whitespace-pre-line" id="managementCommentaryText">Đang tải phân tích thông minh…</p>
                         </div>
                         <h5 class="fw-bold mb-2">Cấu trúc phân bổ dòng tiền doanh nghiệp</h5>
                         <!-- Custom CSS Sankey Flow Diagram representation -->
@@ -116,14 +116,14 @@
                     </div>
                     <div class="col-md-3">
                         <label class="form-label fw-semibold">Tốc độ tăng trưởng Doanh thu (%)</label>
-                        <input type="number" class="form-select" id="projGrowth" value="10" step="1">
+                        <input type="number" class="form-select" id="projGrowth" value="10" step="1" autocomplete="off" aria-label="Projgrowth">
                     </div>
                     <div class="col-md-3">
                         <label class="form-label fw-semibold">Tỷ lệ lạm phát Chi phí (%)</label>
-                        <input type="number" class="form-select" id="projInflation" value="5" step="1">
+                        <input type="number" class="form-select" id="projInflation" value="5" step="1" autocomplete="off" aria-label="Projinflation">
                     </div>
                     <div class="col-md-3 d-flex align-items-end">
-                        <button class="btn btn-info w-100 text-snow fw-semibold" onclick="loadTaxProjections()"><i class="bi bi-cpu-fill"></i> Chạy Dự Báo & NPV</button>
+                        <button class="btn btn-info w-100 text-snow fw-semibold" onclick="loadTaxProjections()"><i class="bi bi-cpu-fill" aria-hidden="true"></i> Chạy Dự Báo & NPV</button>
                     </div>
                 </div>
 
@@ -155,7 +155,7 @@
                     <!-- NPV Strategy Analysis -->
                     <div class="col-lg-4">
                         <div class="card border-info border-2 shadow-sm rounded-3 p-4 h-100 bg-info-subtle">
-                            <h5 class="fw-bold text-info-emphasis mb-3"><i class="bi bi-pie-chart-fill"></i> Tối ưu hóa NPV Thuế</h5>
+                            <h5 class="fw-bold text-info-emphasis mb-3"><i class="bi bi-pie-chart-fill" aria-hidden="true"></i> Tối ưu hóa NPV Thuế</h5>
                             <p class="small text-secondary-emphasis">So sánh Giá trị hiện tại thuần (NPV) chi phí thuế của các kịch bản lập kế hoạch khác nhau:</p>
                             <div class="list-group list-group-flush mb-3" id="npvList">
                                 <!-- Projections injected dynamically -->
@@ -215,11 +215,11 @@
                         <form id="fixedAssetForm" onsubmit="registerFixedAsset(event)">
                             <div class="mb-3">
                                 <label class="form-label small fw-semibold">Mã tài sản</label>
-                                <input type="text" class="form-control" id="assetCode" required placeholder="ví dụ: FA-2026-001">
+                                <input type="text" class="form-control" id="assetCode" required placeholder="ví dụ: FA-2026-001" autocomplete="off" aria-label="ví dụ: FA-2026-001">
                             </div>
                             <div class="mb-3">
                                 <label class="form-label small fw-semibold">Tên tài sản</label>
-                                <input type="text" class="form-control" id="assetName" required placeholder="ví dụ: Hệ thống máy chủ Dell R740">
+                                <input type="text" class="form-control" id="assetName" required placeholder="ví dụ: Hệ thống máy chủ Dell R740" autocomplete="off" aria-label="ví dụ: Hệ thống máy chủ Dell R740">
                             </div>
                             <div class="mb-3">
                                 <label class="form-label small fw-semibold">Nhóm tài sản</label>
@@ -233,21 +233,21 @@
                             <div class="row mb-3">
                                 <div class="col-6">
                                     <label class="form-label small fw-semibold">Ngày mua</label>
-                                    <input type="date" class="form-control" id="assetAcquisitionDate" required>
+                                    <input type="date" class="form-control" id="assetAcquisitionDate" required autocomplete="off" aria-label="Assetacquisitiondate">
                                 </div>
                                 <div class="col-6">
                                     <label class="form-label small fw-semibold">Nguyên giá (VND)</label>
-                                    <input type="number" class="form-control" id="assetOriginalCost" required value="35000000">
+                                    <input type="number" class="form-control" id="assetOriginalCost" required value="35000000" autocomplete="off" aria-label="Assetoriginalcost">
                                 </div>
                             </div>
                             <div class="row mb-3">
                                 <div class="col-6">
                                     <label class="form-label small fw-semibold">Giá trị thanh lý ước tính</label>
-                                    <input type="number" class="form-control" id="assetResidualValue" value="2000000">
+                                    <input type="number" class="form-control" id="assetResidualValue" value="2000000" autocomplete="off" aria-label="Assetresidualvalue">
                                 </div>
                                 <div class="col-6">
                                     <label class="form-label small fw-semibold">Thời gian sử dụng (Tháng)</label>
-                                    <input type="number" class="form-control" id="assetUsefulLifeMonths" required value="36">
+                                    <input type="number" class="form-control" id="assetUsefulLifeMonths" required value="36" autocomplete="off" aria-label="Assetusefullifemonths">
                                 </div>
                             </div>
                             <div class="mb-3">
@@ -293,7 +293,7 @@
         <!-- AI LINKER PANEL -->
         <div class="tab-pane fade" id="linker-panel" role="tabpanel" aria-labelledby="linker-tab">
             <div class="card border-0 shadow-sm glass-card p-4">
-                <h5 class="fw-bold mb-3"><i class="bi bi-robot text-info"></i> Tự động phân loại hóa đơn mua vào ≥ 30M VND thành tài sản cố định</h5>
+                <h5 class="fw-bold mb-3"><i class="bi bi-robot text-info" aria-hidden="true"></i> Tự động phân loại hóa đơn mua vào ≥ 30M VND thành tài sản cố định</h5>
                 <p class="text-secondary small">Thuật toán AI tự động quét tất cả hóa đơn mua vào có giá trị lớn hơn hoặc bằng 30.000.000 VND và so khớp từ khóa để đề xuất tạo tài sản cố định tương ứng.</p>
                 <div class="table-responsive">
                     <table class="table table-hover border align-middle">
@@ -361,11 +361,11 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label small fw-semibold">Ngày thanh lý</label>
-                        <input type="date" class="form-control" id="disposeDate" required>
+                        <input type="date" class="form-control" id="disposeDate" required autocomplete="off" aria-label="Disposedate">
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-semibold">Doanh thu thanh lý (chưa VAT)</label>
-                        <input type="number" class="form-control" id="disposeProceeds" required value="10000000">
+                        <input type="number" class="form-control" id="disposeProceeds" required value="10000000" autocomplete="off" aria-label="Disposeproceeds">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -485,8 +485,8 @@ function loadTaxCalendar() {
                     else if (c.status === 'Overdue') badgeClass = 'bg-danger';
 
                     const actionBtn = c.status === 'Pending' ? 
-                        `<button class="btn btn-sm btn-outline-success" onclick="markRecordAsFiled(${c.id})"><i class="bi bi-check-circle"></i> Nộp</button>` : 
-                        `<span class="text-muted"><i class="bi bi-check-all text-success"></i> Hoàn thành</span>`;
+                        `<button class="btn btn-sm btn-outline-success" onclick="markRecordAsFiled(${c.id})"><i class="bi bi-check-circle" aria-hidden="true"></i> Nộp</button>` : 
+                        `<span class="text-muted"><i class="bi bi-check-all text-success" aria-hidden="true"></i> Hoàn thành</span>`;
 
                     const row = `
                         <tr>
@@ -541,12 +541,12 @@ function loadAssets() {
                             <td class="text-start">${a.name}</td>
                             <td>${formatVND(a.original_cost)}</td>
                             <td>${a.useful_life_months}</td>
-                            <td id="accum-dep-${a.id}">Đang tính...</td>
+                            <td id="accum-dep-${a.id}">Đang tính…</td>
                             <td id="compl-badge-${a.id}">--</td>
                             <td>
                                 <div class="btn-group">
-                                    <button class="btn btn-sm btn-outline-info" onclick="viewDepressionSchedule(${a.id})"><i class="bi bi-table"></i> Lịch</button>
-                                    ${a.status === 'active' ? `<button class="btn btn-sm btn-outline-danger" onclick="openDisposeModal(${a.id})"><i class="bi bi-trash"></i> Thanh lý</button>` : ''}
+                                    <button class="btn btn-sm btn-outline-info" onclick="viewDepressionSchedule(${a.id})"><i class="bi bi-table" aria-hidden="true"></i> Lịch</button>
+                                    ${a.status === 'active' ? `<button class="btn btn-sm btn-outline-danger" onclick="openDisposeModal(${a.id})"><i class="bi bi-trash" aria-hidden="true"></i> Thanh lý</button>` : ''}
                                 </div>
                             </td>
                         </tr>
@@ -571,8 +571,8 @@ function loadAssets() {
                                 const compl = vd.validation.is_compliant;
                                 const cell = document.getElementById(`compl-badge-${a.id}`);
                                 cell.innerHTML = compl ? 
-                                    `<span class="badge bg-success-subtle text-success border border-success"><i class="bi bi-check-circle"></i> Đạt chuẩn</span>` : 
-                                    `<span class="badge bg-danger-subtle text-danger border border-danger" title="${vd.validation.warning}"><i class="bi bi-exclamation-triangle"></i> Lệch khung</span>`;
+                                    `<span class="badge bg-success-subtle text-success border border-success"><i class="bi bi-check-circle" aria-hidden="true"></i> Đạt chuẩn</span>` : 
+                                    `<span class="badge bg-danger-subtle text-danger border border-danger" title="${vd.validation.warning}"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i> Lệch khung</span>`;
                             }
                         });
                 });
@@ -690,7 +690,7 @@ function loadLinkerCandidates() {
                             <td>${c.suggested_useful_life_months} Tháng</td>
                             <td><span class="badge bg-success">${Math.round(c.confidence_score * 100)}% Match</span></td>
                             <td>
-                                <button class="btn btn-sm btn-info text-snow" onclick="quickLinkAsset('${c.invoice_id}', '${c.invoice_number}', '${c.suggested_category}', ${c.total_amount}, ${c.suggested_useful_life_months}, '${c.description.replace(/'/g, "\\'")}')"><i class="bi bi-link"></i> Liên kết nhanh</button>
+                                <button class="btn btn-sm btn-info text-snow" onclick="quickLinkAsset('${c.invoice_id}', '${c.invoice_number}', '${c.suggested_category}', ${c.total_amount}, ${c.suggested_useful_life_months}, '${c.description.replace(/'/g, "\\'")}')"><i class="bi bi-link" aria-hidden="true"></i> Liên kết nhanh</button>
                             </td>
                         </tr>
                     `;

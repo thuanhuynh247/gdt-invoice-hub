@@ -528,17 +528,17 @@ document.addEventListener("DOMContentLoaded", function () {
             // Render warnings and errors list
             let listHtml = "";
             data.errors.forEach(e => {
-                listHtml += `<li class="list-group-item bg-transparent text-danger border-0 p-1"><i class="bi bi-x-circle me-2"></i> ${e}</li>`;
+                listHtml += `<li class="list-group-item bg-transparent text-danger border-0 p-1"><i class="bi bi-x-circle me-2" aria-hidden="true"></i> ${e}</li>`;
             });
             data.warnings.forEach(w => {
-                listHtml += `<li class="list-group-item bg-transparent text-warning border-0 p-1"><i class="bi bi-exclamation-triangle me-2"></i> ${w}</li>`;
+                listHtml += `<li class="list-group-item bg-transparent text-warning border-0 p-1"><i class="bi bi-exclamation-triangle me-2" aria-hidden="true"></i> ${w}</li>`;
             });
             data.info.forEach(i => {
-                listHtml += `<li class="list-group-item bg-transparent text-info border-0 p-1"><i class="bi bi-info-circle me-2"></i> ${i}</li>`;
+                listHtml += `<li class="list-group-item bg-transparent text-info border-0 p-1"><i class="bi bi-info-circle me-2" aria-hidden="true"></i> ${i}</li>`;
             });
 
             repairAlertText.innerText = msg;
-            lstRepairs.innerHTML = listHtml || `<li class="list-group-item bg-transparent text-success border-0 p-1"><i class="bi bi-check-circle me-2"></i> Không có phát hiện bất thường.</li>`;
+            lstRepairs.innerHTML = listHtml || `<li class="list-group-item bg-transparent text-success border-0 p-1"><i class="bi bi-check-circle me-2" aria-hidden="true"></i> Không có phát hiện bất thường.</li>`;
             patchLogsArea.style.display = "block";
 
         } catch (e) {
@@ -588,7 +588,7 @@ document.addEventListener("DOMContentLoaded", function () {
             // Render Repair Logs
             let listHtml = "";
             data.repairs.forEach(rep => {
-                listHtml += `<li class="list-group-item bg-transparent text-success border-0 p-1"><i class="bi bi-check2-all me-2"></i> ${rep}</li>`;
+                listHtml += `<li class="list-group-item bg-transparent text-success border-0 p-1"><i class="bi bi-check2-all me-2" aria-hidden="true"></i> ${rep}</li>`;
             });
             lstRepairs.innerHTML = listHtml;
 
@@ -685,7 +685,7 @@ document.addEventListener("DOMContentLoaded", function () {
         swarmPlaceholder.style.display = "none";
         swarmTimelineContainer.style.display = "block";
         swarmReportArea.style.display = "none";
-        swarmTimeline.innerHTML = `<div class="text-center py-4"><div class="spinner-border text-primary" role="status"></div><p class="mt-2 text-secondary">Swarm Coordinator đang đánh thức các Specialist Agents...</p></div>`;
+        swarmTimeline.innerHTML = `<div class="text-center py-4"><div class="spinner-border text-primary" role="status"></div><p class="mt-2 text-secondary">Swarm Coordinator đang đánh thức các Specialist Agents…</p></div>`;
 
         try {
             const response = await fetch("/api/agents/swarm-chat", {
@@ -699,7 +699,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const data = await response.json();
 
             if (data.error) {
-                swarmTimeline.innerHTML = `<div class="alert alert-danger"><i class="bi bi-x-circle me-2"></i> ${data.error}</div>`;
+                swarmTimeline.innerHTML = `<div class="alert alert-danger"><i class="bi bi-x-circle me-2" aria-hidden="true"></i> ${data.error}</div>`;
                 return;
             }
 
@@ -744,7 +744,7 @@ document.addEventListener("DOMContentLoaded", function () {
             showNextMessage();
 
         } catch (e) {
-            swarmTimeline.innerHTML = `<div class="alert alert-danger"><i class="bi bi-x-circle me-2"></i> Lỗi khởi chạy Swarm: ${e.message}</div>`;
+            swarmTimeline.innerHTML = `<div class="alert alert-danger"><i class="bi bi-x-circle me-2" aria-hidden="true"></i> Lỗi khởi chạy Swarm: ${e.message}</div>`;
         }
     });
 

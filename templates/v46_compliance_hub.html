@@ -13,10 +13,10 @@
         </div>
         <div class="d-flex gap-2 mt-3 mt-md-0">
             <button id="btn-recalculate" class="btn btn-success d-flex align-items-center gap-2">
-                <i class="bi bi-arrow-clockwise"></i> Refresh Log Queues
+                <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Refresh Log Queues
             </button>
             <span id="sync-status" class="badge bg-success-subtle text-success border border-success d-flex align-items-center px-3">
-                <i class="bi bi-check-circle-fill me-1"></i> Connected to GDT Portal
+                <i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Connected to GDT Portal
             </span>
         </div>
     </div>
@@ -27,26 +27,26 @@
         <div class="col-lg-6">
             <div class="card shadow-sm h-100 border-light">
                 <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-envelope-exclamation text-danger me-2"></i>Form 04/SS-HĐĐT Error Notices</h5>
+                    <h5 class="fw-bold mb-1"><i class="bi bi-envelope-exclamation text-danger me-2" aria-hidden="true"></i>Form 04/SS-HĐĐT Error Notices</h5>
                     <p class="text-muted small mb-0">Record error correction reports filed with the GDT and audit late submission timelines.</p>
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label for="input-ss-symbol" class="form-label small mb-1">Invoice Symbol:</label>
-                            <input type="text" id="input-ss-symbol" class="form-control form-control-sm" value="1C26TAA">
+                            <input type="text" id="input-ss-symbol" class="form-control form-control-sm" value="1C26TAA" autocomplete="off">
                         </div>
                         <div class="col-md-6">
                             <label for="input-ss-number" class="form-label small mb-1">Invoice Number:</label>
-                            <input type="text" id="input-ss-number" class="form-control form-control-sm" value="0000015">
+                            <input type="text" id="input-ss-number" class="form-control form-control-sm" value="0000015" autocomplete="off">
                         </div>
                         <div class="col-md-6">
                             <label for="input-ss-invdate" class="form-label small mb-1">Invoice Date:</label>
-                            <input type="date" id="input-ss-invdate" class="form-control form-control-sm" value="2026-06-11">
+                            <input type="date" id="input-ss-invdate" class="form-control form-control-sm" value="2026-06-11" autocomplete="off">
                         </div>
                         <div class="col-md-6">
                             <label for="input-ss-filedate" class="form-label small mb-1">Filing Date to GDT:</label>
-                            <input type="date" id="input-ss-filedate" class="form-control form-control-sm" value="2026-07-25">
+                            <input type="date" id="input-ss-filedate" class="form-control form-control-sm" value="2026-07-25" autocomplete="off">
                         </div>
                         <div class="col-12">
                             <label for="select-ss-status" class="form-label small mb-1">GDT Response status:</label>
@@ -58,13 +58,13 @@
                         </div>
                         <div class="col-12 text-end">
                             <button id="btn-submit-ss" class="btn btn-danger btn-sm">
-                                <i class="bi bi-send-fill me-1"></i> Submit 04/SS Notice
+                                <i class="bi bi-send-fill me-1" aria-hidden="true"></i> Submit 04/SS Notice
                             </button>
                         </div>
                     </div>
 
                     <div class="mt-4 p-3 bg-light rounded border">
-                        <h6 class="fw-bold mb-2 text-danger"><i class="bi bi-clock-history me-2"></i>Filing Audit Results</h6>
+                        <h6 class="fw-bold mb-2 text-danger"><i class="bi bi-clock-history me-2" aria-hidden="true"></i>Filing Audit Results</h6>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>Filing Status:</span>
                             <span id="res-ss-status" class="badge bg-success">Accepted</span>
@@ -85,26 +85,26 @@
         <div class="col-lg-6">
             <div class="card shadow-sm h-100 border-light">
                 <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-printer text-primary me-2"></i>Circular 78 Paper Conversions</h5>
+                    <h5 class="fw-bold mb-1"><i class="bi bi-printer text-primary me-2" aria-hidden="true"></i>Circular 78 Paper Conversions</h5>
                     <p class="text-muted small mb-0">Reconcile paper prints, audit conversion count limits, and check duplicate CIT expense deduction risk.</p>
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label for="input-conv-symbol" class="form-label small mb-1">Invoice Symbol:</label>
-                            <input type="text" id="input-conv-symbol" class="form-control form-control-sm" value="1C26TAA">
+                            <input type="text" id="input-conv-symbol" class="form-control form-control-sm" value="1C26TAA" autocomplete="off">
                         </div>
                         <div class="col-md-6">
                             <label for="input-conv-number" class="form-label small mb-1">Invoice Number:</label>
-                            <input type="text" id="input-conv-number" class="form-control form-control-sm" value="0000015">
+                            <input type="text" id="input-conv-number" class="form-control form-control-sm" value="0000015" autocomplete="off">
                         </div>
                         <div class="col-md-6">
                             <label for="input-conv-amount" class="form-label small mb-1">Invoice Total Amount:</label>
-                            <input type="number" id="input-conv-amount" class="form-control form-control-sm" value="100000000">
+                            <input type="number" id="input-conv-amount" class="form-control form-control-sm" value="100000000" autocomplete="off">
                         </div>
                         <div class="col-md-6">
                             <label for="input-conv-date" class="form-label small mb-1">Print Date:</label>
-                            <input type="date" id="input-conv-date" class="form-control form-control-sm" value="2026-06-12">
+                            <input type="date" id="input-conv-date" class="form-control form-control-sm" value="2026-06-12" autocomplete="off">
                         </div>
                         <div class="col-md-6">
                             <label for="slider-conv-count" class="form-label d-flex justify-content-between small mb-1">
@@ -115,20 +115,20 @@
                         </div>
                         <div class="col-md-6">
                             <label for="input-conv-user" class="form-label small mb-1">Converted By:</label>
-                            <input type="text" id="input-conv-user" class="form-control form-control-sm" value="Admin Office">
+                            <input type="text" id="input-conv-user" class="form-control form-control-sm" value="Admin Office" autocomplete="off">
                         </div>
                         <div class="col-12 text-end">
                             <button id="btn-reconcile-conv" class="btn btn-primary btn-sm">
-                                <i class="bi bi-shield-shaded me-1"></i> Audit Conversion prints
+                                <i class="bi bi-shield-shaded me-1" aria-hidden="true"></i> Audit Conversion prints
                             </button>
                         </div>
                     </div>
 
                     <div class="mt-4 p-3 bg-light rounded border">
-                        <h6 class="fw-bold mb-2 text-primary"><i class="bi bi-shield-exclamation me-2"></i>Conversion Risk Warnings</h6>
+                        <h6 class="fw-bold mb-2 text-primary"><i class="bi bi-shield-exclamation me-2" aria-hidden="true"></i>Conversion Risk Warnings</h6>
                         <div id="conv-alerts-container">
                             <div class="alert alert-warning py-2 px-3 small mb-1">
-                                <i class="bi bi-exclamation-triangle-fill me-1"></i> MULTIPLE_CONVERSION_PRINTS_ALERT
+                                <i class="bi bi-exclamation-triangle-fill me-1" aria-hidden="true"></i> MULTIPLE_CONVERSION_PRINTS_ALERT
                             </div>
                         </div>
                     </div>
@@ -140,7 +140,7 @@
         <div class="col-12 mt-4">
             <div class="card shadow-sm border-light">
                 <div class="card-header bg-obsidian text-snow py-3 d-flex align-items-center justify-content-between">
-                    <h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-success me-2"></i>Multi-Agent Advisory Board Debate</h5>
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-success me-2" aria-hidden="true"></i>Multi-Agent Advisory Board Debate</h5>
                     <span class="badge bg-secondary border border-secondary">Consensus Simulator</span>
                 </div>
                 <div class="card-body">
@@ -148,8 +148,8 @@
                         <!-- Debate Messages -->
                     </div>
                     <div class="p-3 bg-light rounded border border-light-subtle">
-                        <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2"></i>Consensus Summary Statement:</h6>
-                        <p id="consensus-text" class="text-muted small mb-0">Awaiting simulation data execution...</p>
+                        <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus Summary Statement:</h6>
+                        <p id="consensus-text" class="text-muted small mb-0">Awaiting simulation data execution…</p>
                     </div>
                 </div>
             </div>
@@ -261,7 +261,7 @@ document.addEventListener("DOMContentLoaded", () => {
         container.innerHTML = "";
         
         if (res.alerts.length === 0) {
-            container.innerHTML = `<div class="text-success small"><i class="bi bi-check-circle-fill me-1"></i> No conversion audit warnings found.</div>`;
+            container.innerHTML = `<div class="text-success small"><i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> No conversion audit warnings found.</div>`;
             return;
         }
 

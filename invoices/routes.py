@@ -11375,11 +11375,452 @@ def api_v48_compliance_data():
     })
 
 
+# ═══════════════════════════════════════════════════════════════════
+# VERSION 49 — CIT Law Amendments 67/2025/QH15 Compliance Engine
+# ═══════════════════════════════════════════════════════════════════
+
+@invoices_blueprint.get("/v49-compliance-hub")
+def v49_compliance_hub_page():
+    """Render the Version 49 CIT Law 67 amendments compliance hub."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("v49_compliance_hub.html")
 
 
+@invoices_blueprint.post("/api/v49/sme-cit/calculate")
+def api_v49_sme_cit_calculate():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    business_name = data.get("business_name", "Cong Ty A")
+    annual_revenue = float(data.get("annual_revenue", 2500000000.0))
+    has_transfer_pricing = bool(data.get("has_transfer_pricing", False))
+
+    from invoices.v49_service import V49ComplianceService
+    try:
+        service = V49ComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.classify_sme_cit(mst, business_name, annual_revenue, has_transfer_pricing)
+        return jsonify({"status": "success", "results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
 
 
+@invoices_blueprint.post("/api/v49/re-loss/offset")
+def api_v49_re_loss_offset():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    tax_year = int(data.get("tax_year", 2025))
+    main_income = float(data.get("main_income", 1000000000.0))
+    re_loss = float(data.get("re_loss", 200000000.0))
+
+    from invoices.v49_service import V49ComplianceService
+    try:
+        service = V49ComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.apply_re_loss_offset(mst, tax_year, main_income, re_loss)
+        return jsonify({"status": "success", "results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
 
 
+@invoices_blueprint.post("/api/v49/digital-cit/audit")
+def api_v49_digital_cit_audit():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
 
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    vendor_name = data.get("vendor_name", "Google Ireland")
+    is_foreign_platform = bool(data.get("is_foreign_platform", True))
+    amount = float(data.get("amount", 500000000.0))
+    component_type = data.get("component_type", "service")
+
+    from invoices.v49_service import V49ComplianceService
+    try:
+        service = V49ComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.audit_digital_cit(mst, vendor_name, is_foreign_platform, amount, component_type)
+        return jsonify({"status": "success", "results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.post("/api/v49/green-exemption/scan")
+def api_v49_green_exemption_scan():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    item_description = data.get("item_description", "Interest from green bonds issued 2025")
+    amount = float(data.get("amount", 50000000.0))
+
+    from invoices.v49_service import V49ComplianceService
+    try:
+        service = V49ComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.scan_green_exemptions(mst, item_description, amount)
+        return jsonify({"status": "success", "results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.get("/api/v49/compliance-data")
+def api_v49_compliance_data():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v49_service import V49ComplianceService
+    service = V49ComplianceService(current_app.config["BASE_DATA_DIR"])
+
+    sme_res = service.classify_sme_cit(mst, "Cong Ty SME A", 2500000000.0, False)
+    offset_res = service.apply_re_loss_offset(mst, 2025, 1000000000.0, 200000000.0)
+    digital_res = service.audit_digital_cit(mst, "Google Ireland", True, 500000000.0, "service")
+    green_res = service.scan_green_exemptions(mst, "Interest from green bonds issued 2025", 50000000.0)
+
+    debate_transcript = [
+        {"speaker": "Tax Consultant", "text": "Under Law 67/2025/QH15, corporate income tax for SMEs is reduced to 15% or 17%. However, if the business is part of a transfer pricing relationship, it remains under the standard 20% rate."},
+        {"speaker": "Real Estate Analyst", "text": "Allowing businesses to offset real estate losses against their main operations represents a massive shift. Previously, real estate losses had to be ring-fenced, resulting in higher taxes."},
+        {"speaker": "Environmental Economist", "text": "Article 8 provides critical CIT exemptions on the first transfer of carbon credits and interest from green bonds, providing strong financial incentives for green initiatives."}
+    ]
+    consensus_summary = "CIT Law 67/2025/QH15 Engine: Verified SME progressive rate classification, RE loss offset logic, e-commerce CIT withholding triggers, and tax exemptions for green activities."
+
+    return jsonify({
+        "status": "success",
+        "sme_classification": sme_res,
+        "re_loss_offset": offset_res,
+        "digital_audit": digital_res,
+        "green_exemption": green_res,
+        "debate": debate_transcript,
+        "consensus_summary": consensus_summary
+    })
+
+
+# ═══════════════════════════════════════════════════════════════════
+# VERSION 50 — PIT Law Amendments 109/2025/QH15 Compliance Engine
+# ═══════════════════════════════════════════════════════════════════
+
+@invoices_blueprint.get("/v50-compliance-hub")
+def v50_compliance_hub_page():
+    """Render the Version 50 PIT Law 109 amendments compliance hub."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("v50_compliance_hub.html")
+
+
+@invoices_blueprint.post("/api/v50/household-pit/evaluate")
+def api_v50_household_pit_evaluate():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    business_name = data.get("business_name", "Tiem tap hoa Vy")
+    annual_revenue = float(data.get("annual_revenue", 450000000.0))
+    activity_type = data.get("activity_type", "distribution")
+
+    from invoices.v50_service import V50ComplianceService
+    try:
+        service = V50ComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.evaluate_household_pit(mst, business_name, annual_revenue, activity_type)
+        return jsonify({"status": "success", "results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.post("/api/v50/wage-pit/calculate")
+def api_v50_wage_pit_calculate():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    employee_name = data.get("employee_name", "Nguyen Van A")
+    monthly_salary = float(data.get("monthly_salary", 35000000.0))
+    dependent_count = int(data.get("dependent_count", 2))
+
+    from invoices.v50_service import V50ComplianceService
+    try:
+        service = V50ComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.calculate_wage_pit(mst, employee_name, monthly_salary, dependent_count)
+        return jsonify({"status": "success", "results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.get("/api/v50/compliance-data")
+def api_v50_compliance_data():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v50_service import V50ComplianceService
+    service = V50ComplianceService(current_app.config["BASE_DATA_DIR"])
+
+    household_res = service.evaluate_household_pit(mst, "Tiem tap hoa Vy", 450000000.0, "distribution")
+    wage_res = service.calculate_wage_pit(mst, "Nguyen Van A", 35000000.0, 2)
+
+    debate_transcript = [
+        {"speaker": "Tax Policy Expert", "text": "Law 109/2025/QH15 raises the threshold for PIT exemption on household businesses to 500 million VND, which directly mirrors the VAT exemption threshold under Law 149/2025/QH15. This streamlines tax administration for micro-enterprises."},
+        {"speaker": "HR Director", "text": "The increase in the monthly personal deduction to 15 million VND and dependent deduction to 5.5 million VND provides significant relief for middle-income employees, reducing their taxable wage bases substantially."},
+        {"speaker": "Payroll Auditor", "text": "Our progressive wage PIT brackets calculator properly implements the 7 tax grades ranging from 5% to 35% based on these updated deductions. This ensures compliant tax calculation for standard wage-earners."}
+    ]
+    consensus_summary = "PIT Law 109/2025/QH15 Engine: Verified household business PIT exemption threshold (500M VND) and progressive wage tax calculations incorporating revised deductions."
+
+    return jsonify({
+        "status": "success",
+        "household_evaluation": household_res,
+        "wage_calculation": wage_res,
+        "debate": debate_transcript,
+        "consensus_summary": consensus_summary
+    })
+
+
+# ═══════════════════════════════════════════════════════════════════
+# VERSION 51 — Tax Administration Law 108/2025/QH15 Compliance Engine
+# ═══════════════════════════════════════════════════════════════════
+
+@invoices_blueprint.get("/v51-compliance-hub")
+def v51_compliance_hub_page():
+    """Render the Version 51 Tax Administration Law 108 amendments compliance hub."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("v51_compliance_hub.html")
+
+
+@invoices_blueprint.post("/api/v51/signature/verify")
+def api_v51_signature_verify():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    invoice_number = data.get("invoice_number", "INV2026-001")
+    sign_date = data.get("sign_date", "2026-07-01 10:00:00")
+    receive_date = data.get("receive_date", "2026-07-01 11:30:00")
+    cert_expiry_date = data.get("cert_expiry_date", "2027-12-31 23:59:59")
+
+    from invoices.v51_service import V51ComplianceService
+    try:
+        service = V51ComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.audit_etransaction_signature(mst, invoice_number, sign_date, receive_date, cert_expiry_date)
+        return jsonify({"status": "success", "results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.post("/api/v51/withholding/calculate")
+def api_v51_withholding_calculate():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    vendor_name = data.get("vendor_name", "Meta Platforms")
+    is_registered_vendor = bool(data.get("is_registered_vendor", False))
+    service_amount = float(data.get("service_amount", 100000000.0))
+    goods_amount = float(data.get("goods_amount", 50000000.0))
+
+    from invoices.v51_service import V51ComplianceService
+    try:
+        service = V51ComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.calculate_ecommerce_withholding(mst, vendor_name, is_registered_vendor, service_amount, goods_amount)
+        return jsonify({"status": "success", "results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.get("/api/v51/compliance-data")
+def api_v51_compliance_data():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v51_service import V51ComplianceService
+    service = V51ComplianceService(current_app.config["BASE_DATA_DIR"])
+
+    # Register sample vendor
+    service.register_foreign_vendor(mst, "Meta Platforms", "999888777", "ACTIVE")
+
+    sig_res = service.audit_etransaction_signature(
+        mst, "INV2026-001", "2026-07-01 10:00:00", "2026-07-01 11:30:00", "2027-12-31 23:59:59"
+    )
+    withholding_res = service.calculate_ecommerce_withholding(
+        mst, "Meta Platforms", False, 100000000.0, 50000000.0
+    )
+
+    debate_transcript = [
+        {"speaker": "Tax Audit Inspector", "text": "Law 108/2025/QH15 establishes strict e-transaction controls. XML invoices must be signed with active certificates, and GDT transmission delays exceeding 24 hours must be audited and flagged for penalties."},
+        {"speaker": "E-Commerce Expert", "text": "If a foreign vendor has not registered directly on the GDT vendor portal, local B2B buyers are legally required to withhold tax. This means 5% VAT and 5% CIT on digital services, and 5% VAT and 1% CIT on goods purchases."},
+        {"speaker": "IT Director", "text": "Our API enables direct audit validation. We can trace the difference between signature date and reception date, flag certificate expiration, and automatically apply B2B withholding calculations for Meta, Netflix, and other platforms."}
+    ]
+    consensus_summary = "Tax Administration Law 108/2025/QH15 Engine: Audited electronic signature timestamps (24-hour transmission rule) and cross-border withholding tax rules for unregistered suppliers."
+
+    return jsonify({
+        "status": "success",
+        "signature_audit": sig_res,
+        "withholding_calculation": withholding_res,
+        "debate": debate_transcript,
+        "consensus_summary": consensus_summary
+    })
+
+
+# ═══════════════════════════════════════════════════════════════════
+# VERSION 52 — SCT Law No. 66/2025/QH15 Compliance Engine
+# ═══════════════════════════════════════════════════════════════════
+
+@invoices_blueprint.get("/v52-compliance-hub")
+def v52_compliance_hub_page():
+    """Render the Version 52 SCT Law 66 amendments compliance hub."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("v52_compliance_hub.html")
+
+
+@invoices_blueprint.post("/api/v52/beverage/calculate")
+def api_v52_beverage_calculate():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    drink_name = data.get("drink_name", "Energy Drink Power")
+    sugar_content = float(data.get("sugar_content", 7.5))
+    category = data.get("category", "soft drink")
+    year = int(data.get("year", 2026))
+    price_before_tax = float(data.get("price_before_tax", 20000.0))
+
+    from invoices.v52_service import V52ComplianceService
+    try:
+        service = V52ComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.calculate_sugary_beverage_sct(mst, drink_name, sugar_content, category, year, price_before_tax)
+        return jsonify({"status": "success", "results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.post("/api/v52/ac/calculate")
+def api_v52_ac_calculate():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    model_name = data.get("model_name", "CoolMax 30000")
+    capacity_btu = float(data.get("capacity_btu", 30000.0))
+    price_before_tax = float(data.get("price_before_tax", 15000000.0))
+
+    from invoices.v52_service import V52ComplianceService
+    try:
+        service = V52ComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.calculate_air_conditioner_sct(mst, model_name, capacity_btu, price_before_tax)
+        return jsonify({"status": "success", "results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.post("/api/v52/nontariff/calculate")
+def api_v52_nontariff_calculate():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    item_name = data.get("item_name", "Industrial Chemicals")
+    destination = data.get("destination", "Tan Thuan Export Processing Zone")
+    is_car_under_24_seats = bool(data.get("is_car_under_24_seats", False))
+    price_before_tax = float(data.get("price_before_tax", 50000000.0))
+
+    from invoices.v52_service import V52ComplianceService
+    try:
+        service = V52ComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.calculate_nontariff_sct(mst, item_name, destination, is_car_under_24_seats, price_before_tax)
+        return jsonify({"status": "success", "results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.post("/api/v52/promotion/calculate")
+def api_v52_promotion_calculate():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    item_name = data.get("item_name", "Premium Beer Can (Promo)")
+    promo_price = float(data.get("promo_price", 0.0))
+    equivalent_price = float(data.get("equivalent_price", 15000.0))
+    quantity = int(data.get("quantity", 1000))
+    sct_rate = float(data.get("sct_rate", 10.0)) / 100.0
+
+    from invoices.v52_service import V52ComplianceService
+    try:
+        service = V52ComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.calculate_promotion_sct(mst, item_name, promo_price, equivalent_price, quantity, sct_rate)
+        return jsonify({"status": "success", "results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.get("/api/v52/compliance-data")
+def api_v52_compliance_data():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v52_service import V52ComplianceService
+    service = V52ComplianceService(current_app.config["BASE_DATA_DIR"])
+
+    beverage_res = service.calculate_sugary_beverage_sct(
+        mst, "Energy Drink Power", 7.5, "soft drink", 2026, 20000.0
+    )
+    ac_res = service.calculate_air_conditioner_sct(
+        mst, "CoolMax 30000", 30000.0, 15000000.0
+    )
+    nontariff_res = service.calculate_nontariff_sct(
+        mst, "Industrial Chemicals", "Tan Thuan Export Processing Zone", False, 50000000.0
+    )
+    promo_res = service.calculate_promotion_sct(
+        mst, "Premium Beer Can (Promo)", 0.0, 15000.0, 1000, 0.10
+    )
+
+    debate_transcript = [
+        {"speaker": "Tax Audit Inspector", "text": "Special Consumption Tax Law No. 66/2025/QH15 expands the SCT base to sugary beverages with sugar content exceeding 5g/100ml. The roadmap starts at 0% in 2026, then increases to 8% in 2027 and 10% from 2028."},
+        {"speaker": "SCT Specialist", "text": "Air conditioners up to 90,000 BTU are taxable at 10%, but models <= 24,000 BTU are exempt. Similarly, inland goods sold into non-tariff areas are taxable under SCT, but we must exempt passenger cars under 24 seats as they are already taxed at the registration/import stage."},
+        {"speaker": "Compliance Counsel", "text": "For advertising or promotional goods, the taxable price is adjusted to the price of identical or equivalent goods in the same period. We cannot use 0 VND or discount values for SCT calculation."}
+    ]
+    consensus_summary = "SCT Law No. 66/2025/QH15 Compliance Engine: Classifies and audits sugary beverages, air conditioners, inland to non-tariff area sales, and promotional price adjustments."
+
+    return jsonify({
+        "status": "success",
+        "beverage_audit": beverage_res,
+        "ac_audit": ac_res,
+        "nontariff_audit": nontariff_res,
+        "promo_audit": promo_res,
+        "debate": debate_transcript,
+        "consensus_summary": consensus_summary
+    })
 

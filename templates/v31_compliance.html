@@ -229,15 +229,15 @@
                                 <div class="fw-bold text-info small mb-2">Kỳ kê khai 1</div>
                                 <div class="row g-2">
                                     <div class="col-12 mb-1">
-                                        <input type="text" class="form-control form-control-sm glass-input period-name" value="Q1/2026" placeholder="Kỳ kê khai (Ví dụ: Q1/2026)" autocomplete="off">
+                                        <input type="text" class="form-control form-control-sm glass-input period-name" value="Q1/2026" placeholder="Kỳ kê khai (Ví dụ: Q1/2026)" autocomplete="off" aria-label="Kỳ kê khai (Ví dụ: Q1/2026)">
                                     </div>
                                     <div class="col-6">
                                         <label class="small text-secondary">Thuế GTGT ra:</label>
-                                        <input type="number" class="form-control form-control-sm glass-input period-output" value="450000000" autocomplete="off">
+                                        <input type="number" class="form-control form-control-sm glass-input period-output" value="450000000" autocomplete="off" aria-label="Trường nhập liệu">
                                     </div>
                                     <div class="col-6">
                                         <label class="small text-secondary">Thuế GTGT vào:</label>
-                                        <input type="number" class="form-control form-control-sm glass-input period-input-vat" value="380000000" autocomplete="off">
+                                        <input type="number" class="form-control form-control-sm glass-input period-input-vat" value="380000000" autocomplete="off" aria-label="Trường nhập liệu">
                                     </div>
                                 </div>
                             </div>
@@ -246,15 +246,15 @@
                                 <div class="fw-bold text-info small mb-2">Kỳ kê khai 2</div>
                                 <div class="row g-2">
                                     <div class="col-12 mb-1">
-                                        <input type="text" class="form-control form-control-sm glass-input period-name" value="Q2/2026" placeholder="Kỳ kê khai (Ví dụ: Q2/2026)" autocomplete="off">
+                                        <input type="text" class="form-control form-control-sm glass-input period-name" value="Q2/2026" placeholder="Kỳ kê khai (Ví dụ: Q2/2026)" autocomplete="off" aria-label="Kỳ kê khai (Ví dụ: Q2/2026)">
                                     </div>
                                     <div class="col-6">
                                         <label class="small text-secondary">Thuế GTGT ra:</label>
-                                        <input type="number" class="form-control form-control-sm glass-input period-output" value="500000000" autocomplete="off">
+                                        <input type="number" class="form-control form-control-sm glass-input period-output" value="500000000" autocomplete="off" aria-label="Trường nhập liệu">
                                     </div>
                                     <div class="col-6">
                                         <label class="small text-secondary">Thuế GTGT vào:</label>
-                                        <input type="number" class="form-control form-control-sm glass-input period-input-vat" value="530000000" autocomplete="off">
+                                        <input type="number" class="form-control form-control-sm glass-input period-input-vat" value="530000000" autocomplete="off" aria-label="Trường nhập liệu">
                                     </div>
                                 </div>
                             </div>
@@ -624,7 +624,7 @@
         document.getElementById("swarmPlaceholder").style.display = "none";
         document.getElementById("swarmResultsAreaV31").style.display = "block";
         const timeline = document.getElementById("swarmV31Timeline");
-        timeline.innerHTML = '<div class="text-secondary small"><i class="bi bi-arrow-repeat spin me-2" aria-hidden="true"></i>Đang khởi động Agent Swarm rà soát thuế...</div>';
+        timeline.innerHTML = '<div class="text-secondary small"><i class="bi bi-arrow-repeat spin me-2" aria-hidden="true"></i>Đang khởi động Agent Swarm rà soát thuế…</div>';
         document.getElementById("txtSwarmReport").value = "";
 
         try {
