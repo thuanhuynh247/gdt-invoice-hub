@@ -102,6 +102,12 @@
                         <a class="nav-link {% if request.path == '/v44-compliance-hub' %}active{% endif %}" href="{{ url_for('invoices.v44_compliance_hub_page') }}"><i class="bi bi-shield-shaded text-success" aria-hidden="true"></i> Compliance Hub v44 <span class="badge bg-success text-white rounded-pill ms-1" style="font-size: 0.65em;">V44</span></a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/v45-compliance-hub' %}active{% endif %}" href="{{ url_for('invoices.v45_compliance_hub_page') }}"><i class="bi bi-shield-check text-info" aria-hidden="true"></i> CIT & TP Hub v45 <span class="badge bg-info text-dark rounded-pill ms-1" style="font-size: 0.65em;">V45</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/v46-compliance-hub' %}active{% endif %}" href="{{ url_for('invoices.v46_compliance_hub_page') }}"><i class="bi bi-shield-fill text-warning" aria-hidden="true"></i> Error & Conversion v46 <span class="badge bg-warning text-dark rounded-pill ms-1" style="font-size: 0.65em;">V46</span></a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link {% if request.path == '/harness' %}active{% endif %}" href="{{ url_for('invoices.harness_page') }}"><i class="bi bi-cpu-fill" aria-hidden="true"></i> Harness Agent</a>
                     </li>
 
