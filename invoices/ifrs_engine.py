@@ -52,6 +52,27 @@ class IFRSTranslationService:
                 liability_balance REAL NOT NULL,
                 active_status INTEGER DEFAULT 1
             );
+
+            CREATE TABLE IF NOT EXISTS ifrs15_revenue_contracts (
+                contract_id TEXT PRIMARY KEY,
+                customer_name TEXT NOT NULL,
+                contract_date TEXT NOT NULL,
+                total_transaction_price REAL NOT NULL,
+                deferred_revenue REAL DEFAULT 0.0,
+                recognized_revenue REAL DEFAULT 0.0,
+                status TEXT DEFAULT 'Active'
+            );
+
+            CREATE TABLE IF NOT EXISTS ifrs15_performance_obligations (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                contract_id TEXT NOT NULL,
+                obligation_name TEXT NOT NULL,
+                standalone_selling_price REAL NOT NULL,
+                allocated_price REAL,
+                is_satisfied INTEGER DEFAULT 0,
+                satisfied_date TEXT,
+                FOREIGN KEY(contract_id) REFERENCES ifrs15_revenue_contracts(contract_id)
+            );
         """)
         conn.commit()
         return conn
@@ -117,6 +138,23 @@ class IFRSTranslationService:
         conn.commit()
         conn.close()
         return records
+
+    def calculate_ifrs16_amortization_table(self, mst: str, lease_id: str) -> List[Dict[str, Any]]:
+        """Retrieves lease details from the tenant database and generates a complete amortization table."""
+        conn = self.get_tenant_connection(mst)
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT monthly_payment, discount_rate, lease_term_months 
+            FROM lease_amortization_schedule 
+            WHERE lease_id = ?
+        """, (lease_id,))
+        row = cur.fetchone()
+        conn.close()
+        if not row:
+            return []
+        return self.calculate_ifrs16_amortization(
+            lease_id, row["monthly_payment"], row["discount_rate"], row["lease_term_months"]
+        )
 
     def calculate_ifrs16_amortization(
         self, lease_id: str, monthly_payment: float, discount_rate: float, term_months: int
@@ -219,3 +257,103 @@ class IFRSTranslationService:
             "estimated_topup_tax": round(topup_tax, 2),
             "covered_tax_by_mst": {k: round(v, 2) for k, v in covered_tax_by_mst.items()}
         }
+
+    def allocate_ifrs15_transaction_price(
+        self, mst: str, contract_id: str, customer_name: str, contract_date: str, total_price: float, obligations: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
+        """Allocates contract price based on relative Standalone Selling Prices (SSP) under IFRS 15."""
+        conn = self.get_tenant_connection(mst)
+        cur = conn.cursor()
+        
+        # Save contract record
+        cur.execute("""
+            INSERT OR REPLACE INTO ifrs15_revenue_contracts (contract_id, customer_name, contract_date, total_transaction_price, deferred_revenue, recognized_revenue)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (contract_id, customer_name, contract_date, total_price, total_price, 0.0))
+        
+        # Remove old performance obligations for this contract
+        cur.execute("DELETE FROM ifrs15_performance_obligations WHERE contract_id = ?", (contract_id,))
+        
+        # Sum up Standalone Selling Prices
+        total_ssp = sum(float(ob.get("standalone_selling_price", 0.0)) for ob in obligations)
+        
+        allocated_obligations = []
+        for ob in obligations:
+            ssp = float(ob.get("standalone_selling_price", 0.0))
+            name = ob.get("obligation_name")
+            
+            allocated_price = 0.0
+            if total_ssp > 0:
+                allocated_price = total_price * (ssp / total_ssp)
+            else:
+                allocated_price = total_price / len(obligations)
+                
+            cur.execute("""
+                INSERT INTO ifrs15_performance_obligations (contract_id, obligation_name, standalone_selling_price, allocated_price, is_satisfied)
+                VALUES (?, ?, ?, ?, 0)
+            """, (contract_id, name, ssp, allocated_price))
+            
+            allocated_obligations.append({
+                "obligation_name": name,
+                "standalone_selling_price": ssp,
+                "allocated_price": round(allocated_price, 2)
+            })
+            
+        conn.commit()
+        conn.close()
+        return allocated_obligations
+
+    def recognize_ifrs15_revenue(self, mst: str, contract_id: str, satisfied_names: List[str], satisfied_date: str) -> Dict[str, Any]:
+        """Marks specific obligations as satisfied and updates recognized and deferred revenue in tenant DB under IFRS 15."""
+        conn = self.get_tenant_connection(mst)
+        cur = conn.cursor()
+        
+        # Update satisfied status for specific obligations
+        for name in satisfied_names:
+            cur.execute("""
+                UPDATE ifrs15_performance_obligations
+                SET is_satisfied = 1, satisfied_date = ?
+                WHERE contract_id = ? AND obligation_name = ?
+            """, (satisfied_date, contract_id, name))
+            
+        # Sum up satisfied obligations allocated prices
+        cur.execute("""
+            SELECT SUM(allocated_price) 
+            FROM ifrs15_performance_obligations
+            WHERE contract_id = ? AND is_satisfied = 1
+        """, (contract_id,))
+        recognized = cur.fetchone()[0] or 0.0
+        
+        # Get total transaction price
+        cur.execute("""
+            SELECT total_transaction_price 
+            FROM ifrs15_revenue_contracts
+            WHERE contract_id = ?
+        """, (contract_id,))
+        row = cur.fetchone()
+        if not row:
+            conn.close()
+            return {"error": f"Contract {contract_id} not found"}
+        
+        total_price = row[0]
+        deferred = total_price - recognized
+        if deferred < 0:
+            deferred = 0.0
+            
+        # Update contract totals
+        cur.execute("""
+            UPDATE ifrs15_revenue_contracts
+            SET recognized_revenue = ?, deferred_revenue = ?
+            WHERE contract_id = ?
+        """, (recognized, deferred, contract_id))
+        
+        conn.commit()
+        conn.close()
+        
+        return {
+            "contract_id": contract_id,
+            "total_transaction_price": round(total_price, 2),
+            "recognized_revenue": round(recognized, 2),
+            "deferred_revenue": round(deferred, 2)
+        }
+

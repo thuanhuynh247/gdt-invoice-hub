@@ -1074,6 +1074,72 @@ class ECommercePlatformTransaction(db.Model):
         }
 
 
+class GlobalIfrsRule(db.Model):
+    """US-550: Holds IFRS translation rules, global tax rates, and definitions."""
+
+    __tablename__ = "global_ifrs_rules"
+
+    rule_id = db.Column(db.String(100), primary_key=True)
+    rule_type = db.Column(db.String(50), nullable=False)  # 'IAS_12', 'IFRS_15', 'IFRS_16', 'PILLAR_TWO'
+    vas_code = db.Column(db.String(50), nullable=True)
+    ifrs_treatment = db.Column(db.Text, nullable=False)
+    config_json = db.Column(db.Text, nullable=True)
+
+    def to_dict(self) -> dict:
+        return {
+            "rule_id": self.rule_id,
+            "rule_type": self.rule_type,
+            "vas_code": self.vas_code,
+            "ifrs_treatment": self.ifrs_treatment,
+            "config_json": self.config_json,
+        }
+
+
+class IntercompanyEntity(db.Model):
+    """US-553: Defines intercompany entities and ownership percentages."""
+
+    __tablename__ = "intercompany_entities"
+
+    id = db.Column(db.String(100), primary_key=True)
+    parent_mst = db.Column(db.String(20), nullable=False)
+    subsidiary_mst = db.Column(db.String(20), nullable=False)
+    relationship_type = db.Column(db.String(50), nullable=False)  # 'subsidiary', 'associate', 'joint_venture'
+    ownership_percentage = db.Column(db.Float, nullable=False)
+    transfer_pricing_method = db.Column(db.String(50), default="TNMM")
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "parent_mst": self.parent_mst,
+            "subsidiary_mst": self.subsidiary_mst,
+            "relationship_type": self.relationship_type,
+            "ownership_percentage": self.ownership_percentage,
+            "transfer_pricing_method": self.transfer_pricing_method,
+        }
+
+
+class OecdGlobeRate(db.Model):
+    """US-553: Defines country-specific tax parameters for OECD Pillar Two."""
+
+    __tablename__ = "oecd_globe_rates"
+
+    country_code = db.Column(db.String(10), primary_key=True)
+    statutory_tax_rate = db.Column(db.Float, nullable=False)
+    minimum_tax_rate = db.Column(db.Float, default=0.15)
+    sbie_payroll_rate = db.Column(db.Float, default=0.05)
+    sbie_assets_rate = db.Column(db.Float, default=0.05)
+
+    def to_dict(self) -> dict:
+        return {
+            "country_code": self.country_code,
+            "statutory_tax_rate": self.statutory_tax_rate,
+            "minimum_tax_rate": self.minimum_tax_rate,
+            "sbie_payroll_rate": self.sbie_payroll_rate,
+            "sbie_assets_rate": self.sbie_assets_rate,
+        }
+
+
+
 class ECommerceReconciliationReport(db.Model):
     """US-542: Reconciliation report between e-commerce logs and invoices."""
 
