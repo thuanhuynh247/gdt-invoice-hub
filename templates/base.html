@@ -94,7 +94,7 @@
 
                     <!-- Advanced Modules Dropdown (v41-v56) -->
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle {% if request.path in ['/v41-export-refund','/v42-advanced-audit','/v43-ifrs-dashboard','/v44-compliance-hub','/v45-compliance-hub','/v46-compliance-hub','/v47-compliance-hub','/v48-compliance-hub','/v49-compliance-hub','/v50-compliance-hub','/v51-compliance-hub','/v52-compliance-hub','/v53-compliance-hub','/v54-compliance-hub','/v55-compliance-hub','/v56-compliance-hub'] %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <a class="nav-link dropdown-toggle {% if request.path in ['/v41-export-refund','/v42-advanced-audit','/v43-ifrs-dashboard','/v44-compliance-hub','/v45-compliance-hub','/v46-compliance-hub','/v47-compliance-hub','/v48-compliance-hub','/v49-compliance-hub','/v50-compliance-hub','/v51-compliance-hub','/v52-compliance-hub','/v53-compliance-hub','/v54-compliance-hub','/v55-compliance-hub','/v56-compliance-hub','/v57-compliance-hub'] %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-stars" aria-hidden="true"></i> Nâng cao
                         </a>
                         <ul class="dropdown-menu dropdown-menu-premium">
@@ -117,6 +117,8 @@
                             <li><a class="dropdown-item {% if request.path == '/v54-compliance-hub' %}active{% endif %}" href="{{ url_for('invoices.v54_compliance_hub_page') }}"><i class="bi bi-gem text-info me-2" aria-hidden="true"></i>NRT Hub v54</a></li>
                             <li><a class="dropdown-item {% if request.path == '/v55-compliance-hub' %}active{% endif %}" href="{{ url_for('invoices.v55_compliance_hub_page') }}"><i class="bi bi-globe2 text-warning me-2" aria-hidden="true"></i>IET Hub v55</a></li>
                             <li><a class="dropdown-item {% if request.path == '/v56-compliance-hub' %}active{% endif %}" href="{{ url_for('invoices.v56_compliance_hub_page') }}"><i class="bi bi-award-fill text-danger me-2" aria-hidden="true"></i>License Fee Hub v56</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/v57-compliance-hub' %}active{% endif %}" href="{{ url_for('invoices.v57_compliance_hub_page') }}"><i class="bi bi-house-door-fill text-primary me-2" aria-hidden="true"></i>Registration Fee Hub v57</a></li>
+
                         </ul>
                     </li>
 

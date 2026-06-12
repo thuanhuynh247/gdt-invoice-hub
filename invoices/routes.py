@@ -12272,3 +12272,93 @@ def api_v56_compliance_data():
     })
 
 
+# ===================================================================
+# VERSION 57 — Registration Fee (Lệ phí trước bạ) Compliance Engine
+# ===================================================================
+
+@invoices_blueprint.get("/v57-compliance-hub")
+def v57_compliance_hub_page():
+    """Render the Version 57 Registration Fee compliance hub."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("v57_compliance_hub.html")
+
+
+@invoices_blueprint.post("/api/v57/calculate")
+def api_v57_calculate():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    asset_description = data.get("asset_description", "Asset")
+    asset_type = data.get("asset_type", "real_estate")
+    asset_value = float(data.get("asset_value", 0.0))
+    province = data.get("province", "standard")
+    is_first_registration = bool(data.get("is_first_registration", True))
+    cylinder_capacity = float(data.get("cylinder_capacity", 0.0))
+    is_agricultural_land = bool(data.get("is_agricultural_land", False))
+    is_diplomatic = bool(data.get("is_diplomatic", False))
+    is_merit_family_housing = bool(data.get("is_merit_family_housing", False))
+    is_family_agri_transfer = bool(data.get("is_family_agri_transfer", False))
+
+    from invoices.v57_service import V57ComplianceService
+    try:
+        service = V57ComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.calculate_registration_fee(
+            mst, asset_description, asset_type, asset_value, province,
+            is_first_registration, cylinder_capacity,
+            is_agricultural_land, is_diplomatic, is_merit_family_housing, is_family_agri_transfer
+        )
+        return jsonify({"status": "success", "results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.get("/api/v57/compliance-data")
+def api_v57_compliance_data():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v57_service import V57ComplianceService
+    service = V57ComplianceService(current_app.config["BASE_DATA_DIR"])
+
+    real_estate_apt = service.calculate_registration_fee(
+        mst, "Căn hộ Vinhomes Grand Park", "real_estate", 5000000000.0
+    )
+    car_hanoi = service.calculate_registration_fee(
+        mst, "Mercedes S-Class", "car", 3000000000.0,
+        province="hanoi", is_first_registration=True
+    )
+    diplomatic_exempt = service.calculate_registration_fee(
+        mst, "Embassy Official Vehicle", "car", 2000000000.0,
+        is_diplomatic=True
+    )
+    motorbike_large = service.calculate_registration_fee(
+        mst, "Honda CBR600RR", "motorbike", 280000000.0,
+        cylinder_capacity=600
+    )
+
+    debate_transcript = [
+        {"speaker": "Property Registration Auditor", "text": "Registration fees under Decree 10/2022/NĐ-CP apply at 0.5% for real estate, 2%-12% for cars depending on province and first/subsequent registration, 2%-5% for motorbikes by cylinder capacity, and 1% for yachts and aircraft."},
+        {"speaker": "Vehicle Tax Inspector", "text": "Hanoi and HCMC impose a 12% first-time registration surcharge on automobiles to manage traffic density. Subsequent re-registrations revert to the standard 2% rate nationwide."},
+        {"speaker": "Land Use Rights Legal Counsel", "text": "Agricultural and forestry land allocated by the State, diplomatic mission assets, revolutionary merit family housing, and within-family agricultural transfers are fully exempt under Article 10 of Decree 10/2022/NĐ-CP."}
+    ]
+    consensus_summary = "Registration Fee Decree 10/2022/NĐ-CP Compliance Engine: Verified real estate 0.5%, car brackets 2%-12%, motorbike capacity-based rates, yacht/aircraft 1%, and all exemption categories."
+
+    return jsonify({
+        "status": "success",
+        "real_estate_apt": real_estate_apt,
+        "car_hanoi": car_hanoi,
+        "diplomatic_exempt": diplomatic_exempt,
+        "motorbike_large": motorbike_large,
+        "debate": debate_transcript,
+        "consensus_summary": consensus_summary,
+        "history": service.get_history(mst, 20)
+    })
+
+

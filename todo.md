@@ -219,6 +219,11 @@ Kế hoạch này theo sát tài liệu **Next-Gen Roadmap** và cấu trúc l�
 - [x] **Task 119 (US-354)**: Offline Ollama Tax Regulations RAG.
 - [x] **Task 120 (US-355)**: Advisory Chat & Defense Panel UI.
 
+### 🚀 Giai Đoạn 29: Registration Fee (Lệ phí trước bạ) Compliance Engine (v57.0.0 Roadmap)
+- [x] **Task 121 (US-690)**: Core Registration Fee Calculation Engine (Decree 10/2022/NĐ-CP).
+- [x] **Task 122 (US-691)**: RF Exemption Auditor (Agricultural, Diplomatic, Merit Housing, Family Transfer).
+- [x] **Task 123 (US-692)**: Interactive Version 57 Compliance Hub UI and API.
+- [x] **Task 124 (US-693)**: End-to-End V57 Verification Test Suite.
 
 
 
