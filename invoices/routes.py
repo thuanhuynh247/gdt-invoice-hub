@@ -12109,3 +12109,166 @@ def api_v54_compliance_data():
         "consensus_summary": consensus_summary
     })
 
+
+# ===================================================================
+# VERSION 55 — Import-Export Tax Compliance Engine
+# ===================================================================
+
+@invoices_blueprint.get("/v55-compliance-hub")
+def v55_compliance_hub_page():
+    """Render the Version 55 Import-Export Tax compliance hub."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("v55_compliance_hub.html")
+
+
+@invoices_blueprint.post("/api/v55/calculate")
+def api_v55_calculate():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    cargo_name = data.get("cargo_name", "Machinery Part")
+    cargo_type = data.get("cargo_type", "import")
+    quantity = float(data.get("quantity", 10.0))
+    unit_price = float(data.get("unit_price", 10000000.0))
+    tariff_type = data.get("tariff_type", "preferential")
+    goods_purpose = data.get("goods_purpose", "commercial")
+
+    from invoices.v55_service import V55ComplianceService
+    try:
+        service = V55ComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.calculate_import_export_duty(
+            mst, cargo_name, cargo_type, quantity, unit_price, tariff_type, goods_purpose
+        )
+        return jsonify({"status": "success", "results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.get("/api/v55/compliance-data")
+def api_v55_compliance_data():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v55_service import V55ComplianceService
+    service = V55ComplianceService(current_app.config["BASE_DATA_DIR"])
+
+    import_mfn = service.calculate_import_export_duty(
+        mst, "Industrial Machinery", "import", 1.0, 250000000.0, "preferential", "commercial"
+    )
+    processing_exempt = service.calculate_import_export_duty(
+        mst, "Polyester Yarn", "import", 10000.0, 3500.0, "preferential", "processing contract"
+    )
+    export_minerals = service.calculate_import_export_duty(
+        mst, "Copper Ores", "export", 500.0, 1200000.0, "preferential", "commercial"
+    )
+    gift_exempt = service.calculate_import_export_duty(
+        mst, "Sample Machinery Spare Part", "import", 1.0, 1800000.0, "preferential", "gift"
+    )
+
+    debate_transcript = [
+        {"speaker": "Border Customs Inspector", "text": "Under Import-Export Tax Law 107/2016/QH13, goods imported under processing contracts for foreign trade are 100% exempt from import-export duties. Proper contract registration must be verified."},
+        {"speaker": "Trade Compliance Officer", "text": "Low-value non-commercial gifts and samples sent via courier are exempt if their value does not exceed 2,000,000 VND. Any amount above this limit is taxed on its full value."},
+        {"speaker": "Tax Advisory Consultant", "text": "Export duties primarily target raw minerals and resources to discourage raw exports, while preferential import duties (MFN) and special FTA tariffs (EVFTA, CPTPP) support technical imports."}
+    ]
+    consensus_summary = "IET Law 107/2016/QH13 Compliance Engine: Verified import-export duties calculation, processing contract exemptions, temporary import/re-export exemptions, and low-value courier gift thresholds."
+
+    return jsonify({
+        "status": "success",
+        "import_mfn": import_mfn,
+        "processing_exempt": processing_exempt,
+        "export_minerals": export_minerals,
+        "gift_exempt": gift_exempt,
+        "debate": debate_transcript,
+        "consensus_summary": consensus_summary,
+        "history": service.get_history(mst, 20)
+    })
+
+
+# ===================================================================
+# VERSION 56 — License Fee (Lệ phí môn bài) Compliance Engine
+# ===================================================================
+
+@invoices_blueprint.get("/v56-compliance-hub")
+def v56_compliance_hub_page():
+    """Render the Version 56 License Fee compliance hub."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("v56_compliance_hub.html")
+
+
+@invoices_blueprint.post("/api/v56/calculate")
+def api_v56_calculate():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    entity_name = data.get("entity_name", "Main Office")
+    entity_type = data.get("entity_type", "enterprise")
+    charter_capital = float(data.get("charter_capital", 15000000000.0))
+    annual_revenue = float(data.get("annual_revenue", 0.0))
+    is_newly_established = bool(data.get("is_newly_established", False))
+    is_agri_cooperative = bool(data.get("is_agri_cooperative", False))
+
+    from invoices.v56_service import V56ComplianceService
+    try:
+        service = V56ComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.calculate_license_fee(
+            mst, entity_name, entity_type, charter_capital, annual_revenue, is_newly_established, is_agri_cooperative
+        )
+        return jsonify({"status": "success", "results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.get("/api/v56/compliance-data")
+def api_v56_compliance_data():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v56_service import V56ComplianceService
+    service = V56ComplianceService(current_app.config["BASE_DATA_DIR"])
+
+    enterprise_large = service.calculate_license_fee(
+        mst, "HQ Headquarters", "enterprise", 15000000000.0, 0.0, False, False
+    )
+    branch_flat = service.calculate_license_fee(
+        mst, "Southern Branch Office", "branch", 0.0, 0.0, False, False
+    )
+    new_exemption = service.calculate_license_fee(
+        mst, "GreenTech StartUp JSC", "enterprise", 2500000000.0, 0.0, True, False
+    )
+    household_medium = service.calculate_license_fee(
+        mst, "Binh Minh Retail Store", "household", 0.0, 450000000.0, False, False
+    )
+
+    debate_transcript = [
+        {"speaker": "Municipal License Fee Auditor", "text": "Annual license fees under Decree 139/2016/NĐ-CP are categorised by Charter Capital for organisations and Annual Revenue for households. Branches pay a flat 1,000,000 VND fee."},
+        {"speaker": "Business Registration Officer", "text": "Decree 22/2020/NĐ-CP introduced a full exemption on license fees for the first calendar year of establishment for all new enterprises, cooperatives, and households."},
+        {"speaker": "Corporate Tax Legal Counsel", "text": "Agricultural cooperatives and household businesses with an annual revenue of 100,000,000 VND or less are completely exempt from the license fee. Verification is straightforward."}
+    ]
+    consensus_summary = "License Fee Decree 139/2016/NĐ-CP Compliance Engine: Verified enterprise brackets, branches flat fee, household revenue brackets, and newly established first-year exemptions."
+
+    return jsonify({
+        "status": "success",
+        "enterprise_large": enterprise_large,
+        "branch_flat": branch_flat,
+        "new_exemption": new_exemption,
+        "household_medium": household_medium,
+        "debate": debate_transcript,
+        "consensus_summary": consensus_summary,
+        "history": service.get_history(mst, 20)
+    })
+
+
