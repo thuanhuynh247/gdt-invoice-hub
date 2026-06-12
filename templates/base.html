@@ -94,7 +94,7 @@
 
                     <!-- Advanced Modules Dropdown (v41-v56) -->
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle {% if request.path in ['/v41-export-refund','/v42-advanced-audit','/v43-ifrs-dashboard','/v44-compliance-hub','/v45-compliance-hub','/v46-compliance-hub','/v47-compliance-hub','/v48-compliance-hub','/v49-compliance-hub','/v50-compliance-hub','/v51-compliance-hub','/v52-compliance-hub','/v53-compliance-hub','/v54-compliance-hub','/v55-compliance-hub','/v56-compliance-hub','/v57-compliance-hub','/v58-compliance-hub','/v59-compliance-hub','/v60-compliance-hub','/v61-compliance-hub'] %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <a class="nav-link dropdown-toggle {% if request.path in ['/v41-export-refund','/v42-advanced-audit','/v43-ifrs-dashboard','/v44-compliance-hub','/v45-compliance-hub','/v46-compliance-hub','/v47-compliance-hub','/v48-compliance-hub','/v49-compliance-hub','/v50-compliance-hub','/v51-compliance-hub','/v52-compliance-hub','/v53-compliance-hub','/v54-compliance-hub','/v55-compliance-hub','/v56-compliance-hub','/v57-compliance-hub','/v58-compliance-hub','/v59-compliance-hub','/v60-compliance-hub','/v61-compliance-hub','/v62-compliance-hub','/v63-compliance-hub'] %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-stars" aria-hidden="true"></i> Nâng cao
                         </a>
                         <ul class="dropdown-menu dropdown-menu-premium">
@@ -122,6 +122,8 @@
                             <li><a class="dropdown-item {% if request.path == '/v59-compliance-hub' %}active{% endif %}" href="{{ url_for('invoices.v59_compliance_hub_page') }}"><i class="bi bi-building text-warning me-2" aria-hidden="true"></i>NALUT Hub v59</a></li>
                             <li><a class="dropdown-item {% if request.path == '/v60-compliance-hub' %}active{% endif %}" href="{{ url_for('invoices.v60_compliance_hub_page') }}"><i class="bi bi-flower1 text-success me-2" aria-hidden="true"></i>ALUT Hub v60</a></li>
                             <li><a class="dropdown-item {% if request.path == '/v61-compliance-hub' %}active{% endif %}" href="{{ url_for('invoices.v61_compliance_hub_page') }}"><i class="bi bi-droplet-fill text-info me-2" aria-hidden="true"></i>EP Wastewater Hub v61</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/v62-compliance-hub' %}active{% endif %}" href="{{ url_for('invoices.v62_compliance_hub_page') }}"><i class="bi bi-cloud-haze-fill text-info me-2" aria-hidden="true"></i>EP Emissions Hub v62</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/v63-compliance-hub' %}active{% endif %}" href="{{ url_for('invoices.v63_compliance_hub_page') }}"><i class="bi bi-minecart-loaded text-success me-2" aria-hidden="true"></i>EP Mineral Hub v63</a></li>
                         </ul>
                     </li>
 
