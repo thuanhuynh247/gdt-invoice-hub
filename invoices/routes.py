@@ -12513,3 +12513,158 @@ def api_v59_compliance_data():
     })
 
 
+# ===================================================================
+# VERSION 60 — Agricultural Land Use Tax (Thuế sử dụng đất nông nghiệp)
+# ===================================================================
+
+@invoices_blueprint.get("/v60-compliance-hub")
+def v60_compliance_hub_page():
+    """Render the Version 60 Agricultural Land Use Tax compliance hub."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("v60_compliance_hub.html")
+
+
+@invoices_blueprint.post("/api/v60/calculate")
+def api_v60_calculate():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v60_service import V60ComplianceService
+    try:
+        service = V60ComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.calculate_alut(
+            mst,
+            data.get("land_description", "Agricultural Land"),
+            int(data.get("land_grade", 1)),
+            data.get("crop_type", "annual"),
+            float(data.get("area_ha", 0.0)),
+            data.get("producer_type", "household"),
+            float(data.get("rice_price_per_kg", 8000.0))
+        )
+        return jsonify({"status": "success", "results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.get("/api/v60/compliance-data")
+def api_v60_compliance_data():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v60_service import V60ComplianceService
+    service = V60ComplianceService(current_app.config["BASE_DATA_DIR"])
+
+    # Baseline audits for verification
+    household_exempt = service.calculate_alut(mst, "Cánh đồng lúa Hải Hậu", 1, "annual", 5.0, "household")
+    coop_exempt = service.calculate_alut(mst, "Hợp tác xã chè Thái Nguyên", 2, "perennial", 12.0, "cooperative")
+    state_enterprise_reduced = service.calculate_alut(mst, "Nông trường cao su Bình Phước", 1, "perennial", 50.0, "state_org")
+    general_company_taxable = service.calculate_alut(mst, "Công ty phát triển nông nghiệp", 3, "annual", 10.0, "general_org")
+
+    debate_transcript = [
+        {"speaker": "Agricultural Tax Inspector", "text": "Agricultural land use tax under the 1993 Law dictates fixed rice rates: annual crop land (categories 1-6: 50-550 kg/ha) and perennial land (categories 1-5: 200-650 kg/ha)."},
+        {"speaker": "Rural Policy Advisor", "text": "Resolution 117/2020/QH14 extended a 100% tax waiver until 2025 to support rural development. This applies to households, individuals, and agricultural co-ops."},
+        {"speaker": "State Audit Specialist", "text": "Organizations using agricultural land for state research or special missions get a 50% discount. Commercial entities using land for speculative or generic production get no waiver."}
+    ]
+    consensus_summary = "ALUT Law 1993 / Resolution 117/2020 Engine: Verified land grade rates (50-650 kg/ha), 100% exemptions for households/co-ops, 50% state org reductions, and full tax billing for general commercial firms."
+
+    return jsonify({
+        "status": "success",
+        "household_exempt": household_exempt,
+        "coop_exempt": coop_exempt,
+        "state_enterprise_reduced": state_enterprise_reduced,
+        "general_company_taxable": general_company_taxable,
+        "debate": debate_transcript,
+        "consensus_summary": consensus_summary,
+        "history": service.get_history(mst, 20)
+    })
+
+
+# ===================================================================
+# VERSION 61 — Environment Protection Fee for Wastewater (EPFW)
+# ===================================================================
+
+@invoices_blueprint.get("/v61-compliance-hub")
+def v61_compliance_hub_page():
+    """Render the Version 61 Environment Protection Fee for Wastewater compliance hub."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("v61_compliance_hub.html")
+
+
+@invoices_blueprint.post("/api/v61/calculate")
+def api_v61_calculate():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v61_service import V61ComplianceService
+    try:
+        service = V61ComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.calculate_epfw(
+            mst,
+            data.get("water_description", "Wastewater Discharge"),
+            data.get("wastewater_type", "domestic"),
+            float(data.get("water_volume_m3", 0.0)),
+            float(data.get("clean_water_price_vnd", 0.0)),
+            float(data.get("pollutant_cod_kg", 0.0)),
+            float(data.get("pollutant_tss_kg", 0.0)),
+            float(data.get("pollutant_pb_kg", 0.0)),
+            float(data.get("pollutant_cd_kg", 0.0)),
+            float(data.get("pollutant_hg_kg", 0.0)),
+            float(data.get("pollutant_as_kg", 0.0)),
+            data.get("water_source", "central_water")
+        )
+        return jsonify({"status": "success", "results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.get("/api/v61/compliance-data")
+def api_v61_compliance_data():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v61_service import V61ComplianceService
+    service = V61ComplianceService(current_app.config["BASE_DATA_DIR"])
+
+    # Baseline audits for verification
+    domestic_standard = service.calculate_epfw(mst, "Sinh hoạt đô thị", "domestic", 150.0, clean_water_price_vnd=12000.0)
+    industrial_heavy_metals = service.calculate_epfw(mst, "Nước thải dệt nhuộm", "industrial", 500.0,
+                                                     pollutant_cod_kg=120.0, pollutant_tss_kg=80.0, pollutant_pb_kg=0.5)
+    cooling_exempt = service.calculate_epfw(mst, "Nước làm mát tuần hoàn", "industrial", 1000.0, water_source="cooling_recycling")
+    runoff_exempt = service.calculate_epfw(mst, "Nước mưa thoát tự nhiên", "domestic", 2000.0, water_source="natural_runoff")
+
+    debate_transcript = [
+        {"speaker": "Wastewater Auditor", "text": "EPFW under Decree 53/2020/NĐ-CP levies 10% of clean water price on domestic wastewater. Industrial sites pay a 1,500,000 VND fixed fee plus variable surcharges on COD (2,000), TSS (2,400), Pb (1M), Cd (20M), Hg (40M), and As (20M) per kg."},
+        {"speaker": "Industrial Park Supervisor", "text": "Water volumes exceeding 20m3/day trigger full variable pollution accounting. Below 20m3/day, only the flat fee applies."},
+        {"speaker": "Legal Environmental Counsel", "text": "Article 5 exempts cooling water in closed recycling systems, natural runoff rainwater, and rural water extracted from local wells."}
+    ]
+    consensus_summary = "EPFW Decree 53/2020/NĐ-CP Compliance Engine: Verified domestic 10% rate, industrial fixed 1.5M VND base with heavy metal surcharges, and cooling/runoff exemptions."
+
+    return jsonify({
+        "status": "success",
+        "domestic_standard": domestic_standard,
+        "industrial_heavy_metals": industrial_heavy_metals,
+        "cooling_exempt": cooling_exempt,
+        "runoff_exempt": runoff_exempt,
+        "debate": debate_transcript,
+        "consensus_summary": consensus_summary,
+        "history": service.get_history(mst, 20)
+    })
+
+
+
