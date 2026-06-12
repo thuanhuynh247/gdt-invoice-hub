@@ -94,7 +94,7 @@
 
                     <!-- Advanced Modules Dropdown (v41-v52) -->
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle {% if request.path in ['/v41-export-refund','/v42-advanced-audit','/v43-ifrs-dashboard','/v44-compliance-hub','/v45-compliance-hub','/v46-compliance-hub','/v47-compliance-hub','/v48-compliance-hub','/v49-compliance-hub','/v50-compliance-hub','/v51-compliance-hub','/v52-compliance-hub'] %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <a class="nav-link dropdown-toggle {% if request.path in ['/v41-export-refund','/v42-advanced-audit','/v43-ifrs-dashboard','/v44-compliance-hub','/v45-compliance-hub','/v46-compliance-hub','/v47-compliance-hub','/v48-compliance-hub','/v49-compliance-hub','/v50-compliance-hub','/v51-compliance-hub','/v52-compliance-hub','/v53-compliance-hub','/v54-compliance-hub'] %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-stars" aria-hidden="true"></i> Nâng cao
                         </a>
                         <ul class="dropdown-menu dropdown-menu-premium">
@@ -113,6 +113,8 @@
                             <li><a class="dropdown-item {% if request.path == '/v50-compliance-hub' %}active{% endif %}" href="{{ url_for('invoices.v50_compliance_hub_page') }}"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>PIT Law 109 Hub v50</a></li>
                             <li><a class="dropdown-item {% if request.path == '/v51-compliance-hub' %}active{% endif %}" href="{{ url_for('invoices.v51_compliance_hub_page') }}"><i class="bi bi-shield-fill text-warning me-2" aria-hidden="true"></i>Admin Law 108 Hub v51</a></li>
                             <li><a class="dropdown-item {% if request.path == '/v52-compliance-hub' %}active{% endif %}" href="{{ url_for('invoices.v52_compliance_hub_page') }}"><i class="bi bi-shield-fill text-danger me-2" aria-hidden="true"></i>SCT Law 66 Hub v52</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/v53-compliance-hub' %}active{% endif %}" href="{{ url_for('invoices.v53_compliance_hub_page') }}"><i class="bi bi-tree-fill text-success me-2" aria-hidden="true"></i>EP Tax Hub v53</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/v54-compliance-hub' %}active{% endif %}" href="{{ url_for('invoices.v54_compliance_hub_page') }}"><i class="bi bi-gem text-info me-2" aria-hidden="true"></i>NRT Hub v54</a></li>
                         </ul>
                     </li>
 

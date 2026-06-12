@@ -150,7 +150,7 @@ def generate_hsm_mock_certificate(company_name: str, mst: str) -> tuple[bytes, r
     ).serial_number(
         x509.random_serial_number()
     ).not_valid_before(
-        now - datetime.timedelta(days=7)
+        now - datetime.timedelta(days=30)
     ).not_valid_after(
         now + datetime.timedelta(days=365)
     ).add_extension(

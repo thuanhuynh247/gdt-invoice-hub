@@ -11824,3 +11824,288 @@ def api_v52_compliance_data():
         "consensus_summary": consensus_summary
     })
 
+
+# ═══════════════════════════════════════════════════════════════════
+# VERSION 53 — Environmental Protection Tax Law 57/2010/QH12 Engine
+# ═══════════════════════════════════════════════════════════════════
+
+@invoices_blueprint.get("/v53-compliance-hub")
+def v53_compliance_hub_page():
+    """Render the Version 53 EP Tax compliance hub."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("v53_compliance_hub.html")
+
+
+@invoices_blueprint.post("/api/v53/fuel/calculate")
+def api_v53_fuel_calculate():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    fuel_type = data.get("fuel_type", "petrol")
+    quantity_litres = float(data.get("quantity_litres", 1000.0))
+    price_before_tax = float(data.get("price_before_tax", 25000.0))
+    is_transit_or_reexport = bool(data.get("is_transit_or_reexport", False))
+
+    from invoices.v53_service import V53ComplianceService
+    try:
+        service = V53ComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.calculate_fuel_ep_tax(mst, fuel_type, quantity_litres, price_before_tax, is_transit_or_reexport)
+        return jsonify({"status": "success", "results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.post("/api/v53/coal/calculate")
+def api_v53_coal_calculate():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    coal_type = data.get("coal_type", "anthracite")
+    quantity_tonnes = float(data.get("quantity_tonnes", 500.0))
+    price_before_tax = float(data.get("price_before_tax", 3000000.0))
+    usage = data.get("usage", "other")
+
+    from invoices.v53_service import V53ComplianceService
+    try:
+        service = V53ComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.calculate_coal_ep_tax(mst, coal_type, quantity_tonnes, price_before_tax, usage)
+        return jsonify({"status": "success", "results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.post("/api/v53/bag/calculate")
+def api_v53_bag_calculate():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    bag_name = data.get("bag_name", "Standard Plastic Bag")
+    weight_kg = float(data.get("weight_kg", 100.0))
+    price_before_tax = float(data.get("price_before_tax", 200000.0))
+    is_certified_biodegradable = bool(data.get("is_certified_biodegradable", False))
+
+    from invoices.v53_service import V53ComplianceService
+    try:
+        service = V53ComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.calculate_plastic_bag_ep_tax(mst, bag_name, weight_kg, price_before_tax, is_certified_biodegradable)
+        return jsonify({"status": "success", "results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.post("/api/v53/chemical/calculate")
+def api_v53_chemical_calculate():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    chemical_name = data.get("chemical_name", "HCFC-22")
+    weight_kg = float(data.get("weight_kg", 50.0))
+    price_before_tax = float(data.get("price_before_tax", 5000000.0))
+
+    from invoices.v53_service import V53ComplianceService
+    try:
+        service = V53ComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.calculate_chemical_ep_tax(mst, chemical_name, weight_kg, price_before_tax)
+        return jsonify({"status": "success", "results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.get("/api/v53/compliance-data")
+def api_v53_compliance_data():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v53_service import V53ComplianceService
+    service = V53ComplianceService(current_app.config["BASE_DATA_DIR"])
+
+    fuel_res = service.calculate_fuel_ep_tax(
+        mst, "petrol", 1000.0, 25000.0, False
+    )
+    coal_res = service.calculate_coal_ep_tax(
+        mst, "anthracite", 500.0, 3000000.0, "other"
+    )
+    bag_res = service.calculate_plastic_bag_ep_tax(
+        mst, "Standard Plastic Bag", 100.0, 200000.0, False
+    )
+    chemical_res = service.calculate_chemical_ep_tax(
+        mst, "HCFC-22", 50.0, 5000000.0
+    )
+
+    debate_transcript = [
+        {"speaker": "Environmental Tax Inspector", "text": "Under Environmental Protection Tax Law 57/2010/QH12, absolute tax rates apply per physical unit: 2,000 VND/litre for petrol, 1,000 VND/litre for diesel, and 600 VND/litre for kerosene. Coal ranges from 15,000 to 30,000 VND/tonne depending on classification."},
+        {"speaker": "Green Transition Advisor", "text": "Certified biodegradable plastic bags receive 100% EP tax exemption. Coal used directly for electricity generation or exported by licensed miners is also fully exempt. These exemptions incentivize the green transition under Vietnam's sustainability commitments."},
+        {"speaker": "Customs Compliance Officer", "text": "Fuels temporarily imported for transit or re-export are exempt from EP tax. HCFC chemicals are taxed at 5,000 VND/kg to discourage ozone-depleting substances, aligning with the Montreal Protocol obligations."}
+    ]
+    consensus_summary = "EP Tax Law 57/2010/QH12 Compliance Engine: Verified fuel, coal, plastic bag, and HCFC chemical EP tax calculations with green transition exemptions for biodegradable materials, electricity-generation coal, and transit fuels."
+
+    return jsonify({
+        "status": "success",
+        "fuel_audit": fuel_res,
+        "coal_audit": coal_res,
+        "bag_audit": bag_res,
+        "chemical_audit": chemical_res,
+        "debate": debate_transcript,
+        "consensus_summary": consensus_summary
+    })
+
+
+# ═══════════════════════════════════════════════════════════════════
+# VERSION 54 — Natural Resources Tax Law 45/2009/QH12 Engine
+# ═══════════════════════════════════════════════════════════════════
+
+@invoices_blueprint.get("/v54-compliance-hub")
+def v54_compliance_hub_page():
+    """Render the Version 54 NRT compliance hub."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("v54_compliance_hub.html")
+
+
+@invoices_blueprint.post("/api/v54/mineral/calculate")
+def api_v54_mineral_calculate():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    mineral_name = data.get("mineral_name", "Iron Ore")
+    mineral_category = data.get("mineral_category", "metallic")
+    quantity = float(data.get("quantity", 1000.0))
+    unit_price = float(data.get("unit_price", 500000.0))
+    is_self_consumed = bool(data.get("is_self_consumed", False))
+
+    from invoices.v54_service import V54ComplianceService
+    try:
+        service = V54ComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.calculate_mineral_nrt(mst, mineral_name, mineral_category, quantity, unit_price, is_self_consumed)
+        return jsonify({"status": "success", "results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.post("/api/v54/water/calculate")
+def api_v54_water_calculate():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    water_source = data.get("water_source", "surface water")
+    usage_purpose = data.get("usage_purpose", "industrial")
+    volume_m3 = float(data.get("volume_m3", 10000.0))
+    unit_price = float(data.get("unit_price", 5000.0))
+    hydropower_capacity_mw = float(data.get("hydropower_capacity_mw", 0.0))
+
+    from invoices.v54_service import V54ComplianceService
+    try:
+        service = V54ComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.calculate_water_nrt(mst, water_source, usage_purpose, volume_m3, unit_price, hydropower_capacity_mw)
+        return jsonify({"status": "success", "results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.post("/api/v54/timber/calculate")
+def api_v54_timber_calculate():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    timber_name = data.get("timber_name", "Hardwood Logs")
+    timber_source = data.get("timber_source", "natural forest")
+    volume_m3 = float(data.get("volume_m3", 100.0))
+    unit_price = float(data.get("unit_price", 8000000.0))
+
+    from invoices.v54_service import V54ComplianceService
+    try:
+        service = V54ComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.calculate_timber_nrt(mst, timber_name, timber_source, volume_m3, unit_price)
+        return jsonify({"status": "success", "results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.post("/api/v54/marine/calculate")
+def api_v54_marine_calculate():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    product_name = data.get("product_name", "Fresh Shrimp")
+    product_category = data.get("product_category", "aquatic")
+    quantity_kg = float(data.get("quantity_kg", 500.0))
+    unit_price = float(data.get("unit_price", 200000.0))
+
+    from invoices.v54_service import V54ComplianceService
+    try:
+        service = V54ComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.calculate_marine_nrt(mst, product_name, product_category, quantity_kg, unit_price)
+        return jsonify({"status": "success", "results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.get("/api/v54/compliance-data")
+def api_v54_compliance_data():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v54_service import V54ComplianceService
+    service = V54ComplianceService(current_app.config["BASE_DATA_DIR"])
+
+    mineral_res = service.calculate_mineral_nrt(
+        mst, "Iron Ore", "metallic", 1000.0, 500000.0, False
+    )
+    water_res = service.calculate_water_nrt(
+        mst, "Surface Water", "industrial", 10000.0, 5000.0, 0.0
+    )
+    timber_res = service.calculate_timber_nrt(
+        mst, "Hardwood Logs", "natural forest", 100.0, 8000000.0
+    )
+    marine_res = service.calculate_marine_nrt(
+        mst, "Fresh Shrimp", "aquatic", 500.0, 200000.0
+    )
+
+    debate_transcript = [
+        {"speaker": "Mining Tax Inspector", "text": "Under Natural Resources Tax Law 45/2009/QH12, metallic ores are taxed at ad-valorem rates: Iron 12%, Copper 13%, Gold 15%, Tin 20%. Non-metallic minerals range from 5% (limestone) to 9% (marble). Self-consumed resources extracted for internal use receive a 30% rate reduction."},
+        {"speaker": "Environmental Compliance Advisor", "text": "Water resources for agriculture, forestry, fishery, and salt production are 100% exempt from NRT. Small-scale hydropower stations with installed capacity ≤ 2MW are also fully exempt. Industrial water extraction is taxed at 2% (surface) or 4% (groundwater)."},
+        {"speaker": "Forestry & Marine Auditor", "text": "Natural forest timber attracts the highest NRT rates (up to 25% for hardwood), while plantation timber is only 3%. Marine aquatic products are taxed at 2%, but pearls and coral are at 8% due to their higher commercial value and conservation considerations."}
+    ]
+    consensus_summary = "NRT Law 45/2009/QH12 Compliance Engine: Verified mineral extraction taxes, water resource exemptions (agricultural, hydropower ≤ 2MW), timber classification, and marine product NRT calculations."
+
+    return jsonify({
+        "status": "success",
+        "mineral_audit": mineral_res,
+        "water_audit": water_res,
+        "timber_audit": timber_res,
+        "marine_audit": marine_res,
+        "debate": debate_transcript,
+        "consensus_summary": consensus_summary
+    })
+

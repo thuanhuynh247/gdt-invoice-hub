@@ -23,6 +23,8 @@ def setup_test_data(app):
             seller_name="Export Supplier Co",
             buyer_mst="0102030405",
             buyer_name="Viet taxpayer corp",
+            amount_before_tax=250000000.0,
+            tax_amount=0.0,
             total_amount=250000000.0,  # 250M VND
             payment_method="Chuyển khoản",
             taxpayer_mst="0102030405",
