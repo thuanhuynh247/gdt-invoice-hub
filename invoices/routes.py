@@ -12981,6 +12981,363 @@ def api_v65_compliance_data():
 
 
 # ===================================================================
+# VERSION 66 — Greenhouse Gas (GHG) Emissions & Carbon Credits
+# ===================================================================
+
+@invoices_blueprint.get("/v66-compliance-hub")
+def v66_compliance_hub_page():
+    """Render the Version 66 GHG Emissions & Carbon Credits compliance hub."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("v66_compliance_hub.html")
+
+
+@invoices_blueprint.post("/api/v66/calculate")
+def api_v66_calculate():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v66_service import V66ComplianceService
+    try:
+        service = V66ComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.calculate_ghg(
+            mst,
+            data.get("emission_description", "Factory Emissions"),
+            data.get("facility_category", "energy"),
+            float(data.get("co2_tonnes", 0.0)),
+            float(data.get("ch4_tonnes", 0.0)),
+            float(data.get("n2o_tonnes", 0.0)),
+            float(data.get("carbon_credits_offset", 0.0)),
+            data.get("exemption_category", "none")
+        )
+        return jsonify({"status": "success", "results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.get("/api/v66/compliance-data")
+def api_v66_compliance_data():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v66_service import V66ComplianceService
+    service = V66ComplianceService(current_app.config["BASE_DATA_DIR"])
+
+    # Baseline calculations
+    standard_emissions = service.calculate_ghg(mst, "Nhà máy nhiệt điện Phả Lại", "energy", 4500.0, 12.0, 3.5)
+    offset_emissions = service.calculate_ghg(mst, "Nhà máy xi măng Hà Tiên", "industrial_processes", 5000.0, 5.0, 1.0, carbon_credits_offset=350.0)
+    small_exempt = service.calculate_ghg(mst, "Cơ sở may mặc nhỏ", "energy", 200.0, 0.5, 0.1, exemption_category="small_emitter")
+
+    debate_transcript = [
+        {"speaker": "Climate Policy Auditor", "text": "Under Decree 06/2022/NĐ-CP, GHG emissions are aggregated using IPCC AR5 GWPs: CO2 (1), CH4 (28), N2O (265). Clean energy transition fees scale at 150,000 VND per tCO2e."},
+        {"speaker": "Factory Environmental Manager", "text": "We are allowed to offset our liability using certified carbon credits (CERs/VERs). However, Article 22 caps the offset contribution at 10% of total emissions."},
+        {"speaker": "MoNRE Climate Change Inspector", "text": "Facilities emitting less than 3,000 tonnes of CO2e per year are fully exempt from mandatory audits and carbon fee structures to encourage small enterprise growth."}
+    ]
+    consensus_summary = "GHG Decree 06/2022/NĐ-CP Compliance Engine: Verified GWP CO2e calculations, 10% carbon credit offset cap, and 3,000 tCO2e small emitter exemption."
+
+    return jsonify({
+        "status": "success",
+        "standard_emissions": standard_emissions,
+        "offset_emissions": offset_emissions,
+        "small_exempt": small_exempt,
+        "debate": debate_transcript,
+        "consensus_summary": consensus_summary,
+        "history": service.get_history(mst, 20)
+    })
+
+
+# ===================================================================
+# VERSION 67 — Scrap Import Environmental Deposit
+# ===================================================================
+
+@invoices_blueprint.get("/v67-compliance-hub")
+def v67_compliance_hub_page():
+    """Render the Version 67 Scrap Import Environmental Deposit compliance hub."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("v67_compliance_hub.html")
+
+
+@invoices_blueprint.post("/api/v67/calculate")
+def api_v67_calculate():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v67_service import V67ComplianceService
+    try:
+        service = V67ComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.calculate_deposit(
+            mst,
+            data.get("scrap_description", "Scrap Import Cargo"),
+            data.get("scrap_type", "scrap_steel"),
+            float(data.get("volume_tonnes", 0.0)),
+            float(data.get("cargo_value_vnd", 0.0)),
+            data.get("exemption_category", "none")
+        )
+        return jsonify({"status": "success", "results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.get("/api/v67/compliance-data")
+def api_v67_compliance_data():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v67_service import V67ComplianceService
+    service = V67ComplianceService(current_app.config["BASE_DATA_DIR"])
+
+    # Baseline calculations
+    steel_standard = service.calculate_deposit(mst, "Lô phế liệu sắt thép HP", "scrap_steel", 600.0, 5000000000.0)
+    plastic_standard = service.calculate_deposit(mst, "Lô nhựa PET tái chế", "scrap_plastic", 80.0, 1500000000.0)
+    research_exempt = service.calculate_deposit(mst, "Mẫu thử nghiệm nhựa sinh học", "scrap_plastic", 3.0, 50000000.0, exemption_category="laboratory_research")
+
+    debate_transcript = [
+        {"speaker": "Customs Compliance Officer", "text": "Decree 08/2022/NĐ-CP mandates tiered import deposits: steel (10%-20%), paper (15%-20%), and plastic (18%-25%) based on weight thresholds to prevent cargo abandonment."},
+        {"speaker": "Recycling Industry President", "text": "Deposits are held in the Vietnam Environmental Protection Fund and can be fully refunded once imports are verified processed under compliance standards."},
+        {"speaker": "VEPF Deposit Custodian", "text": "Under Article 41, certified research institutes importing under 5 tonnes of scrap for laboratory analysis are 100% exempt from paying deposits."}
+    ]
+    consensus_summary = "Scrap Deposit Decree 08/2022/NĐ-CP Compliance Engine: Verified scrap categories (steel, paper, plastic) and volume bracket deposit rates, and 5-tonne research exemption."
+
+    return jsonify({
+        "status": "success",
+        "steel_standard": steel_standard,
+        "plastic_standard": plastic_standard,
+        "research_exempt": research_exempt,
+        "debate": debate_transcript,
+        "consensus_summary": consensus_summary,
+        "history": service.get_history(mst, 20)
+    })
+
+
+# ===================================================================
+# VERSION 68 — Biodiversity Offset & Conservation Fee
+# ===================================================================
+
+@invoices_blueprint.get("/v68-compliance-hub")
+def v68_compliance_hub_page():
+    """Render the Version 68 Biodiversity Offset & Conservation Fee compliance hub."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("v68_compliance_hub.html")
+
+
+@invoices_blueprint.post("/api/v68/calculate")
+def api_v68_calculate():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v68_service import V68ComplianceService
+    try:
+        service = V68ComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.calculate_biodiversity(
+            mst,
+            data.get("project_name", "Development Project"),
+            data.get("ecosystem_type", "national_park"),
+            float(data.get("impact_area_ha", 0.0)),
+            data.get("impact_rating", "medium"),
+            bool(data.get("has_offset_plan", False)),
+            data.get("exemption_category", "none")
+        )
+        return jsonify({"status": "success", "results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.get("/api/v68/compliance-data")
+def api_v68_compliance_data():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v68_service import V68ComplianceService
+    service = V68ComplianceService(current_app.config["BASE_DATA_DIR"])
+
+    # Baseline calculations
+    park_standard = service.calculate_biodiversity(mst, "Khu nghỉ dưỡng Cát Bà", "national_park", 12.0, "high")
+    reserve_offset = service.calculate_biodiversity(mst, "Cáp treo sinh thái Phú Quốc", "nature_reserve", 8.0, "medium", has_offset_plan=True)
+    defense_exempt = service.calculate_biodiversity(mst, "Trạm radar biên phòng Sơn Trà", "landscape_protected", 1.5, exemption_category="national_defense")
+
+    debate_transcript = [
+        {"speaker": "Biodiversity Inspector", "text": "Conservation fees under Law on Biodiversity 2008 scale by ecosystem sensitivity: National Parks (250M VND/ha), Reserves (180M), habitats (120M), and landscapes (80M)."},
+        {"speaker": "Project Engineer", "text": "Implementing a certified 1:1 ecological offset plan reduces our fee multiplier by 40% (giving a 0.6 offset discount coefficient)."},
+        {"speaker": "Defense Command Representative", "text": "Article 15 exempts certified public national defense and border security structures from environmental offset charges."}
+    ]
+    consensus_summary = "Biodiversity Law 2008 Compliance Engine: Verified ecosystem tier fees (80M - 250M VND/ha), 1.5x high-impact multiplier, 40% offset discount, and national defense exemption."
+
+    return jsonify({
+        "status": "success",
+        "park_standard": park_standard,
+        "reserve_offset": reserve_offset,
+        "defense_exempt": defense_exempt,
+        "debate": debate_transcript,
+        "consensus_summary": consensus_summary,
+        "history": service.get_history(mst, 20)
+    })
+
+
+# ===================================================================
+# VERSION 69 — Oil Spill Response & Risk Fee
+# ===================================================================
+
+@invoices_blueprint.get("/v69-compliance-hub")
+def v69_compliance_hub_page():
+    """Render the Version 69 Oil Spill Response & Risk Fee compliance hub."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("v69_compliance_hub.html")
+
+
+@invoices_blueprint.post("/api/v69/calculate")
+def api_v69_calculate():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v69_service import V69ComplianceService
+    try:
+        service = V69ComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.calculate_spill_fee(
+            mst,
+            data.get("facility_name", "Petroleum Facility"),
+            data.get("facility_type", "storage_terminal"),
+            float(data.get("capacity_m3", 0.0)),
+            bool(data.get("has_double_hull", False)),
+            data.get("exemption_category", "none")
+        )
+        return jsonify({"status": "success", "results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.get("/api/v69/compliance-data")
+def api_v69_compliance_data():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v69_service import V69ComplianceService
+    service = V69ComplianceService(current_app.config["BASE_DATA_DIR"])
+
+    # Baseline calculations
+    terminal_standard = service.calculate_spill_fee(mst, "Kho cảng xăng dầu Nhà Bè", "storage_terminal", 25000.0)
+    fleet_discount = service.calculate_spill_fee(mst, "Đội tàu dầu Petrolimex V", "transport_fleet", 15000.0, has_double_hull=True)
+    military_exempt = service.calculate_spill_fee(mst, "Kho xăng dầu quân đội K52", "storage_terminal", 8000.0, exemption_category="military_petroleum")
+
+    debate_transcript = [
+        {"speaker": "Maritime Safety Inspector", "text": "Decision 12/2021/QĐ-TTg sets quarterly spill risk base fees: Refineries (50M VND), Terminals (30M), Transport (20M), Fuel Stations (2M), plus capacity surcharges (500 VND/m3)."},
+        {"speaker": "Marine Logistics Manager", "text": "Utilizing double-hull oil tankers or double-walled storage tanks reduces our total quarterly spill risk liability by 30%."},
+        {"speaker": "Military Logistics Quartermaster", "text": "National strategic petroleum reserves managed directly by the military are 100% exempt from quarterly environmental risk fees."}
+    ]
+    consensus_summary = "Oil Spill Decision 12/2021/QĐ-TTg Compliance Engine: Verified quarterly base fees, 500 VND/m3 capacity charge, 30% double-hull mitigation discount, and military/rural station exemptions."
+
+    return jsonify({
+        "status": "success",
+        "terminal_standard": terminal_standard,
+        "fleet_discount": fleet_discount,
+        "military_exempt": military_exempt,
+        "debate": debate_transcript,
+        "consensus_summary": consensus_summary,
+        "history": service.get_history(mst, 20)
+    })
+
+
+# ===================================================================
+# VERSION 70 — Ozone-Depleting Substances (ODS) Quotas & Fees
+# ===================================================================
+
+@invoices_blueprint.get("/v70-compliance-hub")
+def v70_compliance_hub_page():
+    """Render the Version 70 ODS Quotas & Fees compliance hub."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("v70_compliance_hub.html")
+
+
+@invoices_blueprint.post("/api/v70/calculate")
+def api_v70_calculate():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v70_service import V70ComplianceService
+    try:
+        service = V70ComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.calculate_ods(
+            mst,
+            data.get("substance_name", "Refrigerant Gas"),
+            data.get("substance_group", "hcfc"),
+            float(data.get("weight_kg", 0.0)),
+            data.get("exemption_category", "none")
+        )
+        return jsonify({"status": "success", "results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.get("/api/v70/compliance-data")
+def api_v70_compliance_data():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v70_service import V70ComplianceService
+    service = V70ComplianceService(current_app.config["BASE_DATA_DIR"])
+
+    # Baseline calculations
+    cfc_standard = service.calculate_ods(mst, "Freon R-12", "cfc", 800.0)
+    hcfc_standard = service.calculate_ods(mst, "Refrigerant R-22", "hcfc", 1200.0)
+    medical_exempt = service.calculate_ods(mst, "Propellant CFC-11 Medical", "cfc", 150.0, exemption_category="medical_use")
+
+    debate_transcript = [
+        {"speaker": "Ozone Layer Inspector", "text": "Decree 06/2022/NĐ-CP scales ODS quotas and fees by ODP equivalents (CFC factor 1.0, HCFC 0.055, Halon 10.0) with charges ranging from 15,000 to 2,500,000 VND/kg."},
+        {"speaker": "Pharma Production Director", "text": "Importing controlled substances for certified medical applications, such as propellants in metered-dose inhalers, qualifies for 100% fee waiver under Article 24."},
+        {"speaker": "Customs Licensing Specialist", "text": "Low-volume imports under 50 kg per year are automatically exempt from ODS licensing charges to minimize red tape for small enterprises."}
+    ]
+    consensus_summary = "ODS Decree 06/2022/NĐ-CP Compliance Engine: Verified ODP equivalence scaling, chemical group tariffs, medical/research exemptions, and 50 kg/year small-volume waivers."
+
+    return jsonify({
+        "status": "success",
+        "cfc_standard": cfc_standard,
+        "hcfc_standard": hcfc_standard,
+        "medical_exempt": medical_exempt,
+        "debate": debate_transcript,
+        "consensus_summary": consensus_summary,
+        "history": service.get_history(mst, 20)
+    })
+
+
+# ===================================================================
 # GROUP FUND MODULE (US-700+ / PRD-FUND)
 # ===================================================================
 

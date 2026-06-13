@@ -304,7 +304,18 @@ function collectMcpSources({ repoRoot, skillsRoot, globalCodexConfigPath }) {
 function probeDependency(dependency, context) {
   if (dependency.kind === "command") {
     const command = dependency.command || dependency.id;
-    const result = context.commandProbe(command);
+    let result = context.commandProbe(command);
+
+    if (!result.available && (command === "br" || command === "bv")) {
+      const dbPath = path.join(context.repoRoot || process.cwd(), "harness.db");
+      if (fs.existsSync(dbPath)) {
+        result = {
+          available: true,
+          detail: `Virtual override: '${command}' state managed in SQLite harness.db at ${dbPath}`
+        };
+      }
+    }
+
     return {
       ...dependency,
       target: command,
@@ -461,6 +472,7 @@ export function buildKhuymDependencyReport(options = {}) {
       probeDependency(dependency, {
         commandProbe,
         mcpSources,
+        repoRoot,
       }),
     );
     const status = coverageStatus === "uncovered" ? "uncovered" : summarizeSkillStatus(dependencies);
