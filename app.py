@@ -18,6 +18,7 @@ tempfile.tempdir = local_temp
 from flask import Flask, jsonify, redirect, render_template, session, url_for
 from auth import auth_blueprint
 from invoices import invoices_blueprint
+from invoices.smart_invoice_api import smart_invoice_blueprint
 from config import Config
 
 
@@ -175,6 +176,7 @@ def create_app() -> Flask:
 
     app.register_blueprint(auth_blueprint)
     app.register_blueprint(invoices_blueprint)
+    app.register_blueprint(smart_invoice_blueprint)
 
     # Apply cybersecurity hardening headers (CSP, Clickjacking prevention, MIME protection)
     from auth.security import apply_security_headers
