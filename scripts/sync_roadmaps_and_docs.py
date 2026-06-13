@@ -67,7 +67,7 @@ def sync_docs():
                 if story_id in line:
                     # Check if there is "Todo", "To Do", "⏳ To Do", "⏳ Todo", or "Planned"
                     new_line = re.sub(
-                        r"(\|\s*)(⏳\s*)?(To\s*Do|Todo|Planned|planned)(\s*(?:\||\n|$))",
+                        r"(\|\s*)(⏳\s*)?(To\s*Do|Todo|Planned|planned|draft)(\s*(?:\||\n|$))",
                         rf"\1{status_text}\4",
                         line,
                         flags=re.IGNORECASE

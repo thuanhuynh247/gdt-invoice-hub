@@ -2,30 +2,27 @@
 id: PRODUCT
 type: product
 status: draft
-lang: en
-owner: PO-Lead
-version: 3.0.0
-created: "2026-06-08"
-updated: "2026-06-08"
-name: "Invoice Download Webapp"
-one_line_description: "Local Python Flask webapp to authenticate, search, and download XML/PDF invoices from the Vietnamese government's General Department of Taxation (GDT) and export formatted Excel sheets."
-current_implementation: "Flask local server, requests API client, Selenium Captcha automation, sqlite3/shelve session cache, openpyxl reporting, advanced Transfer Pricing analysis, and Multi-Agent Swarm compliance auditor."
-deployment: "Localhost deployment (localhost:5000) using Python Flask."
-roadmap_one_liner: "Evolve into a complete, automated tax risk auditing, Decree 123 compliance, and transfer pricing dossier-generating hub."
-core_value: "Empower finance and accounting teams to easily retrieve, audit, and reconcile electronic invoices with zero external server dependencies."
-personas:
-  - "Chief Financial Officer"
-  - "Tax Compliance Auditor"
-  - "General Accountant"
+lang: vi
+owner: TBD
+version: 0.1.0
+created: 2026-06-06
+updated: 2026-06-06
+name: "Sổ Quỹ"
+one_line_description: "Giúp người ở ghép quản lý quỹ chung minh bạch — ai nộp, tiêu vào đâu, còn lại bao nhiêu, ai cũng thấy."
+current_implementation: "Ý tưởng — chưa có prototype. Đang ở giai đoạn định hình spec sản phẩm."
+deployment: "App mobile (iOS & Android)."
+roadmap_one_liner: "Trở thành cuốn sổ quỹ chung mặc định cho người ở trọ Việt Nam, rồi mở rộng sang mọi loại nhóm góp quỹ."
+core_value: "Sổ quỹ chung minh bạch theo thời gian thực cho người ở ghép — thay Excel/ghi tay, ai cũng thấy số dư và toàn bộ lịch sử thu chi, chấm dứt nghi ngờ tiền nong."
+personas: ["roommate", "fund-keeper", "long-term-group", "trip-group"]
 ---
 
-# Invoice Download Webapp — Product Context | Bối cảnh sản phẩm
+# Sổ Quỹ — Product Context | Bối cảnh sản phẩm
 
-> Thin labels only. Narrative lives in `vision.md`. Stakeholders / business goals live in `brd.md`.
+> Thin labels only. Narrative lives in `vision.md`. Stakeholders / business goals live in `brd.md`. — Chỉ nhãn ngắn. Phần kể chi tiết ở `vision.md`. Mục tiêu kinh doanh ở `brd.md`.
 
 ## One-Line Description | Mô tả một câu
 
-Local Python Flask webapp to authenticate, search, and download XML/PDF invoices from the Vietnamese government's General Department of Taxation (GDT) and export formatted Excel sheets.
+Giúp người ở ghép quản lý quỹ chung minh bạch — ai nộp, tiêu vào đâu, còn lại bao nhiêu, ai cũng thấy.
 
 ## Core Value | Giá trị cốt lõi
 
@@ -33,18 +30,21 @@ _(authoritative value lives in frontmatter `core_value` field — see top of fil
 
 ## Current Implementation | Hiện trạng triển khai
 
-Flask local server, requests API client, Selenium Captcha automation, sqlite3/shelve session cache, openpyxl reporting, advanced Transfer Pricing analysis, and Multi-Agent Swarm compliance auditor.
+Ý tưởng — chưa có prototype. Đang ở giai đoạn định hình spec sản phẩm.
 
 ## Deployment | Triển khai
 
-Localhost deployment (localhost:5000) using Python Flask.
+App mobile (iOS & Android).
 
 ## Roadmap One-Liner | Lộ trình một câu
 
-Evolve into a complete, automated tax risk auditing, Decree 123 compliance, and transfer pricing dossier-generating hub.
+Trở thành cuốn sổ quỹ chung mặc định cho người ở trọ Việt Nam, rồi mở rộng sang mọi loại nhóm góp quỹ.
 
 ## Personas | Nhóm người dùng
 
-* **Chief Financial Officer (CFO)**: Needs high-level compliance dashboard, tax risk scores, and transfer pricing audit-prep dossiers to safeguard the firm.
-* **Tax Compliance Auditor**: Audits tax risks, related-party transactions, Decree 123 XML structures, and foreign contractor taxes.
-* **General Accountant**: Logs in daily, solves Captchas, downloads massive lists of invoices, and exports Excel reports for bookkeeping.
+- **roommate** — *Thành viên ở ghép* (persona chính). Người trẻ thuê trọ/ở ghép dài hạn, hằng tháng cùng góp tiền điện nước, internet, đồ dùng chung. Dùng app trên mobile là chính.
+- **fund-keeper** — *Trưởng nhóm / người giữ quỹ*. Đứng ra thu tiền và giữ quỹ chung; cần công cụ báo cáo minh bạch để không bị nghi ngờ — chính họ kéo cả nhóm vào app.
+- **long-term-group** — *Hội nhóm dài hạn* (CLB, đội nhóm, gia đình). Góp quỹ định kỳ cho mục đích chung; quy mô lớn hơn nhưng tần suất giao dịch thấp hơn phòng trọ.
+- **trip-group** — *Nhóm bạn đi chơi* (ưu tiên sau). Chia tiền ngắn hạn theo chuyến rồi tan; ít dùng mô hình quỹ tồn tại liên tục nên lệch với nỗi đau lõi — giữ trong tầm nhìn nhưng phục vụ sau.
+
+
