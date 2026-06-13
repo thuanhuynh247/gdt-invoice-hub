@@ -27,7 +27,7 @@ def sync_docs():
         return
 
     # Directories to scan
-    scan_dirs = ["docs/product", "history", "docs/stories"]
+    scan_dirs = ["docs/product", "history", "docs/stories", "product-spec/docs/product"]
     scan_files = ["todo.md", "README.md"]
 
     for d in scan_dirs:

@@ -12980,6 +12980,265 @@ def api_v65_compliance_data():
     })
 
 
+# ===================================================================
+# GROUP FUND MODULE (US-700+ / PRD-FUND)
+# ===================================================================
+
+@invoices_blueprint.post("/api/group-fund")
+def api_create_group_fund():
+    """Create a new group fund (PRD-FUND-E1-S1)."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    from invoices.models import GroupFund, TenantGroup
+    import json
+
+    data = request.get_json() or {}
+    group_id = data.get("group_id")
+    name = data.get("name")
+    currency = data.get("currency", "VND")
+
+    if not name or not name.strip():
+        return jsonify({"error": "Tên quỹ không được để trống."}), 400
+
+    username = session.get("username", "admin")
+    if not group_id:
+        # Resolve group
+        group = TenantGroup.query.filter_by(admin_username=username).first()
+        if not group and username == "admin":
+            group = TenantGroup.query.first()
+        if not group:
+            return jsonify({"error": "Không tìm thấy nhóm tương ứng để tạo quỹ."}), 400
+        group_id = group.id
+
+    # Check if a fund already exists for this group
+    existing_fund = GroupFund.query.filter_by(group_id=group_id).first()
+    if existing_fund:
+        return jsonify({
+            "status": "success",
+            "message": "Nhóm đã có quỹ.",
+            "fund": existing_fund.to_dict()
+        })
+
+    try:
+        new_fund = GroupFund(
+            group_id=group_id,
+            name=name.strip(),
+            currency=currency,
+            created_at=datetime.utcnow().isoformat() + "Z"
+        )
+        db.session.add(new_fund)
+        db.session.commit()
+        return jsonify({
+            "status": "success",
+            "message": "Tạo quỹ nhóm thành công.",
+            "fund": new_fund.to_dict()
+        }), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.get("/api/group-fund")
+def api_get_group_fund():
+    """Fetch details and current balance of a group fund (PRD-FUND-E3-S1)."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    from invoices.models import GroupFund, FundTransaction, TenantGroup
+    from sqlalchemy import func
+
+    group_id = request.args.get("group_id")
+    username = session.get("username", "admin")
+
+    if not group_id:
+        # Resolve default group
+        group = TenantGroup.query.filter_by(admin_username=username).first()
+        if not group and username == "admin":
+            group = TenantGroup.query.first()
+        if not group:
+            return jsonify({"error": "Không tìm thấy nhóm tương ứng."}), 404
+        group_id = group.id
+
+    fund = GroupFund.query.filter_by(group_id=group_id).first()
+    if not fund:
+        return jsonify({
+            "fund_exists": False,
+            "message": "Nhóm chưa có quỹ."
+        }), 200
+
+    # Calculate balance
+    # Total deposits
+    deposit_sum = db.session.query(func.sum(FundTransaction.amount)).filter(
+        FundTransaction.fund_id == fund.id,
+        FundTransaction.transaction_type == "deposit"
+    ).scalar() or 0.0
+
+    # Total expenses
+    expense_sum = db.session.query(func.sum(FundTransaction.amount)).filter(
+        FundTransaction.fund_id == fund.id,
+        FundTransaction.transaction_type == "expense"
+    ).scalar() or 0.0
+
+    balance = deposit_sum - expense_sum
+
+    fund_dict = fund.to_dict()
+    fund_dict["balance"] = balance
+    fund_dict["total_deposits"] = deposit_sum
+    fund_dict["total_expenses"] = expense_sum
+    fund_dict["fund_exists"] = True
+
+    return jsonify(fund_dict), 200
+
+
+@invoices_blueprint.post("/api/group-fund/deposit")
+def api_log_deposit():
+    """Record a deposit transaction to a fund (PRD-FUND-E2-S1)."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    from invoices.models import GroupFund, FundTransaction
+
+    data = request.get_json() or {}
+    fund_id = data.get("fund_id")
+    payer = data.get("payer")
+    amount_raw = data.get("amount")
+    date = data.get("date")
+
+    if not fund_id:
+        return jsonify({"error": "Thiếu fund_id."}), 400
+    if not payer or not payer.strip():
+        return jsonify({"error": "Tên người nộp không được để trống."}), 400
+    if not date or not date.strip():
+        return jsonify({"error": "Ngày nộp không được để trống."}), 400
+
+    try:
+        amount = float(amount_raw)
+    except (ValueError, TypeError):
+        return jsonify({"error": "Số tiền nộp không hợp lệ hoặc để trống."}), 400
+
+    if amount <= 0:
+        return jsonify({"error": "Số tiền nộp phải lớn hơn 0."}), 400
+
+    fund = GroupFund.query.get(fund_id)
+    if not fund:
+        return jsonify({"error": "Quỹ không tồn tại."}), 404
+
+    try:
+        tx = FundTransaction(
+            fund_id=fund.id,
+            transaction_type="deposit",
+            payer=payer.strip(),
+            amount=amount,
+            date=date.strip(),
+            created_at=datetime.utcnow().isoformat() + "Z"
+        )
+        db.session.add(tx)
+        db.session.commit()
+        return jsonify({
+            "status": "success",
+            "message": "Ghi nhận khoản nộp thành công.",
+            "transaction": tx.to_dict()
+        }), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/group-fund/expense")
+def api_log_expense():
+    """Record an expense transaction from a fund (PRD-FUND-E2-S2)."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    from invoices.models import GroupFund, FundTransaction
+
+    data = request.get_json() or {}
+    fund_id = data.get("fund_id")
+    description = data.get("description")
+    amount_raw = data.get("amount")
+    date = data.get("date")
+
+    if not fund_id:
+        return jsonify({"error": "Thiếu fund_id."}), 400
+    if not description or not description.strip():
+        return jsonify({"error": "Mô tả khoản chi không được để trống."}), 400
+    if not date or not date.strip():
+        return jsonify({"error": "Ngày chi không được để trống."}), 400
+
+    try:
+        amount = float(amount_raw)
+    except (ValueError, TypeError):
+        return jsonify({"error": "Số tiền chi không hợp lệ hoặc để trống."}), 400
+
+    if amount <= 0:
+        return jsonify({"error": "Số tiền chi phải lớn hơn 0."}), 400
+
+    fund = GroupFund.query.get(fund_id)
+    if not fund:
+        return jsonify({"error": "Quỹ không tồn tại."}), 404
+
+    try:
+        tx = FundTransaction(
+            fund_id=fund.id,
+            transaction_type="expense",
+            description=description.strip(),
+            amount=amount,
+            date=date.strip(),
+            created_at=datetime.utcnow().isoformat() + "Z"
+        )
+        db.session.add(tx)
+        db.session.commit()
+        return jsonify({
+            "status": "success",
+            "message": "Ghi nhận khoản chi thành công.",
+            "transaction": tx.to_dict()
+        }), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.get("/api/group-fund/transactions")
+def api_get_transactions():
+    """Retrieve transaction history of a group fund (PRD-FUND-E3-S2)."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    from invoices.models import GroupFund, FundTransaction
+
+    fund_id = request.args.get("fund_id")
+    if not fund_id:
+        return jsonify({"error": "Thiếu fund_id."}), 400
+
+    fund = GroupFund.query.get(fund_id)
+    if not fund:
+        return jsonify({"error": "Quỹ không tồn tại."}), 404
+
+    try:
+        # Sort by date descending, then by id descending
+        txs = FundTransaction.query.filter_by(fund_id=fund.id).order_by(
+            FundTransaction.date.desc(), FundTransaction.id.desc()
+        ).all()
+        return jsonify([t.to_dict() for t in txs]), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.get("/group-fund")
+def group_fund_page():
+    """Render the Group Fund (Sổ Quỹ) UI page."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("fund.html")
+
+
+
 
 
 

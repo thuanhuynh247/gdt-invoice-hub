@@ -1173,6 +1173,57 @@ class ECommerceReconciliationReport(db.Model):
         }
 
 
+class GroupFund(db.Model):
+    """Represents a shared group fund (US-700+ / PRD-FUND)."""
+    __tablename__ = "group_fund"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    group_id = db.Column(db.Integer, db.ForeignKey("tenant_group.id"), nullable=False, unique=True)
+    name = db.Column(db.String(100), nullable=False)
+    currency = db.Column(db.String(10), default="VND", nullable=False)
+    created_at = db.Column(db.String(30), nullable=False)
+
+    group = db.relationship("TenantGroup", backref=db.backref("fund", uselist=False, cascade="all, delete-orphan"))
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "group_id": self.group_id,
+            "name": self.name,
+            "currency": self.currency,
+            "created_at": self.created_at,
+        }
+
+
+class FundTransaction(db.Model):
+    """Represents a transaction of deposit or expense in a group fund (PRD-FUND)."""
+    __tablename__ = "fund_transaction"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    fund_id = db.Column(db.Integer, db.ForeignKey("group_fund.id"), nullable=False)
+    transaction_type = db.Column(db.String(20), nullable=False)  # 'deposit' or 'expense'
+    payer = db.Column(db.String(100), nullable=True)  # Name of the person depositing
+    description = db.Column(db.String(255), nullable=True)  # Description of the expense
+    amount = db.Column(db.Float, nullable=False)
+    date = db.Column(db.String(20), nullable=False)  # YYYY-MM-DD
+    created_at = db.Column(db.String(30), nullable=False)
+
+    fund = db.relationship("GroupFund", backref=db.backref("transactions", cascade="all, delete-orphan"))
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "fund_id": self.fund_id,
+            "transaction_type": self.transaction_type,
+            "payer": self.payer or "",
+            "description": self.description or "",
+            "amount": self.amount,
+            "date": self.date,
+            "created_at": self.created_at,
+        }
+
+
+
 
 
 
