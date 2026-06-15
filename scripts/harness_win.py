@@ -691,10 +691,58 @@ def cmd_serve(port=8080):
     import http.server
     import socketserver
     import json
+    import os
+    from urllib.parse import urlparse, parse_qs
     
     class DashboardHandler(http.server.SimpleHTTPRequestHandler):
+        def do_POST(self):
+            if self.path == '/api/sql':
+                content_length = int(self.headers.get('Content-Length', 0))
+                post_data = self.rfile.read(content_length)
+                try:
+                    data = json.loads(post_data.decode('utf-8'))
+                    query = data.get('query', '')
+                    
+                    conn = get_db()
+                    cursor = conn.cursor()
+                    cursor.execute(query)
+                    
+                    if query.strip().lower().startswith('select') or query.strip().lower().startswith('pragma'):
+                        rows = cursor.fetchall()
+                        headers = [desc[0] for desc in cursor.description] if cursor.description else []
+                        conn.close()
+                        response = {
+                            "success": True,
+                            "type": "select",
+                            "headers": headers,
+                            "rows": rows
+                        }
+                    else:
+                        conn.commit()
+                        rowcount = cursor.rowcount
+                        conn.close()
+                        response = {
+                            "success": True,
+                            "type": "mutation",
+                            "rowcount": rowcount
+                        }
+                    
+                    self.send_response(200)
+                    self.send_header('Content-type', 'application/json; charset=utf-8')
+                    self.end_headers()
+                    self.wfile.write(json.dumps(response).encode('utf-8'))
+                except Exception as e:
+                    self.send_response(200)
+                    self.send_header('Content-type', 'application/json; charset=utf-8')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"success": False, "error": str(e)}).encode('utf-8'))
+            else:
+                self.send_error(404, 'Not Found')
+
         def do_GET(self):
-            if self.path == '/api/data':
+            parsed = urlparse(self.path)
+            
+            if parsed.path == '/api/data':
                 self.send_response(200)
                 self.send_header('Content-type', 'application/json; charset=utf-8')
                 self.end_headers()
@@ -713,14 +761,15 @@ def cmd_serve(port=8080):
                 # Stories
                 stories = []
                 try:
-                    cursor.execute('SELECT id, title, status, risk_lane, COALESCE(evidence, "") FROM story ORDER BY id')
+                    cursor.execute('SELECT id, title, status, risk_lane, COALESCE(evidence, ""), COALESCE(contract_doc, "") FROM story ORDER BY id')
                     for row in cursor.fetchall():
                         stories.append({
                             "id": row[0],
                             "title": row[1],
                             "status": row[2],
                             "risk_lane": row[3],
-                            "evidence": row[4]
+                            "evidence": row[4],
+                            "contract_doc": row[5]
                         })
                 except Exception:
                     pass
@@ -785,7 +834,30 @@ def cmd_serve(port=8080):
                 }
                 self.wfile.write(json.dumps(data).encode('utf-8'))
                 
-            elif self.path == '/':
+            elif parsed.path == '/api/file':
+                query_components = parse_qs(parsed.query)
+                file_path_param = query_components.get('path', [''])[0]
+                
+                repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                target_abs = os.path.abspath(os.path.join(repo_root, file_path_param))
+                
+                if target_abs.startswith(repo_root) and os.path.isfile(target_abs):
+                    try:
+                        with open(target_abs, 'r', encoding='utf-8') as f:
+                            content = f.read()
+                        self.send_response(200)
+                        self.send_header('Content-type', 'text/plain; charset=utf-8')
+                        self.end_headers()
+                        self.wfile.write(content.encode('utf-8'))
+                        return
+                    except Exception as e:
+                        self.send_error(500, f"Error reading file: {e}")
+                        return
+                else:
+                    self.send_error(403, "Access Denied or File Not Found")
+                    return
+                
+            elif parsed.path == '/':
                 self.send_response(200)
                 self.send_header('Content-type', 'text/html; charset=utf-8')
                 self.end_headers()
@@ -795,22 +867,22 @@ def cmd_serve(port=8080):
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Harness Advanced Dashboard v3.1</title>
+    <title>Harness Advanced Dashboard v3.2</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-primary: #0b0f19;
-            --bg-secondary: rgba(22, 28, 45, 0.6);
-            --border-glow: rgba(99, 102, 241, 0.15);
-            --border-subtle: rgba(255, 255, 255, 0.06);
+            --bg-primary: #090d16;
+            --bg-secondary: rgba(17, 24, 39, 0.7);
+            --border-glow: rgba(99, 102, 241, 0.2);
+            --border-subtle: rgba(255, 255, 255, 0.08);
             --text-primary: #f8fafc;
             --text-secondary: #94a3b8;
             --primary: #6366f1;
-            --primary-glow: rgba(99, 102, 241, 0.4);
+            --primary-glow: rgba(99, 102, 241, 0.5);
             --success: #10b981;
             --warning: #f59e0b;
             --danger: #ef4444;
-            --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
         }
         
         * {
@@ -825,25 +897,21 @@ def cmd_serve(port=8080):
             color: var(--text-primary);
             min-height: 100vh;
             overflow-x: hidden;
-            background-image: radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.05) 0%, transparent 40%),
-                              radial-gradient(circle at 90% 80%, rgba(168, 85, 247, 0.05) 0%, transparent 40%);
+            background-image: radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.07) 0%, transparent 40%),
+                              radial-gradient(circle at 90% 80%, rgba(168, 85, 247, 0.07) 0%, transparent 40%);
         }
         
-        /* App Layout */
         .app-container {
             max-width: 1400px;
             margin: 0 auto;
             padding: 40px 20px;
         }
         
-        /* Header */
         header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 40px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid var(--border-subtle);
         }
         
         .logo-group {
@@ -853,17 +921,17 @@ def cmd_serve(port=8080):
         }
         
         .logo-glow {
-            width: 12px;
-            height: 12px;
+            width: 14px;
+            height: 14px;
             border-radius: 50%;
             background-color: var(--success);
-            box-shadow: 0 0 12px var(--success);
+            box-shadow: 0 0 14px var(--success);
             animation: pulse 2s infinite;
         }
         
         @keyframes pulse {
             0% { transform: scale(0.9); opacity: 0.6; }
-            50% { transform: scale(1.1); opacity: 1; box-shadow: 0 0 16px var(--success); }
+            50% { transform: scale(1.1); opacity: 1; box-shadow: 0 0 20px var(--success); }
             100% { transform: scale(0.9); opacity: 0.6; }
         }
         
@@ -888,7 +956,7 @@ def cmd_serve(port=8080):
             background: rgba(99, 102, 241, 0.1);
             color: #a5b4fc;
             border: 1px solid rgba(99, 102, 241, 0.2);
-            padding: 8px 16px;
+            padding: 10px 20px;
             border-radius: 8px;
             cursor: pointer;
             font-family: inherit;
@@ -902,10 +970,9 @@ def cmd_serve(port=8080):
         .btn-refresh:hover {
             background: var(--primary);
             color: #fff;
-            box-shadow: 0 0 12px var(--primary-glow);
+            box-shadow: 0 0 16px var(--primary-glow);
         }
         
-        /* Stats Grid */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -918,8 +985,8 @@ def cmd_serve(port=8080):
             border: 1px solid var(--border-subtle);
             border-radius: 16px;
             padding: 24px;
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             box-shadow: var(--card-shadow);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
@@ -940,8 +1007,8 @@ def cmd_serve(port=8080):
         
         .stat-card:hover {
             transform: translateY(-4px);
-            border-color: rgba(99, 102, 241, 0.3);
-            box-shadow: 0 12px 24px -10px rgba(99, 102, 241, 0.15);
+            border-color: rgba(99, 102, 241, 0.4);
+            box-shadow: 0 12px 28px -10px rgba(99, 102, 241, 0.2);
         }
         
         .stat-card:hover::before {
@@ -963,13 +1030,13 @@ def cmd_serve(port=8080):
             color: #fff;
         }
         
-        /* Navigation Tabs */
         .tabs {
             display: flex;
             gap: 8px;
             margin-bottom: 25px;
             border-bottom: 1px solid var(--border-subtle);
             padding-bottom: 8px;
+            flex-wrap: wrap;
         }
         
         .tab-btn {
@@ -983,21 +1050,20 @@ def cmd_serve(port=8080):
             cursor: pointer;
             border-radius: 8px;
             transition: all 0.3s ease;
-            position: relative;
         }
         
         .tab-btn:hover {
             color: #fff;
-            background: rgba(255, 255, 255, 0.03);
+            background: rgba(255, 255, 255, 0.04);
         }
         
         .tab-btn.active {
             color: #fff;
-            background: rgba(99, 102, 241, 0.15);
-            border: 1px solid rgba(99, 102, 241, 0.2);
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.1);
         }
         
-        /* Controls */
         .controls-row {
             display: flex;
             justify-content: space-between;
@@ -1017,8 +1083,8 @@ def cmd_serve(port=8080):
             width: 100%;
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--border-subtle);
-            padding: 10px 16px;
-            padding-left: 40px;
+            padding: 12px 16px;
+            padding-left: 42px;
             border-radius: 10px;
             color: #fff;
             font-family: inherit;
@@ -1030,7 +1096,7 @@ def cmd_serve(port=8080):
         .search-input:focus {
             border-color: var(--primary);
             background: rgba(255, 255, 255, 0.05);
-            box-shadow: 0 0 10px rgba(99, 102, 241, 0.1);
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.15);
         }
         
         .search-wrapper::before {
@@ -1044,31 +1110,34 @@ def cmd_serve(port=8080):
         }
         
         .filter-select {
-            background: #111827;
+            background: #0f172a;
             border: 1px solid var(--border-subtle);
             color: var(--text-primary);
-            padding: 10px 16px;
+            padding: 12px 16px;
             border-radius: 10px;
             outline: none;
             cursor: pointer;
             font-family: inherit;
             font-size: 14px;
+            transition: all 0.3s ease;
         }
         
-        /* Glass Panel */
+        .filter-select:focus {
+            border-color: var(--primary);
+        }
+        
         .glass-panel {
             background: var(--bg-secondary);
             border: 1px solid var(--border-subtle);
             border-radius: 16px;
-            padding: 24px;
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            padding: 28px;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             box-shadow: var(--card-shadow);
             margin-bottom: 30px;
             overflow-x: auto;
         }
         
-        /* Tables styling */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -1101,7 +1170,6 @@ def cmd_serve(port=8080):
             background: rgba(255, 255, 255, 0.02);
         }
         
-        /* Badges */
         .badge {
             display: inline-flex;
             align-items: center;
@@ -1113,42 +1181,42 @@ def cmd_serve(port=8080):
             letter-spacing: 0.03em;
         }
         
-        .badge-completed { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.2); }
-        .badge-implemented { background: rgba(6, 182, 212, 0.15); color: #22d3ee; border: 1px solid rgba(6, 182, 212, 0.2); }
-        .badge-open { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.2); }
-        .badge-new { background: rgba(148, 163, 184, 0.15); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.2); }
+        .badge-completed { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.25); }
+        .badge-implemented { background: rgba(6, 182, 212, 0.15); color: #22d3ee; border: 1px solid rgba(6, 182, 212, 0.25); }
+        .badge-open { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.25); }
+        .badge-new { background: rgba(148, 163, 184, 0.15); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.25); }
+        .badge-proposed { background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.25); }
         
-        .badge-tiny { background: rgba(99, 102, 241, 0.1); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.15); }
-        .badge-normal { background: rgba(16, 185, 129, 0.1); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.15); }
-        .badge-high_risk { background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.15); }
+        .badge-tiny { background: rgba(99, 102, 241, 0.1); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.2); }
+        .badge-normal { background: rgba(16, 185, 129, 0.1); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.2); }
+        .badge-high_risk { background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.2); }
         
-        .badge-success { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.2); }
-        .badge-failed { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.2); }
-        .badge-warn { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.2); }
+        .badge-success { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.25); }
+        .badge-passed { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.25); }
+        .badge-failed { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.25); }
+        .badge-warn { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.25); }
 
-        /* Code highlight */
         pre {
             font-family: 'JetBrains Mono', monospace;
             font-size: 13px;
-            background: rgba(0, 0, 0, 0.3);
-            padding: 12px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 16px;
             border-radius: 8px;
             border: 1px solid var(--border-subtle);
             overflow-x: auto;
-            color: #e2e8f0;
+            color: #cbd5e1;
             max-width: 100%;
         }
 
-        /* SVG Graph styling */
         .graph-container {
             display: flex;
             justify-content: center;
             align-items: center;
-            background: rgba(0,0,0,0.1);
+            background: rgba(0,0,0,0.2);
             border-radius: 12px;
             padding: 20px;
             border: 1px dashed var(--border-subtle);
-            min-height: 450px;
+            min-height: 500px;
             position: relative;
             width: 100%;
         }
@@ -1159,19 +1227,19 @@ def cmd_serve(port=8080):
         }
         
         .node:hover {
-            filter: brightness(1.3);
+            filter: brightness(1.3) drop-shadow(0 0 10px var(--primary));
         }
         
         .edge {
-            stroke: rgba(255, 255, 255, 0.1);
+            stroke: rgba(255, 255, 255, 0.08);
             stroke-width: 1.5;
             transition: all 0.3s ease;
         }
         
         .edge.active {
             stroke: var(--primary);
-            stroke-width: 2.5;
-            stroke-dasharray: 5;
+            stroke-width: 3px;
+            stroke-dasharray: 6;
             animation: dash 5s linear infinite;
         }
         
@@ -1179,16 +1247,15 @@ def cmd_serve(port=8080):
             to { stroke-dashoffset: -20; }
         }
 
-        /* Slide Drawer */
         .drawer {
             position: fixed;
             top: 0;
-            right: -550px;
-            width: 500px;
+            right: -650px;
+            width: 600px;
             height: 100%;
-            background: #0f172a;
+            background: #0b0f19;
             border-left: 1px solid var(--border-subtle);
-            box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+            box-shadow: -10px 0 40px rgba(0,0,0,0.6);
             z-index: 1000;
             transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             padding: 40px 30px;
@@ -1212,8 +1279,9 @@ def cmd_serve(port=8080):
             background: transparent;
             border: none;
             color: var(--text-secondary);
-            font-size: 24px;
+            font-size: 28px;
             cursor: pointer;
+            line-height: 1;
         }
         
         .drawer-close:hover {
@@ -1243,7 +1311,7 @@ def cmd_serve(port=8080):
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(0, 0, 0, 0.65);
             backdrop-filter: blur(4px);
             z-index: 999;
             opacity: 0;
@@ -1255,6 +1323,93 @@ def cmd_serve(port=8080):
             opacity: 1;
             pointer-events: auto;
         }
+
+        /* SQL Console Tab Styles */
+        .console-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        
+        .editor-box {
+            background: #070a12;
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 15px;
+        }
+        
+        .sql-textarea {
+            width: 100%;
+            height: 150px;
+            background: transparent;
+            border: none;
+            color: #38bdf8;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            outline: none;
+            resize: vertical;
+        }
+        
+        .console-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+        
+        .btn-run {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-family: inherit;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-run:hover {
+            box-shadow: 0 0 12px var(--primary-glow);
+            filter: brightness(1.15);
+        }
+        
+        .sql-results-panel {
+            background: #070a12;
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 200px;
+        }
+        
+        .error-callout {
+            border-left: 4px solid var(--danger);
+            background: rgba(239, 68, 68, 0.05);
+            padding: 12px;
+            border-radius: 4px;
+            color: #f87171;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+        }
+        
+        .doc-view-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-primary);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+        }
+        
+        .doc-view-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--primary);
+        }
     </style>
 </head>
 <body>
@@ -1264,7 +1419,7 @@ def cmd_serve(port=8080):
                 <div class="logo-glow"></div>
                 <div>
                     <h1>Harness Core</h1>
-                    <span class="version-badge">Agent Dashboard v3.1</span>
+                    <span class="version-badge">Agent Dashboard v3.2</span>
                 </div>
             </div>
             <button class="btn-refresh" onclick="reloadData()">
@@ -1272,7 +1427,6 @@ def cmd_serve(port=8080):
             </button>
         </header>
         
-        <!-- Stats Row -->
         <div class="stats-grid">
             <div class="stat-card">
                 <h3>Stories</h3>
@@ -1292,16 +1446,15 @@ def cmd_serve(port=8080):
             </div>
         </div>
         
-        <!-- Navigation tabs -->
         <div class="tabs">
             <button class="tab-btn active" onclick="switchTab('stories')">Stories Matrix</button>
             <button class="tab-btn" onclick="switchTab('decisions')">Architecture Decisions</button>
             <button class="tab-btn" onclick="switchTab('backlogs')">Task Backlog</button>
             <button class="tab-btn" onclick="switchTab('traces')">Execution Traces</button>
             <button class="tab-btn" onclick="switchTab('graph')">Interactive Risk Graph</button>
+            <button class="tab-btn" onclick="switchTab('console')">SQL Sandbox Console</button>
         </div>
         
-        <!-- Controls row (search, filter) -->
         <div class="controls-row" id="controls-panel">
             <div class="search-wrapper">
                 <input type="text" id="search-bar" class="search-input" placeholder="Search entries..." oninput="filterData()">
@@ -1313,73 +1466,46 @@ def cmd_serve(port=8080):
             </div>
         </div>
         
-        <!-- Main Panel Content -->
-        <div class="glass-panel" id="main-panel">
-            <!-- Dynamic Content Injected here -->
-        </div>
+        <div class="glass-panel" id="main-panel"></div>
     </div>
     
-    <!-- Details Drawer Overlay -->
     <div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
     
-    <!-- Details Drawer -->
     <div class="drawer" id="drawer">
         <div class="drawer-header">
             <div>
                 <h2 style="font-size: 20px; font-weight: 600;" id="drawer-title">Item Details</h2>
-                <div style="margin-top: 5px;" id="drawer-subtitle">Sub-info</div>
+                <div style="margin-top: 5px;" id="drawer-subtitle"></div>
             </div>
             <button class="drawer-close" onclick="closeDrawer()">&times;</button>
         </div>
         
-        <div class="drawer-section" id="drawer-meta">
-            <!-- Metadata badges -->
-        </div>
+        <div class="drawer-section" id="drawer-meta"></div>
         
         <div class="drawer-section" id="drawer-description">
             <h4>Description</h4>
             <p style="line-height: 1.6; font-size: 15px;" id="drawer-desc-content"></p>
         </div>
         
-        <div class="drawer-section" id="drawer-detail-list">
-            <!-- Custom detail lists like files, evidence, etc -->
-        </div>
+        <div class="drawer-section" id="drawer-detail-list"></div>
     </div>
     
     <script>
-        let appData = {
-            stats: {},
-            stories: [],
-            decisions: [],
-            traces: [],
-            backlogs: []
-        };
-        
+        let appData = { stats: {}, stories: [], decisions: [], traces: [], backlogs: [] };
         let activeTab = 'stories';
         
         async function reloadData() {
             try {
-                const button = document.querySelector('.btn-refresh');
-                button.textContent = '🔄 Loading...';
-                button.disabled = true;
-                
                 const response = await fetch('/api/data');
                 appData = await response.json();
                 
-                // Update stats
                 document.getElementById('stat-stories').textContent = appData.stats.story || 0;
                 document.getElementById('stat-decisions').textContent = appData.stats.decision || 0;
                 document.getElementById('stat-backlogs').textContent = appData.stats.backlog || 0;
                 document.getElementById('stat-traces').textContent = appData.stats.trace || 0;
                 
                 renderActiveTab();
-                
-                button.textContent = '🔄 Refresh Metrics';
-                button.disabled = false;
-            } catch (err) {
-                console.error("Error loading data:", err);
-                alert("Failed to connect to the Harness local server API. Please ensure it is running.");
-            }
+            } catch (err) { console.error(err); }
         }
         
         function switchTab(tabName) {
@@ -1388,46 +1514,28 @@ def cmd_serve(port=8080):
                 btn.classList.toggle('active', btn.textContent.toLowerCase().includes(tabName.substring(0, 4)));
             });
             
-            // Adjust search/controls visibility
             const controls = document.getElementById('controls-panel');
-            if (tabName === 'graph') {
+            if (tabName === 'graph' || tabName === 'console') {
                 controls.style.display = 'none';
             } else {
                 controls.style.display = 'flex';
                 setupFilters();
             }
-            
             renderActiveTab();
         }
         
         function setupFilters() {
             const select = document.getElementById('status-filter');
             select.innerHTML = '<option value="all">All Statuses</option>';
-            
             let statuses = new Set();
-            if (activeTab === 'stories') {
-                appData.stories.forEach(s => statuses.add(s.status));
-            } else if (activeTab === 'decisions') {
-                appData.decisions.forEach(d => statuses.add(d.status));
-            } else if (activeTab === 'backlogs') {
-                appData.backlogs.forEach(b => statuses.add(b.status));
-            } else if (activeTab === 'traces') {
-                appData.traces.forEach(t => statuses.add(t.outcome));
-            }
-            
-            statuses.forEach(status => {
-                if (status) {
-                    const opt = document.createElement('option');
-                    opt.value = status;
-                    opt.textContent = status.charAt(0).toUpperCase() + status.slice(1);
-                    select.appendChild(opt);
-                }
-            });
+            if (activeTab === 'stories') appData.stories.forEach(s => statuses.add(s.status));
+            else if (activeTab === 'decisions') appData.decisions.forEach(d => statuses.add(d.status));
+            else if (activeTab === 'backlogs') appData.backlogs.forEach(b => statuses.add(b.status));
+            else if (activeTab === 'traces') appData.traces.forEach(t => statuses.add(t.outcome));
+            statuses.forEach(s => { if(s) { const opt = document.createElement('option'); opt.value = s; opt.textContent = s; select.appendChild(opt); } });
         }
         
-        function filterData() {
-            renderActiveTab();
-        }
+        function filterData() { renderActiveTab(); }
         
         function renderActiveTab() {
             const query = document.getElementById('search-bar').value.toLowerCase();
@@ -1435,352 +1543,142 @@ def cmd_serve(port=8080):
             const container = document.getElementById('main-panel');
             
             if (activeTab === 'stories') {
-                let filtered = appData.stories.filter(s => {
-                    const matchQuery = s.id.toLowerCase().includes(query) || s.title.toLowerCase().includes(query);
-                    const matchStatus = statusFilter === 'all' || s.status === statusFilter;
-                    return matchQuery && matchStatus;
-                });
-                
-                let html = `<table>
-                    <thead>
-                        <tr>
-                            <th>Story ID</th>
-                            <th>Description / Title</th>
-                            <th>Risk Lane</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>`;
+                let filtered = appData.stories.filter(s => (s.id.toLowerCase().includes(query) || s.title.toLowerCase().includes(query)) && (statusFilter === 'all' || s.status === statusFilter));
+                let html = `<table><thead><tr><th>ID</th><th>Title</th><th>Lane</th><th>Status</th></tr></thead><tbody>`;
                 filtered.forEach(s => {
-                    html += `<tr onclick="openStoryDrawer('${s.id}')">
-                        <td style="font-weight:600; color:#a5b4fc;">${s.id}</td>
-                        <td>${escapeHtml(s.title)}</td>
-                        <td><span class="badge badge-${s.risk_lane}">${s.risk_lane}</span></td>
-                        <td><span class="badge badge-${s.status}">${s.status}</span></td>
-                    </tr>`;
+                    html += `<tr onclick="openStoryDrawer('${s.id}')"><td>${s.id}</td><td>${escapeHtml(s.title)}</td><td><span class="badge badge-${s.risk_lane}">${s.risk_lane}</span></td><td><span class="badge badge-${s.status}">${s.status}</span></td></tr>`;
                 });
-                html += '</tbody></table>';
-                container.innerHTML = filtered.length ? html : '<p style="color:var(--text-secondary); text-align:center;">No stories found matching filters.</p>';
-            }
-            
-            else if (activeTab === 'decisions') {
-                let filtered = appData.decisions.filter(d => {
-                    const matchQuery = d.id.toLowerCase().includes(query) || d.title.toLowerCase().includes(query);
-                    const matchStatus = statusFilter === 'all' || d.status === statusFilter;
-                    return matchQuery && matchStatus;
-                });
-                
-                let html = `<table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Architecture Decision Record</th>
-                            <th>Documentation File</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>`;
+                container.innerHTML = html + '</tbody></table>';
+            } else if (activeTab === 'decisions') {
+                let filtered = appData.decisions.filter(d => (d.id.toLowerCase().includes(query) || d.title.toLowerCase().includes(query)) && (statusFilter === 'all' || d.status === statusFilter));
+                let html = `<table><thead><tr><th>ID</th><th>Title</th><th>Status</th></tr></thead><tbody>`;
                 filtered.forEach(d => {
-                    html += `<tr onclick="openDecisionDrawer('${d.id}')">
-                        <td style="font-weight:600; color:#c084fc;">${d.id}</td>
-                        <td>${escapeHtml(d.title)}</td>
-                        <td style="font-family:'JetBrains Mono', monospace; font-size:13px; color:var(--text-secondary);">${escapeHtml(d.doc_path)}</td>
-                        <td><span class="badge badge-${d.status}">${d.status}</span></td>
-                    </tr>`;
+                    html += `<tr onclick="openDecisionDrawer('${d.id}')"><td>${d.id}</td><td>${escapeHtml(d.title)}</td><td><span class="badge badge-${d.status}">${d.status}</span></td></tr>`;
                 });
-                html += '</tbody></table>';
-                container.innerHTML = filtered.length ? html : '<p style="color:var(--text-secondary); text-align:center;">No decisions found.</p>';
-            }
-            
-            else if (activeTab === 'backlogs') {
-                let filtered = appData.backlogs.filter(b => {
-                    const matchQuery = b.title.toLowerCase().includes(query) || b.pain.toLowerCase().includes(query);
-                    const matchStatus = statusFilter === 'all' || b.status === statusFilter;
-                    return matchQuery && matchStatus;
-                });
-                
-                let html = `<table>
-                    <thead>
-                        <tr>
-                            <th>Ref ID</th>
-                            <th>Backlog Item / Enhancement</th>
-                            <th>Current Operational Pain</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>`;
+                container.innerHTML = html + '</tbody></table>';
+            } else if (activeTab === 'backlogs') {
+                let filtered = appData.backlogs.filter(b => (b.title.toLowerCase().includes(query) || b.pain.toLowerCase().includes(query)) && (statusFilter === 'all' || b.status === statusFilter));
+                let html = `<table><thead><tr><th>ID</th><th>Title</th><th>Status</th></tr></thead><tbody>`;
                 filtered.forEach(b => {
-                    html += `<tr onclick="openBacklogDrawer('${b.id}')">
-                        <td style="color:var(--text-secondary); font-weight:600;">#${b.id}</td>
-                        <td>${escapeHtml(b.title)}</td>
-                        <td style="font-size:14px; color:var(--text-secondary);">${escapeHtml(b.pain)}</td>
-                        <td><span class="badge badge-${b.status === 'implemented' ? 'completed' : 'open'}">${b.status}</span></td>
-                    </tr>`;
+                    html += `<tr onclick="openBacklogDrawer('${b.id}')"><td>#${b.id}</td><td>${escapeHtml(b.title)}</td><td><span class="badge badge-${b.status}">${b.status}</span></td></tr>`;
                 });
-                html += '</tbody></table>';
-                container.innerHTML = filtered.length ? html : '<p style="color:var(--text-secondary); text-align:center;">No backlog items found.</p>';
-            }
-            
-            else if (activeTab === 'traces') {
-                let filtered = appData.traces.filter(t => {
-                    const matchQuery = t.task_summary.toLowerCase().includes(query) || t.agent.toLowerCase().includes(query);
-                    const matchStatus = statusFilter === 'all' || t.outcome === statusFilter;
-                    return matchQuery && matchStatus;
-                });
-                
-                let html = `<table>
-                    <thead>
-                        <tr>
-                            <th>Trace ID</th>
-                            <th>Time</th>
-                            <th>Summary of Actions</th>
-                            <th>Active Agent</th>
-                            <th>Outcome</th>
-                        </tr>
-                    </thead>
-                    <tbody>`;
+                container.innerHTML = html + '</tbody></table>';
+            } else if (activeTab === 'traces') {
+                let filtered = appData.traces.filter(t => (t.task_summary.toLowerCase().includes(query) || t.agent.toLowerCase().includes(query)) && (statusFilter === 'all' || t.outcome === statusFilter));
+                let html = `<table><thead><tr><th>ID</th><th>Summary</th><th>Outcome</th></tr></thead><tbody>`;
                 filtered.forEach(t => {
-                    html += `<tr onclick="openTraceDrawer('${t.id}')">
-                        <td style="color:var(--text-secondary);">#${t.id}</td>
-                        <td style="font-size:13px; color:var(--text-secondary);">${t.created_at}</td>
-                        <td>${escapeHtml(t.task_summary)}</td>
-                        <td>${escapeHtml(t.agent)}</td>
-                        <td><span class="badge badge-${t.outcome === 'success' || t.outcome === 'passed' ? 'success' : 'failed'}">${t.outcome}</span></td>
-                    </tr>`;
+                    html += `<tr onclick="openTraceDrawer('${t.id}')"><td>#${t.id}</td><td>${escapeHtml(t.task_summary)}</td><td><span class="badge badge-${t.outcome}">${t.outcome}</span></td></tr>`;
                 });
-                html += '</tbody></table>';
-                container.innerHTML = filtered.length ? html : '<p style="color:var(--text-secondary); text-align:center;">No execution traces logged.</p>';
-            }
-            
-            else if (activeTab === 'graph') {
+                container.innerHTML = html + '</tbody></table>';
+            } else if (activeTab === 'graph') {
                 renderRiskGraph(container);
+            } else if (activeTab === 'console') {
+                renderConsole(container);
             }
         }
         
         function renderRiskGraph(container) {
             container.innerHTML = '';
-            
             const wrapper = document.createElement('div');
             wrapper.className = 'graph-container';
-            
-            const desc = document.createElement('div');
-            desc.style.position = 'absolute';
-            desc.style.top = '15px';
-            desc.style.left = '15px';
-            desc.style.fontSize = '13px';
-            desc.style.color = 'var(--text-secondary)';
-            desc.innerHTML = '⚡ <b>Interactive Compliance Concept Map</b>: Click a story node to toggle risk propagation status.';
-            wrapper.appendChild(desc);
-            
-            if (!appData.stories || !appData.stories.length) {
-                wrapper.innerHTML += '<p style="color:var(--text-secondary); margin-top: 50px;">No stories registered to construct compliance map.</p>';
-                container.appendChild(wrapper);
-                return;
-            }
-            
-            // Build simple nodes list
+            if (!appData.stories.length) { wrapper.innerHTML = '<p>No stories found.</p>'; container.appendChild(wrapper); return; }
             const nodes = appData.stories.map((s, idx) => {
                 const angle = (idx / appData.stories.length) * 2 * Math.PI;
-                const r = 160; // radius
-                return {
-                    id: s.id,
-                    title: s.title,
-                    lane: s.risk_lane,
-                    status: s.status,
-                    x: 250 + r * Math.cos(angle),
-                    y: 220 + r * Math.sin(angle)
-                };
+                const r = 180;
+                return { id: s.id, title: s.title, lane: s.risk_lane, status: s.status, x: 270 + r * Math.cos(angle), y: 250 + r * Math.sin(angle) };
             });
-            
-            let svgContent = `<svg width="500" height="440" style="max-width:100%;">`;
-            
-            // Draw links
+            let svgContent = `<svg width="540" height="500">`;
             for(let i=0; i<nodes.length; i++) {
                 let next = (i + 1) % nodes.length;
                 svgContent += `<line class="edge" id="edge-${i}-${next}" x1="${nodes[i].x}" y1="${nodes[i].y}" x2="${nodes[next].x}" y2="${nodes[next].y}" />`;
             }
-            
-            // Draw cross reference lines for high risk nodes
             nodes.forEach((n, idx) => {
-                if (n.lane === 'high_risk') {
-                    nodes.forEach((target, tidx) => {
-                        if (target.id !== n.id && tidx % 3 === 0) {
-                            svgContent += `<line class="edge" id="edge-cross-${idx}-${tidx}" x1="${n.x}" y1="${n.y}" x2="${target.x}" y2="${target.y}" style="stroke:rgba(239, 68, 68, 0.15);" />`;
-                        }
-                    });
-                }
+                let color = n.lane === 'high_risk' ? '#ef4444' : n.lane === 'normal' ? '#3b82f6' : '#10b981';
+                if (n.status === 'implemented') color = '#10b981';
+                svgContent += `<g class="node" onclick="toggleGraphRisk('${n.id}', ${idx})" transform="translate(${n.x}, ${n.y})"><circle r="18" fill="#0f172a" stroke="${color}" stroke-width="3" /><circle r="6" fill="${color}" /><text y="30" text-anchor="middle" fill="#fff" font-size="10">${n.id}</text></g>`;
             });
-            
-            // Draw nodes
-            nodes.forEach((n, idx) => {
-                let color = '#94a3b8'; // new/gray
-                if (n.lane === 'high_risk') color = '#ef4444'; // red
-                else if (n.lane === 'normal') color = '#3b82f6'; // blue
-                else if (n.lane === 'tiny') color = '#10b981'; // green
-                
-                if (n.status === 'completed') color = '#10b981';
-                
-                svgContent += `
-                <g class="node" onclick="toggleGraphRisk('${n.id}', ${idx})" transform="translate(${n.x}, ${n.y})">
-                    <circle r="18" fill="#1e293b" stroke="${color}" stroke-width="3" style="filter: drop-shadow(0 0 6px ${color});" />
-                    <circle r="6" fill="${color}" />
-                    <text y="30" text-anchor="middle" fill="#fff" font-size="10" font-weight="500" style="text-shadow: 0 2px 4px rgba(0,0,0,0.8);">${n.id.substring(n.id.lastIndexOf('-') + 1)}</text>
-                </g>`;
-            });
-            
             svgContent += `</svg>`;
             wrapper.innerHTML += svgContent;
             container.appendChild(wrapper);
         }
         
         function toggleGraphRisk(storyId, idx) {
-            // BFS Risk simulation trigger visualization
             const edges = document.querySelectorAll('.edge');
-            const clickedNode = appData.stories.find(s => s.id === storyId);
-            
-            // Highlight connections
-            edges.forEach(e => {
-                const idStr = e.id || "";
-                if (idStr.includes(`-${idx}`) || idStr.includes(`${idx}-`)) {
-                    e.classList.toggle('active');
-                }
-            });
-            
+            edges.forEach(e => { if (e.id.includes(`-${idx}`) || e.id.includes(`${idx}-`)) e.classList.toggle('active'); });
             openStoryDrawer(storyId);
         }
         
-        // Drawer display helpers
-        function openDrawer() {
-            document.getElementById('drawer').classList.add('open');
-            document.getElementById('drawer-overlay').classList.add('open');
+        function renderConsole(container) {
+            container.innerHTML = `
+            <div class="console-grid">
+                <div class="editor-box">
+                    <h3 style="font-size:16px; margin-bottom:12px; color:#a5b4fc;">SQLite Terminal Sandbox</h3>
+                    <select id="sql-templates" class="filter-select" onchange="loadSqlTemplate()"><option value="stories">Select * Stories</option><option value="traces">Select * Traces</option></select>
+                    <textarea id="sql-query-input" class="sql-textarea" placeholder="SELECT * FROM story;"></textarea>
+                    <button class="btn-run" onclick="runSqlQuery()">⚡ Execute Query</button>
+                </div>
+                <div class="sql-results-panel" id="sql-results"></div>
+            </div>`;
+            loadSqlTemplate();
         }
         
-        function closeDrawer() {
-            document.getElementById('drawer').classList.remove('open');
-            document.getElementById('drawer-overlay').classList.remove('open');
+        function loadSqlTemplate() {
+            const textarea = document.getElementById('sql-query-input');
+            const val = document.getElementById('sql-templates').value;
+            textarea.value = val === 'stories' ? "SELECT * FROM story;" : "SELECT * FROM trace ORDER BY id DESC LIMIT 10;";
+        }
+        
+        async function runSqlQuery() {
+            const query = document.getElementById('sql-query-input').value;
+            const res = await fetch('/api/sql', { method: 'POST', body: JSON.stringify({ query }) });
+            const data = await res.json();
+            document.getElementById('sql-results').innerHTML = data.success ? `<pre>${JSON.stringify(data.rows, null, 2)}</pre>` : `<div class="error-callout">${data.error}</div>`;
+        }
+        
+        function openDrawer() { document.getElementById('drawer').classList.add('open'); document.getElementById('drawer-overlay').classList.add('open'); }
+        function closeDrawer() { document.getElementById('drawer').classList.remove('open'); document.getElementById('drawer-overlay').classList.remove('open'); }
+        
+        async function fetchAndRenderFile(filePath, container) {
+            const res = await fetch(`/api/file?path=${encodeURIComponent(filePath)}`);
+            const text = await res.text();
+            container.innerHTML = renderMarkdown(text);
+        }
+        
+        function renderMarkdown(md) {
+            return md.replace(/^# (.*$)/gim, '<h1>$1</h1>').replace(/\\*\\*(.*?)\\*\\*/g, '<strong>$1</strong>');
         }
         
         function openStoryDrawer(id) {
             const story = appData.stories.find(s => s.id === id);
-            if (!story) return;
-            
             document.getElementById('drawer-title').textContent = story.id;
-            document.getElementById('drawer-subtitle').innerHTML = `<span class="badge badge-${story.risk_lane}">Lane: ${story.risk_lane}</span>`;
-            
-            let metaHtml = `<span class="badge badge-${story.status}">Status: ${story.status}</span>`;
-            document.getElementById('drawer-meta').innerHTML = metaHtml;
-            
+            document.getElementById('drawer-meta').innerHTML = `<span class="badge badge-${story.status}">${story.status}</span>`;
             document.getElementById('drawer-desc-content').textContent = story.title;
-            
-            let detailsHtml = `<h4>Compliance Evidence</h4>`;
-            if (story.evidence) {
-                detailsHtml += `<p style="font-size:14px; background:rgba(255,255,255,0.02); padding:10px; border-radius:8px; border:1px solid var(--border-subtle);">${escapeHtml(story.evidence)}</p>`;
-            } else {
-                detailsHtml += `<p style="font-size:14px; color:var(--text-secondary); italic;">No verification evidence recorded.</p>`;
-            }
-            
-            document.getElementById('drawer-detail-list').innerHTML = detailsHtml;
+            document.getElementById('drawer-detail-list').innerHTML = story.contract_doc ? `<button class="doc-view-btn" onclick="fetchAndRenderFile('${escapeHtml(story.contract_doc)}', document.getElementById('markdown-doc-renderer'))">📄 View Doc</button><div id="markdown-doc-renderer"></div>` : '';
             openDrawer();
         }
         
         function openDecisionDrawer(id) {
-            const decision = appData.decisions.find(d => d.id === id);
-            if (!decision) return;
-            
-            document.getElementById('drawer-title').textContent = decision.id;
-            document.getElementById('drawer-subtitle').textContent = `ADR Document`;
-            
-            document.getElementById('drawer-meta').innerHTML = `<span class="badge badge-${decision.status}">Status: ${decision.status}</span>`;
-            document.getElementById('drawer-desc-content').textContent = decision.title;
-            
-            let detailsHtml = `<h4>Architecture Details</h4>`;
-            if (decision.doc_path) {
-                detailsHtml += `<p style="font-size:14px; font-family:'JetBrains Mono', monospace; background:rgba(255,255,255,0.02); padding:8px 12px; border-radius:8px; border:1px solid var(--border-subtle); margin-bottom:12px;">📄 ${escapeHtml(decision.doc_path)}</p>`;
-            }
-            if (decision.notes) {
-                detailsHtml += `<h4 style="margin-top:15px;">Decisions & Rationales</h4>
-                <p style="font-size:14px; line-height:1.6; color:var(--text-secondary); white-space:pre-wrap;">${escapeHtml(decision.notes)}</p>`;
-            }
-            
-            document.getElementById('drawer-detail-list').innerHTML = detailsHtml;
+            const dec = appData.decisions.find(d => d.id === id);
+            document.getElementById('drawer-title').textContent = dec.title;
+            document.getElementById('drawer-detail-list').innerHTML = dec.doc_path ? `<button class="doc-view-btn" onclick="fetchAndRenderFile('${escapeHtml(dec.doc_path)}', document.getElementById('markdown-adr-renderer'))">📄 Load ADR</button><div id="markdown-adr-renderer"></div>` : '';
             openDrawer();
         }
         
         function openBacklogDrawer(id) {
-            const backlog = appData.backlogs.find(b => b.id == id);
-            if (!backlog) return;
-            
-            document.getElementById('drawer-title').textContent = `Backlog #${backlog.id}`;
-            document.getElementById('drawer-subtitle').textContent = `Discovered in: ${backlog.discovered_while || 'Intake process'}`;
-            
-            document.getElementById('drawer-meta').innerHTML = `<span class="badge badge-${backlog.status === 'implemented' ? 'completed' : 'open'}">Status: ${backlog.status}</span>`;
-            document.getElementById('drawer-desc-content').textContent = backlog.title;
-            
-            let detailsHtml = ``;
-            if (backlog.pain) {
-                detailsHtml += `<h4>Current Operational Pain</h4>
-                <p style="font-size:14px; padding:10px; background:rgba(239, 68, 68, 0.05); border:1px solid rgba(239, 68, 68, 0.15); border-radius:8px; color:#f87171; margin-bottom:15px;">${escapeHtml(backlog.pain)}</p>`;
-            }
-            if (backlog.suggestion) {
-                detailsHtml += `<h4>Suggested Improvement</h4>
-                <p style="font-size:14px; padding:10px; background:rgba(16, 185, 129, 0.05); border:1px solid rgba(16, 185, 129, 0.15); border-radius:8px; color:#34d399;">${escapeHtml(backlog.suggestion)}</p>`;
-            }
-            
-            document.getElementById('drawer-detail-list').innerHTML = detailsHtml;
+            const b = appData.backlogs.find(x => x.id == id);
+            document.getElementById('drawer-title').textContent = b.title;
             openDrawer();
         }
         
         function openTraceDrawer(id) {
-            const trace = appData.traces.find(t => t.id == id);
-            if (!trace) return;
-            
-            document.getElementById('drawer-title').textContent = `Execution Trace #${trace.id}`;
-            document.getElementById('drawer-subtitle').textContent = `Run Time: ${trace.created_at}`;
-            
-            document.getElementById('drawer-meta').innerHTML = `
-                <span class="badge badge-${trace.outcome === 'success' || trace.outcome === 'passed' ? 'success' : 'failed'}">${trace.outcome}</span>
-                <span style="margin-left: 8px; background:rgba(255,255,255,0.05); border:1px solid var(--border-subtle); color:var(--text-secondary);" class="badge">Agent: ${trace.agent}</span>
-            `;
-            
-            document.getElementById('drawer-desc-content').textContent = trace.task_summary;
-            
-            let detailsHtml = ``;
-            if (trace.files_changed) {
-                detailsHtml += `<h4>Files Modified</h4>`;
-                try {
-                    let files = JSON.parse(trace.files_changed);
-                    if (Array.isArray(files) && files.length) {
-                        detailsHtml += `<ul style="list-style-type:none; font-family:'JetBrains Mono', monospace; font-size:13px; color:var(--text-secondary); margin-bottom:15px; display:flex; flex-direction:column; gap:4px;">`;
-                        files.forEach(f => {
-                            detailsHtml += `<li style="background:rgba(255,255,255,0.02); padding:4px 10px; border-radius:4px; border:1px solid var(--border-subtle);">📝 ${escapeHtml(f)}</li>`;
-                        });
-                        detailsHtml += `</ul>`;
-                    } else {
-                        detailsHtml += `<p style="font-size:14px; color:var(--text-secondary); margin-bottom:15px;">No files changed.</p>`;
-                    }
-                } catch(e) {
-                    detailsHtml += `<p style="font-size:13px; font-family:'JetBrains Mono', monospace; color:var(--text-secondary); margin-bottom:15px;">${escapeHtml(trace.files_changed)}</p>`;
-                }
-            }
-            
-            if (trace.friction) {
-                detailsHtml += `<h4>Friction / Execution Logs</h4>
-                <pre>${escapeHtml(trace.friction)}</pre>`;
-            }
-            
-            document.getElementById('drawer-detail-list').innerHTML = detailsHtml;
+            const t = appData.traces.find(x => x.id == id);
+            document.getElementById('drawer-title').textContent = `Trace #${t.id}`;
+            document.getElementById('drawer-desc-content').textContent = t.task_summary;
             openDrawer();
         }
         
-        function escapeHtml(str) {
-            if (!str) return '';
-            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-        }
-        
-        // Initial setup
-        window.addEventListener('DOMContentLoaded', () => {
-            reloadData();
-        });
+        function escapeHtml(str) { return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+        window.addEventListener('DOMContentLoaded', reloadData);
     </script>
 </body>
 </html>
@@ -1788,7 +1686,7 @@ def cmd_serve(port=8080):
                 self.wfile.write(html.encode('utf-8'))
             else:
                 self.send_error(404, 'File Not Found')
-
+    
     print(f"Starting Harness Dashboard at http://localhost:{port}")
     socketserver.TCPServer.allow_reuse_address = True
     try:
