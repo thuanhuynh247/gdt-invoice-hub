@@ -690,12 +690,13 @@ def cmd_migrate_data():
 def cmd_serve(port=8080):
     import http.server
     import socketserver
+    import json
     
     class DashboardHandler(http.server.SimpleHTTPRequestHandler):
         def do_GET(self):
-            if self.path == '/':
+            if self.path == '/api/data':
                 self.send_response(200)
-                self.send_header('Content-type', 'text/html; charset=utf-8')
+                self.send_header('Content-type', 'application/json; charset=utf-8')
                 self.end_headers()
                 
                 conn = get_db()
@@ -703,68 +704,1087 @@ def cmd_serve(port=8080):
                 
                 stats = {}
                 for table in ['intake', 'story', 'decision', 'backlog', 'trace']:
-                    cursor.execute(f'SELECT COUNT(*) FROM {table}')
-                    stats[table] = cursor.fetchone()[0]
+                    try:
+                        cursor.execute(f'SELECT COUNT(*) FROM {table}')
+                        stats[table] = cursor.fetchone()[0]
+                    except Exception:
+                        stats[table] = 0
                 
-                cursor.execute('SELECT id, title, status, risk_lane FROM story ORDER BY id')
-                stories = cursor.fetchall()
+                # Stories
+                stories = []
+                try:
+                    cursor.execute('SELECT id, title, status, risk_lane, COALESCE(evidence, "") FROM story ORDER BY id')
+                    for row in cursor.fetchall():
+                        stories.append({
+                            "id": row[0],
+                            "title": row[1],
+                            "status": row[2],
+                            "risk_lane": row[3],
+                            "evidence": row[4]
+                        })
+                except Exception:
+                    pass
                 
-                cursor.execute('SELECT id, created_at, outcome, task_summary, COALESCE(harness_friction, "") FROM trace ORDER BY id DESC LIMIT 10')
-                traces = cursor.fetchall()
+                # Decisions
+                decisions = []
+                try:
+                    cursor.execute('SELECT id, title, status, COALESCE(notes, ""), COALESCE(doc_path, "") FROM decision ORDER BY id')
+                    for row in cursor.fetchall():
+                        decisions.append({
+                            "id": row[0],
+                            "title": row[1],
+                            "status": row[2],
+                            "notes": row[3],
+                            "doc_path": row[4]
+                        })
+                except Exception:
+                    pass
+                
+                # Traces
+                traces = []
+                try:
+                    cursor.execute('SELECT id, created_at, outcome, task_summary, COALESCE(harness_friction, ""), agent, COALESCE(files_read, ""), COALESCE(files_changed, "") FROM trace ORDER BY id DESC LIMIT 30')
+                    for row in cursor.fetchall():
+                        traces.append({
+                            "id": row[0],
+                            "created_at": row[1],
+                            "outcome": row[2],
+                            "task_summary": row[3],
+                            "friction": row[4],
+                            "agent": row[5],
+                            "files_read": row[6],
+                            "files_changed": row[7]
+                        })
+                except Exception:
+                    pass
+                
+                # Backlog
+                backlogs = []
+                try:
+                    cursor.execute('SELECT id, title, status, COALESCE(suggested_improvement, ""), COALESCE(current_pain, ""), COALESCE(discovered_while, "") FROM backlog ORDER BY id')
+                    for row in cursor.fetchall():
+                        backlogs.append({
+                            "id": row[0],
+                            "title": row[1],
+                            "status": row[2],
+                            "suggestion": row[3],
+                            "pain": row[4],
+                            "discovered_while": row[5]
+                        })
+                except Exception:
+                    pass
                 
                 conn.close()
                 
-                html = f'''<html>
-                <head>
-                    <title>Harness Dashboard</title>
-                    <style>
-                        body {{ font-family: sans-serif; background: #1a1a1a; color: #e0e0e0; padding: 20px; }}
-                        h1, h2 {{ color: #ffffff; }}
-                        .grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }}
-                        .card {{ background: #2d2d2d; padding: 20px; border-radius: 8px; border: 1px solid #444; }}
-                        .card h3 {{ margin-top: 0; color: #888; }}
-                        .card p {{ font-size: 24px; font-weight: bold; margin: 5px 0; }}
-                        table {{ width: 100%; border-collapse: collapse; margin-bottom: 30px; }}
-                        th, td {{ border: 1px solid #444; padding: 12px; text-align: left; }}
-                        th {{ background: #333; }}
-                        tr:nth-child(even) {{ background: #222; }}
-                        .badge {{ padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }}
-                        .badge-success {{ background: #2e7d32; color: #fff; }}
-                        .badge-warn {{ background: #ef6c00; color: #fff; }}
-                        .badge-danger {{ background: #c62828; color: #fff; }}
-                    </style>
-                </head>
-                <body>
-                    <h1>Harness Local Dashboard</h1>
-                    <div class="grid">
-                        <div class="card"><h3>Stories</h3><p>{stats['story']}</p></div>
-                        <div class="card"><h3>Decisions</h3><p>{stats['decision']}</p></div>
-                        <div class="card"><h3>Backlog Items</h3><p>{stats['backlog']}</p></div>
-                        <div class="card"><h3>Traces</h3><p>{stats['trace']}</p></div>
-                    </div>
-                    
-                    <h2>Story Matrix</h2>
-                    <table>
-                        <tr><th>ID</th><th>Title</th><th>Status</th><th>Lane</th></tr>
-                '''
-                for s in stories:
-                    html += f'<tr><td>{s[0]}</td><td>{s[1]}</td><td><span class="badge badge-success">{s[2]}</span></td><td>{s[3]}</td></tr>'
+                data = {
+                    "stats": stats,
+                    "stories": stories,
+                    "decisions": decisions,
+                    "traces": traces,
+                    "backlogs": backlogs
+                }
+                self.wfile.write(json.dumps(data).encode('utf-8'))
                 
-                html += '''
-                    </table>
-                    
-                    <h2>Execution Traces</h2>
-                    <table>
-                        <tr><th>ID</th><th>Time</th><th>Summary</th><th>Outcome</th><th>Friction</th></tr>
-                '''
-                for t in traces:
-                    badge_class = 'badge-success' if t[2] in ['success', 'completed'] else ('badge-danger' if t[2] == 'validation_failed' else 'badge-warn')
-                    html += f'<tr><td>{t[0]}</td><td>{t[1]}</td><td>{t[3]}</td><td><span class="badge {badge_class}">{t[2]}</span></td><td><pre style="margin:0;white-space:pre-wrap;font-family:monospace;">{t[4]}</pre></td></tr>'
+            elif self.path == '/':
+                self.send_response(200)
+                self.send_header('Content-type', 'text/html; charset=utf-8')
+                self.end_headers()
                 
-                html += '''
-                    </table>
-                </body>
-                </html>'''
+                html = """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harness Advanced Dashboard v3.1</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0b0f19;
+            --bg-secondary: rgba(22, 28, 45, 0.6);
+            --border-glow: rgba(99, 102, 241, 0.15);
+            --border-subtle: rgba(255, 255, 255, 0.06);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --primary: #6366f1;
+            --primary-glow: rgba(99, 102, 241, 0.4);
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image: radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.05) 0%, transparent 40%),
+                              radial-gradient(circle at 90% 80%, rgba(168, 85, 247, 0.05) 0%, transparent 40%);
+        }
+        
+        /* App Layout */
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        
+        .logo-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo-glow {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: var(--success);
+            box-shadow: 0 0 12px var(--success);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(0.9); opacity: 0.6; }
+            50% { transform: scale(1.1); opacity: 1; box-shadow: 0 0 16px var(--success); }
+            100% { transform: scale(0.9); opacity: 0.6; }
+        }
+        
+        h1 {
+            font-weight: 700;
+            font-size: 28px;
+            background: linear-gradient(135deg, #a5b4fc 0%, #c084fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .version-badge {
+            font-size: 11px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border-subtle);
+            padding: 2px 8px;
+            border-radius: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .btn-refresh {
+            background: rgba(99, 102, 241, 0.1);
+            color: #a5b4fc;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-refresh:hover {
+            background: var(--primary);
+            color: #fff;
+            box-shadow: 0 0 12px var(--primary-glow);
+        }
+        
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .stat-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            padding: 24px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: var(--card-shadow);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(99, 102, 241, 0.3);
+            box-shadow: 0 12px 24px -10px rgba(99, 102, 241, 0.15);
+        }
+        
+        .stat-card:hover::before {
+            opacity: 1;
+        }
+        
+        .stat-card h3 {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+        
+        .stat-card .value {
+            font-size: 36px;
+            font-weight: 700;
+            color: #fff;
+        }
+        
+        /* Navigation Tabs */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 25px;
+            border-bottom: 1px solid var(--border-subtle);
+            padding-bottom: 8px;
+        }
+        
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 10px 20px;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .tab-btn:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.03);
+        }
+        
+        .tab-btn.active {
+            color: #fff;
+            background: rgba(99, 102, 241, 0.15);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+        
+        /* Controls */
+        .controls-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .search-wrapper {
+            position: relative;
+            flex: 1;
+            max-width: 400px;
+        }
+        
+        .search-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-subtle);
+            padding: 10px 16px;
+            padding-left: 40px;
+            border-radius: 10px;
+            color: #fff;
+            font-family: inherit;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        
+        .search-input:focus {
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.05);
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.1);
+        }
+        
+        .search-wrapper::before {
+            content: '🔍';
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 14px;
+            opacity: 0.5;
+        }
+        
+        .filter-select {
+            background: #111827;
+            border: 1px solid var(--border-subtle);
+            color: var(--text-primary);
+            padding: 10px 16px;
+            border-radius: 10px;
+            outline: none;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 14px;
+        }
+        
+        /* Glass Panel */
+        .glass-panel {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            padding: 24px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: var(--card-shadow);
+            margin-bottom: 30px;
+            overflow-x: auto;
+        }
+        
+        /* Tables styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        
+        th {
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        
+        td {
+            padding: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+            font-size: 15px;
+            vertical-align: middle;
+        }
+        
+        tbody tr {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        tbody tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        
+        /* Badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+        
+        .badge-completed { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.2); }
+        .badge-implemented { background: rgba(6, 182, 212, 0.15); color: #22d3ee; border: 1px solid rgba(6, 182, 212, 0.2); }
+        .badge-open { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.2); }
+        .badge-new { background: rgba(148, 163, 184, 0.15); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.2); }
+        
+        .badge-tiny { background: rgba(99, 102, 241, 0.1); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.15); }
+        .badge-normal { background: rgba(16, 185, 129, 0.1); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.15); }
+        .badge-high_risk { background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.15); }
+        
+        .badge-success { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.2); }
+        .badge-failed { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.2); }
+        .badge-warn { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.2); }
+
+        /* Code highlight */
+        pre {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-subtle);
+            overflow-x: auto;
+            color: #e2e8f0;
+            max-width: 100%;
+        }
+
+        /* SVG Graph styling */
+        .graph-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0,0,0,0.1);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px dashed var(--border-subtle);
+            min-height: 450px;
+            position: relative;
+            width: 100%;
+        }
+        
+        .node {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .node:hover {
+            filter: brightness(1.3);
+        }
+        
+        .edge {
+            stroke: rgba(255, 255, 255, 0.1);
+            stroke-width: 1.5;
+            transition: all 0.3s ease;
+        }
+        
+        .edge.active {
+            stroke: var(--primary);
+            stroke-width: 2.5;
+            stroke-dasharray: 5;
+            animation: dash 5s linear infinite;
+        }
+        
+        @keyframes dash {
+            to { stroke-dashoffset: -20; }
+        }
+
+        /* Slide Drawer */
+        .drawer {
+            position: fixed;
+            top: 0;
+            right: -550px;
+            width: 500px;
+            height: 100%;
+            background: #0f172a;
+            border-left: 1px solid var(--border-subtle);
+            box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+            z-index: 1000;
+            transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            padding: 40px 30px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        
+        .drawer.open {
+            right: 0;
+        }
+        
+        .drawer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        
+        .drawer-close {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        .drawer-close:hover {
+            color: #fff;
+        }
+        
+        .drawer-section {
+            border-bottom: 1px solid var(--border-subtle);
+            padding-bottom: 20px;
+        }
+        
+        .drawer-section:last-child {
+            border-bottom: none;
+        }
+        
+        .drawer-section h4 {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+        
+        .drawer-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        .drawer-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <div class="logo-group">
+                <div class="logo-glow"></div>
+                <div>
+                    <h1>Harness Core</h1>
+                    <span class="version-badge">Agent Dashboard v3.1</span>
+                </div>
+            </div>
+            <button class="btn-refresh" onclick="reloadData()">
+                🔄 Refresh Metrics
+            </button>
+        </header>
+        
+        <!-- Stats Row -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Stories</h3>
+                <div class="value" id="stat-stories">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Decisions</h3>
+                <div class="value" id="stat-decisions">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Backlog</h3>
+                <div class="value" id="stat-backlogs">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Telemetry Traces</h3>
+                <div class="value" id="stat-traces">-</div>
+            </div>
+        </div>
+        
+        <!-- Navigation tabs -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('stories')">Stories Matrix</button>
+            <button class="tab-btn" onclick="switchTab('decisions')">Architecture Decisions</button>
+            <button class="tab-btn" onclick="switchTab('backlogs')">Task Backlog</button>
+            <button class="tab-btn" onclick="switchTab('traces')">Execution Traces</button>
+            <button class="tab-btn" onclick="switchTab('graph')">Interactive Risk Graph</button>
+        </div>
+        
+        <!-- Controls row (search, filter) -->
+        <div class="controls-row" id="controls-panel">
+            <div class="search-wrapper">
+                <input type="text" id="search-bar" class="search-input" placeholder="Search entries..." oninput="filterData()">
+            </div>
+            <div id="filter-wrapper">
+                <select id="status-filter" class="filter-select" onchange="filterData()">
+                    <option value="all">All Statuses</option>
+                </select>
+            </div>
+        </div>
+        
+        <!-- Main Panel Content -->
+        <div class="glass-panel" id="main-panel">
+            <!-- Dynamic Content Injected here -->
+        </div>
+    </div>
+    
+    <!-- Details Drawer Overlay -->
+    <div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+    
+    <!-- Details Drawer -->
+    <div class="drawer" id="drawer">
+        <div class="drawer-header">
+            <div>
+                <h2 style="font-size: 20px; font-weight: 600;" id="drawer-title">Item Details</h2>
+                <div style="margin-top: 5px;" id="drawer-subtitle">Sub-info</div>
+            </div>
+            <button class="drawer-close" onclick="closeDrawer()">&times;</button>
+        </div>
+        
+        <div class="drawer-section" id="drawer-meta">
+            <!-- Metadata badges -->
+        </div>
+        
+        <div class="drawer-section" id="drawer-description">
+            <h4>Description</h4>
+            <p style="line-height: 1.6; font-size: 15px;" id="drawer-desc-content"></p>
+        </div>
+        
+        <div class="drawer-section" id="drawer-detail-list">
+            <!-- Custom detail lists like files, evidence, etc -->
+        </div>
+    </div>
+    
+    <script>
+        let appData = {
+            stats: {},
+            stories: [],
+            decisions: [],
+            traces: [],
+            backlogs: []
+        };
+        
+        let activeTab = 'stories';
+        
+        async function reloadData() {
+            try {
+                const button = document.querySelector('.btn-refresh');
+                button.textContent = '🔄 Loading...';
+                button.disabled = true;
+                
+                const response = await fetch('/api/data');
+                appData = await response.json();
+                
+                // Update stats
+                document.getElementById('stat-stories').textContent = appData.stats.story || 0;
+                document.getElementById('stat-decisions').textContent = appData.stats.decision || 0;
+                document.getElementById('stat-backlogs').textContent = appData.stats.backlog || 0;
+                document.getElementById('stat-traces').textContent = appData.stats.trace || 0;
+                
+                renderActiveTab();
+                
+                button.textContent = '🔄 Refresh Metrics';
+                button.disabled = false;
+            } catch (err) {
+                console.error("Error loading data:", err);
+                alert("Failed to connect to the Harness local server API. Please ensure it is running.");
+            }
+        }
+        
+        function switchTab(tabName) {
+            activeTab = tabName;
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.textContent.toLowerCase().includes(tabName.substring(0, 4)));
+            });
+            
+            // Adjust search/controls visibility
+            const controls = document.getElementById('controls-panel');
+            if (tabName === 'graph') {
+                controls.style.display = 'none';
+            } else {
+                controls.style.display = 'flex';
+                setupFilters();
+            }
+            
+            renderActiveTab();
+        }
+        
+        function setupFilters() {
+            const select = document.getElementById('status-filter');
+            select.innerHTML = '<option value="all">All Statuses</option>';
+            
+            let statuses = new Set();
+            if (activeTab === 'stories') {
+                appData.stories.forEach(s => statuses.add(s.status));
+            } else if (activeTab === 'decisions') {
+                appData.decisions.forEach(d => statuses.add(d.status));
+            } else if (activeTab === 'backlogs') {
+                appData.backlogs.forEach(b => statuses.add(b.status));
+            } else if (activeTab === 'traces') {
+                appData.traces.forEach(t => statuses.add(t.outcome));
+            }
+            
+            statuses.forEach(status => {
+                if (status) {
+                    const opt = document.createElement('option');
+                    opt.value = status;
+                    opt.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+                    select.appendChild(opt);
+                }
+            });
+        }
+        
+        function filterData() {
+            renderActiveTab();
+        }
+        
+        function renderActiveTab() {
+            const query = document.getElementById('search-bar').value.toLowerCase();
+            const statusFilter = document.getElementById('status-filter').value;
+            const container = document.getElementById('main-panel');
+            
+            if (activeTab === 'stories') {
+                let filtered = appData.stories.filter(s => {
+                    const matchQuery = s.id.toLowerCase().includes(query) || s.title.toLowerCase().includes(query);
+                    const matchStatus = statusFilter === 'all' || s.status === statusFilter;
+                    return matchQuery && matchStatus;
+                });
+                
+                let html = `<table>
+                    <thead>
+                        <tr>
+                            <th>Story ID</th>
+                            <th>Description / Title</th>
+                            <th>Risk Lane</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+                filtered.forEach(s => {
+                    html += `<tr onclick="openStoryDrawer('${s.id}')">
+                        <td style="font-weight:600; color:#a5b4fc;">${s.id}</td>
+                        <td>${escapeHtml(s.title)}</td>
+                        <td><span class="badge badge-${s.risk_lane}">${s.risk_lane}</span></td>
+                        <td><span class="badge badge-${s.status}">${s.status}</span></td>
+                    </tr>`;
+                });
+                html += '</tbody></table>';
+                container.innerHTML = filtered.length ? html : '<p style="color:var(--text-secondary); text-align:center;">No stories found matching filters.</p>';
+            }
+            
+            else if (activeTab === 'decisions') {
+                let filtered = appData.decisions.filter(d => {
+                    const matchQuery = d.id.toLowerCase().includes(query) || d.title.toLowerCase().includes(query);
+                    const matchStatus = statusFilter === 'all' || d.status === statusFilter;
+                    return matchQuery && matchStatus;
+                });
+                
+                let html = `<table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Architecture Decision Record</th>
+                            <th>Documentation File</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+                filtered.forEach(d => {
+                    html += `<tr onclick="openDecisionDrawer('${d.id}')">
+                        <td style="font-weight:600; color:#c084fc;">${d.id}</td>
+                        <td>${escapeHtml(d.title)}</td>
+                        <td style="font-family:'JetBrains Mono', monospace; font-size:13px; color:var(--text-secondary);">${escapeHtml(d.doc_path)}</td>
+                        <td><span class="badge badge-${d.status}">${d.status}</span></td>
+                    </tr>`;
+                });
+                html += '</tbody></table>';
+                container.innerHTML = filtered.length ? html : '<p style="color:var(--text-secondary); text-align:center;">No decisions found.</p>';
+            }
+            
+            else if (activeTab === 'backlogs') {
+                let filtered = appData.backlogs.filter(b => {
+                    const matchQuery = b.title.toLowerCase().includes(query) || b.pain.toLowerCase().includes(query);
+                    const matchStatus = statusFilter === 'all' || b.status === statusFilter;
+                    return matchQuery && matchStatus;
+                });
+                
+                let html = `<table>
+                    <thead>
+                        <tr>
+                            <th>Ref ID</th>
+                            <th>Backlog Item / Enhancement</th>
+                            <th>Current Operational Pain</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+                filtered.forEach(b => {
+                    html += `<tr onclick="openBacklogDrawer('${b.id}')">
+                        <td style="color:var(--text-secondary); font-weight:600;">#${b.id}</td>
+                        <td>${escapeHtml(b.title)}</td>
+                        <td style="font-size:14px; color:var(--text-secondary);">${escapeHtml(b.pain)}</td>
+                        <td><span class="badge badge-${b.status === 'implemented' ? 'completed' : 'open'}">${b.status}</span></td>
+                    </tr>`;
+                });
+                html += '</tbody></table>';
+                container.innerHTML = filtered.length ? html : '<p style="color:var(--text-secondary); text-align:center;">No backlog items found.</p>';
+            }
+            
+            else if (activeTab === 'traces') {
+                let filtered = appData.traces.filter(t => {
+                    const matchQuery = t.task_summary.toLowerCase().includes(query) || t.agent.toLowerCase().includes(query);
+                    const matchStatus = statusFilter === 'all' || t.outcome === statusFilter;
+                    return matchQuery && matchStatus;
+                });
+                
+                let html = `<table>
+                    <thead>
+                        <tr>
+                            <th>Trace ID</th>
+                            <th>Time</th>
+                            <th>Summary of Actions</th>
+                            <th>Active Agent</th>
+                            <th>Outcome</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+                filtered.forEach(t => {
+                    html += `<tr onclick="openTraceDrawer('${t.id}')">
+                        <td style="color:var(--text-secondary);">#${t.id}</td>
+                        <td style="font-size:13px; color:var(--text-secondary);">${t.created_at}</td>
+                        <td>${escapeHtml(t.task_summary)}</td>
+                        <td>${escapeHtml(t.agent)}</td>
+                        <td><span class="badge badge-${t.outcome === 'success' || t.outcome === 'passed' ? 'success' : 'failed'}">${t.outcome}</span></td>
+                    </tr>`;
+                });
+                html += '</tbody></table>';
+                container.innerHTML = filtered.length ? html : '<p style="color:var(--text-secondary); text-align:center;">No execution traces logged.</p>';
+            }
+            
+            else if (activeTab === 'graph') {
+                renderRiskGraph(container);
+            }
+        }
+        
+        function renderRiskGraph(container) {
+            container.innerHTML = '';
+            
+            const wrapper = document.createElement('div');
+            wrapper.className = 'graph-container';
+            
+            const desc = document.createElement('div');
+            desc.style.position = 'absolute';
+            desc.style.top = '15px';
+            desc.style.left = '15px';
+            desc.style.fontSize = '13px';
+            desc.style.color = 'var(--text-secondary)';
+            desc.innerHTML = '⚡ <b>Interactive Compliance Concept Map</b>: Click a story node to toggle risk propagation status.';
+            wrapper.appendChild(desc);
+            
+            if (!appData.stories || !appData.stories.length) {
+                wrapper.innerHTML += '<p style="color:var(--text-secondary); margin-top: 50px;">No stories registered to construct compliance map.</p>';
+                container.appendChild(wrapper);
+                return;
+            }
+            
+            // Build simple nodes list
+            const nodes = appData.stories.map((s, idx) => {
+                const angle = (idx / appData.stories.length) * 2 * Math.PI;
+                const r = 160; // radius
+                return {
+                    id: s.id,
+                    title: s.title,
+                    lane: s.risk_lane,
+                    status: s.status,
+                    x: 250 + r * Math.cos(angle),
+                    y: 220 + r * Math.sin(angle)
+                };
+            });
+            
+            let svgContent = `<svg width="500" height="440" style="max-width:100%;">`;
+            
+            // Draw links
+            for(let i=0; i<nodes.length; i++) {
+                let next = (i + 1) % nodes.length;
+                svgContent += `<line class="edge" id="edge-${i}-${next}" x1="${nodes[i].x}" y1="${nodes[i].y}" x2="${nodes[next].x}" y2="${nodes[next].y}" />`;
+            }
+            
+            // Draw cross reference lines for high risk nodes
+            nodes.forEach((n, idx) => {
+                if (n.lane === 'high_risk') {
+                    nodes.forEach((target, tidx) => {
+                        if (target.id !== n.id && tidx % 3 === 0) {
+                            svgContent += `<line class="edge" id="edge-cross-${idx}-${tidx}" x1="${n.x}" y1="${n.y}" x2="${target.x}" y2="${target.y}" style="stroke:rgba(239, 68, 68, 0.15);" />`;
+                        }
+                    });
+                }
+            });
+            
+            // Draw nodes
+            nodes.forEach((n, idx) => {
+                let color = '#94a3b8'; // new/gray
+                if (n.lane === 'high_risk') color = '#ef4444'; // red
+                else if (n.lane === 'normal') color = '#3b82f6'; // blue
+                else if (n.lane === 'tiny') color = '#10b981'; // green
+                
+                if (n.status === 'completed') color = '#10b981';
+                
+                svgContent += `
+                <g class="node" onclick="toggleGraphRisk('${n.id}', ${idx})" transform="translate(${n.x}, ${n.y})">
+                    <circle r="18" fill="#1e293b" stroke="${color}" stroke-width="3" style="filter: drop-shadow(0 0 6px ${color});" />
+                    <circle r="6" fill="${color}" />
+                    <text y="30" text-anchor="middle" fill="#fff" font-size="10" font-weight="500" style="text-shadow: 0 2px 4px rgba(0,0,0,0.8);">${n.id.substring(n.id.lastIndexOf('-') + 1)}</text>
+                </g>`;
+            });
+            
+            svgContent += `</svg>`;
+            wrapper.innerHTML += svgContent;
+            container.appendChild(wrapper);
+        }
+        
+        function toggleGraphRisk(storyId, idx) {
+            // BFS Risk simulation trigger visualization
+            const edges = document.querySelectorAll('.edge');
+            const clickedNode = appData.stories.find(s => s.id === storyId);
+            
+            // Highlight connections
+            edges.forEach(e => {
+                const idStr = e.id || "";
+                if (idStr.includes(`-${idx}`) || idStr.includes(`${idx}-`)) {
+                    e.classList.toggle('active');
+                }
+            });
+            
+            openStoryDrawer(storyId);
+        }
+        
+        // Drawer display helpers
+        function openDrawer() {
+            document.getElementById('drawer').classList.add('open');
+            document.getElementById('drawer-overlay').classList.add('open');
+        }
+        
+        function closeDrawer() {
+            document.getElementById('drawer').classList.remove('open');
+            document.getElementById('drawer-overlay').classList.remove('open');
+        }
+        
+        function openStoryDrawer(id) {
+            const story = appData.stories.find(s => s.id === id);
+            if (!story) return;
+            
+            document.getElementById('drawer-title').textContent = story.id;
+            document.getElementById('drawer-subtitle').innerHTML = `<span class="badge badge-${story.risk_lane}">Lane: ${story.risk_lane}</span>`;
+            
+            let metaHtml = `<span class="badge badge-${story.status}">Status: ${story.status}</span>`;
+            document.getElementById('drawer-meta').innerHTML = metaHtml;
+            
+            document.getElementById('drawer-desc-content').textContent = story.title;
+            
+            let detailsHtml = `<h4>Compliance Evidence</h4>`;
+            if (story.evidence) {
+                detailsHtml += `<p style="font-size:14px; background:rgba(255,255,255,0.02); padding:10px; border-radius:8px; border:1px solid var(--border-subtle);">${escapeHtml(story.evidence)}</p>`;
+            } else {
+                detailsHtml += `<p style="font-size:14px; color:var(--text-secondary); italic;">No verification evidence recorded.</p>`;
+            }
+            
+            document.getElementById('drawer-detail-list').innerHTML = detailsHtml;
+            openDrawer();
+        }
+        
+        function openDecisionDrawer(id) {
+            const decision = appData.decisions.find(d => d.id === id);
+            if (!decision) return;
+            
+            document.getElementById('drawer-title').textContent = decision.id;
+            document.getElementById('drawer-subtitle').textContent = `ADR Document`;
+            
+            document.getElementById('drawer-meta').innerHTML = `<span class="badge badge-${decision.status}">Status: ${decision.status}</span>`;
+            document.getElementById('drawer-desc-content').textContent = decision.title;
+            
+            let detailsHtml = `<h4>Architecture Details</h4>`;
+            if (decision.doc_path) {
+                detailsHtml += `<p style="font-size:14px; font-family:'JetBrains Mono', monospace; background:rgba(255,255,255,0.02); padding:8px 12px; border-radius:8px; border:1px solid var(--border-subtle); margin-bottom:12px;">📄 ${escapeHtml(decision.doc_path)}</p>`;
+            }
+            if (decision.notes) {
+                detailsHtml += `<h4 style="margin-top:15px;">Decisions & Rationales</h4>
+                <p style="font-size:14px; line-height:1.6; color:var(--text-secondary); white-space:pre-wrap;">${escapeHtml(decision.notes)}</p>`;
+            }
+            
+            document.getElementById('drawer-detail-list').innerHTML = detailsHtml;
+            openDrawer();
+        }
+        
+        function openBacklogDrawer(id) {
+            const backlog = appData.backlogs.find(b => b.id == id);
+            if (!backlog) return;
+            
+            document.getElementById('drawer-title').textContent = `Backlog #${backlog.id}`;
+            document.getElementById('drawer-subtitle').textContent = `Discovered in: ${backlog.discovered_while || 'Intake process'}`;
+            
+            document.getElementById('drawer-meta').innerHTML = `<span class="badge badge-${backlog.status === 'implemented' ? 'completed' : 'open'}">Status: ${backlog.status}</span>`;
+            document.getElementById('drawer-desc-content').textContent = backlog.title;
+            
+            let detailsHtml = ``;
+            if (backlog.pain) {
+                detailsHtml += `<h4>Current Operational Pain</h4>
+                <p style="font-size:14px; padding:10px; background:rgba(239, 68, 68, 0.05); border:1px solid rgba(239, 68, 68, 0.15); border-radius:8px; color:#f87171; margin-bottom:15px;">${escapeHtml(backlog.pain)}</p>`;
+            }
+            if (backlog.suggestion) {
+                detailsHtml += `<h4>Suggested Improvement</h4>
+                <p style="font-size:14px; padding:10px; background:rgba(16, 185, 129, 0.05); border:1px solid rgba(16, 185, 129, 0.15); border-radius:8px; color:#34d399;">${escapeHtml(backlog.suggestion)}</p>`;
+            }
+            
+            document.getElementById('drawer-detail-list').innerHTML = detailsHtml;
+            openDrawer();
+        }
+        
+        function openTraceDrawer(id) {
+            const trace = appData.traces.find(t => t.id == id);
+            if (!trace) return;
+            
+            document.getElementById('drawer-title').textContent = `Execution Trace #${trace.id}`;
+            document.getElementById('drawer-subtitle').textContent = `Run Time: ${trace.created_at}`;
+            
+            document.getElementById('drawer-meta').innerHTML = `
+                <span class="badge badge-${trace.outcome === 'success' || trace.outcome === 'passed' ? 'success' : 'failed'}">${trace.outcome}</span>
+                <span style="margin-left: 8px; background:rgba(255,255,255,0.05); border:1px solid var(--border-subtle); color:var(--text-secondary);" class="badge">Agent: ${trace.agent}</span>
+            `;
+            
+            document.getElementById('drawer-desc-content').textContent = trace.task_summary;
+            
+            let detailsHtml = ``;
+            if (trace.files_changed) {
+                detailsHtml += `<h4>Files Modified</h4>`;
+                try {
+                    let files = JSON.parse(trace.files_changed);
+                    if (Array.isArray(files) && files.length) {
+                        detailsHtml += `<ul style="list-style-type:none; font-family:'JetBrains Mono', monospace; font-size:13px; color:var(--text-secondary); margin-bottom:15px; display:flex; flex-direction:column; gap:4px;">`;
+                        files.forEach(f => {
+                            detailsHtml += `<li style="background:rgba(255,255,255,0.02); padding:4px 10px; border-radius:4px; border:1px solid var(--border-subtle);">📝 ${escapeHtml(f)}</li>`;
+                        });
+                        detailsHtml += `</ul>`;
+                    } else {
+                        detailsHtml += `<p style="font-size:14px; color:var(--text-secondary); margin-bottom:15px;">No files changed.</p>`;
+                    }
+                } catch(e) {
+                    detailsHtml += `<p style="font-size:13px; font-family:'JetBrains Mono', monospace; color:var(--text-secondary); margin-bottom:15px;">${escapeHtml(trace.files_changed)}</p>`;
+                }
+            }
+            
+            if (trace.friction) {
+                detailsHtml += `<h4>Friction / Execution Logs</h4>
+                <pre>${escapeHtml(trace.friction)}</pre>`;
+            }
+            
+            document.getElementById('drawer-detail-list').innerHTML = detailsHtml;
+            openDrawer();
+        }
+        
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+        
+        // Initial setup
+        window.addEventListener('DOMContentLoaded', () => {
+            reloadData();
+        });
+    </script>
+</body>
+</html>
+"""
                 self.wfile.write(html.encode('utf-8'))
             else:
                 self.send_error(404, 'File Not Found')

@@ -5,11 +5,11 @@
 
 ### 📊 1. THÔNG TIN HỆ THỐNG & ĐIỀU HÀNH (Operating System & telemetry)
 - **Tên Agent chịu trách nhiệm**: `Antigravity`
-- **Thời gian nghiệm thu (UAT Time)**: `2026-06-15 08:35:17`
+- **Thời gian nghiệm thu (UAT Time)**: `2026-06-15 12:47:52`
 - **Trạng thái cổng kết nối (Unified Gate)**: `✅ PASSED (Hoàn thành kiểm toán toàn diện)`
-- **Thời gian chạy thử nghiệm (Quality Gate Duration)**: `414 giây`
-- **Phiên bản mã nguồn (Git Commit)**: `9f9888f99e70bc839972706fcfca93180eacc586 (dirty)`
-- **Ước tính tài nguyên tiêu thụ (Token Usage Estimate)**: `55,600 tokens`
+- **Thời gian chạy thử nghiệm (Quality Gate Duration)**: `440 giây`
+- **Phiên bản mã nguồn (Git Commit)**: `c9f46158b649d68905e6eed893c36d09dc28f058 (dirty)`
+- **Ước tính tài nguyên tiêu thụ (Token Usage Estimate)**: `34,000 tokens`
 - **Độ rủi ro kiểm thử (Risk Lane)**: `NORMAL`
 
 ---
@@ -31,23 +31,16 @@
 
 ### 📋 4. CHI TIẾT TÁC VỤ ĐÃ THỰC THI (Execution Trace Detail)
 - **Hành động đã làm (Actions Taken)**:
-  - `Modular routes`
-  - `deleted routes.py`
-  - `all tests pass`
+  - `Reorganized dashboard frontend design`
+  - `added modern SVG risk graph with node interaction`
+  - `implemented sliding detailed drawer`
+  - `verified REST APIs integration`
+  - `tested in browser using playwright subagent`
 - **Tệp tin đã đọc (Files Read)**:
-  - `invoices/routes.py`
-  - `history/webapp_routes_refactor/CONTEXT.md`
-  - `history/webapp_routes_refactor/phase_plan.md`
+  - `scripts/harness_win.py`
+  - `templates/dashboard.html`
 - **Tệp tin đã thay đổi (Files Changed)**:
-  - `invoices/routes/core.py`
-  - `invoices/routes/compliance.py`
-  - `invoices/routes/helpers.py`
-  - `invoices/routes/mitigation.py`
-  - `invoices/routes/ocr.py`
-  - `invoices/routes/reconciliation.py`
-  - `invoices/routes/settings.py`
-  - `invoices/routes/shared.py`
-  - `invoices/routes/__init__.py`
+  - `templates/dashboard.html`
 
 - **Ghi chú bổ sung (Notes)**: `Không có ghi chú thêm.`
 
