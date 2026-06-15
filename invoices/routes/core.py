@@ -76,7 +76,9 @@ def api_compliance_concept_map():
     if unauthorized:
         return unauthorized
         
-    # Return structured compliance nodes and relations
+    mst = session.get("taxpayer_mst") or "0102030405"
+    
+    # Base configuration for nodes and links
     nodes = [
         {"id": "v26", "label": "CIT Compliance (v26)", "group": "income", "risk": "high", "url": "/v26-compliance", "status": "active"},
         {"id": "v27", "label": "E-Invoice Format (v27)", "group": "vat", "risk": "high", "url": "/v27-compliance", "status": "active"},
@@ -130,8 +132,76 @@ def api_compliance_concept_map():
         {"source": "v53", "target": "v69", "type": "subset", "label": "Oil Spill Response"},
         {"source": "v53", "target": "v70", "type": "subset", "label": "ODS Quotas Control"},
     ]
-    
-    return jsonify({"nodes": nodes, "links": links})
+
+    violations = {n["id"]: 0 for n in nodes}
+    has_fuel = False
+    has_coal = False
+    has_plastic = False
+    has_ods = False
+
+    try:
+        from invoices.models import Invoice
+        invoices = Invoice.query.filter(Invoice.taxpayer_mst == mst).all()
+        for inv in invoices:
+            # Check invoice-level warnings
+            for w in (inv.warnings or []):
+                w_lower = w.lower()
+                if any(k in w_lower for k in ["format", "xml", "chữ ký", "signature"]):
+                    violations["v27"] += 1
+                if any(k in w_lower for k in ["thuế suất", "tax rate", "mismatch", "8%", "10%", "vat", "giá trị gia tăng"]):
+                    violations["v47"] += 1
+                if any(k in w_lower for k in ["cit", "tp", "giao dịch liên kết", "chi phí", "deductibility", "personal_purchase"]):
+                    violations["v26"] += 1
+                    violations["v45"] += 1
+                if any(k in w_lower for k in ["môi trường", "ep_tax"]):
+                    violations["v53"] += 1
+
+            # Check line items keywords
+            for item in (inv.items or []):
+                name_lower = item.item_name.lower()
+                if any(k in name_lower for k in ["xăng", "dầu", "diesel", "fuel", "gasoil", "petrol"]):
+                    has_fuel = True
+                if any(k in name_lower for k in ["than", "coal", "anthracite", "lignite"]):
+                    has_coal = True
+                if any(k in name_lower for k in ["túi ni-lông", "túi nhựa", "plastic bag"]):
+                    has_plastic = True
+                if any(k in name_lower for k in ["ods", "hcfc", "cfc", "methyl bromide", "tầng ô-dôn"]):
+                    has_ods = True
+    except Exception:
+        pass
+
+    # Update node violations and dynamic risks
+    for node in nodes:
+        node["violations_count"] = violations.get(node["id"], 0)
+        if node["violations_count"] > 3:
+            node["risk"] = "high"
+        elif node["violations_count"] > 0:
+            node["risk"] = "medium"
+
+    # AI recommendation links
+    suggested_links = []
+    if has_fuel or has_coal or has_plastic:
+        suggested_links.append({
+            "source": "v47",
+            "target": "v53",
+            "type": "recommended",
+            "label": "AI: Fuel EP Tax Link",
+            "reason": "Phát hiện giao dịch nhiên liệu hoặc túi nhựa chịu thuế Bảo vệ Môi trường. Đề xuất kiểm toán liên kết VAT -> EP Tax."
+        })
+    if has_ods:
+        suggested_links.append({
+            "source": "v53",
+            "target": "v70",
+            "type": "recommended",
+            "label": "AI: ODS Quotas Link",
+            "reason": "Phát hiện hóa chất suy giảm tầng ô-dôn (ODS). Đề xuất liên kết hạn ngạch Nghị định 06/2022/NĐ-CP."
+        })
+
+    return jsonify({
+        "nodes": nodes,
+        "links": links,
+        "suggested_links": suggested_links
+    })
 
 @invoices_blueprint.get("/api/compliance/concept-map/expand/<version_id>")
 def api_compliance_concept_map_expand(version_id):

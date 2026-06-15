@@ -108,3 +108,80 @@ def test_concept_map_expand_api(mock_app):
     data = json.loads(res.data)
     assert data["status"] == "error"
 
+
+def test_concept_map_api_with_violations(app):
+    """Verify dynamic compliance violations count and recommended links based on invoice line items."""
+    from extensions import db
+    from invoices.models import Invoice, LineItem
+    
+    # Run within app context
+    with app.app_context():
+        # Clean up any existing invoices first
+        LineItem.query.delete()
+        Invoice.query.delete()
+        db.session.commit()
+        
+        # Create a taxpayer invoice with warning and matching item
+        inv = Invoice(
+            id="0102030470-AA22E-0000001",
+            taxpayer_mst="0102030470",
+            seller_mst="0102030470",
+            symbol="AA22E",
+            number="0000001",
+            invoice_type="selling",
+            imported_at="2026-06-15 00:00:00"
+        )
+        inv.warnings = ["Thuế suất GTGT không chính xác", "Lỗi định dạng XML"]
+        db.session.add(inv)
+        db.session.commit()
+        
+        # Add line items containing fuel and ODS chemicals
+        item1 = LineItem(
+            invoice_id=inv.id,
+            item_name="Dầu DO 0.05S-II (Fuel Diesel)",
+            quantity=100.0,
+            unit_price=20000.0,
+            amount_before_tax=2000000.0
+        )
+        item2 = LineItem(
+            invoice_id=inv.id,
+            item_name="Hóa chất làm lạnh HCFC-22 (ODS chemical)",
+            quantity=50.0,
+            unit_price=150000.0,
+            amount_before_tax=7500000.0
+        )
+        db.session.add(item1)
+        db.session.add(item2)
+        db.session.commit()
+
+    # Now call the endpoint as an authenticated user
+    client = app.test_client()
+    with client.session_transaction() as sess:
+        sess["logged_in"] = True
+        sess["user_role"] = "admin"
+        sess["taxpayer_mst"] = "0102030470"
+        
+    res = client.get("/api/compliance/concept-map")
+    assert res.status_code == 200
+    data = json.loads(res.data)
+    
+    # Node v27 (XML Format) and v47 (VAT Rate) should have violation counts
+    nodes = {n["id"]: n for n in data["nodes"]}
+    assert nodes["v27"]["violations_count"] == 1
+    assert nodes["v47"]["violations_count"] == 1
+    
+    # Verify recommended links are generated dynamically based on fuel and ODS item names
+    suggested_links = data["suggested_links"]
+    assert len(suggested_links) == 2
+    
+    # 1. VAT -> EP Tax Link for fuel
+    fuel_link = next((l for l in suggested_links if l["source"] == "v47" and l["target"] == "v53"), None)
+    assert fuel_link is not None
+    assert "Fuel EP Tax Link" in fuel_link["label"]
+    
+    # 2. EP Tax -> ODS Quota Link for chemical
+    ods_link = next((l for l in suggested_links if l["source"] == "v53" and l["target"] == "v70"), None)
+    assert ods_link is not None
+    assert "ODS Quotas Link" in ods_link["label"]
+
+

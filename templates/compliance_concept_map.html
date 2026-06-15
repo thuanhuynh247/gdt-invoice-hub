@@ -47,6 +47,35 @@
             </div>
         </div>
 
+        <!-- AI Frontier Analytics Bento Box -->
+        <div class="glass-card mb-4" id="frontierCard">
+            <h5 class="fw-bold text-gradient-primary mb-3"><i class="bi bi-cpu-fill me-2" aria-hidden="true"></i>AI Frontier & Risk Propagation</h5>
+            
+            <!-- Risk Propagation Simulator -->
+            <div class="mb-3">
+                <label class="form-label small text-secondary">Mô phỏng Rủi ro Thuế Lan truyền (Cascading Risk)</label>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-danger w-100 btn-pill" id="btnSimulateRisk" onclick="runTransitiveRiskSimulation()">
+                        <i class="bi bi-play-circle me-1" aria-hidden="true"></i> Chạy Mô Phỏng Rủi Ro
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary btn-pill" id="btnResetSimulation" onclick="resetRiskSimulation()" style="display: none;">
+                        <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Reset
+                    </button>
+                </div>
+                <div class="text-secondary small mt-2" id="simulationStatus">
+                    Trạng thái: <span class="badge bg-secondary">Chưa kích hoạt</span>
+                </div>
+            </div>
+
+            <!-- AI Link Recommendations -->
+            <div class="pt-3 border-top border-secondary border-opacity-10">
+                <label class="form-label small text-secondary d-block">Đề xuất Liên kết Luật Thuế (AI Suggestions)</label>
+                <div id="aiLinkRecommendations" class="d-flex flex-column gap-2 mt-2">
+                    <span class="text-secondary small"><i class="bi bi-hourglass-split me-1 spinner-border spinner-border-sm border-0"></i>Đang quét giao dịch hóa đơn...</span>
+                </div>
+            </div>
+        </div>
+
         <!-- Node Details Bento Box -->
         <div class="glass-card" id="detailCard">
             <div class="text-center py-5 text-secondary" id="noNodeSelected">
@@ -121,6 +150,9 @@
                     </marker>
                     <marker id="arrow-subset" viewBox="0 0 10 10" refX="28" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
                         <path d="M 0 0 L 10 5 L 0 10 z" fill="#198754" />
+                    </marker>
+                    <marker id="arrow-recommended" viewBox="0 0 10 10" refX="28" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#e83e8c" />
                     </marker>
                     <!-- Glowing filters -->
                     <filter id="glow-high" x="-50%" y="-50%" width="200%" height="200%">
@@ -251,11 +283,46 @@
     font-size: 0.75rem;
     line-height: 1.2;
 }
+.map-link.recommended {
+    stroke: #e83e8c;
+    stroke-dasharray: 4,4;
+    stroke-width: 2px;
+}
+.map-link.transitive-flow {
+    stroke: #ffc107 !important;
+    stroke-width: 3px !important;
+    stroke-dasharray: 5,5;
+    animation: dash 30s linear infinite;
+}
+@keyframes dash {
+    to {
+        stroke-dashoffset: -1000;
+    }
+}
+.map-node.pulse-risk circle {
+    animation: pulseRiskGlow 2s infinite;
+}
+@keyframes pulseRiskGlow {
+    0% {
+        r: 16;
+        stroke-width: 1px;
+    }
+    50% {
+        r: 20;
+        stroke-width: 3px;
+        filter: drop-shadow(0 0 8px rgba(220, 53, 69, 0.6));
+    }
+    100% {
+        r: 16;
+        stroke-width: 1px;
+    }
+}
 </style>
 
 <script>
 let nodesData = [];
 let linksData = [];
+let suggestedLinksData = [];
 let zoomScale = 1;
 let zoomTx = 0;
 let zoomTy = 0;
@@ -275,6 +342,7 @@ function loadConceptMapData() {
         .then(data => {
             nodesData = data.nodes;
             linksData = data.links;
+            suggestedLinksData = data.suggested_links || [];
             
             // Assign coordinate offsets based on concentric radar layout
             calculateNodeCoordinates();
@@ -282,6 +350,7 @@ function loadConceptMapData() {
             // Render
             document.getElementById("graphLoader").style.display = "none";
             renderGraph();
+            renderAiRecommendations();
         })
         .catch(err => {
             console.error("Error loading concept map metadata:", err);
@@ -821,6 +890,191 @@ function generateHtmlTable(rows) {
     
     html += '</tbody></table></div>';
     return html;
+}
+
+function renderAiRecommendations() {
+    const container = document.getElementById("aiLinkRecommendations");
+    if (!container) return;
+    container.innerHTML = "";
+    
+    if (suggestedLinksData.length === 0) {
+        container.innerHTML = '<span class="text-secondary small">Không phát hiện giao dịch đặc biệt cần liên kết bổ sung.</span>';
+        return;
+    }
+    
+    suggestedLinksData.forEach((link, index) => {
+        const div = document.createElement("div");
+        div.className = "bg-dark bg-opacity-50 p-2 rounded border border-secondary border-opacity-10 small mb-2 position-relative";
+        div.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="text-info fw-bold" style="font-size: 0.75rem;"><i class="bi bi-robot me-1"></i>${link.label}</span>
+                <span class="badge bg-secondary-subtle text-secondary" style="font-size: 0.65rem;">${link.source.toUpperCase()} &rarr; ${link.target.toUpperCase()}</span>
+            </div>
+            <p class="text-light text-opacity-75 mb-2" style="font-size: 0.72rem; line-height: 1.3;">${link.reason}</p>
+            <button class="btn btn-xs btn-outline-info w-100" id="btnAcceptLink-${index}" onclick="acceptLinkRecommendation(${index})">
+                <i class="bi bi-link-45deg me-1"></i>Kích Hoạt Liên Kết
+            </button>
+        `;
+        container.appendChild(div);
+    });
+}
+
+function acceptLinkRecommendation(index) {
+    const link = suggestedLinksData[index];
+    if (!link) return;
+    
+    // Check if it's already in linksData
+    const exists = linksData.some(l => l.source === link.source && l.target === link.target);
+    if (!exists) {
+        linksData.push({
+            source: link.source,
+            target: link.target,
+            type: "recommended",
+            label: link.label
+        });
+        renderGraph();
+    }
+    
+    const btn = document.getElementById(`btnAcceptLink-${index}`);
+    if (btn) {
+        btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Đã Liên Kết';
+        btn.className = "btn btn-xs btn-success disabled w-100";
+    }
+}
+
+let isSimulationActive = false;
+
+function runTransitiveRiskSimulation() {
+    isSimulationActive = true;
+    document.getElementById("btnResetSimulation").style.display = "block";
+    document.getElementById("btnSimulateRisk").innerHTML = '<i class="bi bi-arrow-repeat spinner-border spinner-border-sm border-0 me-1"></i> Đang Chạy...';
+    
+    // Let's identify seed nodes with risk="high" or violations_count > 0
+    const seeds = nodesData.filter(n => n.risk === "high" || n.violations_count > 0).map(n => n.id);
+    
+    // Set status
+    const statusEl = document.getElementById("simulationStatus");
+    statusEl.innerHTML = `Trạng thái: <span class="badge bg-danger">Mô phỏng Đang Chạy</span>`;
+    
+    const affectedNodes = new Set(seeds);
+    const affectedLinks = new Set();
+    
+    // BFS propagation downstream
+    let queue = [...seeds];
+    let steps = 0;
+    
+    while (queue.length > 0 && steps < 10) {
+        let nextQueue = [];
+        queue.forEach(curr => {
+            linksData.forEach(link => {
+                if (link.source === curr) {
+                    if (!affectedNodes.has(link.target)) {
+                        affectedNodes.add(link.target);
+                        nextQueue.push(link.target);
+                    }
+                    affectedLinks.add(`${link.source}-${link.target}`);
+                }
+            });
+        });
+        queue = nextQueue;
+        steps++;
+    }
+    
+    // Visualise simulation on graph
+    nodesData.forEach(node => {
+        const el = document.getElementById(`node-${node.id}`);
+        if (!el) return;
+        
+        if (seeds.includes(node.id)) {
+            el.classList.add("pulse-risk");
+            el.querySelector("circle").setAttribute("stroke", "#dc3545");
+        } else if (affectedNodes.has(node.id)) {
+            el.classList.add("pulse-risk");
+            el.querySelector("circle").setAttribute("stroke", "#ffc107");
+            const labelText = el.querySelector("text");
+            if (labelText && !labelText.textContent.includes("*")) {
+                labelText.textContent = labelText.textContent + "*";
+            }
+        } else {
+            el.classList.add("dimmed");
+        }
+    });
+    
+    linksData.forEach(link => {
+        const line = document.getElementById(`link-${link.source}-${link.target}`);
+        if (!line) return;
+        
+        if (affectedLinks.has(`${link.source}-${link.target}`)) {
+            line.classList.add("transitive-flow");
+            line.classList.remove("dimmed");
+        } else {
+            line.classList.add("dimmed");
+        }
+    });
+    
+    document.getElementById("btnSimulateRisk").innerHTML = '<i class="bi bi-play-circle me-1"></i> Cập Nhật Mô Phỏng';
+    
+    // Show transitive risk details in Sidebar / Details area
+    const relsDiv = document.getElementById("nodeRelations");
+    const noNodeSelected = document.getElementById("noNodeSelected");
+    const nodeSelectedContent = document.getElementById("nodeSelectedContent");
+    
+    if (noNodeSelected && nodeSelectedContent) {
+        noNodeSelected.style.display = "none";
+        nodeSelectedContent.style.display = "block";
+        document.getElementById("nodeTitle").innerText = "Cascading Risk Flow";
+        document.getElementById("nodeId").innerText = "AI SIMULATOR";
+        document.getElementById("nodeGroupBadge").innerText = "ANALYTICS";
+        document.getElementById("nodeGroupBadge").className = "badge bg-danger";
+        document.getElementById("nodeRiskBadge").innerText = "CASCADING RISK";
+        document.getElementById("nodeRiskBadge").className = "badge bg-danger";
+        document.getElementById("nodeDescription").innerText = `Hệ thống phát hiện ${seeds.length} điểm rủi ro trực tiếp và đã lan truyền ảnh hưởng đến ${affectedNodes.size - seeds.length} phân hệ liên quan khác. Vui lòng rà soát lại các mối quan hệ kiểm toán.`;
+        
+        if (relsDiv) {
+            relsDiv.innerHTML = '<h6 class="text-secondary small fw-bold mb-2">Đường Lan Truyền Rủi Ro:</h6>';
+            affectedLinks.forEach(linkStr => {
+                const [src, dst] = linkStr.split("-");
+                const srcNode = nodesData.find(n => n.id === src);
+                const dstNode = nodesData.find(n => n.id === dst);
+                const row = document.createElement("div");
+                row.className = "d-flex justify-content-between align-items-center bg-danger bg-opacity-10 p-2 rounded border border-danger border-opacity-20 small mb-1";
+                row.innerHTML = `<span><strong>${srcNode ? srcNode.label : src}</strong> &rarr; <strong>${dstNode ? dstNode.label : dst}</strong></span> <span class="badge bg-danger text-light" style="font-size: 0.65rem;">Lan truyền</span>`;
+                relsDiv.appendChild(row);
+            });
+        }
+    }
+}
+
+function resetRiskSimulation() {
+    isSimulationActive = false;
+    document.getElementById("btnResetSimulation").style.display = "none";
+    document.getElementById("btnSimulateRisk").innerHTML = '<i class="bi bi-play-circle me-1"></i> Chạy Mô Phỏng Rủi Ro';
+    document.getElementById("simulationStatus").innerHTML = `Trạng thái: <span class="badge bg-secondary">Chưa kích hoạt</span>`;
+    
+    // Remove custom styling and flags
+    nodesData.forEach(node => {
+        const el = document.getElementById(`node-${node.id}`);
+        if (!el) return;
+        el.classList.remove("pulse-risk");
+        el.classList.remove("dimmed");
+        el.querySelector("circle").setAttribute("stroke", "");
+        
+        const labelText = el.querySelector("text");
+        if (labelText) {
+            labelText.textContent = node.id.toUpperCase();
+        }
+    });
+    
+    linksData.forEach(link => {
+        const line = document.getElementById(`link-${link.source}-${link.target}`);
+        if (!line) return;
+        line.classList.remove("transitive-flow");
+        line.classList.remove("dimmed");
+    });
+    
+    // Restore default view in detail panel
+    document.getElementById("noNodeSelected").style.display = "block";
+    document.getElementById("nodeSelectedContent").style.display = "none";
 }
 </script>
 
