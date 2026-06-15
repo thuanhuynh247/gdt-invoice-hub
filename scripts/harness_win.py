@@ -25,6 +25,23 @@ def get_db():
     conn.text_factory = decode_smart
     return conn
 
+def get_codegraph_db():
+    repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    db_path = os.path.join(repo_root, ".codegraph", "codegraph.db")
+    if not os.path.exists(db_path):
+        return None
+    conn = sqlite3.connect(db_path)
+    def smart_decode(binary_str):
+        try:
+            return binary_str.decode('utf-8')
+        except Exception:
+            try:
+                return binary_str.decode('cp1258')
+            except Exception:
+                return binary_str.decode('utf-8', errors='replace')
+    conn.text_factory = smart_decode
+    return conn
+
 # ── helper normalization functions ─────────────────────────────────
 def trim(val):
     if not val:
@@ -857,6 +874,264 @@ def cmd_serve(port=8080):
                     self.send_error(403, "Access Denied or File Not Found")
                     return
                 
+            elif parsed.path == '/api/codegraph/search':
+                query_components = parse_qs(parsed.query)
+                q = query_components.get('q', [''])[0]
+                kind = query_components.get('kind', [''])[0]
+                
+                conn = get_codegraph_db()
+                if not conn:
+                    self.send_response(200)
+                    self.send_header('Content-type', 'application/json; charset=utf-8')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"success": False, "error": "CodeGraph database not found"}).encode('utf-8'))
+                    return
+                
+                try:
+                    cursor = conn.cursor()
+                    sql = "SELECT id, name, kind, file_path, start_line, end_line, signature, docstring FROM nodes WHERE (name LIKE ? OR qualified_name LIKE ?)"
+                    params = [f"%{q}%", f"%{q}%"]
+                    if kind:
+                        sql += " AND kind = ?"
+                        params.append(kind)
+                    sql += " LIMIT 50"
+                    
+                    cursor.execute(sql, params)
+                    results = []
+                    for row in cursor.fetchall():
+                        results.append({
+                            "id": row[0],
+                            "name": row[1],
+                            "kind": row[2],
+                            "file_path": row[3],
+                            "start_line": row[4],
+                            "end_line": row[5],
+                            "signature": row[6] or '',
+                            "docstring": row[7] or ''
+                        })
+                    conn.close()
+                    
+                    self.send_response(200)
+                    self.send_header('Content-type', 'application/json; charset=utf-8')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"success": True, "results": results}).encode('utf-8'))
+                except Exception as e:
+                    self.send_response(200)
+                    self.send_header('Content-type', 'application/json; charset=utf-8')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"success": False, "error": str(e)}).encode('utf-8'))
+                return
+                
+            elif parsed.path == '/api/codegraph/relations':
+                query_components = parse_qs(parsed.query)
+                node_id = query_components.get('id', [''])[0]
+                
+                conn = get_codegraph_db()
+                if not conn:
+                    self.send_response(200)
+                    self.send_header('Content-type', 'application/json; charset=utf-8')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"success": False, "error": "CodeGraph database not found"}).encode('utf-8'))
+                    return
+                
+                try:
+                    cursor = conn.cursor()
+                    
+                    cursor.execute("SELECT id, name, kind, file_path, start_line, end_line, signature, docstring FROM nodes WHERE id = ?", (node_id,))
+                    node_row = cursor.fetchone()
+                    if not node_row:
+                        self.send_response(200)
+                        self.send_header('Content-type', 'application/json; charset=utf-8')
+                        self.end_headers()
+                        self.wfile.write(json.dumps({"success": False, "error": "Node not found"}).encode('utf-8'))
+                        return
+                    
+                    node_info = {
+                        "id": node_row[0],
+                        "name": node_row[1],
+                        "kind": node_row[2],
+                        "file_path": node_row[3],
+                        "start_line": node_row[4],
+                        "end_line": node_row[5],
+                        "signature": node_row[6] or '',
+                        "docstring": node_row[7] or ''
+                    }
+                    
+                    cursor.execute("""
+                        SELECT n.id, n.name, n.kind, n.file_path, n.start_line, e.line, e.col 
+                        FROM nodes n 
+                        JOIN edges e ON n.id = e.source 
+                        WHERE e.target = ? AND e.kind = 'calls' AND n.file_path NOT LIKE '.%'
+                    """, (node_id,))
+                    callers = []
+                    for row in cursor.fetchall():
+                        callers.append({
+                            "id": row[0],
+                            "name": row[1],
+                            "kind": row[2],
+                            "file_path": row[3],
+                            "start_line": row[4],
+                            "call_line": row[5],
+                            "call_col": row[6]
+                        })
+                        
+                    cursor.execute("""
+                        SELECT n.id, n.name, n.kind, n.file_path, n.start_line, e.line, e.col 
+                        FROM nodes n 
+                        JOIN edges e ON e.target = n.id 
+                        WHERE e.source = ? AND e.kind = 'calls' AND n.file_path NOT LIKE '.%'
+                    """, (node_id,))
+                    callees = []
+                    for row in cursor.fetchall():
+                        callees.append({
+                            "id": row[0],
+                            "name": row[1],
+                            "kind": row[2],
+                            "file_path": row[3],
+                            "start_line": row[4],
+                            "call_line": row[5],
+                            "call_col": row[6]
+                        })
+                        
+                    conn.close()
+                    
+                    self.send_response(200)
+                    self.send_header('Content-type', 'application/json; charset=utf-8')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({
+                        "success": True, 
+                        "node": node_info, 
+                        "callers": callers, 
+                        "callees": callees
+                    }).encode('utf-8'))
+                except Exception as e:
+                    self.send_response(200)
+                    self.send_header('Content-type', 'application/json; charset=utf-8')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"success": False, "error": str(e)}).encode('utf-8'))
+                return
+                
+            elif parsed.path == '/api/codegraph/impact':
+                query_components = parse_qs(parsed.query)
+                node_id = query_components.get('id', [''])[0]
+                
+                conn = get_codegraph_db()
+                if not conn:
+                    self.send_response(200)
+                    self.send_header('Content-type', 'application/json; charset=utf-8')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"success": False, "error": "CodeGraph database not found"}).encode('utf-8'))
+                    return
+                
+                try:
+                    cursor = conn.cursor()
+                    
+                    upstream = []
+                    visited_up = set()
+                    
+                    def find_upstream_recursive(curr_id, depth):
+                        if depth > 3 or curr_id in visited_up:
+                            return
+                        visited_up.add(curr_id)
+                        
+                        cursor.execute("""
+                            SELECT n.id, n.name, n.kind, n.file_path, n.start_line
+                            FROM nodes n 
+                            JOIN edges e ON n.id = e.source 
+                            WHERE e.target = ? AND e.kind = 'calls' AND n.file_path NOT LIKE '.%'
+                        """, (curr_id,))
+                        for row in cursor.fetchall():
+                            parent = {
+                                "id": row[0],
+                                "name": row[1],
+                                "kind": row[2],
+                                "file_path": row[3],
+                                "start_line": row[4],
+                                "depth": depth
+                            }
+                            upstream.append(parent)
+                            find_upstream_recursive(row[0], depth + 1)
+                            
+                    find_upstream_recursive(node_id, 1)
+                    
+                    downstream = []
+                    visited_down = set()
+                    
+                    def find_downstream_recursive(curr_id, depth):
+                        if depth > 3 or curr_id in visited_down:
+                            return
+                        visited_down.add(curr_id)
+                        
+                        cursor.execute("""
+                            SELECT n.id, n.name, n.kind, n.file_path, n.start_line
+                            FROM nodes n 
+                            JOIN edges e ON e.target = n.id 
+                            WHERE e.source = ? AND e.kind = 'calls' AND n.file_path NOT LIKE '.%'
+                        """, (curr_id,))
+                        for row in cursor.fetchall():
+                            child = {
+                                "id": row[0],
+                                "name": row[1],
+                                "kind": row[2],
+                                "file_path": row[3],
+                                "start_line": row[4],
+                                "depth": depth
+                            }
+                            downstream.append(child)
+                            find_downstream_recursive(row[0], depth + 1)
+                            
+                    find_downstream_recursive(node_id, 1)
+                    
+                    conn.close()
+                    
+                    self.send_response(200)
+                    self.send_header('Content-type', 'application/json; charset=utf-8')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({
+                        "success": True,
+                        "upstream": upstream,
+                        "downstream": downstream
+                    }).encode('utf-8'))
+                except Exception as e:
+                    self.send_response(200)
+                    self.send_header('Content-type', 'application/json; charset=utf-8')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"success": False, "error": str(e)}).encode('utf-8'))
+                return
+                
+            elif parsed.path == '/api/codegraph/files':
+                conn = get_codegraph_db()
+                if not conn:
+                    self.send_response(200)
+                    self.send_header('Content-type', 'application/json; charset=utf-8')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"success": False, "error": "CodeGraph database not found"}).encode('utf-8'))
+                    return
+                
+                try:
+                    cursor = conn.cursor()
+                    cursor.execute("SELECT path, size, node_count, language FROM files WHERE path NOT LIKE '.%' ORDER BY path ASC LIMIT 100")
+                    files = []
+                    for row in cursor.fetchall():
+                        files.append({
+                            "path": row[0],
+                            "size": row[1],
+                            "node_count": row[2],
+                            "language": row[3]
+                        })
+                    conn.close()
+                    
+                    self.send_response(200)
+                    self.send_header('Content-type', 'application/json; charset=utf-8')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"success": True, "files": files}).encode('utf-8'))
+                except Exception as e:
+                    self.send_response(200)
+                    self.send_header('Content-type', 'application/json; charset=utf-8')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"success": False, "error": str(e)}).encode('utf-8'))
+                return
+
             elif parsed.path == '/':
                 self.send_response(200)
                 self.send_header('Content-type', 'text/html; charset=utf-8')
@@ -1452,6 +1727,7 @@ def cmd_serve(port=8080):
             <button class="tab-btn" onclick="switchTab('backlogs')">Task Backlog</button>
             <button class="tab-btn" onclick="switchTab('traces')">Execution Traces</button>
             <button class="tab-btn" onclick="switchTab('graph')">Interactive Risk Graph</button>
+            <button class="tab-btn" onclick="switchTab('codegraph')">CodeGraph Explorer</button>
             <button class="tab-btn" onclick="switchTab('console')">SQL Sandbox Console</button>
         </div>
         
@@ -1515,7 +1791,7 @@ def cmd_serve(port=8080):
             });
             
             const controls = document.getElementById('controls-panel');
-            if (tabName === 'graph' || tabName === 'console') {
+            if (tabName === 'graph' || tabName === 'console' || tabName === 'codegraph') {
                 controls.style.display = 'none';
             } else {
                 controls.style.display = 'flex';
@@ -1574,6 +1850,8 @@ def cmd_serve(port=8080):
                 renderRiskGraph(container);
             } else if (activeTab === 'console') {
                 renderConsole(container);
+            } else if (activeTab === 'codegraph') {
+                renderCodeGraph(container);
             }
         }
         
@@ -1633,6 +1911,243 @@ def cmd_serve(port=8080):
             const res = await fetch('/api/sql', { method: 'POST', body: JSON.stringify({ query }) });
             const data = await res.json();
             document.getElementById('sql-results').innerHTML = data.success ? `<pre>${JSON.stringify(data.rows, null, 2)}</pre>` : `<div class="error-callout">${data.error}</div>`;
+        }
+        
+        function renderCodeGraph(container) {
+            container.innerHTML = `
+            <div style="display: grid; grid-template-columns: 350px 1fr; gap: 30px; min-height: 600px;">
+                <!-- Left Sidebar: Search and List -->
+                <div style="border-right: 1px solid var(--border-subtle); padding-right: 25px; display: flex; flex-direction: column; gap: 15px;">
+                    <h3 style="font-size: 16px; color: #a5b4fc; font-weight: 600;">CodeGraph Explorer</h3>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="cg-search-input" placeholder="Search functions, classes..." 
+                               style="flex: 1; background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); padding: 10px 14px; border-radius: 8px; color: #fff; font-family: inherit; font-size: 13px;"
+                               onkeydown="if(event.key === 'Enter') searchCodeGraph()">
+                        <button onclick="searchCodeGraph()" 
+                                style="background: var(--primary); color: white; border: none; padding: 0 16px; border-radius: 8px; font-family: inherit; font-weight: 500; cursor: pointer; transition: all 0.3s ease;">
+                            Search
+                        </button>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <select id="cg-kind-select" style="width: 100%; background: #0f172a; border: 1px solid var(--border-subtle); color: var(--text-primary); padding: 8px 12px; border-radius: 8px; outline: none; cursor: pointer; font-family: inherit; font-size: 12px;" onchange="searchCodeGraph()">
+                            <option value="">All Kinds</option>
+                            <option value="function">Functions</option>
+                            <option value="class">Classes</option>
+                            <option value="method">Methods</option>
+                            <option value="route">Routes</option>
+                            <option value="constant">Constants</option>
+                            <option value="file">Files</option>
+                        </select>
+                    </div>
+                    
+                    <div id="cg-results-list" style="flex: 1; overflow-y: auto; max-height: 480px; display: flex; flex-direction: column; gap: 10px; padding-right: 5px;">
+                        <div style="text-align: center; color: var(--text-secondary); margin-top: 50px; font-size: 13px;">
+                            Enter a search query to explore codebase symbols. E.g. "auth", "captcha", "calculate".
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right Panel: Node details, code preview and impact graph -->
+                <div id="cg-details-panel" style="display: flex; flex-direction: column; gap: 25px; min-height: 600px;">
+                    <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; color: var(--text-secondary);">
+                        <span style="font-size: 48px; margin-bottom: 20px;">🔍</span>
+                        <p>Select a symbol from the search results to inspect its relationships and source code.</p>
+                    </div>
+                </div>
+            </div>`;
+        }
+        
+        async function searchCodeGraph() {
+            const query = document.getElementById('cg-search-input').value;
+            const kind = document.getElementById('cg-kind-select').value;
+            const listContainer = document.getElementById('cg-results-list');
+            listContainer.innerHTML = '<div style="text-align: center; color: var(--text-secondary); margin-top: 50px;">Searching...</div>';
+            
+            try {
+                const response = await fetch(`/api/codegraph/search?q=${encodeURIComponent(query)}&kind=${encodeURIComponent(kind)}`);
+                const data = await response.json();
+                if (!data.success) {
+                    listContainer.innerHTML = `<div class="error-callout">${data.error}</div>`;
+                    return;
+                }
+                
+                if (data.results.length === 0) {
+                    listContainer.innerHTML = '<div style="text-align: center; color: var(--text-secondary); margin-top: 50px;">No symbols found matching query.</div>';
+                    return;
+                }
+                
+                let html = '';
+                data.results.forEach(node => {
+                    const badgeClass = node.kind === 'class' ? 'badge-implemented' : node.kind === 'function' ? 'badge-passed' : 'badge-tiny';
+                    html += `
+                    <div onclick="selectCodeGraphNode('${node.id}')" 
+                         style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle); padding: 12px; border-radius: 8px; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; gap: 6px;"
+                         onmouseover="this.style.borderColor='rgba(99, 102, 241, 0.4)'"
+                         onmouseout="this.style.borderColor='var(--border-subtle)'">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <strong style="color: #fff; font-size: 14px;">${escapeHtml(node.name)}</strong>
+                            <span class="badge ${badgeClass}" style="font-size: 9px; padding: 2px 6px;">${node.kind}</span>
+                        </div>
+                        <div style="font-size: 11px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                            ${escapeHtml(node.file_path)}:L${node.start_line}
+                        </div>
+                    </div>`;
+                });
+                listContainer.innerHTML = html;
+            } catch (err) {
+                listContainer.innerHTML = `<div class="error-callout">Error: ${err.message}</div>`;
+            }
+        }
+        
+        async function selectCodeGraphNode(nodeId) {
+            const panel = document.getElementById('cg-details-panel');
+            panel.innerHTML = '<div style="text-align: center; color: var(--text-secondary); margin-top: 100px;">Loading node details...</div>';
+            
+            try {
+                const [relRes, impRes] = await Promise.all([
+                    fetch(`/api/codegraph/relations?id=${encodeURIComponent(nodeId)}`),
+                    fetch(`/api/codegraph/impact?id=${encodeURIComponent(nodeId)}`)
+                ]);
+                const relData = await relRes.json();
+                const impData = await impRes.json();
+                
+                if (!relData.success) {
+                    panel.innerHTML = `<div class="error-callout">${relData.error}</div>`;
+                    return;
+                }
+                
+                const node = relData.node;
+                const callers = relData.callers;
+                const callees = relData.callees;
+                
+                let codeHtml = '';
+                try {
+                    const fileRes = await fetch(`/api/file?path=${encodeURIComponent(node.file_path)}`);
+                    const fileText = await fileRes.text();
+                    const lines = fileText.split('\n');
+                    const start = Math.max(1, node.start_line - 2);
+                    const end = Math.min(lines.length, node.end_line + 2);
+                    
+                    let slicedCode = '';
+                    for (let i = start; i <= end; i++) {
+                        const lineNum = String(i).padStart(4, ' ');
+                        const isMainLine = (i >= node.start_line && i <= node.end_line);
+                        const style = isMainLine ? 'background: rgba(99, 102, 241, 0.15); color: #fff; display: block;' : '';
+                        slicedCode += `<span style="${style}">${lineNum} | ${escapeHtml(lines[i-1])}</span>\n`;
+                    }
+                    codeHtml = `
+                    <div style="position: relative;">
+                        <div style="position: absolute; top: 8px; right: 12px; font-size: 11px; color: var(--text-secondary); font-family: sans-serif;">
+                            ${escapeHtml(node.file_path)}
+                        </div>
+                        <pre style="margin: 0; line-height: 1.5; max-height: 300px; font-size: 12px; border-radius: 8px; background: #030712; padding: 12px; overflow: auto; font-family: 'JetBrains Mono', monospace;">${slicedCode}</pre>
+                    </div>`;
+                } catch (err) {
+                    codeHtml = `<div style="color: var(--text-secondary); font-size: 13px; font-style: italic;">Could not load source preview: ${err.message}</div>`;
+                }
+                
+                let callersHtml = '<div style="color: var(--text-secondary); font-size: 13px;">No callers.</div>';
+                if (callers.length > 0) {
+                    callersHtml = callers.map(c => `
+                        <div onclick="selectCodeGraphNode('${c.id}')" 
+                             style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-subtle); padding: 8px 12px; border-radius: 6px; cursor: pointer; transition: all 0.2s ease; display: flex; justify-content: space-between; align-items: center;"
+                             onmouseover="this.style.borderColor='rgba(99, 102, 241, 0.3)'"
+                             onmouseout="this.style.borderColor='var(--border-subtle)'">
+                            <span style="color: #6366f1; font-weight: 500; font-size: 13px;">${escapeHtml(c.name)}</span>
+                            <span style="color: var(--text-secondary); font-size: 11px;">line ${c.call_line}</span>
+                        </div>
+                    `).join('');
+                }
+                
+                let calleesHtml = '<div style="color: var(--text-secondary); font-size: 13px;">No callees.</div>';
+                if (callees.length > 0) {
+                    calleesHtml = callees.map(c => `
+                        <div onclick="selectCodeGraphNode('${c.id}')" 
+                             style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-subtle); padding: 8px 12px; border-radius: 6px; cursor: pointer; transition: all 0.2s ease; display: flex; justify-content: space-between; align-items: center;"
+                             onmouseover="this.style.borderColor='rgba(99, 102, 241, 0.3)'"
+                             onmouseout="this.style.borderColor='var(--border-subtle)'">
+                            <span style="color: #10b981; font-weight: 500; font-size: 13px;">${escapeHtml(c.name)}</span>
+                            <span style="color: var(--text-secondary); font-size: 11px;">line ${c.call_line}</span>
+                        </div>
+                    `).join('');
+                }
+                
+                let upstreamHtml = '<div style="color: var(--text-secondary); font-size: 12px;">No upstream blast radius paths.</div>';
+                if (impData.success && impData.upstream.length > 0) {
+                    upstreamHtml = impData.upstream.map(u => `
+                        <div onclick="selectCodeGraphNode('${u.id}')" 
+                             style="margin-left: ${(u.depth-1)*15}px; padding: 6px 10px; border-left: 2px solid #ef4444; background: rgba(239, 68, 68, 0.02); margin-bottom: 5px; cursor: pointer; font-size: 12px; display: flex; justify-content: space-between;">
+                            <span style="color: #f87171; font-weight: 500;">${"&nbsp;".repeat((u.depth-1)*2)}↑ ${escapeHtml(u.name)}</span>
+                            <span style="color: var(--text-secondary); font-size: 10px;">${escapeHtml(u.file_path)}:L${u.start_line}</span>
+                        </div>
+                    `).join('');
+                }
+                
+                let downstreamHtml = '<div style="color: var(--text-secondary); font-size: 12px;">No downstream dependency paths.</div>';
+                if (impData.success && impData.downstream.length > 0) {
+                    downstreamHtml = impData.downstream.map(d => `
+                        <div onclick="selectCodeGraphNode('${d.id}')" 
+                             style="margin-left: ${(d.depth-1)*15}px; padding: 6px 10px; border-left: 2px solid #10b981; background: rgba(16, 185, 129, 0.02); margin-bottom: 5px; cursor: pointer; font-size: 12px; display: flex; justify-content: space-between;">
+                            <span style="color: #34d399; font-weight: 500;">${"&nbsp;".repeat((d.depth-1)*2)}↓ ${escapeHtml(d.name)}</span>
+                            <span style="color: var(--text-secondary); font-size: 10px;">${escapeHtml(d.file_path)}:L${d.start_line}</span>
+                        </div>
+                    `).join('');
+                }
+                
+                panel.innerHTML = `
+                <!-- Symbol Header Details -->
+                <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 10px;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div>
+                            <span class="badge badge-implemented" style="font-size: 9px; margin-bottom: 6px;">${node.kind}</span>
+                            <h2 style="font-size: 20px; font-weight: 600; color: #fff;">${escapeHtml(node.name)}</h2>
+                            <code style="font-size: 12px; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace; display: block; margin-top: 4px;">${escapeHtml(node.signature || 'No signature')}</code>
+                        </div>
+                        <span style="font-size: 11px; color: var(--text-secondary);">${escapeHtml(node.file_path)}:L${node.start_line}</span>
+                    </div>
+                    ${node.docstring ? `<p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; font-style: italic; border-left: 3px solid rgba(255,255,255,0.1); padding-left: 10px;">${escapeHtml(node.docstring)}</p>` : ''}
+                </div>
+                
+                <!-- Code Definition Preview -->
+                <div>
+                    <h3 style="font-size: 13px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Definition Preview</h3>
+                    ${codeHtml}
+                </div>
+                
+                <!-- Relations (Callers & Callees) Grid -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div>
+                        <h3 style="font-size: 13px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Incoming Callers</h3>
+                        <div style="display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto; padding-right: 5px;">
+                            ${callersHtml}
+                        </div>
+                    </div>
+                    <div>
+                        <h3 style="font-size: 13px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Outgoing Callees</h3>
+                        <div style="display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto; padding-right: 5px;">
+                            ${calleesHtml}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Blast Radius & Impact Recursion -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; border-top: 1px solid var(--border-subtle); padding-top: 20px;">
+                    <div>
+                        <h3 style="font-size: 13px; color: #f87171; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Blast Radius (Upstream Impact)</h3>
+                        <div style="max-height: 250px; overflow-y: auto; padding-right: 5px;">
+                            ${upstreamHtml}
+                        </div>
+                    </div>
+                    <div>
+                        <h3 style="font-size: 13px; color: #34d399; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Dependency Tree (Downstream Impact)</h3>
+                        <div style="max-height: 250px; overflow-y: auto; padding-right: 5px;">
+                            ${downstreamHtml}
+                        </div>
+                    </div>
+                </div>`;
+            } catch (err) {
+                panel.innerHTML = `<div class="error-callout">Error: ${err.message}</div>`;
+            }
         }
         
         function openDrawer() { document.getElementById('drawer').classList.add('open'); document.getElementById('drawer-overlay').classList.add('open'); }
