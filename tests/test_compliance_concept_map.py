@@ -83,3 +83,28 @@ def test_concept_map_api(mock_app):
     rel = next((l for l in links if l["source"] == "v53" and l["target"] == "v70"), None)
     assert rel is not None
     assert rel["type"] == "subset"
+
+def test_concept_map_expand_api(mock_app):
+    """Verify that the Concept Map Expander API returns 7-page field guide data."""
+    client = mock_app.test_client()
+    with client.session_transaction() as sess:
+        sess["logged_in"] = True
+        sess["user_role"] = "admin"
+        sess["taxpayer_mst"] = "0102030470"
+
+    # Test v53 guide
+    res = client.get("/api/compliance/concept-map/expand/v53")
+    assert res.status_code == 200
+    data = json.loads(res.data)
+    assert data["status"] == "success"
+    assert data["mst"] == "0102030470"
+    assert len(data["pages"]) == 7
+    assert data["pages"][0]["title"] == "1. Định Hướng (Orientation)"
+    assert "v53" in data["pages"][0]["content"].lower() or "môi trường" in data["pages"][0]["content"].lower()
+
+    # Test invalid compliance node version
+    res = client.get("/api/compliance/concept-map/expand/v999")
+    assert res.status_code == 404
+    data = json.loads(res.data)
+    assert data["status"] == "error"
+

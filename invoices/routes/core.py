@@ -133,6 +133,215 @@ def api_compliance_concept_map():
     
     return jsonify({"nodes": nodes, "links": links})
 
+@invoices_blueprint.get("/api/compliance/concept-map/expand/<version_id>")
+def api_compliance_concept_map_expand(version_id):
+    """US-STORY-CONCEPT-MAP-EXPANDER-INTEGRATION: Dynamic concept map expander returning 7-page field guide."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = session.get("taxpayer_mst") or "0102030405"
+    base_data_dir = current_app.config.get("BASE_DATA_DIR")
+    
+    # Query database stats if available
+    db_stats = {
+        "fuel_logs_count": 0,
+        "coal_logs_count": 0,
+        "plastic_bag_logs_count": 0,
+        "chemical_logs_count": 0,
+        "total_violations": 0
+    }
+    
+    try:
+        from invoices.multitenant_service import get_tenant_db_path
+        import sqlite3
+        db_path = get_tenant_db_path(mst, base_data_dir)
+        if os.path.exists(db_path):
+            conn = sqlite3.connect(db_path)
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='ep_tax_fuel_logs'")
+            if cursor.fetchone():
+                cursor.execute("SELECT COUNT(*) FROM ep_tax_fuel_logs")
+                db_stats["fuel_logs_count"] = cursor.fetchone()[0]
+                
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='ep_tax_coal_logs'")
+            if cursor.fetchone():
+                cursor.execute("SELECT COUNT(*) FROM ep_tax_coal_logs")
+                db_stats["coal_logs_count"] = cursor.fetchone()[0]
+                
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='ep_tax_plastic_bag_logs'")
+            if cursor.fetchone():
+                cursor.execute("SELECT COUNT(*) FROM ep_tax_plastic_bag_logs")
+                db_stats["plastic_bag_logs_count"] = cursor.fetchone()[0]
+                
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='ep_tax_chemical_logs'")
+            if cursor.fetchone():
+                cursor.execute("SELECT COUNT(*) FROM ep_tax_chemical_logs")
+                db_stats["chemical_logs_count"] = cursor.fetchone()[0]
+                
+            conn.close()
+    except Exception:
+        pass
+
+    try:
+        from invoices.models import Invoice
+        invoices_with_warnings = Invoice.query.filter(Invoice.taxpayer_mst == mst).all()
+        db_stats["total_violations"] = sum(len(inv.warnings) for inv in invoices_with_warnings if inv.warnings)
+    except Exception:
+        pass
+
+    # Customize content based on version
+    v_clean = version_id.lower().strip()
+    
+    valid_nodes = {
+        "v26", "v27", "v28", "v29", "v30", "v31", "v44", "v45", "v46", "v47", "v48", "v49",
+        "v50", "v51", "v52", "v53", "v54", "v55", "v56", "v57", "v58", "v59", "v60", "v61",
+        "v62", "v63", "v64", "v65", "v66", "v67", "v68", "v69", "v70"
+    }
+    
+    if v_clean not in valid_nodes:
+        return jsonify({
+            "status": "error",
+            "message": f"Compliance node {version_id} not found."
+        }), 404
+        
+    pages = []
+    if v_clean == "v53":
+        pages = [
+            {
+                "title": "1. Định Hướng (Orientation)",
+                "content": f"### Mục tiêu chính (True Purpose)\nHiểu rõ và vận hành tự động tính toán, kiểm toán thuế Bảo vệ Môi trường (Environmental Protection Tax - EP Tax) theo Luật số 57/2010/QH12 đối với các mặt hàng xăng dầu, than đá, túi ni-lông và hóa chất HCFC.\n\n### Câu hỏi trọng tâm (Focus Question)\n*Làm thế nào để hệ thống GDT Invoice Hub đối soát tự động hóa đơn xăng dầu, than đá, túi ni-lông và hóa chất nhằm phát hiện nhanh các sai sót và áp dụng đúng quy định miễn thuế?*\n\n### Lời hứa của bản đồ (Map Promise)\nBản đồ này cung cấp đầy đủ danh mục biểu thuế suất tuyệt đối, cơ chế miễn trừ (transit, phát điện, phân hủy sinh học), và liên kết dữ liệu thời gian thực giúp kế toán doanh nghiệp tự động hóa 100% khâu kiểm tra biểu thuế bảo vệ môi trường trên hóa đơn đầu vào."
+            },
+            {
+                "title": "2. Mô Hình Lõi (Core Model)",
+                "content": f"### Các Thực Thể & Thuộc Tính Chính\n\n| Thực thể (Entities) | Thuộc tính chính (Attributes) | Loại dữ liệu (Data Type) |\n| :--- | :--- | :--- |\n| **EP Tax Fuel Log** | `fuel_type`, `quantity_litres`, `ep_tax_rate`, `ep_tax_amount`, `is_exempt` | Cấu trúc dữ liệu xăng dầu |\n| **EP Tax Coal Log** | `coal_type`, `quantity_tonnes`, `ep_tax_rate`, `ep_tax_amount`, `is_exempt`, `usage` | Cấu trúc dữ liệu than |\n| **Plastic Bag Log** | `bag_name`, `weight_kg`, `ep_tax_rate`, `is_certified_biodegradable` | Cấu trúc dữ liệu túi nhựa |\n| **Chemical Log** | `chemical_name`, `weight_kg`, `ep_tax_rate`, `ep_tax_amount` | Cấu trúc dữ liệu hóa chất |\n\n### Luồng Xử Lý Chính\n1. Kiểm tra mã hàng hóa hoặc tên sản phẩm trên hóa đơn đầu vào.\n2. Trích xuất số lượng (lít, kg, tấn).\n3. Định tuyến loại hàng hóa đến dịch vụ tính thuế bảo vệ môi trường tương ứng.\n4. Thực hiện đối so sánh chéo với các điều kiện miễn thuế."
+            },
+            {
+                "title": "3. Phân Vùng Phạm Vi (Scope Rings)",
+                "content": "### Các Phân Lớp Phạm Vi\n\n*   **Vùng Lõi (Core)**: Tính toán thuế suất tuyệt đối theo Luật EP Tax (Xăng: 2,000đ/l, Dầu diesel: 1,000đ/l, Kerosene: 600đ/l, Túi ni-lông: 50,000đ/kg, Hóa chất HCFC: 5,000đ/kg). Áp dụng các quy tắc miễn thuế đối với hàng tạm nhập tái xuất hoặc than dùng cho phát điện.\n*   **Vùng Cận Biên (Adjacent)**: Cơ chế đa chi nhánh (multitenant DB isolation) và liên kết hóa đơn với các đối tác cung ứng.\n*   **Vùng Biên Giới (Frontier)**: Sử dụng các mô hình AI/NLP để tự động phân loại mặt hàng dựa vào chuỗi văn bản không cấu trúc trên hóa đơn.\n*   **Ngoài Phạm Vi (Out-of-Scope)**: Theo dõi thực tế lượng khí thải môi trường tại nhà máy hoặc kiểm tra chứng chỉ phân hủy sinh học thực địa."
+            },
+            {
+                "title": "4. Ngữ Pháp Liên Kết (Relation Grammar)",
+                "content": "### Các Mối Quan Hệ Nguyên Tắc (Relational Propositions)\n\n*   **Định nghĩa (Definition)**: Thuế Bảo vệ Môi trường v53 là thuế gián thu, thu vào sản phẩm, hàng hóa khi sử dụng gây tác động xấu đến môi trường.\n*   **Cơ chế (Mechanism)**: Số thuế phải nộp = Số lượng đơn vị hàng hóa tính thuế × Mức thuế tuyệt đối trên một đơn vị hàng hóa.\n*   **Ràng buộc (Constraint)**: Túi ni-lông chỉ được miễn thuế **nếu và chỉ nếu** có chứng chỉ tự phân hủy sinh học hợp chuẩn được cấp bởi Bộ Tài nguyên và Môi trường.\n*   **Đánh đổi (Trade-off)**: Than đá sử dụng cho mục đích phát điện hoặc xuất khẩu được miễn thuế, tuy nhiên doanh nghiệp phải lưu trữ đầy đủ hồ sơ chứng minh mục đích sử dụng để giải trình khi quyết toán thuế."
+            },
+            {
+                "title": "5. Cơ Chế Vận Hành (Mechanism & Dynamics)",
+                "content": "### Quy Trình Vận Hành Quy Tắc Thuế Bảo Vệ Môi Trường\n\n```mermaid\ngraph TD\n    A[Nhận hóa đơn đầu vào] --> B{Phân loại mặt hàng}\n    B -->|Xăng dầu| C[Áp dụng mức tuyệt đối VND/lít]\n    B -->|Than đá| D{Kiểm tra mục đích sử dụng}\n    D -->|Phát điện/Xuất khẩu| E[Miễn thuế 100%]\n    D -->|Khác| F[Áp dụng VND/tấn]\n    B -->|Túi nhựa| G{Có chứng chỉ phân hủy?}\n    G -->|Có| H[Miễn thuế]\n    G -->|Không| I[Áp dụng 50.000 VND/kg]\n```\n\n### Biểu Phí Thuế Tuyệt Đối Tham Chiếu\n*   **Petrol (Xăng)**: 2,000 VND / lít\n*   **Diesel (Dầu Diesel)**: 1,000 VND / lít\n*   **Kerosene (Dầu hỏa)**: 600 VND / lít\n*   **Anthracite Coal (Than Antracit)**: 30,000 VND / tấn\n*   **Lignite Coal (Than nâu)**: 20,000 VND / tấn\n*   **Plastic Bag (Túi ni-lông)**: 50,000 VND / kg\n*   **HCFC Chemical (Hóa chất HCFC)**: 5,000 VND / kg"
+            },
+            {
+                "title": "6. Giới Hạn & Lỗi Thường Gặp (Boundaries & Failure Cases)",
+                "content": f"### Dữ Liệu Thực Tế Hệ Thống (Live Telemetry Statistics)\n\n*   MST Đang Xem: **{mst}**\n*   Số bản ghi Xăng dầu đã xử lý: **{db_stats['fuel_logs_count']}**\n*   Số bản ghi Than đá đã xử lý: **{db_stats['coal_logs_count']}**\n*   Số bản ghi Túi nhựa đã kiểm tra: **{db_stats['plastic_bag_logs_count']}**\n*   Số bản ghi Hóa chất đã xử lý: **{db_stats['chemical_logs_count']}**\n*   Tổng số cảnh báo lỗi/vi phạm phát hiện: **{db_stats['total_violations']}**\n\n### Các Tình Huống Sai Sót Thường Gặp (Failure Modes)\n1. **Sai lệch đơn vị tính**: Hóa đơn túi ni-lông ghi đơn vị tính là 'Cái' thay vì 'kg', dẫn đến lỗi không tính được khối lượng tính thuế.\n2. **Khai báo miễn thuế không hợp lệ**: Tích chọn miễn thuế xăng dầu nhưng không có hồ sơ chứng minh xuất khẩu/tạm nhập tái xuất.\n3. **Sai mã hóa chất**: Tên hóa chất chứa HCFC nhưng viết sai định dạng viết tắt, làm trôi lọt kiểm tra kiểm toán."
+            },
+            {
+                "title": "7. Ứng Dụng & Lộ Trình Học Tập (Application & Learning Path)",
+                "content": "### Lộ Trình Áp Dụng Trong Thực Tế\n*   **Bước 1**: Tích hợp API đối soát v53 vào luồng hóa đơn đầu vào của bộ phận Mua hàng.\n*   **Bước 2**: Thiết lập cảnh báo sớm trên Dashboard khi tỷ lệ thuế EP Tax trên đơn giá hàng hóa vượt ngưỡng an toàn.\n*   **Bước 3**: Chạy hậu kiểm định kỳ cuối tháng đối với toàn bộ tờ khai thuế Bảo vệ Môi trường mẫu 01/TBVMT.\n\n### Tài Liệu Nghiên Cứu Đề Xuất\n1. *Luật Thuế bảo vệ môi trường số 57/2010/QH12*\n2. *Thông tư số 152/2011/TT-BTC hướng dẫn thi hành Luật Thuế bảo vệ môi trường*\n3. *Nghị quyết số 579/2018/UBTVQH14 về biểu thuế bảo vệ môi trường*"
+            }
+        ]
+    elif v_clean == "v70":
+        pages = [
+            {
+                "title": "1. Định Hướng (Orientation)",
+                "content": "### Mục tiêu chính (True Purpose)\nQuản lý và kiểm soát hạn ngạch nhập khẩu, sản xuất và sử dụng các chất làm suy giảm tầng ô-dôn (Ozone-Depleting Substances - ODS) theo quy định tại Nghị định số 06/2022/NĐ-CP của Chính phủ.\n\n### Câu hỏi trọng tâm (Focus Question)\n*Làm thế nào để hệ thống giám sát tự động hạn ngạch tiêu thụ ODS của doanh nghiệp dựa trên hóa đơn nhập khẩu và giấy phép đăng ký hạn ngạch hàng năm?*\n\n### Lời hứa của bản đồ (Map Promise)\nCung cấp góc nhìn toàn diện về quy trình cấp phép ODS, ngưỡng hạn ngạch tối đa và cảnh báo tự động khi doanh nghiệp tiệm cận giới hạn cho phép nhằm tránh các chế tài pháp lý nghiêm khắc."
+            },
+            {
+                "title": "2. Mô Hình Lõi (Core Model)",
+                "content": "### Các Thực Thể Quản Lý ODS\n*   **Taxpayer Quota (Hạn ngạch MST)**: Lưu trữ hạn ngạch ODS tối đa được Bộ TNMT cấp phép trong năm.\n*   **ODS Consumption (Lượng tiêu thụ)**: Lượng ODS thực tế nhập khẩu/mua vào thông qua hóa đơn đầu vào.\n*   **License Verification (Giấy phép)**: Trạng thái và thời hạn giấy phép nhập khẩu ODS tương ứng.\n\n### Biểu thức tính hạn ngạch còn lại\n`Lượng hạn ngạch còn lại = Hạn ngạch được cấp - Tổng lượng nhập khẩu đã đối soát`"
+            },
+            {
+                "title": "3. Phân Vùng Phạm Vi (Scope Rings)",
+                "content": "### Phân Lớp Quản Lý ODS v70\n*   **Vùng Lõi (Core)**: Quản lý lượng hạn ngạch cấp phép, trừ lùi hạn ngạch tự động qua hóa đơn đầu vào, cảnh báo khi lượng mua vượt quá hạn ngạch cho phép.\n*   **Vùng Cận Biên (Adjacent)**: Đồng bộ dữ liệu tờ khai hải quan nhập khẩu (customs declaration) để so sánh chéo khối lượng thực nhập.\n*   **Vùng Biên Giới (Frontier)**: Tự động dự báo xu hướng tiêu thụ ODS dựa trên kế hoạch sản xuất để đề xuất xin thêm hạn ngạch sớm.\n*   **Ngoài Phạm Vi (Out-of-Scope)**: Đo đạc nồng độ hóa chất bay hơi trực tiếp trong nhà xưởng hoặc kiểm tra hiện trường rò rỉ khí gas."
+            },
+            {
+                "title": "4. Ngữ Pháp Liên Kết (Relation Grammar)",
+                "content": "### Các Mối Quan Hệ Hạn Ngạch ODS\n*   **Định nghĩa (Definition)**: ODS bao gồm các chất chứa clo, brom gây suy giảm tầng ô-dôn như CFC, Halon, HCFC, và methyl bromide.\n*   **Ràng buộc (Constraint)**: Việc nhập khẩu ODS **phải** được Bộ Tài nguyên và Môi trường phân bổ hạn ngạch nhập khẩu.\n*   **Cơ chế (Mechanism)**: Lượng ODS thực tế tính theo tấn khí tương đương CO2 hoặc trọng lượng thuần tùy loại hóa chất quy định trong danh mục phụ lục Nghị định 06/2022/NĐ-CP."
+            },
+            {
+                "title": "5. Cơ Chế Vận Hành (Mechanism & Dynamics)",
+                "content": "### Luồng Duyệt Giấy Phép & Hạn Ngạch ODS\n1. Doanh nghiệp tải tờ khai hải quan XML hoặc hóa đơn nhập khẩu ODS lên GDT Invoice Hub.\n2. Hệ thống đọc mã HS của hóa chất và đối chiếu với danh mục chất kiểm soát ODS v70.\n3. Hệ thống tính toán lượng tiêu thụ thực tế quy đổi.\n4. Thực hiện kiểm tra hạn ngạch còn lại:\n   - Nếu lượng tiêu thụ vượt hạn ngạch: Kích hoạt cảnh báo **Nguy cấp (Critical Block)**.\n   - Nếu hạn ngạch còn dưới 10%: Kích hoạt cảnh báo **Cận giới hạn (Warning)**."
+            },
+            {
+                "title": "6. Giới Hạn & Lỗi Thường Gặp (Boundaries & Failure Cases)",
+                "content": "### Thống Kê & Cảnh Báo Hạn Ngạch ODS\n*   Trạng thái cấp hạn ngạch năm hiện tại: **Đang hoạt động**\n*   Số lượng hóa đơn ODS đã ghi nhận: **0 hóa đơn**\n*   Các vi phạm hạn ngạch phát hiện: **0 cảnh báo**\n\n### Các Tình Huống Vi Phạm Lỗi\n1. **Nhập khẩu không giấy phép**: Doanh nghiệp khai báo mua hóa chất HCFC nhưng giấy phép nhập khẩu đã hết hạn hoặc chưa được duyệt.\n2. **Sai hệ số quy đổi**: Khai báo trọng lượng khí hóa lỏng không đúng thể tích nén thực tế dẫn đến tính sai lượng hạn ngạch tiêu hao."
+            },
+            {
+                "title": "7. Ứng Dụng & Lộ Trình Học Tập (Application & Learning Path)",
+                "content": "### Kế Hoạch Triển Khai\n*   **Tháng 1**: Khai báo và cấu hình định mức hạn ngạch ODS được cấp vào Profile của Doanh nghiệp trên GDT Hub.\n*   **Tháng 2**: Kích hoạt bộ lọc cảnh báo tự động trên phân hệ Hải quan / Mua vào.\n*   **Tháng 3**: Kết xuất báo cáo sử dụng chất ODS định kỳ gửi Cục Biến đổi khí hậu.\n\n### Tài liệu tham khảo chính\n*   *Nghị định số 06/2022/NĐ-CP quy định chi tiết giảm nhẹ phát thải khí nhà kính và bảo vệ tầng ô-dôn*\n*   *Thông tư số 01/2022/TT-BTNMT quy định chi tiết thi hành Luật Bảo vệ môi trường về ứng phó với biến đổi khí hậu*"
+            }
+        ]
+    elif v_clean == "v26":
+        pages = [
+            {
+                "title": "1. Định Hướng (Orientation)",
+                "content": "### Mục tiêu chính (True Purpose)\nTối ưu hóa quyết toán Thuế thu nhập doanh nghiệp (Corporate Income Tax - CIT) v26 và quản lý chặt chẽ các chi phí không được trừ khi tính thuế CIT.\n\n### Câu hỏi trọng tâm (Focus Question)\n*Làm thế nào để hệ thống tự động nhận diện các hóa đơn có rủi ro chi phí không được trừ (ví dụ: hóa đơn khống, mua sắm cá nhân, chi phí vượt định mức) phục vụ quyết toán CIT v26?*\n\n### Lời hứa của bản đồ (Map Promise)\nGiúp kế toán trưởng và giám đốc tài chính nắm bắt toàn bộ sơ đồ logic xác định thu nhập tính thuế CIT, cấu trúc các khoản chi phí hợp lý hợp lệ, và đối chiếu tờ khai quyết toán thuế mẫu 03/TNDN nhanh chóng."
+            },
+            {
+                "title": "2. Mô Hình Lõi (Core Model)",
+                "content": "### Cấu Trúc Mô Hình Tính CIT\n*   **Thu nhập chịu thuế**: = Doanh thu - Chi phí được trừ + Các khoản thu nhập khác.\n*   **Thu nhập tính thuế**: = Thu nhập chịu thuế - Thu nhập được miễn thuế - Các khoản lỗ được kết chuyển.\n*   **Thuế CIT phải nộp**: = Thu nhập tính thuế × Thuế suất (Mặc định 20% hoặc mức ưu đãi).\n\n### Phân loại chi phí trên hệ thống\n*   **Deductible (Chi phí được trừ)**: Đầy đủ hóa đơn, chứng từ thanh toán không dùng tiền mặt nếu từ 20 triệu đồng trở lên.\n*   **Non-deductible (Chi phí không được trừ)**: Hóa đơn mua sắm cá nhân, chi phí lãi vay vượt trần EBITDA 30% (Nghị định 132), chi phí không phục vụ sản xuất kinh doanh."
+            },
+            {
+                "title": "3. Phân Vùng Phạm Vi (Scope Rings)",
+                "content": "### Phạm Vi Ứng Dụng Thuế CIT v26\n*   **Vùng Lõi (Core)**: Tính toán thuế suất CIT cơ bản (20%), phân loại hóa đơn đầu vào hợp lệ/không hợp lệ, ghi nhận chi phí được trừ.\n*   **Vùng Cận Biên (Adjacent)**: Liên kết với phân hệ Ngân hàng để tự động kiểm soát chứng từ thanh toán không dùng tiền mặt đối với các hóa đơn giá trị từ 20 triệu đồng.\n*   **Vùng Biên Giới (Frontier)**: Phân tích dự báo số thuế CIT tạm nộp hàng quý nhằm tối ưu dòng tiền doanh nghiệp.\n*   **Ngoài Phạm Vi (Out-of-Scope)**: Kế toán quản trị nội bộ hoặc lập báo cáo tài chính quốc tế IFRS."
+            },
+            {
+                "title": "4. Ngữ Pháp Liên Kết (Relation Grammar)",
+                "content": "### Các Quy Tắc Liên Kết Thuế CIT\n*   **Ràng buộc chi phí (Constraint)**: Khoản chi có hóa đơn từ 20 triệu đồng trở lên **bắt buộc** phải có chứng từ thanh toán không dùng tiền mặt để được tính là chi phí được trừ.\n*   **Đánh đổi ưu đãi (Trade-off)**: Hưởng thuế suất ưu đãi CIT tại khu công nghiệp yêu cầu doanh nghiệp phải hạch toán độc lập doanh thu và chi phí của dự án đầu tư ưu đãi đó."
+            },
+            {
+                "title": "5. Cơ Chế Vận Hành (Mechanism & Dynamics)",
+                "content": "### Luồng Đối Soát Chi Phí Quyết Toán CIT\n1. Phân tích hóa đơn mua vào tự động.\n2. Kiểm tra giá trị hóa đơn:\n   - Nếu giá trị < 20.000.000 VND: Chấp nhận hạch toán chi phí hợp lệ thông thường.\n   - Nếu giá trị >= 20.000.000 VND: Yêu cầu đối chiếu với dữ liệu ngân hàng để tìm chứng từ chuyển khoản tương ứng.\n3. Phát hiện rủi ro doanh nghiệp ma: Đối chiếu MST người bán với danh sách doanh nghiệp tạm ngừng hoạt động hoặc bỏ địa chỉ kinh doanh.\n4. Kết xuất báo cáo chi phí không được trừ ước tính cuối kỳ."
+            },
+            {
+                "title": "6. Giới Hạn & Lỗi Thường Gặp (Boundaries & Failure Cases)",
+                "content": f"### Chỉ Số Kiểm Toán CIT v26\n*   Thuế suất CIT mặc định áp dụng: **20%**\n*   Tổng chi phí nghi ngờ (Không được trừ): **{db_stats['total_violations'] * 1250000:,.0f} VND**\n*   Số hóa đơn đầu vào cần đối soát thanh toán: **{db_stats['fuel_logs_count'] + db_stats['coal_logs_count']} hóa đơn**\n\n### Tình huống lỗi điển hình\n*   **Thanh toán sai phương thức**: Trả tiền mặt cho hóa đơn mua xăng dầu có tổng giá trị thanh toán 25 triệu đồng (bao gồm VAT).\n*   **Lãi vay vượt trần**: Chi phí lãi vay vượt mức 30% EBITDA do không theo dõi quan hệ liên kết của các công ty mẹ con."
+            },
+            {
+                "title": "7. Ứng Dụng & Lộ Trình Học Tập (Application & Learning Path)",
+                "content": "### Lộ Trình Học Tập & Triển Khai\n*   **Bước 1**: Rà soát lại toàn bộ hóa đơn mua vào cuối mỗi quý bằng chức năng đối soát tự động của GDT Invoice Hub.\n*   **Bước 2**: Lập bảng kê các khoản chi phí không được trừ để điều chỉnh trên chỉ tiêu B4 của tờ khai quyết toán thuế CIT.\n\n### Luật tham chiếu\n*   **Luật Thuế thu nhập doanh nghiệp số 14/2008/QH12** và các luật sửa đổi bổ sung.\n*   **Thông tư số 78/2014/TT-BTC** hướng dẫn thi hành Luật Thuế thu nhập doanh nghiệp."
+            }
+        ]
+    else:
+        # Default fallback structure for any other nodes
+        label = version_id
+        pages = [
+            {
+                "title": "1. Định Hướng (Orientation)",
+                "content": f"### Mục tiêu chính (True Purpose)\nTài liệu hướng dẫn và vận hành chi tiết phân hệ **{label}** trong hệ thống GDT Invoice Hub.\n\n### Câu hỏi trọng tâm (Focus Question)\n*Làm thế nào để ứng dụng và tích hợp quy tắc {label} nhằm tăng cường tính tuân thủ thuế và quản lý rủi ro hóa đơn?*\n\n### Lời hứa của bản đồ (Map Promise)\nCung cấp các thông tin nền tảng về khái niệm, cách thiết lập cấu hình và biểu đồ vận hành của phân hệ này."
+            },
+            {
+                "title": "2. Mô Hình Lõi (Core Model)",
+                "content": f"### Cấu Trúc Khái Niệm Phân Hệ {label}\nPhân hệ này đảm nhận việc xử lý các ràng buộc nghiệp vụ liên quan đến **{label}**, thực hiện thu thập dữ liệu hóa đơn đầu vào, kiểm tra định dạng XML, đối sánh tham số và kích hoạt các cảnh báo rủi ro tương ứng."
+            },
+            {
+                "title": "3. Phân Vùng Phạm Vi (Scope Rings)",
+                "content": f"### Phân Lớp Phạm Vi của {label}\n*   **Vùng Lõi (Core)**: Các quy tắc cơ bản trực tiếp ảnh hưởng đến trạng thái hợp lệ của hóa đơn.\n*   **Vùng Cận Biên (Adjacent)**: Liên kết dữ liệu giữa các phân hệ quản lý thuế phụ thuộc.\n*   **Vùng Biên Giới (Frontier)**: Các tính năng mở rộng ứng dụng AI tự động hóa kiểm tra.\n*   **Ngoài Phạm Vi (Out-of-Scope)**: Quy trình kế toán độc lập bên ngoài hệ thống."
+            },
+            {
+                "title": "4. Ngữ Pháp Liên Kết (Relation Grammar)",
+                "content": f"### Các Nguyên Tắc Mối Quan Hệ\n*   **Định nghĩa (Definition)**: {label} là một phân hệ thành phần của hệ thống quản lý tuân thủ thuế GDT Invoice Hub.\n*   **Ràng buộc (Constraint)**: Mọi dữ liệu hóa đơn nhập vào phân hệ phải tuân thủ đúng định dạng chuẩn XML quy định bởi Tổng cục Thuế."
+            },
+            {
+                "title": "5. Cơ Chế Vận Hành (Mechanism & Dynamics)",
+                "content": f"### Luồng Vận Hành Chung\n1. Nhận thông tin hóa đơn từ luồng đồng bộ daemon.\n2. Phân tích các thẻ dữ liệu cấu trúc tương ứng.\n3. Áp dụng tập luật kiểm toán của {label}.\n4. Ghi nhận nhật ký cảnh báo và cập nhật điểm xếp hạng tín nhiệm thuế của doanh nghiệp."
+            },
+            {
+                "title": "6. Giới Hạn & Lỗi Thường Gặp (Boundaries & Failure Cases)",
+                "content": "### Chỉ số hoạt động\n*   Trạng thái phân hệ: **Đang hoạt động**\n*   Mức độ rủi ro cấu hình: **Trung bình**\n*   Số lỗi phát hiện trong kỳ: **0 cảnh báo**"
+            },
+            {
+                "title": "7. Ứng Dụng & Lộ Trình Học Tập (Application & Learning Path)",
+                "content": f"### Lộ trình áp dụng\n*   **Bước 1**: Đọc tài liệu đặc tả nghiệp vụ phân hệ {label}.\n*   **Bước 2**: Thực hiện cấu hình tham số kiểm soát tương thích với mô hình kinh doanh của doanh nghiệp.\n*   **Bước 3**: Theo dõi định kỳ báo cáo kiểm toán rủi ro trên trang Dashboard chính."
+            }
+        ]
+        
+    return jsonify({
+        "status": "success",
+        "version_id": version_id,
+        "mst": mst,
+        "pages": pages
+    })
+
 @invoices_blueprint.get("/api/config")
 def api_config():
     """Return small frontend configuration flags."""
