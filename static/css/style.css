@@ -1994,3 +1994,162 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
         background-position: -200% 0;
     }
 }
+
+/* ===== Scroll-to-top FAB Button ===== */
+.btn-scroll-top {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 1050;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 1px solid var(--border-card);
+    background: var(--bg-card);
+    color: var(--text-primary);
+    box-shadow: var(--shadow-xl);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(20px) scale(0.8);
+    pointer-events: none;
+    transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                background-color 0.2s ease,
+                border-color 0.2s ease;
+}
+
+.btn-scroll-top.visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+}
+
+.btn-scroll-top:hover {
+    background: var(--primary-accent);
+    color: white;
+    border-color: var(--primary-accent);
+    transform: translateY(-3px) scale(1.05);
+}
+
+[data-theme="dark"] .btn-scroll-top:hover {
+    color: var(--color-ink-black);
+}
+
+/* ===== Premium Dropdown Glassmorphism ===== */
+.dropdown-menu-premium {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-card) !important;
+    border-radius: 16px !important;
+    box-shadow: var(--shadow-xl) !important;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding: 0.5rem !important;
+    min-width: 260px;
+    animation: dropdownSlideIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes dropdownSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.dropdown-menu-premium .dropdown-item {
+    border-radius: 10px !important;
+    padding: 0.55rem 0.9rem !important;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--text-primary) !important;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.dropdown-menu-premium .dropdown-item:hover,
+.dropdown-menu-premium .dropdown-item:focus {
+    background-color: var(--primary-accent-soft) !important;
+    color: var(--text-primary) !important;
+}
+
+.dropdown-menu-premium .dropdown-item.active {
+    background-color: var(--lime-accent) !important;
+    color: var(--color-forest-green) !important;
+    font-weight: 700;
+}
+
+[data-theme="dark"] .dropdown-menu-premium .dropdown-item.active {
+    color: var(--color-ink-black) !important;
+}
+
+.dropdown-menu-premium .dropdown-header {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-tertiary) !important;
+    padding: 0.5rem 0.9rem 0.3rem;
+}
+
+.dropdown-menu-premium .dropdown-divider {
+    border-color: var(--border-card) !important;
+    margin: 0.3rem 0.5rem;
+}
+
+/* ===== Text Gradient Utility ===== */
+.text-gradient {
+    background: linear-gradient(135deg, var(--primary-accent), var(--color-deep-teal));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+[data-theme="dark"] .text-gradient {
+    background: linear-gradient(135deg, var(--lime-accent), #60d394);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* ===== Dark Custom Background for Panels ===== */
+.bg-dark-custom {
+    background-color: var(--color-ink-black) !important;
+}
+
+.text-snow {
+    color: #f0f0f0 !important;
+}
+
+/* ===== Enhanced Footer ===== */
+.footer {
+    background: var(--bg-card);
+    border-top: 1px solid var(--border-card);
+}
+
+/* ===== Page Loading Spinner Overlay ===== */
+.page-loading-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.7);
+    backdrop-filter: blur(4px);
+    transition: opacity 0.3s ease;
+}
+
+[data-theme="dark"] .page-loading-overlay {
+    background: rgba(14,15,12,0.7);
+}
+
+.page-loading-overlay.hide {
+    opacity: 0;
+    pointer-events: none;
+}
