@@ -1025,9 +1025,35 @@ def api_v43_dashboard_data():
             (year, 12, "Property, Plant & Equipment", 120000000.0, 100000000.0, 0.20),
             (year, 12, "Provisions for Warranties", 15000000.0, 0.0, 0.20),
             (year, 12, "Prepaid Lease Expense", 50000000.0, 60000000.0, 0.20),
+            (year, 12, "IAS 19 Severance Benefit Obligation", 80000000.0, 0.0, 0.20),
         ])
         conn.commit()
     deferred_tax_results = engine.calculate_ias12_deferred_tax(mst, year)
+
+    # Fixed Assets seed
+    cur.execute("SELECT count(*) FROM ifrs_fixed_assets")
+    if cur.fetchone()[0] == 0:
+        cur.executemany("""
+            INSERT INTO ifrs_fixed_assets (asset_id, asset_name, asset_category, acquisition_date, historical_cost, ifrs_useful_life_years, vas_useful_life_years, is_revalued, revaluation_surplus)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, [
+            ("ASSET-101", "Core Server Infrastructure", "Machinery & Equipment", "2025-01-01", 300000000.0, 10.0, 5.0, 0, 0.0),
+            ("ASSET-102", "Office Building HQ", "Buildings", "2024-01-01", 2000000000.0, 40.0, 40.0, 1, 500000000.0)
+        ])
+        conn.commit()
+
+    # Forex seed
+    cur.execute("SELECT count(*) FROM ifrs_forex_valuation")
+    if cur.fetchone()[0] == 0:
+        cur.executemany("""
+            INSERT INTO ifrs_forex_valuation (item_id, account_name, currency, foreign_amount, book_rate, year_end_rate, asset_or_liability)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, [
+            ("FX-001", "USD Bank Deposits", "USD", 50000.0, 25000.0, 25400.0, "ASSET"),
+            ("FX-002", "USD Trade Receivables", "USD", 20000.0, 25100.0, 24900.0, "ASSET"),
+            ("FX-003", "USD Trade Payables", "USD", 30000.0, 25050.0, 25300.0, "LIABILITY")
+        ])
+        conn.commit()
     
     # 2. Leases
     cur.execute("SELECT count(*) FROM lease_amortization_schedule")
@@ -1072,6 +1098,9 @@ def api_v43_dashboard_data():
     subsidiary_msts = ["0102030406", "0102030407"]
     pillar2_result = engine.estimate_pillar_two_topup(mst, [mst] + subsidiary_msts, year)
     
+    # 5. Vietnam tax reconciliation
+    reconciliation_result = engine.calculate_vietnam_tax_reconciliation(mst, year)
+    
     debate_transcript = [
         {"speaker": "Local Tax Inspector", "text": "For deferred tax, IAS 12 recognition of deferred tax asset is subject to stringent probability testing under standard requirements. We must verify if future taxable profit is probable."},
         {"speaker": "IFRS Accounting Advisor", "text": "Agreed, but IFRS 16 lease liability is a major source of temporary differences here. As the ROU asset depreciates and the liability is reduced via cash payments, DTA and DTL are recognized. We should automate this mapping."},
@@ -1087,9 +1116,33 @@ def api_v43_dashboard_data():
         "lease_schedules": lease_schedules,
         "revenue_contracts": contracts,
         "pillar_two": pillar2_result,
+        "vietnam_reconciliation": reconciliation_result,
         "debate": debate_transcript,
         "consensus_summary": consensus_summary
     })
+
+@invoices_blueprint.post("/api/v43/compliance/reconcile-ifrs-vas")
+def api_v43_compliance_reconcile_ifrs_vas():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    year = int(data.get("year", 2026))
+    vas_profit = float(data.get("vas_profit_before_tax", 500000000.0))
+    interest = float(data.get("total_interest_expense", 120000000.0))
+    ebitda = float(data.get("ebitda", 300000000.0))
+
+    from invoices.ifrs_engine import IFRSTranslationService
+    try:
+        engine = IFRSTranslationService(current_app.config["BASE_DATA_DIR"])
+        res = engine.calculate_vietnam_tax_reconciliation(
+            mst, year, vas_profit, interest, ebitda
+        )
+        return jsonify({"status": "success", "reconciliation": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
 
 @invoices_blueprint.get("/v44-compliance-hub")
 def v44_compliance_hub_page():

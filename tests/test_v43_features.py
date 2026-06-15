@@ -20,7 +20,7 @@ def mock_app():
     app = Flask(__name__)
     app.config["TESTING"] = True
     app.config["SECRET_KEY"] = "test-secret-key"
-    app.config["BASE_DATA_DIR"] = os.path.join(os.path.dirname(__file__), "..", "data")
+    app.config["BASE_DATA_DIR"] = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data"))
     
     # Register blueprint
     from invoices.routes import invoices_blueprint
@@ -32,7 +32,8 @@ def mock_app():
 def mock_tenant_db():
     """Ensure a clean tenant DB for testing."""
     mst = "0102030499"
-    db_path = get_tenant_db_path(mst)
+    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data"))
+    db_path = get_tenant_db_path(mst, base_dir)
     
     if os.path.exists(db_path):
         try:
@@ -40,7 +41,7 @@ def mock_tenant_db():
         except Exception:
             pass
             
-    bootstrap_tenant_db(mst)
+    bootstrap_tenant_db(mst, base_dir)
     yield mst
     
     if os.path.exists(db_path):
@@ -156,3 +157,52 @@ def test_v43_api_endpoints(mock_app, mock_tenant_db):
     assert "deferred_tax" in data
     assert "leases" in data
     assert "pillar_two" in data
+    assert "vietnam_reconciliation" in data
+
+def test_calculate_vietnam_tax_reconciliation(mock_tenant_db):
+    """Test standard Decree 132 cap and Circular 78 cash settlement non-deductibility calculations."""
+    mst = mock_tenant_db
+    service = IFRSTranslationService()
+    
+    # 1. EBITDA limit: 300M * 30% = 90M. Interest expense: 120M. Disallowed = 30M
+    # Carryforward DTA = 30M * 20% = 6M
+    res = service.calculate_vietnam_tax_reconciliation(
+        mst=mst,
+        year=2026,
+        vas_profit_before_tax=500000000.0,
+        total_interest_expense=120000000.0,
+        ebitda=300000000.0
+    )
+    
+    assert res["decree132_ebitda_limit"] == 90000000.0
+    assert res["decree132_disallowed_interest"] == 30000000.0
+    assert res["decree132_dta_carryforward"] == 30000000.0 * 0.20
+    assert res["dta_recovery_risk"] is False # since profit is high and DTA is relatively small
+
+def test_v43_compliance_reconcile_ifrs_vas_endpoint(mock_app, mock_tenant_db):
+    """Test the POST endpoint for IFRS-VAS reconciliation."""
+    client = mock_app.test_client()
+    
+    with client.session_transaction() as sess:
+        sess["user_id"] = 1
+        sess["username"] = "admin"
+        sess["taxpayer_mst"] = mock_tenant_db
+        sess["user_role"] = "admin"
+        sess["logged_in"] = True
+        
+    payload = {
+        "mst": mock_tenant_db,
+        "year": 2026,
+        "vas_profit_before_tax": 600000000.0,
+        "total_interest_expense": 150000000.0,
+        "ebitda": 400000000.0
+    }
+    
+    res = client.post("/api/v43/compliance/reconcile-ifrs-vas", json=payload)
+    assert res.status_code == 200
+    data = res.get_json()
+    assert data["status"] == "success"
+    assert "reconciliation" in data
+    rec = data["reconciliation"]
+    assert rec["decree132_ebitda_limit"] == 120000000.0
+    assert rec["decree132_disallowed_interest"] == 30000000.0

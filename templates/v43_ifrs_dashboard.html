@@ -54,8 +54,27 @@
         </div>
     </div>
 
-    <!-- Bento Grid Dashboard Layout -->
-    <div class="row g-4 mb-4">
+    <!-- Tab Controls -->
+    <ul class="nav nav-tabs mb-4 px-2" id="complianceTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-bold text-dark" id="ifrs-tab" type="button" role="tab">
+                <i class="bi bi-globe me-2 text-primary"></i>IFRS International Console
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold text-dark position-relative" id="vietnam-tab" type="button" role="tab">
+                <i class="bi bi-shield-check me-2 text-danger"></i>Vietnam CIT Reconciliation & Audit
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-light" id="warning-badge" style="display: none; font-size: 0.65rem;">
+                    !
+                </span>
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab 1: IFRS International Console -->
+    <div id="ifrs-content-pane">
+        <!-- Bento Grid Dashboard Layout -->
+        <div class="row g-4 mb-4">
         <!-- Widget 1: IAS 12 Deferred Tax Ledger -->
         <div class="col-lg-6">
             <div class="card h-100 shadow-sm">
@@ -215,6 +234,334 @@
                 </div>
             </div>
         </div>
+    </div><!-- End Tab 1 IFRS Content Pane -->
+
+    <!-- Tab 2: Vietnam CIT Reconciliation & Audit Oracle -->
+    <div id="vietnam-content-pane" class="d-none">
+        <!-- Row of Controls specific to Vietnam Tax -->
+        <div class="card shadow-sm mb-4 border-light bg-light-subtle">
+            <div class="card-header bg-transparent border-0 pt-4">
+                <h5 class="fw-bold mb-1"><i class="bi bi-bank2 text-danger me-2" aria-hidden="true"></i>Vietnam CIT Simulation Parameters</h5>
+                <p class="text-muted small mb-0">Adjust parameters to simulate CIT taxable income reconciliations, Decree 132 interest caps, and audit risks.</p>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <label for="input-vas-profit" class="form-label text-dark">VAS Profit Before Tax (VND):</label>
+                        <input type="number" class="form-control" id="input-vas-profit" value="500000000" step="50000000">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="input-interest-expense" class="form-label text-dark">Total Interest Expense (VND):</label>
+                        <input type="number" class="form-control" id="input-interest-expense" value="120000000" step="10000000">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="input-ebitda" class="form-label text-dark">EBITDA (VND):</label>
+                        <input type="number" class="form-control" id="input-ebitda" value="300000000" step="20000000">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bento Grid for Vietnam Tax -->
+        <div class="row g-4 mb-4">
+            <!-- Widget 1: VAS to IFRS Tax Bridge Table -->
+            <div class="col-lg-6">
+                <div class="card h-100 shadow-sm border-light">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="card-title fw-bold mb-0 text-danger">
+                                <i class="bi bi-journal-text me-2" aria-hidden="true"></i>CIT Reconciliation Bridge (VAS / IFRS)
+                            </h5>
+                            <span class="badge bg-danger-subtle text-danger">Statutory 20% CIT</span>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped align-middle small mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Description</th>
+                                        <th class="text-end">Value (VND)</th>
+                                        <th>Type</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="vn-reconciliation-body">
+                                    <!-- Loaded dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Widget 2: Decree 132 EBITDA Cap visualizer -->
+            <div class="col-lg-6">
+                <div class="card h-100 shadow-sm border-light">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="card-title fw-bold mb-0 text-warning">
+                                <i class="bi bi-bar-chart-line-fill me-2" aria-hidden="true"></i>Decree 132 EBITDA Interest Cap
+                            </h5>
+                            <span class="badge bg-warning-subtle text-warning">30% EBITDA Cap Limit</span>
+                        </div>
+                        <div class="p-3 bg-light rounded mb-3">
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span class="text-dark">Interest Expense vs. 30% EBITDA Limit</span>
+                                <span id="ebitda-percent" class="fw-bold text-dark">0%</span>
+                            </div>
+                            <div class="progress" style="height: 20px;">
+                                <div id="ebitda-progress" class="progress-bar bg-warning" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            <div class="row g-2 mt-2 text-center text-dark small">
+                                <div class="col-4 border-end">
+                                    <div class="text-muted">30% Limit</div>
+                                    <strong id="vn-ebitda-limit">0.00</strong>
+                                </div>
+                                <div class="col-4 border-end">
+                                    <div class="text-muted">Interest Expense</div>
+                                    <strong id="vn-interest-expense">0.00</strong>
+                                </div>
+                                <div class="col-4">
+                                    <div class="text-muted">Disallowed</div>
+                                    <strong id="vn-disallowed-interest" class="text-danger">0.00</strong>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-info-subtle border border-info rounded">
+                            <h6 class="fw-bold mb-1 text-info-emphasis"><i class="bi bi-info-circle-fill me-2"></i>Decree 132 DTA Treatment:</h6>
+                            <p class="text-dark small mb-0">Disallowed interest is treated as a temporary difference and can be carried forward up to 5 consecutive years. Recognized carryforward DTA: <strong id="vn-carryforward-dta" class="text-success">0.00</strong>.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Widget 3: Circular 78 Audit & Invoice Compliance Score -->
+            <div class="col-lg-6">
+                <div class="card h-100 shadow-sm border-light">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="card-title fw-bold mb-0 text-info">
+                                <i class="bi bi-patch-exclamation-fill me-2" aria-hidden="true"></i>Circular 78 Cash & Invoice Auditor
+                            </h5>
+                            <span class="badge bg-info-subtle text-info">Compliance Scans</span>
+                        </div>
+                        <div class="row g-3 text-center mb-3">
+                            <div class="col-6">
+                                <div class="p-3 border rounded bg-light">
+                                    <div class="text-muted small">Total Input Invoices >= 20M</div>
+                                    <strong id="vn-bank-transfer-required" class="text-dark">0.00</strong>
+                                    <div class="small text-danger mt-1">Requires Non-Cash Pay</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-3 border rounded bg-light">
+                                    <div class="text-muted small">Low T-Score Invoices (&lt;70)</div>
+                                    <strong id="vn-low-tscore-invoices" class="text-danger">0.00</strong>
+                                    <div class="small text-danger mt-1">Permanent CIT Non-deductible</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="alert alert-warning small mb-0 py-2 d-flex align-items-center">
+                            <i class="bi bi-exclamation-triangle-fill fs-5 me-2 text-warning"></i>
+                            <span class="text-dark">Input invoices with a low T-Score represent potential compliance failures (missing signatures, invalid invoice parameters). These have been automatically disallowed as tax deductions.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Widget 4: IAS 12 / Vietnam 5-Year DTA Recoverability Auditor -->
+            <div class="col-lg-6">
+                <div class="card h-100 shadow-sm border-light">
+                    <div class="card-body d-flex flex-column justify-content-between">
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="card-title fw-bold mb-0 text-success">
+                                    <i class="bi bi-clock-history me-2" aria-hidden="true"></i>5-Year statutory DTA Recoverability Auditor
+                                </h5>
+                                <span class="badge bg-success-subtle text-success">Loss Carry-forward limit</span>
+                            </div>
+                            <div class="p-3 bg-light rounded text-center mb-3">
+                                <div class="text-muted small">Total Deferred Tax Assets (DTA) Accrued:</div>
+                                <h3 id="vn-total-dta" class="fw-bold text-success my-2">0.00</h3>
+                                <span id="vn-recovery-status-badge" class="badge bg-success">Recoverable</span>
+                            </div>
+                        </div>
+                        <div id="vn-recovery-alert" class="alert alert-success small mb-0 py-2" role="alert">
+                            Deferred Tax Assets are currently within safe statutory limits.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- IFRS 15 vs GDT Invoicing Gap Indicator -->
+        <div class="card shadow-sm border-light mb-4">
+            <div class="card-header bg-transparent border-0 pt-4">
+                <h5 class="fw-bold mb-1 text-primary"><i class="bi bi-intersect me-2" aria-hidden="true"></i>IFRS 15 vs. GDT Invoiced Revenue Auditor (Decree 123)</h5>
+                <p class="text-muted small mb-0">Under Decree 123/2020/ND-CP, physical VAT invoices must match service/ownership transfer timing. This panel identifies timing differences and tax exposures.</p>
+            </div>
+            <div class="card-body">
+                <div class="row g-3 align-items-center">
+                    <div class="col-md-4 border-end text-center">
+                        <div class="text-muted small">IFRS 15 Recognized Revenue</div>
+                        <h4 id="vn-ifrs15-rev" class="fw-bold text-primary">0.00</h4>
+                    </div>
+                    <div class="col-md-4 border-end text-center">
+                        <div class="text-muted small">GDT Physically Invoiced Revenue</div>
+                        <h4 id="vn-gdt-rev" class="fw-bold text-success">0.00</h4>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="text-muted small">Revenue Gap (Timing Diff / Exposure)</div>
+                        <h4 id="vn-rev-gap" class="fw-bold text-warning">0.00</h4>
+                    </div>
+                </div>
+                <div id="vn-rev-gap-alert" class="alert alert-info small mt-3 mb-0 py-2">
+                    No significant invoicing exposure detected.
+                </div>
+            </div>
+        </div>
+
+        <!-- Row for Fixed Assets & Forex Revaluation Audits -->
+        <div class="row g-4 mb-4">
+            <!-- Fixed Assets useful lives & Revaluation Differences (Circular 45 vs IAS 16) -->
+            <div class="col-lg-6">
+                <div class="card h-100 shadow-sm border-light">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="card-title fw-bold mb-0 text-primary">
+                                <i class="bi bi-cpu-fill me-2" aria-hidden="true"></i>Circular 45 Fixed Assets Auditor
+                            </h5>
+                            <span class="badge bg-primary-subtle text-primary">Useful Life vs IAS 16</span>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped align-middle small mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Asset ID & Name</th>
+                                        <th>Category</th>
+                                        <th class="text-end">IFRS Depr</th>
+                                        <th class="text-end">VAS Depr</th>
+                                        <th class="text-end">CIT Disallowed</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="vn-fixed-assets-body">
+                                    <!-- Loaded dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="alert alert-secondary small mt-3 mb-0 py-2">
+                            <span class="text-dark"><i class="bi bi-info-circle me-1"></i>Under Circular 45/2013/TT-BTC, excess useful life depreciation and depreciation on revaluation surplus (historical cost model constraint) are added back to taxable profit.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Foreign Exchange Revaluation differences (IAS 21 vs Circular 200) -->
+            <div class="col-lg-6">
+                <div class="card h-100 shadow-sm border-light">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="card-title fw-bold mb-0 text-success">
+                                <i class="bi bi-currency-exchange me-2" aria-hidden="true"></i>Circular 200 Forex Revaluation Auditor
+                            </h5>
+                            <span class="badge bg-success-subtle text-success">IAS 21 Forex Gap</span>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped align-middle small mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Account & CCY</th>
+                                        <th class="text-end">Foreign Amt</th>
+                                        <th class="text-end">Gain / Loss</th>
+                                        <th>CIT Tax Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="vn-forex-body">
+                                    <!-- Loaded dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="alert alert-secondary small mt-3 mb-0 py-2">
+                            <span class="text-dark"><i class="bi bi-info-circle me-1"></i>Circular 200 treats unrealized forex gains/losses from bank deposits & receivables as non-taxable / non-deductible adjustments at year-end.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form 03-1A/TNDN Tax Return Bridge Panel -->
+        <div class="card shadow-sm border-light mb-4">
+            <div class="card-header bg-dark text-white py-3">
+                <h5 class="fw-bold mb-1"><i class="bi bi-file-earmark-spreadsheet me-2" aria-hidden="true"></i>Tờ Khai Thuế TNDN Mẫu 03-1A/TNDN Bridge</h5>
+                <p class="text-light-subtle small mb-0">Detailed mapping of accounting profits, permanent/temporary adjustments and forex differences to the official Vietnamese CIT Tax Return Form.</p>
+            </div>
+            <div class="card-body bg-light-subtle">
+                <div class="row g-3">
+                    <div class="col-md-6 border-end">
+                        <div class="list-group list-group-flush">
+                            <div class="list-group-item d-flex justify-content-between align-items-center bg-transparent">
+                                <div>
+                                    <h6 class="mb-0 fw-bold">[B1] Lợi nhuận kế toán trước thuế</h6>
+                                    <span class="text-muted small">VAS Profit Before Tax</span>
+                                </div>
+                                <span id="form-b1" class="fw-bold text-dark">0.00</span>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center bg-transparent">
+                                <div>
+                                    <h6 class="mb-0 fw-bold">[B2] Điều chỉnh tăng doanh thu</h6>
+                                    <span class="text-muted small">IFRS 15 vs. GDT Revenue Gap</span>
+                                </div>
+                                <span id="form-b2" class="fw-bold text-danger">0.00</span>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center bg-transparent">
+                                <div>
+                                    <h6 class="mb-0 fw-bold">[B3] Chi phí không được trừ</h6>
+                                    <span class="text-muted small">Interest cap, provisions, excess useful life, reval</span>
+                                </div>
+                                <span id="form-b3" class="fw-bold text-danger">0.00</span>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center bg-transparent">
+                                <div>
+                                    <h6 class="mb-0 fw-bold">[B4] Lỗ tỷ giá chưa thực hiện (Asset)</h6>
+                                    <span class="text-muted small">Unrealized forex losses from assets</span>
+                                </div>
+                                <span id="form-b4" class="fw-bold text-danger">0.00</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="list-group list-group-flush">
+                            <div class="list-group-item d-flex justify-content-between align-items-center bg-transparent">
+                                <div>
+                                    <h6 class="mb-0 fw-bold">[B11] Lãi tỷ giá chưa thực hiện (Asset)</h6>
+                                    <span class="text-muted small">Unrealized forex gains from assets</span>
+                                </div>
+                                <span id="form-b11" class="fw-bold text-success">0.00</span>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center bg-transparent">
+                                <div>
+                                    <h6 class="mb-0 fw-bold">[B12] Điều chỉnh giảm doanh thu</h6>
+                                    <span class="text-muted small">Revenue reductions</span>
+                                </div>
+                                <span id="form-b12" class="fw-bold text-success">0.00</span>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center bg-transparent table-dark text-snow rounded px-2">
+                                <div>
+                                    <h6 class="mb-0 fw-bold">Thu Nhập Chịu Thuế (Taxable Profit)</h6>
+                                    <span class="text-light-subtle small">B1 + B2 + B3 + B4 - B11 - B12</span>
+                                </div>
+                                <span id="form-taxable-profit" class="fw-bold fs-5">0.00</span>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center bg-transparent table-success text-success-emphasis rounded px-2 mt-2">
+                                <div>
+                                    <h6 class="mb-0 fw-bold">Thuế TNDN Phải Nộp (CIT Payable - 20%)</h6>
+                                    <span class="text-success-emphasis small">Estimated current CIT liability</span>
+                                </div>
+                                <span id="form-cit-payable" class="fw-bold fs-5">0.00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Swarm Advisory Debate Panel -->
@@ -266,6 +613,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     renderLeaseAmortization(data.leases, data.lease_schedules);
                     renderPillarTwo(data.pillar_two);
                     renderDebate(data.debate, data.consensus_summary);
+                    if (data.vietnam_reconciliation) {
+                        renderVietnamReconciliation(data.vietnam_reconciliation);
+                    }
                 }
             })
             .catch(err => console.error("Error loading dashboard data:", err));
@@ -414,6 +764,215 @@ document.addEventListener("DOMContentLoaded", () => {
 
         document.getElementById("consensus-text").textContent = summary;
     };
+
+    // Tab switching controls
+    const ifrsTab = document.getElementById("ifrs-tab");
+    const vietnamTab = document.getElementById("vietnam-tab");
+    const ifrsPane = document.getElementById("ifrs-content-pane");
+    const vietnamPane = document.getElementById("vietnam-content-pane");
+
+    ifrsTab.addEventListener("click", () => {
+        ifrsTab.classList.add("active");
+        vietnamTab.classList.remove("active");
+        ifrsPane.classList.remove("d-none");
+        vietnamPane.classList.add("d-none");
+    });
+
+    vietnamTab.addEventListener("click", () => {
+        vietnamTab.classList.add("active");
+        ifrsTab.classList.remove("active");
+        vietnamPane.classList.remove("d-none");
+        ifrsPane.classList.add("d-none");
+    });
+
+    // Vietnam formatters & calculations
+    const formatVND = (val) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
+
+    const renderVietnamReconciliation = (vn) => {
+        // Toggle warning badge on tab
+        const warningBadge = document.getElementById("warning-badge");
+        if (vn.dta_recovery_risk) {
+            warningBadge.style.display = "inline-block";
+        } else {
+            warningBadge.style.display = "none";
+        }
+
+        // Bridge Table
+        const tbody = document.getElementById("vn-reconciliation-body");
+        tbody.innerHTML = `
+            <tr>
+                <td><strong>VAS Profit Before Tax</strong></td>
+                <td class="text-end fw-bold">${formatVND(vn.vas_profit_before_tax)}</td>
+                <td><span class="badge bg-secondary">Base</span></td>
+            </tr>
+            <tr class="table-warning">
+                <td class="ps-3 text-dark"><em>+ Decree 132 Disallowed Interest</em></td>
+                <td class="text-end text-danger">+${formatVND(vn.decree132_disallowed_interest)}</td>
+                <td><span class="badge bg-warning text-dark">Permanent</span></td>
+            </tr>
+            <tr class="table-warning">
+                <td class="ps-3 text-dark"><em>+ Circular 78 High-Risk/Non-compliant</em></td>
+                <td class="text-end text-danger">+${formatVND(vn.high_risk_non_deductible)}</td>
+                <td><span class="badge bg-warning text-dark">Permanent</span></td>
+            </tr>
+            <tr class="table-info">
+                <td class="ps-3 text-dark"><em>+ Provisions Timing Difference</em></td>
+                <td class="text-end text-info">+${formatVND(vn.provisions_timing_difference)}</td>
+                <td><span class="badge bg-info text-dark">Temporary</span></td>
+            </tr>
+            <tr class="table-info">
+                <td class="ps-3 text-dark"><em>+ IFRS 16 vs VAS Lease adj</em></td>
+                <td class="text-end text-info">${vn.lease_timing_adjustment >= 0 ? '+' : ''}${formatVND(vn.lease_timing_adjustment)}</td>
+                <td><span class="badge bg-info text-dark">Temporary</span></td>
+            </tr>
+            <tr class="table-dark fw-bold">
+                <td><strong>Taxable Profit (Vietnam CIT)</strong></td>
+                <td class="text-end">${formatVND(vn.taxable_profit)}</td>
+                <td><span class="badge bg-dark">CIT Base</span></td>
+            </tr>
+            <tr class="table-success fw-bold">
+                <td><strong>Estimated Current CIT (20%)</strong></td>
+                <td class="text-end text-success">${formatVND(vn.estimated_current_cit)}</td>
+                <td><span class="badge bg-success">Tax Expense</span></td>
+            </tr>
+            <tr>
+                <td class="text-dark"><strong>Effective Tax Rate (ETR)</strong></td>
+                <td class="text-end fw-bold text-dark">${(vn.effective_tax_rate * 100).toFixed(2)}%</td>
+                <td><span class="badge bg-secondary">Ratio</span></td>
+            </tr>
+        `;
+
+        // Decree 132 EBITDA Interest Cap details
+        const limit = vn.decree132_ebitda_limit;
+        const expense = vn.total_interest_expense;
+        const pct = limit > 0 ? Math.min(100, Math.round((expense / limit) * 100)) : 0;
+        
+        document.getElementById("ebitda-percent").textContent = `${pct}% of Cap`;
+        const progressBar = document.getElementById("ebitda-progress");
+        progressBar.style.width = `${pct}%`;
+        if (pct >= 100) {
+            progressBar.className = "progress-bar bg-danger";
+        } else if (pct > 75) {
+            progressBar.className = "progress-bar bg-warning";
+        } else {
+            progressBar.className = "progress-bar bg-success";
+        }
+
+        document.getElementById("vn-ebitda-limit").textContent = formatVND(limit);
+        document.getElementById("vn-interest-expense").textContent = formatVND(expense);
+        document.getElementById("vn-disallowed-interest").textContent = formatVND(vn.decree132_disallowed_interest);
+        document.getElementById("vn-carryforward-dta").textContent = formatVND(vn.decree132_dta_carryforward);
+
+        // Circular 78 Invoices Auditor
+        document.getElementById("vn-bank-transfer-required").textContent = formatVND(vn.bank_transfer_required_sum);
+        document.getElementById("vn-low-tscore-invoices").textContent = formatVND(vn.high_risk_non_deductible);
+
+        // 5-Year DTA recovery audit
+        document.getElementById("vn-total-dta").textContent = formatVND(vn.total_deferred_tax_assets);
+        const recoveryBadge = document.getElementById("vn-recovery-status-badge");
+        const recoveryAlert = document.getElementById("vn-recovery-alert");
+        if (vn.dta_recovery_risk) {
+            recoveryBadge.textContent = "Risk Detected";
+            recoveryBadge.className = "badge bg-danger";
+            recoveryAlert.textContent = vn.dta_recovery_warning;
+            recoveryAlert.className = "alert alert-danger small mb-0 py-2";
+        } else {
+            recoveryBadge.textContent = "Safe / Recoverable";
+            recoveryBadge.className = "badge bg-success";
+            recoveryAlert.textContent = "Deferred Tax Assets (including Decree 132 disallowed interest carry-forwards and provisions) are fully recoverable. High CIT taxable profits support full utilization within the statutory 5-year limit.";
+            recoveryAlert.className = "alert alert-success small mb-0 py-2";
+        }
+
+        // IFRS 15 vs GDT Revenue Gap
+        document.getElementById("vn-ifrs15-rev").textContent = formatVND(vn.ifrs15_recognized_revenue);
+        document.getElementById("vn-gdt-rev").textContent = formatVND(vn.gdt_invoiced_revenue);
+        document.getElementById("vn-rev-gap").textContent = formatVND(vn.revenue_gap_ifrs15_vs_gdt);
+        const gapAlert = document.getElementById("vn-rev-gap-alert");
+        if (Math.abs(vn.revenue_gap_ifrs15_vs_gdt) > 10000000) {
+            gapAlert.innerHTML = `<i class="bi bi-exclamation-octagon-fill text-danger me-2"></i><strong>VAT Exposure:</strong> The revenue timing gap exceeds the VND 10M warning threshold. Under Decree 123, revenue recognized under IFRS 15 that is not physically invoiced creates legal exposure for VAT penalties. Accompanying physical GDT invoices must be checked immediately.`;
+            gapAlert.className = "alert alert-danger small mt-3 mb-0 py-2";
+        } else {
+            gapAlert.innerHTML = `<i class="bi bi-check-circle-fill text-success me-2"></i><strong>Verified compliant:</strong> IFRS 15 recognized revenue matches General Department of Taxation (GDT) invoiced revenues within normal rounding tolerances.`;
+            gapAlert.className = "alert alert-success small mt-3 mb-0 py-2";
+        }
+
+        // Render Fixed Assets details
+        const fixedAssetsBody = document.getElementById("vn-fixed-assets-body");
+        fixedAssetsBody.innerHTML = "";
+        (vn.fixed_assets_details || []).forEach(asset => {
+            const tr = document.createElement("tr");
+            const totalDisallowed = asset.excess_depreciation + asset.revaluation_depreciation_disallowed;
+            tr.innerHTML = `
+                <td>
+                    <strong>${asset.asset_id}</strong><br>
+                    <small class="text-muted">${asset.asset_name}</small>
+                </td>
+                <td><span class="badge bg-secondary-subtle text-secondary">${asset.asset_category}</span></td>
+                <td class="text-end">${formatVND(asset.ifrs_depreciation)}</td>
+                <td class="text-end">${formatVND(asset.vas_depreciation)}</td>
+                <td class="text-end text-danger fw-bold">+${formatVND(totalDisallowed)}</td>
+            `;
+            fixedAssetsBody.appendChild(tr);
+        });
+
+        // Render Forex details
+        const forexBody = document.getElementById("vn-forex-body");
+        forexBody.innerHTML = "";
+        (vn.forex_details || []).forEach(item => {
+            const tr = document.createElement("tr");
+            const forexVal = item.gain > 0 ? `+${formatVND(item.gain)}` : `-${formatVND(item.loss)}`;
+            const textClass = item.gain > 0 ? 'text-success' : 'text-danger';
+            const badgeClass = item.cit_status === 'CIT Compliant' ? 'bg-success' : 'bg-warning text-dark';
+            tr.innerHTML = `
+                <td>
+                    <strong>${item.account_name}</strong><br>
+                    <small class="text-muted">${item.item_id} (${item.currency})</small>
+                </td>
+                <td class="text-end">${item.foreign_amount.toLocaleString()} ${item.currency}</td>
+                <td class="text-end ${textClass} fw-bold">${forexVal}</td>
+                <td><span class="badge ${badgeClass}">${item.cit_status}</span></td>
+            `;
+            forexBody.appendChild(tr);
+        });
+
+        // Render Form 03-1A/TNDN fields
+        if (vn.form_03_1a) {
+            const form = vn.form_03_1a;
+            document.getElementById("form-b1").textContent = formatVND(form.B1);
+            document.getElementById("form-b2").textContent = formatVND(form.B2);
+            document.getElementById("form-b3").textContent = formatVND(form.B3);
+            document.getElementById("form-b4").textContent = formatVND(form.B4);
+            document.getElementById("form-b11").textContent = formatVND(form.B11);
+            document.getElementById("form-b12").textContent = formatVND(form.B12);
+            document.getElementById("form-taxable-profit").textContent = formatVND(form.taxable_income);
+            document.getElementById("form-cit-payable").textContent = formatVND(form.estimated_cit);
+        }
+    };
+
+    const recalculateVietnamTax = () => {
+        const payload = {
+            vas_profit_before_tax: parseFloat(document.getElementById("input-vas-profit").value || 0),
+            total_interest_expense: parseFloat(document.getElementById("input-interest-expense").value || 0),
+            ebitda: parseFloat(document.getElementById("input-ebitda").value || 0),
+            year: 2026
+        };
+        fetch('/api/v43/compliance/reconcile-ifrs-vas', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === "success") {
+                renderVietnamReconciliation(data.reconciliation);
+            }
+        })
+        .catch(err => console.error("Error recalculating Vietnam Tax reconciliation:", err));
+    };
+
+    document.getElementById("input-vas-profit").addEventListener("change", recalculateVietnamTax);
+    document.getElementById("input-interest-expense").addEventListener("change", recalculateVietnamTax);
+    document.getElementById("input-ebitda").addEventListener("change", recalculateVietnamTax);
 
     // Initial Bootstrap
     updateControls();
