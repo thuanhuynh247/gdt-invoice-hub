@@ -1,0 +1,621 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Header -->
+    <div class="col-12">
+        <div class="hero-panel mb-2">
+            <span class="eyebrow"><i class="bi bi-diagram-3-fill me-1 text-primary-accent" aria-hidden="true"></i> Compliance Architecture</span>
+            <h1 class="page-title mt-2">Compliance Concept Map Explorer</h1>
+            <p class="page-subtitle mb-0">Bản đồ khái niệm tương tác kết hợp phân tích các luật thuế và quy định tuân thủ từ v24 đến v70.</p>
+        </div>
+    </div>
+
+    <!-- Controls & Sidebar -->
+    <div class="col-xl-4 col-lg-5">
+        <!-- Search & Filter Card -->
+        <div class="glass-card mb-4">
+            <h5 class="fw-bold text-gradient-primary mb-3"><i class="bi bi-sliders me-2" aria-hidden="true"></i>Bộ Lọc Bản Đồ</h5>
+            <div class="mb-3">
+                <label for="searchNode" class="form-label small text-secondary">Tìm kiếm Phân hệ / Luật</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-search" aria-hidden="true"></i></span>
+                    <input type="text" id="searchNode" class="form-control custom-input" placeholder="e.g. EP Tax, VAT..." autocomplete="off">
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label small text-secondary d-block">Phân nhóm Thuế</label>
+                <div class="d-flex flex-wrap gap-2" id="groupFilters">
+                    <button class="btn btn-xs btn-outline-secondary active btn-pill" data-group="all">Tất cả</button>
+                    <button class="btn btn-xs btn-outline-secondary btn-pill" data-group="vat">VAT / GTGT</button>
+                    <button class="btn btn-xs btn-outline-secondary btn-pill" data-group="income">CIT/PIT (Thu nhập)</button>
+                    <button class="btn btn-xs btn-outline-secondary btn-pill" data-group="environmental">Môi trường</button>
+                    <button class="btn btn-xs btn-outline-secondary btn-pill" data-group="fee">Phí & Lệ phí</button>
+                    <button class="btn btn-xs btn-outline-secondary btn-pill" data-group="special">Chuyên biệt</button>
+                </div>
+            </div>
+
+            <div class="mb-0">
+                <label class="form-label small text-secondary d-block">Mức độ Rủi ro</label>
+                <div class="d-flex flex-wrap gap-2" id="riskFilters">
+                    <button class="btn btn-xs btn-outline-secondary active btn-pill" data-risk="all">Tất cả</button>
+                    <button class="btn btn-xs btn-outline-danger btn-pill" data-risk="high"><span class="badge bg-danger-glow me-1"></span>Cao</button>
+                    <button class="btn btn-xs btn-outline-warning btn-pill" data-risk="medium"><span class="badge bg-warning-glow me-1"></span>Trung bình</button>
+                    <button class="btn btn-xs btn-outline-info btn-pill" data-risk="low"><span class="badge bg-info-glow me-1"></span>Thấp</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Node Details Bento Box -->
+        <div class="glass-card" id="detailCard">
+            <div class="text-center py-5 text-secondary" id="noNodeSelected">
+                <i class="bi bi-info-circle fs-2 d-block mb-3 text-secondary-accent" aria-hidden="true"></i>
+                <p class="mb-0">Click vào một node luật thuế trên bản đồ để xem thông tin chi tiết, liên kết và chuyển đổi giao diện.</p>
+            </div>
+            <div id="nodeSelectedContent" style="display: none;">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <span id="nodeGroupBadge" class="badge bg-secondary mb-2">Group</span>
+                        <h4 id="nodeTitle" class="fw-bold mb-1 text-light">Title</h4>
+                        <span id="nodeId" class="badge bg-dark text-secondary border border-secondary font-monospace">vXX</span>
+                    </div>
+                    <span id="nodeRiskBadge" class="badge">Risk</span>
+                </div>
+
+                <div class="mb-3 pt-3 border-top border-secondary border-opacity-10">
+                    <h6 class="small text-secondary fw-bold uppercase tracking-wider mb-2">Mô tả quy định</h6>
+                    <p id="nodeDescription" class="small text-light mb-0">Mô tả luật thuế...</p>
+                </div>
+
+                <div class="mb-3 pt-3 border-top border-secondary border-opacity-10">
+                    <h6 class="small text-secondary fw-bold uppercase tracking-wider mb-2">Mối quan hệ định tuyến</h6>
+                    <div id="nodeRelations" class="d-flex flex-column gap-2">
+                        <!-- Dynamic relations go here -->
+                    </div>
+                </div>
+
+                <div class="pt-3 border-top border-secondary border-opacity-10 d-flex justify-content-between align-items-center">
+                    <span class="small text-success fw-bold"><i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i>Trạng thái: Hoạt động</span>
+                    <a id="nodeActionUrl" href="#" class="btn btn-sm btn-primary-accent"><i class="bi bi-box-arrow-up-right me-1" aria-hidden="true"></i> Vào Phân Hệ</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Concept Map Visualization Area -->
+    <div class="col-xl-8 col-lg-7">
+        <div class="glass-card p-0 overflow-hidden position-relative border-accent" style="height: 650px;">
+            <!-- Canvas HUD -->
+            <div class="position-absolute top-0 start-0 p-3 z-3 d-flex gap-2 align-items-center bg-dark bg-opacity-75 rounded-bottom-end border-bottom border-end border-secondary border-opacity-25">
+                <span class="badge bg-dark border border-secondary text-light font-monospace small"><i class="bi bi-radar me-1" aria-hidden="true"></i>Radar Radar Layout</span>
+                <span class="text-secondary small">|</span>
+                <button class="btn btn-xs btn-outline-secondary" onclick="resetZoom()"><i class="bi bi-arrows-fullscreen me-1" aria-hidden="true"></i> Reset View</button>
+            </div>
+            
+            <div class="position-absolute bottom-0 end-0 p-3 z-3 bg-dark bg-opacity-75 rounded-top-start border-top border-start border-secondary border-opacity-25">
+                <div class="d-flex align-items-center gap-3 small text-secondary">
+                    <div><span class="badge bg-danger-glow me-1"></span>Rủi ro Cao</div>
+                    <div><span class="badge bg-warning-glow me-1"></span>Rủi ro Vừa</div>
+                    <div><span class="badge bg-info-glow me-1"></span>Rủi ro Thấp</div>
+                </div>
+            </div>
+
+            <!-- Loading Spinner -->
+            <div id="graphLoader" class="position-absolute top-50 start-50 translate-middle z-3 text-center">
+                <div class="spinner-border text-primary-accent mb-2" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="text-secondary small">Vẽ bản đồ khái niệm tuân thủ...</p>
+            </div>
+
+            <!-- SVG Graph Container -->
+            <svg id="conceptMapSvg" width="100%" height="100%" class="cursor-grab" style="background-color: #0c0f0e;">
+                <defs>
+                    <!-- Link arrows -->
+                    <marker id="arrow-dependency" viewBox="0 0 10 10" refX="28" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#0d6efd" />
+                    </marker>
+                    <marker id="arrow-subset" viewBox="0 0 10 10" refX="28" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#198754" />
+                    </marker>
+                    <!-- Glowing filters -->
+                    <filter id="glow-high" x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur stdDeviation="8" result="blur" />
+                        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                    </filter>
+                </defs>
+                <!-- Zoomable Content Group -->
+                <g id="viewportGroup">
+                    <!-- Target Rings (Concentric background circles) -->
+                    <circle cx="500" cy="325" r="80" class="radar-ring" />
+                    <circle cx="500" cy="325" r="180" class="radar-ring" />
+                    <circle cx="500" cy="325" r="280" class="radar-ring" />
+                    <circle cx="500" cy="325" r="380" class="radar-ring" />
+                    
+                    <!-- Inner Ring labels -->
+                    <text x="500" y="235" class="radar-ring-label">Core Engine</text>
+                    <text x="500" y="135" class="radar-ring-label">Direct VAT Hubs</text>
+                    <text x="500" y="35" class="radar-ring-label">Special Tax Regulations</text>
+
+                    <!-- Edges / Links -->
+                    <g id="linksGroup"></g>
+                    <!-- Nodes -->
+                    <g id="nodesGroup"></g>
+                </g>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Custom Interactive Concept Map Styling */
+.radar-ring {
+    fill: none;
+    stroke: rgba(20, 42, 20, 0.25);
+    stroke-width: 1px;
+    stroke-dasharray: 4, 8;
+}
+.radar-ring-label {
+    fill: rgba(255, 255, 255, 0.2);
+    font-size: 0.72rem;
+    font-family: 'Outfit', sans-serif;
+    text-anchor: middle;
+    font-weight: 500;
+}
+.cursor-grab {
+    cursor: grab;
+}
+.cursor-grabbing {
+    cursor: grabbing;
+}
+.map-link {
+    stroke-opacity: 0.4;
+    stroke-width: 1.5px;
+    transition: all 0.3s ease;
+}
+.map-link.dependency {
+    stroke: #0d6efd;
+    stroke-dasharray: 2, 4;
+}
+.map-link.subset {
+    stroke: #198754;
+}
+.map-link.highlighted {
+    stroke-opacity: 1;
+    stroke-width: 3px;
+    animation: dash 30s linear infinite;
+}
+@keyframes dash {
+    to {
+        stroke-dashoffset: -1000;
+    }
+}
+.map-node {
+    cursor: pointer;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.map-node circle {
+    stroke-width: 2px;
+    transition: all 0.3s ease;
+}
+.map-node.high circle {
+    fill: #dc3545;
+    stroke: rgba(220, 53, 69, 0.6);
+}
+.map-node.medium circle {
+    fill: #ffc107;
+    stroke: rgba(255, 193, 7, 0.6);
+}
+.map-node.low circle {
+    fill: #0dcaf0;
+    stroke: rgba(13, 202, 240, 0.6);
+}
+.map-node:hover {
+    transform: scale(1.25);
+}
+.map-node.selected circle {
+    stroke: #ffffff !important;
+    stroke-width: 3px !important;
+    box-shadow: 0 0 15px rgba(255,255,255,0.8);
+}
+.map-node text {
+    fill: #ffffff;
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    text-anchor: middle;
+    pointer-events: none;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+}
+.map-node.dimmed, .map-link.dimmed {
+    opacity: 0.15;
+}
+.bg-danger-glow {
+    background-color: #dc3545;
+    box-shadow: 0 0 8px #dc3545;
+}
+.bg-warning-glow {
+    background-color: #ffc107;
+    box-shadow: 0 0 8px #ffc107;
+}
+.bg-info-glow {
+    background-color: #0dcaf0;
+    box-shadow: 0 0 8px #0dcaf0;
+}
+.btn-xs {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    line-height: 1.2;
+}
+</style>
+
+<script>
+let nodesData = [];
+let linksData = [];
+let zoomScale = 1;
+let zoomTx = 0;
+let zoomTy = 0;
+let isDragging = false;
+let startX, startY;
+let selectedNodeId = null;
+
+document.addEventListener("DOMContentLoaded", () => {
+    loadConceptMapData();
+    setupPanAndZoom();
+    setupFilters();
+});
+
+function loadConceptMapData() {
+    fetch('/api/compliance/concept-map')
+        .then(res => res.json())
+        .then(data => {
+            nodesData = data.nodes;
+            linksData = data.links;
+            
+            // Assign coordinate offsets based on concentric radar layout
+            calculateNodeCoordinates();
+            
+            // Render
+            document.getElementById("graphLoader").style.display = "none";
+            renderGraph();
+        })
+        .catch(err => {
+            console.error("Error loading concept map metadata:", err);
+            document.getElementById("graphLoader").innerHTML = '<p class="text-danger small"><i class="bi bi-x-circle me-1"></i>Không thể tải dữ liệu bản đồ.</p>';
+        });
+}
+
+function calculateNodeCoordinates() {
+    // Rings configuration
+    const centerX = 500;
+    const centerY = 325;
+    
+    // Group categories map to specific concentric rings to ensure tidy structure
+    const ringConfig = {
+        "core": { radius: 80, color: '#0d6efd' },
+        "vat": { radius: 180, color: '#ffc107' },
+        "income": { radius: 260, color: '#198754' },
+        "special": { radius: 340, color: '#6f42c1' },
+        "environmental": { radius: 340, color: '#20c997' },
+        "fee": { radius: 380, color: '#fd7e14' }
+    };
+    
+    // Distribute nodes along angles of their designated ring radius
+    const groupCounts = {};
+    nodesData.forEach(node => {
+        const group = node.group || "core";
+        groupCounts[group] = (groupCounts[group] || 0) + 1;
+    });
+    
+    const groupIndices = {};
+    nodesData.forEach(node => {
+        const group = node.group || "core";
+        if (!groupIndices[group]) groupIndices[group] = 0;
+        
+        const count = groupCounts[group];
+        const index = groupIndices[group]++;
+        
+        // Spread evenly along the circle circumference
+        const angle = (index / count) * 2 * Math.PI + (group === "environmental" ? 0.5 : 0);
+        const config = ringConfig[group] || ringConfig.core;
+        
+        node.x = centerX + config.radius * Math.cos(angle);
+        node.y = centerY + config.radius * Math.sin(angle);
+    });
+}
+
+function renderGraph() {
+    const nodesGroup = document.getElementById("nodesGroup");
+    const linksGroup = document.getElementById("linksGroup");
+    
+    nodesGroup.innerHTML = "";
+    linksGroup.innerHTML = "";
+    
+    // Draw links
+    linksData.forEach(link => {
+        const sourceNode = nodesData.find(n => n.id === link.source);
+        const targetNode = nodesData.find(n => n.id === link.target);
+        
+        if (sourceNode && targetNode) {
+            const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            line.setAttribute("x1", sourceNode.x);
+            line.setAttribute("y1", sourceNode.y);
+            line.setAttribute("x2", targetNode.x);
+            line.setAttribute("y2", targetNode.y);
+            line.setAttribute("class", `map-link ${link.type}`);
+            line.setAttribute("id", `link-${link.source}-${link.target}`);
+            
+            // Add custom markers for direct arrow indicators
+            line.setAttribute("marker-end", `url(#arrow-${link.type})`);
+            
+            linksGroup.appendChild(line);
+        }
+    });
+    
+    // Draw nodes
+    nodesData.forEach(node => {
+        const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        g.setAttribute("class", `map-node ${node.risk}`);
+        g.setAttribute("id", `node-${node.id}`);
+        g.setAttribute("transform", `translate(${node.x}, ${node.y})`);
+        
+        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle.setAttribute("r", "16");
+        
+        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        text.setAttribute("y", "4");
+        text.textContent = node.id.toUpperCase();
+        
+        g.appendChild(circle);
+        g.appendChild(text);
+        
+        // Handlers
+        g.addEventListener("click", (e) => {
+            e.stopPropagation();
+            selectNode(node);
+        });
+        
+        g.addEventListener("mouseenter", () => highlightConnections(node.id));
+        g.addEventListener("mouseleave", resetHighlights);
+        
+        nodesGroup.appendChild(g);
+    });
+}
+
+function highlightConnections(nodeId) {
+    // Dim all
+    nodesData.forEach(n => {
+        document.getElementById(`node-${n.id}`).classList.add("dimmed");
+    });
+    
+    const links = document.querySelectorAll(".map-link");
+    links.forEach(l => l.classList.add("dimmed"));
+    
+    // Undim active node
+    document.getElementById(`node-${nodeId}`).classList.remove("dimmed");
+    
+    // Undim target, source nodes and active lines
+    linksData.forEach(link => {
+        if (link.source === nodeId) {
+            document.getElementById(`node-${link.target}`).classList.remove("dimmed");
+            const line = document.getElementById(`link-${link.source}-${link.target}`);
+            if (line) {
+                line.classList.remove("dimmed");
+                line.classList.add("highlighted");
+            }
+        } else if (link.target === nodeId) {
+            document.getElementById(`node-${link.source}`).classList.remove("dimmed");
+            const line = document.getElementById(`link-${link.source}-${link.target}`);
+            if (line) {
+                line.classList.remove("dimmed");
+                line.classList.add("highlighted");
+            }
+        }
+    });
+}
+
+function resetHighlights() {
+    nodesData.forEach(n => {
+        document.getElementById(`node-${n.id}`).classList.remove("dimmed");
+    });
+    
+    const links = document.querySelectorAll(".map-link");
+    links.forEach(l => {
+        l.classList.remove("dimmed");
+        l.classList.remove("highlighted");
+    });
+}
+
+function selectNode(node) {
+    selectedNodeId = node.id;
+    
+    // Highlight node on canvas
+    document.querySelectorAll(".map-node").forEach(n => n.classList.remove("selected"));
+    document.getElementById(`node-${node.id}`).classList.add("selected");
+    
+    // Fill bento card details
+    document.getElementById("noNodeSelected").style.display = "none";
+    document.getElementById("nodeSelectedContent").style.display = "block";
+    
+    document.getElementById("nodeTitle").innerText = node.label;
+    document.getElementById("nodeId").innerText = node.id.toUpperCase();
+    document.getElementById("nodeGroupBadge").innerText = node.group.toUpperCase();
+    document.getElementById("nodeActionUrl").href = node.url;
+    
+    // Risk badge styling
+    const riskBadge = document.getElementById("nodeRiskBadge");
+    riskBadge.innerText = node.risk.toUpperCase() + " RISK";
+    riskBadge.className = "badge";
+    if (node.risk === "high") riskBadge.classList.add("bg-danger");
+    else if (node.risk === "medium") riskBadge.classList.add("bg-warning", "text-dark");
+    else riskBadge.classList.add("bg-info", "text-dark");
+    
+    // Set custom description based on version
+    let desc = `Quy định tuân thủ thuế thuộc phân hệ ${node.id.toUpperCase()}. `;
+    if (node.id === "v53") desc += "Hệ thống kiểm soát tuân thủ thuế bảo vệ môi trường, theo dõi khối lượng nhập khẩu/sản xuất xăng dầu, than đá, túi ni-lông và hóa chất chịu thuế để tính toán nghĩa vụ nộp thuế chính xác.";
+    else if (node.id === "v70") desc += "Phân hệ hạn ngạch chất làm suy giảm tầng ô-dôn (ODS) và quản lý phí cấp phép theo Nghị định 06/2022/NĐ-CP.";
+    else if (node.id === "v47") desc += "Trình quản lý các mức thuế suất giá trị gia tăng (VAT) đầu vào và đầu ra đảm bảo đối chiếu dữ liệu hóa đơn XML.";
+    else desc += `Bảo đảm kiểm toán tự động, liên kết dữ liệu dòng tiền và tối ưu tờ khai tự động của doanh nghiệp theo spec.`;
+    document.getElementById("nodeDescription").innerText = desc;
+    
+    // Populate relationships list
+    const relsDiv = document.getElementById("nodeRelations");
+    relsDiv.innerHTML = "";
+    
+    const outgoing = linksData.filter(l => l.source === node.id);
+    const incoming = linksData.filter(l => l.target === node.id);
+    
+    if (outgoing.length === 0 && incoming.length === 0) {
+        relsDiv.innerHTML = '<span class="text-secondary small">Không có mối quan hệ định tuyến trực tiếp.</span>';
+    } else {
+        outgoing.forEach(rel => {
+            const destNode = nodesData.find(n => n.id === rel.target);
+            const badge = document.createElement("div");
+            badge.className = "d-flex justify-content-between align-items-center bg-dark p-2 rounded border border-secondary border-opacity-10 small";
+            badge.innerHTML = `<span><i class="bi bi-arrow-right text-primary me-2"></i>Chi phối: <strong>${destNode ? destNode.label : rel.target}</strong></span> <span class="badge bg-secondary-subtle text-secondary">${rel.label}</span>`;
+            relsDiv.appendChild(badge);
+        });
+        incoming.forEach(rel => {
+            const srcNode = nodesData.find(n => n.id === rel.source);
+            const badge = document.createElement("div");
+            badge.className = "d-flex justify-content-between align-items-center bg-dark p-2 rounded border border-secondary border-opacity-10 small";
+            badge.innerHTML = `<span><i class="bi bi-arrow-left text-success me-2"></i>Kế thừa: <strong>${srcNode ? srcNode.label : rel.source}</strong></span> <span class="badge bg-secondary-subtle text-secondary">${rel.label}</span>`;
+            relsDiv.appendChild(badge);
+        });
+    }
+}
+
+function setupPanAndZoom() {
+    const svg = document.getElementById("conceptMapSvg");
+    const viewport = document.getElementById("viewportGroup");
+    
+    // Drag to Pan
+    svg.addEventListener("mousedown", (e) => {
+        isDragging = true;
+        svg.classList.remove("cursor-grab");
+        svg.classList.add("cursor-grabbing");
+        startX = e.clientX - zoomTx;
+        startY = e.clientY - zoomTy;
+    });
+    
+    window.addEventListener("mouseup", () => {
+        if (isDragging) {
+            isDragging = false;
+            svg.classList.remove("cursor-grabbing");
+            svg.classList.add("cursor-grab");
+        }
+    });
+    
+    svg.addEventListener("mousemove", (e) => {
+        if (isDragging) {
+            zoomTx = e.clientX - startX;
+            zoomTy = e.clientY - startY;
+            updateTransform();
+        }
+    });
+    
+    // Scroll to Zoom
+    svg.addEventListener("wheel", (e) => {
+        e.preventDefault();
+        const zoomFactor = 1.1;
+        if (e.deltaY < 0) {
+            zoomScale *= zoomFactor;
+        } else {
+            zoomScale /= zoomFactor;
+        }
+        // Limit zoom scale range
+        zoomScale = Math.max(0.4, Math.min(3, zoomScale));
+        updateTransform();
+    });
+    
+    // Clear selection on background click
+    svg.addEventListener("click", () => {
+        selectedNodeId = null;
+        document.querySelectorAll(".map-node").forEach(n => n.classList.remove("selected"));
+        document.getElementById("noNodeSelected").style.display = "block";
+        document.getElementById("nodeSelectedContent").style.display = "none";
+    });
+}
+
+function updateTransform() {
+    const viewport = document.getElementById("viewportGroup");
+    viewport.setAttribute("transform", `translate(${zoomTx}, ${zoomTy}) scale(${zoomScale})`);
+}
+
+function resetZoom() {
+    zoomScale = 1;
+    zoomTx = 0;
+    zoomTy = 0;
+    updateTransform();
+}
+
+function setupFilters() {
+    // Group search field
+    document.getElementById("searchNode").addEventListener("input", (e) => {
+        const query = e.target.value.toLowerCase().trim();
+        nodesData.forEach(node => {
+            const el = document.getElementById(`node-${node.id}`);
+            const matches = node.label.toLowerCase().includes(query) || node.id.includes(query);
+            if (matches) {
+                el.classList.remove("dimmed");
+            } else {
+                el.classList.add("dimmed");
+            }
+        });
+        if (!query) resetHighlights();
+    });
+
+    // Group filter pills
+    document.getElementById("groupFilters").addEventListener("click", (e) => {
+        const target = e.target;
+        if (!target.classList.contains("btn")) return;
+        
+        document.querySelectorAll("#groupFilters .btn").forEach(b => b.classList.remove("active"));
+        target.classList.add("active");
+        
+        const group = target.getAttribute("data-group");
+        nodesData.forEach(node => {
+            const el = document.getElementById(`node-${node.id}`);
+            if (group === "all" || node.group === group) {
+                el.style.display = "block";
+            } else {
+                el.style.display = "none";
+            }
+        });
+        
+        // Update connections lines visibility
+        linksData.forEach(link => {
+            const line = document.getElementById(`link-${link.source}-${link.target}`);
+            if (!line) return;
+            const src = nodesData.find(n => n.id === link.source);
+            const dst = nodesData.find(n => n.id === link.target);
+            if (group === "all" || (src && src.group === group) || (dst && dst.group === group)) {
+                line.style.display = "block";
+            } else {
+                line.style.display = "none";
+            }
+        });
+    });
+
+    // Risk filter pills
+    document.getElementById("riskFilters").addEventListener("click", (e) => {
+        const target = e.target.closest(".btn");
+        if (!target) return;
+        
+        document.querySelectorAll("#riskFilters .btn").forEach(b => b.classList.remove("active"));
+        target.classList.add("active");
+        
+        const risk = target.getAttribute("data-risk");
+        nodesData.forEach(node => {
+            const el = document.getElementById(`node-${node.id}`);
+            if (risk === "all" || node.risk === risk) {
+                el.style.display = "block";
+            } else {
+                el.style.display = "none";
+            }
+        });
+    });
+}
+</script>
+{% endblock %}

@@ -62,6 +62,77 @@ def tax_bctc_page():
         return redirect(url_for("auth.login_page"))
     return render_template("tax_bctc.html")
 
+@invoices_blueprint.get("/compliance-concept-map")
+def compliance_concept_map_page():
+    """Render the Compliance Concept Map Explorer page."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("compliance_concept_map.html")
+
+@invoices_blueprint.get("/api/compliance/concept-map")
+def api_compliance_concept_map():
+    """Return JSON configuration for compliance concept map nodes and edges."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+        
+    # Return structured compliance nodes and relations
+    nodes = [
+        {"id": "v26", "label": "CIT Compliance (v26)", "group": "income", "risk": "high", "url": "/v26-compliance", "status": "active"},
+        {"id": "v27", "label": "E-Invoice Format (v27)", "group": "vat", "risk": "high", "url": "/v27-compliance", "status": "active"},
+        {"id": "v28", "label": "Import-Export VAT (v28)", "group": "vat", "risk": "medium", "url": "/v28-compliance", "status": "active"},
+        {"id": "v29", "label": "Contractor Tax (v29)", "group": "income", "risk": "medium", "url": "/v29-compliance", "status": "active"},
+        {"id": "v30", "label": "Household Tax (v30)", "group": "income", "risk": "low", "url": "/v30-compliance", "status": "active"},
+        {"id": "v31", "label": "Environmental Tax (v31)", "group": "environmental", "risk": "medium", "url": "/v31-compliance", "status": "active"},
+        {"id": "v44", "label": "Compliance Hub (v44)", "group": "core", "risk": "low", "url": "/v44-compliance-hub", "status": "active"},
+        {"id": "v45", "label": "CIT & TP Hub (v45)", "group": "income", "risk": "high", "url": "/v45-compliance-hub", "status": "active"},
+        {"id": "v46", "label": "Error & Conversion (v46)", "group": "core", "risk": "medium", "url": "/v46-compliance-hub", "status": "active"},
+        {"id": "v47", "label": "VAT Rate Hub (v47)", "group": "vat", "risk": "high", "url": "/v47-compliance-hub", "status": "active"},
+        {"id": "v48", "label": "Agricultural Hub (v48)", "group": "vat", "risk": "medium", "url": "/v48-compliance-hub", "status": "active"},
+        {"id": "v49", "label": "CIT Law 67 Hub (v49)", "group": "income", "risk": "medium", "url": "/v49-compliance-hub", "status": "active"},
+        {"id": "v50", "label": "PIT Law 109 Hub (v50)", "group": "income", "risk": "medium", "url": "/v50-compliance-hub", "status": "active"},
+        {"id": "v51", "label": "Admin Law 108 Hub (v51)", "group": "core", "risk": "low", "url": "/v51-compliance-hub", "status": "active"},
+        {"id": "v52", "label": "SCT Law 66 Hub (v52)", "group": "special", "risk": "high", "url": "/v52-compliance-hub", "status": "active"},
+        {"id": "v53", "label": "EP Tax Hub (v53)", "group": "environmental", "risk": "high", "url": "/v53-compliance-hub", "status": "active"},
+        {"id": "v54", "label": "NRT Hub (v54)", "group": "special", "risk": "medium", "url": "/v54-compliance-hub", "status": "active"},
+        {"id": "v55", "label": "IET Hub (v55)", "group": "special", "risk": "medium", "url": "/v55-compliance-hub", "status": "active"},
+        {"id": "v56", "label": "License Fee Hub (v56)", "group": "fee", "risk": "low", "url": "/v56-compliance-hub", "status": "active"},
+        {"id": "v57", "label": "Registration Fee Hub (v57)", "group": "fee", "risk": "low", "url": "/v57-compliance-hub", "status": "active"},
+        {"id": "v58", "label": "NR Tax Hub (v58)", "group": "special", "risk": "medium", "url": "/v58-compliance-hub", "status": "active"},
+        {"id": "v59", "label": "NALUT Hub (v59)", "group": "fee", "risk": "medium", "url": "/v59-compliance-hub", "status": "active"},
+        {"id": "v60", "label": "ALUT Hub (v60)", "group": "fee", "risk": "medium", "url": "/v60-compliance-hub", "status": "active"},
+        {"id": "v61", "label": "EP Wastewater Hub (v61)", "group": "environmental", "risk": "medium", "url": "/v61-compliance-hub", "status": "active"},
+        {"id": "v62", "label": "EP Emissions Hub (v62)", "group": "environmental", "risk": "medium", "url": "/v62-compliance-hub", "status": "active"},
+        {"id": "v63", "label": "EP Mineral Hub (v63)", "group": "environmental", "risk": "medium", "url": "/v63-compliance-hub", "status": "active"},
+        {"id": "v64", "label": "EP Solid Waste Hub (v64)", "group": "environmental", "risk": "medium", "url": "/v64-compliance-hub", "status": "active"},
+        {"id": "v65", "label": "EPR Recycling Hub (v65)", "group": "environmental", "risk": "medium", "url": "/v65-compliance-hub", "status": "active"},
+        {"id": "v66", "label": "GHG Emissions Hub (v66)", "group": "environmental", "risk": "high", "url": "/v66-compliance-hub", "status": "active"},
+        {"id": "v67", "label": "Scrap Import Deposit (v67)", "group": "environmental", "risk": "medium", "url": "/v67-compliance-hub", "status": "active"},
+        {"id": "v68", "label": "Biodiversity Hub (v68)", "group": "environmental", "risk": "low", "url": "/v68-compliance-hub", "status": "active"},
+        {"id": "v69", "label": "Oil Spill Hub (v69)", "group": "environmental", "risk": "high", "url": "/v69-compliance-hub", "status": "active"},
+        {"id": "v70", "label": "ODS Quota Hub (v70)", "group": "environmental", "risk": "medium", "url": "/v70-compliance-hub", "status": "active"},
+    ]
+    
+    links = [
+        {"source": "v47", "target": "v28", "type": "dependency", "label": "VAT Baseline"},
+        {"source": "v47", "target": "v41", "type": "dependency", "label": "Export Eligibility"},
+        {"source": "v26", "target": "v45", "type": "dependency", "label": "CIT Base"},
+        {"source": "v45", "target": "v49", "type": "dependency", "label": "Transfer Pricing Limit"},
+        {"source": "v53", "target": "v31", "type": "dependency", "label": "EP Tax Baseline"},
+        {"source": "v53", "target": "v61", "type": "subset", "label": "Wastewater Regulation"},
+        {"source": "v53", "target": "v62", "type": "subset", "label": "Emissions Regulation"},
+        {"source": "v53", "target": "v63", "type": "subset", "label": "Mineral Exploitation"},
+        {"source": "v53", "target": "v64", "type": "subset", "label": "Solid Waste Management"},
+        {"source": "v53", "target": "v65", "type": "subset", "label": "Recycling Obligation"},
+        {"source": "v53", "target": "v66", "type": "subset", "label": "GHG Inventory"},
+        {"source": "v53", "target": "v67", "type": "subset", "label": "Scrap Import Security"},
+        {"source": "v53", "target": "v68", "type": "subset", "label": "Biodiversity Conservation"},
+        {"source": "v53", "target": "v69", "type": "subset", "label": "Oil Spill Response"},
+        {"source": "v53", "target": "v70", "type": "subset", "label": "ODS Quotas Control"},
+    ]
+    
+    return jsonify({"nodes": nodes, "links": links})
+
 @invoices_blueprint.get("/api/config")
 def api_config():
     """Return small frontend configuration flags."""
