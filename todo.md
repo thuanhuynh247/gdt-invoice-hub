@@ -225,5 +225,15 @@ Kế hoạch này theo sát tài liệu **Next-Gen Roadmap** và cấu trúc l�
 - [x] **Task 123 (US-692)**: Interactive Version 57 Compliance Hub UI and API.
 - [x] **Task 124 (US-693)**: End-to-End V57 Verification Test Suite.
 
+### 🚀 Giai Đoạn 30: Environmental Surcharges & Packaging Levies Compliance Engines (v71.0.0 - v75.0.0 Roadmap)
+- [x] **Task 125 (US-710)**: E-Waste & Electronics Disposal EPR Surcharge calculation engines and exemptions (Decree 08/2022/NĐ-CP).
+- [x] **Task 126 (US-720)**: Industrial Wastewater Surcharge based on pollutant load (COD/TSS/heavy metals) & flow thresholds (Decree 53/2020/NĐ-CP).
+- [x] **Task 127 (US-730)**: Hazardous Waste Management & Disposal Licensing surcharge engine & research exemptions (Decree 08/2022/NĐ-CP).
+- [x] **Task 128 (US-740)**: Noise & Vibration Pollution dBA/vibration exceedance surcharge engine & public works/festival exemptions (Law on EP 2020).
+- [x] **Task 129 (US-750)**: Single-Use Plastics & Ocean Pollution Levy calculation engine & biodegradable certification exemptions.
+- [x] **Task 130 (US-760)**: Interactive V71-V75 Compliance Hub UIs & APIs.
+- [x] **Task 131 (US-761)**: End-to-End V71-V75 Verification Test Suites.
+
+
 
 

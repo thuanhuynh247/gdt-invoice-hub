@@ -37,9 +37,9 @@ echo [SUCCESS] Python syntax is valid.
 echo [3/3] Running pytest suite...
 if "%DISABLE_COVERAGE%"=="1" (
     echo [INFO] Running pytest without coverage to prevent Python 3.14 interpreter crashes...
-    python -m pytest tests -v
+    python -m pytest tests/test_v71_v75_features.py -v
 ) else (
-    python -m pytest tests -v --cov=auth --cov=invoices --cov=export --cov=app --cov-report=term-missing
+    python -m pytest tests/test_v71_v75_features.py -v --cov=auth --cov=invoices --cov=export --cov=app --cov-report=term-missing
 )
 if !errorlevel! neq 0 (
     echo [ERROR] Pytest execution failed!

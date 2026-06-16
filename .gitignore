@@ -55,3 +55,6 @@ scratch/
 gdt-invoice-hub/
 open-design/
 
+# Local databases and temp files
+harness_temp.db
+tests/tenant_*.db

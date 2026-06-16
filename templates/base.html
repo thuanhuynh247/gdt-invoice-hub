@@ -102,9 +102,9 @@
                         </ul>
                     </li>
 
-                    <!-- Advanced Modules Dropdown (v41-v56) -->
+                    <!-- Advanced Modules Dropdown (v41-v75) -->
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle {% if request.path in ['/v41-export-refund','/v42-advanced-audit','/v43-ifrs-dashboard','/v44-compliance-hub','/v45-compliance-hub','/v46-compliance-hub','/v47-compliance-hub','/v48-compliance-hub','/v49-compliance-hub','/v50-compliance-hub','/v51-compliance-hub','/v52-compliance-hub','/v53-compliance-hub','/v54-compliance-hub','/v55-compliance-hub','/v56-compliance-hub','/v57-compliance-hub','/v58-compliance-hub','/v59-compliance-hub','/v60-compliance-hub','/v61-compliance-hub','/v62-compliance-hub','/v63-compliance-hub','/v64-compliance-hub','/v65-compliance-hub','/v66-compliance-hub','/v67-compliance-hub','/v68-compliance-hub','/v69-compliance-hub','/v70-compliance-hub'] %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <a class="nav-link dropdown-toggle {% if request.path in ['/v41-export-refund','/v42-advanced-audit','/v43-ifrs-dashboard','/v44-compliance-hub','/v45-compliance-hub','/v46-compliance-hub','/v47-compliance-hub','/v48-compliance-hub','/v49-compliance-hub','/v50-compliance-hub','/v51-compliance-hub','/v52-compliance-hub','/v53-compliance-hub','/v54-compliance-hub','/v55-compliance-hub','/v56-compliance-hub','/v57-compliance-hub','/v58-compliance-hub','/v59-compliance-hub','/v60-compliance-hub','/v61-compliance-hub','/v62-compliance-hub','/v63-compliance-hub','/v64-compliance-hub','/v65-compliance-hub','/v66-compliance-hub','/v67-compliance-hub','/v68-compliance-hub','/v69-compliance-hub','/v70-compliance-hub','/v71-compliance-hub','/v72-compliance-hub','/v73-compliance-hub','/v74-compliance-hub','/v75-compliance-hub'] %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-stars" aria-hidden="true"></i> Nâng cao
                         </a>
                         <ul class="dropdown-menu dropdown-menu-premium">
@@ -141,6 +141,11 @@
                             <li><a class="dropdown-item {% if request.path == '/v68-compliance-hub' %}active{% endif %}" href="{{ url_for('invoices.v68_compliance_hub_page') }}"><i class="bi bi-flower2 text-success me-2" aria-hidden="true"></i>Biodiversity Hub v68</a></li>
                             <li><a class="dropdown-item {% if request.path == '/v69-compliance-hub' %}active{% endif %}" href="{{ url_for('invoices.v69_compliance_hub_page') }}"><i class="bi bi-droplet-half text-danger me-2" aria-hidden="true"></i>Oil Spill Hub v69</a></li>
                             <li><a class="dropdown-item {% if request.path == '/v70-compliance-hub' %}active{% endif %}" href="{{ url_for('invoices.v70_compliance_hub_page') }}"><i class="bi bi-shield-slash text-info me-2" aria-hidden="true"></i>ODS Quota Hub v70</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/v71-compliance-hub' %}active{% endif %}" href="{{ url_for('invoices.v71_compliance_hub_page') }}"><i class="bi bi-recycle text-success me-2" aria-hidden="true"></i>E-Waste EPR Hub v71</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/v72-compliance-hub' %}active{% endif %}" href="{{ url_for('invoices.v72_compliance_hub_page') }}"><i class="bi bi-droplet-half text-success me-2" aria-hidden="true"></i>Wastewater Hub v72</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/v73-compliance-hub' %}active{% endif %}" href="{{ url_for('invoices.v73_compliance_hub_page') }}"><i class="bi bi-trash-fill text-success me-2" aria-hidden="true"></i>Hazardous Waste v73</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/v74-compliance-hub' %}active{% endif %}" href="{{ url_for('invoices.v74_compliance_hub_page') }}"><i class="bi bi-volume-up text-success me-2" aria-hidden="true"></i>Noise & Vib Hub v74</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/v75-compliance-hub' %}active{% endif %}" href="{{ url_for('invoices.v75_compliance_hub_page') }}"><i class="bi bi-recycle text-success me-2" aria-hidden="true"></i>Plastics Levy v75</a></li>
                         </ul>
                     </li>
 

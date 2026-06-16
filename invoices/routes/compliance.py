@@ -3476,3 +3476,327 @@ def api_v70_compliance_data():
         "consensus_summary": consensus_summary,
         "history": service.get_history(mst, 20)
     })
+
+# --- VERSION 71 ROUTES ---
+@invoices_blueprint.get("/v71-compliance-hub")
+def v71_compliance_hub_page():
+    """Render the Version 71 E-Waste EPR compliance hub."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("v71_compliance_hub.html")
+
+@invoices_blueprint.post("/api/v71/calculate")
+def api_v71_calculate():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v71_service import V71ComplianceService
+    try:
+        service = V71ComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.calculate_epr(
+            mst,
+            data.get("product_category", "laptop"),
+            float(data.get("quantity", 0.0)),
+            bool(data.get("is_export", False)),
+            float(data.get("preceding_year_revenue", 0.0)),
+            float(data.get("preceding_year_import_value", 0.0))
+        )
+        return jsonify({"status": "success", "results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+@invoices_blueprint.get("/api/v71/compliance-data")
+def api_v71_compliance_data():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v71_service import V71ComplianceService
+    service = V71ComplianceService(current_app.config["BASE_DATA_DIR"])
+
+    laptop_standard = service.calculate_epr(mst, "laptop", 500.0)
+    battery_standard = service.calculate_epr(mst, "battery", 1200.0)
+    export_exempt = service.calculate_epr(mst, "solar_panel", 1500.0, is_export=True)
+
+    debate_transcript = [
+        {"speaker": "E-Waste Recycling Inspector", "text": "Decree 08/2022/NĐ-CP mandates Extended Producer Responsibility (EPR) recycling charges on laptops (20k VND), TVs/monitors (30k VND), and phones (5k VND)."},
+        {"speaker": "Supply Chain Director", "text": "Products manufactured in Vietnam but designated exclusively for direct export are completely exempt from EPR recycling liabilities."},
+        {"speaker": "Customs Compliance Specialist", "text": "Small-scale importers with preceding year revenues under 30B VND or import value under 3B VND are exempt to support SME business viability."}
+    ]
+    consensus_summary = "E-Waste EPR Decree 08/2022/NĐ-CP Compliance Engine: Verified product-specific recycling fees, export exclusions, and small-scale importer exemptions."
+
+    return jsonify({
+        "status": "success",
+        "laptop_standard": laptop_standard,
+        "battery_standard": battery_standard,
+        "export_exempt": export_exempt,
+        "debate": debate_transcript,
+        "consensus_summary": consensus_summary,
+        "history": service.get_history(mst, 20)
+    })
+
+# --- VERSION 72 ROUTES ---
+@invoices_blueprint.get("/v72-compliance-hub")
+def v72_compliance_hub_page():
+    """Render the Version 72 Wastewater Surcharge compliance hub."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("v72_compliance_hub.html")
+
+@invoices_blueprint.post("/api/v72/calculate")
+def api_v72_calculate():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v72_service import V72ComplianceService
+    try:
+        service = V72ComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.calculate_surcharge(
+            mst,
+            float(data.get("volume_m3", 0.0)),
+            float(data.get("cod_mg_l", 0.0)),
+            float(data.get("tss_mg_l", 0.0)),
+            float(data.get("pb_mg_l", 0.0)),
+            float(data.get("hg_mg_l", 0.0)),
+            float(data.get("cd_mg_l", 0.0)),
+            bool(data.get("cooling_water", False)),
+            bool(data.get("municipal_treatment_inflow", False))
+        )
+        return jsonify({"status": "success", "results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+@invoices_blueprint.get("/api/v72/compliance-data")
+def api_v72_compliance_data():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v72_service import V72ComplianceService
+    service = V72ComplianceService(current_app.config["BASE_DATA_DIR"])
+
+    flat_rate_sample = service.calculate_surcharge(mst, 1000.0, 150.0, 80.0) # daily average = 11.1 m3/day (<20) -> flat 375,000 VND
+    load_rate_sample = service.calculate_surcharge(mst, 5000.0, 300.0, 150.0, pb_mg_l=0.2, cd_mg_l=0.1) # daily average = 55.5 m3/day -> load-based
+    cooling_exempt = service.calculate_surcharge(mst, 10000.0, 50.0, 20.0, cooling_water=True)
+
+    debate_transcript = [
+        {"speaker": "Wastewater Quality Inspector", "text": "Decree 53/2020/NĐ-CP levies industrial wastewater surcharges using a flat fee for volumes < 20 m3/day or load-based fees (COD, TSS, heavy metals) for larger flows."},
+        {"speaker": "Plant Operations Engineer", "text": "Industrial cooling water systems that loop without chemical contamination or contact with process lines are fully exempt from wastewater surcharges."},
+        {"speaker": "Central Sewer Authority", "text": "Discharges directed to municipal or industrial centralized wastewater treatment plants are not subject to direct environmental surcharges."}
+    ]
+    consensus_summary = "Wastewater Decree 53/2020/NĐ-CP Compliance Engine: Verified flat-rate quarterly calculations, load-based formulas, cooling water exclusions, and sewer connection exemptions."
+
+    return jsonify({
+        "status": "success",
+        "flat_rate_sample": flat_rate_sample,
+        "load_rate_sample": load_rate_sample,
+        "cooling_exempt": cooling_exempt,
+        "debate": debate_transcript,
+        "consensus_summary": consensus_summary,
+        "history": service.get_history(mst, 20)
+    })
+
+# --- VERSION 73 ROUTES ---
+@invoices_blueprint.get("/v73-compliance-hub")
+def v73_compliance_hub_page():
+    """Render the Version 73 Hazardous Waste compliance hub."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("v73_compliance_hub.html")
+
+@invoices_blueprint.post("/api/v73/calculate")
+def api_v73_calculate():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v73_service import V73ComplianceService
+    try:
+        service = V73ComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.calculate_hazardous_waste(
+            mst,
+            data.get("waste_category", "category_a"),
+            float(data.get("weight_kg", 0.0)),
+            bool(data.get("apply_license", False)),
+            float(data.get("annual_weight_kg", 0.0)),
+            bool(data.get("is_research_lab", False))
+        )
+        return jsonify({"status": "success", "results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+@invoices_blueprint.get("/api/v73/compliance-data")
+def api_v73_compliance_data():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v73_service import V73ComplianceService
+    service = V73ComplianceService(current_app.config["BASE_DATA_DIR"])
+
+    cat_a_sample = service.calculate_hazardous_waste(mst, "category_a", 450.0, apply_license=True)
+    cat_b_sample = service.calculate_hazardous_waste(mst, "category_b", 200.0, apply_license=True)
+    lab_exempt = service.calculate_hazardous_waste(mst, "category_b", 100.0, apply_license=True, is_research_lab=True)
+
+    debate_transcript = [
+        {"speaker": "Hazardous Waste Auditor", "text": "Decree 08/2022/NĐ-CP dictates licensing fees (5M VND) and distinct disposal surcharges for Category A (2,000 VND/kg) and Category B (5,000 VND/kg) wastes."},
+        {"speaker": "R&D Lab Manager", "text": "Waste generated inside certified academic research facilities is exempt from base licensing fees to encourage environmental innovation."},
+        {"speaker": "Small Workshop Owner", "text": "Facilities producing under 600 kg of hazardous waste annually are exempt from base hazardous waste licensing fees."}
+    ]
+    consensus_summary = "Hazardous Waste Decree 08/2022/NĐ-CP Compliance Engine: Verified category disposal rates, licensing application fees, small generator limits, and research laboratory exemptions."
+
+    return jsonify({
+        "status": "success",
+        "cat_a_sample": cat_a_sample,
+        "cat_b_sample": cat_b_sample,
+        "lab_exempt": lab_exempt,
+        "debate": debate_transcript,
+        "consensus_summary": consensus_summary,
+        "history": service.get_history(mst, 20)
+    })
+
+# --- VERSION 74 ROUTES ---
+@invoices_blueprint.get("/v74-compliance-hub")
+def v74_compliance_hub_page():
+    """Render the Version 74 Noise & Vibration compliance hub."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("v74_compliance_hub.html")
+
+@invoices_blueprint.post("/api/v74/calculate")
+def api_v74_calculate():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v74_service import V74ComplianceService
+    try:
+        service = V74ComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.calculate_surcharge(
+            mst,
+            float(data.get("noise_db", 0.0)),
+            float(data.get("vibration_m_s2", 0.0)),
+            data.get("shift", "day"),
+            bool(data.get("public_infrastructure", False)),
+            bool(data.get("emergency_relief", False)),
+            bool(data.get("traditional_festival", False))
+        )
+        return jsonify({"status": "success", "results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+@invoices_blueprint.get("/api/v74/compliance-data")
+def api_v74_compliance_data():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v74_service import V74ComplianceService
+    service = V74ComplianceService(current_app.config["BASE_DATA_DIR"])
+
+    day_surcharge = service.calculate_surcharge(mst, 75.0, 0.065, shift="day")
+    night_surcharge = service.calculate_surcharge(mst, 58.0, 0.045, shift="night")
+    festival_exempt = service.calculate_surcharge(mst, 85.0, 0.090, shift="night", traditional_festival=True)
+
+    debate_transcript = [
+        {"speaker": "Acoustic Monitoring Officer", "text": "Noise limits are 70 dBA (day) and 55 dBA (night). Excess levels trigger a 100k VND/dBA surcharge, while vibration over 0.055 m/s² costs 5M VND per 0.01 m/s² exceedance."},
+        {"speaker": "Shift Supervisor", "text": "Any exceedances occurring during the night shift (21:00 - 06:00) incur a 1.5x night-time multiplier due to residential community impact."},
+        {"speaker": "Civil Project Lead", "text": "Emergency relief operations, public infrastructure construction, and authorized traditional festivals are fully exempt from noise and vibration surcharges."}
+    ]
+    consensus_summary = "Noise & Vibration Compliance Engine: Verified day/night dBA limit thresholds, vibration scaling, 1.5x night multiplier, and public infrastructure/emergency/festival exemptions."
+
+    return jsonify({
+        "status": "success",
+        "day_surcharge": day_surcharge,
+        "night_surcharge": night_surcharge,
+        "festival_exempt": festival_exempt,
+        "debate": debate_transcript,
+        "consensus_summary": consensus_summary,
+        "history": service.get_history(mst, 20)
+    })
+
+# --- VERSION 75 ROUTES ---
+@invoices_blueprint.get("/v75-compliance-hub")
+def v75_compliance_hub_page():
+    """Render the Version 75 Plastics Levy compliance hub."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("v75_compliance_hub.html")
+
+@invoices_blueprint.post("/api/v75/calculate")
+def api_v75_calculate():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v75_service import V75ComplianceService
+    try:
+        service = V75ComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.calculate_levy(
+            mst,
+            data.get("plastic_category", "plastic_bags"),
+            float(data.get("quantity_kg", 0.0)),
+            bool(data.get("biodegradable_certified", False)),
+            bool(data.get("medical_containment", False))
+        )
+        return jsonify({"status": "success", "results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+@invoices_blueprint.get("/api/v75/compliance-data")
+def api_v75_compliance_data():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v75_service import V75ComplianceService
+    service = V75ComplianceService(current_app.config["BASE_DATA_DIR"])
+
+    microbeads_standard = service.calculate_levy(mst, "microbeads_cosmetics", 15.0)
+    bags_standard = service.calculate_levy(mst, "plastic_bags", 250.0)
+    packaging_exempt = service.calculate_levy(mst, "plastic_packaging", 500.0, biodegradable_certified=True)
+
+    debate_transcript = [
+        {"speaker": "Marine Conservation Inspector", "text": "Decree 08/2022/NĐ-CP imposes high levies on non-biodegradable single-use plastics: cosmetics microbeads (150k VND/kg), plastic bags (50k/kg), and food packaging (30k/kg)."},
+        {"speaker": "Packaging Standards Auditor", "text": "Plastics carrying certified biodegradable and eco-friendly labels from official government bodies are 100% exempt from the ocean pollution levy."},
+        {"speaker": "Hospital Sanitary Inspector", "text": "Single-use plastic wrap or bags used strictly for medical waste containment are exempt to protect clinical safety."}
+    ]
+    consensus_summary = "Plastics & Ocean Levy Decree 08/2022/NĐ-CP Compliance Engine: Verified category levies, eco-friendly certifications, and medical waste containment exemptions."
+
+    return jsonify({
+        "status": "success",
+        "microbeads_standard": microbeads_standard,
+        "bags_standard": bags_standard,
+        "packaging_exempt": packaging_exempt,
+        "debate": debate_transcript,
+        "consensus_summary": consensus_summary,
+        "history": service.get_history(mst, 20)
+    })
+
