@@ -61,12 +61,12 @@
     <ul class="nav nav-tabs mb-4 px-2" id="complianceTabs" role="tablist">
         <li class="nav-item" role="presentation">
             <button class="nav-link active fw-bold text-dark" id="ifrs-tab" type="button" role="tab">
-                <i class="bi bi-globe me-2 text-primary"></i>IFRS International Console
+                <i class="bi bi-globe me-2 text-primary" aria-hidden="true"></i>IFRS International Console
             </button>
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link fw-bold text-dark position-relative" id="vietnam-tab" type="button" role="tab">
-                <i class="bi bi-shield-check me-2 text-danger"></i>Vietnam CIT Reconciliation & Audit
+                <i class="bi bi-shield-check me-2 text-danger" aria-hidden="true"></i>Vietnam CIT Reconciliation & Audit
                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-light" id="warning-badge" style="display: none; font-size: 0.65rem;">
                     !
                 </span>
@@ -251,15 +251,15 @@
                 <div class="row g-4">
                     <div class="col-md-4">
                         <label for="input-vas-profit" class="form-label text-dark">VAS Profit Before Tax (VND):</label>
-                        <input type="number" class="form-control" id="input-vas-profit" value="500000000" step="50000000">
+                        <input type="number" class="form-control" id="input-vas-profit" value="500000000" step="50000000" autocomplete="off">
                     </div>
                     <div class="col-md-4">
                         <label for="input-interest-expense" class="form-label text-dark">Total Interest Expense (VND):</label>
-                        <input type="number" class="form-control" id="input-interest-expense" value="120000000" step="10000000">
+                        <input type="number" class="form-control" id="input-interest-expense" value="120000000" step="10000000" autocomplete="off">
                     </div>
                     <div class="col-md-4">
                         <label for="input-ebitda" class="form-label text-dark">EBITDA (VND):</label>
-                        <input type="number" class="form-control" id="input-ebitda" value="300000000" step="20000000">
+                        <input type="number" class="form-control" id="input-ebitda" value="300000000" step="20000000" autocomplete="off">
                     </div>
                 </div>
             </div>
@@ -329,7 +329,7 @@
                             </div>
                         </div>
                         <div class="p-3 bg-info-subtle border border-info rounded">
-                            <h6 class="fw-bold mb-1 text-info-emphasis"><i class="bi bi-info-circle-fill me-2"></i>Decree 132 DTA Treatment:</h6>
+                            <h6 class="fw-bold mb-1 text-info-emphasis"><i class="bi bi-info-circle-fill me-2" aria-hidden="true"></i>Decree 132 DTA Treatment:</h6>
                             <p class="text-dark small mb-0">Disallowed interest is treated as a temporary difference and can be carried forward up to 5 consecutive years. Recognized carryforward DTA: <strong id="vn-carryforward-dta" class="text-success">0.00</strong>.</p>
                         </div>
                     </div>
@@ -363,7 +363,7 @@
                             </div>
                         </div>
                         <div class="alert alert-warning small mb-0 py-2 d-flex align-items-center">
-                            <i class="bi bi-exclamation-triangle-fill fs-5 me-2 text-warning"></i>
+                            <i class="bi bi-exclamation-triangle-fill fs-5 me-2 text-warning" aria-hidden="true"></i>
                             <span class="text-dark">Input invoices with a low T-Score represent potential compliance failures (missing signatures, invalid invoice parameters). These have been automatically disallowed as tax deductions.</span>
                         </div>
                     </div>
@@ -451,7 +451,7 @@
                             </table>
                         </div>
                         <div class="alert alert-secondary small mt-3 mb-0 py-2">
-                            <span class="text-dark"><i class="bi bi-info-circle me-1"></i>Under Circular 45/2013/TT-BTC, excess useful life depreciation and depreciation on revaluation surplus (historical cost model constraint) are added back to taxable profit.</span>
+                            <span class="text-dark"><i class="bi bi-info-circle me-1" aria-hidden="true"></i>Under Circular 45/2013/TT-BTC, excess useful life depreciation and depreciation on revaluation surplus (historical cost model constraint) are added back to taxable profit.</span>
                         </div>
                     </div>
                 </div>
@@ -483,7 +483,7 @@
                             </table>
                         </div>
                         <div class="alert alert-secondary small mt-3 mb-0 py-2">
-                            <span class="text-dark"><i class="bi bi-info-circle me-1"></i>Circular 200 treats unrealized forex gains/losses from bank deposits & receivables as non-taxable / non-deductible adjustments at year-end.</span>
+                            <span class="text-dark"><i class="bi bi-info-circle me-1" aria-hidden="true"></i>Circular 200 treats unrealized forex gains/losses from bank deposits & receivables as non-taxable / non-deductible adjustments at year-end.</span>
                         </div>
                     </div>
                 </div>
