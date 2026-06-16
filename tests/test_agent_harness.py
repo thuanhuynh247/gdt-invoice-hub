@@ -231,3 +231,24 @@ def test_harness_plugins_install_stream(logged_in_client):
     assert response.status_code == 200
     assert "text/event-stream" in response.headers["Content-Type"]
 
+
+def test_harness_plugins_ponytail_debt(logged_in_client):
+    """Test retrieving ponytail technical debt comments."""
+    response = logged_in_client.get("/api/harness/plugins/ponytail/debt")
+    assert response.status_code == 200
+    data = response.get_json()
+    assert "debt" in data
+    assert isinstance(data["debt"], list)
+
+
+def test_harness_plugins_ponytail_audit(logged_in_client):
+    """Test running the ponytail over-engineering audit."""
+    response = logged_in_client.get("/api/harness/plugins/ponytail/audit")
+    assert response.status_code == 200
+    data = response.get_json()
+    assert "score" in data
+    assert "findings" in data
+    assert "total_files_scanned" in data
+    assert "total_lines_scanned" in data
+    assert isinstance(data["findings"], list)
+

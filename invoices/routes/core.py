@@ -5789,6 +5789,150 @@ def api_harness_plugins_install():
 
     return Response(generate(), mimetype="text/event-stream")
 
+@invoices_blueprint.get("/api/harness/plugins/ponytail/debt")
+def api_harness_plugins_ponytail_debt():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    import re
+    from pathlib import Path
+    
+    workspace_dir = Path("d:/LearnAnyThing/Webapp XML")
+    search_dirs = ["invoices", "templates", "static", "tests", "scripts"]
+    search_files = ["app.py", "config.py"]
+    
+    debt_items = []
+    # ponytail: simple loop using Path.rglob and regex
+    pattern = re.compile(r"ponytail:\s*(.*)", re.IGNORECASE)
+    
+    def scan_file(file_path: Path):
+        try:
+            content = file_path.read_text(encoding="utf-8", errors="ignore")
+            for idx, line in enumerate(content.splitlines(), start=1):
+                match = pattern.search(line)
+                if match:
+                    # Clean up the line to remove comments syntax like #, //, <!--, -->
+                    desc = match.group(1).strip()
+                    if desc.endswith("-->"):
+                        desc = desc[:-3].strip()
+                    debt_items.append({
+                        "file": file_path.relative_to(workspace_dir).as_posix(),
+                        "line": idx,
+                        "description": desc
+                    })
+        except Exception:
+            pass
+
+    for d in search_dirs:
+        dir_path = workspace_dir / d
+        if dir_path.exists() and dir_path.is_dir():
+            for ext in ["*.py", "*.html", "*.js", "*.css"]:
+                for file_path in dir_path.rglob(ext):
+                    scan_file(file_path)
+                    
+    for f in search_files:
+        file_path = workspace_dir / f
+        if file_path.exists() and file_path.is_file():
+            scan_file(file_path)
+
+    return jsonify({"debt": debt_items})
+
+@invoices_blueprint.get("/api/harness/plugins/ponytail/audit")
+def api_harness_plugins_ponytail_audit():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    from pathlib import Path
+    workspace_dir = Path("d:/LearnAnyThing/Webapp XML")
+    
+    audit_results = {
+        "score": 100,
+        "findings": [],
+        "total_files_scanned": 0,
+        "total_lines_scanned": 0
+    }
+    
+    search_dirs = ["invoices", "templates", "static", "tests", "scripts"]
+    search_files = ["app.py", "config.py"]
+    
+    for d in search_dirs:
+        dir_path = workspace_dir / d
+        if dir_path.exists() and dir_path.is_dir():
+            for ext in ["*.py", "*.html", "*.js", "*.css"]:
+                for file_path in dir_path.rglob(ext):
+                    if "venv" in file_path.parts or ".pytest_cache" in file_path.parts or "__pycache__" in file_path.parts:
+                        continue
+                    try:
+                        audit_results["total_files_scanned"] += 1
+                        content = file_path.read_text(encoding="utf-8", errors="ignore")
+                        lines = content.splitlines()
+                        num_lines = len(lines)
+                        audit_results["total_lines_scanned"] += num_lines
+                        
+                        rel_path = file_path.relative_to(workspace_dir).as_posix()
+                        
+                        # Rule 1: File size audit (Bloat)
+                        if num_lines > 500 and file_path.suffix == ".py":
+                            penalty = min(15, (num_lines - 500) // 100 + 5)
+                            audit_results["score"] -= penalty
+                            audit_results["findings"].append({
+                                "file": rel_path,
+                                "type": "Bloat",
+                                "severity": "Medium" if penalty < 10 else "High",
+                                "message": f"File is too long ({num_lines} lines). Ponytail suggests dividing into focused utilities or reducing nested logic."
+                            })
+                        elif num_lines > 1000 and file_path.suffix == ".html":
+                            penalty = min(10, (num_lines - 1000) // 200 + 3)
+                            audit_results["score"] -= penalty
+                            audit_results["findings"].append({
+                                "file": rel_path,
+                                "type": "Bloat",
+                                "severity": "Medium",
+                                "message": f"Template has too many lines ({num_lines}). Propose breaking up into smaller sub-templates using Flask include."
+                            })
+                            
+                        # Rule 2: Deep nesting audit
+                        deep_lines = []
+                        for idx, line in enumerate(lines, start=1):
+                            indent = len(line) - len(line.lstrip())
+                            if (line.startswith(" ") and indent >= 16) or (line.startswith("\t") and indent >= 4):
+                                if line.strip() and not line.strip().startswith("#") and not line.strip().startswith("//"):
+                                    deep_lines.append(idx)
+                                    
+                        if deep_lines:
+                            penalty = min(8, len(deep_lines) // 2 + 1)
+                            audit_results["score"] -= penalty
+                            audit_results["findings"].append({
+                                "file": rel_path,
+                                "type": "Nesting Complexity",
+                                "severity": "Medium",
+                                "message": f"Deep indentation found on line(s): {', '.join(map(str, deep_lines[:5]))}. Ponytail suggests extracting inner blocks to helper functions."
+                            })
+                            
+                        # Rule 3: Complex external library usages (Stdlib candidates)
+                        for idx, line in enumerate(lines, start=1):
+                            if "import requests" in line:
+                                audit_results["findings"].append({
+                                    "file": rel_path,
+                                    "type": "Dependency Bloat",
+                                    "severity": "Low",
+                                    "message": f"Line {idx}: Imports 'requests'. Ponytail hints: python standard library 'urllib.request' can sometimes do this in one line."
+                                })
+                            if "import os" in line and "import pathlib" in line:
+                                audit_results["findings"].append({
+                                    "file": rel_path,
+                                    "type": "Redundant Libraries",
+                                    "severity": "Low",
+                                    "message": f"Line {idx}: Both 'os' and 'pathlib' are imported. Standardize on 'pathlib' for cleaner path handling."
+                                })
+                    except Exception:
+                        pass
+                        
+    audit_results["score"] = max(10, audit_results["score"])
+    return jsonify(audit_results)
+
 @invoices_blueprint.post("/api/bctc/compile")
 @roles_required("admin", "auditor")
 def api_bctc_compile():
