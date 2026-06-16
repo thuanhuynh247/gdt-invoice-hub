@@ -146,3 +146,88 @@ def test_api_login_auto_solve_loop(app, client):
         assert mock_fetch.call_count == 2
         # Total posts is 3
         assert mock_post.call_count == 3
+
+
+def test_solve_captcha_via_vector_signatures():
+    """Verify that solve_captcha_from_svg solves the captcha using pure vector signatures when signatures match."""
+    # We mock ddddocr's classification to return "FALLBACK".
+    # If the vector solver works, it will return "AB" and NOT call ddddocr.
+    with patch("auth.captcha_solver.get_ocr_instance") as mock_get_ocr:
+        mock_ocr = MagicMock()
+        mock_ocr.classification.return_value = "FALLBACK"
+        mock_get_ocr.return_value = mock_ocr
+
+        # Create exact SVG data containing the signatures for 'B' (at X=40) and 'A' (at X=10)
+        svg_data = """<svg xmlns="http://www.w3.org/2000/svg">
+            <path fill="#222" d="M40.0 QQQQQQQQQZMQQQQQQZMQQQQQQQQQQQQZMQQQQQQQQQQQQQQQQQZMQQQQQQQQZMQQQQQQQQZ" />
+            <path fill="#222" d="M10.0 QQQQQZMQQQQQQQQQQQZMQQQQQQQQQQQQQQQQQQZMQQZ" />
+        </svg>"""
+        
+        result = solve_captcha_from_svg(svg_data)
+        assert result == "AB"
+        assert mock_get_ocr.call_count == 0
+
+
+def test_dynamic_signature_learning():
+    """Verify that the captcha solver dynamically learns and persists new signatures when fallback OCR is used."""
+    import os
+    from auth.captcha_solver import get_dynamic_signatures, save_dynamic_signatures
+    
+    # Path to dynamic signatures file
+    path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "dynamic_signatures.json")
+    if os.path.exists(path):
+        try:
+            os.remove(path)
+        except Exception:
+            pass
+            
+    # Reset internal cache
+    import auth.captcha_solver
+    auth.captcha_solver._dynamic_signatures = None
+
+    # We mock ddddocr's classification to return "XY".
+    # Since "XY" is 2 characters and the SVG has 2 paths (both with unmapped signatures),
+    # it should learn the signatures for 'X' and 'Y' dynamically!
+    with patch("auth.captcha_solver.get_ocr_instance") as mock_get_ocr:
+        mock_ocr = MagicMock()
+        mock_ocr.classification.return_value = "XY"
+        mock_get_ocr.return_value = mock_ocr
+
+        # Create an SVG with two custom signatures (unmapped but valid SVG coordinates)
+        path_data_1 = "M10 20 Q 15 25 20 20 Q 25 15 30 20 Z"
+        path_data_2 = "M35 20 Q 40 25 45 20 Q 50 15 55 20 Q 60 25 65 20 Z"
+        
+        sig_x = "MQQZ"
+        sig_y = "MQQQZ"
+        
+        svg_data = f"""<svg xmlns="http://www.w3.org/2000/svg" width="150" height="50">
+            <path fill="#222" d="{path_data_1}" />
+            <path fill="#222" d="{path_data_2}" />
+        </svg>"""
+
+        result = solve_captcha_from_svg(svg_data)
+        assert result == "XY"
+        
+        # Verify it got saved dynamically
+        dynamic_sigs = get_dynamic_signatures()
+        assert sig_x in dynamic_sigs
+        assert dynamic_sigs[sig_x] == "X"
+        assert sig_y in dynamic_sigs
+        assert dynamic_sigs[sig_y] == "Y"
+        
+        # Now solve again with the same SVG, but mock OCR to return "FAIL"
+        # Since signatures are now in the dynamic dictionary, the vector solver should resolve it to "XY"
+        # without invoking ddddocr!
+        mock_ocr.classification.return_value = "FAIL"
+        result2 = solve_captcha_from_svg(svg_data)
+        assert result2 == "XY"
+        
+    # Clean up the file afterwards
+    if os.path.exists(path):
+        try:
+            os.remove(path)
+        except Exception:
+            pass
+    auth.captcha_solver._dynamic_signatures = None
+
+
