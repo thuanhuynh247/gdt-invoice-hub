@@ -5688,6 +5688,107 @@ def api_harness_validate_stream():
             
     return Response(generate_validation(), mimetype="text/event-stream")
 
+@invoices_blueprint.get("/api/harness/plugins")
+def api_harness_plugins():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    from pathlib import Path
+    skills_dir = Path("C:/Users/THUAN/.gemini/antigravity/skills")
+    plugins = []
+    if skills_dir.exists() and skills_dir.is_dir():
+        for item in skills_dir.iterdir():
+            if item.is_dir():
+                skill_md = item / "SKILL.md"
+                if skill_md.exists():
+                    try:
+                        content = skill_md.read_text(encoding="utf-8", errors="ignore")
+                        # ponytail: simplest possible parser using simple string split or regex
+                        meta = {
+                            "id": item.name,
+                            "name": item.name,
+                            "description": "No description provided.",
+                            "version": "1.0.0",
+                            "license": "N/A"
+                        }
+                        parts = content.split("---")
+                        if len(parts) >= 3:
+                            frontmatter = parts[1]
+                            for line in frontmatter.splitlines():
+                                if ":" in line:
+                                    k, v = line.split(":", 1)
+                                    k = k.strip().lower()
+                                    v = v.strip()
+                                    # Strip quotes if any
+                                    if (v.startswith('"') and v.endswith('"')) or (v.startswith("'") and v.endswith("'")):
+                                        v = v[1:-1]
+                                    if k in meta:
+                                        meta[k] = v
+                        plugins.append(meta)
+                    except Exception as e:
+                        plugins.append({
+                            "id": item.name,
+                            "name": item.name,
+                            "description": f"Failed to parse skill: {e}",
+                            "version": "N/A",
+                            "license": "N/A"
+                        })
+    return jsonify({"plugins": plugins})
+
+@invoices_blueprint.get("/api/harness/plugins/install")
+def api_harness_plugins_install():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    repo_url = request.args.get("repo_url", "").strip()
+    if not repo_url:
+        return jsonify({"error": "GitHub Repository URL is required"}), 400
+
+    from flask import Response
+
+    def generate():
+        import subprocess
+        import os
+        import json
+
+        # ponytail: Invoke scripts/agy.py directly using local venv python execution
+        workspace_dir = "d:/LearnAnyThing/Webapp XML"
+        python_exe = os.path.join(workspace_dir, "venv", "Scripts", "python.exe")
+        agy_script = os.path.join(workspace_dir, "scripts", "agy.py")
+        
+        cmd = [python_exe, agy_script, "plugin", "install", repo_url]
+
+        proc = subprocess.Popen(
+            cmd,
+            cwd=workspace_dir,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1
+        )
+
+        yield f"data: {json.dumps({'type': 'status', 'message': f'Starting plugin installation from {repo_url}...'})}\n\n"
+
+        while True:
+            line = proc.stdout.readline()
+            if not line and proc.poll() is not None:
+                break
+            if line:
+                yield f"data: {json.dumps({'type': 'output', 'text': line})}\n\n"
+
+        proc.wait()
+
+        if proc.returncode == 0:
+            yield f"data: {json.dumps({'type': 'status', 'message': 'Plugin installation completed successfully.'})}\n\n"
+            yield f"data: {json.dumps({'type': 'done', 'success': True})}\n\n"
+        else:
+            yield f"data: {json.dumps({'type': 'status', 'message': f'Installation failed with exit code {proc.returncode}.'})}\n\n"
+            yield f"data: {json.dumps({'type': 'done', 'success': False})}\n\n"
+
+    return Response(generate(), mimetype="text/event-stream")
+
 @invoices_blueprint.post("/api/bctc/compile")
 @roles_required("admin", "auditor")
 def api_bctc_compile():

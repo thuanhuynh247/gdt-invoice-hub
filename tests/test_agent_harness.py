@@ -208,3 +208,26 @@ def test_harness_validate_stream(logged_in_client):
     response = logged_in_client.get("/api/harness/validate/stream")
     assert response.status_code == 200
     assert "text/event-stream" in response.headers["Content-Type"]
+
+
+def test_harness_plugins_list(logged_in_client):
+    """Test retrieving list of plugins."""
+    response = logged_in_client.get("/api/harness/plugins")
+    assert response.status_code == 200
+    data = response.get_json()
+    assert "plugins" in data
+    assert isinstance(data["plugins"], list)
+
+
+def test_harness_plugins_install_missing_url(logged_in_client):
+    """Test installing plugin without URL."""
+    response = logged_in_client.get("/api/harness/plugins/install")
+    assert response.status_code == 400
+
+
+def test_harness_plugins_install_stream(logged_in_client):
+    """Test plugin install SSE stream."""
+    response = logged_in_client.get("/api/harness/plugins/install?repo_url=https://github.com/DietrichGebert/ponytail")
+    assert response.status_code == 200
+    assert "text/event-stream" in response.headers["Content-Type"]
+

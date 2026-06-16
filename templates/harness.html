@@ -88,6 +88,9 @@
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="traces-tab" data-bs-toggle="pill" data-bs-target="#tab-traces" type="button" role="tab"><i class="bi bi-database-fill me-1" aria-hidden="true"></i> DB & Telemetry</button>
             </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="plugins-tab" data-bs-toggle="pill" data-bs-target="#tab-plugins" type="button" role="tab" onclick="loadPluginsList()"><i class="bi bi-puzzle-fill me-1" aria-hidden="true"></i> Antigravity Plugins</button>
+            </li>
         </ul>
 
         <!-- Tab Content -->
@@ -372,6 +375,62 @@
                                 <tr><td colspan="5" class="text-center text-secondary">Loading traces…</td></tr>
                             </tbody>
                         </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. Antigravity Plugins Tab -->
+            <div class="tab-pane fade" id="tab-plugins" role="tabpanel">
+                <!-- Plugin Installation Card -->
+                <div class="glass-card mb-4 border-info-subtle">
+                    <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                        <h3 class="h5 mb-0 fw-bold"><i class="bi bi-download text-info me-2" aria-hidden="true"></i>Install New Antigravity Plugin / Skill</h3>
+                        <span class="badge bg-dark border border-secondary text-secondary small font-monospace">agy CLI installer</span>
+                    </div>
+                    <form id="pluginInstallForm">
+                        <div class="row g-3">
+                            <div class="col-md-9">
+                                <label for="pluginRepoUrl" class="form-label">GitHub Repository URL</label>
+                                <input type="url" id="pluginRepoUrl" class="form-control custom-input" placeholder="https://github.com/DietrichGebert/ponytail" required autocomplete="off" aria-label="Plugin Repo URL">
+                            </div>
+                            <div class="col-md-3 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary-accent w-100" id="btnInstallPlugin">
+                                    <i class="bi bi-cloud-arrow-down-fill me-1" aria-hidden="true"></i> Install Plugin
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Installed Plugins Card -->
+                <div class="glass-card mb-4">
+                    <h3 class="h5 mb-4 fw-bold border-bottom pb-3"><i class="bi bi-puzzle me-2 text-primary-accent" aria-hidden="true"></i>Installed Plugins & Skills</h3>
+                    <div class="table-responsive">
+                        <table class="table custom-table" id="pluginsTable">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Description</th>
+                                    <th>Version</th>
+                                    <th>License</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pluginsTableBody">
+                                <tr><td colspan="5" class="text-center text-secondary">Loading plugins…</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Plugin Installation Logs Console -->
+                <div class="glass-card bg-dark text-light border-dark font-monospace" style="border-radius: 16px;">
+                    <div class="d-flex align-items-center justify-content-between mb-3 border-bottom border-secondary pb-2">
+                        <span class="small fw-semibold text-secondary text-uppercase tracking-wider"><i class="bi bi-terminal-fill me-1" aria-hidden="true"></i> Plugin Installation Output</span>
+                        <button class="btn btn-sm btn-outline-secondary py-0 border-secondary px-2 text-secondary" type="button" onclick="clearPluginConsole()"><i class="bi bi-trash" aria-hidden="true"></i> Clear Logs</button>
+                    </div>
+                    <div id="pluginConsole" class="p-3 console-container" style="max-height: 250px; overflow-y: auto; background-color: #080a06; border-radius: 8px; font-size: 0.88rem; line-height: 1.6; border: 1px solid #142a14;">
+                        <div class="console-row text-secondary">[System] Ready to install plugins. Enter a repository URL above.</div>
                     </div>
                 </div>
             </div>
@@ -1229,6 +1288,107 @@
         if (s === "failed" || s === "retired") return "bg-danger-subtle text-danger";
         return "bg-secondary-subtle text-secondary";
     }
+
+    // Antigravity Plugins management functions
+    function loadPluginsList() {
+        const tbody = document.getElementById("pluginsTableBody");
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-secondary">Loading plugins…</td></tr>';
+        
+        fetch("/api/harness/plugins")
+            .then(res => res.json())
+            .then(data => {
+                tbody.innerHTML = "";
+                if (!data.plugins || data.plugins.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-secondary">No plugins/skills installed yet.</td></tr>';
+                    return;
+                }
+                data.plugins.forEach(p => {
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td><span class="badge bg-dark font-monospace">${p.id}</span></td>
+                        <td class="fw-semibold text-light">${p.name}</td>
+                        <td class="small text-secondary">${p.description}</td>
+                        <td><span class="badge bg-secondary-subtle text-secondary">${p.version}</span></td>
+                        <td><span class="badge bg-info-subtle text-info">${p.license}</span></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            })
+            .catch(err => {
+                console.error(err);
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Failed to load plugins.</td></tr>';
+            });
+    }
+
+    function clearPluginConsole() {
+        const consoleEl = document.getElementById("pluginConsole");
+        consoleEl.innerHTML = '<div class="console-row text-secondary">[System] Console cleared.</div>';
+    }
+
+    function appendPluginConsoleLine(text, type = "light") {
+        const consoleEl = document.getElementById("pluginConsole");
+        const div = document.createElement("div");
+        div.className = `console-row ${type === 'error' ? 'console-error' : type === 'status' ? 'console-status' : 'text-light'} mt-1`;
+        div.innerText = text;
+        consoleEl.appendChild(div);
+        consoleEl.scrollTop = consoleEl.scrollHeight;
+    }
+
+    // Handle Plugin Install Form Submit
+    document.addEventListener("DOMContentLoaded", function() {
+        const installForm = document.getElementById("pluginInstallForm");
+        if (installForm) {
+            installForm.addEventListener("submit", function(e) {
+                e.preventDefault();
+                const repoUrlInput = document.getElementById("pluginRepoUrl");
+                const repoUrl = repoUrlInput.value.trim();
+                if (!repoUrl) return;
+
+                const btn = document.getElementById("btnInstallPlugin");
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Installing…';
+
+                clearPluginConsole();
+                appendPluginConsoleLine(`[System] Connecting to installer for: ${repoUrl}`, "system");
+
+                const source = new EventSource(`/api/harness/plugins/install?repo_url=${encodeURIComponent(repoUrl)}`);
+
+                source.onmessage = function(event) {
+                    const data = JSON.parse(event.data);
+                    if (data.type === 'status') {
+                        appendPluginConsoleLine(data.message, "status");
+                    } else if (data.type === 'output') {
+                        appendPluginConsoleLine(data.text.trim(), "light");
+                    } else if (data.type === 'error') {
+                        appendPluginConsoleLine(data.message, "error");
+                        showAppAlert(data.message, "danger");
+                        source.close();
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="bi bi-cloud-arrow-down-fill me-1"></i> Install Plugin';
+                    } else if (data.type === 'done') {
+                        source.close();
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="bi bi-cloud-arrow-down-fill me-1"></i> Install Plugin';
+                        if (data.success) {
+                            showAppAlert("Plugin installed successfully!", "success");
+                            loadPluginsList();
+                            repoUrlInput.value = "";
+                        } else {
+                            showAppAlert("Plugin installation failed.", "danger");
+                        }
+                    }
+                };
+
+                source.onerror = function(err) {
+                    console.error("EventSource failed:", err);
+                    appendPluginConsoleLine("[System Error] SSE connection lost or failed.", "error");
+                    source.close();
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-cloud-arrow-down-fill me-1"></i> Install Plugin';
+                };
+            });
+        }
+    });
 </script>
 
 <style>
