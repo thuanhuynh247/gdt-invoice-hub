@@ -53,6 +53,29 @@ class TestApiLogin:
         assert token == "mock-session-0316459946"
         assert resp2.content_type.startswith("text/plain")
 
+    def test_phase2_auto_captcha_works(self, client):
+        """Providing captcha='AUTO' + key should auto-solve and authenticate successfully."""
+        # Phase 1
+        resp1 = client.post("/API/login", json={
+            "username": "0316459946",
+            "password": "Password123@",
+            "captcha": "",
+            "key": "",
+        })
+        key = resp1.get_json()["key"]
+
+        # Phase 2 with AUTO captcha
+        resp2 = client.post("/API/login", json={
+            "username": "0316459946",
+            "password": "Password123@",
+            "captcha": "AUTO",
+            "key": key,
+        })
+        assert resp2.status_code == 200
+        token = resp2.data.decode("utf-8")
+        assert token == "mock-session-0316459946"
+        assert resp2.content_type.startswith("text/plain")
+
     def test_phase2_rejects_locked_account(self, client):
         """The 'locked' username should raise AuthenticationError in mock mode."""
         resp1 = client.post("/API/login", json={

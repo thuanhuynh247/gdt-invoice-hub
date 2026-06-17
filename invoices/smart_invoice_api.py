@@ -39,8 +39,8 @@ _CAPTCHA_MAX_SIZE = 50
 _CAPTCHA_TTL_SECONDS = 120
 
 
-def _cache_put(key: str, cookies: dict) -> None:
-    """Store captcha cookies keyed by generated UUID, with TTL and eviction."""
+def _cache_put(key: str, cookies: dict, svg: str = "") -> None:
+    """Store captcha cookies and SVG content keyed by generated UUID, with TTL and eviction."""
     now = time.monotonic()
     with _CAPTCHA_LOCK:
         # Evict expired entries
@@ -52,11 +52,11 @@ def _cache_put(key: str, cookies: dict) -> None:
         while len(_CAPTCHA_CACHE) >= _CAPTCHA_MAX_SIZE:
             oldest_key = min(_CAPTCHA_CACHE, key=lambda k: _CAPTCHA_CACHE[k]["_ts"])
             _CAPTCHA_CACHE.pop(oldest_key, None)
-        _CAPTCHA_CACHE[key] = {"cookies": cookies, "_ts": now}
+        _CAPTCHA_CACHE[key] = {"cookies": cookies, "svg": svg, "_ts": now}
 
 
 def _cache_pop(key: str) -> dict:
-    """Pop cookies for a captcha key (one-time use). Returns empty dict if missing/expired."""
+    """Pop entry for a captcha key (one-time use). Returns empty dict if missing/expired."""
     now = time.monotonic()
     with _CAPTCHA_LOCK:
         entry = _CAPTCHA_CACHE.pop(key, None)
@@ -64,7 +64,7 @@ def _cache_pop(key: str) -> dict:
         return {}
     if now - entry["_ts"] > _CAPTCHA_TTL_SECONDS:
         return {}  # Expired
-    return entry.get("cookies", {})
+    return entry
 
 
 # ---------------------------------------------------------------------------
@@ -154,7 +154,7 @@ def api_login():
             content = captcha_payload["content"]
             cookies = captcha_payload.get("cookies", {})
 
-            _cache_put(key, cookies)
+            _cache_put(key, cookies, content)
 
             return jsonify({"content": content, "key": key})
         except Exception as e:
@@ -162,7 +162,22 @@ def api_login():
             return jsonify({"error": f"Khong the lay captcha tu GDT: {e}"}), 500
 
     # ── Phase 2: Authenticate ──────────────────────────────────────────
-    cookies = _cache_pop(captcha_key)
+    entry = _cache_pop(captcha_key)
+    cookies = entry.get("cookies", {})
+    svg_content = entry.get("svg", "")
+
+    if captcha.upper() == "AUTO":
+        if svg_content:
+            try:
+                from auth.captcha_solver import solve_captcha_from_svg
+                captcha = solve_captcha_from_svg(svg_content, captcha_key=captcha_key)
+                logger.info("Auto-solved captcha for smart-invoice login: %s", captcha)
+            except Exception as e:
+                logger.error("Failed to auto-solve captcha: %s", e)
+                return jsonify({"error": f"Khong the tu dong giai captcha: {e}"}), 400
+        else:
+            return jsonify({"error": "Khong co du lieu SVG de tu dong giai captcha hoac captcha da het han."}), 400
+
     try:
         auth_data = authenticate_user(
             username=username,

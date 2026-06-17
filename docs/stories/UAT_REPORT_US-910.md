@@ -5,11 +5,11 @@
 
 ### 📊 1. THÔNG TIN HỆ THỐNG & ĐIỀU HÀNH (Operating System & telemetry)
 - **Tên Agent chịu trách nhiệm**: `Antigravity`
-- **Thời gian nghiệm thu (UAT Time)**: `2026-06-17 10:33:13`
+- **Thời gian nghiệm thu (UAT Time)**: `2026-06-17 10:45:45`
 - **Trạng thái cổng kết nối (Unified Gate)**: `✅ PASSED (Hoàn thành kiểm toán toàn diện)`
-- **Thời gian chạy thử nghiệm (Quality Gate Duration)**: `36 giây`
-- **Phiên bản mã nguồn (Git Commit)**: `fc1fbb832bc0e489afcc154d15e16b6e9d561cd2 (dirty)`
-- **Ước tính tài nguyên tiêu thụ (Token Usage Estimate)**: `37,600 tokens`
+- **Thời gian chạy thử nghiệm (Quality Gate Duration)**: `10 giây`
+- **Phiên bản mã nguồn (Git Commit)**: `18f19f48f168689109f3fd9dfb35e9fe6fb86b5f (dirty)`
+- **Ước tính tài nguyên tiêu thụ (Token Usage Estimate)**: `32,200 tokens`
 - **Độ rủi ro kiểm thử (Risk Lane)**: `HIGH_RISK`
 
 ---
@@ -32,20 +32,16 @@
 
 ### 📋 4. CHI TIẾT TÁC VỤ ĐÃ THỰC THI (Execution Trace Detail)
 - **Hành động đã làm (Actions Taken)**:
-  - `Created modSmartInvoiceLogin.bas`
-  - `updated frmDangNhap.bas`
-  - `created US-910 story doc`
+  - `Modified invoices/smart_invoice_api.py to support captcha='AUTO' solving. Added test_phase2_auto_captcha_works in tests/test_smart_invoice_api.py. Ran pytest validations.`
 - **Tệp tin đã đọc (Files Read)**:
-  - `scripts/vba_VBA_frmDangNhap.txt`
-  - `scripts/vba_VBA_modDetectCaptcha.txt`
-  - `scripts/vba_VBA_modHTTPRequest.txt`
-  - `scripts/vba_VBA_modGlobalVariables.txt`
   - `invoices/smart_invoice_api.py`
+  - `tests/test_smart_invoice_api.py`
+  - `auth/captcha.py`
+  - `auth/service.py`
   - `auth/captcha_solver.py`
 - **Tệp tin đã thay đổi (Files Changed)**:
-  - `vba_modules/modSmartInvoiceLogin.bas`
-  - `vba_modules/frmDangNhap.bas`
-  - `docs/stories/US-910.md`
+  - `invoices/smart_invoice_api.py`
+  - `tests/test_smart_invoice_api.py`
 
 - **Ghi chú bổ sung (Notes)**: `Không có ghi chú thêm.`
 
