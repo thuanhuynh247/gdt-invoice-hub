@@ -48,6 +48,15 @@ class WebhookHub:
             attempt=1
         )
 
+    def _execute_post(self, url: str, data: bytes, headers: dict) -> tuple[int | None, str | None]:
+        """Execute HTTP POST request and return status code and optional error message."""
+        try:
+            res = requests.post(url, data=data, headers=headers, timeout=self.timeout)
+            err = None if 200 <= res.status_code < 300 else f"HTTP Error status code: {res.status_code}"
+            return res.status_code, err
+        except Exception as e:
+            return None, str(e)
+
     def _deliver_with_retry(
         self,
         url: str,
@@ -69,24 +78,8 @@ class WebhookHub:
             "User-Agent": "GDT-Invoice-Hub-Webhook-Agent/9.0.0",
         }
 
-        success = False
-        status_code = None
-        error_msg = None
-
-        try:
-            response = requests.post(
-                url,
-                data=payload_str.encode("utf-8"),
-                headers=headers,
-                timeout=self.timeout
-            )
-            status_code = response.status_code
-            if 200 <= status_code < 300:
-                success = True
-            else:
-                error_msg = f"HTTP Error status code: {status_code}"
-        except Exception as e:
-            error_msg = str(e)
+        status_code, error_msg = self._execute_post(url, payload_str.encode("utf-8"), headers)
+        success = (status_code is not None and 200 <= status_code < 300)
 
         # Log delivery attempt (audit trail)
         self._log_delivery(
