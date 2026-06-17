@@ -70,6 +70,12 @@ def auth_captcha():
     )
 
 
+@auth_blueprint.get("/api/auth/captcha/stats")
+def api_captcha_stats():
+    """Expose real-time CAPTCHA solver statistics (US-143 / health dashboard)."""
+    from auth.captcha_solver import captcha_analytics
+    return jsonify(captcha_analytics.get_stats())
+
 
 @auth_blueprint.post("/api/auth/login")
 @rate_limit(limit=10, window=60)
@@ -115,7 +121,7 @@ def api_login():
                     if pre_solved:
                         solved_value = pre_solved
                     else:
-                        solved_value = solve_captcha_from_svg(current_captcha_svg)
+                        solved_value = solve_captcha_from_svg(current_captcha_svg, captcha_key=current_captcha_key)
                     current_app.logger.info(f"Auto-solved captcha attempt {attempt+1}: {solved_value}")
                 except Exception as ocr_err:
                     current_app.logger.error(f"Failed to solve captcha: {ocr_err}")

@@ -5842,6 +5842,15 @@ function setupAgentHarnessEvents() {
                 failEl.textContent = totalFail.toLocaleString();
             }
 
+            const vectorCountEl = document.getElementById("captchaVectorCount");
+            const ocrCountEl = document.getElementById("captchaOcrCount");
+            if (vectorCountEl) {
+                vectorCountEl.textContent = (solverData.vector_solve_count || 0).toLocaleString();
+            }
+            if (ocrCountEl) {
+                ocrCountEl.textContent = (solverData.ocr_solve_count || 0).toLocaleString();
+            }
+
         } catch (error) {
             console.error("Lỗi khi tải trạng thái Sync Health:", error);
             if (crawlerStatusBadge) {

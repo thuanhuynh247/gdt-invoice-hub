@@ -18,6 +18,15 @@ logger = logging.getLogger(__name__)
 # Global OCR instance initialized lazily to optimize application startup time
 _ocr_instance = None
 
+# Custom signatures persistence path
+CUSTOM_SIGNATURES_FILE = os.path.join(os.path.dirname(__file__), "custom_signatures.json")
+_custom_signatures = {}
+_custom_signatures_lock = threading.Lock()
+
+# Thread-safe queue for buffered candidate mappings prior to taxpayer login confirmation
+_pending_mappings = {}
+_pending_lock = threading.Lock()
+
 
 class CaptchaAnalytics:
     """Thread-safe statistics counter for CAPTCHA solving engine performance."""
@@ -27,6 +36,8 @@ class CaptchaAnalytics:
         self.fail_count = 0
         self.total_latency = 0.0
         self.solve_count = 0
+        self.vector_solve_count = 0
+        self.ocr_solve_count = 0
 
     def record_solve(self, latency: float):
         with self.lock:
@@ -41,6 +52,14 @@ class CaptchaAnalytics:
         with self.lock:
             self.fail_count += 1
 
+    def record_vector_solve(self):
+        with self.lock:
+            self.vector_solve_count += 1
+
+    def record_ocr_solve(self):
+        with self.lock:
+            self.ocr_solve_count += 1
+
     def get_stats(self) -> dict:
         with self.lock:
             avg_latency = (self.total_latency / self.solve_count) if self.solve_count > 0 else 0.0
@@ -52,6 +71,8 @@ class CaptchaAnalytics:
                 "solve_count": self.solve_count,
                 "accuracy_rate": round(accuracy, 2),
                 "average_latency_seconds": round(avg_latency, 3),
+                "vector_solve_count": self.vector_solve_count,
+                "ocr_solve_count": self.ocr_solve_count,
             }
 
 
@@ -68,7 +89,8 @@ def get_ocr_instance():
     return _ocr_instance
 
 
-STATIC_SIGNATURES = {
+# Standard base signatures mapped to characters (derived from VBA modDetectCaptcha)
+BASE_SIGNATURES = {
     "MQQQQQZMQQQQQQQQQQQZMQQQQQQQQQQQQQQQQQQZMQQZ": "A",
     "MQQQQQQQQQZMQQQQQQZMQQQQQQQQQQQQZMQQQQQQQQQQQQQQQQQZMQQQQQQQQZMQQQQQQQQZ": "B",
     "MQQQQQQQQQQQQQQQQQQQQQZMQQQQQQQQQQQQQQQQQQQQQQQQZ": "C",
@@ -81,6 +103,7 @@ STATIC_SIGNATURES = {
     "MQQQQQQQQQQQQQZMQQQQQQQQQQQQQQQQQQQQZ": "K",
     "MQQQQQQQQQQQQQQQQQQQQQZMQQQQQQQQQQQQQQQQQQQQQQQQQZ": "M",
     "MQQQQQQQQQQQQQQZMQQQQQQQQQQQQQQQQQQZ": "N",
+    "MQQQQZMQQQQQQQQQQZMQQQQQQQQQQQQQQQZMQQQQQQQQZ": "P",  # Standardized from MQQQQQQZMQQQQQQQQQQZMQQQQQQQQQQQQQQQZMQQQQQQQQZ
     "MQQQQQQZMQQQQQQQQQQZMQQQQQQQQQQQQQQQZMQQQQQQQQZ": "P",
     "MQQQQQQQQQQQQQQQZMQQQQQQQQQQQQQQQZMQQQQQQQQQQQQQQQQQQQQQQZMQQQQQQQQQQQQZ": "Q",
     "MQQQQQQZMQQQQQQQQQQQQZMQQQQQQQQQQQQQQQZMQQQQQQQQZ": "R",
@@ -101,51 +124,90 @@ STATIC_SIGNATURES = {
     "MQQQQQQQQZMQQQQQQQQQQQQQQQQQZMQQQQQQQQQQQQQQQQQQQQZMQQQQQQQQQQQZ": "9"
 }
 
-_dynamic_signatures = None
-_dynamic_signatures_lock = threading.Lock()
 
-
-def get_dynamic_signatures() -> dict:
-    global _dynamic_signatures
-    if _dynamic_signatures is None:
-        with _dynamic_signatures_lock:
-            if _dynamic_signatures is None:
-                path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "dynamic_signatures.json")
-                if os.path.exists(path):
-                    try:
-                        with open(path, "r", encoding="utf-8") as f:
-                            _dynamic_signatures = json.load(f)
-                    except Exception as e:
-                        logger.error(f"Failed to load dynamic signatures: {e}")
-                        _dynamic_signatures = {}
-                else:
-                    _dynamic_signatures = {}
-    return _dynamic_signatures
-
-
-def save_dynamic_signatures(new_sigs: dict):
-    global _dynamic_signatures
-    with _dynamic_signatures_lock:
-        if _dynamic_signatures is None:
-            _dynamic_signatures = get_dynamic_signatures()
-        else:
-            path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "dynamic_signatures.json")
-            if os.path.exists(path):
-                try:
-                    with open(path, "r", encoding="utf-8") as f:
-                        disk_sigs = json.load(f)
-                        _dynamic_signatures.update(disk_sigs)
-                except Exception as e:
-                    logger.warning(f"Could not reload signatures from disk before save: {e}")
-        
-        _dynamic_signatures.update(new_sigs)
-        path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "dynamic_signatures.json")
+def load_custom_signatures():
+    """Load previously learned custom vector signatures from disk."""
+    global _custom_signatures
+    if os.path.exists(CUSTOM_SIGNATURES_FILE):
         try:
-            os.makedirs(os.path.dirname(path), exist_ok=True)
-            with open(path, "w", encoding="utf-8") as f:
-                json.dump(_dynamic_signatures, f, indent=4, ensure_ascii=False)
+            with open(CUSTOM_SIGNATURES_FILE, "r", encoding="utf-8") as f:
+                with _custom_signatures_lock:
+                    _custom_signatures = json.load(f)
+            logger.info(f"Loaded {len(_custom_signatures)} custom signatures from {CUSTOM_SIGNATURES_FILE}")
         except Exception as e:
-            logger.error(f"Failed to save dynamic signatures: {e}")
+            logger.error(f"Failed to load custom signatures: {e}")
+            with _custom_signatures_lock:
+                _custom_signatures = {}
+    else:
+        with _custom_signatures_lock:
+            _custom_signatures = {}
+
+
+def get_active_signatures() -> dict:
+    """Return merged dictionary of base and custom signatures."""
+    with _custom_signatures_lock:
+        return {**BASE_SIGNATURES, **_custom_signatures}
+
+
+def prune_pending_mappings():
+    """Prune candidate CAPTCHA mappings that are older than 5 minutes."""
+    cutoff = time.time() - 300.0
+    expired = []
+    with _pending_lock:
+        for k, v in _pending_mappings.items():
+            if v.get("timestamp", 0) < cutoff:
+                expired.append(k)
+        for k in expired:
+            _pending_mappings.pop(k, None)
+    if expired:
+        logger.info(f"Pruned {len(expired)} expired pending CAPTCHA mappings.")
+
+
+def commit_learned_signatures(captcha_key: str | None) -> None:
+    """Commit buffered custom signatures to file after taxpayer successfully logs in."""
+    if not captcha_key:
+        return
+        
+    with _pending_lock:
+        pending = _pending_mappings.pop(captcha_key, None)
+        
+    if not pending:
+        logger.debug(f"No pending vector signatures found for CAPTCHA key '{captcha_key}'")
+        return
+        
+    mappings = pending["mappings"]
+    active = get_active_signatures()
+    new_sigs = {}
+    for sig, char in mappings:
+        if active.get(sig) != char:
+            new_sigs[sig] = char
+            
+    if new_sigs:
+        try:
+            with _custom_signatures_lock:
+                current_custom = {}
+                if os.path.exists(CUSTOM_SIGNATURES_FILE):
+                    with open(CUSTOM_SIGNATURES_FILE, "r", encoding="utf-8") as f:
+                        current_custom = json.load(f)
+                
+                updated = False
+                for sig, char in new_sigs.items():
+                    if current_custom.get(sig) != char:
+                        current_custom[sig] = char
+                        updated = True
+                        
+                if updated:
+                    with open(CUSTOM_SIGNATURES_FILE, "w", encoding="utf-8") as f:
+                        json.dump(current_custom, f, indent=4, ensure_ascii=False)
+                    global _custom_signatures
+                    _custom_signatures = current_custom
+                    logger.info(f"Committed {len(new_sigs)} new custom signatures to file for key '{captcha_key}'. Total custom: {len(_custom_signatures)}")
+        except Exception as e:
+            logger.error(f"Error committing custom signatures: {e}")
+
+
+# Initialize custom signatures on import
+load_custom_signatures()
 
 
 def solve_via_vector_signatures_from_root(root) -> str | None:
@@ -154,7 +216,7 @@ def solve_via_vector_signatures_from_root(root) -> str | None:
     Derived from the optimized logic in VBA modDetectCaptcha.
     """
     paths = [p for p in root.iter() if p.tag.endswith('path')]
-    dynamic_sigs = get_dynamic_signatures()
+    signatures = get_active_signatures()
     import re
     detected_chars = []
     
@@ -179,15 +241,13 @@ def solve_via_vector_signatures_from_root(root) -> str | None:
         except ValueError:
             continue
             
-        # Extract MQZ path pattern
-        signature = re.sub(r'([MQZ])([^MQZ]*)', r'\1', d)
+        # Extract MQZ path pattern (case-insensitive)
+        signature = re.sub(r'([MQZmqz])([^MQZmqz]*)', r'\1', d)
+        signature = signature.upper()
         signature = re.sub(r'\s+', '', signature)
         
-        if signature in STATIC_SIGNATURES:
-            char = STATIC_SIGNATURES[signature]
-            detected_chars.append((start_x, char))
-        elif signature in dynamic_sigs:
-            char = dynamic_sigs[signature]
+        if signature in signatures:
+            char = signatures[signature]
             detected_chars.append((start_x, char))
         else:
             logger.debug(f"Unknown vector path signature: '{signature}' at start_x={start_x}")
@@ -201,7 +261,7 @@ def solve_via_vector_signatures_from_root(root) -> str | None:
     return "".join(char for _, char in detected_chars)
 
 
-def solve_captcha_from_svg(svg_content: str) -> str:
+def solve_captcha_from_svg(svg_content: str, captcha_key: str | None = None) -> str:
     """
     Solve GDT vector captcha offline.
     
@@ -225,17 +285,23 @@ def solve_captcha_from_svg(svg_content: str) -> str:
             if t.text and t.text.strip():
                 logger.info(f"Mock CAPTCHA solved via text tag: {t.text.strip().upper()}")
                 latency = time.time() - start_time
+                captcha_analytics.record_vector_solve()
                 captcha_analytics.record_solve(latency)
                 return t.text.strip().upper()
+
+        # Prune expired pending mappings periodically
+        prune_pending_mappings()
 
         # Try pure vector signature solver
         vector_result = solve_via_vector_signatures_from_root(root)
         if vector_result:
             logger.info(f"CAPTCHA solved via Vector Path Signatures: {vector_result}")
             latency = time.time() - start_time
+            captcha_analytics.record_vector_solve()
             captcha_analytics.record_solve(latency)
             return vector_result
 
+        # Fallback to OCR solver
         # 1. Locate all path elements across namespaces
         paths = [p for p in root.iter() if p.tag.endswith('path')]
         
@@ -248,7 +314,7 @@ def solve_captcha_from_svg(svg_content: str) -> str:
             fill = p.attrib.get('fill', '').lower()
             stroke = p.attrib.get('stroke', '')
 
-            # Noise lines have fill="none" or a stroke value (like #777, #222)
+            # Noise lines have fill="none" or a stroke value
             if fill == 'none' or stroke:
                 parent = parent_map.get(p, root)
                 try:
@@ -259,8 +325,6 @@ def solve_captcha_from_svg(svg_content: str) -> str:
                 character_paths.append(p)
 
         # 3. Extract the starting X coordinate to sort letters left-to-right.
-        # This is critical because character paths in GDT SVGs are occasionally out of order.
-        # Path data 'd' command starts with M/m followed by coordinates (e.g. M24.98 35.13)
         def get_start_x(path_element) -> float:
             d = path_element.attrib.get('d', '')
             import re
@@ -279,7 +343,6 @@ def solve_captcha_from_svg(svg_content: str) -> str:
                             return float(val)
                         except ValueError:
                             pass
-                    # If there's a space after M command, read next part
                     if i + 1 < len(parts):
                         try:
                             return float(parts[i + 1])
@@ -316,28 +379,29 @@ def solve_captcha_from_svg(svg_content: str) -> str:
         # 6. Standardize results (uppercase letters & digits only)
         if result:
             solved_text = result.strip().upper()
-            logger.info(f"CAPTCHA solved: {solved_text}")
-            
-            # Dynamic self-learning logic:
-            # If the solved text length matches the number of paths exactly, learn unknown signatures.
-            if len(solved_text) == len(sorted_character_paths):
-                new_sigs = {}
-                import re
-                dynamic_sigs = get_dynamic_signatures()
-                for idx, path_el in enumerate(sorted_character_paths):
-                    d_attr = path_el.attrib.get('d', '')
-                    if d_attr:
-                        sig = re.sub(r'([MQZ])([^MQZ]*)', r'\1', d_attr)
-                        sig = re.sub(r'\s+', '', sig)
-                        if sig not in STATIC_SIGNATURES and sig not in dynamic_sigs:
-                            char_val = solved_text[idx]
-                            new_sigs[sig] = char_val
-                if new_sigs:
-                    save_dynamic_signatures(new_sigs)
-                    logger.info(f"CAPTCHA solver dynamically learned new vector signature(s): {new_sigs}")
-
+            logger.info(f"CAPTCHA solved: {solved_text} (OCR Fallback)")
             latency = time.time() - start_time
+            captcha_analytics.record_ocr_solve()
             captcha_analytics.record_solve(latency)
+
+            # Store candidate vector signatures in pending mapping queue
+            if captcha_key and len(sorted_character_paths) == len(solved_text):
+                import re
+                candidates = []
+                for i, p in enumerate(sorted_character_paths):
+                    d = p.attrib.get('d', '')
+                    if d:
+                        sig = re.sub(r'([MQZmqz])([^MQZmqz]*)', r'\1', d).upper()
+                        sig = re.sub(r'\s+', '', sig)
+                        candidates.append((sig, solved_text[i]))
+                if len(candidates) == len(solved_text):
+                    with _pending_lock:
+                        _pending_mappings[captcha_key] = {
+                            "mappings": candidates,
+                            "timestamp": time.time()
+                        }
+                    logger.debug(f"Saved {len(candidates)} pending signature mappings for key '{captcha_key}'")
+
             return solved_text
             
     except Exception as e:
@@ -349,3 +413,4 @@ def solve_captcha_from_svg(svg_content: str) -> str:
     latency = time.time() - start_time
     captcha_analytics.record_solve(latency)
     return ""
+

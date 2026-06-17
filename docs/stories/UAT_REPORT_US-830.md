@@ -5,17 +5,17 @@
 
 ### 📊 1. THÔNG TIN HỆ THỐNG & ĐIỀU HÀNH (Operating System & telemetry)
 - **Tên Agent chịu trách nhiệm**: `Antigravity`
-- **Thời gian nghiệm thu (UAT Time)**: `2026-06-16 17:42:09`
+- **Thời gian nghiệm thu (UAT Time)**: `2026-06-17 07:56:16`
 - **Trạng thái cổng kết nối (Unified Gate)**: `✅ PASSED (Hoàn thành kiểm toán toàn diện)`
 - **Thời gian chạy thử nghiệm (Quality Gate Duration)**: `9 giây`
-- **Phiên bản mã nguồn (Git Commit)**: `f1b2c42538ece2f41b03f2a09614f6980124a891 (dirty)`
-- **Ước tính tài nguyên tiêu thụ (Token Usage Estimate)**: `38,200 tokens`
+- **Phiên bản mã nguồn (Git Commit)**: `683d74c91b6b2a2de3cd9779fe9f362d6401bbe3 (dirty)`
+- **Ước tính tài nguyên tiêu thụ (Token Usage Estimate)**: `44,200 tokens`
 - **Độ rủi ro kiểm thử (Risk Lane)**: `NORMAL`
 
 ---
 
 ### 🛡️ 2. SOCRATIC RISK EVALUATION & SAFETY CHECKS
-- **Các cờ rủi ro được quét tự động (Risk Flags)**: `external`
+- **Các cờ rủi ro được quét tự động (Risk Flags)**: `auth, audit, external`
 - **Checklist an toàn tương ứng**:
   - [x] Đã xác thực toàn bộ unit/integration tests trên máy cục bộ
   - [x] Đã cập nhật ma trận kiểm thử tại `docs/TEST_MATRIX.md`
@@ -31,17 +31,20 @@
 
 ### 📋 4. CHI TIẾT TÁC VỤ ĐÃ THỰC THI (Execution Trace Detail)
 - **Hành động đã làm (Actions Taken)**:
-  - `Implemented STATIC_SIGNATURES module-level dict`
-  - `get_dynamic_signatures`
-  - `save_dynamic_signatures in auth/captcha_solver.py`
-  - `added dynamic learning on fallback OCR match`
-  - `wrote test_dynamic_signature_learning in tests/test_captcha_solver.py`
-  - `ran the full test suite.`
+  - `Modified auth/captcha_solver.py to add self-learning hooks. Updated auth/routes.py and auth/service.py to support key passing and stats endpoint. Updated templates/invoices.html and static/js/main.js to render Vector vs OCR solver breakdown.`
 - **Tệp tin đã đọc (Files Read)**:
   - `auth/captcha_solver.py`
+  - `auth/routes.py`
+  - `auth/service.py`
+  - `templates/invoices.html`
+  - `static/js/main.js`
   - `tests/test_captcha_solver.py`
 - **Tệp tin đã thay đổi (Files Changed)**:
   - `auth/captcha_solver.py`
+  - `auth/routes.py`
+  - `auth/service.py`
+  - `templates/invoices.html`
+  - `static/js/main.js`
   - `tests/test_captcha_solver.py`
 
 - **Ghi chú bổ sung (Notes)**: `Không có ghi chú thêm.`

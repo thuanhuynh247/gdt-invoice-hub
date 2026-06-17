@@ -87,6 +87,13 @@ def _authenticate_live(
     if not jwt_token:
         raise AuthenticationError("Dang nhap thanh cong nhung khong nhan duoc JWT tu he thong thue.")
 
+    # Commit dynamic CAPTCHA signatures on successful validation from GDT
+    try:
+        from auth.captcha_solver import commit_learned_signatures
+        commit_learned_signatures(key)
+    except Exception as e:
+        current_app.logger.error(f"Failed to commit learned CAPTCHA signatures: {e}")
+
     profile = _fetch_profile(jwt_token)
     now = datetime.now(timezone.utc)
     expires_at = now + timedelta(minutes=30)
@@ -235,7 +242,7 @@ def auto_refresh_gdt_session() -> bool:
             if pre_solved:
                 solved_value = pre_solved
             else:
-                solved_value = solve_captcha_from_svg(captcha_svg)
+                solved_value = solve_captcha_from_svg(captcha_svg, captcha_key=captcha_key)
         except Exception as ocr_err:
             last_error = ocr_err
             continue
