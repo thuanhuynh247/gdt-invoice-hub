@@ -34,6 +34,94 @@ from invoices.routes.helpers import (
     render_html_to_pdf
 )
 
+@invoices_blueprint.get("/dashboard")
+def dashboard_page():
+    """Render the main Pro Executive Dashboard & AI Control Center."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    
+    from invoices.models import Invoice
+    from extensions import db
+    from sqlalchemy import func
+    
+    mst = session.get("taxpayer_mst") or "0102030405"
+    
+    # Simple aggregations
+    total_invoices = Invoice.query.filter_by(taxpayer_mst=mst).count()
+    total_amount = db.session.query(func.sum(Invoice.total_amount)).filter_by(taxpayer_mst=mst).scalar() or 0.0
+    audited_count = Invoice.query.filter_by(taxpayer_mst=mst, ai_audited=True).count()
+    
+    # Calculate average T-Score
+    avg_t_score = db.session.query(func.avg(Invoice.t_score)).filter_by(taxpayer_mst=mst).scalar() or 100.0
+    avg_t_score = round(avg_t_score, 1)
+    
+    # Risk status count
+    high_risk_count = Invoice.query.filter(Invoice.taxpayer_mst == mst, Invoice.t_score < 70).count()
+    medium_risk_count = Invoice.query.filter(Invoice.taxpayer_mst == mst, Invoice.t_score >= 70, Invoice.t_score < 90).count()
+    safe_count = Invoice.query.filter(Invoice.taxpayer_mst == mst, Invoice.t_score >= 90).count()
+    
+    # Recent invoice activities
+    recent_invoices = Invoice.query.filter_by(taxpayer_mst=mst).order_by(Invoice.imported_at.desc()).limit(5).all()
+    recent_invoices_list = [inv.to_dict() for inv in recent_invoices]
+    
+    return render_template(
+        "dashboard.html",
+        total_invoices=total_invoices,
+        total_amount=total_amount,
+        audited_count=audited_count,
+        avg_t_score=avg_t_score,
+        high_risk_count=high_risk_count,
+        medium_risk_count=medium_risk_count,
+        safe_count=safe_count,
+        recent_invoices=recent_invoices_list,
+        taxpayer_mst=mst
+    )
+
+@invoices_blueprint.get("/api/dashboard/stats")
+def api_dashboard_stats():
+    """Return JSON statistics for the dashboard."""
+    if not session.get("logged_in"):
+        return jsonify({"error": "Unauthorized"}), 401
+        
+    from invoices.models import Invoice
+    from extensions import db
+    from sqlalchemy import func
+    
+    mst = session.get("taxpayer_mst") or "0102030405"
+    
+    total_invoices = Invoice.query.filter_by(taxpayer_mst=mst).count()
+    total_amount = db.session.query(func.sum(Invoice.total_amount)).filter_by(taxpayer_mst=mst).scalar() or 0.0
+    audited_count = Invoice.query.filter_by(taxpayer_mst=mst, ai_audited=True).count()
+    
+    avg_t_score = db.session.query(func.avg(Invoice.t_score)).filter_by(taxpayer_mst=mst).scalar() or 100.0
+    avg_t_score = round(avg_t_score, 1)
+    
+    high_risk_count = Invoice.query.filter(Invoice.taxpayer_mst == mst, Invoice.t_score < 70).count()
+    medium_risk_count = Invoice.query.filter(Invoice.taxpayer_mst == mst, Invoice.t_score >= 70, Invoice.t_score < 90).count()
+    safe_count = Invoice.query.filter(Invoice.taxpayer_mst == mst, Invoice.t_score >= 90).count()
+    
+    # Also fetch the monthly amounts for the chart
+    monthly_stats = db.session.query(
+        func.substr(Invoice.date, 1, 7).label("month"),
+        func.sum(Invoice.total_amount).label("amount")
+    ).filter_by(taxpayer_mst=mst).group_by("month").order_by("month").all()
+    
+    monthly_data = [{"month": row.month, "amount": row.amount} for row in monthly_stats]
+    
+    return jsonify({
+        "status": "success",
+        "total_invoices": total_invoices,
+        "total_amount": total_amount,
+        "audited_count": audited_count,
+        "avg_t_score": avg_t_score,
+        "risk_distribution": {
+            "high": high_risk_count,
+            "medium": medium_risk_count,
+            "safe": safe_count
+        },
+        "monthly_trends": monthly_data
+    })
+
 @invoices_blueprint.get("/invoices")
 def invoices_page():
     """Render the invoice search screen for authenticated users."""

@@ -192,7 +192,7 @@ def create_app() -> Flask:
         """Redirect users to the appropriate landing page."""
 
         if session.get("logged_in"):
-            return redirect(url_for("invoices.invoices_page"))
+            return redirect(url_for("invoices.dashboard_page"))
         return redirect(url_for("auth.login_page"))
 
     @app.get("/health")
