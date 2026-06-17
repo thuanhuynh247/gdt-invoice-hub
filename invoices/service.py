@@ -156,8 +156,10 @@ def fetch_invoices(query: InvoiceQuery) -> list[dict]:
             pass
         if not jwt_token:
             jwt_token = current_app.config.get("CURRENT_JWT")
-        response = requests.get(
-            f'{current_app.config["GDT_BASE_URL"]}/api/query/invoices/{endpoint}',
+        from auth.gdt_client import gdt_request
+        response = gdt_request(
+            "GET",
+            f"api/query/invoices/{endpoint}",
             params={
                 "sort": "tdlap:desc",
                 "size": 100,
@@ -165,9 +167,7 @@ def fetch_invoices(query: InvoiceQuery) -> list[dict]:
             },
             headers={
                 "Authorization": f"Bearer {jwt_token}",
-                "Accept-Language": "vi",
             },
-            timeout=current_app.config["GDT_TIMEOUT_SECONDS"],
         )
         if response.status_code == 401 and attempt == 0:
             current_app.logger.warning("GDT session expired (401) in fetch_invoices. Attempting auto-refresh...")
@@ -282,14 +282,14 @@ def download_invoice_xml(invoice_id: str) -> bytes:
             pass
         if not jwt_token:
             jwt_token = current_app.config.get("CURRENT_JWT")
-        response = requests.get(
-            f'{current_app.config["GDT_BASE_URL"]}/api/{endpoint}/invoices/export-xml',
+        from auth.gdt_client import gdt_request
+        response = gdt_request(
+            "GET",
+            f"api/{endpoint}/invoices/export-xml",
             params=export_params,
             headers={
                 "Authorization": f"Bearer {jwt_token}",
-                "Accept-Language": "vi",
             },
-            timeout=current_app.config["GDT_TIMEOUT_SECONDS"],
         )
         if response.status_code == 401 and attempt == 0:
             current_app.logger.warning("GDT session expired (401) in download_invoice_xml. Attempting auto-refresh...")

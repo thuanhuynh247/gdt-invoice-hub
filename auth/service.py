@@ -67,8 +67,10 @@ def _authenticate_live(
     if not key:
         raise AuthenticationError("Captcha da het han. Vui long tai lai captcha.")
 
-    response = requests.post(
-        f'{current_app.config["GDT_BASE_URL"]}/api/security-taxpayer/authenticate',
+    from auth.gdt_client import gdt_request
+    response = gdt_request(
+        "POST",
+        "api/security-taxpayer/authenticate",
         json={
             "username": username,
             "password": password,
@@ -76,7 +78,6 @@ def _authenticate_live(
             "ckey": key,
         },
         cookies=cookies,
-        timeout=current_app.config["GDT_TIMEOUT_SECONDS"],
     )
 
     if response.status_code >= 400:
@@ -111,13 +112,13 @@ def _authenticate_live(
 def _fetch_profile(jwt_token: str) -> dict:
     """Load taxpayer profile after successful authentication."""
 
-    response = requests.get(
-        f'{current_app.config["GDT_BASE_URL"]}/api/security-taxpayer/profile',
+    from auth.gdt_client import gdt_request
+    response = gdt_request(
+        "GET",
+        "api/security-taxpayer/profile",
         headers={
             "Authorization": f"Bearer {jwt_token}",
-            "Accept-Language": "vi",
         },
-        timeout=current_app.config["GDT_TIMEOUT_SECONDS"],
     )
     if response.status_code >= 400:
         _raise_api_error(response)
@@ -136,13 +137,13 @@ def logout_user(jwt_token: str | None) -> None:
         return
 
     try:
-        requests.get(
-            f'{current_app.config["GDT_BASE_URL"]}/api/security-taxpayer/logout',
+        from auth.gdt_client import gdt_request
+        gdt_request(
+            "GET",
+            "api/security-taxpayer/logout",
             headers={
                 "Authorization": f"Bearer {jwt_token}",
-                "Accept-Language": "vi",
             },
-            timeout=current_app.config["GDT_TIMEOUT_SECONDS"],
         )
     except requests.RequestException:
         return

@@ -124,8 +124,8 @@ def test_api_login_auto_solve_loop(app, client):
     }
 
     with patch("auth.routes.fetch_captcha_payload", return_value=mock_captcha) as mock_fetch, \
-         patch("auth.service.requests.post") as mock_post, \
-         patch("auth.service.requests.get") as mock_get:
+         patch("auth.gdt_client.requests.post") as mock_post, \
+         patch("auth.gdt_client.requests.get") as mock_get:
         
         # Side effect: first two posts fail with captcha error, third succeeds
         mock_post.side_effect = [mock_response_fail, mock_response_fail, mock_response_success]

@@ -30,9 +30,10 @@ def fetch_captcha_payload() -> dict:
             "cookies": {},
         }
 
-    response = requests.get(
-        f'{current_app.config["GDT_BASE_URL"]}/api/captcha',
-        timeout=current_app.config["GDT_TIMEOUT_SECONDS"],
+    from auth.gdt_client import gdt_request
+    response = gdt_request(
+        "GET",
+        "api/captcha",
     )
     response.raise_for_status()
     data = response.json()
