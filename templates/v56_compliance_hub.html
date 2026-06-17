@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}License Fee Decree 139/2016 — License Fee Hub (v56){% endblock %}
+{% block title %}License Fee Decree 139/2016 - License Fee Hub (v56){% endblock %}
 
 {% block content %}
 <div class="container py-4">
@@ -73,19 +73,19 @@
                         </div>
                     </div>
 
-                    <div class="mt-4 p-3 bg-light rounded border">
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
                         <h6 class="fw-bold mb-2 text-danger"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Calculation Result</h6>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>Standard Annual Fee:</span>
-                            <span id="res-standard-fee" class="fw-bold text-dark">—</span>
+                            <span id="res-standard-fee" class="fw-bold text-dark">-</span>
                         </div>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>Effective Annual Fee:</span>
-                            <span id="res-effective-fee" class="fw-bold text-danger fs-6">—</span>
+                            <span id="res-effective-fee" class="fw-bold text-danger fs-6">-</span>
                         </div>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>Exempt Status:</span>
-                            <span id="res-is-exempt" class="fw-bold">—</span>
+                            <span id="res-is-exempt" class="fw-bold">-</span>
                         </div>
                         <div class="small text-muted border-top pt-2 mt-2">
                             <strong>Audit Note:</strong> <span id="res-notes">Awaiting declaration entry…</span>
@@ -104,20 +104,20 @@
                 </div>
                 <div class="card-body d-flex flex-column gap-3">
                     <!-- baseline 1 -->
-                    <div class="p-3 bg-light rounded border border-light-subtle">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <span class="fw-bold small text-dark">HQ Headquarters (Enterprise &gt; 10B)</span>
                             <span class="badge bg-secondary">Bracket 1</span>
                         </div>
                         <p class="small text-muted mb-2">Large organization with charter capital &gt; 10,000,000,000 VND.</p>
                         <div class="d-flex justify-content-between small">
-                            <span>Charter Capital: <strong id="base1-cap">—</strong></span>
-                            <span>Fee: <strong id="base1-fee" class="text-danger">—</strong></span>
+                            <span>Charter Capital: <strong id="base1-cap">-</strong></span>
+                            <span>Fee: <strong id="base1-fee" class="text-danger">-</strong></span>
                         </div>
                     </div>
 
                     <!-- baseline 2 -->
-                    <div class="p-3 bg-light rounded border border-light-subtle">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <span class="fw-bold small text-dark">Southern Branch Office (Flat Branch Fee)</span>
                             <span class="badge bg-secondary">Branch Fee</span>
@@ -125,33 +125,33 @@
                         <p class="small text-muted mb-2">Branches and representative offices of enterprise.</p>
                         <div class="d-flex justify-content-between small">
                             <span>Entity Type: <strong>Branch/RO</strong></span>
-                            <span>Fee: <strong id="base2-fee" class="text-danger">—</strong></span>
+                            <span>Fee: <strong id="base2-fee" class="text-danger">-</strong></span>
                         </div>
                     </div>
 
                     <!-- baseline 3 -->
-                    <div class="p-3 bg-light rounded border border-light-subtle">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <span class="fw-bold small text-dark">First Year StartUp Exemption (100%)</span>
                             <span class="badge bg-success text-white">Exempt</span>
                         </div>
                         <p class="small text-muted mb-2">Newly established enterprise starting business this year.</p>
                         <div class="d-flex justify-content-between small">
-                            <span>Startup Capital: <strong id="base3-cap">—</strong></span>
-                            <span>Reason: <strong id="base3-reason" class="text-success">—</strong></span>
+                            <span>Startup Capital: <strong id="base3-cap">-</strong></span>
+                            <span>Reason: <strong id="base3-reason" class="text-success">-</strong></span>
                         </div>
                     </div>
 
                     <!-- baseline 4 -->
-                    <div class="p-3 bg-light rounded border border-light-subtle">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <span class="fw-bold small text-dark">Household Store Medium Bracket</span>
                             <span class="badge bg-secondary">Bracket 2 (Household)</span>
                         </div>
                         <p class="small text-muted mb-2">Household store with annual revenue of 300M to 500M VND.</p>
                         <div class="d-flex justify-content-between small">
-                            <span>Revenue: <strong id="base4-rev">—</strong></span>
-                            <span>Fee: <strong id="base4-fee" class="text-danger">—</strong></span>
+                            <span>Revenue: <strong id="base4-rev">-</strong></span>
+                            <span>Fee: <strong id="base4-fee" class="text-danger">-</strong></span>
                         </div>
                     </div>
                 </div>
@@ -169,7 +169,7 @@
                     <div id="debate-container-v56" class="mb-3 d-flex flex-column gap-3">
                         <!-- Loaded dynamically -->
                     </div>
-                    <div class="p-3 bg-light rounded border border-light-subtle">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
                         <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus Summary Statement:</h6>
                         <p id="consensus-text-v56" class="text-muted small mb-0">Awaiting simulation data execution…</p>
                     </div>
@@ -272,7 +272,7 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("res-is-exempt").innerHTML = res.is_exempt ? 
             `<span class="badge bg-success">Yes - Exempt</span>` : 
             `<span class="badge bg-danger">No - Taxable</span>`;
-        document.getElementById("res-notes").textContent = res.notes || "—";
+        document.getElementById("res-notes").textContent = res.notes || "-";
     };
 
     const renderBaselines = (data) => {
@@ -306,7 +306,7 @@ document.addEventListener("DOMContentLoaded", () => {
         };
         debate.forEach(msg => {
             const div = document.createElement("div");
-            div.className = "d-flex gap-3 align-items-start p-3 bg-light rounded border border-light-subtle";
+            div.className = "d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";
             div.innerHTML = `
                 <span class="badge ${colors[msg.speaker] || "bg-secondary"} py-2 px-3" style="min-width: 200px;">${msg.speaker}</span>
                 <div class="text-dark small">${msg.text}</div>
@@ -334,7 +334,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td>${formatVND(log.standard_fee)}</td>
                 <td class="fw-bold text-dark">${formatVND(log.effective_fee)}</td>
                 <td>${log.is_exempt ? '<span class="badge bg-success">Exempt</span>' : '<span class="badge bg-danger">Taxable</span>'}</td>
-                <td class="text-muted small">${log.exemption_reason || "—"}</td>
+                <td class="text-muted small">${log.exemption_reason || "-"}</td>
                 <td class="text-muted">${log.created_at}</td>
             `;
             tbody.appendChild(tr);

@@ -70,13 +70,13 @@
                             </button>
                         </div>
                     </div>
-                    <div class="mt-4 p-3 bg-light rounded border">
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
                         <h6 class="fw-bold mb-2 text-success"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Calculation Result</h6>
-                        <div class="d-flex justify-content-between small mb-1"><span>Noise Surcharge:</span><span id="res-noise" class="fw-bold text-dark">—</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Vibration Surcharge:</span><span id="res-vibration" class="fw-bold text-dark">—</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Gross Surcharge:</span><span id="res-gross" class="fw-bold text-dark">—</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Final Surcharge:</span><span id="res-final" class="fw-bold text-success fs-6">—</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Exemption Status:</span><span id="res-exempt-badge" class="fw-bold">—</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Noise Surcharge:</span><span id="res-noise" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Vibration Surcharge:</span><span id="res-vibration" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Gross Surcharge:</span><span id="res-gross" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Final Surcharge:</span><span id="res-final" class="fw-bold text-success fs-6">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Exemption Status:</span><span id="res-exempt-badge" class="fw-bold">-</span></div>
                         <div class="small text-muted border-top pt-2 mt-2"><strong>Notes:</strong> <span id="res-notes">Awaiting…</span></div>
                     </div>
                 </div>
@@ -90,7 +90,7 @@
                     <h5 class="fw-bold mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Noise & Vibration Baselines</h5>
                 </div>
                 <div class="card-body d-flex flex-column gap-3">
-                    <div class="p-3 bg-light rounded border border-light-subtle">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <span class="fw-bold small text-dark">Day Shift Construction Hub</span>
                             <span class="badge bg-success">Day Shift</span>
@@ -98,10 +98,10 @@
                         <p class="small text-muted mb-2">Noise: 75.0 dBA. Vibration: 0.065 m/s². Surcharges apply.</p>
                         <div class="d-flex justify-content-between small">
                             <span>Exempt: No</span>
-                            <span>Fee: <strong id="base1-eff" class="text-success">—</strong></span>
+                            <span>Fee: <strong id="base1-eff" class="text-success">-</strong></span>
                         </div>
                     </div>
-                    <div class="p-3 bg-light rounded border border-light-subtle">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <span class="fw-bold small text-dark">Night Shift Transport Hub</span>
                             <span class="badge bg-success">Night Shift</span>
@@ -109,10 +109,10 @@
                         <p class="small text-muted mb-2">Noise: 58.0 dBA. Vibration: 0.045 m/s². 1.5x night multiplier applies.</p>
                         <div class="d-flex justify-content-between small">
                             <span>Exempt: No</span>
-                            <span>Fee: <strong id="base2-eff" class="text-success">—</strong></span>
+                            <span>Fee: <strong id="base2-eff" class="text-success">-</strong></span>
                         </div>
                     </div>
-                    <div class="p-3 bg-light rounded border border-light-subtle">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <span class="fw-bold small text-dark">Traditional Festival Loudspeaker Event</span>
                             <span class="badge bg-danger">Festival Exempt</span>
@@ -120,7 +120,7 @@
                         <p class="small text-muted mb-2">Noise: 85.0 dBA. Vibration: 0.090 m/s². Exemption: traditional cultural festival.</p>
                         <div class="d-flex justify-content-between small">
                             <span>Exempt: Yes</span>
-                            <span>Notes: <strong id="base3-notes" class="text-success">—</strong></span>
+                            <span>Notes: <strong id="base3-notes" class="text-success">-</strong></span>
                         </div>
                     </div>
                 </div>
@@ -136,7 +136,7 @@
                 </div>
                 <div class="card-body">
                     <div id="debate-container-v74" class="mb-3 d-flex flex-column gap-3"></div>
-                    <div class="p-3 bg-light rounded border border-light-subtle">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
                         <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus:</h6>
                         <p id="consensus-text-v74" class="text-muted small mb-0">Awaiting…</p>
                     </div>
@@ -247,7 +247,7 @@ document.addEventListener("DOMContentLoaded", () => {
         };
         debate.forEach(m => {
             const div = document.createElement("div");
-            div.className = "d-flex gap-3 align-items-start p-3 bg-light rounded border border-light-subtle";
+            div.className = "d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";
             div.innerHTML = `<span class="badge ${cl[m.speaker] || "bg-secondary"} py-2 px-3" style="min-width:220px">${m.speaker}</span><div class="text-dark small">${m.text}</div>`;
             c.appendChild(div);
         });

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Mineral Extraction Fee Decree 27/2023 — EPFME Hub (v63){% endblock %}
+{% block title %}Mineral Extraction Fee Decree 27/2023 - EPFME Hub (v63){% endblock %}
 {% block content %}
 <div class="container py-4">
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
@@ -60,13 +60,13 @@
                             <button id="btn-calc-epfme" class="btn btn-info btn-sm text-dark fw-bold"><i class="bi bi-play-fill me-1" aria-hidden="true"></i> Run Calculation</button>
                         </div>
                     </div>
-                    <div class="mt-4 p-3 bg-light rounded border">
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
                         <h6 class="fw-bold mb-2 text-info"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Calculation Result</h6>
-                        <div class="d-flex justify-content-between small mb-1"><span>Base Standard Rate:</span><span id="res-base-rate" class="fw-bold text-dark">—</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Applied Tariff Rate:</span><span id="res-applied-rate" class="fw-bold text-dark">—</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Total Standard Fee:</span><span id="res-total-fee" class="fw-bold text-dark">—</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Effective Fee Payable:</span><span id="res-effective-fee" class="fw-bold text-info fs-6">—</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Exemption Status:</span><span id="res-exempt-badge" class="fw-bold">—</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Base Standard Rate:</span><span id="res-base-rate" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Applied Tariff Rate:</span><span id="res-applied-rate" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Total Standard Fee:</span><span id="res-total-fee" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Effective Fee Payable:</span><span id="res-effective-fee" class="fw-bold text-info fs-6">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Exemption Status:</span><span id="res-exempt-badge" class="fw-bold">-</span></div>
                         <div class="small text-muted border-top pt-2 mt-2"><strong>Exemption Reason:</strong> <span id="res-exemption-reason">Awaiting…</span></div>
                     </div>
                 </div>
@@ -76,25 +76,25 @@
             <div class="card shadow-sm h-100 border-light">
                 <div class="card-header bg-transparent border-0 pt-4 pb-0"><h5 class="fw-bold mb-1"><i class="bi bi-shield-check text-info me-2" aria-hidden="true"></i>EPFME Baseline Verification</h5></div>
                 <div class="card-body d-flex flex-column gap-3">
-                    <div class="p-3 bg-light rounded border border-light-subtle">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
                         <div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Standard Crude Oil Exploitation</span><span class="badge bg-secondary">Crude Oil</span></div>
                         <p class="small text-muted mb-2">5,000 tonnes extracted. Standard rate: 100,000 VND / tonne.</p>
-                        <div class="d-flex justify-content-between small"><span>Total Fee: <strong id="base1-tot">—</strong></span><span>Effective: <strong id="base1-eff" class="text-info">—</strong></span></div>
+                        <div class="d-flex justify-content-between small"><span>Total Fee: <strong id="base1-tot">-</strong></span><span>Effective: <strong id="base1-eff" class="text-info">-</strong></span></div>
                     </div>
-                    <div class="p-3 bg-light rounded border border-light-subtle">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
                         <div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Building Stone Salvage Exploitation</span><span class="badge bg-warning text-dark">Salvage (60%)</span></div>
                         <p class="small text-muted mb-2">10,000 m³ stone. Salvage discount applied (4,500 VND/m³).</p>
-                        <div class="d-flex justify-content-between small"><span>Total Fee: <strong id="base2-tot">—</strong></span><span>Effective: <strong id="base2-eff" class="text-info">—</strong></span></div>
+                        <div class="d-flex justify-content-between small"><span>Total Fee: <strong id="base2-tot">-</strong></span><span>Effective: <strong id="base2-eff" class="text-info">-</strong></span></div>
                     </div>
-                    <div class="p-3 bg-light rounded border border-light-subtle">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
                         <div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Household Residential Construction (100% Exempt)</span><span class="badge bg-success">Exempt</span></div>
                         <p class="small text-muted mb-2">200 m³ brick clay for personal house building. Exempted.</p>
-                        <div class="d-flex justify-content-between small"><span>Total Fee: <strong id="base3-tot">—</strong></span><span>Reason: <strong id="base3-reason" class="text-success">—</strong></span></div>
+                        <div class="d-flex justify-content-between small"><span>Total Fee: <strong id="base3-tot">-</strong></span><span>Reason: <strong id="base3-reason" class="text-success">-</strong></span></div>
                     </div>
-                    <div class="p-3 bg-light rounded border border-light-subtle">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
                         <div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Disaster Relief Dyke Building (100% Exempt)</span><span class="badge bg-success">Exempt</span></div>
                         <p class="small text-muted mb-2">15,000 m³ building stone extracted for flood relief dam fortification.</p>
-                        <div class="d-flex justify-content-between small"><span>Total Fee: <strong id="base4-tot">—</strong></span><span>Reason: <strong id="base4-reason" class="text-success">—</strong></span></div>
+                        <div class="d-flex justify-content-between small"><span>Total Fee: <strong id="base4-tot">-</strong></span><span>Reason: <strong id="base4-reason" class="text-success">-</strong></span></div>
                     </div>
                 </div>
             </div>
@@ -102,7 +102,7 @@
         <div class="col-lg-12">
             <div class="card shadow-sm border-light">
                 <div class="card-header bg-dark text-white py-3 d-flex align-items-center justify-content-between"><h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-info me-2" aria-hidden="true"></i>Multi-Agent EPFME Advisory Debate</h5><span class="badge bg-secondary">Environmental Consensus</span></div>
-                <div class="card-body"><div id="debate-container-v63" class="mb-3 d-flex flex-column gap-3"></div><div class="p-3 bg-light rounded border border-light-subtle"><h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus:</h6><p id="consensus-text-v63" class="text-muted small mb-0">Awaiting…</p></div></div>
+                <div class="card-body"><div id="debate-container-v63" class="mb-3 d-flex flex-column gap-3"></div><div class="p-3 bg-premium-light rounded border border-light-subtle"><h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus:</h6><p id="consensus-text-v63" class="text-muted small mb-0">Awaiting…</p></div></div>
             </div>
         </div>
         <div class="col-lg-12">
@@ -191,7 +191,7 @@ document.addEventListener("DOMContentLoaded",()=>{
         };
         debate.forEach(m => {
             const div = document.createElement("div");
-            div.className = "d-flex gap-3 align-items-start p-3 bg-light rounded border border-light-subtle";
+            div.className = "d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";
             div.innerHTML = `<span class="badge ${cl[m.speaker] || "bg-secondary"} py-2 px-3" style="min-width:200px">${m.speaker}</span><div class="text-dark small">${m.text}</div>`;
             c.appendChild(div);
         });
@@ -216,8 +216,8 @@ document.addEventListener("DOMContentLoaded",()=>{
                 <td class="fw-bold">${l.mineral_description}</td>
                 <td><span class="badge bg-secondary">${l.mineral_type.toUpperCase()}</span></td>
                 <td>${l.volume}${fUnit(l.mineral_type)}</td>
-                <td><span class="badge bg-light text-dark">${l.is_salvage ? 'YES' : 'NO'}</span></td>
-                <td><span class="badge bg-light text-dark">${l.exemption_category.toUpperCase()}</span></td>
+                <td><span class="badge bg-premium-light text-dark">${l.is_salvage ? 'YES' : 'NO'}</span></td>
+                <td><span class="badge bg-premium-light text-dark">${l.exemption_category.toUpperCase()}</span></td>
                 <td>${fVND(l.base_rate)}</td>
                 <td>${fVND(l.applied_rate)}</td>
                 <td>${fVND(l.total_fee_vnd)}</td>

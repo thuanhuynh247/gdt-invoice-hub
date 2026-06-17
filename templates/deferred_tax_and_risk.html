@@ -185,7 +185,7 @@
                         </div>
 
                         <!-- Financial Indicators Summary -->
-                        <div class="p-3 bg-light rounded-3 border">
+                        <div class="p-3 bg-premium-light rounded-3 border">
                             <h5 class="fw-bold small text-secondary uppercase mb-3">Thông Số Cơ Bản Doanh Nghiệp</h5>
                             <div class="row g-2 text-start">
                                 <div class="col-6 mb-2">
@@ -268,7 +268,7 @@
                         </div>
 
                         <!-- Live Scraper Result Box -->
-                        <div class="p-3 bg-light rounded border border-success-subtle mb-4 d-none" id="scraperResultBox">
+                        <div class="p-3 bg-premium-light rounded border border-success-subtle mb-4 d-none" id="scraperResultBox">
                             <div class="d-flex justify-content-between align-items-start mb-2">
                                 <h6 class="fw-bold mb-0 text-success" id="scraperTaxName">TÊN DOANH NGHIỆP</h6>
                                 <span class="badge bg-success" id="scraperStatus">ACTIVE</span>
@@ -317,7 +317,7 @@
             <h4 class="fw-bold text-dark mb-1" id="drawSupplierName">--</h4>
             <small class="text-muted d-block mb-3" id="drawSupplierMst">MST: --</small>
             
-            <div class="d-inline-flex align-items-center gap-2 p-2 bg-light rounded-3 border mb-3">
+            <div class="d-inline-flex align-items-center gap-2 p-2 bg-premium-light rounded-3 border mb-3">
                 <div>
                     <small class="text-secondary d-block text-start" style="font-size: 10px;">XẾP HẠNG AI</small>
                     <strong class="fs-4 text-primary" id="drawSupplierRating">--</strong>
@@ -663,10 +663,10 @@ function simulateGdtCheck() {
                 const statusBadge = document.getElementById("scraperStatus");
                 if (result.gdt_status === "ACTIVE") {
                     statusBadge.className = "badge bg-success";
-                    box.className = "p-3 bg-light rounded border border-success-subtle mb-4";
+                    box.className = "p-3 bg-premium-light rounded border border-success-subtle mb-4";
                 } else {
                     statusBadge.className = "badge bg-danger";
-                    box.className = "p-3 bg-light rounded border border-danger-subtle mb-4";
+                    box.className = "p-3 bg-premium-light rounded border border-danger-subtle mb-4";
                 }
 
                 document.getElementById("scraperTime").textContent = result.last_checked;

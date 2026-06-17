@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}SCT Law 66/2025 Amendments — Special Consumption Tax Hub (v52){% endblock %}
+{% block title %}SCT Law 66/2025 Amendments - Special Consumption Tax Hub (v52){% endblock %}
 
 {% block content %}
 <div class="container py-4">
@@ -69,15 +69,15 @@
                         </div>
                     </div>
 
-                    <div class="mt-4 p-3 bg-light rounded border">
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
                         <h6 class="fw-bold mb-2 text-danger"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Beverage SCT Result</h6>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>SCT Rate:</span>
-                            <span id="res-beverage-rate" class="fw-bold text-dark">—</span>
+                            <span id="res-beverage-rate" class="fw-bold text-dark">-</span>
                         </div>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>SCT Amount:</span>
-                            <span id="res-beverage-amount" class="fw-bold text-danger">—</span>
+                            <span id="res-beverage-amount" class="fw-bold text-danger">-</span>
                         </div>
                         <div class="small text-muted border-top pt-2 mt-2">
                             <strong>Note:</strong> <span id="res-beverage-note">Awaiting calculation…</span>
@@ -115,15 +115,15 @@
                         </div>
                     </div>
 
-                    <div class="mt-4 p-3 bg-light rounded border">
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
                         <h6 class="fw-bold mb-2 text-primary"><i class="bi bi-receipt me-2" aria-hidden="true"></i>AC SCT Result</h6>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>SCT Rate:</span>
-                            <span id="res-ac-rate" class="fw-bold text-dark">—</span>
+                            <span id="res-ac-rate" class="fw-bold text-dark">-</span>
                         </div>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>SCT Amount:</span>
-                            <span id="res-ac-amount" class="fw-bold text-primary">—</span>
+                            <span id="res-ac-amount" class="fw-bold text-primary">-</span>
                         </div>
                         <div class="small text-muted border-top pt-2 mt-2">
                             <strong>Note:</strong> <span id="res-ac-note">Awaiting calculation…</span>
@@ -167,15 +167,15 @@
                         </div>
                     </div>
 
-                    <div class="mt-4 p-3 bg-light rounded border">
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
                         <h6 class="fw-bold mb-2 text-warning text-dark"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Non-Tariff SCT Result</h6>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>SCT Rate:</span>
-                            <span id="res-nt-rate" class="fw-bold text-dark">—</span>
+                            <span id="res-nt-rate" class="fw-bold text-dark">-</span>
                         </div>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>SCT Amount:</span>
-                            <span id="res-nt-amount" class="fw-bold text-warning text-dark">—</span>
+                            <span id="res-nt-amount" class="fw-bold text-warning text-dark">-</span>
                         </div>
                         <div class="small text-muted border-top pt-2 mt-2">
                             <strong>Note:</strong> <span id="res-nt-note">Awaiting calculation…</span>
@@ -221,15 +221,15 @@
                         </div>
                     </div>
 
-                    <div class="mt-4 p-3 bg-light rounded border">
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
                         <h6 class="fw-bold mb-2 text-success"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Promo SCT Result</h6>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>SCT Taxable Base:</span>
-                            <span id="res-promo-base" class="fw-bold text-dark">—</span>
+                            <span id="res-promo-base" class="fw-bold text-dark">-</span>
                         </div>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>SCT Amount:</span>
-                            <span id="res-promo-amount" class="fw-bold text-success">—</span>
+                            <span id="res-promo-amount" class="fw-bold text-success">-</span>
                         </div>
                         <div class="small text-muted border-top pt-2 mt-2">
                             <strong>Note:</strong> <span id="res-promo-note">Awaiting calculation…</span>
@@ -249,7 +249,7 @@
                 <div class="card-body">
                     <div id="debate-container-v52" class="mb-3 d-flex flex-column gap-3">
                     </div>
-                    <div class="p-3 bg-light rounded border border-light-subtle">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
                         <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus Summary Statement:</h6>
                         <p id="consensus-text-v52" class="text-muted small mb-0">Awaiting simulation data execution…</p>
                     </div>
@@ -346,26 +346,26 @@ document.addEventListener("DOMContentLoaded", () => {
     const renderBeverage = (res) => {
         document.getElementById("res-beverage-rate").textContent = `${(res.sct_rate * 100).toFixed(0)}%`;
         document.getElementById("res-beverage-amount").textContent = formatVND(res.sct_amount);
-        document.getElementById("res-beverage-note").textContent = res.notes || "—";
+        document.getElementById("res-beverage-note").textContent = res.notes || "-";
     };
 
     const renderAC = (res) => {
         document.getElementById("res-ac-rate").textContent = `${(res.sct_rate * 100).toFixed(0)}%`;
         document.getElementById("res-ac-amount").textContent = formatVND(res.sct_amount);
-        document.getElementById("res-ac-note").textContent = res.notes || "—";
+        document.getElementById("res-ac-note").textContent = res.notes || "-";
     };
 
     const renderNonTariff = (res) => {
         document.getElementById("res-nt-rate").textContent = `${(res.sct_rate * 100).toFixed(0)}%`;
         document.getElementById("res-nt-amount").textContent = formatVND(res.sct_amount);
-        document.getElementById("res-nt-note").textContent = res.notes || "—";
+        document.getElementById("res-nt-note").textContent = res.notes || "-";
     };
 
     const renderPromo = (res) => {
         const totalBase = res.equivalent_price * res.quantity;
         document.getElementById("res-promo-base").textContent = formatVND(totalBase);
         document.getElementById("res-promo-amount").textContent = formatVND(res.sct_amount);
-        document.getElementById("res-promo-note").textContent = res.notes || "—";
+        document.getElementById("res-promo-note").textContent = res.notes || "-";
     };
 
     const renderDebate = (debate, summary) => {
@@ -374,7 +374,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const colors = { "Tax Audit Inspector": "bg-danger", "SCT Specialist": "bg-success", "Compliance Counsel": "bg-warning text-dark" };
         debate.forEach(msg => {
             const div = document.createElement("div");
-            div.className = "d-flex gap-3 align-items-start p-3 bg-light rounded border border-light-subtle";
+            div.className = "d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";
             div.innerHTML = `
                 <span class="badge ${colors[msg.speaker] || "bg-secondary"} py-2" style="min-width: 180px;">${msg.speaker}</span>
                 <div class="text-dark small">${msg.text}</div>

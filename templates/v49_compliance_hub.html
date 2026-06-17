@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}CIT Law 67/2025 Amendments — SME Rates, RE Offsets & Green Exemptions Hub (v49){% endblock %}
+{% block title %}CIT Law 67/2025 Amendments - SME Rates, RE Offsets & Green Exemptions Hub (v49){% endblock %}
 
 {% block content %}
 <div class="container py-4">
@@ -53,15 +53,15 @@
                         </div>
                     </div>
 
-                    <div class="mt-4 p-3 bg-light rounded border">
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
                         <h6 class="fw-bold mb-2 text-info"><i class="bi bi-info-circle me-2" aria-hidden="true"></i>Classification Result</h6>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>CIT Rate Applied:</span>
-                            <span id="res-sme-rate" class="fw-bold text-primary">—</span>
+                            <span id="res-sme-rate" class="fw-bold text-primary">-</span>
                         </div>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>SME Exemption Eligible:</span>
-                            <span id="res-sme-eligible" class="badge bg-secondary">—</span>
+                            <span id="res-sme-eligible" class="badge bg-secondary">-</span>
                         </div>
                         <div class="small text-muted border-top pt-2 mt-2">
                             <strong>Note:</strong> <span id="res-sme-note">Awaiting evaluation…</span>
@@ -99,15 +99,15 @@
                         </div>
                     </div>
 
-                    <div class="mt-4 p-3 bg-light rounded border">
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
                         <h6 class="fw-bold mb-2 text-success"><i class="bi bi-wallet2 me-2" aria-hidden="true"></i>Offset Calculations</h6>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>Offset Applied:</span>
-                            <span id="res-offset-applied" class="fw-bold text-success">—</span>
+                            <span id="res-offset-applied" class="fw-bold text-success">-</span>
                         </div>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>Final Taxable Income:</span>
-                            <span id="res-offset-final" class="fw-bold text-primary">—</span>
+                            <span id="res-offset-final" class="fw-bold text-primary">-</span>
                         </div>
                         <div class="small text-muted border-top pt-2 mt-2">
                             <strong>Note:</strong> <span id="res-offset-note">Awaiting evaluation…</span>
@@ -154,15 +154,15 @@
                         </div>
                     </div>
 
-                    <div class="mt-4 p-3 bg-light rounded border">
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
                         <h6 class="fw-bold mb-2 text-warning"><i class="bi bi-safe me-2" aria-hidden="true"></i>Audit Ledger</h6>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>Withholding Rate:</span>
-                            <span id="res-withholding-rate" class="fw-bold">—</span>
+                            <span id="res-withholding-rate" class="fw-bold">-</span>
                         </div>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>Withholding Tax Liability:</span>
-                            <span id="res-withholding-tax" class="fw-bold text-danger">—</span>
+                            <span id="res-withholding-tax" class="fw-bold text-danger">-</span>
                         </div>
                         <div class="small text-muted border-top pt-2 mt-2">
                             <strong>Note:</strong> <span id="res-digital-note">Awaiting evaluation…</span>
@@ -196,15 +196,15 @@
                         </div>
                     </div>
 
-                    <div class="mt-4 p-3 bg-light rounded border">
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
                         <h6 class="fw-bold mb-2 text-success"><i class="bi bi-check2-all me-2" aria-hidden="true"></i>Exemption Verdict</h6>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>Exemption Type:</span>
-                            <span id="res-green-type" class="fw-bold text-success">—</span>
+                            <span id="res-green-type" class="fw-bold text-success">-</span>
                         </div>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>Is CIT Exempt:</span>
-                            <span id="res-green-exempt" class="badge bg-secondary">—</span>
+                            <span id="res-green-exempt" class="badge bg-secondary">-</span>
                         </div>
                         <div class="small text-muted border-top pt-2 mt-2">
                             <strong>Note:</strong> <span id="res-green-note">Awaiting evaluation…</span>
@@ -224,7 +224,7 @@
                 <div class="card-body">
                     <div id="debate-container-v49" class="mb-3 d-flex flex-column gap-3">
                     </div>
-                    <div class="p-3 bg-light rounded border border-light-subtle">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
                         <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus Summary Statement:</h6>
                         <p id="consensus-text-v49" class="text-muted small mb-0">Awaiting simulation data execution…</p>
                     </div>
@@ -318,19 +318,19 @@ document.addEventListener("DOMContentLoaded", () => {
         const eligibleBadge = document.getElementById("res-sme-eligible");
         eligibleBadge.textContent = res.is_sme ? "✅ ELIGIBLE" : "❌ NO";
         eligibleBadge.className = "badge " + (res.is_sme ? "bg-success" : "bg-danger");
-        document.getElementById("res-sme-note").textContent = res.notes || "—";
+        document.getElementById("res-sme-note").textContent = res.notes || "-";
     };
 
     const renderOffset = (res) => {
         document.getElementById("res-offset-applied").textContent = formatVND(res.offset_applied);
         document.getElementById("res-offset-final").textContent = formatVND(res.final_taxable_income);
-        document.getElementById("res-offset-note").textContent = res.notes || "—";
+        document.getElementById("res-offset-note").textContent = res.notes || "-";
     };
 
     const renderDigital = (res) => {
         document.getElementById("res-withholding-rate").textContent = res.withholding_rate;
         document.getElementById("res-withholding-tax").textContent = formatVND(res.withholding_tax);
-        document.getElementById("res-digital-note").textContent = res.notes || "—";
+        document.getElementById("res-digital-note").textContent = res.notes || "-";
     };
 
     const renderGreen = (res) => {
@@ -338,7 +338,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const exemptBadge = document.getElementById("res-green-exempt");
         exemptBadge.textContent = res.is_exempt ? "✅ EXEMPT" : "❌ TAXABLE";
         exemptBadge.className = "badge " + (res.is_exempt ? "bg-success" : "bg-danger");
-        document.getElementById("res-green-note").textContent = res.notes || "—";
+        document.getElementById("res-green-note").textContent = res.notes || "-";
     };
 
     const renderDebate = (debate, summary) => {
@@ -347,7 +347,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const colors = { "Tax Consultant": "bg-info", "Real Estate Analyst": "bg-success", "Environmental Economist": "bg-warning text-dark" };
         debate.forEach(msg => {
             const div = document.createElement("div");
-            div.className = "d-flex gap-3 align-items-start p-3 bg-light rounded border border-light-subtle";
+            div.className = "d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";
             div.innerHTML = `
                 <span class="badge ${colors[msg.speaker] || "bg-secondary"} py-2" style="min-width: 180px;">${msg.speaker}</span>
                 <div class="text-dark small">${msg.text}</div>

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}EP Tax Law 57/2010 — Environmental Protection Tax Hub (v53){% endblock %}
+{% block title %}EP Tax Law 57/2010 - Environmental Protection Tax Hub (v53){% endblock %}
 
 {% block content %}
 <div class="container py-4">
@@ -61,19 +61,19 @@
                         </div>
                     </div>
 
-                    <div class="mt-4 p-3 bg-light rounded border">
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
                         <h6 class="fw-bold mb-2 text-danger"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Fuel EP Tax Result</h6>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>EP Tax Rate:</span>
-                            <span id="res-fuel-rate" class="fw-bold text-dark">—</span>
+                            <span id="res-fuel-rate" class="fw-bold text-dark">-</span>
                         </div>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>EP Tax Amount:</span>
-                            <span id="res-fuel-amount" class="fw-bold text-danger">—</span>
+                            <span id="res-fuel-amount" class="fw-bold text-danger">-</span>
                         </div>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>Exempt:</span>
-                            <span id="res-fuel-exempt" class="fw-bold">—</span>
+                            <span id="res-fuel-exempt" class="fw-bold">-</span>
                         </div>
                         <div class="small text-muted border-top pt-2 mt-2">
                             <strong>Note:</strong> <span id="res-fuel-note">Awaiting calculation…</span>
@@ -123,19 +123,19 @@
                         </div>
                     </div>
 
-                    <div class="mt-4 p-3 bg-light rounded border">
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
                         <h6 class="fw-bold mb-2 text-warning"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Coal EP Tax Result</h6>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>EP Tax Rate:</span>
-                            <span id="res-coal-rate" class="fw-bold text-dark">—</span>
+                            <span id="res-coal-rate" class="fw-bold text-dark">-</span>
                         </div>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>EP Tax Amount:</span>
-                            <span id="res-coal-amount" class="fw-bold text-warning">—</span>
+                            <span id="res-coal-amount" class="fw-bold text-warning">-</span>
                         </div>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>Exempt:</span>
-                            <span id="res-coal-exempt" class="fw-bold">—</span>
+                            <span id="res-coal-exempt" class="fw-bold">-</span>
                         </div>
                         <div class="small text-muted border-top pt-2 mt-2">
                             <strong>Note:</strong> <span id="res-coal-note">Awaiting calculation…</span>
@@ -179,19 +179,19 @@
                         </div>
                     </div>
 
-                    <div class="mt-4 p-3 bg-light rounded border">
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
                         <h6 class="fw-bold mb-2 text-info"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Plastic Bag EP Tax Result</h6>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>EP Tax Rate:</span>
-                            <span id="res-bag-rate" class="fw-bold text-dark">—</span>
+                            <span id="res-bag-rate" class="fw-bold text-dark">-</span>
                         </div>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>EP Tax Amount:</span>
-                            <span id="res-bag-amount" class="fw-bold text-info">—</span>
+                            <span id="res-bag-amount" class="fw-bold text-info">-</span>
                         </div>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>Biodegradable:</span>
-                            <span id="res-bag-biodegradable" class="fw-bold">—</span>
+                            <span id="res-bag-biodegradable" class="fw-bold">-</span>
                         </div>
                         <div class="small text-muted border-top pt-2 mt-2">
                             <strong>Note:</strong> <span id="res-bag-note">Awaiting calculation…</span>
@@ -229,15 +229,15 @@
                         </div>
                     </div>
 
-                    <div class="mt-4 p-3 bg-light rounded border">
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
                         <h6 class="fw-bold mb-2 text-primary"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Chemical EP Tax Result</h6>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>EP Tax Rate:</span>
-                            <span id="res-chem-rate" class="fw-bold text-dark">—</span>
+                            <span id="res-chem-rate" class="fw-bold text-dark">-</span>
                         </div>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>EP Tax Amount:</span>
-                            <span id="res-chem-amount" class="fw-bold text-primary">—</span>
+                            <span id="res-chem-amount" class="fw-bold text-primary">-</span>
                         </div>
                         <div class="small text-muted border-top pt-2 mt-2">
                             <strong>Note:</strong> <span id="res-chem-note">Awaiting calculation…</span>
@@ -257,7 +257,7 @@
                 <div class="card-body">
                     <div id="debate-container-v53" class="mb-3 d-flex flex-column gap-3">
                     </div>
-                    <div class="p-3 bg-light rounded border border-light-subtle">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
                         <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus Summary Statement:</h6>
                         <p id="consensus-text-v53" class="text-muted small mb-0">Awaiting simulation data execution…</p>
                     </div>
@@ -352,28 +352,28 @@ document.addEventListener("DOMContentLoaded", () => {
     const renderFuel = (res) => {
         document.getElementById("res-fuel-rate").textContent = new Intl.NumberFormat("vi-VN").format(res.ep_tax_rate) + " VND/l";
         document.getElementById("res-fuel-amount").textContent = formatVND(res.ep_tax_amount);
-        document.getElementById("res-fuel-exempt").textContent = res.is_exempt ? "✅ Yes — " + res.exemption_reason : "❌ No";
-        document.getElementById("res-fuel-note").textContent = res.notes || "—";
+        document.getElementById("res-fuel-exempt").textContent = res.is_exempt ? "✅ Yes - " + res.exemption_reason : "❌ No";
+        document.getElementById("res-fuel-note").textContent = res.notes || "-";
     };
 
     const renderCoal = (res) => {
         document.getElementById("res-coal-rate").textContent = new Intl.NumberFormat("vi-VN").format(res.ep_tax_rate) + " VND/tonne";
         document.getElementById("res-coal-amount").textContent = formatVND(res.ep_tax_amount);
-        document.getElementById("res-coal-exempt").textContent = res.is_exempt ? "✅ Yes — " + res.exemption_reason : "❌ No";
-        document.getElementById("res-coal-note").textContent = res.notes || "—";
+        document.getElementById("res-coal-exempt").textContent = res.is_exempt ? "✅ Yes - " + res.exemption_reason : "❌ No";
+        document.getElementById("res-coal-note").textContent = res.notes || "-";
     };
 
     const renderBag = (res) => {
         document.getElementById("res-bag-rate").textContent = new Intl.NumberFormat("vi-VN").format(res.ep_tax_rate) + " VND/kg";
         document.getElementById("res-bag-amount").textContent = formatVND(res.ep_tax_amount);
-        document.getElementById("res-bag-biodegradable").textContent = res.is_certified_biodegradable ? "✅ Yes — Exempt" : "❌ No — Taxable";
-        document.getElementById("res-bag-note").textContent = res.notes || "—";
+        document.getElementById("res-bag-biodegradable").textContent = res.is_certified_biodegradable ? "✅ Yes - Exempt" : "❌ No - Taxable";
+        document.getElementById("res-bag-note").textContent = res.notes || "-";
     };
 
     const renderChemical = (res) => {
         document.getElementById("res-chem-rate").textContent = new Intl.NumberFormat("vi-VN").format(res.ep_tax_rate) + " VND/kg";
         document.getElementById("res-chem-amount").textContent = formatVND(res.ep_tax_amount);
-        document.getElementById("res-chem-note").textContent = res.notes || "—";
+        document.getElementById("res-chem-note").textContent = res.notes || "-";
     };
 
     const renderDebate = (debate, summary) => {
@@ -382,7 +382,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const colors = { "Environmental Tax Inspector": "bg-danger", "Green Transition Advisor": "bg-success", "Customs Compliance Officer": "bg-warning text-dark" };
         debate.forEach(msg => {
             const div = document.createElement("div");
-            div.className = "d-flex gap-3 align-items-start p-3 bg-light rounded border border-light-subtle";
+            div.className = "d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";
             div.innerHTML = `
                 <span class="badge ${colors[msg.speaker] || "bg-secondary"} py-2" style="min-width: 220px;">${msg.speaker}</span>
                 <div class="text-dark small">${msg.text}</div>

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Emissions Fee Decree 153/2024 — EPFE Hub (v62){% endblock %}
+{% block title %}Emissions Fee Decree 153/2024 - EPFE Hub (v62){% endblock %}
 {% block content %}
 <div class="container py-4">
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
@@ -88,13 +88,13 @@
                             <button id="btn-calc-epfe" class="btn btn-info btn-sm text-dark fw-bold"><i class="bi bi-play-fill me-1" aria-hidden="true"></i> Run Calculation</button>
                         </div>
                     </div>
-                    <div class="mt-4 p-3 bg-light rounded border">
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
                         <h6 class="fw-bold mb-2 text-info"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Calculation Result</h6>
-                        <div class="d-flex justify-content-between small mb-1"><span>Base Fixed Fee:</span><span id="res-base-fee" class="fw-bold text-dark">—</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Variable Pollutant Fee:</span><span id="res-var-fee" class="fw-bold text-dark">—</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Total Standard Fee:</span><span id="res-total-fee" class="fw-bold text-dark">—</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Effective Fee Payable:</span><span id="res-effective-fee" class="fw-bold text-info fs-6">—</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Exemption Status:</span><span id="res-exempt-badge" class="fw-bold">—</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Base Fixed Fee:</span><span id="res-base-fee" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Variable Pollutant Fee:</span><span id="res-var-fee" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Total Standard Fee:</span><span id="res-total-fee" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Effective Fee Payable:</span><span id="res-effective-fee" class="fw-bold text-info fs-6">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Exemption Status:</span><span id="res-exempt-badge" class="fw-bold">-</span></div>
                         <div class="small text-muted border-top pt-2 mt-2"><strong>Exemption Reason:</strong> <span id="res-exemption-reason">Awaiting…</span></div>
                     </div>
                 </div>
@@ -104,25 +104,25 @@
             <div class="card shadow-sm h-100 border-light">
                 <div class="card-header bg-transparent border-0 pt-4 pb-0"><h5 class="fw-bold mb-1"><i class="bi bi-shield-check text-info me-2" aria-hidden="true"></i>EPFE Baseline Verification</h5></div>
                 <div class="card-body d-flex flex-column gap-3">
-                    <div class="p-3 bg-light rounded border border-light-subtle">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
                         <div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Cement Factory Emission (Subject to monitoring)</span><span class="badge bg-secondary">Quarterly</span></div>
                         <p class="small text-muted mb-2">Dust: 1,200kg, NOx: 800kg, SOx: 1,500kg, CO: 2,000kg. Quarterly period.</p>
-                        <div class="d-flex justify-content-between small"><span>Total Fee: <strong id="base1-tot">—</strong></span><span>Effective: <strong id="base1-eff" class="text-info">—</strong></span></div>
+                        <div class="d-flex justify-content-between small"><span>Total Fee: <strong id="base1-tot">-</strong></span><span>Effective: <strong id="base1-eff" class="text-info">-</strong></span></div>
                     </div>
-                    <div class="p-3 bg-light rounded border border-light-subtle">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
                         <div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Small General Industrial Workshop (No monitoring)</span><span class="badge bg-warning text-dark">Fixed only</span></div>
                         <p class="small text-muted mb-2">Not subject to mandatory continuous emissions monitoring. Annual period.</p>
-                        <div class="d-flex justify-content-between small"><span>Total Fee: <strong id="base2-tot">—</strong></span><span>Effective: <strong id="base2-eff" class="text-info">—</strong></span></div>
+                        <div class="d-flex justify-content-between small"><span>Total Fee: <strong id="base2-tot">-</strong></span><span>Effective: <strong id="base2-eff" class="text-info">-</strong></span></div>
                     </div>
-                    <div class="p-3 bg-light rounded border border-light-subtle">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
                         <div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Solar Power Plant Clean Tech (100% Exempt)</span><span class="badge bg-success">Exempt</span></div>
                         <p class="small text-muted mb-2">Certified zero-emission technology stack. Annual period.</p>
-                        <div class="d-flex justify-content-between small"><span>Total Fee: <strong id="base3-tot">—</strong></span><span>Reason: <strong id="base3-reason" class="text-success">—</strong></span></div>
+                        <div class="d-flex justify-content-between small"><span>Total Fee: <strong id="base3-tot">-</strong></span><span>Reason: <strong id="base3-reason" class="text-success">-</strong></span></div>
                     </div>
-                    <div class="p-3 bg-light rounded border border-light-subtle">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
                         <div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Small Household Business (100% Exempt)</span><span class="badge bg-success">Exempt</span></div>
                         <p class="small text-muted mb-2">Household business out of scope of environmental permit. Annual period.</p>
-                        <div class="d-flex justify-content-between small"><span>Total Fee: <strong id="base4-tot">—</strong></span><span>Reason: <strong id="base4-reason" class="text-success">—</strong></span></div>
+                        <div class="d-flex justify-content-between small"><span>Total Fee: <strong id="base4-tot">-</strong></span><span>Reason: <strong id="base4-reason" class="text-success">-</strong></span></div>
                     </div>
                 </div>
             </div>
@@ -130,7 +130,7 @@
         <div class="col-lg-12">
             <div class="card shadow-sm border-light">
                 <div class="card-header bg-dark text-white py-3 d-flex align-items-center justify-content-between"><h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-info me-2" aria-hidden="true"></i>Multi-Agent EPFE Advisory Debate</h5><span class="badge bg-secondary">Environmental Consensus</span></div>
-                <div class="card-body"><div id="debate-container-v62" class="mb-3 d-flex flex-column gap-3"></div><div class="p-3 bg-light rounded border border-light-subtle"><h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus:</h6><p id="consensus-text-v62" class="text-muted small mb-0">Awaiting…</p></div></div>
+                <div class="card-body"><div id="debate-container-v62" class="mb-3 d-flex flex-column gap-3"></div><div class="p-3 bg-premium-light rounded border border-light-subtle"><h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus:</h6><p id="consensus-text-v62" class="text-muted small mb-0">Awaiting…</p></div></div>
             </div>
         </div>
         <div class="col-lg-12">
@@ -227,7 +227,7 @@ document.addEventListener("DOMContentLoaded",()=>{
         };
         debate.forEach(m => {
             const div = document.createElement("div");
-            div.className = "d-flex gap-3 align-items-start p-3 bg-light rounded border border-light-subtle";
+            div.className = "d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";
             div.innerHTML = `<span class="badge ${cl[m.speaker] || "bg-secondary"} py-2 px-3" style="min-width:200px">${m.speaker}</span><div class="text-dark small">${m.text}</div>`;
             c.appendChild(div);
         });
@@ -251,8 +251,8 @@ document.addEventListener("DOMContentLoaded",()=>{
                 <td>${l.id}</td>
                 <td class="fw-bold">${l.emission_description}</td>
                 <td><span class="badge bg-secondary">${l.facility_type.toUpperCase()}</span></td>
-                <td><span class="badge bg-light text-dark">${l.period.toUpperCase()}</span></td>
-                <td><span class="badge bg-light text-dark">${l.is_subject_to_monitoring ? 'YES' : 'NO'}</span></td>
+                <td><span class="badge bg-premium-light text-dark">${l.period.toUpperCase()}</span></td>
+                <td><span class="badge bg-premium-light text-dark">${l.is_subject_to_monitoring ? 'YES' : 'NO'}</span></td>
                 <td>${l.pollutant_dust_kg} kg</td>
                 <td>${l.pollutant_nox_kg} kg</td>
                 <td>${l.pollutant_sox_kg} kg</td>

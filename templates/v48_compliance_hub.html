@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}VAT Law 149/2025 Amendments — Revenue Threshold & Agri-Product Engine (v48){% endblock %}
+{% block title %}VAT Law 149/2025 Amendments - Revenue Threshold & Agri-Product Engine (v48){% endblock %}
 
 {% block content %}
 <div class="container py-4">
@@ -47,19 +47,19 @@
                         </div>
                     </div>
 
-                    <div class="mt-4 p-3 bg-light rounded border">
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
                         <h6 class="fw-bold mb-2 text-info"><i class="bi bi-arrow-left-right me-2" aria-hidden="true"></i>Threshold Comparison</h6>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>Old Status (200M):</span>
-                            <span id="res-old-status" class="badge bg-secondary">—</span>
+                            <span id="res-old-status" class="badge bg-secondary">-</span>
                         </div>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>New Status (500M):</span>
-                            <span id="res-new-status" class="badge bg-secondary">—</span>
+                            <span id="res-new-status" class="badge bg-secondary">-</span>
                         </div>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>Status Changed:</span>
-                            <span id="res-status-changed" class="badge bg-secondary">—</span>
+                            <span id="res-status-changed" class="badge bg-secondary">-</span>
                         </div>
                         <div class="small text-muted border-top pt-2">
                             <strong>PIT Impact:</strong> <span id="res-pit-impact">Awaiting evaluation…</span>
@@ -107,19 +107,19 @@
                         </div>
                     </div>
 
-                    <div class="mt-4 p-3 bg-light rounded border">
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
                         <h6 class="fw-bold mb-2 text-success"><i class="bi bi-patch-check me-2" aria-hidden="true"></i>Classification Result</h6>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>Old Treatment:</span>
-                            <span id="res-agri-old" class="badge bg-secondary">—</span>
+                            <span id="res-agri-old" class="badge bg-secondary">-</span>
                         </div>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>New Treatment:</span>
-                            <span id="res-agri-new" class="badge bg-secondary">—</span>
+                            <span id="res-agri-new" class="badge bg-secondary">-</span>
                         </div>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>Input Credit Deductible:</span>
-                            <span id="res-agri-credit" class="badge bg-secondary">—</span>
+                            <span id="res-agri-credit" class="badge bg-secondary">-</span>
                         </div>
                     </div>
                 </div>
@@ -162,19 +162,19 @@
                         </div>
                     </div>
 
-                    <div class="mt-4 p-3 bg-light rounded border">
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
                         <h6 class="fw-bold mb-2 text-warning"><i class="bi bi-arrow-repeat me-2" aria-hidden="true"></i>Rate Comparison</h6>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>Old VAT (source rate):</span>
-                            <span id="res-waste-old-vat" class="fw-bold">—</span>
+                            <span id="res-waste-old-vat" class="fw-bold">-</span>
                         </div>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>New VAT (waste rate):</span>
-                            <span id="res-waste-new-vat" class="fw-bold text-success">—</span>
+                            <span id="res-waste-new-vat" class="fw-bold text-success">-</span>
                         </div>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>Rate Changed:</span>
-                            <span id="res-waste-changed" class="badge bg-secondary">—</span>
+                            <span id="res-waste-changed" class="badge bg-secondary">-</span>
                         </div>
                     </div>
                 </div>
@@ -191,7 +191,7 @@
                 <div class="card-body">
                     <div id="debate-container-v48" class="mb-3 d-flex flex-column gap-3">
                     </div>
-                    <div class="p-3 bg-light rounded border border-light-subtle">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
                         <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus Summary Statement:</h6>
                         <p id="consensus-text-v48" class="text-muted small mb-0">Awaiting simulation data execution…</p>
                     </div>
@@ -278,7 +278,7 @@ document.addEventListener("DOMContentLoaded", () => {
         changedBadge.textContent = res.status_changed ? "✅ YES" : "No change";
         changedBadge.className = "badge " + (res.status_changed ? "bg-warning text-dark" : "bg-secondary");
 
-        document.getElementById("res-pit-impact").textContent = res.pit_impact || "—";
+        document.getElementById("res-pit-impact").textContent = res.pit_impact || "-";
     };
 
     const renderAgri = (res) => {
@@ -306,7 +306,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const colors = { "Tax Policy Analyst": "bg-info", "Agricultural Advisor": "bg-success", "Accounting Director": "bg-warning text-dark" };
         debate.forEach(msg => {
             const div = document.createElement("div");
-            div.className = "d-flex gap-3 align-items-start p-3 bg-light rounded border border-light-subtle";
+            div.className = "d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";
             div.innerHTML = `
                 <span class="badge ${colors[msg.speaker] || "bg-secondary"} py-2" style="min-width: 150px;">${msg.speaker}</span>
                 <div class="text-dark small">${msg.text}</div>

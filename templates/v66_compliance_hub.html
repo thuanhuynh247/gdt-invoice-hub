@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Greenhouse Gas (GHG) Emissions & Carbon Credits — EPFGHG Hub (v66){% endblock %}
+{% block title %}Greenhouse Gas (GHG) Emissions & Carbon Credits - EPFGHG Hub (v66){% endblock %}
 {% block content %}
 <div class="container py-4">
     <!-- Header -->
@@ -75,13 +75,13 @@
                             </button>
                         </div>
                     </div>
-                    <div class="mt-4 p-3 bg-light rounded border">
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
                         <h6 class="fw-bold mb-2 text-success"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Calculation Result</h6>
-                        <div class="d-flex justify-content-between small mb-1"><span>Total CO2e (IPCC GWP):</span><span id="res-co2e" class="fw-bold text-dark">—</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Carbon Credits Applied:</span><span id="res-credits" class="fw-bold text-dark">—</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Effective CO2e Chargeable:</span><span id="res-chargeable" class="fw-bold text-dark">—</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Effective Fee Payable:</span><span id="res-effective-fee" class="fw-bold text-success fs-6">—</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Exemption Status:</span><span id="res-exempt-badge" class="fw-bold">—</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Total CO2e (IPCC GWP):</span><span id="res-co2e" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Carbon Credits Applied:</span><span id="res-credits" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Effective CO2e Chargeable:</span><span id="res-chargeable" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Effective Fee Payable:</span><span id="res-effective-fee" class="fw-bold text-success fs-6">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Exemption Status:</span><span id="res-exempt-badge" class="fw-bold">-</span></div>
                         <div class="small text-muted border-top pt-2 mt-2"><strong>Exemption Reason:</strong> <span id="res-exemption-reason">Awaiting…</span></div>
                     </div>
                 </div>
@@ -95,37 +95,37 @@
                     <h5 class="fw-bold mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>GHG Compliance Baselines</h5>
                 </div>
                 <div class="card-body d-flex flex-column gap-3">
-                    <div class="p-3 bg-light rounded border border-light-subtle">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <span class="fw-bold small text-dark">Nhà máy nhiệt điện Phả Lại</span>
                             <span class="badge bg-danger">Energy Sector</span>
                         </div>
                         <p class="small text-muted mb-2">CO2: 4500t, CH4: 12t, N2O: 3.5t. Standard rate: 150,000 VND / tCO2e.</p>
                         <div class="d-flex justify-content-between small">
-                            <span>CO2e: <strong id="base1-co2e">—</strong></span>
-                            <span>Fee: <strong id="base1-eff" class="text-success">—</strong></span>
+                            <span>CO2e: <strong id="base1-co2e">-</strong></span>
+                            <span>Fee: <strong id="base1-eff" class="text-success">-</strong></span>
                         </div>
                     </div>
-                    <div class="p-3 bg-light rounded border border-light-subtle">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <span class="fw-bold small text-dark">Nhà máy xi măng Hà Tiên (Offset)</span>
                             <span class="badge bg-warning text-dark">Industrial Offset</span>
                         </div>
                         <p class="small text-muted mb-2">CO2: 5000t, CH4: 5t, N2O: 1t. Credits: 350t (Limited to 10% cap).</p>
                         <div class="d-flex justify-content-between small">
-                            <span>Credits Used: <strong id="base2-credits">—</strong></span>
-                            <span>Fee: <strong id="base2-eff" class="text-success">—</strong></span>
+                            <span>Credits Used: <strong id="base2-credits">-</strong></span>
+                            <span>Fee: <strong id="base2-eff" class="text-success">-</strong></span>
                         </div>
                     </div>
-                    <div class="p-3 bg-light rounded border border-light-subtle">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <span class="fw-bold small text-dark">Cơ sở may mặc nhỏ (Exempt)</span>
                             <span class="badge bg-success">Exempt</span>
                         </div>
                         <p class="small text-muted mb-2">CO2: 200t, CH4: 0.5t, N2O: 0.1t. Under 3,000 tCO2e threshold.</p>
                         <div class="d-flex justify-content-between small">
-                            <span>CO2e: <strong id="base3-co2e">—</strong></span>
-                            <span>Reason: <strong id="base3-reason" class="text-success">—</strong></span>
+                            <span>CO2e: <strong id="base3-co2e">-</strong></span>
+                            <span>Reason: <strong id="base3-reason" class="text-success">-</strong></span>
                         </div>
                     </div>
                 </div>
@@ -141,7 +141,7 @@
                 </div>
                 <div class="card-body">
                     <div id="debate-container-v66" class="mb-3 d-flex flex-column gap-3"></div>
-                    <div class="p-3 bg-light rounded border border-light-subtle">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
                         <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus:</h6>
                         <p id="consensus-text-v66" class="text-muted small mb-0">Awaiting…</p>
                     </div>
@@ -257,7 +257,7 @@ document.addEventListener("DOMContentLoaded", () => {
         };
         debate.forEach(m => {
             const div = document.createElement("div");
-            div.className = "d-flex gap-3 align-items-start p-3 bg-light rounded border border-light-subtle";
+            div.className = "d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";
             div.innerHTML = `<span class="badge ${cl[m.speaker] || "bg-secondary"} py-2 px-3" style="min-width:220px">${m.speaker}</span><div class="text-dark small">${m.text}</div>`;
             c.appendChild(div);
         });

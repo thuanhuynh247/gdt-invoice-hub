@@ -25,7 +25,7 @@
     </div>
 
     <!-- Interactive Simulator Block -->
-    <div class="card shadow-sm mb-4 border-light bg-light-subtle">
+    <div class="card shadow-sm mb-4 border-light bg-premium-light-subtle">
         <div class="card-header bg-transparent border-0 pt-4">
             <h5 class="fw-bold mb-1"><i class="bi bi-sliders text-info me-2" aria-hidden="true"></i>Global Simulation Controls</h5>
             <p class="text-muted small mb-0">Drag sliders to adjust lease properties and the target minimum tax rate for real-time model recalculation.</p>
@@ -136,7 +136,7 @@
                         </h5>
                         <span class="badge bg-warning-subtle text-warning">ROU Asset Amortization</span>
                     </div>
-                    <div class="d-flex justify-content-between align-items-center mb-3 p-3 bg-light rounded">
+                    <div class="d-flex justify-content-between align-items-center mb-3 p-3 bg-premium-light rounded">
                         <div>
                             <div class="small text-muted">ROU Present Value (Opening):</div>
                             <h4 id="lease-pv-display" class="fw-bold mb-0 text-dark">$164,295.38</h4>
@@ -180,25 +180,25 @@
                     
                     <div class="row g-3 mb-3 text-center">
                         <div class="col-6 col-md-3">
-                            <div class="p-2 border rounded bg-light">
+                            <div class="p-2 border rounded bg-premium-light">
                                 <div class="text-muted small">Group Income</div>
                                 <strong id="gmt-consolidated-income" class="text-dark">$0.00</strong>
                             </div>
                         </div>
                         <div class="col-6 col-md-3">
-                            <div class="p-2 border rounded bg-light">
+                            <div class="p-2 border rounded bg-premium-light">
                                 <div class="text-muted small">Group Taxes</div>
                                 <strong id="gmt-consolidated-taxes" class="text-dark">$0.00</strong>
                             </div>
                         </div>
                         <div class="col-6 col-md-3">
-                            <div class="p-2 border rounded bg-light">
+                            <div class="p-2 border rounded bg-premium-light">
                                 <div class="text-muted small">Effective ETR</div>
                                 <strong id="gmt-etr" class="text-primary">0.0%</strong>
                             </div>
                         </div>
                         <div class="col-6 col-md-3">
-                            <div class="p-2 border rounded bg-light">
+                            <div class="p-2 border rounded bg-premium-light">
                                 <div class="text-muted small">Top-up Tax</div>
                                 <strong id="gmt-topup-tax" class="text-danger">$0.00</strong>
                             </div>
@@ -206,7 +206,7 @@
                     </div>
 
                     <!-- Interactive MST ETR map SVG -->
-                    <div class="border rounded p-3 bg-light text-center">
+                    <div class="border rounded p-3 bg-premium-light text-center">
                         <div class="small fw-bold text-muted mb-2">Subsidiary ETR Node Analysis</div>
                         <svg viewBox="0 0 400 150" class="w-100" style="max-height: 120px;">
                             <!-- Connectors -->
@@ -242,7 +242,7 @@
     <!-- Tab 2: Vietnam CIT Reconciliation & Audit Oracle -->
     <div id="vietnam-content-pane" class="d-none">
         <!-- Row of Controls specific to Vietnam Tax -->
-        <div class="card shadow-sm mb-4 border-light bg-light-subtle">
+        <div class="card shadow-sm mb-4 border-light bg-premium-light-subtle">
             <div class="card-header bg-transparent border-0 pt-4">
                 <h5 class="fw-bold mb-1"><i class="bi bi-bank2 text-danger me-2" aria-hidden="true"></i>Vietnam CIT Simulation Parameters</h5>
                 <p class="text-muted small mb-0">Adjust parameters to simulate CIT taxable income reconciliations, Decree 132 interest caps, and audit risks.</p>
@@ -305,7 +305,7 @@
                             </h5>
                             <span class="badge bg-warning-subtle text-warning">30% EBITDA Cap Limit</span>
                         </div>
-                        <div class="p-3 bg-light rounded mb-3">
+                        <div class="p-3 bg-premium-light rounded mb-3">
                             <div class="d-flex justify-content-between small mb-1">
                                 <span class="text-dark">Interest Expense vs. 30% EBITDA Limit</span>
                                 <span id="ebitda-percent" class="fw-bold text-dark">0%</span>
@@ -348,14 +348,14 @@
                         </div>
                         <div class="row g-3 text-center mb-3">
                             <div class="col-6">
-                                <div class="p-3 border rounded bg-light">
+                                <div class="p-3 border rounded bg-premium-light">
                                     <div class="text-muted small">Total Input Invoices >= 20M</div>
                                     <strong id="vn-bank-transfer-required" class="text-dark">0.00</strong>
                                     <div class="small text-danger mt-1">Requires Non-Cash Pay</div>
                                 </div>
                             </div>
                             <div class="col-6">
-                                <div class="p-3 border rounded bg-light">
+                                <div class="p-3 border rounded bg-premium-light">
                                     <div class="text-muted small">Low T-Score Invoices (&lt;70)</div>
                                     <strong id="vn-low-tscore-invoices" class="text-danger">0.00</strong>
                                     <div class="small text-danger mt-1">Permanent CIT Non-deductible</div>
@@ -381,7 +381,7 @@
                                 </h5>
                                 <span class="badge bg-success-subtle text-success">Loss Carry-forward limit</span>
                             </div>
-                            <div class="p-3 bg-light rounded text-center mb-3">
+                            <div class="p-3 bg-premium-light rounded text-center mb-3">
                                 <div class="text-muted small">Total Deferred Tax Assets (DTA) Accrued:</div>
                                 <h3 id="vn-total-dta" class="fw-bold text-success my-2">0.00</h3>
                                 <span id="vn-recovery-status-badge" class="badge bg-success">Recoverable</span>
@@ -496,7 +496,7 @@
                 <h5 class="fw-bold mb-1"><i class="bi bi-file-earmark-spreadsheet me-2" aria-hidden="true"></i>Tờ Khai Thuế TNDN Mẫu 03-1A/TNDN Bridge</h5>
                 <p class="text-light-subtle small mb-0">Detailed mapping of accounting profits, permanent/temporary adjustments and forex differences to the official Vietnamese CIT Tax Return Form.</p>
             </div>
-            <div class="card-body bg-light-subtle">
+            <div class="card-body bg-premium-light-subtle">
                 <div class="row g-3">
                     <div class="col-md-6 border-end">
                         <div class="list-group list-group-flush">
@@ -577,7 +577,7 @@
             <div id="debate-container" class="mb-3 d-flex flex-column gap-3">
                 <!-- Debate Messages will render here -->
             </div>
-            <div class="p-3 bg-light rounded border border-light-subtle">
+            <div class="p-3 bg-premium-light rounded border border-light-subtle">
                 <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus Summary Statement:</h6>
                 <p id="consensus-text" class="text-muted small mb-0">Awaiting simulation data execution…</p>
             </div>
@@ -701,7 +701,7 @@ document.addEventListener("DOMContentLoaded", () => {
         container.innerHTML = "";
         contracts.forEach(c => {
             const div = document.createElement("div");
-            div.className = "p-3 bg-light rounded mb-3";
+            div.className = "p-3 bg-premium-light rounded mb-3";
             div.innerHTML = `
                 <div class="d-flex justify-content-between mb-2">
                     <strong>Contract ${c.contract_id} (${c.customer_name})</strong>
@@ -781,7 +781,7 @@ document.addEventListener("DOMContentLoaded", () => {
         debate.forEach(msg => {
             const badgeColor = badgeColors[msg.speaker] || "bg-secondary";
             const div = document.createElement("div");
-            div.className = "d-flex gap-3 align-items-start p-3 bg-light rounded border border-light-subtle";
+            div.className = "d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";
             div.innerHTML = `
                 <span class="badge ${badgeColor} py-2" style="min-width: 150px;">${msg.speaker}</span>
                 <div class="text-dark small">${msg.text}</div>

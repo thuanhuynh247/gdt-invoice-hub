@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}NRT Law 45/2009 — Natural Resources Tax Hub (v54){% endblock %}
+{% block title %}NRT Law 45/2009 - Natural Resources Tax Hub (v54){% endblock %}
 
 {% block content %}
 <div class="container py-4">
@@ -64,19 +64,19 @@
                         </div>
                     </div>
 
-                    <div class="mt-4 p-3 bg-light rounded border">
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
                         <h6 class="fw-bold mb-2 text-danger"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Mineral NRT Result</h6>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>NRT Rate:</span>
-                            <span id="res-mineral-rate" class="fw-bold text-dark">—</span>
+                            <span id="res-mineral-rate" class="fw-bold text-dark">-</span>
                         </div>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>NRT Amount:</span>
-                            <span id="res-mineral-amount" class="fw-bold text-danger">—</span>
+                            <span id="res-mineral-amount" class="fw-bold text-danger">-</span>
                         </div>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>Self-consumed:</span>
-                            <span id="res-mineral-self" class="fw-bold">—</span>
+                            <span id="res-mineral-self" class="fw-bold">-</span>
                         </div>
                         <div class="small text-muted border-top pt-2 mt-2">
                             <strong>Note:</strong> <span id="res-mineral-note">Awaiting calculation…</span>
@@ -130,19 +130,19 @@
                         </div>
                     </div>
 
-                    <div class="mt-4 p-3 bg-light rounded border">
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
                         <h6 class="fw-bold mb-2 text-primary"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Water NRT Result</h6>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>NRT Rate:</span>
-                            <span id="res-water-rate" class="fw-bold text-dark">—</span>
+                            <span id="res-water-rate" class="fw-bold text-dark">-</span>
                         </div>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>NRT Amount:</span>
-                            <span id="res-water-amount" class="fw-bold text-primary">—</span>
+                            <span id="res-water-amount" class="fw-bold text-primary">-</span>
                         </div>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>Exempt:</span>
-                            <span id="res-water-exempt" class="fw-bold">—</span>
+                            <span id="res-water-exempt" class="fw-bold">-</span>
                         </div>
                         <div class="small text-muted border-top pt-2 mt-2">
                             <strong>Note:</strong> <span id="res-water-note">Awaiting calculation…</span>
@@ -187,15 +187,15 @@
                         </div>
                     </div>
 
-                    <div class="mt-4 p-3 bg-light rounded border">
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
                         <h6 class="fw-bold mb-2 text-success"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Timber NRT Result</h6>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>NRT Rate:</span>
-                            <span id="res-timber-rate" class="fw-bold text-dark">—</span>
+                            <span id="res-timber-rate" class="fw-bold text-dark">-</span>
                         </div>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>NRT Amount:</span>
-                            <span id="res-timber-amount" class="fw-bold text-success">—</span>
+                            <span id="res-timber-amount" class="fw-bold text-success">-</span>
                         </div>
                         <div class="small text-muted border-top pt-2 mt-2">
                             <strong>Note:</strong> <span id="res-timber-note">Awaiting calculation…</span>
@@ -240,15 +240,15 @@
                         </div>
                     </div>
 
-                    <div class="mt-4 p-3 bg-light rounded border">
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
                         <h6 class="fw-bold mb-2 text-warning"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Marine NRT Result</h6>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>NRT Rate:</span>
-                            <span id="res-marine-rate" class="fw-bold text-dark">—</span>
+                            <span id="res-marine-rate" class="fw-bold text-dark">-</span>
                         </div>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>NRT Amount:</span>
-                            <span id="res-marine-amount" class="fw-bold text-warning">—</span>
+                            <span id="res-marine-amount" class="fw-bold text-warning">-</span>
                         </div>
                         <div class="small text-muted border-top pt-2 mt-2">
                             <strong>Note:</strong> <span id="res-marine-note">Awaiting calculation…</span>
@@ -268,7 +268,7 @@
                 <div class="card-body">
                     <div id="debate-container-v54" class="mb-3 d-flex flex-column gap-3">
                     </div>
-                    <div class="p-3 bg-light rounded border border-light-subtle">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
                         <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus Summary Statement:</h6>
                         <p id="consensus-text-v54" class="text-muted small mb-0">Awaiting simulation data execution…</p>
                     </div>
@@ -366,27 +366,27 @@ document.addEventListener("DOMContentLoaded", () => {
     const renderMineral = (res) => {
         document.getElementById("res-mineral-rate").textContent = `${(res.nrt_rate * 100).toFixed(1)}%`;
         document.getElementById("res-mineral-amount").textContent = formatVND(res.nrt_amount);
-        document.getElementById("res-mineral-self").textContent = res.is_self_consumed ? "✅ Yes — 70% of standard rate" : "❌ No — Full rate";
-        document.getElementById("res-mineral-note").textContent = res.notes || "—";
+        document.getElementById("res-mineral-self").textContent = res.is_self_consumed ? "✅ Yes - 70% of standard rate" : "❌ No - Full rate";
+        document.getElementById("res-mineral-note").textContent = res.notes || "-";
     };
 
     const renderWater = (res) => {
         document.getElementById("res-water-rate").textContent = `${(res.nrt_rate * 100).toFixed(0)}%`;
         document.getElementById("res-water-amount").textContent = formatVND(res.nrt_amount);
-        document.getElementById("res-water-exempt").textContent = res.is_exempt ? "✅ Yes — " + res.exemption_reason : "❌ No";
-        document.getElementById("res-water-note").textContent = res.notes || "—";
+        document.getElementById("res-water-exempt").textContent = res.is_exempt ? "✅ Yes - " + res.exemption_reason : "❌ No";
+        document.getElementById("res-water-note").textContent = res.notes || "-";
     };
 
     const renderTimber = (res) => {
         document.getElementById("res-timber-rate").textContent = `${(res.nrt_rate * 100).toFixed(0)}%`;
         document.getElementById("res-timber-amount").textContent = formatVND(res.nrt_amount);
-        document.getElementById("res-timber-note").textContent = res.notes || "—";
+        document.getElementById("res-timber-note").textContent = res.notes || "-";
     };
 
     const renderMarine = (res) => {
         document.getElementById("res-marine-rate").textContent = `${(res.nrt_rate * 100).toFixed(0)}%`;
         document.getElementById("res-marine-amount").textContent = formatVND(res.nrt_amount);
-        document.getElementById("res-marine-note").textContent = res.notes || "—";
+        document.getElementById("res-marine-note").textContent = res.notes || "-";
     };
 
     const renderDebate = (debate, summary) => {
@@ -395,7 +395,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const colors = { "Mining Tax Inspector": "bg-danger", "Environmental Compliance Advisor": "bg-success", "Forestry & Marine Auditor": "bg-warning text-dark" };
         debate.forEach(msg => {
             const div = document.createElement("div");
-            div.className = "d-flex gap-3 align-items-start p-3 bg-light rounded border border-light-subtle";
+            div.className = "d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";
             div.innerHTML = `
                 <span class="badge ${colors[msg.speaker] || "bg-secondary"} py-2" style="min-width: 240px;">${msg.speaker}</span>
                 <div class="text-dark small">${msg.text}</div>

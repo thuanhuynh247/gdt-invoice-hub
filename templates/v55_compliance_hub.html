@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}IET Law 107/2016 — Import-Export Tax Hub (v55){% endblock %}
+{% block title %}IET Law 107/2016 - Import-Export Tax Hub (v55){% endblock %}
 
 {% block content %}
 <div class="container py-4">
@@ -75,23 +75,23 @@
                         </div>
                     </div>
 
-                    <div class="mt-4 p-3 bg-light rounded border">
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
                         <h6 class="fw-bold mb-2 text-warning"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Calculation Result</h6>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>Standard Duty Rate:</span>
-                            <span id="res-standard-rate" class="fw-bold text-dark">—</span>
+                            <span id="res-standard-rate" class="fw-bold text-dark">-</span>
                         </div>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>Effective Rate:</span>
-                            <span id="res-effective-rate" class="fw-bold text-dark">—</span>
+                            <span id="res-effective-rate" class="fw-bold text-dark">-</span>
                         </div>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>Calculated Duty:</span>
-                            <span id="res-duty-amount" class="fw-bold text-warning fs-6">—</span>
+                            <span id="res-duty-amount" class="fw-bold text-warning fs-6">-</span>
                         </div>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>Exempt:</span>
-                            <span id="res-is-exempt" class="fw-bold">—</span>
+                            <span id="res-is-exempt" class="fw-bold">-</span>
                         </div>
                         <div class="small text-muted border-top pt-2 mt-2">
                             <strong>Audit Note:</strong> <span id="res-notes">Awaiting declaration entry…</span>
@@ -110,54 +110,54 @@
                 </div>
                 <div class="card-body d-flex flex-column gap-3">
                     <!-- baseline 1 -->
-                    <div class="p-3 bg-light rounded border border-light-subtle">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <span class="fw-bold small text-dark">Preferential Import MFN (10%)</span>
                             <span class="badge bg-secondary">Commercial</span>
                         </div>
                         <p class="small text-muted mb-2">Industrial Machinery import calculation ledger.</p>
                         <div class="d-flex justify-content-between small">
-                            <span>Taxable Value: <strong id="base1-val">—</strong></span>
-                            <span>Duty: <strong id="base1-duty" class="text-warning">—</strong></span>
+                            <span>Taxable Value: <strong id="base1-val">-</strong></span>
+                            <span>Duty: <strong id="base1-duty" class="text-warning">-</strong></span>
                         </div>
                     </div>
 
                     <!-- baseline 2 -->
-                    <div class="p-3 bg-light rounded border border-light-subtle">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <span class="fw-bold small text-dark">Processing Exemption (100%)</span>
                             <span class="badge bg-success text-white">Exempt</span>
                         </div>
                         <p class="small text-muted mb-2">Polyester Yarn imported for processing contracts.</p>
                         <div class="d-flex justify-content-between small">
-                            <span>Taxable Value: <strong id="base2-val">—</strong></span>
-                            <span>Reason: <strong id="base2-reason" class="text-success">—</strong></span>
+                            <span>Taxable Value: <strong id="base2-val">-</strong></span>
+                            <span>Reason: <strong id="base2-reason" class="text-success">-</strong></span>
                         </div>
                     </div>
 
                     <!-- baseline 3 -->
-                    <div class="p-3 bg-light rounded border border-light-subtle">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <span class="fw-bold small text-dark">Export Minerals (10%)</span>
                             <span class="badge bg-danger text-white">Resource Rate</span>
                         </div>
                         <p class="small text-muted mb-2">Raw Copper Ore export duty ledger.</p>
                         <div class="d-flex justify-content-between small">
-                            <span>Taxable Value: <strong id="base3-val">—</strong></span>
-                            <span>Duty: <strong id="base3-duty" class="text-danger">—</strong></span>
+                            <span>Taxable Value: <strong id="base3-val">-</strong></span>
+                            <span>Duty: <strong id="base3-duty" class="text-danger">-</strong></span>
                         </div>
                     </div>
 
                     <!-- baseline 4 -->
-                    <div class="p-3 bg-light rounded border border-light-subtle">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <span class="fw-bold small text-dark">Low-Value Courier Gift Exemption</span>
                             <span class="badge bg-success text-white">Exempt</span>
                         </div>
                         <p class="small text-muted mb-2">Gift sample machinery spare part valued &lt;= 2,000,000 VND.</p>
                         <div class="d-flex justify-content-between small">
-                            <span>Gift Value: <strong id="base4-val">—</strong></span>
-                            <span>Reason: <strong id="base4-reason" class="text-success">—</strong></span>
+                            <span>Gift Value: <strong id="base4-val">-</strong></span>
+                            <span>Reason: <strong id="base4-reason" class="text-success">-</strong></span>
                         </div>
                     </div>
                 </div>
@@ -175,7 +175,7 @@
                     <div id="debate-container-v55" class="mb-3 d-flex flex-column gap-3">
                         <!-- Loaded dynamically -->
                     </div>
-                    <div class="p-3 bg-light rounded border border-light-subtle">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
                         <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus Summary Statement:</h6>
                         <p id="consensus-text-v55" class="text-muted small mb-0">Awaiting simulation data execution…</p>
                     </div>
@@ -271,7 +271,7 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("res-is-exempt").innerHTML = res.is_exempt ? 
             `<span class="badge bg-success">Yes - Exempt</span>` : 
             `<span class="badge bg-danger">No - Taxable</span>`;
-        document.getElementById("res-notes").textContent = res.notes || "—";
+        document.getElementById("res-notes").textContent = res.notes || "-";
     };
 
     const renderBaselines = (data) => {
@@ -306,7 +306,7 @@ document.addEventListener("DOMContentLoaded", () => {
         };
         debate.forEach(msg => {
             const div = document.createElement("div");
-            div.className = "d-flex gap-3 align-items-start p-3 bg-light rounded border border-light-subtle";
+            div.className = "d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";
             div.innerHTML = `
                 <span class="badge ${colors[msg.speaker] || "bg-secondary"} py-2 px-3" style="min-width: 200px;">${msg.speaker}</span>
                 <div class="text-dark small">${msg.text}</div>

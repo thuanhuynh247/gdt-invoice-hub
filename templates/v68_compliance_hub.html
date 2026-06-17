@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Biodiversity Offset & Conservation Fee — EPFBD Hub (v68){% endblock %}
+{% block title %}Biodiversity Offset & Conservation Fee - EPFBD Hub (v68){% endblock %}
 {% block content %}
 <div class="container py-4">
     <!-- Header -->
@@ -78,13 +78,13 @@
                             </button>
                         </div>
                     </div>
-                    <div class="mt-4 p-3 bg-light rounded border">
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
                         <h6 class="fw-bold mb-2 text-success"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Assessment Result</h6>
-                        <div class="d-flex justify-content-between small mb-1"><span>Ecosystem Rate per Ha:</span><span id="res-base-rate" class="fw-bold text-dark">—</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Impact Multiplier:</span><span id="res-multiplier" class="fw-bold text-dark">—</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Offset Discount Coefficient:</span><span id="res-discount" class="fw-bold text-dark">—</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Total Conservation Fee:</span><span id="res-effective-fee" class="fw-bold text-success fs-6">—</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Exemption Status:</span><span id="res-exempt-badge" class="fw-bold">—</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Ecosystem Rate per Ha:</span><span id="res-base-rate" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Impact Multiplier:</span><span id="res-multiplier" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Offset Discount Coefficient:</span><span id="res-discount" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Total Conservation Fee:</span><span id="res-effective-fee" class="fw-bold text-success fs-6">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Exemption Status:</span><span id="res-exempt-badge" class="fw-bold">-</span></div>
                         <div class="small text-muted border-top pt-2 mt-2"><strong>Exemption Reason:</strong> <span id="res-exemption-reason">Awaiting…</span></div>
                     </div>
                 </div>
@@ -98,7 +98,7 @@
                     <h5 class="fw-bold mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Ecological Baselines</h5>
                 </div>
                 <div class="card-body d-flex flex-column gap-3">
-                    <div class="p-3 bg-light rounded border border-light-subtle">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <span class="fw-bold small text-dark">Khu nghỉ dưỡng Cát Bà</span>
                             <span class="badge bg-danger">National Park</span>
@@ -106,10 +106,10 @@
                         <p class="small text-muted mb-2">Park: 12.0 hectares. Severity: High (1.5x). Offset: No.</p>
                         <div class="d-flex justify-content-between small">
                             <span>Base Rate: 250M VND/ha</span>
-                            <span>Fee: <strong id="base1-eff" class="text-success">—</strong></span>
+                            <span>Fee: <strong id="base1-eff" class="text-success">-</strong></span>
                         </div>
                     </div>
-                    <div class="p-3 bg-light rounded border border-light-subtle">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <span class="fw-bold small text-dark">Cáp treo sinh thái Phú Quốc</span>
                             <span class="badge bg-warning text-dark">Reserve Offset</span>
@@ -117,10 +117,10 @@
                         <p class="small text-muted mb-2">Reserve: 8.0 hectares. Severity: Medium (1.2x). Offset: Yes (40% off).</p>
                         <div class="d-flex justify-content-between small">
                             <span>Base Rate: 180M VND/ha</span>
-                            <span>Fee: <strong id="base2-eff" class="text-success">—</strong></span>
+                            <span>Fee: <strong id="base2-eff" class="text-success">-</strong></span>
                         </div>
                     </div>
-                    <div class="p-3 bg-light rounded border border-light-subtle">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <span class="fw-bold small text-dark">Trạm radar Sơn Trà (Exempt)</span>
                             <span class="badge bg-success">Exempt</span>
@@ -128,7 +128,7 @@
                         <p class="small text-muted mb-2">Landscape: 1.5 hectares. Exemption: National Defense.</p>
                         <div class="d-flex justify-content-between small">
                             <span>Area: 1.5 ha</span>
-                            <span>Reason: <strong id="base3-reason" class="text-success">—</strong></span>
+                            <span>Reason: <strong id="base3-reason" class="text-success">-</strong></span>
                         </div>
                     </div>
                 </div>
@@ -144,7 +144,7 @@
                 </div>
                 <div class="card-body">
                     <div id="debate-container-v68" class="mb-3 d-flex flex-column gap-3"></div>
-                    <div class="p-3 bg-light rounded border border-light-subtle">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
                         <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus:</h6>
                         <p id="consensus-text-v68" class="text-muted small mb-0">Awaiting…</p>
                     </div>
@@ -253,7 +253,7 @@ document.addEventListener("DOMContentLoaded", () => {
         };
         debate.forEach(m => {
             const div = document.createElement("div");
-            div.className = "d-flex gap-3 align-items-start p-3 bg-light rounded border border-light-subtle";
+            div.className = "d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";
             div.innerHTML = `<span class="badge ${cl[m.speaker] || "bg-secondary"} py-2 px-3" style="min-width:220px">${m.speaker}</span><div class="text-dark small">${m.text}</div>`;
             c.appendChild(div);
         });
@@ -280,7 +280,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td>${l.impact_area_ha.toFixed(2)} ha</td>
                 <td>${l.impact_rating.toUpperCase()}</td>
                 <td>${l.has_offset_plan ? '<span class="text-success"><i class="bi bi-check-circle-fill"></i> Yes</span>' : '<span class="text-muted">No</span>'}</td>
-                <td><span class="badge bg-light text-dark">${l.exemption_category.toUpperCase()}</span></td>
+                <td><span class="badge bg-premium-light text-dark">${l.exemption_category.toUpperCase()}</span></td>
                 <td class="fw-bold text-dark">${fVND(l.effective_fee_vnd)}</td>
                 <td>${statusBadge}</td>
                 <td class="text-muted">${l.created_at}</td>

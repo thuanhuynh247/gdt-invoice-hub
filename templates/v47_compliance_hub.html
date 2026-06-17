@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}VAT Law 48/2024 — Rate Classifier & Input Credit Engine (v47){% endblock %}
+{% block title %}VAT Law 48/2024 - Rate Classifier & Input Credit Engine (v47){% endblock %}
 
 {% block content %}
 <div class="container py-4">
@@ -41,15 +41,15 @@
                         </button>
                     </div>
 
-                    <div class="mt-4 p-3 bg-light rounded border">
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
                         <h6 class="fw-bold mb-2 text-primary"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Classification Result</h6>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>VAT Rate:</span>
-                            <span id="res-rate" class="badge bg-primary">—</span>
+                            <span id="res-rate" class="badge bg-primary">-</span>
                         </div>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>Legal Reference:</span>
-                            <span id="res-article" class="text-muted">—</span>
+                            <span id="res-article" class="text-muted">-</span>
                         </div>
                         <div class="small text-muted border-top pt-2">
                             <strong>Notes:</strong> <span id="res-rate-notes">Awaiting classification…</span>
@@ -97,11 +97,11 @@
                         </div>
                     </div>
 
-                    <div class="mt-4 p-3 bg-light rounded border">
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
                         <h6 class="fw-bold mb-2 text-success"><i class="bi bi-patch-check me-2" aria-hidden="true"></i>Credit Eligibility Result</h6>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>Eligible for Input Credit:</span>
-                            <span id="res-credit-eligible" class="badge bg-secondary">—</span>
+                            <span id="res-credit-eligible" class="badge bg-secondary">-</span>
                         </div>
                         <div id="res-credit-reasons" class="small text-muted border-top pt-2">
                             Awaiting eligibility check…
@@ -143,19 +143,19 @@
                         </div>
                     </div>
 
-                    <div class="mt-4 p-3 bg-light rounded border">
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
                         <h6 class="fw-bold mb-2 text-warning"><i class="bi bi-piggy-bank me-2" aria-hidden="true"></i>Refund Estimate</h6>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>Uncredited Balance:</span>
-                            <span id="res-uncredited" class="fw-bold">—</span>
+                            <span id="res-uncredited" class="fw-bold">-</span>
                         </div>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>Eligible for Refund:</span>
-                            <span id="res-refund-eligible" class="badge bg-secondary">—</span>
+                            <span id="res-refund-eligible" class="badge bg-secondary">-</span>
                         </div>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>Estimated Refund:</span>
-                            <span id="res-refund-amount" class="fw-bold text-success">—</span>
+                            <span id="res-refund-amount" class="fw-bold text-success">-</span>
                         </div>
                         <div class="small text-muted border-top pt-2">
                             <span id="res-refund-notes">Awaiting estimation…</span>
@@ -176,7 +176,7 @@
                     <div id="debate-container-v47" class="mb-3 d-flex flex-column gap-3">
                         <!-- Debate Messages -->
                     </div>
-                    <div class="p-3 bg-light rounded border border-light-subtle">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
                         <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus Summary Statement:</h6>
                         <p id="consensus-text-v47" class="text-muted small mb-0">Awaiting simulation data execution…</p>
                     </div>
@@ -253,8 +253,8 @@ document.addEventListener("DOMContentLoaded", () => {
         badge.textContent = res.classified_rate;
         const colors = { "0%": "bg-info", "5%": "bg-warning text-dark", "10%": "bg-danger", "NON_TAXABLE": "bg-secondary" };
         badge.className = "badge " + (colors[res.classified_rate] || "bg-primary");
-        document.getElementById("res-article").textContent = res.article_reference || "—";
-        document.getElementById("res-rate-notes").textContent = res.notes || "—";
+        document.getElementById("res-article").textContent = res.article_reference || "-";
+        document.getElementById("res-rate-notes").textContent = res.notes || "-";
     };
 
     const renderCredit = (res) => {
@@ -286,7 +286,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const colors = { "Tax Inspector": "bg-danger", "Legal Advisor": "bg-primary", "CFO": "bg-success" };
         debate.forEach(msg => {
             const div = document.createElement("div");
-            div.className = "d-flex gap-3 align-items-start p-3 bg-light rounded border border-light-subtle";
+            div.className = "d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";
             div.innerHTML = `
                 <span class="badge ${colors[msg.speaker] || "bg-secondary"} py-2" style="min-width: 130px;">${msg.speaker}</span>
                 <div class="text-dark small">${msg.text}</div>

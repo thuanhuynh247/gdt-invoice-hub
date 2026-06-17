@@ -2153,3 +2153,9 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
     opacity: 0;
     pointer-events: none;
 }
+
+/* ===== Premium Light Background Utility ===== */
+.bg-premium-light {
+    background-color: var(--stat-card-tax-bg) !important;
+}
+

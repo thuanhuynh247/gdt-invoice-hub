@@ -69,7 +69,7 @@
                         </div>
                     </div>
 
-                    <div class="mt-4 p-3 bg-light rounded border">
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
                         <h6 class="fw-bold mb-2 text-success"><i class="bi bi-calculator me-2" aria-hidden="true"></i>CIT Optimization Result</h6>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>Standard Tax Liability:</span>
@@ -147,7 +147,7 @@
                         </div>
                     </div>
 
-                    <div class="mt-4 p-3 bg-light rounded border">
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
                         <h6 class="fw-bold mb-2 text-primary"><i class="bi bi-shield-check me-2" aria-hidden="true"></i>Transfer Pricing Verdict</h6>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>Safe Harbor Status:</span>
@@ -176,7 +176,7 @@
                     <div id="debate-container" class="mb-3 d-flex flex-column gap-3">
                         <!-- Debate Messages -->
                     </div>
-                    <div class="p-3 bg-light rounded border border-light-subtle">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
                         <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus Summary Statement:</h6>
                         <p id="consensus-text" class="text-muted small mb-0">Awaiting simulation data execution…</p>
                     </div>
@@ -328,7 +328,7 @@ document.addEventListener("DOMContentLoaded", () => {
         debate.forEach(msg => {
             const badgeColor = badgeColors[msg.speaker] || "bg-secondary";
             const div = document.createElement("div");
-            div.className = "d-flex gap-3 align-items-start p-3 bg-light rounded border border-light-subtle";
+            div.className = "d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";
             div.innerHTML = `
                 <span class="badge ${badgeColor} py-2" style="min-width: 150px;">${msg.speaker}</span>
                 <div class="text-dark small">${msg.text}</div>

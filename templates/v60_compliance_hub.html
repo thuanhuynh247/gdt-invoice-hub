@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Agricultural Land Use Tax Law 1993 — ALUT Hub (v60){% endblock %}
+{% block title %}Agricultural Land Use Tax Law 1993 - ALUT Hub (v60){% endblock %}
 {% block content %}
 <div class="container py-4">
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
@@ -66,13 +66,13 @@
                             <button id="btn-calc-alut" class="btn btn-success btn-sm text-white fw-bold"><i class="bi bi-play-fill me-1" aria-hidden="true"></i> Run Calculation</button>
                         </div>
                     </div>
-                    <div class="mt-4 p-3 bg-light rounded border">
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
                         <h6 class="fw-bold mb-2 text-success"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Calculation Result</h6>
-                        <div class="d-flex justify-content-between small mb-1"><span>Rate per Ha:</span><span id="res-rate-rice" class="fw-bold text-dark">—</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Total Rice Tax:</span><span id="res-tax-rice" class="fw-bold text-dark">—</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Standard Tax Amount:</span><span id="res-tax-vnd" class="fw-bold text-dark">—</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Effective Tax Billing:</span><span id="res-effective-vnd" class="fw-bold text-success fs-6">—</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Exemption Status:</span><span id="res-exempt-badge" class="fw-bold">—</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Rate per Ha:</span><span id="res-rate-rice" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Total Rice Tax:</span><span id="res-tax-rice" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Standard Tax Amount:</span><span id="res-tax-vnd" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Effective Tax Billing:</span><span id="res-effective-vnd" class="fw-bold text-success fs-6">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Exemption Status:</span><span id="res-exempt-badge" class="fw-bold">-</span></div>
                         <div class="small text-muted border-top pt-2 mt-2"><strong>Exemption Reason:</strong> <span id="res-exemption-reason">Awaiting…</span></div>
                     </div>
                 </div>
@@ -82,25 +82,25 @@
             <div class="card shadow-sm h-100 border-light">
                 <div class="card-header bg-transparent border-0 pt-4 pb-0"><h5 class="fw-bold mb-1"><i class="bi bi-shield-check text-info me-2" aria-hidden="true"></i>ALUT Baseline Verification</h5></div>
                 <div class="card-body d-flex flex-column gap-3">
-                    <div class="p-3 bg-light rounded border border-light-subtle">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
                         <div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Household Farmer (100% Exempt)</span><span class="badge bg-success">Resolution 117</span></div>
                         <p class="small text-muted mb-2">Paddy land Grade 1, 5.0 ha. Fully waived.</p>
-                        <div class="d-flex justify-content-between small"><span>Standard Tax: <strong id="base1-std">—</strong></span><span>Effective Tax: <strong id="base1-eff" class="text-success">—</strong></span></div>
+                        <div class="d-flex justify-content-between small"><span>Standard Tax: <strong id="base1-std">-</strong></span><span>Effective Tax: <strong id="base1-eff" class="text-success">-</strong></span></div>
                     </div>
-                    <div class="p-3 bg-light rounded border border-light-subtle">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
                         <div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Agricultural Cooperative (100% Exempt)</span><span class="badge bg-success">Resolution 117</span></div>
                         <p class="small text-muted mb-2">Tea plantation Grade 2, 12.0 ha. Fully waived.</p>
-                        <div class="d-flex justify-content-between small"><span>Standard Tax: <strong id="base2-std">—</strong></span><span>Effective Tax: <strong id="base2-eff" class="text-success">—</strong></span></div>
+                        <div class="d-flex justify-content-between small"><span>Standard Tax: <strong id="base2-std">-</strong></span><span>Effective Tax: <strong id="base2-eff" class="text-success">-</strong></span></div>
                     </div>
-                    <div class="p-3 bg-light rounded border border-light-subtle">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
                         <div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">State Rubber Farm (50% Reduced)</span><span class="badge bg-warning text-dark">50% Waiver</span></div>
                         <p class="small text-muted mb-2">Perennial trees Grade 1, 50.0 ha. Subject to half tax.</p>
-                        <div class="d-flex justify-content-between small"><span>Standard Tax: <strong id="base3-std">—</strong></span><span>Effective Tax: <strong id="base3-eff" class="text-warning">—</strong></span></div>
+                        <div class="d-flex justify-content-between small"><span>Standard Tax: <strong id="base3-std">-</strong></span><span>Effective Tax: <strong id="base3-eff" class="text-warning">-</strong></span></div>
                     </div>
-                    <div class="p-3 bg-light rounded border border-light-subtle">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
                         <div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Commercial Producer (No Waiver)</span><span class="badge bg-danger">Taxable</span></div>
                         <p class="small text-muted mb-2">Annual crop Grade 3, 10.0 ha. Standard rate applies.</p>
-                        <div class="d-flex justify-content-between small"><span>Standard Tax: <strong id="base4-std">—</strong></span><span>Effective Tax: <strong id="base4-eff" class="text-danger">—</strong></span></div>
+                        <div class="d-flex justify-content-between small"><span>Standard Tax: <strong id="base4-std">-</strong></span><span>Effective Tax: <strong id="base4-eff" class="text-danger">-</strong></span></div>
                     </div>
                 </div>
             </div>
@@ -108,7 +108,7 @@
         <div class="col-lg-12">
             <div class="card shadow-sm border-light">
                 <div class="card-header bg-dark text-white py-3 d-flex align-items-center justify-content-between"><h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-success me-2" aria-hidden="true"></i>Multi-Agent ALUT Advisory Debate</h5><span class="badge bg-secondary">Agricultural Policy Consensus</span></div>
-                <div class="card-body"><div id="debate-container-v60" class="mb-3 d-flex flex-column gap-3"></div><div class="p-3 bg-light rounded border border-light-subtle"><h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus:</h6><p id="consensus-text-v60" class="text-muted small mb-0">Awaiting…</p></div></div>
+                <div class="card-body"><div id="debate-container-v60" class="mb-3 d-flex flex-column gap-3"></div><div class="p-3 bg-premium-light rounded border border-light-subtle"><h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus:</h6><p id="consensus-text-v60" class="text-muted small mb-0">Awaiting…</p></div></div>
             </div>
         </div>
         <div class="col-lg-12">
@@ -197,7 +197,7 @@ document.addEventListener("DOMContentLoaded",()=>{
         };
         debate.forEach(m => {
             const div = document.createElement("div");
-            div.className = "d-flex gap-3 align-items-start p-3 bg-light rounded border border-light-subtle";
+            div.className = "d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";
             div.innerHTML = `<span class="badge ${cl[m.speaker] || "bg-secondary"} py-2 px-3" style="min-width:200px">${m.speaker}</span><div class="text-dark small">${m.text}</div>`;
             c.appendChild(div);
         });
@@ -229,7 +229,7 @@ document.addEventListener("DOMContentLoaded",()=>{
                 <td>${fVND(l.tax_amount_vnd)}</td>
                 <td class="fw-bold text-dark">${fVND(l.effective_amount_vnd)}</td>
                 <td>${statusBadge}</td>
-                <td class="text-muted small">${l.exemption_reason || "—"}</td>
+                <td class="text-muted small">${l.exemption_reason || "-"}</td>
                 <td class="text-muted">${l.created_at}</td>
             `;
             tb.appendChild(tr);

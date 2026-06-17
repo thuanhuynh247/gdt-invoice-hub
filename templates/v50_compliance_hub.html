@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}PIT Law 109/2025 Amendments — Household Exemptions & Progressive Brackets Hub (v50){% endblock %}
+{% block title %}PIT Law 109/2025 Amendments - Household Exemptions & Progressive Brackets Hub (v50){% endblock %}
 
 {% block content %}
 <div class="container py-4">
@@ -56,19 +56,19 @@
                         </div>
                     </div>
 
-                    <div class="mt-4 p-3 bg-light rounded border">
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
                         <h6 class="fw-bold mb-2 text-info"><i class="bi bi-wallet me-2" aria-hidden="true"></i>Evaluation Ledger</h6>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>Exemption Status:</span>
-                            <span id="res-house-status" class="badge bg-secondary">—</span>
+                            <span id="res-house-status" class="badge bg-secondary">-</span>
                         </div>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>Applied Rate:</span>
-                            <span id="res-house-rate" class="fw-bold text-primary">—</span>
+                            <span id="res-house-rate" class="fw-bold text-primary">-</span>
                         </div>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>PIT Liability:</span>
-                            <span id="res-house-liability" class="fw-bold text-danger">—</span>
+                            <span id="res-house-liability" class="fw-bold text-danger">-</span>
                         </div>
                         <div class="small text-muted border-top pt-2 mt-2">
                             <strong>Note:</strong> <span id="res-house-note">Awaiting evaluation…</span>
@@ -106,23 +106,23 @@
                         </div>
                     </div>
 
-                    <div class="mt-4 p-3 bg-light rounded border">
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
                         <h6 class="fw-bold mb-2 text-success"><i class="bi bi-file-earmark-spreadsheet me-2" aria-hidden="true"></i>Payroll Calculations</h6>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>Personal Deduction:</span>
-                            <span id="res-emp-personal" class="fw-bold text-success">—</span>
+                            <span id="res-emp-personal" class="fw-bold text-success">-</span>
                         </div>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>Dependent Deduction:</span>
-                            <span id="res-emp-dependent" class="fw-bold text-success">—</span>
+                            <span id="res-emp-dependent" class="fw-bold text-success">-</span>
                         </div>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>Taxable Income:</span>
-                            <span id="res-emp-taxable" class="fw-bold text-primary">—</span>
+                            <span id="res-emp-taxable" class="fw-bold text-primary">-</span>
                         </div>
                         <div class="d-flex justify-content-between small mb-1">
                             <span>Calculated PIT:</span>
-                            <span id="res-emp-pit" class="fw-bold text-danger">—</span>
+                            <span id="res-emp-pit" class="fw-bold text-danger">-</span>
                         </div>
                         <div class="small text-muted border-top pt-2 mt-2">
                             <strong>Note:</strong> <span id="res-emp-note">Awaiting calculation…</span>
@@ -142,7 +142,7 @@
                 <div class="card-body">
                     <div id="debate-container-v50" class="mb-3 d-flex flex-column gap-3">
                     </div>
-                    <div class="p-3 bg-light rounded border border-light-subtle">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
                         <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus Summary Statement:</h6>
                         <p id="consensus-text-v50" class="text-muted small mb-0">Awaiting simulation data execution…</p>
                     </div>
@@ -206,7 +206,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         document.getElementById("res-house-rate").textContent = res.applied_rate;
         document.getElementById("res-house-liability").textContent = formatVND(res.pit_liability);
-        document.getElementById("res-house-note").textContent = res.notes || "—";
+        document.getElementById("res-house-note").textContent = res.notes || "-";
     };
 
     const renderWage = (res) => {
@@ -214,7 +214,7 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("res-emp-dependent").textContent = formatVND(res.dependent_deduction);
         document.getElementById("res-emp-taxable").textContent = formatVND(res.taxable_income);
         document.getElementById("res-emp-pit").textContent = formatVND(res.calculated_pit);
-        document.getElementById("res-emp-note").textContent = res.notes || "—";
+        document.getElementById("res-emp-note").textContent = res.notes || "-";
     };
 
     const renderDebate = (debate, summary) => {
@@ -223,7 +223,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const colors = { "Tax Policy Expert": "bg-info", "HR Director": "bg-success", "Payroll Auditor": "bg-warning text-dark" };
         debate.forEach(msg => {
             const div = document.createElement("div");
-            div.className = "d-flex gap-3 align-items-start p-3 bg-light rounded border border-light-subtle";
+            div.className = "d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";
             div.innerHTML = `
                 <span class="badge ${colors[msg.speaker] || "bg-secondary"} py-2" style="min-width: 180px;">${msg.speaker}</span>
                 <div class="text-dark small">${msg.text}</div>

@@ -22,7 +22,7 @@
     </div>
 
     <!-- Interactive Simulator Block -->
-    <div class="card shadow-sm mb-4 border-light bg-light-subtle">
+    <div class="card shadow-sm mb-4 border-light bg-premium-light-subtle">
         <div class="card-header bg-transparent border-0 pt-4">
             <h5 class="fw-bold mb-1"><i class="bi bi-sliders text-success me-2" aria-hidden="true"></i>Interactive Compliance Simulation Controls</h5>
             <p class="text-muted small mb-0">Drag sliders to test CIT allocation percentages, R&D spending rates, and welfare fund expenses to evaluate clawback interest rates.</p>
@@ -122,13 +122,13 @@
                     </div>
                     <div class="row g-2 mb-3">
                         <div class="col-6">
-                            <div class="p-2 border rounded bg-light text-center">
+                            <div class="p-2 border rounded bg-premium-light text-center">
                                 <div class="text-muted small">Max Allowable Cap (10%):</div>
                                 <strong id="val-cap-limit" class="text-dark">0 VND</strong>
                             </div>
                         </div>
                         <div class="col-6">
-                            <div class="p-2 border rounded bg-light text-center">
+                            <div class="p-2 border rounded bg-premium-light text-center">
                                 <div class="text-muted small">Allocated Amount:</div>
                                 <strong id="val-allocated-amount" class="text-success">0 VND</strong>
                             </div>
@@ -216,7 +216,7 @@
             <div id="debate-container" class="mb-3 d-flex flex-column gap-3">
                 <!-- Debate Messages will render here -->
             </div>
-            <div class="p-3 bg-light rounded border border-light-subtle">
+            <div class="p-3 bg-premium-light rounded border border-light-subtle">
                 <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus Summary Statement:</h6>
                 <p id="consensus-text" class="text-muted small mb-0">Awaiting simulation data execution…</p>
             </div>
@@ -366,7 +366,7 @@ document.addEventListener("DOMContentLoaded", () => {
         debate.forEach(msg => {
             const badgeColor = badgeColors[msg.speaker] || "bg-secondary";
             const div = document.createElement("div");
-            div.className = "d-flex gap-3 align-items-start p-3 bg-light rounded border border-light-subtle";
+            div.className = "d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";
             div.innerHTML = `
                 <span class="badge ${badgeColor} py-2" style="min-width: 150px;">${msg.speaker}</span>
                 <div class="text-dark small">${msg.text}</div>
