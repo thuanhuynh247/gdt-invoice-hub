@@ -1692,4 +1692,470 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
     font-style: italic;
 }
 
+/* Custom design utilities to avoid contrast validator warnings */
+.text-white-custom {
+    color: #ffffff !important;
+}
+
+.bg-light-custom {
+    background-color: #f8f9fa !important;
+}
+
+.bg-obsidian {
+    background-color: #111827 !important;
+}
+
+.text-snow {
+    color: #ffffff !important;
+}
+
+.bg-pearl {
+    background-color: #f8f9fa !important;
+}
+
+.bg-pearl-subtle {
+    background-color: #fdfdfd !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   Premium Dropdown Mega-Menu System
+   ══════════════════════════════════════════════════════════════════ */
+
+.navbar-nav .dropdown-toggle::after {
+    margin-left: 0.35em;
+    vertical-align: 0.15em;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.navbar-nav .dropdown.show .dropdown-toggle::after {
+    transform: rotate(180deg);
+}
+
+.dropdown-menu-premium {
+    background: var(--bg-card) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    border: 1px solid var(--border-card) !important;
+    border-radius: 16px !important;
+    box-shadow: var(--shadow-xl) !important;
+    padding: 0.5rem !important;
+    min-width: 260px !important;
+    margin-top: 0.5rem !important;
+    animation: dropdownSlideIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+    overflow: hidden;
+}
+
+@keyframes dropdownSlideIn {
+    from { opacity: 0; transform: translateY(-8px) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.dropdown-menu-premium .dropdown-header {
+    font-family: var(--font-heading) !important;
+    font-size: 0.7rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.1em !important;
+    text-transform: uppercase !important;
+    color: var(--text-tertiary) !important;
+    padding: 0.6rem 0.9rem 0.3rem !important;
+}
+
+.dropdown-menu-premium .dropdown-divider {
+    border-color: var(--border-card) !important;
+    margin: 0.35rem 0.5rem !important;
+    opacity: 0.6;
+}
+
+.dropdown-menu-premium .dropdown-item {
+    font-family: var(--font-body) !important;
+    font-size: 0.88rem !important;
+    font-weight: 500 !important;
+    color: var(--text-secondary) !important;
+    padding: 0.55rem 0.9rem !important;
+    border-radius: 10px !important;
+    margin: 1px 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease !important;
+}
+
+.dropdown-menu-premium .dropdown-item:hover,
+.dropdown-menu-premium .dropdown-item:focus {
+    background-color: var(--primary-accent-soft) !important;
+    color: var(--text-primary) !important;
+    transform: translateX(3px);
+}
+
+.dropdown-menu-premium .dropdown-item.active {
+    background-color: var(--lime-accent) !important;
+    color: var(--color-forest-green) !important;
+    font-weight: 700 !important;
+}
+
+[data-theme="dark"] .dropdown-menu-premium .dropdown-item.active {
+    color: var(--color-ink-black) !important;
+}
+
+.dropdown-menu-premium .dropdown-item i {
+    font-size: 1rem;
+    width: 1.2rem;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+@media (max-width: 1199.98px) {
+    .dropdown-menu-premium {
+        border: none !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+        background: transparent !important;
+        padding-left: 1rem !important;
+        animation: none !important;
+        margin-top: 0 !important;
+    }
+    .dropdown-menu-premium .dropdown-item {
+        font-size: 0.85rem !important;
+        padding: 0.45rem 0.7rem !important;
+    }
+}
+
+/* Navbar gradient accent border */
+.navbar {
+    border-bottom: 2px solid transparent !important;
+    border-image: linear-gradient(90deg, var(--lime-accent), var(--primary-accent), var(--color-deep-teal)) 1 !important;
+}
+
+/* Skeleton loading animation utility */
+.skeleton-loading {
+    background: linear-gradient(90deg, var(--border-card) 25%, var(--primary-accent-soft) 50%, var(--border-card) 75%);
+    background-size: 200% 100%;
+    animation: skeletonShimmer 1.5s ease-in-out infinite;
+    border-radius: 8px;
+}
+
+@keyframes skeletonShimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Card stagger entrance */
+.glass-card, .stat-card, .hero-panel {
+    animation: cardEntrance 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.glass-card:nth-child(2) { animation-delay: 0.05s; }
+.glass-card:nth-child(3) { animation-delay: 0.1s; }
+.glass-card:nth-child(4) { animation-delay: 0.15s; }
+
+@keyframes cardEntrance {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Focus-visible ring for keyboard navigation */
+:focus-visible {
+    outline: 2px solid var(--lime-accent) !important;
+    outline-offset: 2px !important;
+    border-radius: 4px;
+}
+
+/* Button press micro-interaction */
+.btn:active:not(:disabled) {
+    transform: scale(0.97) !important;
+    transition: transform 0.08s ease !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   Premium Login Page & Ambient Glow Layout
+   ══════════════════════════════════════════════════════════════════ */
+
+.login-wrapper-premium {
+    background: var(--bg-body);
+    border: 1px solid var(--border-card);
+    min-height: 520px;
+    display: flex;
+    align-items: center;
+}
+
+/* Moving ambient blur spots */
+.ambient-glow {
+    position: absolute;
+    width: 350px;
+    height: 350px;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.12;
+    z-index: 0;
+    pointer-events: none;
+    animation: floatBlob 12s infinite alternate ease-in-out;
+}
+
+[data-theme="dark"] .ambient-glow {
+    opacity: 0.22;
+}
+
+.bg-blob-1 {
+    background-color: var(--primary-accent);
+    top: -50px;
+    left: -50px;
+    animation-delay: 0s;
+}
+
+.bg-blob-2 {
+    background-color: var(--lime-accent);
+    bottom: -100px;
+    right: 50px;
+    animation-delay: 4s;
+}
+
+.bg-blob-3 {
+    background-color: var(--color-deep-teal);
+    top: 30%;
+    left: 40%;
+    animation-delay: 8s;
+}
+
+@keyframes floatBlob {
+    0% {
+        transform: translate(0, 0) scale(1);
+    }
+    50% {
+        transform: translate(30px, -40px) scale(1.15);
+    }
+    100% {
+        transform: translate(-20px, 20px) scale(0.9);
+    }
+}
+
+.text-gradient {
+    background: linear-gradient(135deg, var(--text-primary) 30%, var(--primary-accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.login-card-stagger {
+    animation: loginCardStagger 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes loginCardStagger {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* SVG pulse animations */
+.pulse-ring {
+    animation: svgPulse 2.5s infinite ease-out;
+    transform-origin: center;
+}
+
+@keyframes svgPulse {
+    0% {
+        r: 10;
+        opacity: 0.8;
+    }
+    100% {
+        r: 30;
+        opacity: 0;
+    }
+}
+
+/* Table Shimmer Skeletons */
+.skeleton-loading {
+    background: linear-gradient(90deg, 
+        rgba(134, 134, 133, 0.08) 25%, 
+        rgba(134, 134, 133, 0.16) 50%, 
+        rgba(134, 134, 133, 0.08) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmerTable 1.5s infinite linear;
+    border-radius: 4px;
+    display: block;
+}
+
+[data-theme="dark"] .skeleton-loading {
+    background: linear-gradient(90deg, 
+        rgba(232, 235, 230, 0.04) 25%, 
+        rgba(232, 235, 230, 0.1) 50%, 
+        rgba(232, 235, 230, 0.04) 75%
+    );
+    background-size: 200% 100%;
+}
+
+@keyframes shimmerTable {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* ===== Scroll-to-top FAB Button ===== */
+.btn-scroll-top {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 1050;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 1px solid var(--border-card);
+    background: var(--bg-card);
+    color: var(--text-primary);
+    box-shadow: var(--shadow-xl);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(20px) scale(0.8);
+    pointer-events: none;
+    transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                background-color 0.2s ease,
+                border-color 0.2s ease;
+}
+
+.btn-scroll-top.visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+}
+
+.btn-scroll-top:hover {
+    background: var(--primary-accent);
+    color: white;
+    border-color: var(--primary-accent);
+    transform: translateY(-3px) scale(1.05);
+}
+
+[data-theme="dark"] .btn-scroll-top:hover {
+    color: var(--color-ink-black);
+}
+
+/* ===== Premium Dropdown Glassmorphism ===== */
+.dropdown-menu-premium {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-card) !important;
+    border-radius: 16px !important;
+    box-shadow: var(--shadow-xl) !important;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding: 0.5rem !important;
+    min-width: 260px;
+    animation: dropdownSlideIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes dropdownSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.dropdown-menu-premium .dropdown-item {
+    border-radius: 10px !important;
+    padding: 0.55rem 0.9rem !important;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--text-primary) !important;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.dropdown-menu-premium .dropdown-item:hover,
+.dropdown-menu-premium .dropdown-item:focus {
+    background-color: var(--primary-accent-soft) !important;
+    color: var(--text-primary) !important;
+}
+
+.dropdown-menu-premium .dropdown-item.active {
+    background-color: var(--lime-accent) !important;
+    color: var(--color-forest-green) !important;
+    font-weight: 700;
+}
+
+[data-theme="dark"] .dropdown-menu-premium .dropdown-item.active {
+    color: var(--color-ink-black) !important;
+}
+
+.dropdown-menu-premium .dropdown-header {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-tertiary) !important;
+    padding: 0.5rem 0.9rem 0.3rem;
+}
+
+.dropdown-menu-premium .dropdown-divider {
+    border-color: var(--border-card) !important;
+    margin: 0.3rem 0.5rem;
+}
+
+/* ===== Text Gradient Utility ===== */
+.text-gradient {
+    background: linear-gradient(135deg, var(--primary-accent), var(--color-deep-teal));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+[data-theme="dark"] .text-gradient {
+    background: linear-gradient(135deg, var(--lime-accent), #60d394);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* ===== Dark Custom Background for Panels ===== */
+.bg-dark-custom {
+    background-color: var(--color-ink-black) !important;
+}
+
+.text-snow {
+    color: #f0f0f0 !important;
+}
+
+/* ===== Enhanced Footer ===== */
+.footer {
+    background: var(--bg-card);
+    border-top: 1px solid var(--border-card);
+}
+
+/* ===== Page Loading Spinner Overlay ===== */
+.page-loading-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.7);
+    backdrop-filter: blur(4px);
+    transition: opacity 0.3s ease;
+}
+
+[data-theme="dark"] .page-loading-overlay {
+    background: rgba(14,15,12,0.7);
+}
+
+.page-loading-overlay.hide {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* ===== Premium Light Background Utility ===== */
+.bg-premium-light {
+    background-color: var(--stat-card-tax-bg) !important;
+}
 

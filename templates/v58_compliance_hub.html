@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Natural Resources Tax Law 45/2009 - NRT Hub (v58){% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
+        <div>
+            <span class="badge bg-success mb-2">Version 58.0.0 Spec Compliance</span>
+            <h1 class="h2 fw-bold text-gradient mb-1">Natural Resources Tax Compliance Hub</h1>
+            <p class="text-muted mb-0">Manage Natural Resources Tax (Thuế tài nguyên) under Law 45/2009/QH12 & Decree 50/2010/NĐ-CP.</p>
+        </div>
+        <div class="d-flex gap-2 mt-3 mt-md-0">
+            <button id="btn-refresh-v58" class="btn btn-success text-white d-flex align-items-center gap-2"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Load Data</button>
+            <span class="badge bg-success-subtle text-success border border-success d-flex align-items-center px-3"><i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Law 45/2009</span>
+        </div>
+    </div>
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1"><i class="bi bi-calculator text-success me-2" aria-hidden="true"></i>Interactive NRT Calculator</h5>
+                    <p class="text-muted small mb-0">Select resource type, enter extraction value, specify output volume.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6"><label for="input-res-desc" class="form-label small mb-1">Resource Description:</label><input type="text" id="input-res-desc" class="form-control form-control-sm" value="Quặng sắt Hà Tĩnh" autocomplete="off"></div>
+                        <div class="col-md-6"><label for="input-res-type" class="form-label small mb-1">Resource Type:</label><select id="input-res-type" class="form-select form-select-sm"><option value="metallic">Metallic Mineral (Khoáng sản kim loại)</option><option value="non_metallic">Non-Metallic Mineral</option><option value="crude_oil">Crude Oil (Dầu thô)</option><option value="natural_gas">Natural Gas (Khí thiên nhiên)</option><option value="coal">Coal (Than)</option><option value="water">Natural Water (Nước)</option><option value="timber">Timber (Gỗ)</option><option value="marine">Marine Products (Hải sản)</option></select></div>
+                        <div class="col-md-6"><label for="input-res-subtype" class="form-label small mb-1">Subtype:</label><select id="input-res-subtype" class="form-select form-select-sm"><option value="iron_ore">Iron Ore (12%)</option><option value="copper_ore">Copper Ore (13%)</option><option value="gold_ore">Gold Ore (15%)</option><option value="tin_ore">Tin Ore (10%)</option><option value="granite">Granite (10%)</option><option value="marble">Marble (10%)</option><option value="sand">Sand (7%)</option><option value="gravel">Gravel (7%)</option><option value="underground">Underground Coal (5%)</option><option value="softwood">Softwood (15%)</option><option value="">Default</option></select></div>
+                        <div class="col-md-6"><label for="input-ext-value" class="form-label small mb-1">Extraction Value (VND):</label><input type="number" id="input-ext-value" class="form-control form-control-sm" value="50000000000" autocomplete="off"></div>
+                        <div class="col-md-4"><label for="input-daily-output" class="form-label small mb-1">Daily Output:</label><input type="number" id="input-daily-output" class="form-control form-control-sm" value="0" autocomplete="off"><span class="text-muted" style="font-size:.72rem">For crude oil: barrels/day</span></div>
+                        <div class="col-md-4 d-flex align-items-center"><div class="form-check form-switch mt-2"><input class="form-check-input" type="checkbox" id="check-agri-water"><label class="form-check-label small" for="check-agri-water">Agri Water?</label></div></div>
+                        <div class="col-md-4 d-flex align-items-center"><div class="form-check form-switch mt-2"><input class="form-check-input" type="checkbox" id="check-hydro-water"><label class="form-check-label small" for="check-hydro-water">Hydro Water?</label></div></div>
+                        <div class="col-md-6 d-flex align-items-center"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="check-defense"><label class="form-check-label small" for="check-defense">Defense Purpose?</label></div></div>
+                        <div class="col-md-6 text-end"><button id="btn-calculate-nrt" class="btn btn-success btn-sm text-white fw-bold"><i class="bi bi-play-fill me-1" aria-hidden="true"></i> Run Calculation</button></div>
+                    </div>
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
+                        <h6 class="fw-bold mb-2 text-success"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Calculation Result</h6>
+                        <div class="d-flex justify-content-between small mb-1"><span>Applied Rate:</span><span id="res-rate" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Base NRT Amount:</span><span id="res-base-nrt" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Effective Amount:</span><span id="res-effective" class="fw-bold text-success fs-6">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Exempt:</span><span id="res-is-exempt" class="fw-bold">-</span></div>
+                        <div class="small text-muted border-top pt-2 mt-2"><strong>Note:</strong> <span id="res-notes">Awaiting entry…</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0"><h5 class="fw-bold mb-1"><i class="bi bi-shield-check text-info me-2" aria-hidden="true"></i>NRT Baseline Verification</h5><p class="text-muted small mb-0">Pre-computed verification ledgers for key resource types.</p></div>
+                <div class="card-body d-flex flex-column gap-3">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle"><div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Iron Ore (12%)</span><span class="badge bg-secondary">Metallic</span></div><p class="small text-muted mb-2">Iron ore extraction valued at 50B VND.</p><div class="d-flex justify-content-between small"><span>Value: <strong id="base1-value">-</strong></span><span>NRT: <strong id="base1-nrt" class="text-success">-</strong></span></div></div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle"><div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Crude Oil &gt;20k bbl/day (10%)</span><span class="badge bg-warning text-dark">Petroleum</span></div><p class="small text-muted mb-2">High-output crude oil field.</p><div class="d-flex justify-content-between small"><span>Value: <strong id="base2-value">-</strong></span><span>NRT: <strong id="base2-nrt" class="text-success">-</strong></span></div></div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle"><div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Agricultural Water Exempt</span><span class="badge bg-success">Exempt</span></div><p class="small text-muted mb-2">Water for rice farming - fully exempt.</p><div class="d-flex justify-content-between small"><span>Value: <strong id="base3-value">-</strong></span><span>Reason: <strong id="base3-reason" class="text-success">-</strong></span></div></div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle"><div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Hardwood Timber (25%)</span><span class="badge bg-secondary">Timber</span></div><p class="small text-muted mb-2">Premium hardwood logging extraction.</p><div class="d-flex justify-content-between small"><span>Value: <strong id="base4-value">-</strong></span><span>NRT: <strong id="base4-nrt" class="text-success">-</strong></span></div></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-12">
+            <div class="card shadow-sm border-light">
+                <div class="card-header bg-dark text-white py-3 d-flex align-items-center justify-content-between"><h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-success me-2" aria-hidden="true"></i>Multi-Agent NRT Advisory Debate</h5><span class="badge bg-secondary">Resource Tax Consensus</span></div>
+                <div class="card-body"><div id="debate-container-v58" class="mb-3 d-flex flex-column gap-3"></div><div class="p-3 bg-premium-light rounded border border-light-subtle"><h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus:</h6><p id="consensus-text-v58" class="text-muted small mb-0">Awaiting…</p></div></div>
+            </div>
+        </div>
+        <div class="col-lg-12">
+            <div class="card shadow-sm border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-2"><h5 class="fw-bold mb-1"><i class="bi bi-clock-history text-muted me-2" aria-hidden="true"></i>Historical Audit Log</h5></div>
+                <div class="card-body p-0"><div class="table-responsive"><table class="table table-hover table-striped mb-0 small"><thead class="table-dark"><tr><th>ID</th><th>Resource</th><th>Type</th><th>Value</th><th>Output</th><th>Rate</th><th>NRT</th><th>Status</th><th>Exemption</th><th>Time</th></tr></thead><tbody id="history-table-v58"><tr><td colspan="10" class="text-center text-muted py-4">No logs. Run calculator.</td></tr></tbody></table></div></div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+document.addEventListener("DOMContentLoaded",()=>{const f=n=>new Intl.NumberFormat("vi-VN").format(n)+" VND";const load=()=>{fetch('/api/v58/compliance-data').then(r=>r.json()).then(d=>{if(d.status==="success"){rB(d);rD(d.debate,d.consensus_summary);rH(d.history)}}).catch(e=>console.error(e))};const calc=()=>{const p={resource_description:document.getElementById("input-res-desc").value,resource_type:document.getElementById("input-res-type").value,resource_subtype:document.getElementById("input-res-subtype").value,extraction_value:parseFloat(document.getElementById("input-ext-value").value),daily_output:parseFloat(document.getElementById("input-daily-output").value),is_agri_water:document.getElementById("check-agri-water").checked,is_hydro_water:document.getElementById("check-hydro-water").checked,is_defense:document.getElementById("check-defense").checked};fetch('/api/v58/calculate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)}).then(r=>r.json()).then(d=>{if(d.status==="success"){rR(d.results);load()}else alert(d.error)}).catch(e=>console.error(e))};const rR=r=>{document.getElementById("res-rate").textContent=r.rate_pct+"%";document.getElementById("res-base-nrt").textContent=f(r.nrt_amount);document.getElementById("res-effective").textContent=f(r.effective_amount);document.getElementById("res-is-exempt").innerHTML=r.is_exempt?'<span class="badge bg-success">Exempt</span>':'<span class="badge bg-danger">Taxable</span>';document.getElementById("res-notes").textContent=r.notes||"-"};const rB=d=>{document.getElementById("base1-value").textContent=f(d.iron_ore.extraction_value);document.getElementById("base1-nrt").textContent=f(d.iron_ore.effective_amount);document.getElementById("base2-value").textContent=f(d.crude_oil_high.extraction_value);document.getElementById("base2-nrt").textContent=f(d.crude_oil_high.effective_amount);document.getElementById("base3-value").textContent=f(d.agri_water_exempt.extraction_value);document.getElementById("base3-reason").textContent=d.agri_water_exempt.exemption_reason;document.getElementById("base4-value").textContent=f(d.hardwood_timber.extraction_value);document.getElementById("base4-nrt").textContent=f(d.hardwood_timber.effective_amount)};const rD=(debate,summary)=>{const c=document.getElementById("debate-container-v58");c.innerHTML="";const cl={"Mining Resource Auditor":"bg-success text-white","Petroleum Tax Inspector":"bg-warning text-dark","Environmental Resources Counsel":"bg-info text-dark"};debate.forEach(m=>{const div=document.createElement("div");div.className="d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";div.innerHTML=`<span class="badge ${cl[m.speaker]||"bg-secondary"} py-2 px-3" style="min-width:200px">${m.speaker}</span><div class="text-dark small">${m.text}</div>`;c.appendChild(div)});document.getElementById("consensus-text-v58").textContent=summary};const rH=h=>{const tb=document.getElementById("history-table-v58");if(!h||!h.length){tb.innerHTML='<tr><td colspan="10" class="text-center text-muted py-4">No logs.</td></tr>';return}tb.innerHTML="";h.forEach(l=>{const tr=document.createElement("tr");tr.innerHTML=`<td>${l.id}</td><td class="fw-bold">${l.resource_description}</td><td><span class="badge bg-secondary">${l.resource_type.toUpperCase()}</span></td><td>${f(l.extraction_value)}</td><td>${l.daily_output}</td><td>${l.rate_pct}%</td><td class="fw-bold text-dark">${f(l.nrt_amount)}</td><td>${l.is_exempt?'<span class="badge bg-success">Exempt</span>':'<span class="badge bg-danger">Taxable</span>'}</td><td class="text-muted small">${l.exemption_reason||"-"}</td><td class="text-muted">${l.created_at}</td>`;tb.appendChild(tr)})};document.getElementById("btn-calculate-nrt").addEventListener("click",calc);document.getElementById("btn-refresh-v58").addEventListener("click",load);load()});
+</script>
+{% endblock %}

@@ -12,7 +12,13 @@ class AuthenticationError(Exception):
     """Raised when login fails due to invalid credentials or captcha."""
 
 
-def authenticate_user(username: str, password: str, captcha: str) -> dict:
+def authenticate_user(
+    username: str,
+    password: str,
+    captcha: str,
+    captcha_key: str | None = None,
+    captcha_cookies: dict | None = None,
+) -> dict:
     """Authenticate a user against mock mode or a future live GDT integration."""
 
     if not username or not password or not captcha:
@@ -23,7 +29,13 @@ def authenticate_user(username: str, password: str, captcha: str) -> dict:
             raise AuthenticationError("Tai khoan tam thoi khong the dang nhap.")
         return _build_mock_session_payload(username)
 
-    return _authenticate_live(username, password, captcha)
+    return _authenticate_live(
+        username,
+        password,
+        captcha,
+        captcha_key=captcha_key,
+        captcha_cookies=captcha_cookies,
+    )
 
 
 def _build_mock_session_payload(username: str) -> dict:
@@ -41,24 +53,31 @@ def _build_mock_session_payload(username: str) -> dict:
     }
 
 
-def _authenticate_live(username: str, password: str, captcha: str) -> dict:
+def _authenticate_live(
+    username: str,
+    password: str,
+    captcha: str,
+    captcha_key: str | None = None,
+    captcha_cookies: dict | None = None,
+) -> dict:
     """Authenticate against the real taxpayer endpoint using manual captcha."""
 
-    captcha_key = current_app.config.get("CURRENT_CAPTCHA_KEY") or ""
-    captcha_cookies = current_app.config.get("CURRENT_CAPTCHA_COOKIES") or {}
-    if not captcha_key:
+    key = captcha_key or current_app.config.get("CURRENT_CAPTCHA_KEY") or ""
+    cookies = captcha_cookies or current_app.config.get("CURRENT_CAPTCHA_COOKIES") or {}
+    if not key:
         raise AuthenticationError("Captcha da het han. Vui long tai lai captcha.")
 
-    response = requests.post(
-        f'{current_app.config["GDT_BASE_URL"]}/api/security-taxpayer/authenticate',
+    from auth.gdt_client import gdt_request
+    response = gdt_request(
+        "POST",
+        "api/security-taxpayer/authenticate",
         json={
             "username": username,
             "password": password,
             "cvalue": captcha,
-            "ckey": captcha_key,
+            "ckey": key,
         },
-        cookies=captcha_cookies,
-        timeout=current_app.config["GDT_TIMEOUT_SECONDS"],
+        cookies=cookies,
     )
 
     if response.status_code >= 400:
@@ -68,6 +87,13 @@ def _authenticate_live(username: str, password: str, captcha: str) -> dict:
     jwt_token = data.get("token") or data.get("jwt")
     if not jwt_token:
         raise AuthenticationError("Dang nhap thanh cong nhung khong nhan duoc JWT tu he thong thue.")
+
+    # Commit dynamic CAPTCHA signatures on successful validation from GDT
+    try:
+        from auth.captcha_solver import commit_learned_signatures
+        commit_learned_signatures(key)
+    except Exception as e:
+        current_app.logger.error(f"Failed to commit learned CAPTCHA signatures: {e}")
 
     profile = _fetch_profile(jwt_token)
     now = datetime.now(timezone.utc)
@@ -86,13 +112,13 @@ def _authenticate_live(username: str, password: str, captcha: str) -> dict:
 def _fetch_profile(jwt_token: str) -> dict:
     """Load taxpayer profile after successful authentication."""
 
-    response = requests.get(
-        f'{current_app.config["GDT_BASE_URL"]}/api/security-taxpayer/profile',
+    from auth.gdt_client import gdt_request
+    response = gdt_request(
+        "GET",
+        "api/security-taxpayer/profile",
         headers={
             "Authorization": f"Bearer {jwt_token}",
-            "Accept-Language": "vi",
         },
-        timeout=current_app.config["GDT_TIMEOUT_SECONDS"],
     )
     if response.status_code >= 400:
         _raise_api_error(response)
@@ -111,13 +137,13 @@ def logout_user(jwt_token: str | None) -> None:
         return
 
     try:
-        requests.get(
-            f'{current_app.config["GDT_BASE_URL"]}/api/security-taxpayer/logout',
+        from auth.gdt_client import gdt_request
+        gdt_request(
+            "GET",
+            "api/security-taxpayer/logout",
             headers={
                 "Authorization": f"Bearer {jwt_token}",
-                "Accept-Language": "vi",
             },
-            timeout=current_app.config["GDT_TIMEOUT_SECONDS"],
         )
     except requests.RequestException:
         return
@@ -217,16 +243,19 @@ def auto_refresh_gdt_session() -> bool:
             if pre_solved:
                 solved_value = pre_solved
             else:
-                solved_value = solve_captcha_from_svg(captcha_svg)
+                solved_value = solve_captcha_from_svg(captcha_svg, captcha_key=captcha_key)
         except Exception as ocr_err:
             last_error = ocr_err
             continue
 
-        current_app.config["CURRENT_CAPTCHA_KEY"] = captcha_key
-        current_app.config["CURRENT_CAPTCHA_COOKIES"] = captcha_cookies
-
         try:
-            auth_data = authenticate_user(username, password, solved_value)
+            auth_data = authenticate_user(
+                username,
+                password,
+                solved_value,
+                captcha_key=captcha_key,
+                captcha_cookies=captcha_cookies,
+            )
             from auth.captcha_solver import captcha_analytics
             captcha_analytics.record_success()
 
@@ -253,16 +282,42 @@ def auto_refresh_gdt_session() -> bool:
                 pass
             current_app.logger.info("Auto-refresh session completed successfully.")
             return True
-        except AuthenticationError as auth_err:
+        except (AuthenticationError, requests.RequestException) as auth_err:
             last_error = auth_err
-            if "captcha" in str(auth_err).lower():
+            msg = str(auth_err)
+            
+            # Check if this is a permanent credential/lock error
+            is_permanent = False
+            msg_lower = msg.lower()
+            permanent_terms = [
+                "mật khẩu không đúng",
+                "tên đăng nhập hoặc mật khẩu",
+                "tài khoản không tồn tại",
+                "tài khoản đang bị khóa",
+                "tài khoản chưa đăng ký",
+                "locked",
+                "thong tin dang nhap va captcha khong du"
+            ]
+            for term in permanent_terms:
+                if term in msg_lower:
+                    is_permanent = True
+                    break
+            
+            if is_permanent:
+                current_app.logger.error(f"Auto-refresh permanent credential failure: {msg}. Aborting refresh.")
+                break
+                
+            current_app.logger.warning(
+                f"Auto-refresh attempt {attempt+1} failed with transient error: {msg}. Retrying..."
+            )
+            
+            if "captcha" in msg_lower or isinstance(auth_err, AuthenticationError):
                 from auth.captcha_solver import captcha_analytics
                 captcha_analytics.record_fail()
-            else:
-                break
-        finally:
-            current_app.config["CURRENT_CAPTCHA_KEY"] = ""
-            current_app.config["CURRENT_CAPTCHA_COOKIES"] = {}
+                
+            if attempt < attempts - 1:
+                import time
+                time.sleep(0.5)
 
     current_app.logger.error(f"Auto-refresh failed after {attempts} attempts: {last_error}")
     return False

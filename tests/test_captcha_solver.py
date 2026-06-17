@@ -124,8 +124,8 @@ def test_api_login_auto_solve_loop(app, client):
     }
 
     with patch("auth.routes.fetch_captcha_payload", return_value=mock_captcha) as mock_fetch, \
-         patch("auth.service.requests.post") as mock_post, \
-         patch("auth.service.requests.get") as mock_get:
+         patch("auth.gdt_client.requests.post") as mock_post, \
+         patch("auth.gdt_client.requests.get") as mock_get:
         
         # Side effect: first two posts fail with captcha error, third succeeds
         mock_post.side_effect = [mock_response_fail, mock_response_fail, mock_response_success]
@@ -146,3 +146,110 @@ def test_api_login_auto_solve_loop(app, client):
         assert mock_fetch.call_count == 2
         # Total posts is 3
         assert mock_post.call_count == 3
+
+
+def test_solve_captcha_via_vector_signatures():
+    """Verify that solve_captcha_from_svg solves the captcha using pure vector signatures when signatures match."""
+    # We mock ddddocr's classification to return "FALLBACK".
+    # If the vector solver works, it will return "AB" and NOT call ddddocr.
+    with patch("auth.captcha_solver.get_ocr_instance") as mock_get_ocr:
+        mock_ocr = MagicMock()
+        mock_ocr.classification.return_value = "FALLBACK"
+        mock_get_ocr.return_value = mock_ocr
+
+        # Create exact SVG data containing the signatures for 'B' (at X=40) and 'A' (at X=10)
+        svg_data = """<svg xmlns="http://www.w3.org/2000/svg">
+            <path fill="#222" d="M40.0 QQQQQQQQQZMQQQQQQZMQQQQQQQQQQQQZMQQQQQQQQQQQQQQQQQZMQQQQQQQQZMQQQQQQQQZ" />
+            <path fill="#222" d="M10.0 QQQQQZMQQQQQQQQQQQZMQQQQQQQQQQQQQQQQQQZMQQZ" />
+        </svg>"""
+        
+        result = solve_captcha_from_svg(svg_data)
+        assert result == "AB"
+        assert mock_get_ocr.call_count == 0
+
+
+def test_case_insensitive_signature_matching():
+    """Verify that lowercase m/q/z path commands are correctly handled and mapped to uppercase."""
+    # We mock ddddocr's classification to return "FALLBACK".
+    # If the vector solver works, it will return "A" (signature converted to uppercase)
+    with patch("auth.captcha_solver.get_ocr_instance") as mock_get_ocr:
+        mock_ocr = MagicMock()
+        mock_ocr.classification.return_value = "FALLBACK"
+        mock_get_ocr.return_value = mock_ocr
+
+        # Create exact SVG data containing signature for 'A' with lowercase q, m, z commands
+        svg_data = """<svg xmlns="http://www.w3.org/2000/svg">
+            <path fill="#222" d="m10.0 qqqqqzmqqqqqqqqqqqzmqqqqqqqqqqqqqqqqqqzmqqz" />
+        </svg>"""
+        
+        result = solve_captcha_from_svg(svg_data)
+        assert result == "A"
+        assert mock_get_ocr.call_count == 0
+
+
+def test_self_learning_signature_engine():
+    """Verify the captcha learning lifecycle (buffered mappings, commit on success, pruning)."""
+    import os
+    import json
+    from auth.captcha_solver import (
+        _pending_mappings, commit_learned_signatures, prune_pending_mappings,
+        CUSTOM_SIGNATURES_FILE, load_custom_signatures, get_active_signatures
+    )
+
+    # Clean up custom signature file if exists
+    if os.path.exists(CUSTOM_SIGNATURES_FILE):
+        try:
+            os.remove(CUSTOM_SIGNATURES_FILE)
+        except Exception:
+            pass
+
+    # Ensure custom signatures are reloaded as empty
+    load_custom_signatures()
+
+    # 1. Fallback solver mock return value
+    with patch("auth.captcha_solver.get_ocr_instance") as mock_get_ocr, \
+         patch("auth.captcha_solver.svg2rlg") as mock_svg2rlg, \
+         patch("auth.captcha_solver.renderPM.drawToFile") as mock_drawToFile:
+        mock_ocr = MagicMock()
+        # Mock ddddocr classification to return "X"
+        mock_ocr.classification.return_value = "X"
+        mock_get_ocr.return_value = mock_ocr
+
+        # Unknown signature path for 'X'
+        unknown_svg = """<svg xmlns="http://www.w3.org/2000/svg">
+            <path fill="#222" d="M10.0 QQQQQQQQQQQQQQQQQZ" />
+        </svg>"""
+
+        # Solve with captcha_key to trigger learning buffer
+        result = solve_captcha_from_svg(unknown_svg, captcha_key="learn-session-123")
+        assert result == "X"
+        
+        # Verify it has been added to _pending_mappings
+        assert "learn-session-123" in _pending_mappings
+        mapping_data = _pending_mappings["learn-session-123"]["mappings"]
+        assert len(mapping_data) == 1
+        assert mapping_data[0] == ("MQQQQQQQQQQQQQQQQQZ", "X")
+
+        # 2. Commit the learned signatures
+        commit_learned_signatures("learn-session-123")
+        
+        # Verify it was removed from pending and added to active signatures
+        assert "learn-session-123" not in _pending_mappings
+        active_sigs = get_active_signatures()
+        assert "MQQQQQQQQQQQQQQQQQZ" in active_sigs
+        assert active_sigs["MQQQQQQQQQQQQQQQQQZ"] == "X"
+
+        # Verify custom signatures file exists
+        assert os.path.exists(CUSTOM_SIGNATURES_FILE)
+        with open(CUSTOM_SIGNATURES_FILE, "r") as f:
+            data = json.load(f)
+            assert data["MQQQQQQQQQQQQQQQQQZ"] == "X"
+
+    # Clean up custom signature file
+    if os.path.exists(CUSTOM_SIGNATURES_FILE):
+        try:
+            os.remove(CUSTOM_SIGNATURES_FILE)
+        except Exception:
+            pass
+
+

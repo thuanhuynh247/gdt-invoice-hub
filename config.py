@@ -24,5 +24,10 @@ class Config:
         f"sqlite:///{os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data', 'invoices.db')}"
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    BASE_DATA_DIR = os.getenv(
+        "BASE_DATA_DIR",
+        os.path.join(os.path.abspath(os.path.dirname(__file__)), "data")
+    )
+
 
 

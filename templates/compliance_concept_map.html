@@ -1,0 +1,1129 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Header -->
+    <div class="col-12">
+        <div class="hero-panel mb-2">
+            <span class="eyebrow"><i class="bi bi-diagram-3-fill me-1 text-primary-accent" aria-hidden="true"></i> Compliance Architecture</span>
+            <h1 class="page-title mt-2">Compliance Concept Map Explorer</h1>
+            <p class="page-subtitle mb-0">Bản đồ khái niệm tương tác kết hợp phân tích các luật thuế và quy định tuân thủ từ v24 đến v70.</p>
+        </div>
+    </div>
+
+    <!-- Controls & Sidebar -->
+    <div class="col-xl-4 col-lg-5">
+        <!-- Search & Filter Card -->
+        <div class="glass-card mb-4">
+            <h5 class="fw-bold text-gradient-primary mb-3"><i class="bi bi-sliders me-2" aria-hidden="true"></i>Bộ Lọc Bản Đồ</h5>
+            <div class="mb-3">
+                <label for="searchNode" class="form-label small text-secondary">Tìm kiếm Phân hệ / Luật</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-search" aria-hidden="true"></i></span>
+                    <input type="text" id="searchNode" class="form-control custom-input" placeholder="e.g. EP Tax, VAT…" autocomplete="off">
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label small text-secondary d-block">Phân nhóm Thuế</label>
+                <div class="d-flex flex-wrap gap-2" id="groupFilters">
+                    <button class="btn btn-xs btn-outline-secondary active btn-pill" data-group="all">Tất cả</button>
+                    <button class="btn btn-xs btn-outline-secondary btn-pill" data-group="vat">VAT / GTGT</button>
+                    <button class="btn btn-xs btn-outline-secondary btn-pill" data-group="income">CIT/PIT (Thu nhập)</button>
+                    <button class="btn btn-xs btn-outline-secondary btn-pill" data-group="environmental">Môi trường</button>
+                    <button class="btn btn-xs btn-outline-secondary btn-pill" data-group="fee">Phí & Lệ phí</button>
+                    <button class="btn btn-xs btn-outline-secondary btn-pill" data-group="special">Chuyên biệt</button>
+                </div>
+            </div>
+
+            <div class="mb-0">
+                <label class="form-label small text-secondary d-block">Mức độ Rủi ro</label>
+                <div class="d-flex flex-wrap gap-2" id="riskFilters">
+                    <button class="btn btn-xs btn-outline-secondary active btn-pill" data-risk="all">Tất cả</button>
+                    <button class="btn btn-xs btn-outline-danger btn-pill" data-risk="high"><span class="badge bg-danger-glow me-1"></span>Cao</button>
+                    <button class="btn btn-xs btn-outline-warning btn-pill" data-risk="medium"><span class="badge bg-warning-glow me-1"></span>Trung bình</button>
+                    <button class="btn btn-xs btn-outline-info btn-pill" data-risk="low"><span class="badge bg-info-glow me-1"></span>Thấp</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Frontier Analytics Bento Box -->
+        <div class="glass-card mb-4" id="frontierCard">
+            <h5 class="fw-bold text-gradient-primary mb-3"><i class="bi bi-cpu-fill me-2" aria-hidden="true"></i>AI Frontier & Risk Propagation</h5>
+            
+            <!-- Risk Propagation Simulator -->
+            <div class="mb-3">
+                <label class="form-label small text-secondary">Mô phỏng Rủi ro Thuế Lan truyền (Cascading Risk)</label>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-danger w-100 btn-pill" id="btnSimulateRisk" onclick="runTransitiveRiskSimulation()">
+                        <i class="bi bi-play-circle me-1" aria-hidden="true"></i> Chạy Mô Phỏng Rủi Ro
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary btn-pill" id="btnResetSimulation" onclick="resetRiskSimulation()" style="display: none;">
+                        <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Reset
+                    </button>
+                </div>
+                <div class="text-secondary small mt-2" id="simulationStatus">
+                    Trạng thái: <span class="badge bg-secondary">Chưa kích hoạt</span>
+                </div>
+            </div>
+
+            <!-- AI Link Recommendations -->
+            <div class="pt-3 border-top border-secondary border-opacity-10">
+                <label class="form-label small text-secondary d-block">Đề xuất Liên kết Luật Thuế (AI Suggestions)</label>
+                <div id="aiLinkRecommendations" class="d-flex flex-column gap-2 mt-2">
+                    <span class="text-secondary small"><i class="bi bi-hourglass-split me-1 spinner-border spinner-border-sm border-0" aria-hidden="true"></i>Đang quét giao dịch hóa đơn…</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Node Details Bento Box -->
+        <div class="glass-card" id="detailCard">
+            <div class="text-center py-5 text-secondary" id="noNodeSelected">
+                <i class="bi bi-info-circle fs-2 d-block mb-3 text-secondary-accent" aria-hidden="true"></i>
+                <p class="mb-0">Click vào một node luật thuế trên bản đồ để xem thông tin chi tiết, liên kết và chuyển đổi giao diện.</p>
+            </div>
+            <div id="nodeSelectedContent" style="display: none;">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <span id="nodeGroupBadge" class="badge bg-secondary mb-2">Group</span>
+                        <h4 id="nodeTitle" class="fw-bold mb-1 text-light">Title</h4>
+                        <span id="nodeId" class="badge bg-dark text-secondary border border-secondary font-monospace">vXX</span>
+                    </div>
+                    <span id="nodeRiskBadge" class="badge">Risk</span>
+                </div>
+
+                <div class="mb-3 pt-3 border-top border-secondary border-opacity-10">
+                    <h6 class="small text-secondary fw-bold uppercase tracking-wider mb-2">Mô tả quy định</h6>
+                    <p id="nodeDescription" class="small text-light mb-0">Mô tả luật thuế...</p>
+                </div>
+
+                <div class="mb-3 pt-3 border-top border-secondary border-opacity-10">
+                    <h6 class="small text-secondary fw-bold uppercase tracking-wider mb-2">Mối quan hệ định tuyến</h6>
+                    <div id="nodeRelations" class="d-flex flex-column gap-2">
+                        <!-- Dynamic relations go here -->
+                    </div>
+                </div>
+
+                <div class="pt-3 border-top border-secondary border-opacity-10 d-flex flex-column gap-2">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="small text-success fw-bold"><i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i>Trạng thái: Hoạt động</span>
+                        <a id="nodeActionUrl" href="#" class="btn btn-sm btn-primary-accent"><i class="bi bi-box-arrow-up-right me-1" aria-hidden="true"></i> Vào Phân Hệ</a>
+                    </div>
+                    <button id="btnExpandGuide" class="btn btn-sm btn-outline-info w-100" onclick="openFieldGuide()"><i class="bi bi-book-half me-1" aria-hidden="true"></i> Bản Đồ Mở Rộng 7 Trang</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Concept Map Visualization Area -->
+    <div class="col-xl-8 col-lg-7">
+        <div class="glass-card p-0 overflow-hidden position-relative border-accent" style="height: 650px;">
+            <!-- Canvas HUD -->
+            <div class="position-absolute top-0 start-0 p-3 z-3 d-flex gap-2 align-items-center bg-dark bg-opacity-75 rounded-bottom-end border-bottom border-end border-secondary border-opacity-25">
+                <span class="badge bg-dark border border-secondary text-light font-monospace small"><i class="bi bi-radar me-1" aria-hidden="true"></i>Radar Radar Layout</span>
+                <span class="text-secondary small">|</span>
+                <button class="btn btn-xs btn-outline-secondary" onclick="resetZoom()"><i class="bi bi-arrows-fullscreen me-1" aria-hidden="true"></i> Reset View</button>
+            </div>
+            
+            <div class="position-absolute bottom-0 end-0 p-3 z-3 bg-dark bg-opacity-75 rounded-top-start border-top border-start border-secondary border-opacity-25">
+                <div class="d-flex align-items-center gap-3 small text-secondary">
+                    <div><span class="badge bg-danger-glow me-1"></span>Rủi ro Cao</div>
+                    <div><span class="badge bg-warning-glow me-1"></span>Rủi ro Vừa</div>
+                    <div><span class="badge bg-info-glow me-1"></span>Rủi ro Thấp</div>
+                </div>
+            </div>
+
+            <!-- Loading Spinner -->
+            <div id="graphLoader" class="position-absolute top-50 start-50 translate-middle z-3 text-center">
+                <div class="spinner-border text-primary-accent mb-2" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="text-secondary small">Vẽ bản đồ khái niệm tuân thủ...</p>
+            </div>
+
+            <!-- SVG Graph Container -->
+            <svg id="conceptMapSvg" width="100%" height="100%" class="cursor-grab" style="background-color: #0c0f0e;">
+                <defs>
+                    <!-- Link arrows -->
+                    <marker id="arrow-dependency" viewBox="0 0 10 10" refX="28" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#0d6efd" />
+                    </marker>
+                    <marker id="arrow-subset" viewBox="0 0 10 10" refX="28" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#198754" />
+                    </marker>
+                    <marker id="arrow-recommended" viewBox="0 0 10 10" refX="28" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#e83e8c" />
+                    </marker>
+                    <!-- Glowing filters -->
+                    <filter id="glow-high" x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur stdDeviation="8" result="blur" />
+                        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                    </filter>
+                </defs>
+                <!-- Zoomable Content Group -->
+                <g id="viewportGroup">
+                    <!-- Target Rings (Concentric background circles) -->
+                    <circle cx="500" cy="325" r="80" class="radar-ring" />
+                    <circle cx="500" cy="325" r="180" class="radar-ring" />
+                    <circle cx="500" cy="325" r="280" class="radar-ring" />
+                    <circle cx="500" cy="325" r="380" class="radar-ring" />
+                    
+                    <!-- Inner Ring labels -->
+                    <text x="500" y="235" class="radar-ring-label">Core Engine</text>
+                    <text x="500" y="135" class="radar-ring-label">Direct VAT Hubs</text>
+                    <text x="500" y="35" class="radar-ring-label">Special Tax Regulations</text>
+
+                    <!-- Edges / Links -->
+                    <g id="linksGroup"></g>
+                    <!-- Nodes -->
+                    <g id="nodesGroup"></g>
+                </g>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Custom Interactive Concept Map Styling */
+.radar-ring {
+    fill: none;
+    stroke: rgba(20, 42, 20, 0.25);
+    stroke-width: 1px;
+    stroke-dasharray: 4, 8;
+}
+.radar-ring-label {
+    fill: rgba(255, 255, 255, 0.2);
+    font-size: 0.72rem;
+    font-family: 'Outfit', sans-serif;
+    text-anchor: middle;
+    font-weight: 500;
+}
+.cursor-grab {
+    cursor: grab;
+}
+.cursor-grabbing {
+    cursor: grabbing;
+}
+.map-link {
+    stroke-opacity: 0.4;
+    stroke-width: 1.5px;
+    transition: all 0.3s ease;
+}
+.map-link.dependency {
+    stroke: #0d6efd;
+    stroke-dasharray: 2, 4;
+}
+.map-link.subset {
+    stroke: #198754;
+}
+.map-link.highlighted {
+    stroke-opacity: 1;
+    stroke-width: 3px;
+    animation: dash 30s linear infinite;
+}
+@keyframes dash {
+    to {
+        stroke-dashoffset: -1000;
+    }
+}
+.map-node {
+    cursor: pointer;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.map-node circle {
+    stroke-width: 2px;
+    transition: all 0.3s ease;
+}
+.map-node.high circle {
+    fill: #dc3545;
+    stroke: rgba(220, 53, 69, 0.6);
+}
+.map-node.medium circle {
+    fill: #ffc107;
+    stroke: rgba(255, 193, 7, 0.6);
+}
+.map-node.low circle {
+    fill: #0dcaf0;
+    stroke: rgba(13, 202, 240, 0.6);
+}
+.map-node:hover {
+    transform: scale(1.25);
+}
+.map-node.selected circle {
+    stroke: #ffffff !important;
+    stroke-width: 3px !important;
+    box-shadow: 0 0 15px rgba(255,255,255,0.8);
+}
+.map-node text {
+    fill: #ffffff;
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    text-anchor: middle;
+    pointer-events: none;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+}
+.map-node.dimmed, .map-link.dimmed {
+    opacity: 0.15;
+}
+.bg-danger-glow {
+    background-color: #dc3545;
+    box-shadow: 0 0 8px #dc3545;
+}
+.bg-warning-glow {
+    background-color: #ffc107;
+    box-shadow: 0 0 8px #ffc107;
+}
+.bg-info-glow {
+    background-color: #0dcaf0;
+    box-shadow: 0 0 8px #0dcaf0;
+}
+.btn-xs {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    line-height: 1.2;
+}
+.map-link.recommended {
+    stroke: #e83e8c;
+    stroke-dasharray: 4,4;
+    stroke-width: 2px;
+}
+.map-link.transitive-flow {
+    stroke: #ffc107 !important;
+    stroke-width: 3px !important;
+    stroke-dasharray: 5,5;
+    animation: dash 30s linear infinite;
+}
+@keyframes dash {
+    to {
+        stroke-dashoffset: -1000;
+    }
+}
+.map-node.pulse-risk circle {
+    animation: pulseRiskGlow 2s infinite;
+}
+@keyframes pulseRiskGlow {
+    0% {
+        r: 16;
+        stroke-width: 1px;
+    }
+    50% {
+        r: 20;
+        stroke-width: 3px;
+        filter: drop-shadow(0 0 8px rgba(220, 53, 69, 0.6));
+    }
+    100% {
+        r: 16;
+        stroke-width: 1px;
+    }
+}
+</style>
+
+<script>
+let nodesData = [];
+let linksData = [];
+let suggestedLinksData = [];
+let zoomScale = 1;
+let zoomTx = 0;
+let zoomTy = 0;
+let isDragging = false;
+let startX, startY;
+let selectedNodeId = null;
+
+document.addEventListener("DOMContentLoaded", () => {
+    loadConceptMapData();
+    setupPanAndZoom();
+    setupFilters();
+});
+
+function loadConceptMapData() {
+    fetch('/api/compliance/concept-map')
+        .then(res => res.json())
+        .then(data => {
+            nodesData = data.nodes;
+            linksData = data.links;
+            suggestedLinksData = data.suggested_links || [];
+            
+            // Assign coordinate offsets based on concentric radar layout
+            calculateNodeCoordinates();
+            
+            // Render
+            document.getElementById("graphLoader").style.display = "none";
+            renderGraph();
+            renderAiRecommendations();
+        })
+        .catch(err => {
+            console.error("Error loading concept map metadata:", err);
+            document.getElementById("graphLoader").innerHTML = '<p class="text-danger small"><i class="bi bi-x-circle me-1"></i>Không thể tải dữ liệu bản đồ.</p>';
+        });
+}
+
+function calculateNodeCoordinates() {
+    // Rings configuration
+    const centerX = 500;
+    const centerY = 325;
+    
+    // Group categories map to specific concentric rings to ensure tidy structure
+    const ringConfig = {
+        "core": { radius: 80, color: '#0d6efd' },
+        "vat": { radius: 180, color: '#ffc107' },
+        "income": { radius: 260, color: '#198754' },
+        "special": { radius: 340, color: '#6f42c1' },
+        "environmental": { radius: 340, color: '#20c997' },
+        "fee": { radius: 380, color: '#fd7e14' }
+    };
+    
+    // Distribute nodes along angles of their designated ring radius
+    const groupCounts = {};
+    nodesData.forEach(node => {
+        const group = node.group || "core";
+        groupCounts[group] = (groupCounts[group] || 0) + 1;
+    });
+    
+    const groupIndices = {};
+    nodesData.forEach(node => {
+        const group = node.group || "core";
+        if (!groupIndices[group]) groupIndices[group] = 0;
+        
+        const count = groupCounts[group];
+        const index = groupIndices[group]++;
+        
+        // Spread evenly along the circle circumference
+        const angle = (index / count) * 2 * Math.PI + (group === "environmental" ? 0.5 : 0);
+        const config = ringConfig[group] || ringConfig.core;
+        
+        node.x = centerX + config.radius * Math.cos(angle);
+        node.y = centerY + config.radius * Math.sin(angle);
+    });
+}
+
+function renderGraph() {
+    const nodesGroup = document.getElementById("nodesGroup");
+    const linksGroup = document.getElementById("linksGroup");
+    
+    nodesGroup.innerHTML = "";
+    linksGroup.innerHTML = "";
+    
+    // Draw links
+    linksData.forEach(link => {
+        const sourceNode = nodesData.find(n => n.id === link.source);
+        const targetNode = nodesData.find(n => n.id === link.target);
+        
+        if (sourceNode && targetNode) {
+            const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            line.setAttribute("x1", sourceNode.x);
+            line.setAttribute("y1", sourceNode.y);
+            line.setAttribute("x2", targetNode.x);
+            line.setAttribute("y2", targetNode.y);
+            line.setAttribute("class", `map-link ${link.type}`);
+            line.setAttribute("id", `link-${link.source}-${link.target}`);
+            
+            // Add custom markers for direct arrow indicators
+            line.setAttribute("marker-end", `url(#arrow-${link.type})`);
+            
+            linksGroup.appendChild(line);
+        }
+    });
+    
+    // Draw nodes
+    nodesData.forEach(node => {
+        const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        g.setAttribute("class", `map-node ${node.risk}`);
+        g.setAttribute("id", `node-${node.id}`);
+        g.setAttribute("transform", `translate(${node.x}, ${node.y})`);
+        
+        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle.setAttribute("r", "16");
+        
+        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        text.setAttribute("y", "4");
+        text.textContent = node.id.toUpperCase();
+        
+        g.appendChild(circle);
+        g.appendChild(text);
+        
+        // Handlers
+        g.addEventListener("click", (e) => {
+            e.stopPropagation();
+            selectNode(node);
+        });
+        
+        g.addEventListener("mouseenter", () => highlightConnections(node.id));
+        g.addEventListener("mouseleave", resetHighlights);
+        
+        nodesGroup.appendChild(g);
+    });
+}
+
+function highlightConnections(nodeId) {
+    // Dim all
+    nodesData.forEach(n => {
+        document.getElementById(`node-${n.id}`).classList.add("dimmed");
+    });
+    
+    const links = document.querySelectorAll(".map-link");
+    links.forEach(l => l.classList.add("dimmed"));
+    
+    // Undim active node
+    document.getElementById(`node-${nodeId}`).classList.remove("dimmed");
+    
+    // Undim target, source nodes and active lines
+    linksData.forEach(link => {
+        if (link.source === nodeId) {
+            document.getElementById(`node-${link.target}`).classList.remove("dimmed");
+            const line = document.getElementById(`link-${link.source}-${link.target}`);
+            if (line) {
+                line.classList.remove("dimmed");
+                line.classList.add("highlighted");
+            }
+        } else if (link.target === nodeId) {
+            document.getElementById(`node-${link.source}`).classList.remove("dimmed");
+            const line = document.getElementById(`link-${link.source}-${link.target}`);
+            if (line) {
+                line.classList.remove("dimmed");
+                line.classList.add("highlighted");
+            }
+        }
+    });
+}
+
+function resetHighlights() {
+    nodesData.forEach(n => {
+        document.getElementById(`node-${n.id}`).classList.remove("dimmed");
+    });
+    
+    const links = document.querySelectorAll(".map-link");
+    links.forEach(l => {
+        l.classList.remove("dimmed");
+        l.classList.remove("highlighted");
+    });
+}
+
+function selectNode(node) {
+    selectedNodeId = node.id;
+    
+    // Highlight node on canvas
+    document.querySelectorAll(".map-node").forEach(n => n.classList.remove("selected"));
+    document.getElementById(`node-${node.id}`).classList.add("selected");
+    
+    // Fill bento card details
+    document.getElementById("noNodeSelected").style.display = "none";
+    document.getElementById("nodeSelectedContent").style.display = "block";
+    
+    document.getElementById("nodeTitle").innerText = node.label;
+    document.getElementById("nodeId").innerText = node.id.toUpperCase();
+    document.getElementById("nodeGroupBadge").innerText = node.group.toUpperCase();
+    document.getElementById("nodeActionUrl").href = node.url;
+    
+    // Risk badge styling
+    const riskBadge = document.getElementById("nodeRiskBadge");
+    riskBadge.innerText = node.risk.toUpperCase() + " RISK";
+    riskBadge.className = "badge";
+    if (node.risk === "high") riskBadge.classList.add("bg-danger");
+    else if (node.risk === "medium") riskBadge.classList.add("bg-warning", "text-dark");
+    else riskBadge.classList.add("bg-info", "text-dark");
+    
+    // Set custom description based on version
+    let desc = `Quy định tuân thủ thuế thuộc phân hệ ${node.id.toUpperCase()}. `;
+    if (node.id === "v53") desc += "Hệ thống kiểm soát tuân thủ thuế bảo vệ môi trường, theo dõi khối lượng nhập khẩu/sản xuất xăng dầu, than đá, túi ni-lông và hóa chất chịu thuế để tính toán nghĩa vụ nộp thuế chính xác.";
+    else if (node.id === "v70") desc += "Phân hệ hạn ngạch chất làm suy giảm tầng ô-dôn (ODS) và quản lý phí cấp phép theo Nghị định 06/2022/NĐ-CP.";
+    else if (node.id === "v47") desc += "Trình quản lý các mức thuế suất giá trị gia tăng (VAT) đầu vào và đầu ra đảm bảo đối chiếu dữ liệu hóa đơn XML.";
+    else desc += `Bảo đảm kiểm toán tự động, liên kết dữ liệu dòng tiền và tối ưu tờ khai tự động của doanh nghiệp theo spec.`;
+    document.getElementById("nodeDescription").innerText = desc;
+    
+    // Populate relationships list
+    const relsDiv = document.getElementById("nodeRelations");
+    relsDiv.innerHTML = "";
+    
+    const outgoing = linksData.filter(l => l.source === node.id);
+    const incoming = linksData.filter(l => l.target === node.id);
+    
+    if (outgoing.length === 0 && incoming.length === 0) {
+        relsDiv.innerHTML = '<span class="text-secondary small">Không có mối quan hệ định tuyến trực tiếp.</span>';
+    } else {
+        outgoing.forEach(rel => {
+            const destNode = nodesData.find(n => n.id === rel.target);
+            const badge = document.createElement("div");
+            badge.className = "d-flex justify-content-between align-items-center bg-dark p-2 rounded border border-secondary border-opacity-10 small";
+            badge.innerHTML = `<span><i class="bi bi-arrow-right text-primary me-2"></i>Chi phối: <strong>${destNode ? destNode.label : rel.target}</strong></span> <span class="badge bg-secondary-subtle text-secondary">${rel.label}</span>`;
+            relsDiv.appendChild(badge);
+        });
+        incoming.forEach(rel => {
+            const srcNode = nodesData.find(n => n.id === rel.source);
+            const badge = document.createElement("div");
+            badge.className = "d-flex justify-content-between align-items-center bg-dark p-2 rounded border border-secondary border-opacity-10 small";
+            badge.innerHTML = `<span><i class="bi bi-arrow-left text-success me-2"></i>Kế thừa: <strong>${srcNode ? srcNode.label : rel.source}</strong></span> <span class="badge bg-secondary-subtle text-secondary">${rel.label}</span>`;
+            relsDiv.appendChild(badge);
+        });
+    }
+}
+
+function setupPanAndZoom() {
+    const svg = document.getElementById("conceptMapSvg");
+    const viewport = document.getElementById("viewportGroup");
+    
+    // Drag to Pan
+    svg.addEventListener("mousedown", (e) => {
+        isDragging = true;
+        svg.classList.remove("cursor-grab");
+        svg.classList.add("cursor-grabbing");
+        startX = e.clientX - zoomTx;
+        startY = e.clientY - zoomTy;
+    });
+    
+    window.addEventListener("mouseup", () => {
+        if (isDragging) {
+            isDragging = false;
+            svg.classList.remove("cursor-grabbing");
+            svg.classList.add("cursor-grab");
+        }
+    });
+    
+    svg.addEventListener("mousemove", (e) => {
+        if (isDragging) {
+            zoomTx = e.clientX - startX;
+            zoomTy = e.clientY - startY;
+            updateTransform();
+        }
+    });
+    
+    // Scroll to Zoom
+    svg.addEventListener("wheel", (e) => {
+        e.preventDefault();
+        const zoomFactor = 1.1;
+        if (e.deltaY < 0) {
+            zoomScale *= zoomFactor;
+        } else {
+            zoomScale /= zoomFactor;
+        }
+        // Limit zoom scale range
+        zoomScale = Math.max(0.4, Math.min(3, zoomScale));
+        updateTransform();
+    });
+    
+    // Clear selection on background click
+    svg.addEventListener("click", () => {
+        selectedNodeId = null;
+        document.querySelectorAll(".map-node").forEach(n => n.classList.remove("selected"));
+        document.getElementById("noNodeSelected").style.display = "block";
+        document.getElementById("nodeSelectedContent").style.display = "none";
+    });
+}
+
+function updateTransform() {
+    const viewport = document.getElementById("viewportGroup");
+    viewport.setAttribute("transform", `translate(${zoomTx}, ${zoomTy}) scale(${zoomScale})`);
+}
+
+function resetZoom() {
+    zoomScale = 1;
+    zoomTx = 0;
+    zoomTy = 0;
+    updateTransform();
+}
+
+function setupFilters() {
+    // Group search field
+    document.getElementById("searchNode").addEventListener("input", (e) => {
+        const query = e.target.value.toLowerCase().trim();
+        nodesData.forEach(node => {
+            const el = document.getElementById(`node-${node.id}`);
+            const matches = node.label.toLowerCase().includes(query) || node.id.includes(query);
+            if (matches) {
+                el.classList.remove("dimmed");
+            } else {
+                el.classList.add("dimmed");
+            }
+        });
+        if (!query) resetHighlights();
+    });
+
+    // Group filter pills
+    document.getElementById("groupFilters").addEventListener("click", (e) => {
+        const target = e.target;
+        if (!target.classList.contains("btn")) return;
+        
+        document.querySelectorAll("#groupFilters .btn").forEach(b => b.classList.remove("active"));
+        target.classList.add("active");
+        
+        const group = target.getAttribute("data-group");
+        nodesData.forEach(node => {
+            const el = document.getElementById(`node-${node.id}`);
+            if (group === "all" || node.group === group) {
+                el.style.display = "block";
+            } else {
+                el.style.display = "none";
+            }
+        });
+        
+        // Update connections lines visibility
+        linksData.forEach(link => {
+            const line = document.getElementById(`link-${link.source}-${link.target}`);
+            if (!line) return;
+            const src = nodesData.find(n => n.id === link.source);
+            const dst = nodesData.find(n => n.id === link.target);
+            if (group === "all" || (src && src.group === group) || (dst && dst.group === group)) {
+                line.style.display = "block";
+            } else {
+                line.style.display = "none";
+            }
+        });
+    });
+
+    // Risk filter pills
+    document.getElementById("riskFilters").addEventListener("click", (e) => {
+        const target = e.target.closest(".btn");
+        if (!target) return;
+        
+        document.querySelectorAll("#riskFilters .btn").forEach(b => b.classList.remove("active"));
+        target.classList.add("active");
+        
+        const risk = target.getAttribute("data-risk");
+        nodesData.forEach(node => {
+            const el = document.getElementById(`node-${node.id}`);
+            if (risk === "all" || node.risk === risk) {
+                el.style.display = "block";
+            } else {
+                el.style.display = "none";
+            }
+        });
+    });
+}
+
+// Concept Map Expander Field Guide JavaScript Integrations
+let currentFieldGuideData = null;
+let currentActivePageIndex = 0;
+
+function openFieldGuide() {
+    if (!selectedNodeId) return;
+    
+    const modalEl = document.getElementById("fieldGuideModal");
+    const modal = new bootstrap.Modal(modalEl);
+    
+    document.getElementById("fieldGuideModalLabel").innerText = `Đang tải Bản đồ Kiến thức cho ${selectedNodeId.toUpperCase()}...`;
+    document.getElementById("fieldGuideNav").innerHTML = `
+        <div class="text-center py-5">
+            <div class="spinner-border text-info" role="status"></div>
+            <p class="text-secondary small mt-2">Đang liên kết dữ liệu DB multitenant...</p>
+        </div>`;
+    document.getElementById("fieldGuideContent").innerHTML = "";
+    
+    modal.show();
+    
+    fetch(`/api/compliance/concept-map/expand/${selectedNodeId}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === "success") {
+                currentFieldGuideData = data;
+                currentActivePageIndex = 0;
+                
+                document.getElementById("fieldGuideModalLabel").innerText = `${selectedNodeId.toUpperCase()} Compliance Field Guide`;
+                document.getElementById("fieldGuideSubtitle").innerText = `Bản đồ kiến thức mở rộng 7 trang cho phân hệ ${selectedNodeId.toUpperCase()}`;
+                document.getElementById("fieldGuideTaxpayerInfo").innerHTML = `<i class="bi bi-building me-1 text-info"></i>MST Đang Đối Soát: <strong>${data.mst}</strong>`;
+                
+                renderFieldGuideNav();
+                renderFieldGuideContent();
+            } else {
+                throw new Error("Failed to load guide data");
+            }
+        })
+        .catch(err => {
+            console.error("Error loading extended guide:", err);
+            document.getElementById("fieldGuideNav").innerHTML = '<div class="alert alert-danger">Không thể tải dữ liệu hướng dẫn mở rộng.</div>';
+        });
+}
+
+function renderFieldGuideNav() {
+    const nav = document.getElementById("fieldGuideNav");
+    nav.innerHTML = "";
+    
+    const icons = [
+        "bi-compass",        // Orientation
+        "bi-cpu",            // Core Model
+        "bi-bullseye",       // Scope Rings
+        "bi-diagram-2",      // Relation Grammar
+        "bi-activity",       // Mechanism & Dynamics
+        "bi-exclamation-triangle", // Boundaries & Failure Cases
+        "bi-signpost-split"   // Application & Learning Path
+    ];
+    
+    currentFieldGuideData.pages.forEach((page, index) => {
+        const btn = document.createElement("button");
+        const isActive = index === currentActivePageIndex;
+        
+        btn.className = `btn w-100 text-start d-flex align-items-center gap-3 py-3 px-3 mb-2 rounded border border-secondary border-opacity-10 transition-all ${isActive ? 'bg-primary-accent text-light fw-bold shadow-sm' : 'btn-dark bg-opacity-25 text-secondary'}`;
+        
+        if (isActive) {
+            btn.style.borderColor = 'rgba(13, 202, 240, 0.4)';
+        }
+        
+        btn.innerHTML = `
+            <i class="bi ${icons[index] || 'bi-book'} fs-5 ${isActive ? 'text-info' : 'text-secondary'}"></i>
+            <div class="small">
+                <div class="fw-bold ${isActive ? 'text-light' : 'text-light text-opacity-75'}">${page.title}</div>
+            </div>`;
+            
+        btn.addEventListener("click", () => {
+            currentActivePageIndex = index;
+            renderFieldGuideNav();
+            renderFieldGuideContent();
+        });
+        
+        nav.appendChild(btn);
+    });
+}
+
+function renderFieldGuideContent() {
+    const contentArea = document.getElementById("fieldGuideContent");
+    const page = currentFieldGuideData.pages[currentActivePageIndex];
+    
+    if (!page) return;
+    
+    let html = `
+        <h2 class="fw-bold text-gradient-primary font-outfit mb-4 pb-2 border-bottom border-secondary border-opacity-10">${page.title}</h2>
+        <div class="guide-markdown-body">
+            ${parseMarkdownToHtml(page.content)}
+        </div>
+    `;
+    
+    contentArea.innerHTML = html;
+    
+    // Re-initialize mermaid graph if present
+    if (page.content.includes("```mermaid") && window.mermaid) {
+        try {
+            window.mermaid.run();
+        } catch (e) {
+            console.error("Mermaid parsing error:", e);
+        }
+    }
+}
+
+function parseMarkdownToHtml(markdown) {
+    if (!markdown) return "";
+    
+    let text = markdown;
+    
+    // Handle escape entities for safety
+    text = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    
+    // Handle tables (specifically structured as Markdown tables)
+    const lines = text.split("\n");
+    let inTable = false;
+    let tableRows = [];
+    let processedLines = [];
+    
+    for (let i = 0; i < lines.length; i++) {
+        let line = lines[i].trim();
+        if (line.startsWith("|")) {
+            if (!inTable) {
+                inTable = true;
+                tableRows = [];
+            }
+            tableRows.push(line);
+        } else {
+            if (inTable) {
+                processedLines.push(generateHtmlTable(tableRows));
+                inTable = false;
+            }
+            processedLines.push(lines[i]);
+        }
+    }
+    
+    if (inTable) {
+        processedLines.push(generateHtmlTable(tableRows));
+    }
+    
+    text = processedLines.join("\n");
+    
+    // Handle headers
+    text = text.replace(/### (.*)/g, '<h5 class="fw-bold text-info mt-4 mb-2 font-outfit">$1</h5>');
+    text = text.replace(/## (.*)/g, '<h4 class="fw-bold text-gradient-primary mt-4 mb-2 font-outfit">$1</h4>');
+    text = text.replace(/# (.*)/g, '<h3 class="fw-bold text-gradient-primary mt-4 mb-3 font-outfit">$1</h3>');
+    
+    // Handle Bold
+    text = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+    
+    // Handle bullet lists
+    text = text.replace(/^\s*[\*\-]\s+(.*)/gm, "<li>$1</li>");
+    text = text.replace(/(<li>.*<\/li>)/gs, '<ul class="text-light-50 small my-2">$1</ul>');
+    
+    // Handle Mermaid block
+    text = text.replace(/&lt;ul class="text\-light\-50 small my\-2"&gt;```mermaid(.*?)```&lt;\/ul&gt;/gs, (match, code) => {
+        const cleanCode = code.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&").trim();
+        return `<pre class="mermaid mt-3 mb-3 p-3 bg-black bg-opacity-25 rounded border border-secondary border-opacity-10">${cleanCode}</pre>`;
+    });
+    
+    text = text.replace(/```mermaid(.*?)```/gs, (match, code) => {
+        const cleanCode = code.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&").trim();
+        return `<pre class="mermaid mt-3 mb-3 p-3 bg-black bg-opacity-25 rounded border border-secondary border-opacity-10">${cleanCode}</pre>`;
+    });
+    
+    // Normalize newlines to paragraph breaks
+    text = text.replace(/\n\n/g, "<br>");
+    
+    return text;
+}
+
+function generateHtmlTable(rows) {
+    if (rows.length < 1) return "";
+    
+    let html = '<div class="table-responsive my-3"><table class="table table-dark table-hover border-secondary border-opacity-10 small">';
+    
+    rows.forEach((row, index) => {
+        const cols = row.split("|").map(c => c.trim()).filter((c, i, arr) => i > 0 && i < arr.length - 1);
+        if (row.includes("---") && index === 1) return;
+        
+        if (index === 0) {
+            html += '<thead><tr>';
+            cols.forEach(col => {
+                html += `<th class="border-secondary border-opacity-20 text-info fw-bold">${col}</th>`;
+            });
+            html += '</tr></thead><tbody>';
+        } else {
+            html += '<tr>';
+            cols.forEach(col => {
+                html += `<td class="border-secondary border-opacity-10 text-light text-opacity-75">${col}</td>`;
+            });
+            html += '</tr>';
+        }
+    });
+    
+    html += '</tbody></table></div>';
+    return html;
+}
+
+function renderAiRecommendations() {
+    const container = document.getElementById("aiLinkRecommendations");
+    if (!container) return;
+    container.innerHTML = "";
+    
+    if (suggestedLinksData.length === 0) {
+        container.innerHTML = '<span class="text-secondary small">Không phát hiện giao dịch đặc biệt cần liên kết bổ sung.</span>';
+        return;
+    }
+    
+    suggestedLinksData.forEach((link, index) => {
+        const div = document.createElement("div");
+        div.className = "bg-dark bg-opacity-50 p-2 rounded border border-secondary border-opacity-10 small mb-2 position-relative";
+        div.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="text-info fw-bold" style="font-size: 0.75rem;"><i class="bi bi-robot me-1"></i>${link.label}</span>
+                <span class="badge bg-secondary-subtle text-secondary" style="font-size: 0.65rem;">${link.source.toUpperCase()} &rarr; ${link.target.toUpperCase()}</span>
+            </div>
+            <p class="text-light text-opacity-75 mb-2" style="font-size: 0.72rem; line-height: 1.3;">${link.reason}</p>
+            <button class="btn btn-xs btn-outline-info w-100" id="btnAcceptLink-${index}" onclick="acceptLinkRecommendation(${index})">
+                <i class="bi bi-link-45deg me-1"></i>Kích Hoạt Liên Kết
+            </button>
+        `;
+        container.appendChild(div);
+    });
+}
+
+function acceptLinkRecommendation(index) {
+    const link = suggestedLinksData[index];
+    if (!link) return;
+    
+    // Check if it's already in linksData
+    const exists = linksData.some(l => l.source === link.source && l.target === link.target);
+    if (!exists) {
+        linksData.push({
+            source: link.source,
+            target: link.target,
+            type: "recommended",
+            label: link.label
+        });
+        renderGraph();
+    }
+    
+    const btn = document.getElementById(`btnAcceptLink-${index}`);
+    if (btn) {
+        btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Đã Liên Kết';
+        btn.className = "btn btn-xs btn-success disabled w-100";
+    }
+}
+
+let isSimulationActive = false;
+
+function runTransitiveRiskSimulation() {
+    isSimulationActive = true;
+    document.getElementById("btnResetSimulation").style.display = "block";
+    document.getElementById("btnSimulateRisk").innerHTML = '<i class="bi bi-arrow-repeat spinner-border spinner-border-sm border-0 me-1"></i> Đang Chạy...';
+    
+    // Let's identify seed nodes with risk="high" or violations_count > 0
+    const seeds = nodesData.filter(n => n.risk === "high" || n.violations_count > 0).map(n => n.id);
+    
+    // Set status
+    const statusEl = document.getElementById("simulationStatus");
+    statusEl.innerHTML = `Trạng thái: <span class="badge bg-danger">Mô phỏng Đang Chạy</span>`;
+    
+    const affectedNodes = new Set(seeds);
+    const affectedLinks = new Set();
+    
+    // BFS propagation downstream
+    let queue = [...seeds];
+    let steps = 0;
+    
+    while (queue.length > 0 && steps < 10) {
+        let nextQueue = [];
+        queue.forEach(curr => {
+            linksData.forEach(link => {
+                if (link.source === curr) {
+                    if (!affectedNodes.has(link.target)) {
+                        affectedNodes.add(link.target);
+                        nextQueue.push(link.target);
+                    }
+                    affectedLinks.add(`${link.source}-${link.target}`);
+                }
+            });
+        });
+        queue = nextQueue;
+        steps++;
+    }
+    
+    // Visualise simulation on graph
+    nodesData.forEach(node => {
+        const el = document.getElementById(`node-${node.id}`);
+        if (!el) return;
+        
+        if (seeds.includes(node.id)) {
+            el.classList.add("pulse-risk");
+            el.querySelector("circle").setAttribute("stroke", "#dc3545");
+        } else if (affectedNodes.has(node.id)) {
+            el.classList.add("pulse-risk");
+            el.querySelector("circle").setAttribute("stroke", "#ffc107");
+            const labelText = el.querySelector("text");
+            if (labelText && !labelText.textContent.includes("*")) {
+                labelText.textContent = labelText.textContent + "*";
+            }
+        } else {
+            el.classList.add("dimmed");
+        }
+    });
+    
+    linksData.forEach(link => {
+        const line = document.getElementById(`link-${link.source}-${link.target}`);
+        if (!line) return;
+        
+        if (affectedLinks.has(`${link.source}-${link.target}`)) {
+            line.classList.add("transitive-flow");
+            line.classList.remove("dimmed");
+        } else {
+            line.classList.add("dimmed");
+        }
+    });
+    
+    document.getElementById("btnSimulateRisk").innerHTML = '<i class="bi bi-play-circle me-1"></i> Cập Nhật Mô Phỏng';
+    
+    // Show transitive risk details in Sidebar / Details area
+    const relsDiv = document.getElementById("nodeRelations");
+    const noNodeSelected = document.getElementById("noNodeSelected");
+    const nodeSelectedContent = document.getElementById("nodeSelectedContent");
+    
+    if (noNodeSelected && nodeSelectedContent) {
+        noNodeSelected.style.display = "none";
+        nodeSelectedContent.style.display = "block";
+        document.getElementById("nodeTitle").innerText = "Cascading Risk Flow";
+        document.getElementById("nodeId").innerText = "AI SIMULATOR";
+        document.getElementById("nodeGroupBadge").innerText = "ANALYTICS";
+        document.getElementById("nodeGroupBadge").className = "badge bg-danger";
+        document.getElementById("nodeRiskBadge").innerText = "CASCADING RISK";
+        document.getElementById("nodeRiskBadge").className = "badge bg-danger";
+        document.getElementById("nodeDescription").innerText = `Hệ thống phát hiện ${seeds.length} điểm rủi ro trực tiếp và đã lan truyền ảnh hưởng đến ${affectedNodes.size - seeds.length} phân hệ liên quan khác. Vui lòng rà soát lại các mối quan hệ kiểm toán.`;
+        
+        if (relsDiv) {
+            relsDiv.innerHTML = '<h6 class="text-secondary small fw-bold mb-2">Đường Lan Truyền Rủi Ro:</h6>';
+            affectedLinks.forEach(linkStr => {
+                const [src, dst] = linkStr.split("-");
+                const srcNode = nodesData.find(n => n.id === src);
+                const dstNode = nodesData.find(n => n.id === dst);
+                const row = document.createElement("div");
+                row.className = "d-flex justify-content-between align-items-center bg-danger bg-opacity-10 p-2 rounded border border-danger border-opacity-20 small mb-1";
+                row.innerHTML = `<span><strong>${srcNode ? srcNode.label : src}</strong> &rarr; <strong>${dstNode ? dstNode.label : dst}</strong></span> <span class="badge bg-danger text-light" style="font-size: 0.65rem;">Lan truyền</span>`;
+                relsDiv.appendChild(row);
+            });
+        }
+    }
+}
+
+function resetRiskSimulation() {
+    isSimulationActive = false;
+    document.getElementById("btnResetSimulation").style.display = "none";
+    document.getElementById("btnSimulateRisk").innerHTML = '<i class="bi bi-play-circle me-1"></i> Chạy Mô Phỏng Rủi Ro';
+    document.getElementById("simulationStatus").innerHTML = `Trạng thái: <span class="badge bg-secondary">Chưa kích hoạt</span>`;
+    
+    // Remove custom styling and flags
+    nodesData.forEach(node => {
+        const el = document.getElementById(`node-${node.id}`);
+        if (!el) return;
+        el.classList.remove("pulse-risk");
+        el.classList.remove("dimmed");
+        el.querySelector("circle").setAttribute("stroke", "");
+        
+        const labelText = el.querySelector("text");
+        if (labelText) {
+            labelText.textContent = node.id.toUpperCase();
+        }
+    });
+    
+    linksData.forEach(link => {
+        const line = document.getElementById(`link-${link.source}-${link.target}`);
+        if (!line) return;
+        line.classList.remove("transitive-flow");
+        line.classList.remove("dimmed");
+    });
+    
+    // Restore default view in detail panel
+    document.getElementById("noNodeSelected").style.display = "block";
+    document.getElementById("nodeSelectedContent").style.display = "none";
+}
+</script>
+
+<!-- Premium Glassmorphic Modal for 7-Page Field Guide -->
+<div class="modal fade" id="fieldGuideModal" tabindex="-1" aria-labelledby="fieldGuideModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen modal-dialog-scrollable">
+        <div class="modal-content bg-dark border-secondary border-opacity-25" style="background-image: radial-gradient(circle at 10% 20%, rgba(12, 15, 14, 0.98) 0%, rgba(18, 25, 22, 0.98) 90%);">
+            <div class="modal-header border-secondary border-opacity-10 py-3 px-4">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="p-2 rounded bg-info bg-opacity-10 border border-info border-opacity-25">
+                        <i class="bi bi-journal-richtext text-info fs-4" aria-hidden="true"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold text-gradient-primary font-outfit" id="fieldGuideModalLabel">Field Guide</h5>
+                        <p class="mb-0 text-secondary small" id="fieldGuideSubtitle">Bản đồ kiến thức mở rộng kết hợp DB Live Stats</p>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="container-fluid h-100">
+                    <div class="row h-100 g-0">
+                        <!-- Left Navigation Bar -->
+                        <div class="col-md-3 col-lg-3 border-end border-secondary border-opacity-10 py-4 px-3 bg-dark bg-opacity-25 h-100 overflow-y-auto">
+                            <div class="d-flex flex-column gap-2" id="fieldGuideNav">
+                                <!-- Navigation buttons generated dynamically -->
+                            </div>
+                        </div>
+                        <!-- Right Content Area -->
+                        <div class="col-md-9 col-lg-9 py-4 px-5 h-100 overflow-y-auto" style="background-color: #0c0f0e;">
+                            <div id="fieldGuideContent" class="text-light">
+                                <!-- Active page content with markdown rendering -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-secondary border-opacity-10 py-3 px-4 bg-dark bg-opacity-50">
+                <span id="fieldGuideTaxpayerInfo" class="small text-secondary font-monospace"><i class="bi bi-building me-1" aria-hidden="true"></i>MST Đang Đối Soát: 0102030405</span>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Đóng Sách Hướng Dẫn</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+    if (window.mermaid) {
+        window.mermaid.initialize({ startOnLoad: false, theme: 'dark' });
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,714 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="v42-theme-wrapper py-4" style="background-color: #070A13; color: #E2E8F0; min-height: 100vh; font-family: 'Outfit', sans-serif;">
+    <div class="container">
+        <!-- Header -->
+        <div class="row align-items-center mb-5">
+            <div class="col">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-1">
+                        <li class="breadcrumb-item"><a href="{{ url_for('index') }}" class="text-secondary text-decoration-none">Dashboard</a></li>
+                        <li class="breadcrumb-item text-secondary active" aria-current="page">Quyết toán nâng cao v42</li>
+                    </ol>
+                </nav>
+                <h1 class="display-6 fw-bold mb-2 text-gradient-gold">
+                    Quyết toán thuế Nâng cao & Giao dịch liên kết v42
+                </h1>
+                <p class="text-secondary fs-5 mb-0">
+                    Phân tích giá chuyển nhượng (Decree 132), Khấu trừ thuế TMĐT (Circular 80) & Ý kiến tư vấn của Swarm Advisors.
+                </p>
+            </div>
+            <div class="col-auto">
+                <div class="glass-card-dark p-2 d-flex gap-3 align-items-center">
+                    <span class="small text-secondary"><i class="bi bi-building me-1" aria-hidden="true"></i> MST Đang chọn:</span>
+                    <select class="form-select form-select-sm border-0 bg-transparent fw-bold text-white" id="mstSelector" style="width: auto; cursor: pointer;">
+                        {% for p in profiles %}
+                        <option value="{{ p.mst }}" {% if p.mst == taxpayer_mst %}selected{% endif %} class="bg-obsidian text-white">{{ p.mst }} - {{ p.company_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bento Grid Statistics Dashboard -->
+        <div class="row g-4 mb-5" id="statsDashboardContainer">
+            <!-- Card 1: Total Transfer Pricing CIT Adjustment -->
+            <div class="col-md-3">
+                <div class="bento-card bg-sapphire-dark border-gold">
+                    <div class="card-icon text-gold"><i class="bi bi-bank2" aria-hidden="true"></i></div>
+                    <div class="card-body">
+                        <div class="card-label">Tổng điều chỉnh TNDN (Decree 132)</div>
+                        <div class="card-value text-gold" id="statTpAdjustment">0 VND</div>
+                        <div class="card-subtext">Cộng gộp vào thu nhập chịu thuế TNDN</div>
+                    </div>
+                </div>
+            </div>
+            <!-- Card 2: Related Transactions Audited -->
+            <div class="col-md-3">
+                <div class="bento-card bg-sapphire-dark border-indigo">
+                    <div class="card-icon text-indigo"><i class="bi bi-link-45deg" aria-hidden="true"></i></div>
+                    <div class="card-body">
+                        <div class="card-label">Giao dịch liên kết kiểm tra</div>
+                        <div class="card-value text-indigo" id="statTpCount">0 giao dịch</div>
+                        <div class="card-subtext">Mua, bán, vay vốn liên kết</div>
+                    </div>
+                </div>
+            </div>
+            <!-- Card 3: E-Commerce Gap Revenue -->
+            <div class="col-md-3">
+                <div class="bento-card bg-sapphire-dark border-danger">
+                    <div class="card-icon text-danger"><i class="bi bi-shop-window" aria-hidden="true"></i></div>
+                    <div class="card-body">
+                        <div class="card-label">Chênh lệch doanh thu TMĐT</div>
+                        <div class="card-value text-danger" id="statEcoGap">0 VND</div>
+                        <div class="card-subtext">Chưa xuất hóa đơn khớp sàn</div>
+                    </div>
+                </div>
+            </div>
+            <!-- Card 4: Audited Platforms Withholding -->
+            <div class="col-md-3">
+                <div class="bento-card bg-sapphire-dark border-success">
+                    <div class="card-icon text-success"><i class="bi bi-check2-circle" aria-hidden="true"></i></div>
+                    <div class="card-body">
+                        <div class="card-label">Thuế nộp thay đã khấu trừ</div>
+                        <div class="card-value text-success" id="statEcoWithheld">0 VND</div>
+                        <div class="card-subtext">VAT 1.0% + PIT 0.5% Circular 80</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Navigation Tabs -->
+        <div class="glass-card-dark mb-4 p-0">
+            <ul class="nav nav-pills nav-fill p-2 gap-2" id="complianceTab" role="tablist" style="background-color: #11182B; border-radius: 12px 12px 0 0;">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active fw-bold py-3 px-4 rounded-3 border-0 transition-all text-white" id="tp-tab" data-bs-toggle="tab" data-bs-target="#tp-pane" type="button" role="tab" aria-controls="tp-pane" aria-selected="true">
+                        <i class="bi bi-graph-up me-2" aria-hidden="true"></i> 1. Giá chuyển nhượng (Decree 132)
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link fw-bold py-3 px-4 rounded-3 border-0 transition-all text-white" id="eco-tab" data-bs-toggle="tab" data-bs-target="#eco-pane" type="button" role="tab" aria-controls="eco-pane" aria-selected="false">
+                        <i class="bi bi-cart3 me-2" aria-hidden="true"></i> 2. Thuế sàn TMĐT (Circular 80)
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link fw-bold py-3 px-4 rounded-3 border-0 transition-all text-white" id="swarm-tab" data-bs-toggle="tab" data-bs-target="#swarm-pane" type="button" role="tab" aria-controls="swarm-pane" aria-selected="false">
+                        <i class="bi bi-chat-square-dots me-2" aria-hidden="true"></i> 3. Ý kiến Swarm Advisors & Biên bản
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content p-4" id="complianceTabContent">
+                <!-- TAB 1: TRANSFER PRICING (DECREE 132) -->
+                <div class="tab-pane fade show active" id="tp-pane" role="tabpanel" aria-labelledby="tp-tab">
+                    <div class="row g-4">
+                        <!-- Left Panel: Calculation input / run benchmarking -->
+                        <div class="col-lg-6">
+                            <div class="p-4 rounded-4 bg-sapphire-card border-slate h-100">
+                                <h4 class="fw-bold text-gradient-gold mb-3"><i class="bi bi-sliders me-2" aria-hidden="true"></i>Thiết lập giao dịch liên kết</h4>
+                                <p class="text-secondary small">Nhập danh sách các giao dịch phát sinh với bên liên kết để so sánh với cơ sở dữ liệu tỷ suất lợi nhuận chuẩn (Interquartile Range).</p>
+
+                                <div class="table-responsive mb-4">
+                                    <table class="table table-dark table-sm align-middle small" id="tblTpInput">
+                                        <thead>
+                                            <tr>
+                                                <th>Loại Giao dịch</th>
+                                                <th>Giá trị giao dịch (VND)</th>
+                                                <th>Tỷ suất thực tế (%)</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>
+                                                    <select class="form-select form-select-sm bg-obsidian text-white border-slate txn-type">
+                                                        <option value="Sale">Bán hàng (Sale)</option>
+                                                        <option value="Purchase">Mua hàng (Purchase)</option>
+                                                        <option value="Service">Cung cấp dịch vụ (Service)</option>
+                                                        <option value="Loan">Hợp đồng vay (Loan)</option>
+                                                    </select>
+                                                </td>
+                                                <td><input type="number" class="form-control form-control-sm bg-obsidian text-white border-slate txn-amount" value="5000000000" autocomplete="off" aria-label="Trường nhập liệu"></td>
+                                                <td><input type="number" step="0.01" class="form-control form-control-sm bg-obsidian text-white border-slate txn-margin" value="3.5" autocomplete="off" aria-label="Trường nhập liệu"></td>
+                                                <td class="text-center"><button class="btn btn-sm btn-outline-danger border-0 btn-remove-row"><i class="bi bi-trash" aria-hidden="true"></i></button></td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <select class="form-select form-select-sm bg-obsidian text-white border-slate txn-type">
+                                                        <option value="Loan">Hợp đồng vay (Loan)</option>
+                                                        <option value="Sale">Bán hàng (Sale)</option>
+                                                        <option value="Purchase">Mua hàng (Purchase)</option>
+                                                        <option value="Service">Cung cấp dịch vụ (Service)</option>
+                                                    </select>
+                                                </td>
+                                                <td><input type="number" class="form-control form-control-sm bg-obsidian text-white border-slate txn-amount" value="2000000000" autocomplete="off" aria-label="Trường nhập liệu"></td>
+                                                <td><input type="number" step="0.01" class="form-control form-control-sm bg-obsidian text-white border-slate txn-margin" value="8.0" autocomplete="off" aria-label="Trường nhập liệu"></td>
+                                                <td class="text-center"><button class="btn btn-sm btn-outline-danger border-0 btn-remove-row"><i class="bi bi-trash" aria-hidden="true"></i></button></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class="d-flex justify-content-between mb-4">
+                                    <button class="btn btn-sm btn-outline-secondary font-outfit" id="btnAddTpRow" type="button"><i class="bi bi-plus-circle me-1" aria-hidden="true"></i>Thêm dòng giao dịch</button>
+                                    <button class="btn btn-gold text-dark fw-bold font-outfit px-4" id="btnCalculateTp" type="button"><i class="bi bi-calculator me-1" aria-hidden="true"></i>Khởi chạy Benchmarking</button>
+                                </div>
+
+                                <div class="d-grid">
+                                    <button class="btn btn-outline-gold font-outfit" id="btnExportXmlTp" type="button" disabled><i class="bi bi-file-earmark-code me-2" aria-hidden="true"></i>Kết xuất tờ khai XML Phụ lục I (Mẫu 01/132)</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Panel: Visual Interquartile Range Graph & Results -->
+                        <div class="col-lg-6">
+                            <div class="p-4 rounded-4 bg-sapphire-card border-slate h-100">
+                                <h4 class="fw-bold text-gradient-indigo mb-3"><i class="bi bi-bar-chart-line me-2" aria-hidden="true"></i>Đồ thị Khoảng chuẩn & Đối chiếu</h4>
+
+                                <!-- SVG Interquartile range chart (US-543) -->
+                                <div class="chart-container py-3 text-center mb-4" style="background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid #1E293B;">
+                                    <svg viewBox="0 0 500 200" width="100%" height="180" id="tpBenchmarkSvg">
+                                        <!-- Axis line -->
+                                        <line x1="50" y1="150" x2="450" y2="150" stroke="#475569" stroke-width="2" />
+                                        
+                                        <!-- Benchmarking Range Box (P25 to P75) -->
+                                        <rect x="180" y="80" width="160" height="40" fill="#6366F1" fill-opacity="0.3" stroke="#6366F1" stroke-width="2" />
+                                        
+                                        <!-- Median Marker Line (P50) -->
+                                        <line x1="260" y1="70" x2="260" y2="160" stroke="#F59E0B" stroke-width="3" stroke-dasharray="3,3" />
+                                        
+                                        <!-- Taxpayer Point -->
+                                        <circle cx="140" cy="100" r="8" fill="#EF4444" id="svgTaxpayerPoint" />
+                                        <text x="140" y="80" fill="#EF4444" font-size="12" font-weight="bold" text-anchor="middle" id="svgTaxpayerText">NNT: 3.5%</text>
+
+                                        <!-- Labels -->
+                                        <text x="50" y="170" fill="#94A3B8" font-size="10" text-anchor="middle">Min</text>
+                                        <text x="180" y="170" fill="#6366F1" font-size="10" text-anchor="middle">P25: 4.5%</text>
+                                        <text x="260" y="185" fill="#F59E0B" font-size="10" text-anchor="middle" font-weight="bold">Median (P50): 6.5%</text>
+                                        <text x="340" y="170" fill="#6366F1" font-size="10" text-anchor="middle">P75: 8.5%</text>
+                                        <text x="450" y="170" fill="#94A3B8" font-size="10" text-anchor="middle">Max</text>
+
+                                        <text x="250" y="30" fill="#E2E8F0" font-size="14" font-weight="bold" text-anchor="middle">Tỷ suất lợi nhuận chuẩn (Bán hàng)</text>
+                                    </svg>
+                                </div>
+
+                                <div class="results-container">
+                                    <h5 class="fw-bold mb-3"><i class="bi bi-file-text me-2" aria-hidden="true"></i>Báo cáo phân tích điều chỉnh</h5>
+                                    <div class="table-responsive">
+                                        <table class="table table-dark table-striped table-hover table-sm small text-nowrap" id="tblTpResults">
+                                            <thead>
+                                                <tr>
+                                                    <th>Loại GD</th>
+                                                    <th>Phương pháp</th>
+                                                    <th>Tỷ lệ NNT</th>
+                                                    <th>P25 - Median - P75</th>
+                                                    <th class="text-end">Cộng trừ thuế</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td colspan="5" class="text-center text-secondary py-3">Chưa khởi chạy phân tích benchmarking.</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 2: E-COMMERCE WITHHOLDING (CIRCULAR 80) -->
+                <div class="tab-pane fade" id="eco-pane" role="tabpanel" aria-labelledby="eco-tab">
+                    <div class="p-4 rounded-4 bg-sapphire-card border-slate">
+                        <div class="row align-items-end g-3 mb-4">
+                            <div class="col-md-8">
+                                <h4 class="fw-bold text-gradient-gold"><i class="bi bi-cart3 me-2" aria-hidden="true"></i>Đối soát doanh thu sàn TMĐT với Hóa đơn thuế</h4>
+                                <p class="text-secondary small mb-0">Rà soát các đơn hàng từ sàn thương mại điện tử Shopee, Lazada, TikTok Shop để đối chiếu trùng khớp với hóa đơn điện tử của người nộp thuế.</p>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <button class="btn btn-gold text-dark fw-bold font-outfit px-4" id="btnRunEcoReconciliation" type="button"><i class="bi bi-shuffle me-1" aria-hidden="true"></i>Bắt đầu đối soát Circular 80</button>
+                            </div>
+                        </div>
+
+                        <!-- Platform Transactions table -->
+                        <div class="table-responsive mb-4">
+                            <table class="table table-dark table-striped table-hover align-middle small text-nowrap" id="tblEcoTransactions">
+                                <thead>
+                                    <tr>
+                                        <th>Mã Đơn Hàng</th>
+                                        <th>Sàn TMĐT</th>
+                                        <th>Ngày giao dịch</th>
+                                        <th>Người mua</th>
+                                        <th class="text-end">Giá trị giao dịch</th>
+                                        <th class="text-end">VAT giữ lại (1%)</th>
+                                        <th class="text-end">PIT giữ lại (0.5%)</th>
+                                        <th>Hóa đơn đối soát</th>
+                                        <th>Trạng thái</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Populated on run -->
+                                    <tr>
+                                        <td colspan="9" class="text-center text-secondary py-4">Nhấp "Bắt đầu đối soát Circular 80" để tải log sàn và đối soát.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 3: SWARM ADVISOR DEBATE -->
+                <div class="tab-pane fade" id="swarm-pane" role="tabpanel" aria-labelledby="swarm-tab">
+                    <div class="row g-4">
+                        <!-- Left: Live chat discussion -->
+                        <div class="col-lg-6">
+                            <div class="p-4 rounded-4 bg-sapphire-card border-slate h-100">
+                                <h4 class="fw-bold text-gradient-indigo mb-3"><i class="bi bi-chat-square-dots me-2" aria-hidden="true"></i>Hội đồng tư vấn Swarm (AI Debate)</h4>
+                                <p class="text-secondary small">Ý kiến trao đổi thời gian thực giữa các chuyên gia thuế nhằm tìm phương án giải trình tối ưu.</p>
+
+                                <div class="swarm-debate-box p-3 mb-3" id="swarmDebateBox" style="height: 320px; overflow-y: auto; background: rgba(0,0,0,0.3); border-radius: 12px; border: 1px solid #1E293B;">
+                                    <div class="text-center text-secondary py-5">Nhấp chạy phân tích ở các Tab trên để kích hoạt hội đồng tư vấn.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right: Swarm memo output -->
+                        <div class="col-lg-6">
+                            <div class="p-4 rounded-4 bg-sapphire-card border-slate h-100 d-flex flex-column">
+                                <h4 class="fw-bold text-gradient-gold mb-3"><i class="bi bi-file-earmark-medical me-2" aria-hidden="true"></i>Biên bản tư vấn & Khuyến nghị thuế</h4>
+                                <p class="text-secondary small">Văn bản tóm tắt các rủi ro phát hiện và khuyến nghị điều chỉnh số liệu kế toán trước thanh tra.</p>
+
+                                <textarea class="form-control bg-obsidian text-slate border-slate flex-grow-1 font-monospace p-3 small mb-3" id="swarmMemoArea" readonly style="min-height: 250px; color: #A0AEC0;">
+Chưa có biên bản khuyến nghị. Vui lòng hoàn thành phân tích.
+                                </textarea>
+
+                                <button class="btn btn-outline-gold font-outfit" id="btnDownloadMemo" type="button" disabled><i class="bi bi-download me-2" aria-hidden="true"></i>Tải Biên bản Khuyến nghị (.MD)</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Styling and CSS Tokens -->
+<style>
+:root {
+    --border-slate: #1E293B;
+}
+
+.text-gradient-gold {
+    background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-indigo {
+    background: linear-gradient(135deg, #818CF8 0%, #6366F1 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.bg-sapphire-dark {
+    background-color: #0F172A;
+    border: 1px solid var(--border-slate);
+}
+
+.bg-sapphire-card {
+    background-color: #0F172A;
+    border: 1px solid var(--border-slate);
+}
+
+.glass-card-dark {
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border-slate);
+    border-radius: 12px;
+}
+
+.border-slate {
+    border-color: var(--border-slate) !important;
+}
+
+.border-gold {
+    border-color: #F59E0B !important;
+}
+
+.border-indigo {
+    border-color: #6366F1 !important;
+}
+
+.border-danger {
+    border-color: #EF4444 !important;
+}
+
+.border-success {
+    border-color: #10B981 !important;
+}
+
+/* Bento card styles */
+.bento-card {
+    display: flex;
+    align-items: center;
+    padding: 24px;
+    border-radius: 16px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.bento-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.card-icon {
+    font-size: 2.2rem;
+    margin-right: 20px;
+}
+
+.card-label {
+    font-size: 0.85rem;
+    color: #94A3B8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+}
+
+.card-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.card-subtext {
+    font-size: 0.75rem;
+    color: #64748B;
+}
+
+.btn-gold {
+    background-color: #F59E0B;
+    border-color: #F59E0B;
+}
+
+.btn-gold:hover {
+    background-color: #D97706;
+    border-color: #D97706;
+}
+
+.btn-outline-gold {
+    color: #F59E0B;
+    border-color: #F59E0B;
+}
+
+.btn-outline-gold:hover {
+    background-color: #F59E0B;
+    color: #070A13;
+}
+
+/* Chat bubble styling for Swarm advisors */
+.chat-bubble {
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin-bottom: 12px;
+    max-width: 85%;
+    font-size: 0.85rem;
+}
+
+.chat-coordinator {
+    background-color: #1E293B;
+    color: #F8FAFC;
+    margin-right: auto;
+    border-left: 4px solid #3B82F6;
+}
+
+.chat-expert {
+    background-color: #1E1B4B;
+    color: #EEF2F6;
+    margin-left: auto;
+    border-right: 4px solid #818CF8;
+}
+
+.chat-auditor {
+    background-color: #064E3B;
+    color: #ECFDF5;
+    margin-right: auto;
+    border-left: 4px solid #10B981;
+}
+
+.chat-cfo {
+    background-color: #78350F;
+    color: #FFFBEB;
+    margin-left: auto;
+    border-right: 4px solid #F59E0B;
+}
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const mstSelector = document.getElementById("mstSelector");
+    let currentMst = mstSelector.value;
+    let tpCalculatedData = null;
+
+    // Trigger URL parameter changes on MST Switcher change
+    mstSelector.addEventListener("change", function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.set('mst', mstSelector.value);
+        window.location.search = urlParams.toString();
+    });
+
+    // Handle add/remove rows on TP Input Table
+    const tblTpInput = document.getElementById("tblTpInput").querySelector("tbody");
+    
+    document.getElementById("btnAddTpRow").addEventListener("click", function () {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>
+                <select class="form-select form-select-sm bg-obsidian text-white border-slate txn-type">
+                    <option value="Sale">Bán hàng (Sale)</option>
+                    <option value="Purchase">Mua hàng (Purchase)</option>
+                    <option value="Service">Cung cấp dịch vụ (Service)</option>
+                    <option value="Loan">Hợp đồng vay (Loan)</option>
+                </select>
+            </td>
+            <td><input type="number" class="form-control form-control-sm bg-obsidian text-white border-slate txn-amount" value="1000000000" autocomplete="off" aria-label="Trường nhập liệu"></td>
+            <td><input type="number" step="0.01" class="form-control form-control-sm bg-obsidian text-white border-slate txn-margin" value="5.0" autocomplete="off" aria-label="Trường nhập liệu"></td>
+            <td class="text-center"><button class="btn btn-sm btn-outline-danger border-0 btn-remove-row"><i class="bi bi-trash" aria-hidden="true"></i></button></td>
+        `;
+        tblTpInput.appendChild(tr);
+        bindRowRemoveEvents();
+    });
+
+    function bindRowRemoveEvents() {
+        tblTpInput.querySelectorAll(".btn-remove-row").forEach(btn => {
+            btn.onclick = function () {
+                if (tblTpInput.rows.length > 1) {
+                    btn.closest("tr").remove();
+                } else {
+                    alert("Phải giữ lại ít nhất một giao dịch liên kết!");
+                }
+            };
+        });
+    }
+    bindRowRemoveEvents();
+
+    // 1. Calculate TP Benchmarks (US-540)
+    document.getElementById("btnCalculateTp").addEventListener("click", function () {
+        const rows = tblTpInput.querySelectorAll("tr");
+        const transactions = [];
+
+        rows.forEach(r => {
+            const type = r.querySelector(".txn-type").value;
+            const amount = parseFloat(r.querySelector(".txn-amount").value) || 0;
+            const margin = (parseFloat(r.querySelector(".txn-margin").value) || 0) / 100.0;
+            transactions.push({
+                transaction_type: type,
+                amount: amount,
+                taxpayer_margin: margin
+            });
+        });
+
+        fetch("/api/v42/transfer-pricing/calculate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ mst: currentMst, transactions: transactions })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === "success") {
+                tpCalculatedData = data.data;
+                displayTpResults(data.data);
+                document.getElementById("btnExportXmlTp").disabled = false;
+                refreshOverallDashboard();
+            } else {
+                alert("Lỗi phân tích: " + data.error);
+            }
+        });
+    });
+
+    function displayTpResults(res) {
+        const tbody = document.querySelector("#tblTpResults tbody");
+        tbody.innerHTML = "";
+
+        res.items.forEach(item => {
+            const tr = document.createElement("tr");
+            let statusBadge = `<span class="badge bg-success">Hợp lệ</span>`;
+            let diffClass = "text-secondary";
+            if (item.status === "Adjusted") {
+                statusBadge = `<span class="badge bg-danger">Điều chỉnh</span>`;
+                diffClass = "text-danger fw-bold";
+            }
+
+            tr.innerHTML = `
+                <td class="fw-bold">${item.transaction_type}</td>
+                <td><code class="text-indigo">${item.method_used}</code></td>
+                <td><span class="fw-bold">${(item.taxpayer_margin * 100).toFixed(2)}%</span></td>
+                <td>${(item.benchmark_p25 * 100).toFixed(1)}% - ${(item.benchmark_median * 100).toFixed(1)}% - ${(item.benchmark_p75 * 100).toFixed(1)}%</td>
+                <td class="text-end ${diffClass}">+${item.adjustment_amount.toLocaleString()} VND</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        // Update SVG Chart based on first result if any
+        if (res.items.length > 0) {
+            const first = res.items[0];
+            const svgPoint = document.getElementById("svgTaxpayerPoint");
+            const svgText = document.getElementById("svgTaxpayerText");
+            
+            // Map margin percentage to CX coordinates (50 to 450)
+            const marginPct = first.taxpayer_margin * 100;
+            const cx = Math.max(50, Math.min(450, 50 + (marginPct / 12) * 400));
+            svgPoint.setAttribute("cx", cx);
+            svgText.setAttribute("x", cx);
+            svgText.innerText = `NNT: ${(marginPct).toFixed(2)}%`;
+            if (first.status === "Adjusted") {
+                svgPoint.setAttribute("fill", "#EF4444");
+                svgText.setAttribute("fill", "#EF4444");
+            } else {
+                svgPoint.setAttribute("fill", "#10B981");
+                svgText.setAttribute("fill", "#10B981");
+            }
+        }
+    }
+
+    // 2. Export Form 01/132 XML (US-541)
+    document.getElementById("btnExportXmlTp").addEventListener("click", function () {
+        if (!tpCalculatedData) return;
+        
+        fetch("/api/v42/transfer-pricing/export-xml", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                mst: currentMst,
+                taxpayer_name: "Công ty Cổ phần Taxpayer Việt Nam",
+                year: 2026,
+                tp_items: tpCalculatedData.items
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === "success") {
+                // Download XML block
+                const blob = new Blob([data.xml_content], { type: "text/xml" });
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = `ToKhai_01_132_${currentMst}_2026.xml`;
+                link.click();
+            } else {
+                alert("Lỗi xuất XML: " + data.error);
+            }
+        });
+    });
+
+    // 3. E-Commerce Reconciliation (US-542)
+    document.getElementById("btnRunEcoReconciliation").addEventListener("click", function () {
+        // Mock platform logs to reconcile
+        const mockLogs = [
+            { transaction_id: "SP-998101", platform_name: "Shopee", transaction_date: "2026-06-11", buyer_name: "Nguyễn Văn A", amount: 250000000 },
+            { transaction_id: "TK-772892", platform_name: "TikTok Shop", transaction_date: "2026-06-11", buyer_name: "Trần Thị B", amount: 120000000 },
+            { transaction_id: "LZ-551239", platform_name: "Lazada", transaction_date: "2026-06-11", buyer_name: "Lê Văn C", amount: 85000000 }
+        ];
+
+        fetch("/api/v42/ecommerce/reconcile", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ mst: currentMst, transactions: mockLogs })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === "success") {
+                displayEcoResults(data.data.transactions);
+                refreshOverallDashboard();
+            } else {
+                alert("Lỗi đối soát TMĐT: " + data.error);
+            }
+        });
+    });
+
+    function displayEcoResults(txns) {
+        const tbody = document.querySelector("#tblEcoTransactions tbody");
+        tbody.innerHTML = "";
+
+        txns.forEach(t => {
+            const tr = document.createElement("tr");
+            let badgeClass = "bg-success";
+            let statusText = "Khớp Hóa đơn";
+            if (!t.invoice_matched_id) {
+                badgeClass = "bg-danger";
+                statusText = "Lệch / Chưa xuất HĐ";
+            }
+
+            tr.innerHTML = `
+                <td class="fw-bold">${t.transaction_id}</td>
+                <td><span class="badge bg-secondary">${t.platform_name}</span></td>
+                <td>${t.transaction_date}</td>
+                <td>${t.buyer_name}</td>
+                <td class="text-end fw-bold">${t.amount.toLocaleString()} VND</td>
+                <td class="text-end text-success">${t.vat_withheld.toLocaleString()} VND</td>
+                <td class="text-end text-warning">${t.pit_withheld.toLocaleString()} VND</td>
+                <td><code>${t.invoice_matched_id ? "HD-MATCHED-" + t.invoice_matched_id : "Không tìm thấy"}</code></td>
+                <td><span class="badge ${badgeClass}">${statusText}</span></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // 4. Retrieve overall dashboard and swarm debate data (US-543)
+    function refreshOverallDashboard() {
+        fetch(`/api/v42/dashboard-data?mst=${currentMst}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === "success") {
+                // Update Bento totals
+                const tpTotal = data.transfer_pricing.total_cit_adjustment;
+                document.getElementById("statTpAdjustment").innerText = tpTotal.toLocaleString() + " VND";
+                
+                const tpCount = data.transfer_pricing.items.length;
+                document.getElementById("statTpCount").innerText = tpCount + " giao dịch";
+                
+                const gapRev = data.ecommerce.report.gap_amount || 0;
+                document.getElementById("statEcoGap").innerText = gapRev.toLocaleString() + " VND";
+                
+                const totalRev = data.ecommerce.report.total_platform_revenue || 0;
+                const ecoWithheld = totalRev * 0.015; // 1% VAT + 0.5% PIT
+                document.getElementById("statEcoWithheld").innerText = ecoWithheld.toLocaleString() + " VND";
+
+                // Update Swarm debate
+                const debateBox = document.getElementById("swarmDebateBox");
+                debateBox.innerHTML = "";
+                data.debate.forEach(msg => {
+                    const bubble = document.createElement("div");
+                    let senderClass = "chat-coordinator";
+                    if (msg.sender === "TransferPricingExpert") senderClass = "chat-expert";
+                    else if (msg.sender === "ECommerceAuditor") senderClass = "chat-auditor";
+                    else if (msg.sender === "CFO") senderClass = "chat-cfo";
+
+                    bubble.className = `chat-bubble ${senderClass}`;
+                    bubble.innerHTML = `<strong>[${msg.sender}]</strong>: ${msg.message}`;
+                    debateBox.appendChild(bubble);
+                });
+                debateBox.scrollTop = debateBox.scrollHeight;
+
+                // Update Swarm Memo
+                document.getElementById("swarmMemoArea").value = data.memo;
+                document.getElementById("btnDownloadMemo").disabled = false;
+            }
+        });
+    }
+
+    // Initial load
+    refreshOverallDashboard();
+
+    // Download Swarm Memo (.md file)
+    document.getElementById("btnDownloadMemo").addEventListener("click", function () {
+        const memoContent = document.getElementById("swarmMemoArea").value;
+        const blob = new Blob([memoContent], { type: "text/markdown" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `BienBan_KhuyenNghiThue_${currentMst}.md`;
+        link.click();
+    });
+});
+</script>
+{% endblock %}

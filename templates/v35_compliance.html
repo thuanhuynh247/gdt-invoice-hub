@@ -1,0 +1,791 @@
+{% extends "base.html" %}
+{% block title %}V35 - Phòng Kiểm Soát Tuân Thủ & Mô Phỏng Thuế{% endblock %}
+{% block content %}
+<style>
+  :root {
+    --glass-bg: rgba(255, 255, 255, 0.45);
+    --glass-border: rgba(255, 255, 255, 0.25);
+    --neon-green: #00e676;
+    --neon-orange: #ff9100;
+    --neon-red: #ff3d00;
+    --neon-blue: #2979ff;
+    --text-primary: #1e293b;
+    --text-muted: #64748b;
+  }
+  
+  [data-bs-theme="dark"] {
+    --glass-bg: rgba(15, 23, 42, 0.65);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --text-primary: #f8fafc;
+    --text-muted: #94a3b8;
+  }
+
+  /* Glassmorphism Cards */
+  .glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .glass-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.12);
+  }
+
+  /* Progress Gauge */
+  .gauge-circle {
+    transition: stroke-dashoffset 0.8s ease-in-out;
+  }
+
+  /* Interactive Nodes style */
+  .node-link {
+    stroke-dasharray: 4;
+    animation: dash 10s linear infinite;
+  }
+
+  @keyframes dash {
+    to {
+      stroke-dashoffset: -100;
+    }
+  }
+
+  /* Pulsing effect */
+  .pulse-dot {
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0% {
+      r: 4;
+      opacity: 1;
+    }
+    100% {
+      r: 12;
+      opacity: 0;
+    }
+  }
+
+  /* Swarm chat styles */
+  .chat-bubble {
+    border-radius: 14px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    max-width: 85%;
+    position: relative;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    animation: slideUp 0.4s ease-out;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .glow-red { text-shadow: 0 0 10px rgba(255, 61, 0, 0.4); }
+  .glow-orange { text-shadow: 0 0 10px rgba(255, 145, 0, 0.4); }
+  .glow-green { text-shadow: 0 0 10px rgba(0, 230, 118, 0.4); }
+</style>
+
+<div class="container-fluid px-4 py-4" style="background: radial-gradient(circle at 10% 20%, rgba(98, 114, 246, 0.03) 0%, rgba(204, 212, 250, 0.01) 90%); min-height: 100vh;">
+  
+  <!-- Header Section -->
+  <div class="d-flex align-items-center justify-content-between mb-4 glass-card p-4">
+    <div>
+      <h2 class="fw-bold mb-1 d-flex align-items-center" style="letter-spacing:-0.5px">
+        <span class="p-2 bg-primary bg-opacity-10 text-primary rounded-3 me-3">
+          <i class="bi bi-shield-shaded" aria-hidden="true"></i>
+        </span>
+        Phòng Kiểm Soát Tuân Thủ & Mô Phỏng Thuế V35
+      </h2>
+      <p class="text-secondary mb-0">Hệ thống phân tích rủi ro đa chiều, Stress Test thanh tra và phòng vệ pháp lý AI tự động.</p>
+    </div>
+    <div>
+      <span class="badge bg-primary bg-opacity-25 text-primary px-3 py-2 fs-6 rounded-pill">Compliance V35.0.0</span>
+    </div>
+  </div>
+
+  <!-- Row 1: KPI Overview Cards -->
+  <div class="row g-4 mb-4">
+    <div class="col-lg-3 col-md-6">
+      <div class="glass-card p-3 h-100 d-flex align-items-center justify-content-between">
+        <div>
+          <span class="small text-muted d-block">Điểm An Toàn Thuế</span>
+          <h3 class="fw-bold mt-1 mb-0" id="txtHealthScore">-</h3>
+          <span class="text-success small fw-semibold" id="txtRatingBadge">-</span>
+        </div>
+        <div style="width: 75px; height: 75px; position: relative;">
+          <svg width="75" height="75" viewBox="0 0 36 36">
+            <path class="text-secondary opacity-25" stroke="currentColor" stroke-width="3" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+            <path id="gaugePath" class="gauge-circle text-primary" stroke="currentColor" stroke-width="3" stroke-dasharray="100, 100" stroke-dashoffset="100" stroke-linecap="round" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+          </svg>
+          <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 0.95rem;" class="fw-bold" id="txtScorePct">-%</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+      <div class="glass-card p-3 h-100 d-flex align-items-center justify-content-between">
+        <div>
+          <span class="small text-muted d-block">Số Tiền Truy Thu Bị Loại</span>
+          <h3 class="fw-bold text-danger mt-1 mb-0" id="txtDisallowedTax">-</h3>
+          <span class="text-secondary small" id="txtDisallowedCount">0 hóa đơn bị loại</span>
+        </div>
+        <div class="p-3 bg-danger bg-opacity-10 text-danger rounded-circle">
+          <i class="bi bi-x-circle fs-4" aria-hidden="true"></i>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+      <div class="glass-card p-3 h-100 d-flex align-items-center justify-content-between">
+        <div>
+          <span class="small text-muted d-block">Phạt & Tiền Chậm Nộp (180 ngày)</span>
+          <h3 class="fw-bold text-warning mt-1 mb-0" id="txtFineAndInterest">-</h3>
+          <span class="text-secondary small">Lãi suất 0.03%/ngày</span>
+        </div>
+        <div class="p-3 bg-warning bg-opacity-10 text-warning rounded-circle">
+          <i class="bi bi-exclamation-triangle fs-4" aria-hidden="true"></i>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+      <div class="glass-card p-3 h-100 d-flex align-items-center justify-content-between">
+        <div>
+          <span class="small text-muted d-block">Tổng Rủi Ro Phơi Nhiễm</span>
+          <h3 class="fw-bold text-info mt-1 mb-0" id="txtTotalExposure">-</h3>
+          <span class="text-secondary small" id="txtRiskLevelBadge">Nguy cơ: Thấp</span>
+        </div>
+        <div class="p-3 bg-info bg-opacity-10 text-info rounded-circle">
+          <i class="bi bi-radioactive fs-4" aria-hidden="true"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls Panel & Simulator Layout -->
+  <div class="row g-4 mb-4">
+    <!-- Left: Simulator Panel -->
+    <div class="col-lg-4">
+      <div class="glass-card p-4 h-100 d-flex flex-column justify-content-between">
+        <div>
+          <h5 class="fw-bold mb-3 d-flex align-items-center">
+            <i class="bi bi-sliders me-2 text-primary" aria-hidden="true"></i>Stress Test Simulator Controls
+          </h5>
+          
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between small fw-semibold">
+              <span>Tỷ Lệ Thanh Tra (Audit Scan Rate)</span>
+              <span class="text-primary fw-bold" id="lblScanRate">50%</span>
+            </label>
+            <input type="range" class="form-range" min="0" max="1" step="0.05" value="0.5" id="rngScanRate" oninput="updateScanLabel(this.value)">
+            <span class="text-muted" style="font-size:0.75rem;">Mô phỏng xác suất rà soát chi tiết hóa đơn của cơ quan thuế.</span>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label small fw-semibold">Độ Nghiêm Ngặt Kê Khai (Strictness Mode)</label>
+            <select class="form-select" id="selStrictness" style="border-radius:10px;">
+              <option value="lenient">Dễ Dãi (Chỉ loại trừ hóa đơn Tiền Mặt > 20 triệu)</option>
+              <option value="medium" selected>Trung Bình (Tiền mặt & Hóa đơn ký số trễ)</option>
+              <option value="strict">Nghiêm Ngặt (Tiền mặt, ký trễ, MST rủi ro, Nghi ngờ nâng khống)</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <button class="btn btn-primary w-100 py-2.5 rounded-pill mb-3" onclick="runSimulation()">
+            <i class="bi bi-play-circle-fill me-2" aria-hidden="true"></i>Chạy Mô Phỏng Stress Test
+          </button>
+          <button class="btn btn-outline-secondary w-100 py-2 rounded-pill" onclick="initDashboard()">
+            <i class="bi bi-arrow-clockwise me-2" aria-hidden="true"></i>Tải Lại Hồ Sơ Gốc
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Interactive SVG Tax Flow Map -->
+    <div class="col-lg-8">
+      <div class="glass-card p-4 h-100">
+        <h5 class="fw-bold mb-3 d-flex align-items-center justify-content-between">
+          <span><i class="bi bi-diagram-3 me-2 text-success" aria-hidden="true"></i>Bản Đồ Dòng Thuế & Hệ Thống Phân Tích (US-473)</span>
+          <span class="badge bg-success bg-opacity-15 text-success rounded-pill px-3 py-1 text-uppercase" style="font-size: 0.7rem">Realtime SVG Flow</span>
+        </h5>
+        
+        <!-- Live SVG Render Container -->
+        <div class="border border-opacity-10 border-light rounded-3 bg-dark bg-opacity-25 p-2" style="min-height: 250px;">
+          <svg id="taxFlowSvg" viewBox="0 0 800 240" width="100%" height="240" style="background: transparent;">
+            <!-- Definitions for gradients/arrows -->
+            <defs>
+              <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--glass-border)" />
+              </marker>
+              <linearGradient id="flowGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#3b82f6" />
+                <stop offset="100%" stop-color="#10b981" />
+              </linearGradient>
+            </defs>
+
+            <!-- Lines / Paths -->
+            <path d="M 100 120 L 250 120" stroke="url(#flowGrad)" stroke-width="3" class="node-link" fill="none" />
+            <path d="M 370 120 L 520 120" stroke="#f59e0b" stroke-width="2" class="node-link" fill="none" />
+            <path d="M 640 120 L 710 120" stroke="#ef4444" stroke-width="2" class="node-link" fill="none" />
+
+            <!-- Node 1: Purchase Invoices -->
+            <g transform="translate(10, 80)">
+              <rect width="110" height="80" rx="12" fill="rgba(59, 130, 246, 0.15)" stroke="#3b82f6" stroke-width="1.5" />
+              <text x="55" y="30" fill="var(--text-primary)" text-anchor="middle" font-size="12" font-weight="bold">Mua Vào Đầu Vào</text>
+              <text x="55" y="52" id="flowTotalInvoices" fill="var(--text-primary)" text-anchor="middle" font-size="14" font-weight="bold">0 HĐ</text>
+            </g>
+
+            <!-- Node 2: Rules Filter Engine -->
+            <g transform="translate(250, 70)">
+              <rect width="130" height="100" rx="12" fill="rgba(16, 185, 129, 0.15)" stroke="#10b981" stroke-width="1.5" />
+              <text x="65" y="30" fill="var(--text-primary)" text-anchor="middle" font-size="12" font-weight="bold">Bộ Lọc Tuân Thủ</text>
+              <text x="65" y="52" id="flowScanStatus" fill="#10b981" text-anchor="middle" font-size="11" font-weight="bold">Quét 50%</text>
+              <text x="65" y="74" id="flowStrictnessBadge" fill="#ff9100" text-anchor="middle" font-size="10" font-weight="bold">Medium</text>
+            </g>
+
+            <!-- Node 3: Disallowed VAT / CIT -->
+            <g transform="translate(510, 80)">
+              <rect width="130" height="80" rx="12" fill="rgba(245, 158, 11, 0.15)" stroke="#f59e0b" stroke-width="1.5" />
+              <text x="65" y="30" fill="var(--text-primary)" text-anchor="middle" font-size="11" font-weight="bold">Truy Thu CIT & VAT</text>
+              <text x="65" y="52" id="flowDisallowedTax" fill="#f59e0b" text-anchor="middle" font-size="13" font-weight="bold">0đ</text>
+            </g>
+
+            <!-- Node 4: Fine & Penalty -->
+            <g transform="translate(680, 80)">
+              <rect width="110" height="80" rx="12" fill="rgba(239, 68, 68, 0.15)" stroke="#ef4444" stroke-width="1.5" />
+              <text x="55" y="30" fill="var(--text-primary)" text-anchor="middle" font-size="11" font-weight="bold">Chậm Nộp & Phạt</text>
+              <text x="55" y="52" id="flowFineAndInterest" fill="#ef4444" text-anchor="middle" font-size="12" font-weight="bold">0đ</text>
+            </g>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 3: Interactive SVG Audit Risk Tree & Swarm Debate Panel -->
+  <div class="row g-4 mb-4">
+    <!-- Left: SVG Interactive Risk Tree Diagram -->
+    <div class="col-lg-7">
+      <div class="glass-card p-4 h-100 d-flex flex-column justify-content-between">
+        <div>
+          <h5 class="fw-bold mb-3 d-flex align-items-center justify-content-between">
+            <span><i class="bi bi-bezier2 me-2 text-danger" aria-hidden="true"></i>Sơ Đồ Cấu Trúc Rủi Ro Hồ Sơ (SVG Risk Tree)</span>
+            <button class="btn btn-outline-danger btn-xs py-0.5 px-2 rounded-pill text-uppercase" style="font-size:0.65rem;" onclick="resetTreeSelection()">Reset Tree</button>
+          </h5>
+          
+          <div class="border border-opacity-10 border-light rounded-3 bg-dark bg-opacity-25 p-2 text-center" style="position: relative;">
+            <svg id="riskTreeSvg" viewBox="0 0 1000 380" width="100%" height="380" style="background: transparent;">
+              <!-- Graph links and nodes will be dynamically loaded here -->
+            </svg>
+            <div id="treeTooltip" class="p-3 bg-dark text-snow rounded-3 shadow text-start border border-secondary" style="position: absolute; display: none; pointer-events: none; z-index:100; font-size: 0.8rem; max-width: 280px; backdrop-filter: blur(8px);"></div>
+          </div>
+        </div>
+        
+        <div class="mt-3">
+          <span class="small text-secondary"><i class="bi bi-info-circle me-1" aria-hidden="true"></i>Di chuyển chuột vào các nút để kiểm tra nhanh mô tả sai sót của từng hóa đơn đầu vào.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Multi-Agent AI Swarm Debate -->
+    <div class="col-lg-5">
+      <div class="glass-card p-4 h-100 d-flex flex-column">
+        <h5 class="fw-bold mb-3 d-flex align-items-center justify-content-between">
+          <span><i class="bi bi-chat-left-dots text-warning me-2" aria-hidden="true"></i>Multi-Agent Swarm Defense Debate (US-474)</span>
+          <span class="badge bg-warning bg-opacity-15 text-warning rounded-pill px-2 py-0.5" style="font-size:0.65rem">AI Swarm</span>
+        </h5>
+
+        <!-- Debate Message Container -->
+        <div id="swarmDebateContainer" class="flex-grow-1 overflow-auto p-3 bg-premium-light-custom bg-opacity-5 rounded-3 mb-3" style="min-height: 300px; max-height: 380px;">
+          <div class="text-center py-5 text-muted">
+            <i class="bi bi-chat-dots fs-1 d-block mb-2 text-secondary" aria-hidden="true"></i>
+            Chưa khởi chạy thảo luận phòng vệ thuế. Click nút bên dưới để khởi tạo Agent Swarm.
+          </div>
+        </div>
+
+        <button class="btn btn-warning w-100 py-2.5 rounded-pill" onclick="triggerSwarmChat()" id="btnStartSwarm">
+          <i class="bi bi-lightning-charge-fill me-2" aria-hidden="true"></i>Khởi Chạy Tranh Luận Phản Biện AI
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 4: Evaluated Invoices Grid & Briefcase Exporter -->
+  <div class="glass-card p-4 mb-4">
+    <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+      <div>
+        <h5 class="fw-bold mb-1"><i class="bi bi-table text-primary me-2" aria-hidden="true"></i>Bảng Kê Hóa Đơn Rà Soát & Phòng Vệ</h5>
+        <p class="text-muted small mb-0">Tích chọn các hóa đơn rủi ro để tạo Bộ hồ sơ phòng vệ nén ZIP (Form 04/SS-HĐĐT và văn bản giải trình).</p>
+      </div>
+      <div class="d-flex gap-2">
+        <button class="btn btn-outline-primary rounded-pill btn-sm px-3" onclick="selectAllInvoices(true)">
+          Chọn Tất Cả
+        </button>
+        <button class="btn btn-outline-secondary rounded-pill btn-sm px-3" onclick="selectAllInvoices(false)">
+          Bỏ Chọn
+        </button>
+        <button class="btn btn-success rounded-pill btn-sm px-4" onclick="downloadDefensePackage()">
+          <i class="bi bi-file-earmark-zip-fill me-2" aria-hidden="true"></i>Tải Briefcase ZIP & XML 04/SS
+        </button>
+      </div>
+    </div>
+
+    <!-- Invoice Grid Table -->
+    <div class="table-responsive rounded-3 border border-opacity-10 border-light">
+      <table class="table table-hover align-middle mb-0" id="tblInvoices">
+        <thead class="table-light">
+          <tr>
+            <th scope="col" style="width: 50px;">
+              <input type="checkbox" class="form-check-input" id="chkHeaderSelect" onclick="toggleAllGridRows(this)">
+            </th>
+            <th scope="col">Ký hiệu - Số</th>
+            <th scope="col">Ngày hóa đơn</th>
+            <th scope="col">Người bán</th>
+            <th scope="col" class="text-end">Tiền trước thuế</th>
+            <th scope="col" class="text-end">VAT</th>
+            <th scope="col" class="text-center">Đánh giá AI</th>
+            <th scope="col" class="text-center">Trạng thái</th>
+          </tr>
+        </thead>
+        <tbody id="tblInvoicesBody">
+          <!-- Premium Loading Skeletons -->
+          <tr class="skeleton-row">
+            <td><div class="skeleton-loading" style="height: 16px; width: 16px;"></div></td>
+            <td>
+              <div class="skeleton-loading" style="height: 18px; width: 110px; margin-bottom: 6px;"></div>
+              <div class="skeleton-loading" style="height: 12px; width: 70px;"></div>
+            </td>
+            <td><div class="skeleton-loading" style="height: 16px; width: 80px;"></div></td>
+            <td>
+              <div class="skeleton-loading" style="height: 16px; width: 180px; margin-bottom: 6px;"></div>
+              <div class="skeleton-loading" style="height: 12px; width: 110px;"></div>
+            </td>
+            <td><div class="skeleton-loading ms-auto" style="height: 16px; width: 95px;"></div></td>
+            <td><div class="skeleton-loading ms-auto" style="height: 16px; width: 75px;"></div></td>
+            <td><div class="skeleton-loading mx-auto" style="height: 22px; width: 70px; border-radius: 9999px;"></div></td>
+            <td><div class="skeleton-loading mx-auto" style="height: 22px; width: 60px; border-radius: 9999px;"></div></td>
+          </tr>
+          <tr class="skeleton-row">
+            <td><div class="skeleton-loading" style="height: 16px; width: 16px;"></div></td>
+            <td>
+              <div class="skeleton-loading" style="height: 18px; width: 95px; margin-bottom: 6px;"></div>
+              <div class="skeleton-loading" style="height: 12px; width: 65px;"></div>
+            </td>
+            <td><div class="skeleton-loading" style="height: 16px; width: 80px;"></div></td>
+            <td>
+              <div class="skeleton-loading" style="height: 16px; width: 210px; margin-bottom: 6px;"></div>
+              <div class="skeleton-loading" style="height: 12px; width: 120px;"></div>
+            </td>
+            <td><div class="skeleton-loading ms-auto" style="height: 16px; width: 105px;"></div></td>
+            <td><div class="skeleton-loading ms-auto" style="height: 16px; width: 80px;"></div></td>
+            <td><div class="skeleton-loading mx-auto" style="height: 22px; width: 70px; border-radius: 9999px;"></div></td>
+            <td><div class="skeleton-loading mx-auto" style="height: 22px; width: 60px; border-radius: 9999px;"></div></td>
+          </tr>
+          <tr class="skeleton-row">
+            <td><div class="skeleton-loading" style="height: 16px; width: 16px;"></div></td>
+            <td>
+              <div class="skeleton-loading" style="height: 18px; width: 105px; margin-bottom: 6px;"></div>
+              <div class="skeleton-loading" style="height: 12px; width: 60px;"></div>
+            </td>
+            <td><div class="skeleton-loading" style="height: 16px; width: 80px;"></div></td>
+            <td>
+              <div class="skeleton-loading" style="height: 16px; width: 160px; margin-bottom: 6px;"></div>
+              <div class="skeleton-loading" style="height: 12px; width: 95px;"></div>
+            </td>
+            <td><div class="skeleton-loading ms-auto" style="height: 16px; width: 85px;"></div></td>
+            <td><div class="skeleton-loading ms-auto" style="height: 16px; width: 70px;"></div></td>
+            <td><div class="skeleton-loading mx-auto" style="height: 22px; width: 70px; border-radius: 9999px;"></div></td>
+            <td><div class="skeleton-loading mx-auto" style="height: 22px; width: 60px; border-radius: 9999px;"></div></td>
+          </tr>
+          <tr class="skeleton-row">
+            <td><div class="skeleton-loading" style="height: 16px; width: 16px;"></div></td>
+            <td>
+              <div class="skeleton-loading" style="height: 18px; width: 115px; margin-bottom: 6px;"></div>
+              <div class="skeleton-loading" style="height: 12px; width: 75px;"></div>
+            </td>
+            <td><div class="skeleton-loading" style="height: 16px; width: 80px;"></div></td>
+            <td>
+              <div class="skeleton-loading" style="height: 16px; width: 195px; margin-bottom: 6px;"></div>
+              <div class="skeleton-loading" style="height: 12px; width: 105px;"></div>
+            </td>
+            <td><div class="skeleton-loading ms-auto" style="height: 16px; width: 90px;"></div></td>
+            <td><div class="skeleton-loading ms-auto" style="height: 16px; width: 75px;"></div></td>
+            <td><div class="skeleton-loading mx-auto" style="height: 22px; width: 70px; border-radius: 9999px;"></div></td>
+            <td><div class="skeleton-loading mx-auto" style="height: 22px; width: 60px; border-radius: 9999px;"></div></td>
+          </tr>
+          <tr class="skeleton-row">
+            <td><div class="skeleton-loading" style="height: 16px; width: 16px;"></div></td>
+            <td>
+              <div class="skeleton-loading" style="height: 18px; width: 100px; margin-bottom: 6px;"></div>
+              <div class="skeleton-loading" style="height: 12px; width: 60px;"></div>
+            </td>
+            <td><div class="skeleton-loading" style="height: 16px; width: 80px;"></div></td>
+            <td>
+              <div class="skeleton-loading" style="height: 16px; width: 175px; margin-bottom: 6px;"></div>
+              <div class="skeleton-loading" style="height: 12px; width: 100px;"></div>
+            </td>
+            <td><div class="skeleton-loading ms-auto" style="height: 16px; width: 100px;"></div></td>
+            <td><div class="skeleton-loading ms-auto" style="height: 16px; width: 80px;"></div></td>
+            <td><div class="skeleton-loading mx-auto" style="height: 22px; width: 70px; border-radius: 9999px;"></div></td>
+            <td><div class="skeleton-loading mx-auto" style="height: 22px; width: 60px; border-radius: 9999px;"></div></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let currentInvoices = [];
+
+  function fmtVND(v) {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(Math.round(v));
+  }
+
+  function updateScanLabel(val) {
+    document.getElementById("lblScanRate").textContent = Math.round(val * 100) + "%";
+  }
+
+  document.addEventListener("DOMContentLoaded", function() {
+    initDashboard();
+  });
+
+  function initDashboard() {
+    // Call API to fetch current health score and original items
+    fetch("/api/compliance/v35-health", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" }
+    })
+    .then(r => r.json())
+    .then(data => {
+      renderComplianceUI(data);
+    })
+    .catch(err => {
+      console.error("Health fetch failure:", err);
+    });
+  }
+
+  function renderComplianceUI(data) {
+    currentInvoices = data.invoices || [];
+
+    // Health Score Gauge and Card
+    document.getElementById("txtHealthScore").textContent = data.health_score + " / 100";
+    document.getElementById("txtScorePct").textContent = data.health_score + "%";
+    
+    // Rating level
+    let rating = "A++";
+    let statusClass = "text-success";
+    if(data.health_score < 50) { rating = "F - Evasion Risk"; statusClass = "text-danger glow-red"; }
+    else if(data.health_score < 75) { rating = "C - Vulnerable"; statusClass = "text-warning glow-orange"; }
+    else if(data.health_score < 90) { rating = "B - Good"; statusClass = "text-info"; }
+    
+    const txtRatingBadge = document.getElementById("txtRatingBadge");
+    txtRatingBadge.textContent = rating;
+    txtRatingBadge.className = "small fw-bold " + statusClass;
+
+    // Stroke dash offset on gauge
+    const offset = 100 - data.health_score;
+    document.getElementById("gaugePath").style.strokeDashoffset = offset;
+
+    // Disallowed & Exposure reset
+    document.getElementById("txtDisallowedTax").textContent = fmtVND(0);
+    document.getElementById("txtDisallowedCount").textContent = "0 hóa đơn bị loại";
+    document.getElementById("txtFineAndInterest").textContent = fmtVND(0);
+    document.getElementById("txtTotalExposure").textContent = fmtVND(0);
+    document.getElementById("txtRiskLevelBadge").textContent = "Mô phỏng chưa chạy";
+    document.getElementById("txtRiskLevelBadge").className = "text-muted small";
+
+    // Flow Map updates
+    document.getElementById("flowTotalInvoices").textContent = currentInvoices.length + " HĐ";
+    document.getElementById("flowDisallowedTax").textContent = fmtVND(0);
+    document.getElementById("flowFineAndInterest").textContent = fmtVND(0);
+
+    // Build Risk Tree SVG
+    buildRiskTreeSvg(data.svg_tree);
+
+    // Load Invoices Table Grid
+    buildInvoicesTableGrid(currentInvoices);
+  }
+
+  function buildInvoicesTableGrid(invoices) {
+    const tbody = document.getElementById("tblInvoicesBody");
+    tbody.innerHTML = "";
+    if(!invoices.length) {
+      tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-muted">Không có hóa đơn nào phù hợp.</td></tr>`;
+      return;
+    }
+
+    invoices.forEach(inv => {
+      let aiAuditBadge = `<span class="badge bg-success bg-opacity-15 text-success rounded-pill px-2 py-1 fs-xs">An Toàn</span>`;
+      let statusBadge = `<span class="badge bg-secondary bg-opacity-15 text-secondary rounded-pill px-2 py-1 fs-xs">${inv.invoice_status || 'Gốc'}</span>`;
+      
+      // Check for cancel status or low scores to flag as warning
+      if(inv.is_cancelled || inv.invoice_status === "Bị hủy") {
+        aiAuditBadge = `<span class="badge bg-danger bg-opacity-15 text-danger rounded-pill px-2 py-1 fs-xs">Đã Hủy</span>`;
+        statusBadge = `<span class="badge bg-danger text-snow rounded-pill px-2 py-1 fs-xs">Hủy Kê Khai</span>`;
+      } else if(inv.t_score < 90) {
+        aiAuditBadge = `<span class="badge bg-warning bg-opacity-15 text-warning rounded-pill px-2 py-1 fs-xs">Cảnh Báo (T-Score: ${inv.t_score})</span>`;
+      }
+
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>
+          <input type="checkbox" class="form-check-input invoice-chk" data-id="${inv.id}">
+        </td>
+        <td>
+          <div class="fw-bold">${inv.symbol}-${inv.number}</div>
+          <span class="text-muted fs-xs" style="font-size:0.75rem">${inv.id}</span>
+        </td>
+        <td class="small">${inv.date}</td>
+        <td>
+          <div class="small fw-semibold text-truncate" style="max-width:240px;">${inv.seller_name}</div>
+          <span class="text-muted fs-xs" style="font-size:0.75rem">MST: ${inv.seller_mst}</span>
+        </td>
+        <td class="text-end fw-bold text-secondary small">${fmtVND(inv.amount_before_tax)}</td>
+        <td class="text-end fw-semibold text-secondary small">${fmtVND(inv.tax_amount)}</td>
+        <td class="text-center">${aiAuditBadge}</td>
+        <td class="text-center">${statusBadge}</td>
+      `;
+      tbody.appendChild(row);
+    });
+  }
+
+  function toggleAllGridRows(chk) {
+    const list = document.querySelectorAll(".invoice-chk");
+    list.forEach(c => c.checked = chk.checked);
+  }
+
+  function selectAllInvoices(state) {
+    document.getElementById("chkHeaderSelect").checked = state;
+    toggleAllGridRows({ checked: state });
+  }
+
+  function runSimulation() {
+    const scanRate = document.getElementById("rngScanRate").value;
+    const strictness = document.getElementById("selStrictness").value;
+
+    fetch("/api/compliance/stress-test", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ scan_rate: parseFloat(scanRate), strictness: strictness })
+    })
+    .then(r => r.json())
+    .then(data => {
+      // Update Exposure indicators
+      document.getElementById("txtDisallowedTax").textContent = fmtVND(data.metrics.disallowed_vat + data.metrics.disallowed_cit);
+      document.getElementById("txtDisallowedCount").textContent = `${data.disallowed_count} HĐ bị loại bỏ trên ${data.scanned_count} HĐ thanh tra`;
+      document.getElementById("txtFineAndInterest").textContent = fmtVND(data.metrics.evasion_fine + data.metrics.late_interest);
+      document.getElementById("txtTotalExposure").textContent = fmtVND(data.metrics.total_exposure);
+
+      // Risk level indicator
+      let level = "An Toàn";
+      let badgeClass = "badge bg-success bg-opacity-20 text-success px-2.5 py-1 rounded-pill";
+      if(data.metrics.total_exposure > 100000000) {
+        level = "RẤT CAO";
+        badgeClass = "badge bg-danger bg-opacity-20 text-danger px-2.5 py-1 rounded-pill pulse-dot";
+      } else if(data.metrics.total_exposure > 20000000) {
+        level = "TRUNG BÌNH";
+        badgeClass = "badge bg-warning bg-opacity-20 text-warning px-2.5 py-1 rounded-pill";
+      }
+      
+      const riskBadge = document.getElementById("txtRiskLevelBadge");
+      riskBadge.textContent = "Nguy cơ: " + level;
+      riskBadge.className = badgeClass;
+
+      // Update Flow map values
+      document.getElementById("flowScanStatus").textContent = `K.Tra ${Math.round(scanRate * 100)}% (${data.scanned_count} HĐ)`;
+      document.getElementById("flowStrictnessBadge").textContent = strictness.toUpperCase();
+      document.getElementById("flowDisallowedTax").textContent = fmtVND(data.metrics.disallowed_vat + data.metrics.disallowed_cit);
+      document.getElementById("flowFineAndInterest").textContent = fmtVND(data.metrics.evasion_fine + data.metrics.late_interest);
+
+      // Auto-tick disallowed invoices in the table grid for briefcase exporting
+      const disallowedIds = new Set(data.disallowed_invoices.map(i => i.id));
+      document.querySelectorAll(".invoice-chk").forEach(chk => {
+        const id = chk.getAttribute("data-id");
+        chk.checked = disallowedIds.has(id);
+      });
+    })
+    .catch(err => {
+      console.error("Simulation run failed:", err);
+    });
+  }
+
+  function buildRiskTreeSvg(treeData) {
+    const svg = document.getElementById("riskTreeSvg");
+    svg.innerHTML = ""; // Clear existing
+
+    if(!treeData || !treeData.nodes) return;
+
+    // Draw connection paths
+    treeData.edges.forEach(edge => {
+      const fromNode = treeData.nodes.find(n => n.id === edge.from);
+      const toNode = treeData.nodes.find(n => n.id === edge.to);
+      if(fromNode && toNode) {
+        let strokeColor = "rgba(100, 116, 139, 0.4)";
+        if(toNode.status === "danger") strokeColor = "rgba(255, 61, 0, 0.4)";
+        else if(toNode.status === "warning") strokeColor = "rgba(255, 145, 0, 0.4)";
+        else if(toNode.status === "info") strokeColor = "rgba(41, 121, 255, 0.4)";
+
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        // Curved cubic bezier connections
+        const dy = Math.abs(toNode.y - fromNode.y) * 0.5;
+        path.setAttribute("d", `M ${fromNode.x} ${fromNode.y} C ${fromNode.x} ${fromNode.y + dy}, ${toNode.x} ${toNode.y - dy}, ${toNode.x} ${toNode.y}`);
+        path.setAttribute("stroke", strokeColor);
+        path.setAttribute("stroke-width", "2");
+        path.setAttribute("fill", "none");
+        path.setAttribute("class", "node-link");
+        svg.appendChild(path);
+      }
+    });
+
+    // Draw node circles
+    treeData.nodes.forEach(node => {
+      let fill = "#64748b";
+      let radius = 10;
+      if(node.type === "root") { fill = "#3b82f6"; radius = 18; }
+      else if(node.type === "category") {
+        radius = 12;
+        if(node.status === "danger") fill = "#ef4444";
+        else if(node.status === "warning") fill = "#ff9100";
+        else fill = "#10b981";
+      } else {
+        radius = 8;
+        if(node.status === "danger") fill = "#ef4444";
+        else if(node.status === "warning") fill = "#ff9100";
+        else fill = "#2979ff";
+      }
+
+      // Main Circle
+      const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      circle.setAttribute("cx", node.x);
+      circle.setAttribute("cy", node.y);
+      circle.setAttribute("r", radius);
+      circle.setAttribute("fill", fill);
+      circle.setAttribute("stroke", "var(--glass-bg)");
+      circle.setAttribute("stroke-width", "2.5");
+      circle.setAttribute("style", "cursor: pointer; transition: transform 0.2s;");
+
+      // Add tooltip events
+      circle.addEventListener("mouseenter", (e) => {
+        circle.setAttribute("r", radius + 3);
+        const tooltip = document.getElementById("treeTooltip");
+        tooltip.style.display = "block";
+        tooltip.style.left = (e.pageX - svg.getBoundingClientRect().left - 100) + "px";
+        tooltip.style.top = (e.pageY - svg.getBoundingClientRect().top - 200) + "px";
+        
+        let nodeDetails = `<strong>${node.label}</strong>`;
+        if (node.message) nodeDetails += `<div class="mt-2 text-warning">${node.message}</div>`;
+        tooltip.innerHTML = nodeDetails;
+      });
+
+      circle.addEventListener("mouseleave", () => {
+        circle.setAttribute("r", radius);
+        document.getElementById("treeTooltip").style.display = "none";
+      });
+
+      svg.appendChild(circle);
+
+      // Label text
+      const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      text.setAttribute("x", node.x);
+      // Offset label text based on type
+      text.setAttribute("y", node.y + (node.type === "root" ? -26 : 24));
+      text.setAttribute("fill", "var(--text-primary)");
+      text.setAttribute("font-size", node.type === "root" ? "12" : "10");
+      text.setAttribute("font-weight", node.type === "root" ? "bold" : "normal");
+      text.setAttribute("text-anchor", "middle");
+      text.textContent = node.label;
+      svg.appendChild(text);
+    });
+  }
+
+  function resetTreeSelection() {
+    initDashboard();
+  }
+
+  function triggerSwarmChat() {
+    const container = document.getElementById("swarmDebateContainer");
+    container.innerHTML = `<div class="text-center py-5"><div class="spinner-border text-warning"></div><div class="mt-2 text-muted small">AI Agents đang tiến hành tranh luận và đối chất…</div></div>`;
+    
+    fetch("/api/agents/swarm-v35-chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" }
+    })
+    .then(r => r.json())
+    .then(steps => {
+      container.innerHTML = "";
+      steps.forEach((s, idx) => {
+        setTimeout(() => {
+          const div = document.createElement("div");
+          const isLeft = s.agent !== "TaxInspector";
+          div.className = `d-flex gap-3 align-items-start mb-3 ${isLeft ? '' : 'flex-row-reverse'}`;
+          
+          div.innerHTML = `
+            <span class="badge ${s.avatar_class} rounded-circle p-2 flex-shrink-0 text-snow" style="width:38px;height:38px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 10px rgba(0,0,0,0.1)">
+              <i class="bi bi-robot" aria-hidden="true"></i>
+            </span>
+            <div class="chat-bubble ${isLeft ? 'bg-premium-light bg-opacity-75 text-dark' : 'bg-primary text-snow'} rounded-3">
+              <div class="fw-bold small d-flex align-items-center justify-content-between">
+                <span>${s.agent} <span class="fw-normal opacity-75">: ${s.role}</span></span>
+                <span class="opacity-50 ms-3" style="font-size:0.7rem">${s.timestamp}</span>
+              </div>
+              <div class="small mt-1.5" style="line-height:1.4">${s.message}</div>
+            </div>
+          `;
+          container.appendChild(div);
+          container.scrollTop = container.scrollHeight;
+        }, idx * 1200); // 1.2s delay between agent replies for dynamic pacing feel
+      });
+    })
+    .catch(err => {
+      console.error("Swarm chat initiation failed:", err);
+      container.innerHTML = `<div class="text-center text-danger py-4"><i class="bi bi-exclamation-triangle fs-3" aria-hidden="true"></i> Lỗi kết nối Swarm.</div>`;
+    });
+  }
+
+  function downloadDefensePackage() {
+    const checkedBoxes = document.querySelectorAll(".invoice-chk:checked");
+    if(!checkedBoxes.length) {
+      alert("Vui lòng tích chọn ít nhất 1 hóa đơn rủi ro trong bảng kê để lập hồ sơ phòng vệ Briefcase!");
+      return;
+    }
+
+    const ids = Array.from(checkedBoxes).map(chk => chk.getAttribute("data-id"));
+    
+    // Request briefcase download
+    fetch("/api/compliance/defense-package", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ invoice_ids: ids })
+    })
+    .then(response => {
+      if(!response.ok) throw new Error("Tạo briefcase ZIP bị lỗi từ phía server");
+      return response.blob();
+    })
+    .then(blob => {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.style.display = "none";
+      a.href = url;
+      a.download = `defense_briefcase_${new Date().toISOString().slice(0,10)}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+    })
+    .catch(err => {
+      console.error("Briefcase download fail:", err);
+      alert("Lỗi tải xuống gói hồ sơ phòng vệ: " + err.message);
+    });
+  }
+</script>
+{% endblock %}

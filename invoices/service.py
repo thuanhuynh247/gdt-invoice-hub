@@ -156,8 +156,10 @@ def fetch_invoices(query: InvoiceQuery) -> list[dict]:
             pass
         if not jwt_token:
             jwt_token = current_app.config.get("CURRENT_JWT")
-        response = requests.get(
-            f'{current_app.config["GDT_BASE_URL"]}/api/query/invoices/{endpoint}',
+        from auth.gdt_client import gdt_request
+        response = gdt_request(
+            "GET",
+            f"api/query/invoices/{endpoint}",
             params={
                 "sort": "tdlap:desc",
                 "size": 100,
@@ -165,9 +167,7 @@ def fetch_invoices(query: InvoiceQuery) -> list[dict]:
             },
             headers={
                 "Authorization": f"Bearer {jwt_token}",
-                "Accept-Language": "vi",
             },
-            timeout=current_app.config["GDT_TIMEOUT_SECONDS"],
         )
         if response.status_code == 401 and attempt == 0:
             current_app.logger.warning("GDT session expired (401) in fetch_invoices. Attempting auto-refresh...")
@@ -197,7 +197,7 @@ def get_invoice_by_id(invoice_id: str) -> dict | None:
 
 
 def download_invoice_xml(invoice_id: str) -> bytes:
-    """Generate a simple XML payload for mock invoice downloads."""
+    """Download invoice XML. Returns bytes."""
     
     # Fast path: check if local XML file exists in data/invoices_xml
     local_xml_path = os.path.join(XML_DIR, f"invoice_{invoice_id}.xml")
@@ -205,89 +205,13 @@ def download_invoice_xml(invoice_id: str) -> bytes:
         with open(local_xml_path, "rb") as f:
             return f.read()
 
-        jwt_token = None
-        try:
-            from invoices.thread_local import get_current_thread_credentials
-            _, _, tl_jwt = get_current_thread_credentials()
-            jwt_token = tl_jwt
-        except ImportError:
-            pass
-        if not jwt_token:
-            jwt_token = current_app.config.get("CURRENT_JWT")
-
-        if not jwt_token:
-            from auth.service import auto_refresh_gdt_session
-            if auto_refresh_gdt_session():
-                try:
-                    from invoices.thread_local import get_current_thread_credentials
-                    _, _, tl_jwt = get_current_thread_credentials()
-                    jwt_token = tl_jwt
-                except ImportError:
-                    pass
-                if not jwt_token:
-                    jwt_token = current_app.config.get("CURRENT_JWT")
-            else:
-                raise GDTIntegrationNotReadyError("Chua co JWT dang nhap de tai XML.")
-
-        invoice = None
-        try:
-            from invoices.thread_local import get_current_thread_lookup
-            tl_lookup = get_current_thread_lookup()
-            if tl_lookup:
-                invoice = tl_lookup.get(invoice_id)
-        except ImportError:
-            pass
+    # If mock mode is enabled, generate mock XML
+    if current_app.config.get("GDT_USE_MOCK", False):
+        invoice = get_invoice_by_id(invoice_id)
         if not invoice:
-            invoice = current_app.config.get("CURRENT_INVOICE_LOOKUP", {}).get(invoice_id)
-        if not invoice:
-            raise FileNotFoundError("Khong tim thay hoa don trong phien hien tai de tai XML.")
-        raw_invoice = invoice.get("raw") or {}
-        if not raw_invoice.get("hsgoc"):
-            raise NotImplementedError("Hoa don nay khong co ho so goc de xuat XML.")
-        endpoint = "sco-query" if _is_cash_register_invoice(raw_invoice) else "query"
-        export_params = {
-            "nbmst": raw_invoice.get("nbmst"),
-            "khhdon": raw_invoice.get("khhdon"),
-            "shdon": raw_invoice.get("shdon"),
-            "khmshdon": raw_invoice.get("khmshdon"),
-        }
-        
-        attempts = 2
-        for attempt in range(attempts):
-            jwt_token = None
-            try:
-                from invoices.thread_local import get_current_thread_credentials
-                _, _, tl_jwt = get_current_thread_credentials()
-                jwt_token = tl_jwt
-            except ImportError:
-                pass
-            if not jwt_token:
-                jwt_token = current_app.config.get("CURRENT_JWT")
-            response = requests.get(
-                f'{current_app.config["GDT_BASE_URL"]}/api/{endpoint}/invoices/export-xml',
-                params=export_params,
-                headers={
-                    "Authorization": f"Bearer {jwt_token}",
-                    "Accept-Language": "vi",
-                },
-                timeout=current_app.config["GDT_TIMEOUT_SECONDS"],
-            )
-            if response.status_code == 401 and attempt == 0:
-                current_app.logger.warning("GDT session expired (401) in download_invoice_xml. Attempting auto-refresh...")
-                from auth.service import auto_refresh_gdt_session
-                if auto_refresh_gdt_session():
-                    continue  # Retry with new token
+            raise FileNotFoundError("Khong tim thay hoa don can tai.")
 
-            if response.status_code >= 400:
-                raise GDTIntegrationNotReadyError(_extract_live_error(response))
-            return response.content
-
-
-    invoice = get_invoice_by_id(invoice_id)
-    if not invoice:
-        raise FileNotFoundError("Khong tim thay hoa don can tai.")
-
-    xml = f"""<?xml version="1.0" encoding="UTF-8"?>
+        xml = f"""<?xml version="1.0" encoding="UTF-8"?>
 <invoice>
   <id>{invoice["id"]}</id>
   <date>{invoice["date"]}</date>
@@ -297,7 +221,85 @@ def download_invoice_xml(invoice_id: str) -> bytes:
   <description>{invoice["description"]}</description>
 </invoice>
 """
-    return xml.encode("utf-8")
+        return xml.encode("utf-8")
+
+    # Otherwise, download from GDT (Live mode)
+    jwt_token = None
+    try:
+        from invoices.thread_local import get_current_thread_credentials
+        _, _, tl_jwt = get_current_thread_credentials()
+        jwt_token = tl_jwt
+    except ImportError:
+        pass
+    if not jwt_token:
+        jwt_token = current_app.config.get("CURRENT_JWT")
+
+    if not jwt_token:
+        from auth.service import auto_refresh_gdt_session
+        if auto_refresh_gdt_session():
+            try:
+                from invoices.thread_local import get_current_thread_credentials
+                _, _, tl_jwt = get_current_thread_credentials()
+                jwt_token = tl_jwt
+            except ImportError:
+                pass
+            if not jwt_token:
+                jwt_token = current_app.config.get("CURRENT_JWT")
+        else:
+            raise GDTIntegrationNotReadyError("Chua co JWT dang nhap de tai XML.")
+
+    invoice = None
+    try:
+        from invoices.thread_local import get_current_thread_lookup
+        tl_lookup = get_current_thread_lookup()
+        if tl_lookup:
+            invoice = tl_lookup.get(invoice_id)
+    except ImportError:
+        pass
+    if not invoice:
+        invoice = current_app.config.get("CURRENT_INVOICE_LOOKUP", {}).get(invoice_id)
+    if not invoice:
+        raise FileNotFoundError("Khong tim thay hoa don trong phien hien tai de tai XML.")
+    raw_invoice = invoice.get("raw") or {}
+    if not raw_invoice.get("hsgoc"):
+        raise NotImplementedError("Hoa don nay khong co ho so goc de xuat XML.")
+    endpoint = "sco-query" if _is_cash_register_invoice(raw_invoice) else "query"
+    export_params = {
+        "nbmst": raw_invoice.get("nbmst"),
+        "khhdon": raw_invoice.get("khhdon"),
+        "shdon": raw_invoice.get("shdon"),
+        "khmshdon": raw_invoice.get("khmshdon"),
+    }
+    
+    attempts = 2
+    for attempt in range(attempts):
+        jwt_token = None
+        try:
+            from invoices.thread_local import get_current_thread_credentials
+            _, _, tl_jwt = get_current_thread_credentials()
+            jwt_token = tl_jwt
+        except ImportError:
+            pass
+        if not jwt_token:
+            jwt_token = current_app.config.get("CURRENT_JWT")
+        from auth.gdt_client import gdt_request
+        response = gdt_request(
+            "GET",
+            f"api/{endpoint}/invoices/export-xml",
+            params=export_params,
+            headers={
+                "Authorization": f"Bearer {jwt_token}",
+            },
+        )
+        if response.status_code == 401 and attempt == 0:
+            current_app.logger.warning("GDT session expired (401) in download_invoice_xml. Attempting auto-refresh...")
+            from auth.service import auto_refresh_gdt_session
+            if auto_refresh_gdt_session():
+                continue  # Retry with new token
+
+        if response.status_code >= 400:
+            raise GDTIntegrationNotReadyError(_extract_live_error(response))
+        return response.content
 
 
 def _build_search_string(query: InvoiceQuery) -> str:

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Non-Agricultural Land Use Tax Law 48/2010 - NALUT Hub (v59){% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
+        <div>
+            <span class="badge bg-warning text-dark mb-2">Version 59.0.0 Spec Compliance</span>
+            <h1 class="h2 fw-bold text-gradient mb-1">Non-Agricultural Land Use Tax Hub</h1>
+            <p class="text-muted mb-0">Manage NALUT (Thuế sử dụng đất phi nông nghiệp) under Law 48/2010/QH12.</p>
+        </div>
+        <div class="d-flex gap-2 mt-3 mt-md-0">
+            <button id="btn-refresh-v59" class="btn btn-warning text-dark d-flex align-items-center gap-2"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Load Data</button>
+            <span class="badge bg-warning-subtle text-warning border border-warning d-flex align-items-center px-3"><i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Law 48/2010</span>
+        </div>
+    </div>
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1"><i class="bi bi-calculator text-warning me-2" aria-hidden="true"></i>Interactive NALUT Calculator</h5>
+                    <p class="text-muted small mb-0">Select land type, enter appraised value, area, and quota for tiered calculation.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6"><label for="input-land-desc" class="form-label small mb-1">Land Description:</label><input type="text" id="input-land-desc" class="form-control form-control-sm" value="Nhà ở Q.1 TP.HCM" autocomplete="off"></div>
+                        <div class="col-md-6"><label for="input-land-type" class="form-label small mb-1">Land Type:</label><select id="input-land-type" class="form-select form-select-sm"><option value="residential">Residential (Đất ở)</option><option value="commercial">Commercial (Thương mại)</option><option value="production">Production (Sản xuất)</option><option value="idle">Idle/Unused (Đất trống)</option></select></div>
+                        <div class="col-md-6"><label for="input-land-value" class="form-label small mb-1">Land Value (VND):</label><input type="number" id="input-land-value" class="form-control form-control-sm" value="10000000000" autocomplete="off"></div>
+                        <div class="col-md-3"><label for="input-land-area" class="form-label small mb-1">Area (m²):</label><input type="number" id="input-land-area" class="form-control form-control-sm" value="200" autocomplete="off"></div>
+                        <div class="col-md-3"><label for="input-quota" class="form-label small mb-1">Quota (m²):</label><input type="number" id="input-quota" class="form-control form-control-sm" value="200" autocomplete="off"></div>
+                        <div class="col-md-4"><label for="input-idle-years" class="form-label small mb-1">Idle Years:</label><input type="number" id="input-idle-years" class="form-control form-control-sm" value="0" autocomplete="off"></div>
+                        <div class="col-md-4 d-flex align-items-center"><div class="form-check form-switch mt-2"><input class="form-check-input" type="checkbox" id="check-welfare"><label class="form-check-label small" for="check-welfare">Public Welfare?</label></div></div>
+                        <div class="col-md-4 d-flex align-items-center"><div class="form-check form-switch mt-2"><input class="form-check-input" type="checkbox" id="check-religious"><label class="form-check-label small" for="check-religious">Religious?</label></div></div>
+                        <div class="col-md-6 d-flex align-items-center"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="check-diplo"><label class="form-check-label small" for="check-diplo">Diplomatic?</label></div></div>
+                        <div class="col-md-6 text-end"><button id="btn-calc-nalut" class="btn btn-warning btn-sm text-dark fw-bold"><i class="bi bi-play-fill me-1" aria-hidden="true"></i> Run Calculation</button></div>
+                    </div>
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
+                        <h6 class="fw-bold mb-2 text-warning"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Calculation Result</h6>
+                        <div class="d-flex justify-content-between small mb-1"><span>Rate:</span><span id="res-rate" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Tax Amount:</span><span id="res-tax" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Effective:</span><span id="res-effective" class="fw-bold text-warning fs-6">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Exempt:</span><span id="res-exempt" class="fw-bold">-</span></div>
+                        <div class="small text-muted border-top pt-2 mt-2"><strong>Note:</strong> <span id="res-notes">Awaiting…</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0"><h5 class="fw-bold mb-1"><i class="bi bi-shield-check text-info me-2" aria-hidden="true"></i>NALUT Baseline Verification</h5></div>
+                <div class="card-body d-flex flex-column gap-3">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle"><div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Residential ≤ Quota (0.03%)</span><span class="badge bg-secondary">Tier 1</span></div><p class="small text-muted mb-2">200m² within 200m² quota.</p><div class="d-flex justify-content-between small"><span>Value: <strong id="base1-val">-</strong></span><span>Tax: <strong id="base1-tax" class="text-warning">-</strong></span></div></div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle"><div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Residential &gt;3x Quota (Tiered)</span><span class="badge bg-danger">Multi-tier</span></div><p class="small text-muted mb-2">800m² with 200m² quota - progressive.</p><div class="d-flex justify-content-between small"><span>Value: <strong id="base2-val">-</strong></span><span>Tax: <strong id="base2-tax" class="text-warning">-</strong></span></div></div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle"><div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Idle Land 5 Years Surcharge</span><span class="badge bg-warning text-dark">Surcharge</span></div><p class="small text-muted mb-2">Unused land with idle surcharge.</p><div class="d-flex justify-content-between small"><span>Value: <strong id="base3-val">-</strong></span><span>Tax: <strong id="base3-tax" class="text-warning">-</strong></span></div></div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle"><div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Religious Land Exempt</span><span class="badge bg-success">Exempt</span></div><p class="small text-muted mb-2">Pagoda land - fully exempt.</p><div class="d-flex justify-content-between small"><span>Value: <strong id="base4-val">-</strong></span><span>Reason: <strong id="base4-reason" class="text-success">-</strong></span></div></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-12">
+            <div class="card shadow-sm border-light">
+                <div class="card-header bg-dark text-white py-3 d-flex align-items-center justify-content-between"><h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-warning me-2" aria-hidden="true"></i>Multi-Agent NALUT Advisory Debate</h5><span class="badge bg-secondary">Land Tax Consensus</span></div>
+                <div class="card-body"><div id="debate-container-v59" class="mb-3 d-flex flex-column gap-3"></div><div class="p-3 bg-premium-light rounded border border-light-subtle"><h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus:</h6><p id="consensus-text-v59" class="text-muted small mb-0">Awaiting…</p></div></div>
+            </div>
+        </div>
+        <div class="col-lg-12">
+            <div class="card shadow-sm border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-2"><h5 class="fw-bold mb-1"><i class="bi bi-clock-history text-muted me-2" aria-hidden="true"></i>Historical Audit Log</h5></div>
+                <div class="card-body p-0"><div class="table-responsive"><table class="table table-hover table-striped mb-0 small"><thead class="table-dark"><tr><th>ID</th><th>Land</th><th>Type</th><th>Value</th><th>Area</th><th>Rate</th><th>Tax</th><th>Status</th><th>Exemption</th><th>Time</th></tr></thead><tbody id="history-table-v59"><tr><td colspan="10" class="text-center text-muted py-4">No logs.</td></tr></tbody></table></div></div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+document.addEventListener("DOMContentLoaded",()=>{const f=n=>new Intl.NumberFormat("vi-VN").format(n)+" VND";const load=()=>{fetch('/api/v59/compliance-data').then(r=>r.json()).then(d=>{if(d.status==="success"){rB(d);rD(d.debate,d.consensus_summary);rH(d.history)}}).catch(e=>console.error(e))};const calc=()=>{const p={land_description:document.getElementById("input-land-desc").value,land_type:document.getElementById("input-land-type").value,land_value:parseFloat(document.getElementById("input-land-value").value),land_area:parseFloat(document.getElementById("input-land-area").value),quota_area:parseFloat(document.getElementById("input-quota").value),idle_years:parseInt(document.getElementById("input-idle-years").value),is_public_welfare:document.getElementById("check-welfare").checked,is_religious:document.getElementById("check-religious").checked,is_diplomatic:document.getElementById("check-diplo").checked};fetch('/api/v59/calculate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)}).then(r=>r.json()).then(d=>{if(d.status==="success"){rR(d.results);load()}else alert(d.error)}).catch(e=>console.error(e))};const rR=r=>{document.getElementById("res-rate").textContent=r.rate_pct+"%";document.getElementById("res-tax").textContent=f(r.tax_amount);document.getElementById("res-effective").textContent=f(r.effective_amount);document.getElementById("res-exempt").innerHTML=r.is_exempt?'<span class="badge bg-success">Exempt</span>':'<span class="badge bg-danger">Taxable</span>';document.getElementById("res-notes").textContent=r.notes||"-"};const rB=d=>{document.getElementById("base1-val").textContent=f(d.residential_within.land_value);document.getElementById("base1-tax").textContent=f(d.residential_within.effective_amount);document.getElementById("base2-val").textContent=f(d.residential_exceed.land_value);document.getElementById("base2-tax").textContent=f(d.residential_exceed.effective_amount);document.getElementById("base3-val").textContent=f(d.idle_land.land_value);document.getElementById("base3-tax").textContent=f(d.idle_land.effective_amount);document.getElementById("base4-val").textContent=f(d.religious_exempt.land_value);document.getElementById("base4-reason").textContent=d.religious_exempt.exemption_reason};const rD=(debate,summary)=>{const c=document.getElementById("debate-container-v59");c.innerHTML="";const cl={"Land Use Tax Auditor":"bg-warning text-dark","Municipal Planning Inspector":"bg-success text-white","Property Rights Legal Counsel":"bg-info text-dark"};debate.forEach(m=>{const div=document.createElement("div");div.className="d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";div.innerHTML=`<span class="badge ${cl[m.speaker]||"bg-secondary"} py-2 px-3" style="min-width:200px">${m.speaker}</span><div class="text-dark small">${m.text}</div>`;c.appendChild(div)});document.getElementById("consensus-text-v59").textContent=summary};const rH=h=>{const tb=document.getElementById("history-table-v59");if(!h||!h.length){tb.innerHTML='<tr><td colspan="10" class="text-center text-muted py-4">No logs.</td></tr>';return}tb.innerHTML="";h.forEach(l=>{const tr=document.createElement("tr");tr.innerHTML=`<td>${l.id}</td><td class="fw-bold">${l.land_description}</td><td><span class="badge bg-secondary">${l.land_type.toUpperCase()}</span></td><td>${f(l.land_value)}</td><td>${l.land_area} m²</td><td>${l.rate_pct}%</td><td class="fw-bold text-dark">${f(l.tax_amount)}</td><td>${l.is_exempt?'<span class="badge bg-success">Exempt</span>':'<span class="badge bg-danger">Taxable</span>'}</td><td class="text-muted small">${l.exemption_reason||"-"}</td><td class="text-muted">${l.created_at}</td>`;tb.appendChild(tr)})};document.getElementById("btn-calc-nalut").addEventListener("click",calc);document.getElementById("btn-refresh-v59").addEventListener("click",load);load()});
+</script>
+{% endblock %}

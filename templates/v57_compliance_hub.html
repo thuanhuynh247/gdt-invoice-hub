@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Registration Fee Decree 10/2022 - RF Hub (v57){% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
+        <div>
+            <span class="badge bg-primary mb-2">Version 57.0.0 Spec Compliance</span>
+            <h1 class="h2 fw-bold text-gradient mb-1">Registration Fee Compliance Hub</h1>
+            <p class="text-muted mb-0">Manage Registration Fees (Lệ phí trước bạ) under Decree 10/2022/NĐ-CP.</p>
+        </div>
+        <div class="d-flex gap-2 mt-3 mt-md-0">
+            <button id="btn-refresh-v57" class="btn btn-primary text-white d-flex align-items-center gap-2"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Load Data</button>
+            <span class="badge bg-primary-subtle text-primary border border-primary d-flex align-items-center px-3"><i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Decree 10/2022</span>
+        </div>
+    </div>
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1"><i class="bi bi-calculator text-primary me-2" aria-hidden="true"></i>Interactive RF Calculator</h5>
+                    <p class="text-muted small mb-0">Select asset type, enter value, specify province.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6"><label for="input-asset-desc" class="form-label small mb-1">Asset Description:</label><input type="text" id="input-asset-desc" class="form-control form-control-sm" value="Căn hộ Vinhomes" autocomplete="off"></div>
+                        <div class="col-md-6"><label for="input-asset-type" class="form-label small mb-1">Asset Type:</label><select id="input-asset-type" class="form-select form-select-sm"><option value="real_estate">Real Estate (Nhà đất)</option><option value="car">Car (Ô tô)</option><option value="motorbike">Motorbike (Xe máy)</option><option value="yacht">Yacht (Tàu thuyền)</option><option value="aircraft">Aircraft (Máy bay)</option></select></div>
+                        <div class="col-md-6"><label for="input-asset-value" class="form-label small mb-1">Asset Value (VND):</label><input type="number" id="input-asset-value" class="form-control form-control-sm" value="5000000000" autocomplete="off"><span class="text-muted" style="font-size:.72rem">GDT-appraised or declared value</span></div>
+                        <div class="col-md-6"><label for="input-province" class="form-label small mb-1">Province:</label><select id="input-province" class="form-select form-select-sm"><option value="standard">Standard Province</option><option value="hanoi">Hà Nội (12% car)</option><option value="hcmc">TP. HCM (12% car)</option></select></div>
+                        <div class="col-md-4"><label for="input-cylinder" class="form-label small mb-1">Cylinder (cc):</label><input type="number" id="input-cylinder" class="form-control form-control-sm" value="0" autocomplete="off"></div>
+                        <div class="col-md-4 d-flex align-items-center"><div class="form-check form-switch mt-2"><input class="form-check-input" type="checkbox" id="check-first-reg" checked><label class="form-check-label small" for="check-first-reg">First Reg?</label></div></div>
+                        <div class="col-md-4 d-flex align-items-center"><div class="form-check form-switch mt-2"><input class="form-check-input" type="checkbox" id="check-agri-land"><label class="form-check-label small" for="check-agri-land">Agri Land?</label></div></div>
+                        <div class="col-md-4 d-flex align-items-center"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="check-diplomatic"><label class="form-check-label small" for="check-diplomatic">Diplomatic?</label></div></div>
+                        <div class="col-md-4 d-flex align-items-center"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="check-merit-housing"><label class="form-check-label small" for="check-merit-housing">Merit Housing?</label></div></div>
+                        <div class="col-md-4 d-flex align-items-center"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="check-family-transfer"><label class="form-check-label small" for="check-family-transfer">Family Transfer?</label></div></div>
+                        <div class="col-12 text-end"><button id="btn-calculate-rf" class="btn btn-primary btn-sm text-white fw-bold"><i class="bi bi-play-fill me-1" aria-hidden="true"></i> Run Calculation</button></div>
+                    </div>
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
+                        <h6 class="fw-bold mb-2 text-primary"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Calculation Result</h6>
+                        <div class="d-flex justify-content-between small mb-1"><span>Applied Rate:</span><span id="res-rate" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Base Fee:</span><span id="res-base-fee" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Effective Fee:</span><span id="res-effective-fee" class="fw-bold text-primary fs-6">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Exempt:</span><span id="res-is-exempt" class="fw-bold">-</span></div>
+                        <div class="small text-muted border-top pt-2 mt-2"><strong>Note:</strong> <span id="res-notes">Awaiting entry…</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0"><h5 class="fw-bold mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>RF Baseline Verification</h5><p class="text-muted small mb-0">Pre-computed verification ledgers.</p></div>
+                <div class="card-body d-flex flex-column gap-3">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle"><div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Apartment (0.5%)</span><span class="badge bg-secondary">0.5%</span></div><p class="small text-muted mb-2">5 billion VND apartment.</p><div class="d-flex justify-content-between small"><span>Value: <strong id="base1-value">-</strong></span><span>Fee: <strong id="base1-fee" class="text-primary">-</strong></span></div></div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle"><div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Car Hanoi (12%)</span><span class="badge bg-danger">12%</span></div><p class="small text-muted mb-2">Luxury sedan first-time in Hanoi.</p><div class="d-flex justify-content-between small"><span>Value: <strong id="base2-value">-</strong></span><span>Fee: <strong id="base2-fee" class="text-primary">-</strong></span></div></div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle"><div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Diplomatic Exempt</span><span class="badge bg-success">Exempt</span></div><p class="small text-muted mb-2">Embassy vehicle - fully exempt.</p><div class="d-flex justify-content-between small"><span>Value: <strong id="base3-value">-</strong></span><span>Reason: <strong id="base3-reason" class="text-success">-</strong></span></div></div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle"><div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Motorbike &gt;175cc (5%)</span><span class="badge bg-secondary">5%</span></div><p class="small text-muted mb-2">Large motorcycle registration.</p><div class="d-flex justify-content-between small"><span>Value: <strong id="base4-value">-</strong></span><span>Fee: <strong id="base4-fee" class="text-primary">-</strong></span></div></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-12">
+            <div class="card shadow-sm border-light">
+                <div class="card-header bg-dark text-white py-3 d-flex align-items-center justify-content-between"><h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-primary me-2" aria-hidden="true"></i>Multi-Agent RF Advisory Debate</h5><span class="badge bg-secondary">Registration Consensus</span></div>
+                <div class="card-body"><div id="debate-container-v57" class="mb-3 d-flex flex-column gap-3"></div><div class="p-3 bg-premium-light rounded border border-light-subtle"><h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus:</h6><p id="consensus-text-v57" class="text-muted small mb-0">Awaiting…</p></div></div>
+            </div>
+        </div>
+        <div class="col-lg-12">
+            <div class="card shadow-sm border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-2"><h5 class="fw-bold mb-1"><i class="bi bi-clock-history text-muted me-2" aria-hidden="true"></i>Historical Audit Log</h5></div>
+                <div class="card-body p-0"><div class="table-responsive"><table class="table table-hover table-striped mb-0 small"><thead class="table-dark"><tr><th>ID</th><th>Asset</th><th>Type</th><th>Value</th><th>Province</th><th>Rate</th><th>Fee</th><th>Status</th><th>Exemption</th><th>Time</th></tr></thead><tbody id="history-table-v57"><tr><td colspan="10" class="text-center text-muted py-4">No logs. Run calculator.</td></tr></tbody></table></div></div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+document.addEventListener("DOMContentLoaded",()=>{const f=n=>new Intl.NumberFormat("vi-VN").format(n)+" VND";const load=()=>{fetch('/api/v57/compliance-data').then(r=>r.json()).then(d=>{if(d.status==="success"){rB(d);rD(d.debate,d.consensus_summary);rH(d.history)}}).catch(e=>console.error(e))};const calc=()=>{const p={asset_description:document.getElementById("input-asset-desc").value,asset_type:document.getElementById("input-asset-type").value,asset_value:parseFloat(document.getElementById("input-asset-value").value),province:document.getElementById("input-province").value,is_first_registration:document.getElementById("check-first-reg").checked,cylinder_capacity:parseFloat(document.getElementById("input-cylinder").value),is_agricultural_land:document.getElementById("check-agri-land").checked,is_diplomatic:document.getElementById("check-diplomatic").checked,is_merit_family_housing:document.getElementById("check-merit-housing").checked,is_family_agri_transfer:document.getElementById("check-family-transfer").checked};fetch('/api/v57/calculate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)}).then(r=>r.json()).then(d=>{if(d.status==="success"){rR(d.results);load()}else alert(d.error)}).catch(e=>console.error(e))};const rR=r=>{document.getElementById("res-rate").textContent=r.rate_pct+"%";document.getElementById("res-base-fee").textContent=f(r.registration_fee);document.getElementById("res-effective-fee").textContent=f(r.effective_fee);document.getElementById("res-is-exempt").innerHTML=r.is_exempt?'<span class="badge bg-success">Exempt</span>':'<span class="badge bg-danger">Taxable</span>';document.getElementById("res-notes").textContent=r.notes||"-"};const rB=d=>{document.getElementById("base1-value").textContent=f(d.real_estate_apt.asset_value);document.getElementById("base1-fee").textContent=f(d.real_estate_apt.effective_fee);document.getElementById("base2-value").textContent=f(d.car_hanoi.asset_value);document.getElementById("base2-fee").textContent=f(d.car_hanoi.effective_fee);document.getElementById("base3-value").textContent=f(d.diplomatic_exempt.asset_value);document.getElementById("base3-reason").textContent=d.diplomatic_exempt.exemption_reason;document.getElementById("base4-value").textContent=f(d.motorbike_large.asset_value);document.getElementById("base4-fee").textContent=f(d.motorbike_large.effective_fee)};const rD=(debate,summary)=>{const c=document.getElementById("debate-container-v57");c.innerHTML="";const cl={"Property Registration Auditor":"bg-primary text-white","Vehicle Tax Inspector":"bg-success text-white","Land Use Rights Legal Counsel":"bg-info text-dark"};debate.forEach(m=>{const div=document.createElement("div");div.className="d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";div.innerHTML=`<span class="badge ${cl[m.speaker]||"bg-secondary"} py-2 px-3" style="min-width:200px">${m.speaker}</span><div class="text-dark small">${m.text}</div>`;c.appendChild(div)});document.getElementById("consensus-text-v57").textContent=summary};const rH=h=>{const tb=document.getElementById("history-table-v57");if(!h||!h.length){tb.innerHTML='<tr><td colspan="10" class="text-center text-muted py-4">No logs.</td></tr>';return}tb.innerHTML="";h.forEach(l=>{const tr=document.createElement("tr");tr.innerHTML=`<td>${l.id}</td><td class="fw-bold">${l.asset_description}</td><td><span class="badge bg-secondary">${l.asset_type.toUpperCase()}</span></td><td>${f(l.asset_value)}</td><td>${l.province}</td><td>${l.rate_pct}%</td><td class="fw-bold text-dark">${f(l.registration_fee)}</td><td>${l.is_exempt?'<span class="badge bg-success">Exempt</span>':'<span class="badge bg-danger">Taxable</span>'}</td><td class="text-muted small">${l.exemption_reason||"-"}</td><td class="text-muted">${l.created_at}</td>`;tb.appendChild(tr)})};document.getElementById("btn-calculate-rf").addEventListener("click",calc);document.getElementById("btn-refresh-v57").addEventListener("click",load);load()});
+</script>
+{% endblock %}

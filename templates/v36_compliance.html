@@ -1,0 +1,687 @@
+{% extends "base.html" %}
+{% block title %}V36 - Quyết Toán Thuế TNDN Hàng Năm & Tối Ưu Hóa Chuyển Lỗ{% endblock %}
+{% block content %}
+<style>
+  :root {
+    --glass-bg: rgba(255, 255, 255, 0.45);
+    --glass-border: rgba(255, 255, 255, 0.25);
+    --neon-green: #00e676;
+    --neon-orange: #ff9100;
+    --neon-red: #ff3d00;
+    --neon-blue: #2979ff;
+    --text-primary: #1e293b;
+    --text-muted: #64748b;
+  }
+  
+  [data-bs-theme="dark"] {
+    --glass-bg: rgba(15, 23, 42, 0.65);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --text-primary: #f8fafc;
+    --text-muted: #94a3b8;
+  }
+
+  /* Glassmorphism Cards */
+  .glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .glass-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.12);
+  }
+
+  /* Progress Gauge */
+  .gauge-circle {
+    transition: stroke-dashoffset 0.8s ease-in-out;
+  }
+
+  /* Interactive Nodes style */
+  .node-link {
+    stroke-dasharray: 4;
+    animation: dash 10s linear infinite;
+  }
+
+  @keyframes dash {
+    to {
+      stroke-dashoffset: -100;
+    }
+  }
+
+  /* Swarm chat styles */
+  .chat-bubble {
+    border-radius: 14px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    max-width: 85%;
+    position: relative;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    animation: slideUp 0.4s ease-out;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .glow-red { text-shadow: 0 0 10px rgba(255, 61, 0, 0.4); }
+  .glow-orange { text-shadow: 0 0 10px rgba(255, 145, 0, 0.4); }
+  .glow-green { text-shadow: 0 0 10px rgba(0, 230, 118, 0.4); }
+</style>
+
+<div class="container-fluid px-4 py-4" style="background: radial-gradient(circle at 10% 20%, rgba(98, 114, 246, 0.03) 0%, rgba(204, 212, 250, 0.01) 90%); min-height: 100vh;">
+  
+  <!-- Header Section -->
+  <div class="d-flex align-items-center justify-content-between mb-4 glass-card p-4">
+    <div>
+      <h2 class="fw-bold mb-1 d-flex align-items-center" style="letter-spacing:-0.5px">
+        <span class="p-2 bg-primary bg-opacity-10 text-primary rounded-3 me-3">
+          <i class="bi bi-file-earmark-spreadsheet" aria-hidden="true"></i>
+        </span>
+        Quyết Toán Thuế TNDN Hàng Năm & Tối Ưu Hóa Chuyển Lỗ V36
+      </h2>
+      <p class="text-secondary mb-0">Hệ thống tự động hóa Phụ lục 03-1A, 03-2A, tối ưu hóa phân bổ lỗ liên tục 5 năm và xuất tờ khai XML GDT.</p>
+    </div>
+    <div>
+      <span class="badge bg-primary bg-opacity-25 text-primary px-3 py-2 fs-6 rounded-pill">CIT Finalization V36.0.0</span>
+    </div>
+  </div>
+
+  <!-- Row 1: KPI Overview Cards -->
+  <div class="row g-4 mb-4">
+    <div class="col-lg-3 col-md-6">
+      <div class="glass-card p-3 h-100 d-flex align-items-center justify-content-between">
+        <div>
+          <span class="small text-muted d-block">Thuế TNDN Phải Nộp</span>
+          <h3 class="fw-bold text-danger mt-1 mb-0" id="txtCitLiability">-</h3>
+          <span class="text-secondary small">Thuế suất chuẩn: 20%</span>
+        </div>
+        <div class="p-3 bg-danger bg-opacity-10 text-danger rounded-circle">
+          <i class="bi bi-cash-coin fs-4" aria-hidden="true"></i>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+      <div class="glass-card p-3 h-100 d-flex align-items-center justify-content-between">
+        <div>
+          <span class="small text-muted d-block">Thu Nhập Tính Thuế (B14)</span>
+          <h3 class="fw-bold text-primary mt-1 mb-0" id="txtTaxableIncome">-</h3>
+          <span class="text-secondary small" id="txtAccountingProfit">Lợi nhuận KT: -</span>
+        </div>
+        <div class="p-3 bg-primary bg-opacity-10 text-primary rounded-circle">
+          <i class="bi bi-bank fs-4" aria-hidden="true"></i>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+      <div class="glass-card p-3 h-100 d-flex align-items-center justify-content-between">
+        <div>
+          <span class="small text-muted d-block">Số Lỗ Khấu Trừ Kỳ Này (C3a)</span>
+          <h3 class="fw-bold text-success mt-1 mb-0" id="txtAppliedLoss">-</h3>
+          <span class="text-secondary small" id="txtPriorLossesTotal">Tổng lỗ lũy kế: -</span>
+        </div>
+        <div class="p-3 bg-success bg-opacity-10 text-success rounded-circle">
+          <i class="bi bi-arrow-down-left-square fs-4" aria-hidden="true"></i>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+      <div class="glass-card p-3 h-100 d-flex align-items-center justify-content-between">
+        <div>
+          <span class="small text-muted d-block">Số Thuế Tiết Kiệm (NPV)</span>
+          <h3 class="fw-bold text-info mt-1 mb-0" id="txtTaxSavings">-</h3>
+          <span class="text-secondary small" id="txtOptimizationStatus">Tối ưu hóa thành công</span>
+        </div>
+        <div class="p-3 bg-info bg-opacity-10 text-info rounded-circle">
+          <i class="bi bi-shield-check fs-4" aria-hidden="true"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls Panel & Simulator Layout -->
+  <div class="row g-4 mb-4">
+    <!-- Left: Inputs Panel -->
+    <div class="col-lg-4">
+      <div class="glass-card p-4 h-100 d-flex flex-column justify-content-between">
+        <div>
+          <h5 class="fw-bold mb-3 d-flex align-items-center">
+            <i class="bi bi-sliders me-2 text-primary" aria-hidden="true"></i>Thông số quyết toán & ưu đãi
+          </h5>
+          
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label small fw-semibold">Doanh Thu (Revenue)</label>
+              <input type="number" class="form-control form-control-sm" id="numRevenue" value="1000000000" oninput="runCITCalculation()" autocomplete="off" aria-label="Numrevenue">
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-semibold">Giá Vốn (COGS)</label>
+              <input type="number" class="form-control form-control-sm" id="numCogs" value="600000000" oninput="runCITCalculation()" autocomplete="off" aria-label="Numcogs">
+            </div>
+          </div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label small fw-semibold">CP Bán Hàng (Selling)</label>
+              <input type="number" class="form-control form-control-sm" id="numSelling" value="150000000" oninput="runCITCalculation()" autocomplete="off" aria-label="Numselling">
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-semibold">CP QL Doanh Nghiệp</label>
+              <input type="number" class="form-control form-control-sm" id="numAdmin" value="100000000" oninput="runCITCalculation()" autocomplete="off" aria-label="Numadmin">
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">CP Không Được Trừ (B4)</label>
+            <input type="number" class="form-control form-control-sm" id="numNonDeductible" value="80000000" oninput="runCITCalculation()" autocomplete="off" aria-label="Numnondeductible">
+            <span class="text-muted" style="font-size:0.7rem;">Các khoản chi phí bị loại trừ tăng thu nhập tính thuế.</span>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Ưu Đãi Thuế TNDN (Tax Holiday)</label>
+            <select class="form-select form-select-sm" id="selHoliday" onchange="runCITCalculation()" style="border-radius:10px;">
+              <option value="none">Không có ưu đãi (Thuế 20%)</option>
+              <option value="exemption">Miễn Thuế 100% (Thuế 0%)</option>
+              <option value="reduction50" selected>Giảm 50% Thuế (Thuế 10%)</option>
+            </select>
+          </div>
+
+          <h6 class="fw-bold mt-4 mb-2 small text-secondary">SỐ LỖ PHÁT SINH CÁC NĂM TRƯỚC (N-5 đến N-1)</h6>
+          <div class="row g-2">
+            <div class="col-4">
+              <label class="form-label small fw-semibold" style="font-size:0.7rem">N-5 (2021)</label>
+              <input type="number" class="form-control form-control-sm" id="loss2021" value="120000000" autocomplete="off" aria-label="Loss2021">
+            </div>
+            <div class="col-4">
+              <label class="form-label small fw-semibold" style="font-size:0.7rem">N-4 (2022)</label>
+              <input type="number" class="form-control form-control-sm" id="loss2022" value="80000000" autocomplete="off" aria-label="Loss2022">
+            </div>
+            <div class="col-4">
+              <label class="form-label small fw-semibold" style="font-size:0.7rem">N-3 (2023)</label>
+              <input type="number" class="form-control form-control-sm" id="loss2023" value="150000000" autocomplete="off" aria-label="Loss2023">
+            </div>
+          </div>
+          <div class="row g-2 mt-1">
+            <div class="col-6">
+              <label class="form-label small fw-semibold" style="font-size:0.7rem">N-2 (2024)</label>
+              <input type="number" class="form-control form-control-sm" id="loss2024" value="0" autocomplete="off" aria-label="Loss2024">
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-semibold" style="font-size:0.7rem">N-1 (2025)</label>
+              <input type="number" class="form-control form-control-sm" id="loss2025" value="60000000" autocomplete="off" aria-label="Loss2025">
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <button class="btn btn-primary w-100 py-2.5 rounded-pill mb-2" onclick="optimizeLossOffset()">
+            <i class="bi bi-cpu-fill me-2" aria-hidden="true"></i>AI Tối Ưu Hóa Chuyển Lỗ
+          </button>
+          <button class="btn btn-outline-secondary w-100 py-2 rounded-pill" onclick="resetCITInputs()">
+            <i class="bi-arrow-clockwise me-2" aria-hidden="true"></i>Tải Lại Số Liệu Gốc
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Interactive SVG Tax Flow & Loss absorption Map -->
+    <div class="col-lg-8">
+      <div class="glass-card p-4 h-100">
+        <h5 class="fw-bold mb-3 d-flex align-items-center justify-content-between">
+          <span><i class="bi bi-diagram-3 me-2 text-success" aria-hidden="true"></i>Bản đồ Dòng Thuế & Khấu trừ Lỗ TNDN (US-483)</span>
+          <span class="badge bg-success bg-opacity-15 text-success rounded-pill px-3 py-1 text-uppercase" style="font-size: 0.7rem">Realtime SVG Flow</span>
+        </h5>
+        
+        <!-- Live SVG Render Container -->
+        <div class="border border-opacity-10 border-light rounded-3 bg-dark bg-opacity-25 p-2" style="min-height: 250px;">
+          <svg id="taxFlowSvg" viewBox="0 0 800 240" width="100%" height="240" style="background: transparent;">
+            <!-- Definitions for gradients/arrows -->
+            <defs>
+              <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--glass-border)" />
+              </marker>
+              <linearGradient id="flowGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#3b82f6" />
+                <stop offset="100%" stop-color="#10b981" />
+              </linearGradient>
+            </defs>
+
+            <!-- Lines / Paths -->
+            <path d="M 100 120 L 250 120" stroke="url(#flowGrad)" stroke-width="3" class="node-link" fill="none" />
+            <path d="M 370 120 L 520 120" stroke="#f59e0b" stroke-width="2" class="node-link" fill="none" />
+            <path d="M 640 120 L 710 120" stroke="#ef4444" stroke-width="2" class="node-link" fill="none" />
+
+            <!-- Node 1: Gross Accounting Profit -->
+            <g transform="translate(10, 80)">
+              <rect width="110" height="80" rx="12" fill="rgba(59, 130, 246, 0.15)" stroke="#3b82f6" stroke-width="1.5" />
+              <text x="55" y="30" fill="var(--text-primary)" text-anchor="middle" font-size="12" font-weight="bold">Lợi Nhuận KT</text>
+              <text x="55" y="52" id="flowAccountingProfit" fill="var(--text-primary)" text-anchor="middle" font-size="12" font-weight="bold">0đ</text>
+            </g>
+
+            <!-- Node 2: Rules Filter Engine -->
+            <g transform="translate(250, 70)">
+              <rect width="130" height="100" rx="12" fill="rgba(16, 185, 129, 0.15)" stroke="#10b981" stroke-width="1.5" />
+              <text x="65" y="30" fill="var(--text-primary)" text-anchor="middle" font-size="12" font-weight="bold">B4: CP Không Được Trừ</text>
+              <text x="65" y="52" id="flowNonDeductible" fill="#10b981" text-anchor="middle" font-size="12" font-weight="bold">+0đ</text>
+              <text x="65" y="74" id="flowTaxableBeforeLoss" fill="#ff9100" text-anchor="middle" font-size="10" font-weight="bold">Thu nhập tr. chuyển lỗ: 0đ</text>
+            </g>
+
+            <!-- Node 3: Loss Offset Engine -->
+            <g transform="translate(510, 80)">
+              <rect width="130" height="80" rx="12" fill="rgba(245, 158, 11, 0.15)" stroke="#f59e0b" stroke-width="1.5" />
+              <text x="65" y="30" fill="var(--text-primary)" text-anchor="middle" font-size="11" font-weight="bold">Chuyển Lỗ Khấu Trừ</text>
+              <text x="65" y="52" id="flowAppliedLoss" fill="#f59e0b" text-anchor="middle" font-size="12" font-weight="bold">-0đ</text>
+            </g>
+
+            <!-- Node 4: Final CIT due -->
+            <g transform="translate(680, 80)">
+              <rect width="110" height="80" rx="12" fill="rgba(239, 68, 68, 0.15)" stroke="#ef4444" stroke-width="1.5" />
+              <text x="55" y="30" fill="var(--text-primary)" text-anchor="middle" font-size="11" font-weight="bold">Thuế TNDN Phải Nộp</text>
+              <text x="55" y="52" id="flowCitLiability" fill="#ef4444" text-anchor="middle" font-size="12" font-weight="bold">0đ</text>
+            </g>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 3: Loss Carry-Forward Ledger (Phụ lục 03-2A) -->
+  <div class="glass-card p-4 mb-4">
+    <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+      <div>
+        <h5 class="fw-bold mb-1"><i class="bi bi-table text-primary me-2" aria-hidden="true"></i>Bảng Kê Chuyển Lỗ Thuế TNDN (Phụ lục 03-2A)</h5>
+        <p class="text-muted small mb-0">Hiển thị lịch trình chuyển lỗ theo thứ tự phát sinh và hạn định 5 năm liên tục.</p>
+      </div>
+      <div class="d-flex gap-2">
+        <button class="btn btn-success rounded-pill btn-sm px-4" onclick="exportCITXml()">
+          <i class="bi bi-file-earmark-xml-fill me-2" aria-hidden="true"></i>Xuất Tờ Khai XML GDT Mẫu 03/TNDN
+        </button>
+      </div>
+    </div>
+
+    <!-- Loss Matrix Table -->
+    <div class="table-responsive rounded-3 border border-opacity-10 border-light">
+      <table class="table table-hover align-middle mb-0" id="tblLosses">
+        <thead class="table-light">
+          <tr>
+            <th scope="col">Năm phát sinh lỗ</th>
+            <th scope="col" class="text-end">Số lỗ phát sinh</th>
+            <th scope="col" class="text-end">Số lỗ đã chuyển các kỳ trước</th>
+            <th scope="col" class="text-end">Số lỗ chuyển trong kỳ này</th>
+            <th scope="col" class="text-end">Số lỗ hết hạn chuyển</th>
+            <th scope="col" class="text-end">Số lỗ còn được chuyển kỳ sau</th>
+          </tr>
+        </thead>
+        <tbody id="tblLossesBody">
+          <tr>
+            <td colspan="6" class="text-center py-4 text-secondary">
+              Chưa khởi chạy tối ưu hoá. Vui lòng bấm "AI Tối Ưu Hóa Chuyển Lỗ" để tính toán.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Row 4: Swarm Dialogue Panel -->
+  <div class="glass-card p-4 mb-4">
+    <div class="row g-4">
+      <div class="col-lg-7">
+        <h5 class="fw-bold mb-3 d-flex align-items-center justify-content-between">
+          <span><i class="bi bi-chat-left-dots text-warning me-2" aria-hidden="true"></i>Multi-Agent Swarm CIT Consensus Debate (US-484)</span>
+          <span class="badge bg-warning bg-opacity-15 text-warning rounded-pill px-2 py-0.5" style="font-size:0.65rem">AI Swarm</span>
+        </h5>
+
+        <!-- Debate Message Container -->
+        <div id="swarmDebateContainer" class="overflow-auto p-3 bg-premium-light-custom bg-opacity-5 rounded-3 mb-3" style="min-height: 250px; max-height: 350px;">
+          <div class="text-center py-5 text-muted">
+            <i class="bi bi-chat-dots fs-1 d-block mb-2 text-secondary" aria-hidden="true"></i>
+            Chưa khởi chạy thảo luận tư vấn quyết toán thuế. Bấm nút bên phải để khởi động Swarm.
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-5 d-flex flex-column justify-content-between">
+        <div class="glass-card p-3 h-100 d-flex flex-column justify-content-between">
+          <div>
+            <h6 class="fw-bold text-primary mb-2">Biên Bản Khuyến Nghị Thuế TNDN</h6>
+            <p class="text-muted small">Sau khi hoàn thành phiên thảo luận của Swarm, bạn có thể tải về file báo cáo tư vấn quyết toán thuế dạng Markdown.</p>
+            <div class="border border-opacity-10 border-light rounded p-2 bg-dark bg-opacity-10" style="min-height: 120px;">
+              <code class="text-info small" id="lblMemoPreview">Chưa có bản ghi nhớ tư vấn.</code>
+            </div>
+          </div>
+          <div class="mt-3">
+            <button class="btn btn-warning w-100 py-2.5 rounded-pill mb-2" onclick="runSwarmDebate()">
+              <i class="bi bi-lightning-charge-fill me-2" aria-hidden="true"></i>Khởi Chạy Swarm Consensus
+            </button>
+            <button class="btn btn-outline-warning w-100 py-2 rounded-pill" onclick="downloadCITMemo()" id="btnDownloadMemo" disabled>
+              <i class="bi bi-download me-2" aria-hidden="true"></i>Tải Biên Bản Tư Vấn (.md)
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let lastCalculationResult = null;
+  let lastOptimizationResult = null;
+  let downloadedMemoContent = "";
+
+  function fmtVND(v) {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(Math.round(v));
+  }
+
+  document.addEventListener("DOMContentLoaded", function() {
+    runCITCalculation();
+  });
+
+  function resetCITInputs() {
+    document.getElementById("numRevenue").value = 1000000000;
+    document.getElementById("numCogs").value = 600000000;
+    document.getElementById("numSelling").value = 150000000;
+    document.getElementById("numAdmin").value = 100000000;
+    document.getElementById("numNonDeductible").value = 80000000;
+    document.getElementById("selHoliday").value = "reduction50";
+    
+    document.getElementById("loss2021").value = 120000000;
+    document.getElementById("loss2022").value = 80000000;
+    document.getElementById("loss2023").value = 150000000;
+    document.getElementById("loss2024").value = 0;
+    document.getElementById("loss2025").value = 60000000;
+    
+    runCITCalculation();
+  }
+
+  function getCITFormPayload() {
+    const rev = parseFloat(document.getElementById("numRevenue").value) || 0;
+    const cogs = parseFloat(document.getElementById("numCogs").value) || 0;
+    const sell = parseFloat(document.getElementById("numSelling").value) || 0;
+    const adm = parseFloat(document.getElementById("numAdmin").value) || 0;
+    const nonded = parseFloat(document.getElementById("numNonDeductible").value) || 0;
+    
+    const holidayType = document.getElementById("selHoliday").value;
+    let holiday_discount = 0.0;
+    if (holidayType === "exemption") holiday_discount = 1.0;
+    else if (holidayType === "reduction50") holiday_discount = 0.5;
+    
+    // Total historical losses
+    const loss2021 = parseFloat(document.getElementById("loss2021").value) || 0;
+    const loss2022 = parseFloat(document.getElementById("loss2022").value) || 0;
+    const loss2023 = parseFloat(document.getElementById("loss2023").value) || 0;
+    const loss2024 = parseFloat(document.getElementById("loss2024").value) || 0;
+    const loss2025 = parseFloat(document.getElementById("loss2025").value) || 0;
+
+    return {
+      revenue: rev,
+      cogs: cogs,
+      selling_expenses: sell,
+      admin_expenses: adm,
+      non_deductible_adjustments: nonded,
+      holiday_discount: holiday_discount,
+      historical_losses: {
+        2021: loss2021,
+        2022: loss2022,
+        2023: loss2023,
+        2024: loss2024,
+        2025: loss2025
+      }
+    };
+  }
+
+  function runCITCalculation() {
+    const payload = getCITFormPayload();
+    // Default loss carry offset is calculated simply as sum of active losses
+    // capped at taxable income before loss (or 0 if no optimization run yet)
+    let lossOffset = 0;
+    if (lastOptimizationResult && lastOptimizationResult.offset_schedule) {
+      lossOffset = lastOptimizationResult.offset_schedule.reduce((acc, curr) => acc + curr.amount_offset, 0);
+    }
+
+    fetch("/api/cit/calculate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        revenue: payload.revenue,
+        cogs: payload.cogs,
+        selling_expenses: payload.selling_expenses,
+        admin_expenses: payload.admin_expenses,
+        non_deductible_adjustments: payload.non_deductible_adjustments,
+        holiday_discount: payload.holiday_discount,
+        loss_offset: lossOffset
+      })
+    })
+    .then(r => r.json())
+    .then(data => {
+      lastCalculationResult = data;
+      renderCITValues(data);
+    })
+    .catch(err => console.error("CIT calculation error:", err));
+  }
+
+  function renderCITValues(data) {
+    document.getElementById("txtCitLiability").textContent = fmtVND(data.cit_liability);
+    document.getElementById("txtTaxableIncome").textContent = fmtVND(data.taxable_income);
+    document.getElementById("txtAccountingProfit").textContent = "Lợi nhuận KT: " + fmtVND(data.net_accounting_profit);
+    document.getElementById("txtAppliedLoss").textContent = fmtVND(data.applied_loss);
+
+    // Flow Map updates
+    document.getElementById("flowAccountingProfit").textContent = fmtVND(data.net_accounting_profit);
+    document.getElementById("flowNonDeductible").textContent = "+" + fmtVND(data.non_deductible_adjustments);
+    document.getElementById("flowTaxableBeforeLoss").textContent = "Thu nhập tr. chuyển lỗ: " + fmtVND(data.taxable_income_before_loss);
+    document.getElementById("flowAppliedLoss").textContent = "-" + fmtVND(data.applied_loss);
+    document.getElementById("flowCitLiability").textContent = fmtVND(data.cit_liability);
+  }
+
+  function optimizeLossOffset() {
+    const payload = getCITFormPayload();
+    const projectedProfits = {
+      2026: payload.revenue - payload.cogs - (payload.selling_expenses + payload.admin_expenses) + payload.non_deductible_adjustments
+    };
+    
+    let holiday_discount = payload.holiday_discount;
+    const taxHolidays = {
+      2026: {
+        tax_free: holiday_discount === 1.0,
+        reduction: holiday_discount === 0.5 ? 0.5 : 0.0
+      }
+    };
+
+    fetch("/api/cit/optimize-losses", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        historical_losses: payload.historical_losses,
+        projected_profits: projectedProfits,
+        tax_holidays: taxHolidays
+      })
+    })
+    .then(r => r.json())
+    .then(data => {
+      lastOptimizationResult = data;
+      
+      // Calculate total savings
+      let totalSavings = 0;
+      data.offset_schedule.forEach(s => totalSavings += s.tax_savings);
+      
+      document.getElementById("txtTaxSavings").textContent = fmtVND(totalSavings);
+      document.getElementById("txtPriorLossesTotal").textContent = "Tổng lỗ lũy kế: " + fmtVND(
+        Object.values(payload.historical_losses).reduce((a,b)=>a+b, 0)
+      );
+
+      // Re-run CIT calculation with optimized loss offsets
+      runCITCalculation();
+      
+      // Load table grid (Phụ lục 03-2A)
+      renderLossesTable(payload.historical_losses, data);
+    })
+    .catch(err => console.error("Optimization error:", err));
+  }
+
+  function renderLossesTable(histLosses, optData) {
+    const tbody = document.getElementById("tblLossesBody");
+    tbody.innerHTML = "";
+
+    // Columns: Loss Year, Loss Amount, Prior Offset, Current Offset, Expired, Remaining
+    const priorOffsets = { 2021: 0, 2022: 0, 2023: 0, 2024: 0, 2025: 0 };
+    
+    Object.keys(histLosses).forEach(ly => {
+      const year = parseInt(ly);
+      const lossAmt = histLosses[year];
+      const prior = priorOffsets[year] || 0;
+      
+      let current = 0;
+      optData.offset_schedule.forEach(item => {
+        if (item.loss_year === year && item.profit_year === 2026) {
+          current += item.amount_offset;
+        }
+      });
+      
+      const expired = optData.expired_losses[year] || 0;
+      const remaining = Math.max(0, lossAmt - prior - current - expired);
+
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td><strong>Năm ${year}</strong></td>
+        <td class="text-end text-secondary small font-monospace">${fmtVND(lossAmt)}</td>
+        <td class="text-end text-secondary small font-monospace">${fmtVND(prior)}</td>
+        <td class="text-end text-success fw-bold font-monospace">${fmtVND(current)}</td>
+        <td class="text-end text-danger small font-monospace">${fmtVND(expired)}</td>
+        <td class="text-end text-primary fw-semibold font-monospace">${fmtVND(remaining)}</td>
+      `;
+      tbody.appendChild(row);
+    });
+  }
+
+  function exportCITXml() {
+    if (!lastCalculationResult || !lastOptimizationResult) {
+      alert("Vui lòng chạy Tối Ưu Hóa Chuyển Lỗ trước khi xuất tờ khai XML!");
+      return;
+    }
+
+    const payload = getCITFormPayload();
+    
+    fetch("/api/cit/export-xml", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        mst: "0102030405",
+        taxpayer_name: "CÔNG TY CỔ PHẦN CÔNG NGHỆ ANTIGRAVITY",
+        year: 2026,
+        cit_data: lastCalculationResult,
+        loss_data: {
+          historical_losses: payload.historical_losses,
+          offset_schedule: lastOptimizationResult.offset_schedule,
+          expired_losses: lastOptimizationResult.expired_losses
+        }
+      })
+    })
+    .then(r => {
+      if (!r.ok) throw new Error("XML generation error on server");
+      return r.text();
+    })
+    .then(xmlContent => {
+      const blob = new Blob([xmlContent], { type: "application/xml" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Form_03_TNDN_2026.xml`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+    })
+    .catch(err => alert("Lỗi xuất XML: " + err.message));
+  }
+
+  function runSwarmDebate() {
+    if (!lastCalculationResult || !lastOptimizationResult) {
+      alert("Vui lòng thực hiện tính toán và chuyển lỗ tối ưu trước!");
+      return;
+    }
+
+    const container = document.getElementById("swarmDebateContainer");
+    container.innerHTML = `<div class="text-center py-5"><div class="spinner-border text-warning"></div><div class="mt-2 text-muted small">Swarm Advisors đang phản biện giải pháp quyết toán…</div></div>`;
+
+    const payload = getCITFormPayload();
+
+    fetch("/api/cit/swarm-chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        cit_data: lastCalculationResult,
+        loss_data: {
+          historical_losses: payload.historical_losses,
+          offset_schedule: lastOptimizationResult.offset_schedule,
+          expired_losses: lastOptimizationResult.expired_losses
+        }
+      })
+    })
+    .then(r => r.json())
+    .then(data => {
+      container.innerHTML = "";
+      
+      const avatars = {
+        "JointAuditCoordinator": { class: "bg-primary", name: "Coordinator" },
+        "CITConsultant": { class: "bg-success", name: "CIT Specialist" },
+        "CFO": { class: "bg-info", name: "CFO" },
+        "TaxAuditor": { class: "bg-danger", name: "Inspector" }
+      };
+
+      data.debate.forEach((s, idx) => {
+        setTimeout(() => {
+          const div = document.createElement("div");
+          const av = avatars[s.sender] || { class: "bg-secondary", name: "Advisor" };
+          const isLeft = s.sender !== "TaxAuditor";
+          div.className = `d-flex gap-3 align-items-start mb-3 ${isLeft ? '' : 'flex-row-reverse'}`;
+          
+          div.innerHTML = `
+            <span class="badge ${av.class} rounded-circle p-2 flex-shrink-0 text-snow" style="width:38px;height:38px;display:flex;align-items:center;justify-content:center;">
+              <i class="bi bi-robot" aria-hidden="true"></i>
+            </span>
+            <div class="chat-bubble ${isLeft ? 'bg-premium-light-custom bg-opacity-75 text-dark' : 'bg-primary text-snow'} rounded-3">
+              <div class="fw-bold small">${av.name}</div>
+              <div class="small mt-1.5" style="line-height:1.4">${s.message}</div>
+            </div>
+          `;
+          container.appendChild(div);
+          container.scrollTop = container.scrollHeight;
+        }, idx * 1000);
+      });
+
+      // Show memo preview and enable download button
+      downloadedMemoContent = data.memo;
+      document.getElementById("lblMemoPreview").textContent = "Ghi nhớ tư vấn đã lập thành công. Sẵn sàng tải xuống!";
+      document.getElementById("btnDownloadMemo").removeAttribute("disabled");
+    })
+    .catch(err => {
+      console.error("Swarm failure:", err);
+      container.innerHTML = `<div class="text-center text-danger py-4"><i class="bi bi-exclamation-triangle fs-3" aria-hidden="true"></i> Lỗi Swarm.</div>`;
+    });
+  }
+
+  function downloadCITMemo() {
+    if (!downloadedMemoContent) return;
+    const blob = new Blob([downloadedMemoContent], { type: "text/markdown" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `dossier_cit_finalization.md`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+  }
+</script>
+{% endblock %}

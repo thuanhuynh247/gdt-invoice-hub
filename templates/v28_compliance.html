@@ -1,0 +1,753 @@
+{% extends "base.html" %}
+
+{% block title %}Wise Compliance v28 - XML Auto-Repair & Swarm Chat Advisor{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+    /* Styling System for Version 28 */
+    :root {
+        --v28-bg-glass: rgba(15, 23, 42, 0.65);
+        --v28-border-glass: rgba(255, 255, 255, 0.08);
+        --v28-glow-primary: rgba(59, 130, 246, 0.35);
+        --v28-glow-success: rgba(16, 185, 129, 0.3);
+        --v28-glow-danger: rgba(239, 68, 68, 0.35);
+        --v28-font-title: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+        --v28-font-mono: 'Fira Code', monospace;
+    }
+
+    body {
+        background-color: #090d16;
+        color: #e2e8f0;
+    }
+
+    .v28-card {
+        background: var(--v28-bg-glass);
+        backdrop-filter: blur(16px);
+        border: 1px solid var(--v28-border-glass);
+        border-radius: 16px;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .v28-card:hover {
+        border-color: rgba(59, 130, 246, 0.25);
+        box-shadow: 0 12px 40px 0 rgba(59, 130, 246, 0.15);
+    }
+
+    .v28-title {
+        font-family: var(--v28-font-title);
+        font-weight: 700;
+        background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 50%, #1d4ed8 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .nav-tabs-v28 {
+        border-bottom: 1px solid var(--v28-border-glass);
+        gap: 8px;
+    }
+
+    .nav-tabs-v28 .nav-link {
+        background: transparent;
+        border: 1px solid transparent;
+        color: #94a3b8;
+        font-family: var(--v28-font-title);
+        font-weight: 500;
+        border-radius: 10px 10px 0 0;
+        padding: 12px 24px;
+        transition: all 0.2s ease;
+    }
+
+    .nav-tabs-v28 .nav-link:hover {
+        color: #f1f5f9;
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    .nav-tabs-v28 .nav-link.active {
+        color: #3b82f6;
+        background: rgba(59, 130, 246, 0.08);
+        border-color: var(--v28-border-glass) var(--v28-border-glass) transparent;
+        box-shadow: 0 -4px 12px rgba(59, 130, 246, 0.1);
+    }
+
+    /* Diff View Styling */
+    .diff-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        font-family: var(--v28-font-mono);
+        font-size: 13px;
+        background: #020617;
+        border: 1px solid var(--v28-border-glass);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .diff-pane {
+        overflow-x: auto;
+        max-height: 550px;
+        padding: 16px;
+    }
+
+    .diff-header {
+        background: #0f172a;
+        padding: 10px 16px;
+        font-weight: 600;
+        border-bottom: 1px solid var(--v28-border-glass);
+        color: #94a3b8;
+        font-family: var(--v28-font-title);
+    }
+
+    .diff-line {
+        white-space: pre;
+        padding: 2px 8px;
+        border-radius: 3px;
+    }
+
+    .diff-added {
+        background-color: rgba(16, 185, 129, 0.15) !important;
+        color: #34d399 !important;
+        border-left: 3px solid #10b981;
+    }
+
+    .diff-removed {
+        background-color: rgba(239, 68, 68, 0.15) !important;
+        color: #f87171 !important;
+        border-left: 3px solid #ef4444;
+    }
+
+    .diff-unchanged {
+        color: #cbd5e1;
+    }
+
+    /* Swarm Chat System */
+    .swarm-timeline {
+        border-left: 2px solid rgba(59, 130, 246, 0.3);
+        margin-left: 20px;
+        padding-left: 20px;
+    }
+
+    .swarm-bubble {
+        position: relative;
+        margin-bottom: 24px;
+        animation: slideIn 0.4s ease forwards;
+        opacity: 0;
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(12px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .swarm-bubble::before {
+        content: '';
+        position: absolute;
+        left: -31px;
+        top: 8px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #3b82f6;
+        box-shadow: 0 0 8px #3b82f6;
+    }
+
+    .swarm-bubble.AuditorAgent::before { background: #10b981; box-shadow: 0 0 8px #10b981; }
+    .swarm-bubble.ClassifierAgent::before { background: #06b6d4; box-shadow: 0 0 8px #06b6d4; }
+    .swarm-bubble.ForecasterAgent::before { background: #f59e0b; box-shadow: 0 0 8px #f59e0b; }
+
+    .swarm-msg-card {
+        background: rgba(30, 41, 59, 0.4);
+        border: 1px solid var(--v28-border-glass);
+        border-radius: 12px;
+        padding: 16px;
+    }
+
+    .swarm-agent-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 8px;
+    }
+
+    .swarm-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 13px;
+        font-family: var(--v28-font-title);
+    }
+
+    .swarm-report-markdown {
+        background: rgba(15, 23, 42, 0.8);
+        border: 1px solid var(--v28-border-glass);
+        border-radius: 12px;
+        padding: 24px;
+    }
+
+    .swarm-report-markdown h1, .swarm-report-markdown h2, .swarm-report-markdown h3 {
+        font-family: var(--v28-font-title);
+        color: #3b82f6;
+        margin-top: 20px;
+        margin-bottom: 12px;
+        border-bottom: 1px solid var(--v28-border-glass);
+        padding-bottom: 6px;
+    }
+
+    .swarm-report-markdown ul {
+        padding-left: 20px;
+    }
+
+    .swarm-report-markdown li {
+        margin-bottom: 6px;
+    }
+</style>
+
+<div class="row">
+    <div class="col-12 mb-4 d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="v28-title mb-1">Kiểm toán Nghị định 123 & Swarm Multi-Agent Hub</h1>
+            <p class="text-secondary mb-0">Hệ thống Auto-Repair cấu trúc XML hóa đơn & Trung tâm Phối hợp Swarm chuyên gia tư vấn.</p>
+        </div>
+        <div>
+            <span class="badge bg-primary px-3 py-2 fs-6 rounded-pill" style="box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);">
+                <i class="bi bi-shield-check-fill me-1" aria-hidden="true"></i> Version 28.0.0
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs Control -->
+<div class="row mb-4">
+    <div class="col-12">
+        <ul class="nav nav-tabs nav-tabs-v28" id="v28Tabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="xml-repair-tab" data-bs-toggle="tab" data-bs-target="#xml-repair" type="button" role="tab" aria-controls="xml-repair" aria-selected="true">
+                    <i class="bi bi-wrench-adjustable me-2" aria-hidden="true"></i> XML Auto-Repair Hub
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="swarm-chat-tab" data-bs-toggle="tab" data-bs-target="#swarm-chat" type="button" role="tab" aria-controls="swarm-chat" aria-selected="false">
+                    <i class="bi bi-chat-left-dots me-2" aria-hidden="true"></i> Swarm Chat Advisor
+                </button>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<div class="tab-content" id="v28TabsContent">
+    
+    <!-- Tab 1: XML Auto-Repair Hub -->
+    <div class="tab-pane fade show active" id="xml-repair" role="tabpanel" aria-labelledby="xml-repair-tab">
+        <div class="row">
+            <div class="col-md-5 mb-4">
+                <div class="v28-card p-4 h-100">
+                    <h4 class="mb-3 font-title d-flex justify-content-between align-items-center">
+                        <span>Nhập XML Hóa Đơn</span>
+                        <button class="btn btn-sm btn-outline-info" id="btnLoadSampleXml">
+                            <i class="bi bi-file-earmark-code me-1" aria-hidden="true"></i> Nạp XML Lỗi Mẫu
+                        </button>
+                    </h4>
+                    <p class="text-secondary small">Dán nội dung XML hóa đơn Nghị định 123 có lỗi để chạy rà soát cấu trúc, sắp xếp thứ tự thẻ con, và tự động ký Mock HSM.</p>
+                    
+                    <textarea class="form-control mb-3" id="txtXmlInput" rows="16" placeholder="<?xml version='1.0' encoding='utf-8'?>…" style="font-family: var(--v28-font-mono); font-size: 12px; background: #020617; color: #34d399; border: 1px solid var(--v28-border-glass);"></textarea>
+                    
+                    <div class="d-grid gap-2 d-flex">
+                        <button class="btn btn-primary flex-grow-1" id="btnAuditXml">
+                            <i class="bi bi-search me-1" aria-hidden="true"></i> Rà Soát Lỗi XML
+                        </button>
+                        <button class="btn btn-success flex-grow-1" id="btnRepairXml">
+                            <i class="bi bi-magic me-1" aria-hidden="true"></i> Sửa Lỗi Tự Động
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-7 mb-4">
+                <div class="v28-card p-4 h-100 d-flex flex-column">
+                    <h4 class="mb-3 font-title">Kết Quả Rà Soát & Sửa Đổi</h4>
+                    
+                    <div id="repairStatusBox" class="mb-3" style="display: none;">
+                        <div class="alert d-flex align-items-center gap-2 p-3 mb-0" id="repairAlert" style="border-radius: 10px;">
+                            <i class="" id="repairAlertIcon"></i>
+                            <div id="repairAlertText"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 flex-grow-1" id="diffViewArea" style="display: none;">
+                        <div class="diff-container">
+                            <div>
+                                <div class="diff-header d-flex justify-content-between">
+                                    <span>XML Gốc</span>
+                                    <span class="badge bg-danger">Trước khi sửa</span>
+                                </div>
+                                <div class="diff-pane" id="paneOriginalXml"></div>
+                            </div>
+                            <div>
+                                <div class="diff-header d-flex justify-content-between">
+                                    <span>XML Đã Sửa Đổi</span>
+                                    <span class="badge bg-success">Sau khi sửa & Ký</span>
+                                </div>
+                                <div class="diff-pane" id="paneRepairedXml"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3" id="patchLogsArea" style="display: none;">
+                        <h6 class="text-secondary small uppercase tracking-wider mb-2">Nhật ký chỉnh sửa (Auto-Repair Logs):</h6>
+                        <ul class="list-group list-group-flush small" id="lstRepairs"></ul>
+                    </div>
+                    
+                    <div class="mt-auto d-flex justify-content-end gap-2" id="downloadArea" style="display: none;">
+                        <button class="btn btn-outline-light" id="btnCopyRepaired">
+                            <i class="bi bi-clipboard me-1" aria-hidden="true"></i> Copy XML Đã Sửa
+                        </button>
+                        <a class="btn btn-primary" id="btnDownloadRepaired" download="repaired_invoice.xml">
+                            <i class="bi bi-download me-1" aria-hidden="true"></i> Tải XML Đã Sửa
+                        </a>
+                    </div>
+
+                    <!-- Placeholder -->
+                    <div class="text-center my-auto py-5" id="xmlPlaceholder">
+                        <i class="bi bi-code-slash display-1 text-secondary opacity-25" aria-hidden="true"></i>
+                        <p class="mt-3 text-secondary">Hãy dán nội dung XML hoặc nhấn "Nạp XML Lỗi Mẫu" rồi chọn "Rà Soát Lỗi XML" hoặc "Sửa Lỗi Tự Động" để hiển thị kết quả đối chiếu.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tab 2: Swarm Chat Advisor -->
+    <div class="tab-pane fade" id="swarm-chat" role="tabpanel" aria-labelledby="swarm-chat-tab">
+        <div class="row">
+            <div class="col-md-5 mb-4">
+                <div class="v28-card p-4 h-100 d-flex flex-column">
+                    <h4 class="mb-3 font-title">Hỏi Đáp Chuyên Gia Swarm</h4>
+                    <p class="text-secondary small">Nhập câu hỏi liên quan đến tuân thủ thuế liên kết, rà soát Nghị định 123, hoặc tính toán dòng tiền đầu ra/vào. Swarm chuyên gia ảo sẽ tương tác và đưa ra báo cáo tổng hợp.</p>
+                    
+                    <div class="mb-3">
+                        <label for="swarmCompanySelector" class="form-label text-secondary small">Chọn doanh nghiệp kiểm toán:</label>
+                        <select class="form-select bg-slate-900 border-slate-800" id="swarmCompanySelector">
+                            <option value="0109998887">Công ty TNHH Giải pháp Ánh Sáng (MST: 0109998887)</option>
+                            <option value="0312345678">Tổng công ty Vận tải Hải Phòng (MST: 0312345678)</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="txtSwarmQuery" class="form-label text-secondary small">Câu hỏi / Yêu cầu kiểm toán:</label>
+                        <textarea class="form-control" id="txtSwarmQuery" rows="6" placeholder="Ví dụ: Rà soát rủi ro thuế liên kết và ước tính dòng tiền thuế quý tới cho doanh nghiệp này…"></textarea>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button class="btn btn-primary" id="btnRunSwarm">
+                            <i class="bi bi-play-fill me-1" aria-hidden="true"></i> Khởi Chạy Swarm Tư Vấn
+                        </button>
+                    </div>
+
+                    <div class="mt-4 pt-4 border-top border-slate-800">
+                        <h6 class="text-secondary small uppercase mb-2">Đội ngũ chuyên gia Swarm:</h6>
+                        <div class="d-flex flex-column gap-2 small">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-primary rounded-circle" style="width: 10px; height: 10px; padding: 0;"></span>
+                                <strong>JointAuditCoordinator:</strong> Điều phối viên trung tâm.
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-success rounded-circle" style="width: 10px; height: 10px; padding: 0;"></span>
+                                <strong>AuditorAgent:</strong> Kiểm tra hóa đơn Nghị định 123 & TT80.
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-info rounded-circle" style="width: 10px; height: 10px; padding: 0;"></span>
+                                <strong>ClassifierAgent:</strong> Phát hiện giao dịch liên kết Nghị định 132.
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-warning rounded-circle" style="width: 10px; height: 10px; padding: 0;"></span>
+                                <strong>ForecasterAgent:</strong> Dự toán dòng tiền thuế phải nộp.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-7 mb-4">
+                <div class="v28-card p-4 h-100 d-flex flex-column" id="swarmOutputArea">
+                    <h4 class="mb-3 font-title">Luồng Thảo Luận Live Swarm</h4>
+                    
+                    <!-- Chat Timeline Container -->
+                    <div class="flex-grow-1 overflow-auto mb-4" id="swarmTimelineContainer" style="max-height: 400px; display: none;">
+                        <div class="swarm-timeline" id="swarmTimeline"></div>
+                    </div>
+                    
+                    <!-- Synthesized Report Output -->
+                    <div class="mt-3" id="swarmReportArea" style="display: none;">
+                        <h5 class="text-secondary small uppercase tracking-wider mb-2">Báo Cáo Tổng Hợp Swarm:</h5>
+                        <div class="swarm-report-markdown" id="swarmReportContent"></div>
+                    </div>
+
+                    <!-- Placeholder -->
+                    <div class="text-center my-auto py-5" id="swarmPlaceholder">
+                        <i class="bi bi-chat-square-text display-1 text-secondary opacity-25" aria-hidden="true"></i>
+                        <p class="mt-3 text-secondary">Nhập câu hỏi và bấm "Khởi Chạy Swarm Tư Vấn" để theo dõi hội thoại giữa các tác tử AI.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Marked JS Library for rendering markdown report beautifully -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    // ── Sample XML Template with Errors ──────────────────────────────────────
+    const sampleXml = `<?xml version="1.0" encoding="utf-8"?>
+<HDon>
+  <DLHDon Id="HD_00034823">
+    <NDHDon>
+      <NBan>
+        <Ten>Công ty CP Thiết bị Công nghệ Ánh Dương</Ten>
+        <MST>010123AB88</MST>
+        <DChi>Số 10 Nguyễn Chí Thanh, Ba Đình, Hà Nội</DChi>
+      </NBan>
+      <NMua>
+        <Ten>Công ty TNHH Giải pháp Phần mềm Ánh Sáng</Ten>
+        <MST>0109998887-ERR</MST>
+        <DChi>Khu đô thị mới Cầu Giấy, Hà Nội</DChi>
+      </NMua>
+      <DSDVu>
+        <HHDVu>
+          <STT>1</STT>
+          <Ten>Server Dell PowerEdge R760</Ten>
+          <SLuong>1</SLuong>
+          <DGia>245000000</DGia>
+          <ThTien>245000000</ThTien>
+          <TSuat>10%</TSuat>
+          <TThue>2450000</TThue>
+        </HHDVu>
+      </DSDVu>
+    </NDHDon>
+    <TTChung>
+      <THDon>Hóa đơn giá trị gia tăng</THDon>
+      <KHMSHDon>1</KHMSHDon>
+      <KHHDon>C26TBA</KHHDon>
+      <SHDon>00034823</SHDon>
+      <NLap>2026-06-05</NLap>
+      <DVTTe>VND</DVTTe>
+      <HTTToan>TM</HTTToan>
+    </TTChung>
+    <TToan>
+      <TgTCThue>245000000</TgTCThue>
+      <TgTThue>24500000</TgTThue>
+      <TgTTTBSo>269500000</TgTTTBSo>
+    </TToan>
+  </DLHDon>
+</HDon>`;
+
+    // ── Tab 1 Actions ────────────────────────────────────────────────────────
+    const txtXmlInput = document.getElementById("txtXmlInput");
+    const btnLoadSampleXml = document.getElementById("btnLoadSampleXml");
+    const btnAuditXml = document.getElementById("btnAuditXml");
+    const btnRepairXml = document.getElementById("btnRepairXml");
+    const xmlPlaceholder = document.getElementById("xmlPlaceholder");
+    const repairStatusBox = document.getElementById("repairStatusBox");
+    const repairAlert = document.getElementById("repairAlert");
+    const repairAlertIcon = document.getElementById("repairAlertIcon");
+    const repairAlertText = document.getElementById("repairAlertText");
+    const diffViewArea = document.getElementById("diffViewArea");
+    const paneOriginalXml = document.getElementById("paneOriginalXml");
+    const paneRepairedXml = document.getElementById("paneRepairedXml");
+    const patchLogsArea = document.getElementById("patchLogsArea");
+    const lstRepairs = document.getElementById("lstRepairs");
+    const downloadArea = document.getElementById("downloadArea");
+    const btnCopyRepaired = document.getElementById("btnCopyRepaired");
+    const btnDownloadRepaired = document.getElementById("btnDownloadRepaired");
+
+    let currentRepairedXml = "";
+
+    btnLoadSampleXml.addEventListener("click", function () {
+        txtXmlInput.value = sampleXml.trim();
+    });
+
+    btnAuditXml.addEventListener("click", async function () {
+        const xml = txtXmlInput.value.trim();
+        if (!xml) {
+            alert("Vui lòng dán hoặc nạp XML trước khi rà soát.");
+            return;
+        }
+
+        xmlPlaceholder.style.display = "none";
+        repairStatusBox.style.display = "block";
+        diffViewArea.style.display = "none";
+        patchLogsArea.style.display = "none";
+        downloadArea.style.display = "none";
+
+        repairAlert.className = "alert alert-info d-flex align-items-center gap-2 p-3 mb-0";
+        repairAlertIcon.className = "bi bi-info-circle-fill fs-5";
+        repairAlertText.innerText = "Đang phân tích cấu trúc XML...";
+
+        try {
+            const response = await fetch("/api/compliance/xml-audit", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ xml_content: xml })
+            });
+            const data = await response.json();
+
+            if (data.error) {
+                showError(data.error);
+                return;
+            }
+
+            let msg = `Cơ cấu XML: Trạng thái [${data.status.toUpperCase()}]. `;
+            if (data.errors.length > 0) {
+                msg += `Phát hiện ${data.errors.length} lỗi nghiêm trọng. `;
+                repairAlert.className = "alert alert-danger d-flex align-items-center gap-2 p-3 mb-0";
+                repairAlertIcon.className = "bi bi-x-circle-fill fs-5";
+            } else if (data.warnings.length > 0) {
+                msg += `Phát hiện ${data.warnings.length} cảnh báo rủi ro thuế. `;
+                repairAlert.className = "alert alert-warning d-flex align-items-center gap-2 p-3 mb-0";
+                repairAlertIcon.className = "bi bi-exclamation-triangle-fill fs-5";
+            } else {
+                msg += "Tất cả các thẻ và logic tuân thủ Decree 123 hoàn toàn hợp chuẩn.";
+                repairAlert.className = "alert alert-success d-flex align-items-center gap-2 p-3 mb-0";
+                repairAlertIcon.className = "bi bi-check-circle-fill fs-5";
+            }
+
+            // Render warnings and errors list
+            let listHtml = "";
+            data.errors.forEach(e => {
+                listHtml += `<li class="list-group-item bg-transparent text-danger border-0 p-1"><i class="bi bi-x-circle me-2" aria-hidden="true"></i> ${e}</li>`;
+            });
+            data.warnings.forEach(w => {
+                listHtml += `<li class="list-group-item bg-transparent text-warning border-0 p-1"><i class="bi bi-exclamation-triangle me-2" aria-hidden="true"></i> ${w}</li>`;
+            });
+            data.info.forEach(i => {
+                listHtml += `<li class="list-group-item bg-transparent text-info border-0 p-1"><i class="bi bi-info-circle me-2" aria-hidden="true"></i> ${i}</li>`;
+            });
+
+            repairAlertText.innerText = msg;
+            lstRepairs.innerHTML = listHtml || `<li class="list-group-item bg-transparent text-success border-0 p-1"><i class="bi bi-check-circle me-2" aria-hidden="true"></i> Không có phát hiện bất thường.</li>`;
+            patchLogsArea.style.display = "block";
+
+        } catch (e) {
+            showError("Lỗi kết nối API rà soát: " + e.message);
+        }
+    });
+
+    btnRepairXml.addEventListener("click", async function () {
+        const xml = txtXmlInput.value.trim();
+        if (!xml) {
+            alert("Vui lòng dán hoặc nạp XML trước khi sửa đổi.");
+            return;
+        }
+
+        xmlPlaceholder.style.display = "none";
+        repairStatusBox.style.display = "block";
+        diffViewArea.style.display = "none";
+        patchLogsArea.style.display = "none";
+        downloadArea.style.display = "none";
+
+        repairAlert.className = "alert alert-info d-flex align-items-center gap-2 p-3 mb-0";
+        repairAlertIcon.className = "bi bi-info-circle-fill fs-5";
+        repairAlertText.innerText = "Đang chạy bộ sửa chữa Auto-Repair và cấp chứng thư Mock HSM...";
+
+        try {
+            const response = await fetch("/api/compliance/xml-auto-repair", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ xml_content: xml })
+            });
+            const data = await response.json();
+
+            if (data.error || !data.success) {
+                showError(data.error || "Không thể tự động sửa lỗi XML.");
+                return;
+            }
+
+            repairAlert.className = "alert alert-success d-flex align-items-center gap-2 p-3 mb-0";
+            repairAlertIcon.className = "bi bi-check-circle-fill fs-5";
+            repairAlertText.innerText = "Đã hoàn thành sửa chữa cấu trúc XML và ký HSM thành công!";
+
+            currentRepairedXml = data.repaired_xml;
+
+            // Render Diff Side-by-side
+            renderDiffView(xml, data.repaired_xml);
+
+            // Render Repair Logs
+            let listHtml = "";
+            data.repairs.forEach(rep => {
+                listHtml += `<li class="list-group-item bg-transparent text-success border-0 p-1"><i class="bi bi-check2-all me-2" aria-hidden="true"></i> ${rep}</li>`;
+            });
+            lstRepairs.innerHTML = listHtml;
+
+            diffViewArea.style.display = "block";
+            patchLogsArea.style.display = "block";
+            downloadArea.style.display = "flex";
+
+            // Wire download trigger
+            const blob = new Blob([currentRepairedXml], { type: "text/xml" });
+            btnDownloadRepaired.href = URL.createObjectURL(blob);
+
+        } catch (e) {
+            showError("Lỗi kết nối API sửa chữa: " + e.message);
+        }
+    });
+
+    btnCopyRepaired.addEventListener("click", function () {
+        if (currentRepairedXml) {
+            navigator.clipboard.writeText(currentRepairedXml);
+            alert("Đã sao chép XML đã sửa vào Clipboard!");
+        }
+    });
+
+    function showError(err) {
+        repairAlert.className = "alert alert-danger d-flex align-items-center gap-2 p-3 mb-0";
+        repairAlertIcon.className = "bi bi-exclamation-octagon-fill fs-5";
+        repairAlertText.innerText = err;
+    }
+
+    function renderDiffView(original, repaired) {
+        const originalLines = original.split("\n");
+        const repairedLines = repaired.split("\n");
+
+        let origHtml = "";
+        let repHtml = "";
+
+        const maxLines = Math.max(originalLines.length, repairedLines.length);
+
+        for (let i = 0; i < maxLines; i++) {
+            const origLine = originalLines[i] || "";
+            const repLine = repairedLines[i] || "";
+
+            // Escape HTML entities to display safely
+            const escOrig = escapeHtml(origLine);
+            const escRep = escapeHtml(repLine);
+
+            if (origLine.trim() !== repLine.trim()) {
+                if (origLine) {
+                    origHtml += `<div class="diff-line diff-removed">${escOrig}</div>`;
+                } else {
+                    origHtml += `<div class="diff-line text-muted">&nbsp;</div>`;
+                }
+                if (repLine) {
+                    repHtml += `<div class="diff-line diff-added">${escRep}</div>`;
+                } else {
+                    repHtml += `<div class="diff-line text-muted">&nbsp;</div>`;
+                }
+            } else {
+                origHtml += `<div class="diff-line diff-unchanged">${escOrig || "&nbsp;"}</div>`;
+                repHtml += `<div class="diff-line diff-unchanged">${escRep || "&nbsp;"}</div>`;
+            }
+        }
+
+        paneOriginalXml.innerHTML = origHtml;
+        paneRepairedXml.innerHTML = repHtml;
+    }
+
+    function escapeHtml(text) {
+        return text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    // ── Tab 2 Actions ────────────────────────────────────────────────────────
+    const txtSwarmQuery = document.getElementById("txtSwarmQuery");
+    const swarmCompanySelector = document.getElementById("swarmCompanySelector");
+    const btnRunSwarm = document.getElementById("btnRunSwarm");
+    const swarmPlaceholder = document.getElementById("swarmPlaceholder");
+    const swarmTimelineContainer = document.getElementById("swarmTimelineContainer");
+    const swarmTimeline = document.getElementById("swarmTimeline");
+    const swarmReportArea = document.getElementById("swarmReportArea");
+    const swarmReportContent = document.getElementById("swarmReportContent");
+
+    btnRunSwarm.addEventListener("click", async function () {
+        const query = txtSwarmQuery.value.trim();
+        if (!query) {
+            alert("Vui lòng nhập câu hỏi rà soát cho Swarm.");
+            return;
+        }
+
+        swarmPlaceholder.style.display = "none";
+        swarmTimelineContainer.style.display = "block";
+        swarmReportArea.style.display = "none";
+        swarmTimeline.innerHTML = `<div class="text-center py-4"><div class="spinner-border text-primary" role="status"></div><p class="mt-2 text-secondary">Swarm Coordinator đang đánh thức các Specialist Agents…</p></div>`;
+
+        try {
+            const response = await fetch("/api/agents/swarm-chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    query: query,
+                    mst: swarmCompanySelector.value
+                })
+            });
+            const data = await response.json();
+
+            if (data.error) {
+                swarmTimeline.innerHTML = `<div class="alert alert-danger"><i class="bi bi-x-circle me-2" aria-hidden="true"></i> ${data.error}</div>`;
+                return;
+            }
+
+            // Animate Chat Messages step by step
+            swarmTimeline.innerHTML = "";
+            let idx = 0;
+            
+            function showNextMessage() {
+                if (idx < data.chat_steps.length) {
+                    const step = data.chat_steps[idx];
+                    const bubble = document.createElement("div");
+                    bubble.className = `swarm-bubble ${step.agent}`;
+                    
+                    bubble.innerHTML = `
+                        <div class="swarm-msg-card">
+                            <div class="swarm-agent-header">
+                                <div class="swarm-avatar ${step.avatar_class}">${step.agent[0]}</div>
+                                <div>
+                                    <strong class="text-light">${step.agent}</strong>
+                                    <span class="badge bg-secondary-subtle text-secondary ms-2" style="font-size: 0.75em;">${step.role}</span>
+                                </div>
+                                <span class="ms-auto text-secondary small">${step.timestamp}</span>
+                            </div>
+                            <div class="swarm-msg-body small text-slate-300" style="line-height: 1.5;">
+                                ${step.message}
+                            </div>
+                        </div>
+                    `;
+                    swarmTimeline.appendChild(bubble);
+                    
+                    // Scroll to bottom
+                    swarmTimelineContainer.scrollTop = swarmTimelineContainer.scrollHeight;
+                    idx++;
+                    setTimeout(showNextMessage, 1500); // 1.5s delay for realistic swarm simulation feel
+                } else {
+                    // Show final synthesized report
+                    swarmReportContent.innerHTML = marked.parse(data.report_markdown);
+                    swarmReportArea.style.display = "block";
+                }
+            }
+
+            showNextMessage();
+
+        } catch (e) {
+            swarmTimeline.innerHTML = `<div class="alert alert-danger"><i class="bi bi-x-circle me-2" aria-hidden="true"></i> Lỗi khởi chạy Swarm: ${e.message}</div>`;
+        }
+    });
+
+});
+</script>
+{% endblock %}

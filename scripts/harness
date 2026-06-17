@@ -1004,17 +1004,63 @@ cmd_evaluate_risk() {
 
   local text_lower
   text_lower=$(printf "%s" "$text" | tr '[:upper:]' '[:lower:]')
-  local keywords=("auth" "token" "login" "password" "oauth" "payment" "migration" "drop table" "secret")
+  
   local flags_found=()
-  for kw in "${keywords[@]}"; do
-    if [[ "$text_lower" == *"$kw"* ]]; then
-      flags_found+=("\"$kw\"")
+  
+  # auth
+  if [[ "$text_lower" == *"auth"* || "$text_lower" == *"login"* || "$text_lower" == *"logout"* || "$text_lower" == *"session"* || "$text_lower" == *"password"* || "$text_lower" == *"token"* ]]; then
+    flags_found+=("\"auth\"")
+  fi
+  # authorization
+  if [[ "$text_lower" == *"role"* || "$text_lower" == *"permission"* || "$text_lower" == *"tenant"* || "$text_lower" == *"access control"* ]]; then
+    flags_found+=("\"authorization\"")
+  fi
+  # data_model
+  if [[ "$text_lower" == *"schema"* || "$text_lower" == *"migration"* || "$text_lower" == *"sqlite"* || "$text_lower" == *"table"* || "$text_lower" == *"column"* || "$text_lower" == *"drop table"* ]]; then
+    flags_found+=("\"data_model\"")
+  fi
+  # security
+  if [[ "$text_lower" == *"audit"* || "$text_lower" == *"security"* || "$text_lower" == *"privacy"* || "$text_lower" == *"access log"* || "$text_lower" == *"secret"* || "$text_lower" == *"oauth"* ]]; then
+    flags_found+=("\"security\"")
+  fi
+  # external
+  if [[ "$text_lower" == *"email"* || "$text_lower" == *"payment"* || "$text_lower" == *"sdk"* || "$text_lower" == *"webhook"* || "$text_lower" == *"queue"* || "$text_lower" == *"api"* || "$text_lower" == *"request"* || "$text_lower" == *"http"* || "$text_lower" == *"vietqr"* || "$text_lower" == *"gdt"* ]]; then
+    flags_found+=("\"external\"")
+  fi
+  # contract
+  if [[ "$text_lower" == *"api shape"* || "$text_lower" == *"response envelope"* || "$text_lower" == *"client-visible"* || "$text_lower" == *"contract"* ]]; then
+    flags_found+=("\"contract\"")
+  fi
+  # cross_platform
+  if [[ "$text_lower" == *"desktop"* || "$text_lower" == *"mobile"* || "$text_lower" == *"browser"* || "$text_lower" == *"native"* || "$text_lower" == *"deep link"* ]]; then
+    flags_found+=("\"cross_platform\"")
+  fi
+  # existing_behavior
+  if [[ "$text_lower" == *"refactor"* || "$text_lower" == *"change"* || "$text_lower" == *"fix"* || "$text_lower" == *"patch"* ]]; then
+    flags_found+=("\"existing_behavior\"")
+  fi
+  # weak_proof
+  if [[ "$text_lower" == *"untested"* || "$text_lower" == *"missing tests"* || "$text_lower" == *"no test"* ]]; then
+    flags_found+=("\"weak_proof\"")
+  fi
+  # multi_domain
+  if [[ "$text_lower" == *"multi-domain"* || "$text_lower" == *"multiple domain"* ]]; then
+    flags_found+=("\"multi_domain\"")
+  fi
+
+  local has_hard_gate=0
+  for f in "${flags_found[@]}"; do
+    if [[ "$f" == "\"auth\"" || "$f" == "\"authorization\"" || "$f" == "\"data_model\"" || "$f" == "\"security\"" || "$f" == "\"external\"" ]]; then
+      has_hard_gate=1
     fi
   done
 
   local lane="tiny"
-  if [ ${#flags_found[@]} -gt 0 ]; then
+  local num_flags=${#flags_found[@]}
+  if [ "$has_hard_gate" -eq 1 ] || [ "$num_flags" -ge 4 ]; then
     lane="high_risk"
+  elif [ "$num_flags" -ge 2 ]; then
+    lane="normal"
   fi
 
   local joined_flags
@@ -1033,12 +1079,12 @@ cmd_validate() {
   done
   [ -n "$cmd" ] || die "validate: --cmd is required"
 
-  info "Running validation command: $cmd"
+  info "Running validation command (streamed): $cmd"
+  local exit_code=0
   local out_file
   out_file=$(mktemp)
-  local exit_code=0
-  eval "$cmd" > "$out_file" 2>&1 || exit_code=$?
-  cat "$out_file"
+  
+  eval "$cmd" 2>&1 | tee "$out_file" || exit_code=${PIPESTATUS[0]}
 
   if [ "$exit_code" -ne 0 ]; then
     local error_text

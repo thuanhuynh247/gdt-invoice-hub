@@ -10,7 +10,9 @@ from invoices.bank_reconcile_service import (
     remove_vietnamese_diacritics,
     clean_vietnamese_text,
     clean_company_name_tokens,
-    find_matching_invoice
+    find_matching_invoice,
+    jaro_winkler_similarity,
+    _map_row_to_tx_dict
 )
 
 
@@ -223,4 +225,43 @@ def test_api_manual_reconciliation_override(logged_in_client, app):
         assert updated_tx.status == "matched"
         assert updated_tx.matched_invoice_id == "SALE-1002"
         assert updated_tx.confidence_score == 1.0
+
+
+def test_jaro_winkler_similarity():
+    """Verify that Jaro-Winkler similarity correctly evaluates string matching score."""
+    # Exact match
+    assert jaro_winkler_similarity("HELLO WORLD", "HELLO WORLD") == 1.0
+    # Empty string
+    assert jaro_winkler_similarity("", "HELLO") == 0.0
+    # Semi-close match
+    sim1 = jaro_winkler_similarity("CONG TY TNHH AN BINH", "CONG TY AN BINH")
+    assert sim1 > 0.8
+    # Divergent strings
+    sim2 = jaro_winkler_similarity("CONG TY TNHH AN BINH", "TRUNG NGUYEN CO")
+    assert sim2 < 0.5
+
+
+def test_bank_specific_column_mapping():
+    """Verify that bank-specific headers parse and map debit/credit properly."""
+    # Vietcombank format
+    headers_vcb = ["ngày gd", "số tiền ghi có", "số tiền ghi nợ", "nội dung giao dịch", "số gd"]
+    row_vcb_credit = ["2026-06-08", "5000000", "", "KHACH HANG CK TIEN", "VCB-998"]
+    row_vcb_debit = ["2026-06-08", "", "1500000", "THANH TOAN TIEN DIEN", "VCB-999"]
+    
+    tx_credit = _map_row_to_tx_dict(row_vcb_credit, headers_vcb, "Vietcombank")
+    assert tx_credit is not None
+    assert tx_credit["amount"] == 5000000.0
+    assert tx_credit["description"] == "KHACH HANG CK TIEN"
+    
+    tx_debit = _map_row_to_tx_dict(row_vcb_debit, headers_vcb, "Vietcombank")
+    assert tx_debit is not None
+    assert tx_debit["amount"] == -1500000.0
+    assert tx_debit["description"] == "THANH TOAN TIEN DIEN"
+
+    # Techcombank format
+    headers_tcb = ["ngày giao dịch", "giá trị ghi có", "giá trị ghi nợ", "mô tả", "số bút toán"]
+    row_tcb = ["2026-06-08", "2500000", "", "CK THANH TOAN HD 123", "TCB-101"]
+    tx_tcb = _map_row_to_tx_dict(row_tcb, headers_tcb, "Techcombank")
+    assert tx_tcb is not None
+    assert tx_tcb["amount"] == 2500000.0
 

@@ -978,3 +978,36 @@ Project is COMPLETE when:
 - [x] **Phát hiện Rủi ro Chi phí mua hàng ủy quyền qua cá nhân (Điều 13)**: Nâng cấp lớp `TaxAdvisoryAgent.scan_invoices` tự động phát hiện và cảnh báo các giao dịch ủy quyền cá nhân từ 5 triệu VND trở lên thiếu chứng từ thanh toán không dùng tiền mặt -> ✅ HOÀN THÀNH
 - [x] **Xác minh qua Bộ kiểm thử Tích hợp**: Viết mới bộ test `tests/test_circular20_compliance.py` và chạy thành công toàn bộ **480 tests** của hệ thống đạt tỷ lệ 100% xanh mượt -> ✅ HOÀN THÀNH
 
+## ⚡ PHẦN 41: TRIỂN KHAI TOÀN BỘ US-321 ĐẾN US-335 (2026-06-03)
+- [x] **US-320: Local Agent Mailroom & Coordination Hub** (Hệ thống mailroom nội bộ cho phép các Agent điều phối và gửi thư trao đổi) -> ✅ HOÀN THÀNH
+- [x] **US-321: Autonomous Joint Audit Coordinator** (Agent điều phối kiểm toán chung tự động hóa quy trình phân tích và phân chia nhiệm vụ) -> ✅ HOÀN THÀNH
+- [x] **US-322: Bank Feed Ingestion & Transaction Normalizer** (Trích xuất sổ phụ ngân hàng định dạng XML/CSV và chuẩn hóa dữ liệu dòng tiền) -> ✅ HOÀN THÀNH
+- [x] **US-323: Automated Bank-to-Invoice Matcher** (Động cơ đối chiếu tự động dòng tiền ngân hàng thương mại với hóa đơn đã phát hành) -> ✅ HOÀN THÀNH
+- [x] **US-324: Machine Learning Tax Liability Predictor** (Mô hình học máy dự báo nghĩa vụ thuế cuối kỳ và phân tích hồi quy dòng thuế) -> ✅ HOÀN THÀNH
+- [x] **US-325: Tax Scenario Simulation Sandbox** (Môi trường Sandbox giả lập các biến đổi chính sách thuế để tính toán tác động tài chính) -> ✅ HOÀN THÀNH
+- [x] **US-330: Taxpayer Network Graph Generator** (Xây dựng đồ thị có hướng biểu diễn các mối quan hệ giao dịch giữa các MST người nộp thuế) -> ✅ HOÀN THÀNH
+- [x] **US-331: VAT Fraud Ring Network Detector** (Thuật toán phát hiện vòng giao dịch khống liên MST để cảnh báo gian lận hoàn thuế GTGT) -> ✅ HOÀN THÀNH
+- [x] **US-332: Immutable Cryptographic Merkle Ledger** (Tích hợp Merkle Tree liên kết các mã băm hóa đơn tạo thành sổ cái kiểm toán bất biến) -> ✅ HOÀN THÀNH
+- [x] **US-333: Zero-Knowledge Proof Tax Compliance** (Giả lập ZK-Proof chứng minh doanh nghiệp tuân thủ thuế mà không lộ doanh thu chi tiết) -> ✅ HOÀN THÀNH
+- [x] **US-334: Customs XML Declaration Parser** (Trình phân tích cú pháp tờ khai hải quan nhập khẩu XML trích xuất thuế nhập khẩu & HS code) -> ✅ HOÀN THÀNH
+- [x] **US-335: Import VAT Reconciliation & Mitigation** (Đối chiếu chênh lệch thuế GTGT hàng nhập khẩu giữa tờ khai hải quan và hóa đơn GTGT) -> ✅ HOÀN THÀNH
+
+## ⚡ PHẦN 42: KIỂM THỬ TÍCH HỢP TOÀN DIỆN (2026-06-03)
+- [x] **Xác minh qua Bộ kiểm thử Tích hợp**: Chạy thành công toàn bộ suite test gồm **491 tests** -> ✅ HOÀN THÀNH
+- [x] **Cập nhật Trạng thái SQLite harness.db**: Đồng bộ và cập nhật toàn bộ trạng thái của các User Story trong cơ sở dữ liệu Harness -> ✅ HOÀN THÀNH
+
+## ⚡ PHẦN 43: PHÁT TRIỂN PHIÊN BẢN V37 - CEO DASHBOARD & FINANCIAL HEALTH SCORE (2026-06-09)
+- [x] **US-490: CEO Dashboard & Financial Health Score** (Phát triển giao diện quản trị điều hành, tính toán điểm sức khỏe doanh nghiệp và Sankey SVG dòng tiền) -> ✅ HOÀN THÀNH
+- [x] **US-491: Multi-Year Tax Projection Engine** (Dự phóng thuế 3-5 năm, tối ưu giá trị hiện tại ròng NPV) -> ✅ HOÀN THÀNH
+- [x] **US-492: Tax Filing Calendar & Compliance** (Xây dựng lịch nộp hồ sơ thuế pháp định 22 mốc quan trọng) -> ✅ HOÀN THÀNH
+- [x] **US-493: Fixed Asset Registry & Depreciation** (Khấu hao tài sản cố định theo TT45/2013/TT-BTC) -> ✅ HOÀN THÀNH
+- [x] **US-494: AI Invoice-to-Asset Linker** (Liên kết hóa đơn mua sắm tài sản cố định động bằng AI) -> ✅ HOÀN THÀNH
+- [x] **US-495: V37 Validation Test Suite** (Viết 13 kịch bản kiểm thử trong tests/test_v37_features.py, nâng tổng số test lên 636) -> ✅ HOÀN THÀNH
+
+## ⚡ PHẦN 44: PHÁT TRIỂN PHIÊN BẢN V38 - ĐỐI SOÁT PHIẾU XUẤT KHO & PHÂN BỔ CHI PHÍ LOGISTICS (VAS 02) (2026-06-10)
+- [x] **US-500: Electronic Delivery Note Parser** (Parser XML PXK điện tử theo chuẩn GDT và thuật toán đối khớp hóa đơn tự động) -> ✅ HOÀN THÀNH
+- [x] **US-501: Timing Penalty Advisor** (Đối soát thời gian lập PXK và hóa đơn thương mại quá hạn 10 ngày, ước tính mức phạt hành chính theo Nghị định 125/2020) -> ✅ HOÀN THÀNH
+- [x] **US-502: Reconciliation Dashboard** (Thiết kế dashboard kính mờ đối soát kho, timeline Gantt SVG, modal liên kết thủ công) -> ✅ HOÀN THÀNH
+- [x] **US-503: AI Logistics Cost Allocation** (Nhận diện hóa đơn cước vận chuyển/logistics và tự động phân bổ chi phí cho hóa đơn mua hàng trong vòng 15 ngày) -> ✅ HOÀN THÀNH
+- [x] **US-504: Inventory Cost-Base Adjusted Report** (Báo cáo chênh lệch giá gốc hàng tồn kho điều chỉnh theo chuẩn VAS 02) -> ✅ HOÀN THÀNH
+- [x] **US-505: V38 Validation Test Suite** (Phủ kiểm thử toàn bộ PXK và Logistics allocation trong tests/test_v38_features.py, tổng cộng 642 tests PASSED) -> ✅ HOÀN THÀNH

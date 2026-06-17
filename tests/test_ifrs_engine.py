@@ -12,8 +12,8 @@ from invoices.ifrs_engine import IFRSTranslationService
 
 @pytest.fixture
 def mock_tenant_setup():
-    """Fixture to ensure a clean tenant database for test taxpayer '0102030405'."""
-    mst = "0102030405"
+    """Fixture to ensure a clean tenant database for test taxpayer '0102030499'."""
+    mst = "0102030499"
     db_path = get_tenant_db_path(mst)
     
     # Remove existing if any
@@ -112,7 +112,7 @@ def test_pillar_two_topup_estimation(mock_tenant_setup):
     conn.commit()
     conn.close()
     
-    res = service.estimate_pillar_two_topup("0102030405", [mst], 2026)
+    res = service.estimate_pillar_two_topup("0102030499", [mst], 2026)
     
     # ETR = Taxes (income * 0.20) / Income -> should result in VN statutory rate of 20%
     assert res["consolidated_income"] == 100000.0

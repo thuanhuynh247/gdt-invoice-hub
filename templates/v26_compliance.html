@@ -1,0 +1,685 @@
+{% extends "base.html" %}
+{% block title %}Wise Compliance v26 - GDT Invoice Hub{% endblock %}
+
+{% block content %}
+<style>
+    /* Custom Styling for Premium Wise Compliance Dashboard */
+    .glass-card {
+        background: var(--bg-card, #1e293b);
+        border: 1px solid var(--border-card, rgba(255, 255, 255, 0.08));
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .glass-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.3);
+    }
+    .badge-premium {
+        font-weight: 700;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 6px 12px;
+        border-radius: 9999px;
+    }
+    .nav-tabs-compliance {
+        border-bottom: 2px solid var(--border-card, rgba(255, 255, 255, 0.08));
+        gap: 0.5rem;
+    }
+    .nav-tabs-compliance .nav-link {
+        font-family: var(--font-heading, 'Outfit', sans-serif);
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: var(--text-secondary, #94a3b8);
+        border: none;
+        padding: 0.8rem 1.5rem;
+        border-radius: 12px 12px 0 0;
+        transition: all 0.2s ease;
+        background: transparent;
+    }
+    .nav-tabs-compliance .nav-link:hover {
+        color: var(--text-primary, #f8fafc);
+        background-color: var(--primary-accent-soft, rgba(59, 130, 246, 0.1));
+    }
+    .nav-tabs-compliance .nav-link.active {
+        color: var(--primary-accent, #3b82f6);
+        border-bottom: 3px solid var(--primary-accent, #3b82f6);
+        background-color: var(--bg-card, #1e293b);
+    }
+    .kg-node {
+        border-left: 4px solid var(--primary-accent, #3b82f6);
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 0 8px 8px 0;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        transition: all 0.2s ease;
+    }
+    .kg-node:hover {
+        background: rgba(255, 255, 255, 0.05);
+    }
+    .vietqr-canvas {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 16px;
+        display: inline-block;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .socratic-bubble {
+        background: rgba(59, 130, 246, 0.06);
+        border: 1px solid rgba(59, 130, 246, 0.2);
+        border-radius: 12px;
+        padding: 1.2rem;
+        position: relative;
+    }
+    .socratic-bubble::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 20px;
+        border-width: 10px 10px 0;
+        border-style: solid;
+        border-color: rgba(59, 130, 246, 0.06) transparent;
+        display: block;
+        width: 0;
+    }
+</style>
+
+<div class="mb-4">
+    <span class="badge bg-warning text-dark mb-2 badge-premium"><i class="bi bi-shield-fill-check me-1" aria-hidden="true"></i>Version 26.0.0</span>
+    <h1 class="h3 fw-bold mb-1" style="color: var(--text-primary, #f8fafc);">Wise Compliance Dashboard & Tax Advisory</h1>
+    <p class="text-secondary mb-0">Quản lý trích đóng BHXH, Đối soát Sổ thuế e-Tax, Tạo VietQR động & AI Giải trình/Biện hộ pháp lý.</p>
+</div>
+
+<!-- Navigation Tabs -->
+<ul class="nav nav-tabs nav-tabs-compliance mb-4" id="complianceTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="insurance-tab" data-bs-toggle="tab" data-bs-target="#insurance-pane" type="button" role="tab" aria-controls="insurance-pane" aria-selected="true">
+            <i class="bi bi-people me-2" aria-hidden="true"></i>Đầu 1: Trích đóng BHXH (US-380/381)
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="ledger-tab" data-bs-toggle="tab" data-bs-target="#ledger-pane" type="button" role="tab" aria-controls="ledger-pane" aria-selected="false">
+            <i class="bi bi-book me-2" aria-hidden="true"></i>Đầu 2: Sổ thuế e-Tax & VietQR (US-382/383)
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="advisory-tab" data-bs-toggle="tab" data-bs-target="#advisory-pane" type="button" role="tab" aria-controls="advisory-pane" aria-selected="false">
+            <i class="bi bi-chat-left-quote me-2" aria-hidden="true"></i>Đầu 3: Luật thuế KG & Biện hộ AI (US-384/385)
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content" id="complianceTabsContent">
+    
+    <!-- ── TAB 1: SOCIAL INSURANCE RECONCILIATION ──────────────────────────────── -->
+    <div class="tab-pane fade show active" id="insurance-pane" role="tabpanel" aria-labelledby="insurance-tab">
+        <div class="row g-4">
+            <!-- Left: Settings & Summary KPIs -->
+            <div class="col-lg-4">
+                <div class="glass-card mb-4">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-sliders me-2" aria-hidden="true"></i>Cấu hình đối soát</h5>
+                    <div class="mb-3">
+                        <label for="basicSalaryRange" class="form-label d-flex justify-content-between">
+                            <span>Lương cơ sở (VND):</span>
+                            <span id="basicSalaryVal" class="fw-bold text-primary">2,340,000</span>
+                        </label>
+                        <input type="range" class="form-range" id="basicSalaryRange" min="1800000" max="3000000" step="10000" value="2340000">
+                        <small class="text-muted">Áp dụng trần BHXH/BHYT = 20 lần lương cơ sở</small>
+                    </div>
+                    <button class="btn btn-primary w-100" id="runSiAuditBtn"><i class="bi bi-play-fill me-1" aria-hidden="true"></i>Chạy đối soát BHXH</button>
+                </div>
+                
+                <div class="glass-card">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-speedometer2 me-2" aria-hidden="true"></i>Chỉ số tuân thủ</h5>
+                    <div class="text-center py-3">
+                        <h2 class="display-4 fw-bold text-warning" id="siComplianceScore">--</h2>
+                        <p class="text-secondary mb-0" id="siStatusText">Chưa chạy đối soát</p>
+                    </div>
+                    <div class="border-top pt-3 mt-3">
+                        <div class="d-flex justify-content-between mb-2 small">
+                            <span>Tổng khấu trừ (Lương):</span>
+                            <strong id="siTotalPayroll">0 VND</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2 small">
+                            <span>Tổng luật định (Statutory):</span>
+                            <strong id="siTotalStatutory">0 VND</strong>
+                        </div>
+                        <div class="d-flex justify-content-between small">
+                            <span>Chi phí Doanh nghiệp:</span>
+                            <strong id="siTotalEmployer">0 VND</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right: Payroll Table -->
+            <div class="col-lg-8">
+                <div class="glass-card h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0"><i class="bi bi-table me-2" aria-hidden="true"></i>Bảng kê chi tiết trích đóng nhân viên</h5>
+                        <button class="btn btn-sm btn-outline-success" id="exportSiCsvBtn" disabled><i class="bi bi-file-earmark-excel me-1" aria-hidden="true"></i>Xuất Excel/CSV</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle" style="min-width: 600px;">
+                            <thead>
+                                <tr>
+                                    <th>Nhân viên</th>
+                                    <th>Lương Gross</th>
+                                    <th>Thực khấu trừ</th>
+                                    <th>Cột luật định</th>
+                                    <th>Chênh lệch</th>
+                                    <th>Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody id="siAuditTableBody">
+                                <tr>
+                                    <td colspan="6" class="text-center text-secondary py-5">
+                                        <i class="bi bi-info-circle display-6 mb-3 d-block" aria-hidden="true"></i>
+                                        Bấm nút "Chạy đối soát BHXH" để bắt đầu
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ── TAB 2: ELECTRONIC TAX LEDGER & VIETQR ──────────────────────────────── -->
+    <div class="tab-pane fade" id="ledger-pane" role="tabpanel" aria-labelledby="ledger-tab">
+        <div class="row g-4">
+            <!-- Left: Tax Ledger & Reconciliation -->
+            <div class="col-lg-6">
+                <div class="glass-card mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0"><i class="bi bi-journal-check me-2" aria-hidden="true"></i>Sổ thuế điện tử (e-Tax Ledger)</h5>
+                        <button class="btn btn-sm btn-outline-primary" id="syncEtaxBtn"><i class="bi bi-arrow-repeat me-1" aria-hidden="true"></i>Đồng bộ GDT</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Sắc thuế</th>
+                                    <th>Phải nộp</th>
+                                    <th>Đã nộp (eTax)</th>
+                                    <th>Chậm nộp</th>
+                                    <th>Thừa/Khấu trừ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="etaxLedgerBody">
+                                <tr>
+                                    <td colspan="5" class="text-center text-secondary py-4">Chưa đồng bộ dữ liệu e-Tax</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="glass-card">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-check-all me-2" aria-hidden="true"></i>Kết quả đối chiếu kế toán nội bộ</h5>
+                    <div id="etaxReconciliationResults">
+                        <p class="text-secondary small mb-0">Hãy thực hiện đồng bộ với e-Tax để chạy đối chiếu chênh lệch ghi nhận sổ sách kế toán.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right: VietQR Payment Wizard -->
+            <div class="col-lg-6">
+                <div class="glass-card h-100">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-qr-code-scan me-2" aria-hidden="true"></i>Thanh toán nghĩa vụ thuế qua VietQR</h5>
+                    <form id="vietqrWizardForm" class="mb-4">
+                        <div class="mb-3">
+                            <label for="vietqrTaxType" class="form-label">Loại thuế thanh toán:</label>
+                            <select class="form-select" id="vietqrTaxType" required>
+                                <option value="VAT">Thuế Giá trị gia tăng (VAT)</option>
+                                <option value="CIT">Thuế Thu nhập doanh nghiệp (CIT)</option>
+                                <option value="PIT">Thuế Thu nhập cá nhân (PIT)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="vietqrAmount" class="form-label">Số tiền thanh toán (VND):</label>
+                            <input type="number" class="form-control" id="vietqrAmount" value="5000000" min="1000" autocomplete="off" required>
+                        </div>
+                        <button type="submit" class="btn btn-warning w-100 fw-bold"><i class="bi bi-qr-code me-1" aria-hidden="true"></i>Tạo VietQR nộp thuế</button>
+                    </form>
+                    
+                    <div id="vietqrResultContainer" class="text-center d-none">
+                        <div class="qr-container mb-3">
+                            <!-- VietQR Image Mock/Visualizer -->
+                            <div class="vietqr-canvas">
+                                <div class="fw-bold text-dark mb-2 small"><i class="bi bi-lightning-fill text-warning" aria-hidden="true"></i> VietQR - Napas 247</div>
+                                <div id="vietqrCodeVisual" style="background:#eee; width:180px; height:180px; margin: 0 auto; display:flex; align-items:center; justify-content:center; font-size:0.7em;" class="p-2 border rounded">
+                                    [VietQR EMVCo Code]
+                                </div>
+                                <div class="mt-2 text-dark font-monospace text-xs" style="font-size: 0.65rem;" id="vietqrPayloadStr"></div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <span class="badge bg-secondary" id="paymentStatusBadge">Trạng thái: Đang chờ thanh toán</span>
+                        </div>
+                        <button class="btn btn-sm btn-success" id="simulatePaymentBtn"><i class="bi bi-cash-coin me-1" aria-hidden="true"></i>Mô phỏng Thanh toán thành công</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ── TAB 3: KNOWLEDGE GRAPH & AUDIT DEFENSE ──────────────────────────────── -->
+    <div class="tab-pane fade" id="advisory-pane" role="tabpanel" aria-labelledby="advisory-tab">
+        <div class="row g-4">
+            <!-- Left: Law Knowledge Graph -->
+            <div class="col-lg-5">
+                <div class="glass-card mb-4">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-diagram-3 me-2" aria-hidden="true"></i>Tra cứu Luật thuế KG (Knowledge Graph)</h5>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" id="kgSearchQuery" autocomplete="off" aria-label="Tìm kiếm luật thuế" placeholder="Nhập từ khóa (ký số, chuyển khoản, EBITDA)…">
+                        <button class="btn btn-outline-secondary" id="kgSearchBtn"><i class="bi bi-search" aria-hidden="true"></i></button>
+                    </div>
+                    <div id="kgSearchResults" style="max-height: 400px; overflow-y: auto;">
+                        <p class="text-secondary small">Nhập từ khóa và bấm tìm kiếm để truy xuất liên kết văn bản pháp lý.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right: Socratic Audit Defense Composer -->
+            <div class="col-lg-7">
+                <div class="glass-card">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-shield-shaded me-2" aria-hidden="true"></i>AI Audit Defense Composer</h5>
+                    
+                    <div class="mb-3">
+                        <label for="auditWarningType" class="form-label">Chọn hành vi cảnh báo thuế:</label>
+                        <select class="form-select" id="auditWarningType">
+                            <option value="LATE_SIGNING">Thời điểm ký số lệch thời điểm lập hóa đơn (Decree 123)</option>
+                            <option value="CASH_PAYMENT_LIMIT">Thanh toán bằng tiền mặt hóa đơn trên 20 triệu đồng</option>
+                            <option value="RELATED_PARTY_EBITDA">Chi phí lãi vay vượt trần 30% EBITDA giao dịch liên kết</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Socratic fact questionnaire dynamically populated -->
+                    <div class="socratic-bubble mb-3 d-flex gap-3 align-items-start">
+                        <i class="bi bi-robot text-primary fs-3" aria-hidden="true"></i>
+                        <div>
+                            <span class="fw-bold d-block text-primary">Socratic Advisor:</span>
+                            <div id="socraticQuestionText">Hãy chọn loại hành vi cảnh báo ở trên để bắt đầu khảo sát bối cảnh thực tế.</div>
+                        </div>
+                    </div>
+                    
+                    <div id="questionnaireFields" class="mb-3">
+                        <!-- Dynamic fields inserted here -->
+                    </div>
+                    
+                    <div class="d-flex gap-2 mb-4">
+                        <button class="btn btn-primary flex-fill" id="generateDefenseBtn"><i class="bi bi-file-earmark-medical me-1" aria-hidden="true"></i>Tạo Văn Bản Giải Trình</button>
+                    </div>
+                    
+                    <!-- Letter Preview Modal/Region -->
+                    <div id="defenseLetterPreviewRegion" class="d-none border-top pt-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold mb-0">Bản xem trước Công văn Giải trình:</h6>
+                            <button class="btn btn-sm btn-outline-light" id="printDefenseBtn"><i class="bi bi-printer me-1" aria-hidden="true"></i>In / Lưu PDF</button>
+                        </div>
+                        <div id="defenseLetterHtmlContent" style="background: rgba(255,255,255,0.02); border-radius: 8px;" class="p-1"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        // --- Tab 1: BHXH Reconciliation ---
+        const basicSalaryRange = document.getElementById("basicSalaryRange");
+        const basicSalaryVal = document.getElementById("basicSalaryVal");
+        
+        basicSalaryRange.addEventListener("input", (e) => {
+            basicSalaryVal.textContent = parseFloat(e.target.value).toLocaleString('vi-VN');
+        });
+        
+        const runSiAuditBtn = document.getElementById("runSiAuditBtn");
+        const siAuditTableBody = document.getElementById("siAuditTableBody");
+        const siComplianceScore = document.getElementById("siComplianceScore");
+        const siStatusText = document.getElementById("siStatusText");
+        const siTotalPayroll = document.getElementById("siTotalPayroll");
+        const siTotalStatutory = document.getElementById("siTotalStatutory");
+        const siTotalEmployer = document.getElementById("siTotalEmployer");
+        const exportSiCsvBtn = document.getElementById("exportSiCsvBtn");
+        
+        runSiAuditBtn.addEventListener("click", () => {
+            runSiAuditBtn.disabled = true;
+            runSiAuditBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span>Đang phân tích...`;
+            
+            const salaryValue = parseFloat(basicSalaryRange.value);
+            
+            fetch(`/api/compliance/insurance-audit?basic_salary=${salaryValue}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" }
+            })
+            .then(res => res.json())
+            .then(data => {
+                runSiAuditBtn.disabled = false;
+                runSiAuditBtn.innerHTML = `<i class="bi bi-play-fill me-1" aria-hidden="true"></i>Chạy đối soát BHXH`;
+                
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+                
+                // Update KPIs
+                siComplianceScore.textContent = `${data.compliance_score}%`;
+                siStatusText.textContent = data.compliance_score === 100 ? "Tuân thủ tuyệt đối" : "Có chênh lệch cần kiểm tra";
+                siStatusText.className = data.compliance_score === 100 ? "text-success mb-0 fw-bold" : "text-warning mb-0 fw-bold";
+                
+                siTotalPayroll.textContent = `${data.total_payroll_insurance.toLocaleString('vi-VN')} VND`;
+                siTotalStatutory.textContent = `${data.total_statutory_insurance.toLocaleString('vi-VN')} VND`;
+                siTotalEmployer.textContent = `${data.total_employer_insurance.toLocaleString('vi-VN')} VND`;
+                
+                // Enable Export
+                exportSiCsvBtn.disabled = false;
+                
+                // Populate Table
+                siAuditTableBody.innerHTML = "";
+                data.audited_employees.forEach(emp => {
+                    const tr = document.createElement("tr");
+                    const statusBadge = emp.status === "compliant" 
+                        ? `<span class="badge bg-success-subtle text-success badge-premium">ĐÚNG LUẬT</span>`
+                        : `<span class="badge bg-danger-subtle text-danger badge-premium" title="${emp.issues.join('; ')}">LỆCH</span>`;
+                    
+                    const varText = emp.variance === 0 
+                        ? `<span class="text-secondary">-</span>`
+                        : (emp.variance > 0 
+                            ? `<span class="text-success">+${emp.variance.toLocaleString('vi-VN')} VND</span>` 
+                            : `<span class="text-danger">${emp.variance.toLocaleString('vi-VN')} VND</span>`);
+                            
+                    tr.innerHTML = `
+                        <td>
+                            <strong class="d-block">${emp.name}</strong>
+                            <small class="text-muted">ID: ${emp.id}</small>
+                        </td>
+                        <td>${emp.gross_salary.toLocaleString('vi-VN')} VND</td>
+                        <td>${emp.withheld_insurance.toLocaleString('vi-VN')} VND</td>
+                        <td>${emp.statutory_employee.toLocaleString('vi-VN')} VND</td>
+                        <td>${varText}</td>
+                        <td>${statusBadge}</td>
+                    `;
+                    siAuditTableBody.appendChild(tr);
+                });
+            })
+            .catch(err => {
+                runSiAuditBtn.disabled = false;
+                runSiAuditBtn.innerHTML = `<i class="bi bi-play-fill me-1" aria-hidden="true"></i>Chạy đối soát BHXH`;
+                console.error(err);
+                alert("Lỗi kết nối máy chủ");
+            });
+        });
+        
+        exportSiCsvBtn.addEventListener("click", () => {
+            const salaryValue = parseFloat(basicSalaryRange.value);
+            window.location.href = `/api/compliance/insurance-export-csv?basic_salary=${salaryValue}`;
+        });
+        
+        // --- Tab 2: Sổ thuế & VietQR ---
+        const syncEtaxBtn = document.getElementById("syncEtaxBtn");
+        const etaxLedgerBody = document.getElementById("etaxLedgerBody");
+        const etaxReconciliationResults = document.getElementById("etaxReconciliationResults");
+        
+        // Mock local payments data
+        const mockLocalPayments = [
+            { tax_type: "VAT", amount: 80000000.0 },
+            { tax_type: "CIT", amount: 120000000.0 },
+            { tax_type: "PIT", amount: 10000000.0 } # Discrepancy
+        ];
+        
+        syncEtaxBtn.addEventListener("click", () => {
+            syncEtaxBtn.disabled = true;
+            syncEtaxBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span>Đang đồng bộ...`;
+            
+            fetch("/api/compliance/tax-ledger-reconcile", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ local_payments: mockLocalPayments })
+            })
+            .then(res => res.json())
+            .then(data => {
+                syncEtaxBtn.disabled = false;
+                syncEtaxBtn.innerHTML = `<i class="bi bi-arrow-repeat me-1" aria-hidden="true"></i>Đồng bộ GDT`;
+                
+                // Fill Table
+                etaxLedgerBody.innerHTML = "";
+                data.recompiled.reconciled_balances.forEach(b => {
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td><strong>${b.tax_type}</strong></td>
+                        <td>${b.obligation.toLocaleString('vi-VN')} VND</td>
+                        <td>${b.etax_paid.toLocaleString('vi-VN')} VND</td>
+                        <td class="${b.late_fee > 0 ? 'text-danger fw-bold' : ''}">${b.late_fee.toLocaleString('vi-VN')} VND</td>
+                        <td>${b.credit.toLocaleString('vi-VN')} VND</td>
+                    `;
+                    etaxLedgerBody.appendChild(b);
+                });
+                
+                // Reconciliation Messages
+                etaxReconciliationResults.innerHTML = "";
+                if (data.recompiled.discrepancies.length === 0) {
+                    etaxReconciliationResults.innerHTML = `<div class="alert alert-success mb-0"><i class="bi bi-check-circle-fill me-2" aria-hidden="true"></i>Tất cả sắc thuế khớp với Sổ cái Kế toán!</div>`;
+                } else {
+                    const ul = document.createElement("ul");
+                    ul.className = "list-group";
+                    data.recompiled.discrepancies.forEach(d => {
+                        const li = document.createElement("li");
+                        li.className = "list-group-item list-group-item-warning small py-2";
+                        li.innerHTML = `<i class="bi bi-exclamation-triangle-fill text-warning me-2" aria-hidden="true"></i>${d.message}`;
+                        ul.appendChild(li);
+                    });
+                    etaxReconciliationResults.appendChild(ul);
+                }
+            });
+        });
+        
+        // VietQR dynamic slip wizard
+        const vietqrWizardForm = document.getElementById("vietqrWizardForm");
+        const vietqrResultContainer = document.getElementById("vietqrResultContainer");
+        const vietqrCodeVisual = document.getElementById("vietqrCodeVisual");
+        const vietqrPayloadStr = document.getElementById("vietqrPayloadStr");
+        const paymentStatusBadge = document.getElementById("paymentStatusBadge");
+        const simulatePaymentBtn = document.getElementById("simulatePaymentBtn");
+        
+        let activeTransactionId = null;
+        
+        vietqrWizardForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+            const taxType = document.getElementById("vietqrTaxType").value;
+            const amount = parseFloat(document.getElementById("vietqrAmount").value);
+            
+            fetch("/api/compliance/vietqr-generate", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ tax_type: taxType, amount: amount })
+            })
+            .then(res => res.json())
+            .then(data => {
+                vietqrResultContainer.classList.remove("d-none");
+                activeTransactionId = data.transaction_id;
+                
+                // Draw dynamic text / details
+                vietqrCodeVisual.innerHTML = `
+                    <div style="text-align:center;">
+                        <i class="bi bi-qr-code fs-1 d-block mb-1 text-dark" aria-hidden="true"></i>
+                        <span class="badge bg-warning text-dark font-monospace" style="font-size:0.75rem;">${data.transaction_id}</span>
+                        <strong class="d-block text-dark mt-1" style="font-size: 0.9em;">${data.amount.toLocaleString('vi-VN')} VND</strong>
+                    </div>
+                `;
+                vietqrPayloadStr.textContent = data.vietqr_string;
+                paymentStatusBadge.textContent = "Trạng thái: Đang chờ thanh toán";
+                paymentStatusBadge.className = "badge bg-secondary";
+            });
+        });
+        
+        simulatePaymentBtn.addEventListener("click", () => {
+            if (!activeTransactionId) return;
+            
+            fetch("/api/compliance/vietqr-confirm", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ transaction_id: activeTransactionId })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "paid") {
+                    paymentStatusBadge.textContent = "Trạng thái: ĐÃ THANH TOÁN (Khớp lệnh GDT)";
+                    paymentStatusBadge.className = "badge bg-success";
+                }
+            });
+        });
+        
+        // --- Tab 3: Knowledge Graph & Audit Defense ---
+        const kgSearchQuery = document.getElementById("kgSearchQuery");
+        const kgSearchBtn = document.getElementById("kgSearchBtn");
+        const kgSearchResults = document.getElementById("kgSearchResults");
+        
+        const performKgSearch = () => {
+            const q = kgSearchQuery.value.trim();
+            if (!q) return;
+            
+            fetch(`/api/compliance/kg-query?query=${encodeURIComponent(q)}`)
+            .then(res => res.json())
+            .then(data => {
+                kgSearchResults.innerHTML = "";
+                if (data.results.length === 0) {
+                    kgSearchResults.innerHTML = `<p class="text-secondary small text-center py-4">Không tìm thấy căn cứ pháp lý liên quan.</p>`;
+                    return;
+                }
+                
+                data.results.forEach(node => {
+                    const div = document.createElement("div");
+                    div.className = "kg-node";
+                    div.innerHTML = `
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="badge bg-primary-subtle text-primary">${node.document}</span>
+                            <small class="fw-bold">${node.article}</small>
+                        </div>
+                        <p class="mb-0 small text-secondary" style="line-height: 1.4;">${node.content}</p>
+                    `;
+                    kgSearchResults.appendChild(div);
+                });
+            });
+        };
+        
+        kgSearchBtn.addEventListener("click", performKgSearch);
+        kgSearchQuery.addEventListener("keyup", (e) => {
+            if (e.key === "Enter") performKgSearch();
+        });
+        
+        // Socratic advisor questionnaire
+        const auditWarningType = document.getElementById("auditWarningType");
+        const socraticQuestionText = document.getElementById("socraticQuestionText");
+        const questionnaireFields = document.getElementById("questionnaireFields");
+        const generateDefenseBtn = document.getElementById("generateDefenseBtn");
+        const defenseLetterPreviewRegion = document.getElementById("defenseLetterPreviewRegion");
+        const defenseLetterHtmlContent = document.getElementById("defenseLetterHtmlContent");
+        const printDefenseBtn = document.getElementById("printDefenseBtn");
+        
+        const updateQuestionnaire = () => {
+            const warningType = auditWarningType.value;
+            questionnaireFields.innerHTML = "";
+            
+            if (warningType === "LATE_SIGNING") {
+                socraticQuestionText.innerHTML = `Tôi phát hiện thời điểm ký số hóa đơn của bạn lệch so với thời điểm lập. Để biện hộ chính xác, hãy trả lời câu hỏi: <strong>Kỳ kê khai thuế thực tế bạn áp dụng cho hóa đơn này là kỳ nào?</strong>`;
+                questionnaireFields.innerHTML = `
+                    <div class="mb-3">
+                        <label class="form-label small">Kỳ khai thuế áp dụng (ví dụ: Tháng 03/2026 hoặc Quý 1/2026):</label>
+                        <input type="text" class="form-control form-control-sm" id="q_period" value="Tháng lập hóa đơn" autocomplete="off" aria-label="Q period">
+                    </div>
+                `;
+            } else if (warningType === "CASH_PAYMENT_LIMIT") {
+                socraticQuestionText.innerHTML = `Giao dịch trên 20 triệu đồng thanh toán bằng tiền mặt bị loại chi phí được trừ. Trả lời: <strong>Bạn đã thực hiện ủy nhiệm chi/chuyển khoản ngân hàng bù đắp chưa? Hoặc giao dịch đang trả chậm?</strong>`;
+                questionnaireFields.innerHTML = `
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="q_bank_voucher" checked>
+                        <label class="form-check-label small" for="q_bank_voucher">Đã chuyển khoản ngân hàng thực tế (Có ủy nhiệm chi)</label>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small">Số Hợp đồng mua bán / Điều khoản trả chậm:</label>
+                        <input type="text" class="form-control form-control-sm" id="q_contract" value="HĐ-099/BTC" autocomplete="off" aria-label="Q contract">
+                    </div>
+                `;
+            } else if (warningType === "RELATED_PARTY_EBITDA") {
+                socraticQuestionText.innerHTML = `Cảnh báo vượt trần lãi vay 30% EBITDA. Hãy nhập thông tin: <strong>EBITDA năm của bạn và Tổng chi phí lãi vay ròng là bao nhiêu?</strong>`;
+                questionnaireFields.innerHTML = `
+                    <div class="row g-2">
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small">Chỉ số EBITDA năm (VND):</label>
+                            <input type="number" class="form-control form-control-sm" id="q_ebitda" value="5000000000" autocomplete="off" aria-label="Q ebitda">
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small">Chi phí lãi vay ròng (VND):</label>
+                            <input type="number" class="form-control form-control-sm" id="q_net_interest" value="1800000000" autocomplete="off" aria-label="Q net interest">
+                        </div>
+                    </div>
+                `;
+            }
+        };
+        
+        auditWarningType.addEventListener("change", updateQuestionnaire);
+        updateQuestionnaire(); // run initial
+        
+        generateDefenseBtn.addEventListener("click", () => {
+            const warningType = auditWarningType.value;
+            const context = {};
+            
+            if (warningType === "LATE_SIGNING") {
+                context.declaration_period = document.getElementById("q_period").value;
+            } else if (warningType === "CASH_PAYMENT_LIMIT") {
+                context.bank_voucher = document.getElementById("q_bank_voucher").checked;
+                context.contract_no = document.getElementById("q_contract").value;
+            } else if (warningType === "RELATED_PARTY_EBITDA") {
+                context.ebitda_amount = parseFloat(document.getElementById("q_ebitda").value);
+                context.net_interest_expense = parseFloat(document.getElementById("q_net_interest").value);
+            }
+            
+            fetch("/api/compliance/defense-compose", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ warning_type: warningType, context: context })
+            })
+            .then(res => res.json())
+            .then(data => {
+                defenseLetterPreviewRegion.classList.remove("d-none");
+                defenseLetterHtmlContent.innerHTML = data.letter_html;
+            });
+        });
+        
+        printDefenseBtn.addEventListener("click", () => {
+            const printContent = defenseLetterHtmlContent.innerHTML;
+            const originalContent = document.body.innerHTML;
+            
+            const w = window.open();
+            w.document.write(`
+                <html>
+                <head>
+                    <title>Cong van giai trinh thue</title>
+                    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+                    <style>
+                        body { font-family: 'Inter', sans-serif; background: #fff; color: #000; padding: 20px; }
+                        .defense-letter-container { background: #fff !important; color: #000 !important; box-shadow: none !important; }
+                        .citation-node { border-left: 3px solid #000 !important; background: #f9f9f9 !important; color: #333 !important; }
+                        @media print {
+                            button { display: none; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    ${printContent}
+                    <script>window.print();</scrip` + `t>
+                </body>
+                </html>
+            `);
+            w.document.close();
+        });
+    });
+</script>
+{% endblock %}

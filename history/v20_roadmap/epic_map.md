@@ -25,12 +25,12 @@ A highly integrated tax management platform deploying a collaborative tax agent 
 
 | Story ID | Title | Epic | Status | Dependencies |
 | --- | --- | --- | --- | --- |
-| `US-320` | Local Agent Mailroom & Coordination Hub | Epic E91 | Todo | None |
-| `US-321` | Autonomous Joint Audit Coordinator | Epic E91 | Todo | `US-320` |
-| `US-322` | Bank Feed Ingestion & Transaction Normalizer | Epic E92 | Todo | None |
-| `US-323` | Automated Bank-to-Invoice Matcher | Epic E92 | Todo | `US-322` |
-| `US-324` | Machine Learning Tax Liability Predictor | Epic E93 | Todo | None |
-| `US-325` | Tax Scenario Simulation Sandbox | Epic E93 | Todo | `US-324` |
+| `US-320` | Local Agent Mailroom & Coordination Hub | Epic E91 | ✅ Completed | None |
+| `US-321` | Autonomous Joint Audit Coordinator | Epic E91 | ✅ Completed | `US-320` |
+| `US-322` | Bank Feed Ingestion & Transaction Normalizer | Epic E92 | ✅ Completed | None |
+| `US-323` | Automated Bank-to-Invoice Matcher | Epic E92 | ✅ Completed | `US-322` |
+| `US-324` | Machine Learning Tax Liability Predictor | Epic E93 | ✅ Completed | None |
+| `US-325` | Tax Scenario Simulation Sandbox | Epic E93 | ✅ Completed | `US-324` |
 
 ---
 

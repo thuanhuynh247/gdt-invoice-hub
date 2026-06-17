@@ -1,0 +1,285 @@
+{% extends "base.html" %}
+{% block title %}Wastewater Fee Decree 53/2020 - EPFW Hub (v61){% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
+        <div>
+            <span class="badge bg-info text-dark mb-2">Version 61.0.0 Spec Compliance</span>
+            <h1 class="h2 fw-bold text-gradient mb-1 text-info">Environment Protection Fee for Wastewater Hub</h1>
+            <p class="text-muted mb-0">Manage EPFW (Phí bảo vệ môi trường đối với nước thải) under Decree 53/2020/NĐ-CP.</p>
+        </div>
+        <div class="d-flex gap-2 mt-3 mt-md-0">
+            <button id="btn-refresh-v61" class="btn btn-info text-dark d-flex align-items-center gap-2"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Load Data</button>
+            <span class="badge bg-info-subtle text-info border border-info d-flex align-items-center px-3"><i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Decree 53/2020</span>
+        </div>
+    </div>
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1 text-info"><i class="bi bi-calculator text-info me-2" aria-hidden="true"></i>Interactive EPFW Calculator</h5>
+                    <p class="text-muted small mb-0">Select wastewater category, discharge details, and pollutant loads to run the compliance auditor.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="input-water-desc" class="form-label small mb-1">Water Description:</label>
+                            <input type="text" id="input-water-desc" class="form-control form-control-sm" value="Nước thải dệt nhuộm" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-water-source" class="form-label small mb-1">Water Source Category:</label>
+                            <select id="input-water-source" class="form-select form-select-sm">
+                                <option value="central_water">Centralized Water (Nước cấp đô thị)</option>
+                                <option value="cooling_recycling">Cooling Recycling System (Nước làm mát tuần hoàn)</option>
+                                <option value="natural_runoff">Natural Rainwater/Runoff (Nước mưa tự nhiên)</option>
+                                <option value="rural_domestic">Rural Domestic (Sinh hoạt nông thôn)</option>
+                                <option value="hydropower">Hydropower Turbine (Nhà máy thủy điện)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-wastewater-type" class="form-label small mb-1">Wastewater Type:</label>
+                            <select id="input-wastewater-type" class="form-select form-select-sm">
+                                <option value="industrial">Industrial Wastewater (Nước thải công nghiệp)</option>
+                                <option value="domestic">Domestic Wastewater (Nước thải sinh hoạt)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-water-volume" class="form-label small mb-1">Discharge Volume (m³):</label>
+                            <input type="number" step="0.1" id="input-water-volume" class="form-control form-control-sm" value="500.0" autocomplete="off">
+                        </div>
+                        
+                        <!-- Domestic Water Price input -->
+                        <div class="col-md-12" id="domestic-price-wrapper" style="display: none;">
+                            <label for="input-clean-water-price" class="form-label small mb-1">Clean Water Price (VND/m³ before VAT):</label>
+                            <input type="number" id="input-clean-water-price" class="form-control form-control-sm" value="12000" autocomplete="off">
+                        </div>
+
+                        <!-- Industrial pollutant parameters -->
+                        <div class="col-md-12 border-top pt-3 mt-3" id="industrial-pollutants-wrapper">
+                            <h6 class="fw-bold small text-info mb-2"><i class="bi bi-radioactive me-1" aria-hidden="true"></i> Pollutant Loads (kg/year)</h6>
+                            <div class="row g-2">
+                                <div class="col-6 col-md-4">
+                                    <label for="input-cod" class="form-label small mb-0">COD (Oxy hóa):</label>
+                                    <input type="number" step="0.1" id="input-cod" class="form-control form-control-sm" value="120.0" autocomplete="off">
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <label for="input-tss" class="form-label small mb-0">TSS (Chất rắn):</label>
+                                    <input type="number" step="0.1" id="input-tss" class="form-control form-control-sm" value="80.0" autocomplete="off">
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <label for="input-pb" class="form-label small mb-0">Pb (Chì):</label>
+                                    <input type="number" step="0.001" id="input-pb" class="form-control form-control-sm" value="0.5" autocomplete="off">
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <label for="input-cd" class="form-label small mb-0">Cd (Cadimi):</label>
+                                    <input type="number" step="0.001" id="input-cd" class="form-control form-control-sm" value="0.0" autocomplete="off">
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <label for="input-hg" class="form-label small mb-0">Hg (Thủy ngân):</label>
+                                    <input type="number" step="0.0001" id="input-hg" class="form-control form-control-sm" value="0.0" autocomplete="off">
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <label for="input-as" class="form-label small mb-0">As (Asen):</label>
+                                    <input type="number" step="0.001" id="input-as" class="form-control form-control-sm" value="0.0" autocomplete="off">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-12 text-end">
+                            <button id="btn-calc-epfw" class="btn btn-info btn-sm text-dark fw-bold"><i class="bi bi-play-fill me-1" aria-hidden="true"></i> Run Calculation</button>
+                        </div>
+                    </div>
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
+                        <h6 class="fw-bold mb-2 text-info"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Calculation Result</h6>
+                        <div class="d-flex justify-content-between small mb-1"><span>Base Fixed Fee:</span><span id="res-base-fee" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Variable Pollutant Fee:</span><span id="res-var-fee" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Total Standard Fee:</span><span id="res-total-fee" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Effective Fee Payable:</span><span id="res-effective-fee" class="fw-bold text-info fs-6">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Exemption Status:</span><span id="res-exempt-badge" class="fw-bold">-</span></div>
+                        <div class="small text-muted border-top pt-2 mt-2"><strong>Exemption Reason:</strong> <span id="res-exemption-reason">Awaiting…</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0"><h5 class="fw-bold mb-1"><i class="bi bi-shield-check text-info me-2" aria-hidden="true"></i>EPFW Baseline Verification</h5></div>
+                <div class="card-body d-flex flex-column gap-3">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Urban Domestic Wastewater (10% water price)</span><span class="badge bg-secondary">Domestic</span></div>
+                        <p class="small text-muted mb-2">150 m³ discharge. Clean water price: 12k/m³.</p>
+                        <div class="d-flex justify-content-between small"><span>Total Fee: <strong id="base1-tot">-</strong></span><span>Effective: <strong id="base1-eff" class="text-info">-</strong></span></div>
+                    </div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Industrial Dyeing Wastewater (Surcharged)</span><span class="badge bg-danger">Heavy Metal</span></div>
+                        <p class="small text-muted mb-2">500 m³ discharge. COD, TSS, and Lead pollution charges.</p>
+                        <div class="d-flex justify-content-between small"><span>Total Fee: <strong id="base2-tot">-</strong></span><span>Effective: <strong id="base2-eff" class="text-info">-</strong></span></div>
+                    </div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Cooling Water Recycling (100% Exempt)</span><span class="badge bg-success">Exempt</span></div>
+                        <p class="small text-muted mb-2">1,000 m³ discharge. Clean cooling water, closed system.</p>
+                        <div class="d-flex justify-content-between small"><span>Total Fee: <strong id="base3-tot">-</strong></span><span>Reason: <strong id="base3-reason" class="text-success">-</strong></span></div>
+                    </div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Natural Runoff Rainwater (100% Exempt)</span><span class="badge bg-success">Exempt</span></div>
+                        <p class="small text-muted mb-2">2,000 m³ discharge. Storm rainwater drainage.</p>
+                        <div class="d-flex justify-content-between small"><span>Total Fee: <strong id="base4-tot">-</strong></span><span>Reason: <strong id="base4-reason" class="text-success">-</strong></span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-12">
+            <div class="card shadow-sm border-light">
+                <div class="card-header bg-dark text-white py-3 d-flex align-items-center justify-content-between"><h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-info me-2" aria-hidden="true"></i>Multi-Agent EPFW Advisory Debate</h5><span class="badge bg-secondary">Environmental Consensus</span></div>
+                <div class="card-body"><div id="debate-container-v61" class="mb-3 d-flex flex-column gap-3"></div><div class="p-3 bg-premium-light rounded border border-light-subtle"><h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus:</h6><p id="consensus-text-v61" class="text-muted small mb-0">Awaiting…</p></div></div>
+            </div>
+        </div>
+        <div class="col-lg-12">
+            <div class="card shadow-sm border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-2"><h5 class="fw-bold mb-1"><i class="bi bi-clock-history text-muted me-2" aria-hidden="true"></i>Historical Audit Log</h5></div>
+                <div class="card-body p-0"><div class="table-responsive"><table class="table table-hover table-striped mb-0 small"><thead class="table-dark"><tr><th>ID</th><th>Description</th><th>Type</th><th>Volume (m³)</th><th>Source</th><th>Base Fee</th><th>Variable Fee</th><th>Effective Fee</th><th>Status</th><th>Exemption Reason</th><th>Time</th></tr></thead><tbody id="history-table-v61"><tr><td colspan="11" class="text-center text-muted py-4">No logs.</td></tr></tbody></table></div></div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+document.addEventListener("DOMContentLoaded",()=>{
+    const fVND = n => new Intl.NumberFormat("vi-VN").format(n) + " VND";
+    
+    // Toggle input visibility based on wastewater type
+    const typeSelect = document.getElementById("input-wastewater-type");
+    const domPriceWrapper = document.getElementById("domestic-price-wrapper");
+    const indPollutantsWrapper = document.getElementById("industrial-pollutants-wrapper");
+    
+    const updateFormFields = () => {
+        if(typeSelect.value === "domestic") {
+            domPriceWrapper.style.display = "block";
+            indPollutantsWrapper.style.display = "none";
+        } else {
+            domPriceWrapper.style.display = "none";
+            indPollutantsWrapper.style.display = "block";
+        }
+    };
+    
+    typeSelect.addEventListener("change", updateFormFields);
+    updateFormFields(); // initial run
+    
+    const load = () => {
+        fetch('/api/v61/compliance-data').then(r=>r.json()).then(d=>{
+            if(d.status==="success"){
+                rB(d);
+                rD(d.debate,d.consensus_summary);
+                rH(d.history);
+            }
+        }).catch(e=>console.error(e));
+    };
+    
+    const calc = () => {
+        const p = {
+            water_description: document.getElementById("input-water-desc").value,
+            wastewater_type: typeSelect.value,
+            water_volume_m3: parseFloat(document.getElementById("input-water-volume").value),
+            water_source: document.getElementById("input-water-source").value,
+            clean_water_price_vnd: parseFloat(document.getElementById("input-clean-water-price").value || 0),
+            pollutant_cod_kg: parseFloat(document.getElementById("input-cod").value || 0),
+            pollutant_tss_kg: parseFloat(document.getElementById("input-tss").value || 0),
+            pollutant_pb_kg: parseFloat(document.getElementById("input-pb").value || 0),
+            pollutant_cd_kg: parseFloat(document.getElementById("input-cd").value || 0),
+            pollutant_hg_kg: parseFloat(document.getElementById("input-hg").value || 0),
+            pollutant_as_kg: parseFloat(document.getElementById("input-as").value || 0)
+        };
+        fetch('/api/v61/calculate',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify(p)
+        }).then(r=>r.json()).then(d=>{
+            if(d.status==="success"){
+                rR(d.results);
+                load();
+            } else {
+                alert(d.error);
+            }
+        }).catch(e=>console.error(e));
+    };
+    
+    const rR = r => {
+        document.getElementById("res-base-fee").textContent = fVND(r.base_fee_vnd);
+        document.getElementById("res-var-fee").textContent = fVND(r.variable_fee_vnd);
+        document.getElementById("res-total-fee").textContent = fVND(r.total_fee_vnd);
+        document.getElementById("res-effective-fee").textContent = fVND(r.effective_fee_vnd);
+        
+        if (r.is_exempt) {
+            document.getElementById("res-exempt-badge").innerHTML = '<span class="badge bg-success">100% Exempt</span>';
+        } else {
+            document.getElementById("res-exempt-badge").innerHTML = '<span class="badge bg-danger">Fee Payable</span>';
+        }
+        document.getElementById("res-exemption-reason").textContent = r.exemption_reason || "None";
+    };
+    
+    const rB = d => {
+        document.getElementById("base1-tot").textContent = fVND(d.domestic_standard.total_fee_vnd);
+        document.getElementById("base1-eff").textContent = fVND(d.domestic_standard.effective_fee_vnd);
+        
+        document.getElementById("base2-tot").textContent = fVND(d.industrial_heavy_metals.total_fee_vnd);
+        document.getElementById("base2-eff").textContent = fVND(d.industrial_heavy_metals.effective_fee_vnd);
+        
+        document.getElementById("base3-tot").textContent = fVND(d.cooling_exempt.total_fee_vnd);
+        document.getElementById("base3-reason").textContent = d.cooling_exempt.exemption_reason;
+        
+        document.getElementById("base4-tot").textContent = fVND(d.runoff_exempt.total_fee_vnd);
+        document.getElementById("base4-reason").textContent = d.runoff_exempt.exemption_reason;
+    };
+    
+    const rD = (debate, summary) => {
+        const c = document.getElementById("debate-container-v61");
+        c.innerHTML = "";
+        const cl = {
+            "Wastewater Auditor": "bg-info text-dark",
+            "Industrial Park Supervisor": "bg-warning text-dark",
+            "Legal Environmental Counsel": "bg-success text-white"
+        };
+        debate.forEach(m => {
+            const div = document.createElement("div");
+            div.className = "d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";
+            div.innerHTML = `<span class="badge ${cl[m.speaker] || "bg-secondary"} py-2 px-3" style="min-width:200px">${m.speaker}</span><div class="text-dark small">${m.text}</div>`;
+            c.appendChild(div);
+        });
+        document.getElementById("consensus-text-v61").textContent = summary;
+    };
+    
+    const rH = h => {
+        const tb = document.getElementById("history-table-v61");
+        if (!h || !h.length) {
+            tb.innerHTML = '<tr><td colspan="11" class="text-center text-muted py-4">No logs.</td></tr>';
+            return;
+        }
+        tb.innerHTML = "";
+        h.forEach(l => {
+            const tr = document.createElement("tr");
+            let statusBadge = '<span class="badge bg-danger">Fee Payable</span>';
+            if (l.is_exempt) {
+                statusBadge = '<span class="badge bg-success">Exempt</span>';
+            }
+            tr.innerHTML = `
+                <td>${l.id}</td>
+                <td class="fw-bold">${l.water_description}</td>
+                <td><span class="badge bg-secondary">${l.wastewater_type.toUpperCase()}</span></td>
+                <td>${l.water_volume_m3} m³</td>
+                <td><span class="badge bg-premium-light text-dark">${l.water_source.toUpperCase()}</span></td>
+                <td>${fVND(l.base_fee_vnd)}</td>
+                <td>${fVND(l.variable_fee_vnd)}</td>
+                <td class="fw-bold text-dark">${fVND(l.effective_fee_vnd)}</td>
+                <td>${statusBadge}</td>
+                <td class="text-muted small">${l.exemption_reason || "-"}</td>
+                <td class="text-muted">${l.created_at}</td>
+            `;
+            tb.appendChild(tr);
+        });
+    };
+    
+    document.getElementById("btn-calc-epfw").addEventListener("click", calc);
+    document.getElementById("btn-refresh-v61").addEventListener("click", load);
+    load();
+});
+</script>
+{% endblock %}

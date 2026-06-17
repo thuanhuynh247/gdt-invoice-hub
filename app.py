@@ -18,6 +18,7 @@ tempfile.tempdir = local_temp
 from flask import Flask, jsonify, redirect, render_template, session, url_for
 from auth import auth_blueprint
 from invoices import invoices_blueprint
+from invoices.smart_invoice_api import smart_invoice_blueprint
 from config import Config
 
 
@@ -77,6 +78,16 @@ def create_app() -> Flask:
             if "erp_sync_error" not in columns:
                 db.session.execute(db.text("ALTER TABLE invoice ADD COLUMN erp_sync_error TEXT NULL;"))
                 db.session.commit()
+            if "merkle_hash" not in columns:
+                db.session.execute(db.text("ALTER TABLE invoice ADD COLUMN merkle_hash VARCHAR(64) NULL;"))
+                db.session.commit()
+            if "merkle_root" not in columns:
+                db.session.execute(db.text("ALTER TABLE invoice ADD COLUMN merkle_root VARCHAR(64) NULL;"))
+                db.session.commit()
+            if "merkle_index" not in columns:
+                db.session.execute(db.text("ALTER TABLE invoice ADD COLUMN merkle_index INTEGER NULL;"))
+                db.session.commit()
+
 
             res_item = db.session.execute(db.text("PRAGMA table_info(line_item);")).fetchall()
             columns_item = [r[1] for r in res_item]
@@ -165,30 +176,16 @@ def create_app() -> Flask:
 
     app.register_blueprint(auth_blueprint)
     app.register_blueprint(invoices_blueprint)
+    app.register_blueprint(smart_invoice_blueprint)
 
     # Apply cybersecurity hardening headers (CSP, Clickjacking prevention, MIME protection)
     from auth.security import apply_security_headers
     apply_security_headers(app)
 
 
-    if not app.config.get("TESTING") and os.getenv("TESTING") != "True":
-        if os.getenv("ENABLE_CAPTCHA_PREFETCH", "true").lower() == "true":
-            from auth.captcha import start_captcha_prefetch_worker
-            start_captcha_prefetch_worker(app)
-
-        if os.getenv("ENABLE_SCHEDULER_WORKER", "true").lower() == "true":
-            from invoices.scheduler import start_scheduler_worker
-            start_scheduler_worker(app)
-
-        if os.getenv("ENABLE_PDF_INGESTION", "true").lower() == "true":
-            from invoices.ai_service import start_dynamic_pdf_ingestion_thread
-            start_dynamic_pdf_ingestion_thread(app)
-
-        if os.getenv("ENABLE_SYNC_DAEMON", "true").lower() == "true":
-            from invoices.sync_daemon import GDTSyncDaemon
-            # Start the sync daemon with a fast 1-minute interval for demo purposes
-            daemon = GDTSyncDaemon(app, interval_minutes=1)
-            daemon.start()
+    # Initialize background worker threads & sync daemons
+    from invoices.workers import init_background_workers
+    init_background_workers(app)
 
     @app.get("/")
     def index():
@@ -211,10 +208,13 @@ def create_app() -> Flask:
         return jsonify({"error": "Khong tim thay tai nguyen."}), 404
 
     @app.errorhandler(500)
-    def server_error(_error):
+    def server_error(error):
         """Return a safe error message without exposing stack traces."""
-    
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": "Co loi may chu. Vui long thu lai."}), 500
+
+
 
     @app.context_processor
     def inject_template_state():

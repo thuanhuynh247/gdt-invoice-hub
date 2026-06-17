@@ -1,18 +1,20 @@
 import json
 import logging
+import requests
 from datetime import datetime
 from typing import Dict, List, Any
 
 from extensions import db
-from invoices.models import Invoice, LineItem, AIAuditResult, TaxpayerProfile
+from invoices.models import Invoice, LineItem, AIAuditResult, TaxpayerProfile, BankTransaction
 from invoices.ai_service import get_tax_rag_context, load_scheduler_settings
+from invoices.mst_service import check_mst_status, STATUS_ACTIVE
 
 logger = logging.getLogger(__name__)
 
 class VATRefundEligibilityEngine:
     """Engine to assess taxpayer eligibility for VAT refunds (Hoàn thuế GTGT) and generate compliance dossiers."""
 
-    def get_eligibility(self, taxpayer_mst: str) -> Dict[str, Any]:
+    def get_eligibility(self, taxpayer_mst: str, input_invoice_ids: List[str] = None, customs_declarations: List[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Calculates VAT refund eligibility and returns a detailed audit report."""
         profile = TaxpayerProfile.query.get(taxpayer_mst)
         if not profile:
@@ -23,13 +25,18 @@ class VATRefundEligibilityEngine:
                 "reason": "MST người nộp thuế không tồn tại.",
                 "metrics": {},
                 "eligible_invoices": [],
-                "ineligible_invoices": []
+                "ineligible_invoices": [],
+                "customs_export_reconciliation": []
             }
 
         # 1. Fetch all invoices for the MST
         invoices = Invoice.query.filter_by(taxpayer_mst=taxpayer_mst).all()
         
         purchase_invoices = [inv for inv in invoices if inv.invoice_type == "purchase"]
+        # Filter if a specific subset is selected via wizard
+        if input_invoice_ids is not None:
+            purchase_invoices = [inv for inv in purchase_invoices if inv.id in input_invoice_ids]
+
         sale_invoices = [inv for inv in invoices if inv.invoice_type == "sale"]
 
         # 2. Calculate Sales & Exports Metrics
@@ -98,6 +105,16 @@ class VATRefundEligibilityEngine:
                 
                 if is_cash or has_cash_risk:
                     disqualification_reasons.append("Vi phạm thanh toán bằng tiền mặt đối với hóa đơn trị giá từ 20 triệu VND trở lên")
+                
+                # Rule 5b: Flag input invoices > 20M VND that lack bank payment matching records
+                has_bank_match = BankTransaction.query.filter_by(matched_invoice_id=inv.id).first() is not None
+                if not has_bank_match:
+                    disqualification_reasons.append("Thiếu chứng từ thanh toán ngân hàng đối soát cho hóa đơn từ 20 triệu VND trở lên")
+
+            # Rule 6: Verify supplier MST is active
+            mst_info = check_mst_status(inv.seller_mst)
+            if mst_info.get("status") != STATUS_ACTIVE:
+                disqualification_reasons.append(f"Mã số thuế nhà cung cấp không hoạt động: {mst_info.get('status')}")
 
             if disqualification_reasons:
                 disqualified_input_vat += vat
@@ -140,6 +157,72 @@ class VATRefundEligibilityEngine:
         elif general_eligible:
             reason += " (Đủ điều kiện theo diện Dự án đầu tư / Tích lũy sản xuất kinh doanh)."
 
+        # 6. Match customs declarations with export invoices
+        customs_reconciliation = []
+        if customs_declarations:
+            for decl in customs_declarations:
+                decl_num = decl.get("declaration_number") or decl.get("number") or ""
+                decl_desc = (decl.get("product_description") or decl.get("description") or "").lower()
+                decl_qty = float(decl.get("quantity") or 0)
+                decl_val = float(decl.get("customs_value_vnd") or decl.get("value") or 0)
+                
+                matched_invoice = None
+                match_status = "Unmatched"
+                variances = []
+                
+                for inv in sale_invoices:
+                    # check if invoice is export
+                    is_export = False
+                    if inv.tax_amount == 0 and inv.amount_before_tax > 0:
+                        is_export = True
+                    else:
+                        for item in inv.items:
+                            if "0%" in item.tax_rate:
+                                is_export = True
+                                break
+                    if not is_export:
+                        continue
+                        
+                    inv_desc_combined = " ".join(item.item_name.lower() for item in inv.items)
+                    inv_qty = sum(item.quantity for item in inv.items)
+                    inv_val = inv.amount_before_tax
+                    
+                    desc_match = any(word in inv_desc_combined for word in decl_desc.split() if len(word) > 3) or decl_desc in inv_desc_combined or inv_desc_combined in decl_desc
+                    val_match = abs(inv_val - decl_val) / max(inv_val, 1) < 0.05
+                    qty_match = abs(inv_qty - decl_qty) < 0.1
+                    
+                    if desc_match or val_match:
+                        matched_invoice = inv
+                        if desc_match and val_match and qty_match:
+                            match_status = "Fully Matched"
+                        else:
+                            match_status = "Discrepancy"
+                            if not desc_match:
+                                variances.append("Tên sản phẩm không khớp")
+                            if not qty_match:
+                                variances.append(f"Số lượng lệch (Hải quan: {decl_qty}, Hóa đơn: {inv_qty})")
+                            if not val_match:
+                                variances.append(f"Trị giá lệch (Hải quan: {decl_val:,.0f}, Hóa đơn: {inv_val:,.0f})")
+                        break
+                
+                if matched_invoice:
+                    customs_reconciliation.append({
+                        "declaration_number": decl_num,
+                        "invoice_id": matched_invoice.id,
+                        "invoice_number": matched_invoice.number,
+                        "match_status": match_status,
+                        "variances": variances
+                    })
+                else:
+                    customs_reconciliation.append({
+                        "declaration_number": decl_num,
+                        "invoice_id": None,
+                        "invoice_number": None,
+                        "match_status": "Unmatched",
+                        "variances": ["Không tìm thấy hóa đơn xuất khẩu đối ứng"]
+                    })
+
+
         return {
             "mst": taxpayer_mst,
             "company_name": profile.company_name,
@@ -157,7 +240,8 @@ class VATRefundEligibilityEngine:
                 "ineligible_invoice_count": len(ineligible_invoices),
             },
             "eligible_invoices": eligible_invoices,
-            "ineligible_invoices": ineligible_invoices
+            "ineligible_invoices": ineligible_invoices,
+            "customs_export_reconciliation": customs_reconciliation
         }
 
     def generate_dossier(self, taxpayer_mst: str) -> Dict[str, Any]:
@@ -327,3 +411,61 @@ Người lập báo cáo: Hệ thống Trí tuệ Nhân tạo meInvoice AI Compl
         except Exception:
             # Fallback spell
             return f"Bằng số: {amount:,.0f}"
+
+
+def generate_form_01_dnht_xml(taxpayer_mst: str, eligible_invoice_ids: List[str], bank_account: str = "", bank_name: str = "", reason_type: str = "") -> str:
+    """Generates GDT-compliant Form 01/ĐNHT XML for tax refund request."""
+    from invoices.models import TaxpayerProfile, Invoice
+    profile = TaxpayerProfile.query.get(taxpayer_mst)
+    company_name = profile.company_name if profile else "DOANH NGHIEP"
+    
+    invoices = Invoice.query.filter(Invoice.id.in_(eligible_invoice_ids)).all()
+    total_vat = sum(inv.tax_amount for inv in invoices)
+    
+    now = datetime.now()
+    date_str = now.strftime("%Y-%m-%d")
+    
+    reason = "Hoàn thuế đối với hàng hóa, dịch vụ xuất khẩu" if reason_type == "export" else "Hoàn thuế đối với dự án đầu tư / hoạt động sản xuất kinh doanh tích lũy"
+    
+    xml_lines = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<HSoThueDTu xmlns="http://kekhaithue.gdt.gov.vn/TKhaiThue" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">',
+        '  <HSoKhaiThue>',
+        '    <TTinChung>',
+        '      <MaTKhai>01_DNHT</MaTKhai>',
+        '      <TenTKhai>Giấy đề nghị hoàn trả khoản thu Ngân sách nhà nước</TenTKhai>',
+        f'      <Mst>{taxpayer_mst}</Mst>',
+        f'      <TenNNT>{company_name}</TenNNT>',
+        '      <KyKKhaiThue>',
+        '        <KieuKy>M</KieuKy>',
+        f'        <KyKKhai>{now.strftime("%m/%Y")}</KyKKhai>',
+        '      </KyKKhaiThue>',
+        f'      <NgayNop>{date_str}</NgayNop>',
+        '    </TTinChung>',
+        '    <CTietTKhai>',
+        f'      <LyDoHoan>{reason}</LyDoHoan>',
+        f'      <SoTienDeNghiHoan>{total_vat:.2f}</SoTienDeNghiHoan>',
+        f'      <TaiKhoanNhanHoan>{bank_account}</TaiKhoanNhanHoan>',
+        f'      <TenNganHangNhanHoan>{bank_name}</TenNganHangNhanHoan>',
+        '      <BangKeVouchers>'
+    ]
+    
+    for inv in invoices:
+        xml_lines.extend([
+            '        <Voucher>',
+            f'          <InvoiceNumber>{inv.number}</InvoiceNumber>',
+            f'          <InvoiceDate>{inv.date}</InvoiceDate>',
+            f'          <SellerMST>{inv.seller_mst}</SellerMST>',
+            f'          <SellerName>{inv.seller_name}</SellerName>',
+            f'          <VATAmount>{inv.tax_amount:.2f}</VATAmount>',
+            '        </Voucher>'
+        ])
+        
+    xml_lines.extend([
+        '      </BangKeVouchers>',
+        '    </CTietTKhai>',
+        '  </HSoKhaiThue>',
+        '</HSoThueDTu>'
+    ])
+    
+    return "\n".join(xml_lines)

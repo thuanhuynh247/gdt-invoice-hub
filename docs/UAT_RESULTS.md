@@ -1,7 +1,7 @@
 # 📊 BÁO CÁO KẾT QUẢ KIỂM THỬ CHẤP NHẬN NGƯỜI DÙNG (UAT)
-# GDT Invoice Hub — Enterprise Tax Analytics Platform v17.0.0
+# GDT Invoice Hub — Enterprise Tax Analytics Platform v29.0.0
 
-**Ngày thực hiện**: 2026-06-01  
+**Ngày thực hiện**: 2026-06-05  
 **Người thực hiện**: AI Quality Assurance Agent (Antigravity)  
 **Môi trường**: Windows 11, Python 3.14.2, Flask Dev Server (localhost:5000)  
 **Chế độ**: Mock Mode (`GDT_USE_MOCK=true`)
@@ -12,10 +12,10 @@
 
 | Bộ kiểm thử | Tổng | ✅ Pass | ❌ Fail | ⏭️ Skip | Thời gian |
 |---|---|---|---|---|---|
-| **Automated Pytest Suite** | 477 | 476 | 0 | 1 (E2E) | 68.41s |
+| **Automated Pytest Suite** | 541 | 540 | 0 | 1 (E2E) | 403.60s |
 | **UAT Smoke Test** | 19 | 19 | 0 | 0 | 10.42s |
 | **Live API Integration Test** | 16 | 16 | 0 | 0 | ~3s |
-| **TỔNG CỘNG** | **512** | **511** | **0** | **1** | **~82s** |
+| **TỔNG CỘNG** | **576** | **575** | **0** | **1** | **~417s** |
 
 > **Kết luận: ĐẠT ✅ — Hệ thống sẵn sàng đưa vào vận hành.**
 
@@ -121,13 +121,13 @@ Bao phủ toàn bộ User Stories qua 477 test cases:
 
 ```
 BIÊN BẢN NGHIỆM THU UAT
-Dự án: GDT Invoice Hub v17.0.0
-Ngày: 01/06/2026
+Dự án: GDT Invoice Hub v29.0.0
+Ngày: 05/06/2026
 
 Kết quả:
   - Tổng số bộ kiểm thử: 3 (Pytest + Smoke + Live API)
-  - Tổng test cases: 512
-  - Test PASS: 511 (99.8%)
+  - Tổng test cases: 576
+  - Test PASS: 575 (99.8%)
   - Test FAIL: 0
   - Test SKIP: 1 (E2E headful)
 

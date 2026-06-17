@@ -1,0 +1,259 @@
+{% extends "base.html" %}
+{% block title %}V33 - Thuế TNDN Tạm Tính & Lịch Tuân Thủ Thuế{% endblock %}
+{% block content %}
+<div class="container-fluid px-4 py-4">
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h2 class="fw-bold mb-1" style="letter-spacing:-0.5px">
+        <i class="bi bi-calendar3 me-2 text-info" aria-hidden="true"></i>Thuế TNDN Tạm Tính & Lịch Tuân Thủ Thuế
+      </h2>
+      <p class="text-secondary mb-0">Version 33.0.0 - CIT Quarterly Provisional Declaration & Tax Compliance Calendar</p>
+    </div>
+    <span class="badge bg-info bg-opacity-25 text-info px-3 py-2 fs-6 rounded-pill">US-450 • US-451</span>
+  </div>
+
+  <!-- ═══════════════ TAX COMPLIANCE CALENDAR ═══════════════ -->
+  <div class="card border-0 shadow-sm mb-4" style="border-radius:16px;background:var(--bs-body-bg)">
+    <div class="card-header bg-transparent border-0 pt-4 pb-2 px-4">
+      <div class="d-flex align-items-center justify-content-between">
+        <h5 class="fw-bold mb-0"><i class="bi bi-calendar-event me-2 text-primary" aria-hidden="true"></i>Lịch Tuân Thủ Thuế Năm
+          <select id="calendarYear" class="form-select form-select-sm d-inline-block w-auto ms-2" style="border-radius:8px">
+            <option value="2025">2025</option>
+            <option value="2026" selected>2026</option>
+            <option value="2027">2027</option>
+          </select>
+        </h5>
+        <button class="btn btn-outline-primary btn-sm rounded-pill px-3" onclick="loadTaxCalendar()">
+          <i class="bi bi-arrow-clockwise me-1" aria-hidden="true"></i>Tải lịch
+        </button>
+      </div>
+    </div>
+    <div class="card-body px-4 pb-4">
+      <div id="calendarGrid" class="row g-3">
+        <div class="col-12 text-center text-secondary py-5">
+          <i class="bi bi-hourglass-split fs-1 d-block mb-2" aria-hidden="true"></i>
+          Nhấn <strong>Tải lịch</strong> để hiển thị lịch tuân thủ thuế.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- ═══════════════ CIT QUARTERLY DECLARATION ═══════════════ -->
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm h-100" style="border-radius:16px;background:var(--bs-body-bg)">
+        <div class="card-header bg-transparent border-0 pt-4 pb-2 px-4">
+          <h5 class="fw-bold mb-0"><i class="bi bi-calculator me-2 text-success" aria-hidden="true"></i>Tính Thuế TNDN Tạm Tính Theo Quý</h5>
+        </div>
+        <div class="card-body px-4 pb-4">
+          <div class="row g-3 mb-3">
+            <div class="col-6">
+              <label class="form-label small fw-semibold">Quý</label>
+              <select id="citQuarter" class="form-select" style="border-radius:10px">
+                <option value="1">Quý 1 (T1-T3)</option>
+                <option value="2" selected>Quý 2 (T4-T6)</option>
+                <option value="3">Quý 3 (T7-T9)</option>
+                <option value="4">Quý 4 (T10-T12)</option>
+              </select>
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-semibold">Năm</label>
+              <input type="number" id="citYear" class="form-control" value="2026" style="border-radius:10px" autocomplete="off" aria-label="Cityear">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Doanh thu (VND)</label>
+            <input type="number" id="citRevenue" class="form-control" value="5000000000" style="border-radius:10px" autocomplete="off" aria-label="Citrevenue">
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Giá vốn hàng bán (VND)</label>
+            <input type="number" id="citCOGS" class="form-control" value="3000000000" style="border-radius:10px" autocomplete="off" aria-label="Citcogs">
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Chi phí hoạt động (VND)</label>
+            <input type="number" id="citOpex" class="form-control" value="800000000" style="border-radius:10px" autocomplete="off" aria-label="Citopex">
+          </div>
+          <div class="d-flex gap-2">
+            <button class="btn btn-success rounded-pill px-4 flex-fill" onclick="calculateCIT()">
+              <i class="bi bi-calculator me-1" aria-hidden="true"></i>Tính thuế
+            </button>
+            <button class="btn btn-outline-info rounded-pill px-3" onclick="generateXML()" id="btnXML" disabled>
+              <i class="bi bi-filetype-xml me-1" aria-hidden="true"></i>Xuất XML
+            </button>
+          </div>
+          <div id="citResult" class="mt-3" style="display:none">
+            <div class="p-3 rounded-3" style="background:var(--bs-success-bg-subtle);border:1px solid var(--bs-success-border-subtle);border-radius:12px!important">
+              <h6 class="fw-bold text-success mb-2"><i class="bi bi-check-circle me-1" aria-hidden="true"></i>Kết quả tính thuế</h6>
+              <table class="table table-sm table-borderless mb-0 small">
+                <tbody id="citResultBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ AI SWARM CIT ADVISOR ═══════════════ -->
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm h-100" style="border-radius:16px;background:var(--bs-body-bg)">
+        <div class="card-header bg-transparent border-0 pt-4 pb-2 px-4">
+          <h5 class="fw-bold mb-0"><i class="bi bi-robot me-2 text-warning" aria-hidden="true"></i>AI Swarm Tư Vấn Thuế TNDN</h5>
+        </div>
+        <div class="card-body px-4 pb-4 d-flex flex-column">
+          <div id="swarmChat" class="flex-grow-1 overflow-auto mb-3 p-3 rounded-3"
+               style="background:var(--bs-tertiary-bg);min-height:320px;max-height:450px;border-radius:12px!important">
+            <div class="text-center text-secondary py-5">
+              <i class="bi bi-chat-dots fs-1 d-block mb-2" aria-hidden="true"></i>
+              Nhấn <strong>Tính thuế</strong> rồi nhấn <strong>Phân tích Swarm</strong> để khởi động.
+            </div>
+          </div>
+          <button class="btn btn-warning rounded-pill px-4" onclick="runSwarm()" id="btnSwarm" disabled>
+            <i class="bi bi-lightning me-1" aria-hidden="true"></i>Phân tích Swarm AI
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ XML VIEWER MODAL ═══════════════ -->
+  <div class="modal fade" id="xmlModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content border-0" style="border-radius:16px">
+        <div class="modal-header border-0">
+          <h5 class="modal-title fw-bold"><i class="bi bi-filetype-xml me-2 text-info" aria-hidden="true"></i>Form 01A/TNDN XML</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <pre id="xmlContent" class="p-3 rounded-3" style="background:var(--bs-tertiary-bg);max-height:500px;overflow:auto;font-size:0.82rem;white-space:pre-wrap"></pre>
+        </div>
+        <div class="modal-footer border-0">
+          <button class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Đóng</button>
+          <button class="btn btn-info rounded-pill px-4" onclick="copyXML()"><i class="bi bi-clipboard me-1" aria-hidden="true"></i>Sao chép XML</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let lastCITCalc = null;
+
+function fmt(n) { return new Intl.NumberFormat('vi-VN').format(Math.round(n)); }
+
+function loadTaxCalendar() {
+  const year = document.getElementById('calendarYear').value;
+  fetch(`/api/compliance/tax-calendar?year=${year}`)
+    .then(r => r.json())
+    .then(data => {
+      const grid = document.getElementById('calendarGrid');
+      grid.innerHTML = '';
+      const typeColors = {VAT:'primary',CIT:'success',PIT:'warning',FCT:'danger',SI:'info'};
+      const statusIcons = {filed:'check-circle-fill text-success',upcoming:'exclamation-triangle-fill text-warning',pending:'clock text-secondary'};
+      data.months.forEach(m => {
+        const col = document.createElement('div');
+        col.className = 'col-md-4 col-lg-3';
+        let dls = m.deadlines.map(d => {
+          const ic = statusIcons[d.status] || 'circle text-secondary';
+          const tc = typeColors[d.type] || 'secondary';
+          return `<div class="d-flex align-items-start gap-2 mb-2">
+            <i class="bi bi-${ic} mt-1 flex-shrink-0" aria-hidden="true"></i>
+            <div class="small">
+              <span class="badge bg-${tc} bg-opacity-25 text-${tc} me-1">${d.type}</span>
+              <span class="fw-medium">${d.label}</span>
+              <div class="text-muted" style="font-size:0.75rem">Hạn: ${d.date}</div>
+            </div>
+          </div>`;
+        }).join('');
+        col.innerHTML = `<div class="card border-0 h-100" style="border-radius:12px;background:var(--bs-tertiary-bg)">
+          <div class="card-body p-3">
+            <h6 class="fw-bold text-primary mb-2">${m.month_name}</h6>${dls || '<span class="text-muted small">Không có hạn nộp</span>'}
+          </div></div>`;
+        grid.appendChild(col);
+      });
+    });
+}
+
+function calculateCIT() {
+  const body = {
+    quarter: +document.getElementById('citQuarter').value,
+    year: +document.getElementById('citYear').value,
+    revenue: +document.getElementById('citRevenue').value,
+    cogs: +document.getElementById('citCOGS').value,
+    operating_expenses: +document.getElementById('citOpex').value,
+  };
+  fetch('/api/compliance/cit-quarterly', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+    .then(r => r.json())
+    .then(d => {
+      lastCITCalc = {...body, …d};
+      const rows = [
+        ['Doanh thu', fmt(d.revenue)],['Giá vốn hàng bán', fmt(d.cogs)],
+        ['Lợi nhuận gộp', fmt(d.gross_profit)],['Chi phí hoạt động', fmt(d.operating_expenses)],
+        ['Thu nhập trước thuế', fmt(d.pre_tax_income)],['Thu nhập chịu thuế', fmt(d.taxable_income)],
+        ['Thuế suất', (d.cit_rate*100)+'%'],
+        ['<strong>Thuế TNDN phải nộp</strong>', '<strong class="text-success fs-5">'+fmt(d.cit_payable)+' đ</strong>'],
+        ['Hạn nộp', '<span class="badge bg-warning text-dark">'+d.filing_deadline+'</span>'],
+      ];
+      document.getElementById('citResultBody').innerHTML = rows.map(r=>`<tr><td>${r[0]}</td><td class="text-end">${r[1]}</td></tr>`).join('');
+      document.getElementById('citResult').style.display = 'block';
+      document.getElementById('btnXML').disabled = false;
+      document.getElementById('btnSwarm').disabled = false;
+    });
+}
+
+function generateXML() {
+  if(!lastCITCalc) return;
+  const body = {
+    taxpayer_name: 'Công ty TNHH Giải pháp Phần mềm',
+    quarter: lastCITCalc.quarter, year: lastCITCalc.year,
+    revenue: lastCITCalc.revenue, cogs: lastCITCalc.cogs,
+    operating_expenses: lastCITCalc.operating_expenses,
+  };
+  fetch('/api/compliance/form01a-tndn-xml',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+    .then(r=>r.json())
+    .then(d => {
+      document.getElementById('xmlContent').textContent = d.xml_content;
+      new bootstrap.Modal(document.getElementById('xmlModal')).show();
+    });
+}
+
+function copyXML() {
+  navigator.clipboard.writeText(document.getElementById('xmlContent').textContent);
+}
+
+function runSwarm() {
+  if(!lastCITCalc) return;
+  const chat = document.getElementById('swarmChat');
+  chat.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-warning"></div><p class="mt-2 text-secondary">Đang phân tích…</p></div>';
+  const body = {
+    taxpayer_name: 'Công ty TNHH Giải pháp Phần mềm',
+    quarter: lastCITCalc.quarter, year: lastCITCalc.year,
+    revenue: lastCITCalc.revenue, cogs: lastCITCalc.cogs,
+    operating_expenses: lastCITCalc.operating_expenses,
+  };
+  fetch('/api/agents/swarm-v33-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+    .then(r=>r.json())
+    .then(d => {
+      chat.innerHTML = '';
+      d.chat_steps.forEach((s,i) => {
+        const div = document.createElement('div');
+        div.className = 'mb-3 animate__animated animate__fadeInUp';
+        div.style.animationDelay = (i*0.15)+'s';
+        div.innerHTML = `<div class="d-flex gap-2 align-items-start">
+          <span class="badge ${s.avatar_class} rounded-circle p-2 flex-shrink-0" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center">
+            <i class="bi bi-robot" aria-hidden="true"></i>
+          </span>
+          <div>
+            <div class="fw-bold small">${s.agent} <span class="text-muted fw-normal">: ${s.role}</span>
+              <span class="text-muted ms-2" style="font-size:0.7rem">${s.timestamp}</span>
+            </div>
+            <div class="small mt-1">${s.message}</div>
+          </div>
+        </div>`;
+        chat.appendChild(div);
+      });
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => loadTaxCalendar());
+</script>
+{% endblock %}

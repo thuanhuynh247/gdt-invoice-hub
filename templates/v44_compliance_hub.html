@@ -1,0 +1,385 @@
+{% extends "base.html" %}
+
+{% block title %}Decree 123 VAT & Circular 67 Sci-Tech Fund Optimizer (v44){% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header Area -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
+        <div>
+            <span class="badge bg-success mb-2">Version 44.0.0 Spec Compliance</span>
+            <h1 class="h2 fw-bold text-gradient mb-1">Decree 123 & Circular 67 Compliance Hub</h1>
+            <p class="text-muted mb-0">Reconcile VAT adjustment/discount logs under Decree 123, simulate 5-year Sci-Tech Fund clawbacks, and audit CIT welfare caps.</p>
+        </div>
+        <div class="d-flex gap-2 mt-3 mt-md-0">
+            <button id="btn-recalculate" class="btn btn-success d-flex align-items-center gap-2">
+                <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Recalculate Compliance
+            </button>
+            <span id="sync-status" class="badge bg-success-subtle text-success border border-success d-flex align-items-center px-3">
+                <i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Connected to Tenant DB
+            </span>
+        </div>
+    </div>
+
+    <!-- Interactive Simulator Block -->
+    <div class="card shadow-sm mb-4 border-light bg-premium-light-subtle">
+        <div class="card-header bg-transparent border-0 pt-4">
+            <h5 class="fw-bold mb-1"><i class="bi bi-sliders text-success me-2" aria-hidden="true"></i>Interactive Compliance Simulation Controls</h5>
+            <p class="text-muted small mb-0">Drag sliders to test CIT allocation percentages, R&D spending rates, and welfare fund expenses to evaluate clawback interest rates.</p>
+        </div>
+        <div class="card-body">
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <label for="slider-taxable-income" class="form-label d-flex justify-content-between">
+                        <span>Taxable Income:</span>
+                        <strong id="val-taxable-income">1,000,000,000 VND</strong>
+                    </label>
+                    <input type="range" class="form-range" id="slider-taxable-income" min="100000000" max="5000000000" step="50000000" value="1000000000">
+                </div>
+                <div class="col-md-4">
+                    <label for="slider-allocation-percent" class="form-label d-flex justify-content-between">
+                        <span>Fund Allocation Percent (Circular 67 cap 10%):</span>
+                        <strong id="val-allocation-percent">10%</strong>
+                    </label>
+                    <input type="range" class="form-range" id="slider-allocation-percent" min="1" max="15" step="0.5" value="10">
+                </div>
+                <div class="col-md-4">
+                    <label for="slider-rd-spend" class="form-label d-flex justify-content-between">
+                        <span>Annual R&D Spend:</span>
+                        <strong id="val-rd-spend">150,000,000 VND</strong>
+                    </label>
+                    <input type="range" class="form-range" id="slider-rd-spend" min="10000000" max="500000000" step="10000000" value="150000000">
+                </div>
+                <div class="col-md-4">
+                    <label for="slider-qualified-ratio" class="form-label d-flex justify-content-between">
+                        <span>Qualified R&D Spend Ratio:</span>
+                        <strong id="val-qualified-ratio">80%</strong>
+                    </label>
+                    <input type="range" class="form-range" id="slider-qualified-ratio" min="0.1" max="1.0" step="0.05" value="0.8">
+                </div>
+                <div class="col-md-4">
+                    <label for="slider-welfare-expenses" class="form-label d-flex justify-content-between">
+                        <span>Actual Welfare Expenses:</span>
+                        <strong id="val-welfare-expenses">20,000,000 VND</strong>
+                    </label>
+                    <input type="range" class="form-range" id="slider-welfare-expenses" min="5000000" max="100000000" step="1000000" value="20000000">
+                </div>
+                <div class="col-md-4">
+                    <label for="slider-average-salary" class="form-label d-flex justify-content-between">
+                        <span>Average Monthly Salary:</span>
+                        <strong id="val-average-salary">15,000,000 VND</strong>
+                    </label>
+                    <input type="range" class="form-range" id="slider-average-salary" min="5000000" max="50000000" step="50000" value="15000000">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bento Grid Layout -->
+    <div class="row g-4 mb-4">
+        <!-- Widget 1: Decree 123 Reconciled Adjustments Ledger -->
+        <div class="col-lg-12">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title fw-bold mb-0 text-success">
+                            <i class="bi bi-patch-check-fill me-2" aria-hidden="true"></i>Decree 123 VAT Adjustment Reconciliation Ledger
+                        </h5>
+                        <span class="badge bg-success-subtle text-success">Decree 123/2020/NĐ-CP</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped align-middle small mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Adjusting Symbol/No.</th>
+                                    <th>Original Symbol/No.</th>
+                                    <th>Adjustment Type</th>
+                                    <th class="text-end">Amount Change</th>
+                                    <th class="text-end">VAT Change</th>
+                                    <th class="text-center">Tax Rate</th>
+                                    <th class="text-center">Status</th>
+                                    <th>Auditor / Mismatch Reason</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adjustment-table-body">
+                                <tr><td colspan="8" class="text-center py-4 text-muted">Loading Adjustments Ledger…</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Widget 2: Circular 67 Science & Tech Fund Projections -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title fw-bold mb-0 text-primary">
+                            <i class="bi bi-graph-up-arrow me-2" aria-hidden="true"></i>Circular 67 R&D Fund 5-Year Projections
+                        </h5>
+                        <span class="badge bg-primary-subtle text-primary">CIT Deductions</span>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <div class="p-2 border rounded bg-premium-light text-center">
+                                <div class="text-muted small">Max Allowable Cap (10%):</div>
+                                <strong id="val-cap-limit" class="text-dark">0 VND</strong>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-2 border rounded bg-premium-light text-center">
+                                <div class="text-muted small">Allocated Amount:</div>
+                                <strong id="val-allocated-amount" class="text-success">0 VND</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle small mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Year</th>
+                                    <th class="text-end">Starting Balance</th>
+                                    <th class="text-end">Qualified Spend</th>
+                                    <th class="text-end">Remaining</th>
+                                </tr>
+                            </thead>
+                            <tbody id="projection-table-body">
+                                <!-- Projections filled via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Widget 3: Clawback Penalties and Welfare Ceiling Audit -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title fw-bold mb-0 text-danger">
+                            <i class="bi bi-exclamation-triangle-fill me-2" aria-hidden="true"></i>Fund Clawbacks & Welfare Cap Auditing
+                        </h5>
+                        <span class="badge bg-danger-subtle text-danger">Audit Risk Assessment</span>
+                    </div>
+                    
+                    <div class="list-group list-group-flush mb-3">
+                        <div class="list-group-item d-flex justify-content-between align-items-center py-3">
+                            <div>
+                                <h6 class="fw-bold mb-0">Unspent Fund Balance (After 5 Years):</h6>
+                                <p class="text-muted small mb-0">Amount unspent from initial allocation.</p>
+                            </div>
+                            <span id="val-unspent" class="fs-6 fw-bold text-dark">0 VND</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center py-3">
+                            <div>
+                                <h6 class="fw-bold mb-0">CIT Clawback Penalty (20%):</h6>
+                                <p class="text-muted small mb-0">CIT collected on unspent amounts.</p>
+                            </div>
+                            <span id="val-clawback" class="fs-6 fw-bold text-danger">0 VND</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center py-3">
+                            <div>
+                                <h6 class="fw-bold mb-0">Late Payment Interest (0.03% daily):</h6>
+                                <p class="text-muted small mb-0">Calculated over 5 years (1825 days).</p>
+                            </div>
+                            <span id="val-interest" class="fs-6 fw-bold text-danger">0 VND</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center py-3">
+                            <div>
+                                <h6 class="fw-bold mb-0">Welfare Ceiling Limit (1 month avg salary):</h6>
+                                <p class="text-muted small mb-0">CIT-deductible ceiling cap.</p>
+                            </div>
+                            <span id="val-welfare-cap" class="fs-6 fw-bold text-dark">0 VND</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center py-3">
+                            <div>
+                                <h6 class="fw-bold mb-0">Non-deductible Welfare Mismatch:</h6>
+                                <p class="text-muted small mb-0">Subject to CIT correction.</p>
+                            </div>
+                            <span id="val-welfare-mismatch" class="fs-6 fw-bold text-danger">0 VND</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Swarm Advisory Debate Panel -->
+    <div class="card shadow-sm border-light">
+        <div class="card-header bg-obsidian text-snow py-3 d-flex align-items-center justify-content-between">
+            <h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-success me-2" aria-hidden="true"></i>Multi-Agent Advisory Board Debate</h5>
+            <span class="badge bg-secondary-subtle text-secondary border border-secondary">Consensus Simulator</span>
+        </div>
+        <div class="card-body">
+            <div id="debate-container" class="mb-3 d-flex flex-column gap-3">
+                <!-- Debate Messages will render here -->
+            </div>
+            <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus Summary Statement:</h6>
+                <p id="consensus-text" class="text-muted small mb-0">Awaiting simulation data execution…</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    // Selectors
+    const sliderTaxableIncome = document.getElementById("slider-taxable-income");
+    const sliderAllocationPercent = document.getElementById("slider-allocation-percent");
+    const sliderRdSpend = document.getElementById("slider-rd-spend");
+    const sliderQualifiedRatio = document.getElementById("slider-qualified-ratio");
+    const sliderWelfareExpenses = document.getElementById("slider-welfare-expenses");
+    const sliderAverageSalary = document.getElementById("slider-average-salary");
+
+    const valTaxableIncome = document.getElementById("val-taxable-income");
+    const valAllocationPercent = document.getElementById("val-allocation-percent");
+    const valRdSpend = document.getElementById("val-rd-spend");
+    const valQualifiedRatio = document.getElementById("val-qualified-ratio");
+    const valWelfareExpenses = document.getElementById("val-welfare-expenses");
+    const valAverageSalary = document.getElementById("val-average-salary");
+
+    const formatVND = (val) => {
+        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
+    };
+
+    const updateLabelDisplays = () => {
+        valTaxableIncome.textContent = formatVND(sliderTaxableIncome.value);
+        valAllocationPercent.textContent = `${sliderAllocationPercent.value}%`;
+        valRdSpend.textContent = formatVND(sliderRdSpend.value);
+        valQualifiedRatio.textContent = `${Math.round(sliderQualifiedRatio.value * 100)}%`;
+        valWelfareExpenses.textContent = formatVND(sliderWelfareExpenses.value);
+        valAverageSalary.textContent = formatVND(sliderAverageSalary.value);
+    };
+
+    const loadData = () => {
+        fetch('/api/v44/compliance-data')
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "success") {
+                    renderAdjustments(data.reconciliation);
+                    renderSimulation(data.simulation);
+                    renderDebate(data.debate, data.consensus_summary);
+                }
+            })
+            .catch(err => console.error("Error loading v44 dashboard data:", err));
+    };
+
+    const runSimulation = () => {
+        const payload = {
+            year: 2026,
+            taxable_income: parseFloat(sliderTaxableIncome.value),
+            allocation_percent: parseFloat(sliderAllocationPercent.value),
+            annual_rd_spend: parseFloat(sliderRdSpend.value),
+            qualified_ratio: parseFloat(sliderQualifiedRatio.value),
+            welfare_expenses: parseFloat(sliderWelfareExpenses.value),
+            average_monthly_salary: parseFloat(sliderAverageSalary.value)
+        };
+
+        fetch('/api/v44/sci-tech-fund/simulate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === "success") {
+                renderSimulation(data.simulation_results);
+            }
+        })
+        .catch(err => console.error("Error updating simulation:", err));
+    };
+
+    // Attachment of listeners to sliders
+    [sliderTaxableIncome, sliderAllocationPercent, sliderRdSpend, sliderQualifiedRatio, sliderWelfareExpenses, sliderAverageSalary].forEach(slider => {
+        slider.addEventListener("input", updateLabelDisplays);
+        slider.addEventListener("change", runSimulation);
+    });
+
+    document.getElementById("btn-recalculate").addEventListener("click", () => {
+        loadData();
+    });
+
+    const renderAdjustments = (items) => {
+        const tbody = document.getElementById("adjustment-table-body");
+        tbody.innerHTML = "";
+        
+        items.forEach(item => {
+            const tr = document.createElement("tr");
+            
+            let badgeClass = "bg-secondary";
+            if (item.status === "Linked") badgeClass = "bg-success";
+            if (item.status === "Mismatch") badgeClass = "bg-danger";
+            if (item.status === "Unlinked") badgeClass = "bg-warning text-dark";
+            
+            tr.innerHTML = `
+                <td><strong>${item.adjustment_invoice_symbol} / ${item.adjustment_invoice_number}</strong></td>
+                <td>${item.original_invoice_symbol} / ${item.original_invoice_number}</td>
+                <td><span class="badge bg-obsidian text-capitalize">${item.adjustment_type}</span></td>
+                <td class="text-end fw-semibold text-danger">${formatVND(item.amount_change)}</td>
+                <td class="text-end text-danger">${formatVND(item.vat_change)}</td>
+                <td class="text-center">${Math.round(item.tax_rate * 100)}%</td>
+                <td class="text-center"><span class="badge ${badgeClass}">${item.status}</span></td>
+                <td class="text-muted small">${item.mismatch_reason || '<i class="bi bi-check-circle-fill text-success" aria-hidden="true"></i> Audit verified matches'}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    };
+
+    const renderSimulation = (sim) => {
+        // Render caps and unspent stats
+        document.getElementById("val-cap-limit").textContent = formatVND(sim.max_allowable_allocation);
+        document.getElementById("val-allocated-amount").textContent = formatVND(sim.allocated_amount);
+        document.getElementById("val-unspent").textContent = formatVND(sim.unspent_amount);
+        document.getElementById("val-clawback").textContent = formatVND(sim.cit_clawback);
+        document.getElementById("val-interest").textContent = formatVND(sim.late_interest_penalty);
+        document.getElementById("val-welfare-cap").textContent = formatVND(sim.welfare_limit_cap);
+        document.getElementById("val-welfare-mismatch").textContent = formatVND(sim.welfare_mismatch_non_deductible);
+
+        // Projections table
+        const tbody = document.getElementById("projection-table-body");
+        tbody.innerHTML = "";
+        sim.yearly_projection.forEach(row => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>Year ${row.year_index} (${row.calendar_year})</td>
+                <td class="text-end">${formatVND(row.starting_balance)}</td>
+                <td class="text-end text-success">${formatVND(row.qualified_spend)}</td>
+                <td class="text-end fw-semibold text-primary">${formatVND(row.remaining_balance)}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    };
+
+    const renderDebate = (debate, summary) => {
+        const container = document.getElementById("debate-container");
+        container.innerHTML = "";
+        
+        const badgeColors = {
+            "Local Tax Inspector": "bg-danger",
+            "CIT Auditor": "bg-primary",
+            "CFO Advisor": "bg-success"
+        };
+        
+        debate.forEach(msg => {
+            const badgeColor = badgeColors[msg.speaker] || "bg-secondary";
+            const div = document.createElement("div");
+            div.className = "d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";
+            div.innerHTML = `
+                <span class="badge ${badgeColor} py-2" style="min-width: 150px;">${msg.speaker}</span>
+                <div class="text-dark small">${msg.text}</div>
+            `;
+            container.appendChild(div);
+        });
+
+        document.getElementById("consensus-text").textContent = summary;
+    };
+
+    // Initial Bootstrap
+    updateLabelDisplays();
+    loadData();
+});
+</script>
+{% endblock %}

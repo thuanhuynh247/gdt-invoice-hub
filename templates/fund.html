@@ -1,0 +1,625 @@
+{% extends "base.html" %}
+{% block title %}Quản lý Quỹ Nhóm - GDT Fund Hub{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
+        <div>
+            <span class="badge bg-success text-white mb-2">Group Fund Hub • PRD-FUND</span>
+            <h1 class="h2 fw-bold text-gradient mb-1 text-success"><i class="bi bi-wallet2 me-2" aria-hidden="true"></i>Sổ Quỹ Nhóm</h1>
+            <p class="text-muted mb-0">Theo dõi, quản lý thu chi và cân đối số dư quỹ nhóm thời gian thực.</p>
+        </div>
+        <div class="d-flex gap-2 mt-3 mt-md-0">
+            <button id="btn-refresh-fund" class="btn btn-outline-success d-flex align-items-center gap-2"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Tải lại dữ liệu</button>
+            <span class="badge bg-success-subtle text-success border border-success d-flex align-items-center px-3" id="group-name-badge"><i class="bi bi-people-fill me-1" aria-hidden="true"></i> Đang tải…</span>
+        </div>
+    </div>
+
+    <!-- State 1: Fund Setup (Hidden by default) -->
+    <div id="panel-setup-fund" class="row justify-content-center my-5 d-none">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow border-0 glass-card">
+                <div class="card-body p-4 text-center">
+                    <div class="setup-icon-wrapper mb-4">
+                        <i class="bi bi-piggy-bank-fill text-success fs-1" aria-hidden="true"></i>
+                    </div>
+                    <h4 class="fw-bold mb-2 text-success">Kích Hoạt Sổ Quỹ Nhóm</h4>
+                    <p class="text-muted small mb-4">Nhóm của bạn chưa thiết lập sổ quỹ. Hãy nhập tên để khởi tạo quỹ với số dư ban đầu bằng 0 VNĐ.</p>
+                    
+                    <div class="text-start mb-4">
+                        <label for="setup-fund-name" class="form-label small fw-bold">Tên Sổ Quỹ <span class="text-danger">*</span></label>
+                        <input type="text" id="setup-fund-name" class="form-control" placeholder="Ví dụ: Quỹ Liên hoan, Quỹ Chung…" autocomplete="off">
+                    </div>
+                    <div class="text-start mb-4">
+                        <label for="setup-currency" class="form-label small fw-bold">Đơn vị tiền tệ</label>
+                        <input type="text" id="setup-currency" class="form-control bg-premium-light" value="VNĐ (Việt Nam Đồng)" readonly disabled autocomplete="off" aria-label="Đơn vị tiền tệ">
+                    </div>
+
+                    <button id="btn-create-fund" class="btn btn-success w-100 py-2 fw-bold"><i class="bi bi-check-circle me-1" aria-hidden="true"></i> Kích Hoạt Quỹ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- State 2: Fund Dashboard (Hidden by default) -->
+    <div id="panel-dashboard" class="d-none">
+        <!-- KPI Row -->
+        <div class="row g-4 mb-4">
+            <!-- Balance KPI -->
+            <div class="col-md-4">
+                <div class="card border-0 text-white h-100 shadow kpi-card bg-gradient-success">
+                    <div class="card-body p-4 d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="small opacity-75 fw-medium">Số Dư Hiện Tại</span>
+                            <h2 class="fw-bold mt-1 mb-0" id="kpi-balance">0 ₫</h2>
+                            <span class="small opacity-75 mt-2 d-inline-block" id="kpi-currency">Đơn vị: VNĐ</span>
+                        </div>
+                        <div class="kpi-icon-bg">
+                            <i class="bi bi-wallet2" aria-hidden="true"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Deposit KPI -->
+            <div class="col-md-4">
+                <div class="card border-0 bg-white h-100 shadow border-start border-4 border-success">
+                    <div class="card-body p-4 d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="small text-muted fw-medium">Tổng Thu (Nộp Quỹ)</span>
+                            <h3 class="fw-bold mt-1 mb-0 text-success" id="kpi-deposits">0 ₫</h3>
+                            <span class="small text-muted mt-2 d-inline-block" id="kpi-deposits-count">0 giao dịch</span>
+                        </div>
+                        <div class="kpi-icon-circle bg-success-subtle text-success">
+                            <i class="bi bi-arrow-down-left-circle-fill" aria-hidden="true"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Expense KPI -->
+            <div class="col-md-4">
+                <div class="card border-0 bg-white h-100 shadow border-start border-4 border-danger">
+                    <div class="card-body p-4 d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="small text-muted fw-medium">Tổng Chi (Rút Quỹ)</span>
+                            <h3 class="fw-bold mt-1 mb-0 text-danger" id="kpi-expenses">0 ₫</h3>
+                            <span class="small text-muted mt-2 d-inline-block" id="kpi-expenses-count">0 giao dịch</span>
+                        </div>
+                        <div class="kpi-icon-circle bg-danger-subtle text-danger">
+                            <i class="bi bi-arrow-up-right-circle-fill" aria-hidden="true"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Transaction Management -->
+            <div class="col-lg-8">
+                <div class="card shadow-sm border-0 h-100 bg-white">
+                    <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="fw-bold mb-1 text-dark"><i class="bi bi-clock-history text-muted me-2" aria-hidden="true"></i>Lịch Sử Thu Chi</h5>
+                            <p class="text-muted small mb-0">Danh sách các giao dịch phát sinh xếp theo ngày mới nhất.</p>
+                        </div>
+                        <div>
+                            <select class="form-select form-select-sm" id="filter-tx-type">
+                                <option value="all">Tất cả giao dịch</option>
+                                <option value="deposit">Khoản nộp (Thu)</option>
+                                <option value="expense">Khoản chi (Chi)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="card-body px-4 pb-4">
+                        <div class="table-responsive mt-3">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 15%">Ngày</th>
+                                        <th style="width: 15%">Loại</th>
+                                        <th style="width: 30%">Nội dung / Người nộp</th>
+                                        <th style="width: 25%" class="text-end">Số tiền</th>
+                                        <th style="width: 15%" class="text-center">Thời gian ghi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="transactions-list">
+                                    <tr>
+                                        <td colspan="5" class="text-center py-5 text-muted">
+                                            <i class="bi bi-inbox fs-2 d-block mb-2" aria-hidden="true"></i> Chưa có giao dịch nào được ghi nhận.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Action & Logging Panel -->
+            <div class="col-lg-4">
+                <div class="card shadow-sm border-0 bg-white">
+                    <div class="card-header bg-transparent border-0 pt-4 px-4">
+                        <h5 class="fw-bold mb-1 text-dark"><i class="bi bi-plus-circle-fill text-success me-2" aria-hidden="true"></i>Ghi Nhận Giao Dịch</h5>
+                        <p class="text-muted small mb-0">Thêm khoản nộp quỹ hoặc chi tiêu nhanh chóng.</p>
+                    </div>
+                    <div class="card-body p-4">
+                        <!-- Navigation Tabs for Actions -->
+                        <ul class="nav nav-pills nav-fill mb-3 text-sm" id="action-tabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active text-success-pill" id="tab-deposit" data-bs-toggle="pill" data-bs-target="#panel-deposit" type="button" role="tab" aria-selected="true">
+                                    <i class="bi bi-plus-lg me-1" aria-hidden="true"></i> Khoản Nộp
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link text-danger-pill" id="tab-expense" data-bs-toggle="pill" data-bs-target="#panel-expense" type="button" role="tab" aria-selected="false">
+                                    <i class="bi bi-dash-lg me-1" aria-hidden="true"></i> Khoản Chi
+                                </button>
+                            </li>
+                        </ul>
+
+                        <!-- Tab Content -->
+                        <div class="tab-content" id="action-tab-content">
+                            <!-- Tab: Deposit Form -->
+                            <div class="tab-pane fade show active" id="panel-deposit" role="tabpanel">
+                                <form id="form-deposit" novalidate>
+                                    <div class="mb-3">
+                                        <label for="deposit-payer" class="form-label small fw-bold">Người nộp quỹ <span class="text-danger">*</span></label>
+                                        <input type="text" id="deposit-payer" class="form-control form-control-sm" placeholder="Nhập tên người nộp" required autocomplete="off">
+                                        <div class="invalid-feedback small">Tên người nộp không được để trống.</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="deposit-amount" class="form-label small fw-bold">Số tiền nộp (VNĐ) <span class="text-danger">*</span></label>
+                                        <input type="number" min="1" id="deposit-amount" class="form-control form-control-sm" placeholder="Ví dụ: 500000" required autocomplete="off">
+                                        <div class="invalid-feedback small">Số tiền nộp phải lớn hơn 0.</div>
+                                    </div>
+                                    <div class="mb-4">
+                                        <label for="deposit-date" class="form-label small fw-bold">Ngày nộp <span class="text-danger">*</span></label>
+                                        <input type="date" id="deposit-date" class="form-control form-control-sm" required autocomplete="off">
+                                        <div class="invalid-feedback small">Ngày nộp không được để trống.</div>
+                                    </div>
+                                    <button type="submit" class="btn btn-success btn-sm w-100 fw-bold py-2"><i class="bi bi-save me-1" aria-hidden="true"></i> Lưu Khoản Nộp</button>
+                                </form>
+                            </div>
+
+                            <!-- Tab: Expense Form -->
+                            <div class="tab-pane fade" id="panel-expense" role="tabpanel">
+                                <form id="form-expense" novalidate>
+                                    <div class="mb-3">
+                                        <label for="expense-desc" class="form-label small fw-bold">Nội dung chi (Mô tả) <span class="text-danger">*</span></label>
+                                        <input type="text" id="expense-desc" class="form-control form-control-sm" placeholder="Ví dụ: Mua nước ngọt liên hoan…" required autocomplete="off">
+                                        <div class="invalid-feedback small">Mô tả khoản chi không được để trống.</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="expense-amount" class="form-label small fw-bold">Số tiền chi (VNĐ) <span class="text-danger">*</span></label>
+                                        <input type="number" min="1" id="expense-amount" class="form-control form-control-sm" placeholder="Ví dụ: 150000" required autocomplete="off">
+                                        <div class="invalid-feedback small">Số tiền chi phải lớn hơn 0.</div>
+                                    </div>
+                                    <div class="mb-4">
+                                        <label for="expense-date" class="form-label small fw-bold">Ngày chi <span class="text-danger">*</span></label>
+                                        <input type="date" id="expense-date" class="form-control form-control-sm" required autocomplete="off">
+                                        <div class="invalid-feedback small">Ngày chi không được để trống.</div>
+                                    </div>
+                                    <button type="submit" class="btn btn-danger btn-sm w-100 fw-bold py-2"><i class="bi bi-save me-1" aria-hidden="true"></i> Lưu Khoản Chi</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* CSS Styling for premium layout and transitions */
+.bg-gradient-success {
+    background: linear-gradient(135deg, #198754 0%, #0dcaf0 100%);
+}
+.kpi-card {
+    transition: transform 0.25s ease-in-out, box-shadow 0.25s ease-in-out;
+}
+.kpi-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+}
+.kpi-icon-bg {
+    font-size: 3.5rem;
+    opacity: 0.2;
+}
+.kpi-icon-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+.glass-card {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+}
+.setup-icon-wrapper {
+    width: 80px;
+    height: 80px;
+    background: #e8f5e9;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+.text-success-pill.active {
+    background-color: #198754 !important;
+    color: white !important;
+}
+.text-danger-pill.active {
+    background-color: #dc3545 !important;
+    color: white !important;
+}
+.nav-pills .nav-link {
+    border-radius: 6px;
+    font-weight: 500;
+}
+#action-tabs button:not(.active) {
+    background-color: #f8f9fa;
+    color: #495057;
+}
+#action-tabs button:not(.active):hover {
+    background-color: #e9ecef;
+}
+.badge-deposit {
+    background-color: #d1e7dd;
+    color: #0f5132;
+    border: 1px solid #badbcc;
+}
+.badge-expense {
+    background-color: #f8d7da;
+    color: #842029;
+    border: 1px solid #f5c2c7;
+}
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    // Current Active Fund state
+    let activeFundId = null;
+    let transactionsData = [];
+
+    // Helper to format currency
+    const formatCurrency = (val) => {
+        return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(val);
+    };
+
+    // Helper to format ISO string to local time label
+    const formatDateTime = (isoString) => {
+        if (!isoString) return "";
+        try {
+            const date = new Date(isoString);
+            return date.toLocaleTimeString("vi-VN", { hour: '2-digit', minute: '2-digit' }) + ' ' + date.toLocaleDateString("vi-VN");
+        } catch (e) {
+            return isoString;
+        }
+    };
+
+    // Set default dates to today
+    const todayStr = new Date().toISOString().split('T')[0];
+    document.getElementById("deposit-date").value = todayStr;
+    document.getElementById("expense-date").value = todayStr;
+
+    // Load active group fund data
+    const loadFundData = () => {
+        fetch("/api/group-fund")
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    showBannerAlert(data.error, "danger");
+                    return;
+                }
+                
+                // Set Group name badge
+                document.getElementById("group-name-badge").innerHTML = `<i class="bi bi-people-fill me-1"></i> Tập đoàn: Hub`;
+
+                if (data.fund_exists === false) {
+                    // Show activation setup panel
+                    document.getElementById("panel-setup-fund").classList.remove("d-none");
+                    document.getElementById("panel-dashboard").classList.add("d-none");
+                } else {
+                    // Show Dashboard panel
+                    document.getElementById("panel-setup-fund").classList.add("d-none");
+                    document.getElementById("panel-dashboard").classList.remove("d-none");
+
+                    activeFundId = data.id;
+
+                    // Update Title badge
+                    document.getElementById("group-name-badge").innerHTML = `<i class="bi bi-piggy-bank-fill me-1"></i> Quỹ: ${data.name}`;
+
+                    // Update KPI fields
+                    document.getElementById("kpi-balance").textContent = formatCurrency(data.balance);
+                    document.getElementById("kpi-deposits").textContent = formatCurrency(data.total_deposits);
+                    document.getElementById("kpi-expenses").textContent = formatCurrency(data.total_expenses);
+
+                    // Fetch Transactions history
+                    fetchTransactions(data.id);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showBannerAlert("Có lỗi xảy ra khi tải thông tin quỹ.", "danger");
+            });
+    };
+
+    // Fetch transactions list
+    const fetchTransactions = (fundId) => {
+        fetch(`/api/group-fund/transactions?fund_id=${fundId}`)
+            .then(res => res.json())
+            .then(data => {
+                if (Array.isArray(data)) {
+                    transactionsData = data;
+                    renderTransactions();
+                }
+            })
+            .catch(err => {
+                console.error(err);
+            });
+    };
+
+    // Render transactions into the table with filters
+    const renderTransactions = () => {
+        const filterVal = document.getElementById("filter-tx-type").value;
+        const tbody = document.getElementById("transactions-list");
+        tbody.innerHTML = "";
+
+        const filtered = transactionsData.filter(tx => {
+            if (filterVal === "all") return true;
+            return tx.transaction_type === filterVal;
+        });
+
+        // Update counts
+        const depositCount = transactionsData.filter(t => t.transaction_type === 'deposit').length;
+        const expenseCount = transactionsData.filter(t => t.transaction_type === 'expense').length;
+        document.getElementById("kpi-deposits-count").textContent = `${depositCount} giao dịch`;
+        document.getElementById("kpi-expenses-count").textContent = `${expenseCount} giao dịch`;
+
+        if (filtered.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="text-center py-5 text-muted">
+                        <i class="bi bi-search fs-2 d-block mb-2"></i> Không tìm thấy giao dịch nào phù hợp.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        filtered.forEach(tx => {
+            const tr = document.createElement("tr");
+            
+            // Format Badge & Sign
+            let typeBadge = '';
+            let amountText = '';
+            let descContent = '';
+
+            if (tx.transaction_type === "deposit") {
+                typeBadge = `<span class="badge badge-deposit px-2 py-1"><i class="bi bi-arrow-down-left me-1"></i>Thu (Nộp)</span>`;
+                amountText = `<span class="fw-bold text-success">+${formatCurrency(tx.amount)}</span>`;
+                descContent = `<div><strong>${tx.payer}</strong> nộp tiền quỹ</div>`;
+            } else {
+                typeBadge = `<span class="badge badge-expense px-2 py-1"><i class="bi bi-arrow-up-right me-1"></i>Chi (Rút)</span>`;
+                amountText = `<span class="fw-bold text-danger">-${formatCurrency(tx.amount)}</span>`;
+                descContent = `<div class="text-wrap">${tx.description}</div>`;
+            }
+
+            // Local date
+            let displayDate = tx.date;
+            try {
+                const parts = tx.date.split('-');
+                if (parts.length === 3) {
+                    displayDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+                }
+            } catch(e){}
+
+            tr.innerHTML = `
+                <td class="fw-medium">${displayDate}</td>
+                <td>${typeBadge}</td>
+                <td>${descContent}</td>
+                <td class="text-end">${amountText}</td>
+                <td class="text-center text-muted small">${formatDateTime(tx.created_at)}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    };
+
+    // Setup / Create Fund
+    document.getElementById("btn-create-fund").addEventListener("click", () => {
+        const nameInput = document.getElementById("setup-fund-name");
+        const nameVal = nameInput.value;
+
+        if (!nameVal || !nameVal.trim()) {
+            nameInput.classList.add("is-invalid");
+            return;
+        }
+        nameInput.classList.remove("is-invalid");
+
+        fetch("/api/group-fund", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name: nameVal })
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    showBannerAlert(data.error, "danger");
+                } else {
+                    showBannerAlert(data.message, "success");
+                    loadFundData();
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showBannerAlert("Không thể tạo sổ quỹ lúc này.", "danger");
+            });
+    });
+
+    // Form Submit: Deposit
+    document.getElementById("form-deposit").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const payerInput = document.getElementById("deposit-payer");
+        const amountInput = document.getElementById("deposit-amount");
+        const dateInput = document.getElementById("deposit-date");
+
+        let valid = true;
+        if (!payerInput.value || !payerInput.value.trim()) {
+            payerInput.classList.add("is-invalid");
+            valid = false;
+        } else {
+            payerInput.classList.remove("is-invalid");
+        }
+
+        const amt = parseFloat(amountInput.value);
+        if (isNaN(amt) || amt <= 0) {
+            amountInput.classList.add("is-invalid");
+            valid = false;
+        } else {
+            amountInput.classList.remove("is-invalid");
+        }
+
+        if (!dateInput.value) {
+            dateInput.classList.add("is-invalid");
+            valid = false;
+        } else {
+            dateInput.classList.remove("is-invalid");
+        }
+
+        if (!valid) return;
+
+        fetch("/api/group-fund/deposit", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                fund_id: activeFundId,
+                payer: payerInput.value,
+                amount: amt,
+                date: dateInput.value
+            })
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    showBannerAlert(data.error, "danger");
+                } else {
+                    showBannerAlert(data.message, "success");
+                    form.reset();
+                    document.getElementById("deposit-date").value = todayStr;
+                    loadFundData(); // Refresh UI and Balance
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showBannerAlert("Lỗi kết nối máy chủ.", "danger");
+            });
+    });
+
+    // Form Submit: Expense
+    document.getElementById("form-expense").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const descInput = document.getElementById("expense-desc");
+        const amountInput = document.getElementById("expense-amount");
+        const dateInput = document.getElementById("expense-date");
+
+        let valid = true;
+        if (!descInput.value || !descInput.value.trim()) {
+            descInput.classList.add("is-invalid");
+            valid = false;
+        } else {
+            descInput.classList.remove("is-invalid");
+        }
+
+        const amt = parseFloat(amountInput.value);
+        if (isNaN(amt) || amt <= 0) {
+            amountInput.classList.add("is-invalid");
+            valid = false;
+        } else {
+            amountInput.classList.remove("is-invalid");
+        }
+
+        if (!dateInput.value) {
+            dateInput.classList.add("is-invalid");
+            valid = false;
+        } else {
+            dateInput.classList.remove("is-invalid");
+        }
+
+        if (!valid) return;
+
+        fetch("/api/group-fund/expense", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                fund_id: activeFundId,
+                description: descInput.value,
+                amount: amt,
+                date: dateInput.value
+            })
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    showBannerAlert(data.error, "danger");
+                } else {
+                    showBannerAlert(data.message, "success");
+                    form.reset();
+                    document.getElementById("expense-date").value = todayStr;
+                    loadFundData(); // Refresh UI and Balance
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showBannerAlert("Lỗi kết nối máy chủ.", "danger");
+            });
+    });
+
+    // Helper to display page banner alerts
+    const showBannerAlert = (message, type) => {
+        const alertRegion = document.getElementById("appAlertRegion") || document.querySelector(".page-shell > .container");
+        const div = document.createElement("div");
+        div.className = `alert alert-${type} alert-dismissible fade show shadow-sm border-0 d-flex align-items-center gap-2`;
+        div.role = "alert";
+        
+        let icon = '<i class="bi bi-info-circle-fill"></i>';
+        if (type === "success") icon = '<i class="bi bi-check-circle-fill"></i>';
+        if (type === "danger") icon = '<i class="bi bi-exclamation-triangle-fill"></i>';
+
+        div.innerHTML = `
+            ${icon}
+            <div>${message}</div>
+            <button type="button" class="btn-close shadow-none" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        
+        // Append before everything else in the alert region
+        alertRegion.insertBefore(div, alertRegion.firstChild);
+
+        // Auto dismiss after 5s
+        setTimeout(() => {
+            const bsAlert = new bootstrap.Alert(div);
+            bsAlert.close();
+        }, 5000);
+    };
+
+    // Filter Type Change listener
+    document.getElementById("filter-tx-type").addEventListener("change", renderTransactions);
+
+    // Refresh button
+    document.getElementById("btn-refresh-fund").addEventListener("click", () => {
+        loadFundData();
+    });
+
+    // Initial load
+    loadFundData();
+});
+</script>
+{% endblock %}

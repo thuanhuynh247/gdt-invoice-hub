@@ -354,7 +354,7 @@
             <!-- Loading State -->
             <div id="verifyLoading" class="text-center py-5" style="display: none;">
                 <div class="spinner-border text-primary" role="status"></div>
-                <p class="mt-2 text-muted">Đang phân tích cấu trúc dữ liệu và giải mã chữ ký số...</p>
+                <p class="mt-2 text-muted">Đang phân tích cấu trúc dữ liệu và giải mã chữ ký số…</p>
             </div>
 
             <!-- Result Area -->
@@ -386,13 +386,13 @@
                     <div class="col-md-6">
                         <div class="p-3 border rounded-3 bg-body-tertiary">
                             <span class="text-muted small uppercase fw-bold">Chữ ký đọc được từ file</span>
-                            <div id="sigFound" class="font-monospace text-primary text-break mt-1 p-2 bg-light rounded text-center fw-bold" style="font-size: 0.9rem;">—</div>
+                            <div id="sigFound" class="font-monospace text-primary text-break mt-1 p-2 bg-premium-light-custom rounded text-center fw-bold" style="font-size: 0.9rem;">-</div>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="p-3 border rounded-3 bg-body-tertiary">
                             <span class="text-muted small uppercase fw-bold">Chữ ký tính toán dự kiến</span>
-                            <div id="sigExpected" class="font-monospace text-break mt-1 p-2 bg-light rounded text-center fw-bold" style="font-size: 0.9rem;">—</div>
+                            <div id="sigExpected" class="font-monospace text-break mt-1 p-2 bg-premium-light-custom rounded text-center fw-bold" style="font-size: 0.9rem;">-</div>
                         </div>
                     </div>
                 </div>
@@ -498,9 +498,9 @@
                     <td class="text-muted">${log.id}</td>
                     <td style="white-space:nowrap">${formatTimestamp(log.timestamp)}</td>
                     <td><strong>${log.username || ''}</strong></td>
-                    <td><code>${log.tax_code || '—'}</code></td>
+                    <td><code>${log.tax_code || '-'}</code></td>
                     <td>${categoryBadge(log.event_category)}</td>
-                    <td class="text-muted">${log.ip_address || '—'}</td>
+                    <td class="text-muted">${log.ip_address || '-'}</td>
                     <td>${log.event_details || ''}</td>
                 </tr>
             `).join('');
@@ -619,8 +619,8 @@
             }
             
             // Populate results
-            document.getElementById('sigFound').textContent = data.signature_found || '—';
-            document.getElementById('sigExpected').textContent = data.signature_expected || '—';
+            document.getElementById('sigFound').textContent = data.signature_found || '-';
+            document.getElementById('sigExpected').textContent = data.signature_expected || '-';
             document.getElementById('verifiedCount').textContent = `${data.invoices_count || 0} hóa đơn`;
             
             if (data.verified) {

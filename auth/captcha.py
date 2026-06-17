@@ -30,9 +30,10 @@ def fetch_captcha_payload() -> dict:
             "cookies": {},
         }
 
-    response = requests.get(
-        f'{current_app.config["GDT_BASE_URL"]}/api/captcha',
-        timeout=current_app.config["GDT_TIMEOUT_SECONDS"],
+    from auth.gdt_client import gdt_request
+    response = gdt_request(
+        "GET",
+        "api/captcha",
     )
     response.raise_for_status()
     data = response.json()
@@ -76,6 +77,7 @@ def _captcha_prefetch_worker(app):
     """Background daemon loop that solves captchas and keeps the queue populated."""
     global PREFETCH_WORKER_STOP, CAPTCHA_QUEUE
     time.sleep(1)  # Initial grace delay
+    backoff_delay = 1.0
 
     while not PREFETCH_WORKER_STOP:
         try:
@@ -114,16 +116,24 @@ def _captcha_prefetch_worker(app):
                             f"Prefetched solved CAPTCHA: '{solved_text}'. "
                             f"Queue size: {len(CAPTCHA_QUEUE)}"
                         )
+                    # Reset backoff on successful fetch & solve
+                    backoff_delay = 1.0
 
             # Check every second to respond fast when items are consumed
             time.sleep(1)
         except Exception as e:
             try:
                 with app.app_context():
-                    app.logger.error(f"Error in captcha prefetch worker: {e}", exc_info=True)
+                    app.logger.error(
+                        f"Error in captcha prefetch worker: {e}. "
+                        f"Retrying in {backoff_delay:.1f}s...",
+                        exc_info=True
+                    )
             except Exception:
                 pass
-            time.sleep(5)
+            time.sleep(backoff_delay)
+            # Increase backoff exponentially up to 60s
+            backoff_delay = min(backoff_delay * 2, 60.0)
 
 
 def start_captcha_prefetch_worker(app):

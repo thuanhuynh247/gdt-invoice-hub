@@ -1,0 +1,703 @@
+{% extends "base.html" %}
+
+{% block title %}Wise Compliance v31 - Multi-Period VAT Reconciliation & AI Anomaly Swarm{% endblock %}
+
+{% block content %}
+<!-- Google Fonts & Styling References -->
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+    /* Premium Styling Tokens for Version 31.0.0 */
+    :root {
+        --v31-bg-glass: rgba(15, 23, 42, 0.75);
+        --v31-border-glass: rgba(255, 255, 255, 0.08);
+        --v31-glow-primary: rgba(59, 130, 246, 0.4);
+        --v31-glow-emerald: rgba(16, 185, 129, 0.35);
+        --v31-glow-amber: rgba(245, 158, 11, 0.35);
+        --v31-glow-rose: rgba(244, 63, 94, 0.45);
+        --v31-font-title: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+        --v31-font-mono: 'Fira Code', monospace;
+    }
+
+    body {
+        background-color: #070a13;
+        color: #f8fafc;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    .v31-card {
+        background: var(--v31-bg-glass);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--v31-border-glass);
+        border-radius: 18px;
+        box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.45);
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .v31-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.5), transparent);
+        transform: translateX(-100%);
+        transition: transform 0.6s ease;
+    }
+
+    .v31-card:hover::before {
+        transform: translateX(100%);
+    }
+
+    .v31-card:hover {
+        border-color: rgba(59, 130, 246, 0.3);
+        box-shadow: 0 16px 48px 0 rgba(59, 130, 246, 0.15);
+    }
+
+    .v31-title {
+        font-family: var(--v31-font-title);
+        font-weight: 800;
+        background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 50%, #2563eb 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: -0.02em;
+    }
+
+    .nav-tabs-v31 {
+        border-bottom: 1px solid var(--v31-border-glass);
+        gap: 10px;
+    }
+
+    .nav-tabs-v31 .nav-link {
+        background: transparent;
+        border: 1px solid transparent;
+        color: #94a3b8;
+        font-family: var(--v31-font-title);
+        font-weight: 600;
+        border-radius: 12px 12px 0 0;
+        padding: 14px 28px;
+        transition: all 0.3s ease;
+    }
+
+    .nav-tabs-v31 .nav-link:hover {
+        color: #f1f5f9;
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    .nav-tabs-v31 .nav-link.active {
+        color: #60a5fa;
+        background: rgba(59, 130, 246, 0.08);
+        border-color: var(--v31-border-glass) var(--v31-border-glass) transparent;
+        box-shadow: 0 -4px 16px rgba(59, 130, 246, 0.15);
+    }
+
+    /* Swarm Timeline */
+    .swarm-v31-timeline {
+        border-left: 2px dashed rgba(59, 130, 246, 0.3);
+        margin-left: 15px;
+        padding-left: 20px;
+    }
+
+    .swarm-bubble {
+        position: relative;
+        margin-bottom: 20px;
+        animation: slideInV31 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        opacity: 0;
+    }
+
+    @keyframes slideInV31 {
+        from {
+            opacity: 0;
+            transform: translateX(-15px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    .swarm-bubble::before {
+        content: '';
+        position: absolute;
+        left: -26px;
+        top: 6px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #3b82f6;
+        box-shadow: 0 0 10px #3b82f6;
+    }
+
+    .swarm-bubble.Coordinator::before { background: #3b82f6; box-shadow: 0 0 10px #3b82f6; }
+    .swarm-bubble.Auditor::before { background: #f59e0b; box-shadow: 0 0 10px #f59e0b; }
+    .swarm-bubble.Analyst::before { background: #c084fc; box-shadow: 0 0 10px #c084fc; }
+    .swarm-bubble.Advisor::before { background: #10b981; box-shadow: 0 0 10px #10b981; }
+
+    .badge-v31 {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--v31-border-glass);
+        color: #e2e8f0;
+        font-family: var(--v31-font-mono);
+        font-size: 0.75rem;
+    }
+
+    .glass-input {
+        background-color: rgba(15, 23, 42, 0.6) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: #ffffff !important;
+        border-radius: 8px;
+    }
+
+    .glass-input:focus {
+        border-color: #3b82f6 !important;
+        box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.25) !important;
+        background-color: rgba(15, 23, 42, 0.8) !important;
+    }
+
+    .table-v31 th {
+        font-family: var(--v31-font-title);
+        background: rgba(255, 255, 255, 0.02) !important;
+        color: #94a3b8 !important;
+        border-bottom: 1px solid var(--v31-border-glass) !important;
+    }
+
+    .table-v31 td {
+        border-bottom: 1px solid var(--v31-border-glass) !important;
+        color: #e2e8f0;
+    }
+</style>
+
+<div class="row">
+    <div class="col-12 mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <h1 class="v31-title mb-1"><i class="bi bi-shield-check-fill me-2" aria-hidden="true"></i>Kê Khai & Đối Chiếu Thuế GTGT Đa Kỳ (v31)</h1>
+            <p class="text-secondary mb-0">Hệ thống đối chiếu chéo số liệu đầu vào/đầu ra, xuất XML Tờ khai 01/GTGT Tổng cục Thuế, và tác tử Swarm AI dò rủi ro chênh lệch.</p>
+        </div>
+        <div>
+            <span class="badge bg-primary text-white px-3 py-2 fs-6 rounded-pill" style="box-shadow: 0 0 15px rgba(59, 130, 246, 0.3); font-family: var(--v31-font-title); font-weight: 700;">
+                <i class="bi bi-cpu-fill me-1" aria-hidden="true"></i> Version 31.0.0 (VAT Swarm)
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Navigation Tabs -->
+<div class="row mb-4">
+    <div class="col-12">
+        <ul class="nav nav-tabs nav-tabs-v31" id="v31Tabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="reconcile-tab" data-bs-toggle="tab" data-bs-target="#reconcile" type="button" role="tab" aria-controls="reconcile" aria-selected="true">
+                    <i class="bi bi-intersect me-2" aria-hidden="true"></i> Đối Chiếu GTGT Đa Kỳ
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="xml-tab" data-bs-toggle="tab" data-bs-target="#xml" type="button" role="tab" aria-controls="xml" aria-selected="false">
+                    <i class="bi bi-filetype-xml me-2" aria-hidden="true"></i> Kết Xuất XML Tờ Khai 01/GTGT
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="swarm-tab" data-bs-toggle="tab" data-bs-target="#swarm" type="button" role="tab" aria-controls="swarm" aria-selected="false">
+                    <i class="bi bi-chat-dots-fill me-2" aria-hidden="true"></i> AI Audit Prep Swarm GTGT
+                </button>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<div class="tab-content" id="v31TabsContent">
+    <!-- Tab 1: Multi-Period VAT Reconciliation -->
+    <div class="tab-pane fade show active" id="reconcile" role="tabpanel" aria-labelledby="reconcile-tab">
+        <div class="row">
+            <div class="col-lg-4 mb-4">
+                <div class="v31-card p-4 h-100 d-flex flex-column">
+                    <h4 class="mb-3" style="font-family: var(--v31-font-title); font-weight: 600;">Cấu Hình Đối Chiếu GTGT</h4>
+                    <p class="text-secondary small">Thiết lập dữ liệu đầu vào, đầu ra để kiểm tra tính nhất quán dòng tiền thuế giữa các kỳ kê khai.</p>
+                    
+                    <div class="mb-3">
+                        <label for="txtReconcileMst" class="form-label small text-secondary">MST doanh nghiệp:</label>
+                        <input type="text" class="form-control glass-input" id="txtReconcileMst" placeholder="Ví dụ: 0109999999" autocomplete="off">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small text-secondary">Cấu hình các kỳ đối chiếu:</label>
+                        <div class="p-3 bg-slate-900 rounded-3 border border-slate-800" id="periodInputsContainer">
+                            <!-- Period 1 -->
+                            <div class="period-row mb-3 pb-3 border-bottom border-slate-800">
+                                <div class="fw-bold text-info small mb-2">Kỳ kê khai 1</div>
+                                <div class="row g-2">
+                                    <div class="col-12 mb-1">
+                                        <input type="text" class="form-control form-control-sm glass-input period-name" value="Q1/2026" placeholder="Kỳ kê khai (Ví dụ: Q1/2026)" autocomplete="off" aria-label="Kỳ kê khai (Ví dụ: Q1/2026)">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="small text-secondary">Thuế GTGT ra:</label>
+                                        <input type="number" class="form-control form-control-sm glass-input period-output" value="450000000" autocomplete="off" aria-label="Trường nhập liệu">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="small text-secondary">Thuế GTGT vào:</label>
+                                        <input type="number" class="form-control form-control-sm glass-input period-input-vat" value="380000000" autocomplete="off" aria-label="Trường nhập liệu">
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Period 2 -->
+                            <div class="period-row">
+                                <div class="fw-bold text-info small mb-2">Kỳ kê khai 2</div>
+                                <div class="row g-2">
+                                    <div class="col-12 mb-1">
+                                        <input type="text" class="form-control form-control-sm glass-input period-name" value="Q2/2026" placeholder="Kỳ kê khai (Ví dụ: Q2/2026)" autocomplete="off" aria-label="Kỳ kê khai (Ví dụ: Q2/2026)">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="small text-secondary">Thuế GTGT ra:</label>
+                                        <input type="number" class="form-control form-control-sm glass-input period-output" value="500000000" autocomplete="off" aria-label="Trường nhập liệu">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="small text-secondary">Thuế GTGT vào:</label>
+                                        <input type="number" class="form-control form-control-sm glass-input period-input-vat" value="530000000" autocomplete="off" aria-label="Trường nhập liệu">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid mt-auto pt-3">
+                        <button class="btn btn-primary fw-bold" id="btnRunReconcile">
+                            <i class="bi bi-intersect me-1" aria-hidden="true"></i> Thực Hiện Đối Chiếu
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-8 mb-4">
+                <div class="v31-card p-4 h-100 d-flex flex-column">
+                    <h4 class="mb-3" style="font-family: var(--v31-font-title); font-weight: 600;">Kết Quả Đối Chiếu GTGT Đa Kỳ</h4>
+                    
+                    <div id="reconcilePlaceholder" class="text-center my-auto py-5">
+                        <i class="bi bi-grid display-2 text-secondary opacity-25" aria-hidden="true"></i>
+                        <p class="mt-3 text-secondary">Bấm "Thực Hiện Đối Chiếu" để tiến hành xử lý số liệu đa kỳ.</p>
+                    </div>
+
+                    <div id="reconcileResultsArea" style="display: none;" class="flex-grow-1">
+                        <div class="row mb-3 g-3">
+                            <div class="col-md-4">
+                                <div class="p-3 bg-slate-900 border border-slate-800 rounded-3">
+                                    <span class="text-secondary small d-block">Tổng Thuế GTGT Đầu Ara:</span>
+                                    <strong class="fs-5 text-light" id="lblTotalOutput">0 VNĐ</strong>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="p-3 bg-slate-900 border border-slate-800 rounded-3">
+                                    <span class="text-secondary small d-block">Tổng Thuế GTGT Đầu Vào:</span>
+                                    <strong class="fs-5 text-light" id="lblTotalInput">0 VNĐ</strong>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="p-3 bg-slate-900 border border-slate-800 rounded-3">
+                                    <span class="text-secondary small d-block">Trạng Thái Tổng Hợp:</span>
+                                    <strong class="fs-5" id="lblOverallStatus">Không xác định</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive mb-4">
+                            <table class="table table-dark table-v31 align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Kỳ Kê Khai</th>
+                                        <th class="text-end">Thuế Đầu Ra (VNĐ)</th>
+                                        <th class="text-end">Thuế Đầu Vào (VNĐ)</th>
+                                        <th class="text-end">Thuế Phải Nộp (VNĐ)</th>
+                                        <th>Cảnh Báo Kỳ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reconcileTableBody">
+                                    <!-- Rendered dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="p-3 bg-slate-950 border border-slate-800 rounded-3">
+                            <h6 class="text-info uppercase tracking-wider mb-2" style="font-family: var(--v31-font-title); font-weight: 600;">Khuyến Nghị Chi Tiết:</h6>
+                            <p class="text-slate-300 small mb-0" id="txtReconcileAdvisory"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 2: Automated Form 01/GTGT XML Declaration Builder -->
+    <div class="tab-pane fade" id="xml" role="tabpanel" aria-labelledby="xml-tab">
+        <div class="row">
+            <div class="col-lg-5 mb-4">
+                <div class="v31-card p-4 h-100 d-flex flex-column">
+                    <h4 class="mb-3" style="font-family: var(--v31-font-title); font-weight: 600;">Thông Tin Khai Thuế GTGT</h4>
+                    
+                    <div class="mb-3">
+                        <label for="txtXmlMst" class="form-label small text-secondary">Mã số thuế doanh nghiệp (MST):</label>
+                        <input type="text" class="form-control glass-input" id="txtXmlMst" placeholder="Nhập MST (Ví dụ: 0109999999)" autocomplete="off">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="txtXmlName" class="form-label small text-secondary">Tên người nộp thuế:</label>
+                        <input type="text" class="form-control glass-input" id="txtXmlName" placeholder="Tên doanh nghiệp" autocomplete="off">
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label for="txtXmlPeriod" class="form-label small text-secondary">Kỳ tính thuế (Ví dụ: Q1/2026):</label>
+                            <input type="text" class="form-control glass-input" id="txtXmlPeriod" value="Q1/2026" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="txtXmlCarryPrev" class="form-label small text-secondary">Thuế GTGT khấu trừ kỳ trước chuyển sang (Chỉ tiêu [22]):</label>
+                            <input type="number" class="form-control glass-input" id="txtXmlCarryPrev" value="0" autocomplete="off">
+                        </div>
+                    </div>
+
+                    <div class="row g-2 mb-4">
+                        <div class="col-md-6">
+                            <label for="txtXmlOutput" class="form-label small text-secondary">Thuế GTGT phát sinh đầu ra (Chỉ tiêu [26]):</label>
+                            <input type="number" class="form-control glass-input" id="txtXmlOutput" value="450000000" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="txtXmlInput" class="form-label small text-secondary">Thuế GTGT phát sinh đầu vào (Chỉ tiêu [23]):</label>
+                            <input type="number" class="form-control glass-input" id="txtXmlInput" value="380000000" autocomplete="off">
+                        </div>
+                    </div>
+
+                    <div class="d-grid mt-auto pt-3">
+                        <button class="btn btn-primary fw-bold" id="btnBuildXml">
+                            <i class="bi bi-file-earmark-code-fill me-1" aria-hidden="true"></i> Tạo XML Tờ Khai 01/GTGT
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-7 mb-4">
+                <div class="v31-card p-4 h-100 d-flex flex-column">
+                    <h4 class="mb-3" style="font-family: var(--v31-font-title); font-weight: 600;">Xem Trước & Tải XML Tờ Khai</h4>
+                    
+                    <div id="xmlPlaceholder" class="text-center my-auto py-5">
+                        <i class="bi bi-code-square display-2 text-secondary opacity-25" aria-hidden="true"></i>
+                        <p class="mt-3 text-secondary">Thiết lập dữ liệu và bấm "Tạo XML" để xem cấu trúc XML Tờ khai 01/GTGT.</p>
+                    </div>
+
+                    <div id="xmlResultsArea" style="display: none;" class="flex-grow-1 d-flex flex-column">
+                        <div class="alert alert-success d-flex align-items-center mb-3" role="alert">
+                            <i class="bi bi-check-circle-fill me-2" aria-hidden="true"></i>
+                            <div>
+                                XML Tờ khai 01/GTGT đã được sinh tự động theo chuẩn Tổng cục Thuế (GDT).
+                            </div>
+                        </div>
+
+                        <div class="mb-3 flex-grow-1 d-flex flex-column">
+                            <label for="txtGeneratedXml" class="form-label small text-info uppercase font-title">Nội Dung File XML:</label>
+                            <textarea class="form-control mb-3 flex-grow-1 text-light" id="txtGeneratedXml" rows="12" style="font-family: var(--v31-font-mono); font-size: 11px; background: #020617; border: 1px solid var(--v31-border-glass);" readonly></textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <button class="btn btn-outline-light" id="btnCopyXml">
+                                <i class="bi bi-clipboard me-1" aria-hidden="true"></i> Sao chép
+                            </button>
+                            <button class="btn btn-primary" id="btnDownloadXml">
+                                <i class="bi bi-download me-1" aria-hidden="true"></i> Tải XML
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 3: AI VAT Anomaly Detection Swarm -->
+    <div class="tab-pane fade" id="swarm" role="tabpanel" aria-labelledby="swarm-tab">
+        <div class="row">
+            <div class="col-lg-5 mb-4">
+                <div class="v31-card p-4 h-100 d-flex flex-column">
+                    <h4 class="mb-3" style="font-family: var(--v31-font-title); font-weight: 600;">Khởi Chạy Swarm Rà Soát Thuế GTGT</h4>
+                    <p class="text-secondary small">Kích hoạt tác tử chuyên gia Thuế rà soát chênh lệch, phát hiện bất thường hóa đơn, chênh lệch đa kỳ, và tư vấn hồ sơ chuẩn bị thanh tra thuế.</p>
+                    
+                    <div class="mb-3">
+                        <label for="txtSwarmMst" class="form-label small text-secondary">MST doanh nghiệp:</label>
+                        <input type="text" class="form-control glass-input" id="txtSwarmMst" placeholder="Nhập MST (Ví dụ: 0109999999)" autocomplete="off">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="txtSwarmName" class="form-label small text-secondary">Tên người nộp thuế:</label>
+                        <input type="text" class="form-control glass-input" id="txtSwarmName" placeholder="Tên doanh nghiệp" autocomplete="off">
+                    </div>
+
+                    <div class="d-grid mt-auto pt-3">
+                        <button class="btn btn-primary fw-bold" id="btnRunVatSwarm">
+                            <i class="bi bi-cpu-fill me-1" aria-hidden="true"></i> Chạy Swarm & Phân Tích Rủi Ro
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-7 mb-4">
+                <div class="v31-card p-4 h-100 d-flex flex-column">
+                    <h4 class="mb-3" style="font-family: var(--v31-font-title); font-weight: 600;">Thảo Luận Tác Tử & Hồ Sơ Biện Hộ</h4>
+                    
+                    <div id="swarmPlaceholder" class="text-center my-auto py-5">
+                        <i class="bi bi-chat-square-dots display-2 text-secondary opacity-25" aria-hidden="true"></i>
+                        <p class="mt-3 text-secondary">Vui lòng thiết lập thông tin và khởi chạy Swarm để phân tích rủi ro.</p>
+                    </div>
+
+                    <div id="swarmResultsAreaV31" style="display: none;" class="flex-grow-1 d-flex flex-column">
+                        <!-- Live Swarm Timeline -->
+                        <div class="overflow-auto mb-4 p-3 border border-slate-800 rounded-3 bg-slate-950" style="max-height: 250px;" id="swarmLogContainerV31">
+                            <div class="swarm-v31-timeline" id="swarmV31Timeline"></div>
+                        </div>
+
+                        <!-- Generated Report Section -->
+                        <div class="flex-grow-1 d-flex flex-column" id="reportSectionV31">
+                            <label for="txtSwarmReport" class="form-label small text-info uppercase font-title">Báo Cáo Tư Vấn & Hồ Sơ Biện Hộ GTGT:</label>
+                            <textarea class="form-control mb-3 flex-grow-1 text-light" id="txtSwarmReport" rows="12" style="font-family: var(--v31-font-mono); font-size: 11px; background: #020617; border: 1px solid var(--v31-border-glass);" readonly></textarea>
+                            
+                            <div class="d-flex justify-content-end gap-2">
+                                <button class="btn btn-outline-light" id="btnCopyReport">
+                                    <i class="bi bi-clipboard me-1" aria-hidden="true"></i> Sao chép
+                                </button>
+                                <button class="btn btn-primary" id="btnDownloadReport">
+                                    <i class="bi bi-download me-1" aria-hidden="true"></i> Tải Báo Cáo (.md)
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Sync active MST if present
+        if (window.activeTaxpayerMst) {
+            document.getElementById("txtReconcileMst").value = window.activeTaxpayerMst;
+            document.getElementById("txtXmlMst").value = window.activeTaxpayerMst;
+            document.getElementById("txtSwarmMst").value = window.activeTaxpayerMst;
+            
+            document.getElementById("txtXmlName").value = "Công ty TNHH Ánh Sáng";
+            document.getElementById("txtSwarmName").value = "Công ty TNHH Ánh Sáng";
+        }
+        
+        // Setup initial triggers
+        document.getElementById("btnRunReconcile").addEventListener("click", runReconciliation);
+        document.getElementById("btnBuildXml").addEventListener("click", buildXmlDeclaration);
+        document.getElementById("btnRunVatSwarm").addEventListener("click", runVatSwarm);
+        
+        document.getElementById("btnCopyXml").addEventListener("click", function() {
+            copyText("txtGeneratedXml");
+        });
+        document.getElementById("btnDownloadXml").addEventListener("click", function() {
+            downloadText("txtGeneratedXml", "Form01_GTGT_Declaration.xml");
+        });
+        
+        document.getElementById("btnCopyReport").addEventListener("click", function() {
+            copyText("txtSwarmReport");
+        });
+        document.getElementById("btnDownloadReport").addEventListener("click", function() {
+            downloadText("txtSwarmReport", "VAT_Swarm_Audit_Defense.md");
+        });
+    });
+
+    async function runReconciliation() {
+        const mst = document.getElementById("txtReconcileMst").value || "0109999999";
+        
+        // Gather values from rows
+        const periodRows = document.querySelectorAll("#periodInputsContainer .period-row");
+        const periods = [];
+        periodRows.forEach(row => {
+            const name = row.querySelector(".period-name").value;
+            const outVat = parseFloat(row.querySelector(".period-output").value) || 0;
+            const inVat = parseFloat(row.querySelector(".period-input-vat").value) || 0;
+            periods.push({
+                period: name,
+                output_vat: outVat,
+                input_vat: inVat
+            });
+        });
+
+        try {
+            const res = await fetch("/api/compliance/vat-reconciliation", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ taxpayer_mst: mst, periods: periods })
+            });
+            const data = await res.json();
+            
+            if (data.error) {
+                alert("Lỗi: " + data.error);
+                return;
+            }
+
+            document.getElementById("reconcilePlaceholder").style.display = "none";
+            document.getElementById("reconcileResultsArea").style.display = "block";
+
+            // Update Summaries
+            document.getElementById("lblTotalOutput").innerText = formatCurrency(data.total_output_vat) + " VNĐ";
+            document.getElementById("lblTotalInput").innerText = formatCurrency(data.total_input_vat) + " VNĐ";
+            
+            const overallStatus = document.getElementById("lblOverallStatus");
+            overallStatus.innerText = data.overall_status;
+            if (data.net_unreconciled > 0) {
+                overallStatus.className = "fs-5 text-warning";
+            } else {
+                overallStatus.className = "fs-5 text-success";
+            }
+
+            // Fill Table
+            const tbody = document.getElementById("reconcileTableBody");
+            tbody.innerHTML = "";
+            data.periods.forEach(p => {
+                const tr = document.createElement("tr");
+                
+                const alertCell = p.warnings && p.warnings.length > 0 
+                    ? `<span class="text-warning small"><i class="bi bi-exclamation-triangle-fill me-1" aria-hidden="true"></i>${p.warnings[0]}</span>` 
+                    : '<span class="text-success small"><i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i>Không phát hiện</span>';
+                
+                tr.innerHTML = `
+                    <td><strong>${p.period}</strong></td>
+                    <td class="text-end text-light">${formatCurrency(p.output_vat)}</td>
+                    <td class="text-end text-light">${formatCurrency(p.input_vat)}</td>
+                    <td class="text-end text-light">${formatCurrency(p.net_payable)}</td>
+                    <td>${alertCell}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Update advisory
+            document.getElementById("txtReconcileAdvisory").innerText = data.advisory_notes || "Tất cả các kỳ kê khai đều cân đối.";
+
+        } catch (err) {
+            console.error("Reconciliation error:", err);
+            alert("Lỗi máy chủ khi kết nối API.");
+        }
+    }
+
+    async function buildXmlDeclaration() {
+        const mst = document.getElementById("txtXmlMst").value || "0109999999";
+        const name = document.getElementById("txtXmlName").value || "Công ty mẫu";
+        const period = document.getElementById("txtXmlPeriod").value;
+        const carryPrev = parseFloat(document.getElementById("txtXmlCarryPrev").value) || 0;
+        const outputVat = parseFloat(document.getElementById("txtXmlOutput").value) || 0;
+        const inputVat = parseFloat(document.getElementById("txtXmlInput").value) || 0;
+
+        try {
+            const res = await fetch("/api/compliance/form01-gtgt-xml", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    taxpayer_mst: mst,
+                    taxpayer_name: name,
+                    period: period,
+                    carry_forward_prev: carryPrev,
+                    output_vat: outputVat,
+                    input_vat: inputVat
+                })
+            });
+            const data = await res.json();
+            
+            if (data.error) {
+                alert("Lỗi: " + data.error);
+                return;
+            }
+
+            document.getElementById("xmlPlaceholder").style.display = "none";
+            document.getElementById("xmlResultsArea").style.display = "block";
+            document.getElementById("txtGeneratedXml").value = data.xml;
+
+        } catch (err) {
+            console.error("XML generator error:", err);
+            alert("Lỗi máy chủ khi kết nối API.");
+        }
+    }
+
+    async function runVatSwarm() {
+        const mst = document.getElementById("txtSwarmMst").value || "0109999999";
+        const name = document.getElementById("txtSwarmName").value || "Công ty mẫu";
+
+        // Setup UI loading
+        document.getElementById("swarmPlaceholder").style.display = "none";
+        document.getElementById("swarmResultsAreaV31").style.display = "block";
+        const timeline = document.getElementById("swarmV31Timeline");
+        timeline.innerHTML = '<div class="text-secondary small"><i class="bi bi-arrow-repeat spin me-2" aria-hidden="true"></i>Đang khởi động Agent Swarm rà soát thuế…</div>';
+        document.getElementById("txtSwarmReport").value = "";
+
+        try {
+            const res = await fetch("/api/agents/swarm-v31-chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ taxpayer_mst: mst, taxpayer_name: name })
+            });
+            const data = await res.json();
+            
+            if (data.error) {
+                timeline.innerHTML = `<div class="text-danger small">Lỗi Swarm: ${data.error}</div>`;
+                return;
+            }
+
+            timeline.innerHTML = "";
+            let idx = 0;
+            
+            function renderNextStep() {
+                if (idx >= data.chat_steps.length) {
+                    // All steps rendered, display dossier/report
+                    document.getElementById("txtSwarmReport").value = data.report_markdown;
+                    return;
+                }
+                
+                const step = data.chat_steps[idx];
+                const bubble = document.createElement("div");
+                bubble.className = `swarm-bubble ${step.agent}`;
+                bubble.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="badge badge-v31">${step.agent}</span>
+                        <span class="text-secondary small text-opacity-50" style="font-size: 0.75rem;">${step.timestamp}</span>
+                    </div>
+                    <p class="text-light small mb-0">${step.message}</p>
+                `;
+                timeline.appendChild(bubble);
+                
+                // Scroll container to bottom
+                const container = document.getElementById("swarmLogContainerV31");
+                container.scrollTop = container.scrollHeight;
+
+                idx++;
+                setTimeout(renderNextStep, 500); // 500ms delay for simulation
+            }
+            
+            renderNextStep();
+
+        } catch (err) {
+            console.error("Swarm connection error:", err);
+            timeline.innerHTML = '<div class="text-danger small">Lỗi kết nối máy chủ AI.</div>';
+        }
+    }
+
+    // Helper utilities
+    function formatCurrency(val) {
+        return new Intl.NumberFormat('vi-VN').format(val);
+    }
+
+    function copyText(elemId) {
+        const copyText = document.getElementById(elemId);
+        copyText.select();
+        copyText.setSelectionRange(0, 99999);
+        navigator.clipboard.writeText(copyText.value);
+        alert("Đã sao chép nội dung vào Clipboard!");
+    }
+
+    function downloadText(elemId, filename) {
+        const text = document.getElementById(elemId).value;
+        const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        link.click();
+    }
+</script>
+{% endblock %}

@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Báo cáo Nhật ký Bảo mật — GDT Invoice Hub</title>
+    <title>Báo cáo Nhật ký Bảo mật - GDT Invoice Hub</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -95,7 +95,7 @@
 <body>
     <div class="header">
         <h1>🔒 Báo cáo Nhật ký Bảo mật</h1>
-        <p>GDT Invoice Hub — Hệ thống Quản lý Hóa đơn Điện tử</p>
+        <p>GDT Invoice Hub - Hệ thống Quản lý Hóa đơn Điện tử</p>
     </div>
 
     <div class="meta-info">
@@ -131,9 +131,9 @@
                 <td>{{ log.id }}</td>
                 <td>{{ log.timestamp }}</td>
                 <td><strong>{{ log.username }}</strong></td>
-                <td>{{ log.tax_code or '—' }}</td>
+                <td>{{ log.tax_code or '-' }}</td>
                 <td><span class="cat-badge cat-{{ log.event_category }}">{{ log.event_category }}</span></td>
-                <td>{{ log.ip_address or '—' }}</td>
+                <td>{{ log.ip_address or '-' }}</td>
                 <td>{{ log.event_details or '' }}</td>
             </tr>
             {% endfor %}
@@ -147,7 +147,7 @@
 
     <div class="footer">
         <p>Tài liệu này được tạo tự động bởi GDT Invoice Hub. Mọi nội dung bên trong đều bất biến và không thể bị chỉnh sửa sau khi ghi nhận.</p>
-        <p>© 2026 GDT Invoice Hub — Nền tảng Tra cứu & Kết xuất Hóa đơn chuyên nghiệp.</p>
+        <p>© 2026 GDT Invoice Hub - Nền tảng Tra cứu & Kết xuất Hóa đơn chuyên nghiệp.</p>
     </div>
 
     <script class="no-print">

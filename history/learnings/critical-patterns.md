@@ -68,4 +68,63 @@ To prevent application crashes on Windows systems when reading or indexing datab
 
 **Full entry:** [20260602-harness-onboarding-uat.md](file:///d:/LearnAnyThing/Webapp%20XML/history/learnings/20260602-harness-onboarding-uat.md)
 
+---
+
+## [20260603] P2P Mailroom Architecture for Cooperative AI Swarms & ISO 20022 Bank Matching
+**Category:** pattern
+**Feature:** v20_roadmap
+**Tags:** [ai-swarm, telemetry, bank-matching, iso-20022]
+
+To implement decoupled multi-agent collaboration and high-precision bank transaction matching:
+- Utilize a database-backed inbox/outbox table (`AgentMessage`) with stringified JSON payloads to enable asynchronous peer-to-peer message exchanges between specialized agents.
+- Map and normalize disparate commercial bank statements into a unified `BankLedger` schema first, then execute a rule-based matching engine with configurable confidence weights (for MST matching, text similarity, and numerical tolerances).
+- Automatically flag transactions over 20M VND that lack a matching bank record to comply with non-cash payment rules under Vietnamese VAT law.
+
+**Full entry:** [20260603-v20_roadmap.md](file:///d:/LearnAnyThing/Webapp%20XML/history/learnings/20260603-v20_roadmap.md)
+
+---
+
+## [20260604] Graph-Based Circular Invoicing Detection & Sequential Merkle Ledgers
+**Category:** pattern
+**Feature:** v21_roadmap
+**Tags:** [graph-analytics, fraud-detection, cryptography, merkle-tree]
+
+To identify systemic VAT fraud rings and guarantee tax ledger integrity:
+- Represent buyer-seller transactions as a directed network graph, and run cycle-detection algorithms with a depth limit (e.g., depth $\le 5$) to detect circular cost-shielding rings while avoiding exponential scaling.
+- Apply HITS (Hubs and Authorities) scoring on transaction networks to flag central invoice-selling nodes (high Hubs) and tax-sink shell companies (high Authorities).
+- Construct an immutable transaction ledger using sequential SHA-256 Merkle tree hashing, and leverage Zero-Knowledge Proofs (ZKP) to prove tax rate compliance without leaking actual transaction numbers.
+
+**Full entry:** [20260604-v21_roadmap.md](file:///d:/LearnAnyThing/Webapp%20XML/history/learnings/20260604-v21_roadmap.md)
+
+---
+
+## [20260604] Unified E-Commerce Normalization & Statutory Penalty Simulation
+**Category:** pattern
+**Feature:** v22_roadmap
+**Tags:** [ecommerce-reconciliation, tax-penalties, pit-finalization, decree-125]
+
+To handle multi-platform e-commerce audits and statutory penalty predictions:
+- Map platform-specific keys (e.g. Lazada's `gross_revenue` vs Shopee's item price) into a standardized transaction ledger to isolate normalization from downstream matching algorithms.
+- Run late-payment penalty simulation beginning the 0.03% daily interest accrual precisely on `due_date + 1` pursuant to Decree 125/2020/NĐ-CP.
+- Implement progressive PIT tier calculations using a lookup table of boundaries, and compile Form 05/QTT-TNCN XML returns conforming to GDT's HTKK layout structure.
+
+**Full entry:** [20260604-v22_roadmap.md](file:///d:/LearnAnyThing/Webapp%20XML/history/learnings/20260604-v22_roadmap.md)
+
+---
+
+## [20260605] Secure API Gateway, Webhook Retry & Resilient Tax RAG
+**Category:** pattern
+**Feature:** v23_roadmap
+**Tags:** [hmac-signatures, webhooks-backoff, local-rag, circular-80]
+
+To build secure integration channels and resilient offline tax regulations RAG:
+- Authorize API requests via HMAC-SHA256 request signing over a `timestamp + "." + query_string_or_body` payload, rejecting requests with timestamp deviation > 300 seconds.
+- Execute exponential retry backoffs for webhooks (delay = $2^{retry} \times 10$ seconds) capped at 3 retries before marking as degraded.
+- Embed fallback regex and keyword lookups in RAG interfaces to return local tax decree answers if the Ollama service is unreachable.
+- Enforce non-cash payment rules by cross-matching customs imports and domestic VAT invoices with bank transaction ledgers for any refund claim > 20M VND.
+
+**Full entry:** [20260605-v23_roadmap.md](file:///d:/LearnAnyThing/Webapp%20XML/history/learnings/20260605-v23_roadmap.md)
+
+
+
 

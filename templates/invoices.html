@@ -39,6 +39,11 @@
         </button>
     </li>
     <li class="nav-item" role="presentation">
+        <button class="nav-link" id="compliance-tab" data-bs-toggle="tab" data-bs-target="#compliance-content" type="button" role="tab" aria-controls="compliance-content" aria-selected="false">
+            <i class="bi bi-shield-check" aria-hidden="true"></i> Đối Soát & Sửa Đổi GDT
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
         <button class="nav-link" id="fct-tab" data-bs-toggle="tab" data-bs-target="#fct-content" type="button" role="tab" aria-controls="fct-content" aria-selected="false">
             <i class="bi bi-globe2" aria-hidden="true"></i> Thuế Nhà Thầu NTNN
         </button>
@@ -248,8 +253,13 @@
                         </label>
 
                         <input type="radio" class="btn-check" name="partnerViewMode" id="viewModeSummary" autocomplete="off">
-                        <label class="btn btn-outline-primary-accent btn-sm py-1 px-3" for="viewModeSummary" style="font-size: 0.85rem; border-radius: 0 6px 6px 0;">
+                        <label class="btn btn-outline-primary-accent btn-sm py-1 px-3" for="viewModeSummary" style="font-size: 0.85rem; border-radius: 0;">
                             <i class="bi bi-calendar3" aria-hidden="true"></i> Bảng Kê Đầu Vào
+                        </label>
+
+                        <input type="radio" class="btn-check" name="partnerViewMode" id="viewModePivot" autocomplete="off">
+                        <label class="btn btn-outline-primary-accent btn-sm py-1 px-3" for="viewModePivot" style="font-size: 0.85rem; border-radius: 0 6px 6px 0;">
+                            <i class="bi bi-grid-3x3-gap-fill" aria-hidden="true"></i> Bảng Pivot NCC
                         </label>
                     </div>
 
@@ -308,6 +318,100 @@
                             <p class="mb-0">Đang truy vấn bảng kê hóa đơn đầu vào theo kỳ…</p>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Sub-view 3: Monthly Pivot Table by Supplier -->
+            <div id="partnersPivotContainer" class="mt-3" style="display: none;">
+                <!-- Pivot Toolbar -->
+                <div class="d-flex flex-column flex-md-row gap-3 justify-content-between align-items-md-center mb-3 p-3 glass-card" style="border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); border-radius: 8px;">
+                    <div class="d-flex flex-wrap align-items-center gap-3">
+                        <!-- Year Selector -->
+                        <div class="d-flex align-items-center gap-2">
+                            <label for="pivotYearFilter" class="text-secondary fw-semibold mb-0" style="font-size: 0.85rem; white-space: nowrap;">Năm:</label>
+                            <select class="form-select custom-select form-select-sm" id="pivotYearFilter" style="width: 100px; height: 32px; font-size: 0.85rem;">
+                                <option value="2026" selected>2026</option>
+                                <option value="2025">2025</option>
+                                <option value="2024">2024</option>
+                                <option value="">Tất cả</option>
+                            </select>
+                        </div>
+                        <!-- Metric Selector -->
+                        <div class="d-flex align-items-center gap-2">
+                            <label for="pivotMetricType" class="text-secondary fw-semibold mb-0" style="font-size: 0.85rem; white-space: nowrap;">Chỉ số:</label>
+                            <select class="form-select custom-select form-select-sm" id="pivotMetricType" style="width: 220px; height: 32px; font-size: 0.85rem;">
+                                <option value="total_amount" selected>Tổng thanh toán (chứa thuế)</option>
+                                <option value="amount_before_tax">Doanh số trước thuế</option>
+                                <option value="tax_amount">Tiền thuế GTGT</option>
+                                <option value="invoice_count">Số lượng hóa đơn</option>
+                            </select>
+                        </div>
+                        <!-- Search Box -->
+                        <div class="position-relative" style="width: 250px;">
+                            <input type="text" class="form-control form-control-sm ps-4" id="pivotSearchInput" placeholder="Tìm tên hoặc MST…" style="height: 32px; font-size: 0.85rem; background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); color: var(--text-color);" autocomplete="off" aria-label="Tìm tên hoặc MST…">
+                            <i class="bi bi-search position-absolute text-muted" style="left: 10px; top: 50%; transform: translateY(-50%); font-size: 0.8rem;" aria-hidden="true"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-outline-success btn-sm d-flex align-items-center gap-1" id="btnPivotExport" style="height: 32px; font-size: 0.85rem;">
+                            <i class="bi bi-file-earmark-excel" aria-hidden="true"></i> Xuất Excel Pivot
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Pivot Grid Table Wrapper -->
+                <div class="table-responsive custom-table-wrapper" style="max-height: 600px; overflow-y: auto;">
+                    <style>
+                        /* Sticky first columns for Pivot Table */
+                        .table-pivot th.sticky-col,
+                        .table-pivot td.sticky-col {
+                            position: -webkit-sticky;
+                            position: sticky;
+                            left: 0;
+                            background-color: var(--card-bg, #1a1e29);
+                            z-index: 2;
+                        }
+                        .table-pivot th.sticky-col-2,
+                        .table-pivot td.sticky-col-2 {
+                            position: -webkit-sticky;
+                            position: sticky;
+                            left: 130px; /* MST width */
+                            background-color: var(--card-bg, #1a1e29);
+                            z-index: 2;
+                        }
+                        .table-pivot tr:hover td.sticky-col,
+                        .table-pivot tr:hover td.sticky-col-2 {
+                            background-color: var(--hover-bg, #2b3142) !important;
+                        }
+                        .table-pivot th {
+                            white-space: nowrap;
+                            font-size: 0.85rem;
+                            vertical-align: middle;
+                        }
+                        .table-pivot td {
+                            white-space: nowrap;
+                            font-size: 0.85rem;
+                            vertical-align: middle;
+                        }
+                    </style>
+                    <table class="table align-middle custom-table table-pivot" id="pivotTable">
+                        <thead id="pivotTableHeader">
+                            <!-- Injected dynamically -->
+                        </thead>
+                        <tbody id="pivotTableBody">
+                            <tr>
+                                <td colspan="15" class="text-center text-secondary py-5">
+                                    <div class="empty-state">
+                                        <span class="empty-icon"><i class="bi bi-grid-3x3-gap-fill" aria-hidden="true"></i></span>
+                                        <p class="mb-0">Đang tải dữ liệu tổng hợp pivot…</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot id="pivotTableFooter" class="fw-bold">
+                            <!-- Injected dynamically -->
+                        </tfoot>
+                    </table>
                 </div>
             </div>
         </section>
@@ -413,7 +517,7 @@
                     <div class="p-3 rounded text-center h-100 d-flex flex-column justify-content-center" style="background: rgba(46, 196, 182, 0.04); border: 1px solid rgba(46, 196, 182, 0.12);">
                         <span class="text-secondary small d-block mb-1">Giải Thành Công</span>
                         <h4 class="fw-bold mb-0 text-success" id="captchaSuccess" style="font-size: 1.8rem;">0</h4>
-                        <span class="text-secondary" style="font-size: 0.75rem;">Tổng số lần vượt rào</span>
+                        <span class="text-secondary" style="font-size: 0.75rem;">Vector: <strong id="captchaVectorCount" style="color: #00f5d4;">0</strong> | OCR: <strong id="captchaOcrCount" class="text-light">0</strong></span>
                     </div>
                 </div>
                 <!-- Fail Count -->
@@ -1462,7 +1566,271 @@
                 </div>
             </div>
         </div>
+
+        <!-- CIT Optimization Sandbox & Advisory Panel (US-375) -->
+        <section class="glass-card p-4 mt-4">
+            <h4 class="h5 fw-bold mb-3 d-flex align-items-center gap-2">
+                <i class="bi bi-graph-up-arrow text-primary-accent" aria-hidden="true"></i> Giả Lập & Tối Ưu Thuế Thu Nhập Doanh Nghiệp (CIT)
+            </h4>
+            <p class="text-secondary small">Điều chỉnh các biến số thuế suất ưu đãi, thời gian miễn giảm thuế (Thuế holiday) và chính sách chi phí (vay vốn EBITDA 30%, chứng từ thanh toán không dùng tiền mặt) để xem dự toán thuế TNDN tối ưu so với phương án cơ sở.</p>
+            
+            <div class="row g-4 mt-2">
+                <!-- Sliders & Inputs Configuration -->
+                <div class="col-lg-6">
+                    <div class="p-3 rounded bg-white bg-opacity-5 border border-secondary border-opacity-10 h-100">
+                        <h5 class="fw-bold small text-light mb-3">Thông Số Giả Lập Cấu Thiết Lập Thuế</h5>
+                        
+                        <!-- Preferential Tax Rate -->
+                        <div class="mb-3">
+                            <label class="form-label d-flex justify-content-between small text-secondary" for="slideCitPrefRate">
+                                <span>Thuế suất ưu đãi (CIT Rate)</span>
+                                <span class="fw-bold text-primary-accent" id="valCitPrefRate">20%</span>
+                            </label>
+                            <input type="range" class="form-range" id="slideCitPrefRate" min="5" max="20" step="1" value="20">
+                        </div>
+                        
+                        <!-- Tax Holiday: Exempt Years -->
+                        <div class="mb-3">
+                            <label class="form-label d-flex justify-content-between small text-secondary" for="slideCitExemptYears">
+                                <span>Số năm miễn thuế hoàn toàn</span>
+                                <span class="fw-bold text-primary-accent" id="valCitExemptYears">0 năm</span>
+                            </label>
+                            <input type="range" class="form-range" id="slideCitExemptYears" min="0" max="4" step="1" value="0">
+                        </div>
+                        
+                        <!-- Tax Holiday: Reduce 50% Years -->
+                        <div class="mb-3">
+                            <label class="form-label d-flex justify-content-between small text-secondary" for="slideCitReduceYears">
+                                <span>Số năm giảm 50% thuế suất</span>
+                                <span class="fw-bold text-primary-accent" id="valCitReduceYears">0 năm</span>
+                            </label>
+                            <input type="range" class="form-range" id="slideCitReduceYears" min="0" max="9" step="1" value="0">
+                        </div>
+                        
+                        <!-- Refinancing options to avoid interest EBITDA cap -->
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" role="switch" id="checkCitReduceLoanInterest" style="cursor: pointer;">
+                            <label class="form-check-label small text-secondary" for="checkCitReduceLoanInterest">
+                                <strong>Tái cấu trúc nợ vay liên kết:</strong> Giảm chi phí lãi vay vượt trần 30% EBITDA (Nghị định 132)
+                            </label>
+                        </div>
+                        
+                        <!-- Bank transfer enforcement for > 20M payments -->
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" role="switch" id="checkCitEnforceBankTransfer" style="cursor: pointer;" checked>
+                            <label class="form-check-label small text-secondary" for="checkCitEnforceBankTransfer">
+                                <strong>Thanh toán ngân hàng bắt buộc:</strong> Chuyển khoản mọi giao dịch mua vào trên 20 triệu VND
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Results & Comparison SVG Chart -->
+                <div class="col-lg-6">
+                    <div class="p-3 rounded bg-white bg-opacity-5 border border-secondary border-opacity-10 h-100 d-flex flex-column">
+                        <h5 class="fw-bold small text-light mb-3">So Sánh Nghĩa Vụ Thuế TNDN Dự Kiến</h5>
+                        
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <div class="p-2.5 rounded bg-dark border border-secondary border-opacity-15 text-center">
+                                    <div class="text-secondary" style="font-size: 0.7rem;">Phương án cơ sở</div>
+                                    <div class="fw-bold text-white fs-6 mt-1" id="citBaselineValue">0 ₫</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2.5 rounded bg-primary-accent bg-opacity-10 border border-primary-accent border-opacity-20 text-center">
+                                    <div class="text-primary-accent" style="font-size: 0.7rem;">Sau tối ưu hóa</div>
+                                    <div class="fw-bold text-primary-accent fs-6 mt-1" id="citSimulatedValue">0 ₫</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Comparison SVG Canvas -->
+                        <div class="flex-grow-1 d-flex flex-column align-items-center justify-content-center p-2 rounded bg-black bg-opacity-40 min-height-200 position-relative">
+                            <svg id="citComparisonChart" width="100%" height="180" class="overflow-visible" style="max-height: 180px;"></svg>
+                        </div>
+                        
+                        <div class="mt-3 p-2 rounded bg-success bg-opacity-10 border border-success border-opacity-15 d-flex justify-content-between align-items-center small text-success">
+                            <span><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Số thuế tiết kiệm tối đa:</span>
+                            <strong class="fs-6" id="citTaxSavingsText">0 ₫</strong>
+                        </div>
+                        
+                        <div class="d-flex gap-2 mt-3">
+                            <button type="button" class="btn btn-sm btn-outline-secondary w-100" id="btnExportCitRecommendation" style="min-height: 38px;">
+                                <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i> Xuất Báo Cáo Khuyến Nghị
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
     </div>
+
+    <!-- Tab 7: GDT Compliance & Corrections Dashboard -->
+    <div class="tab-pane fade" id="compliance-content" role="tabpanel" aria-labelledby="compliance-tab">
+        <div class="row g-4">
+            <!-- Left Panel: GDT Verification Grid -->
+            <div class="col-xl-7">
+                <div class="glass-card p-4 h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="h5 fw-bold mb-0 d-flex align-items-center gap-2">
+                            <i class="bi bi-shield-check text-primary-accent" aria-hidden="true"></i> Bảng Đối Soát Trạng Thái Hóa Đơn Tổng Cục Thuế (GDT)
+                        </h4>
+                        <button type="button" class="btn btn-sm btn-primary-accent" id="btnSyncGdtStatus" style="min-height: 38px;">
+                            <i class="bi bi-arrow-repeat" aria-hidden="true"></i> Đồng Bộ Trực Tuyến GDT
+                        </button>
+                    </div>
+                    <p class="text-secondary small mb-3">Theo dõi tính hợp pháp của chữ ký số XML-DSIG, trạng thái mã số thuế người bán, và mã phê duyệt hóa đơn GDT trực tuyến theo Nghị định 123/2020/NĐ-CP.</p>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover align-middle border-secondary border-opacity-10 small" style="background: rgba(255,255,255,0.02);">
+                            <thead>
+                                <tr style="background: rgba(255,255,255,0.05);">
+                                    <th scope="col" style="width: 15%;">Số HĐ</th>
+                                    <th scope="col" style="width: 15%;">Ngày HĐ</th>
+                                    <th scope="col" style="width: 25%;">MST Người Bán</th>
+                                    <th scope="col" style="width: 15%;">Chữ Ký Số</th>
+                                    <th scope="col" style="width: 15%;">Mã Cấp GDT</th>
+                                    <th scope="col" style="width: 15%;" class="text-center">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="gdtComplianceTableBody">
+                                <tr>
+                                    <td colspan="6" class="text-center py-4 text-secondary">
+                                        <div class="spinner-border spinner-border-sm text-primary-accent" role="status"></div> Đang tải dữ liệu đối soát…
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Panel: Correction / Replacement Form & Transmission Wizards -->
+            <div class="col-xl-5">
+                <!-- Decree 123 Correction Form -->
+                <div class="glass-card p-4 mb-4">
+                    <h4 class="h5 fw-bold mb-3 d-flex align-items-center gap-2">
+                        <i class="bi bi-pencil-square text-primary-accent" aria-hidden="true"></i> Điều Chỉnh & Thay Thế Hóa Đơn (Nghị Định 123)
+                    </h4>
+                    <p class="text-secondary small">Tạo file XML điều chỉnh (HĐĐC) hoặc thay thế (HĐTT) cho hóa đơn sai sót có đầy đủ các thẻ dữ liệu pháp lý và lý do đính kèm.</p>
+                    
+                    <form id="correctionXmlForm" class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label fw-medium small mb-1" for="selectOriginalInvoice">Hóa đơn gốc cần xử lý</label>
+                            <select class="form-select custom-select" id="selectOriginalInvoice" required>
+                                <option value="">-- Chọn hóa đơn sai sót --</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium small mb-1" for="selectCorrectionType">Hình thức xử lý</label>
+                            <select class="form-select custom-select" id="selectCorrectionType" required>
+                                <option value="replacement" selected>Hóa đơn Thay thế (Replacement)</option>
+                                <option value="adjustment">Hóa đơn Điều chỉnh (Adjustment)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium small mb-1" for="inputCorrectionBuyerMst">MST Người mua mới (nếu sửa)</label>
+                            <input type="text" class="form-control custom-input" id="inputCorrectionBuyerMst" placeholder="MST Người mua" autocomplete="off">
+                        </div>
+                        
+                        <div class="col-md-12">
+                            <label class="form-label fw-medium small mb-1" for="inputCorrectionBuyerName">Tên người mua mới (nếu sửa)</label>
+                            <input type="text" class="form-control custom-input" id="inputCorrectionBuyerName" placeholder="Tên đơn vị mua hàng" autocomplete="name">
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium small mb-1" for="inputCorrectionAmount">Thành tiền mới (VND)</label>
+                            <input type="number" class="form-control custom-input" id="inputCorrectionAmount" placeholder="Số tiền mới" autocomplete="off">
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium small mb-1" for="inputCorrectionTaxAmount">Tiền thuế mới (VND)</label>
+                            <input type="number" class="form-control custom-input" id="inputCorrectionTaxAmount" placeholder="Thuế GTGT mới" autocomplete="off">
+                        </div>
+                        
+                        <div class="col-md-12">
+                            <label class="form-label fw-medium small mb-1" for="inputCorrectionReason">Lý do điều chỉnh/thay thế</label>
+                            <textarea class="form-control custom-input" id="inputCorrectionReason" rows="2" placeholder="Nhập lý do chi tiết…" required></textarea>
+                        </div>
+                        
+                        <div class="col-md-12 d-grid">
+                            <button type="submit" class="btn btn-primary-accent" id="btnGenerateCorrectionXml" style="min-height: 44px;">
+                                <i class="bi bi-filetype-xml" aria-hidden="true"></i> Tạo & Ký Số XML Thay Thế/Điều Chỉnh
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <!-- Result Pane for Correction XML -->
+                    <div id="correctionResultPanel" class="mt-4 p-3 rounded bg-white bg-opacity-5 border border-secondary border-opacity-15 d-none animate__animated animate__fadeIn">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-success small fw-bold"><i class="bi bi-check-circle-fill" aria-hidden="true"></i> XML đã tạo & ký số HSM thành công</span>
+                            <a href="#" class="btn btn-sm btn-success py-1 px-2 text-white" id="linkDownloadCorrectionXml" download style="font-size: 0.75rem;">
+                                <i class="bi bi-download" aria-hidden="true"></i> Tải XML
+                            </a>
+                        </div>
+                        <pre class="p-2 rounded text-white-50 border border-secondary border-opacity-20 font-monospace mb-0" style="background-color: #212529 !important; font-size: 0.75rem; max-height: 150px; overflow-y: auto;" id="textCorrectionXmlPreview"></pre>
+                    </div>
+                </div>
+                
+                <!-- Form 04/SS-HĐĐT Transmission Wizard -->
+                <div class="glass-card p-4">
+                    <h4 class="h5 fw-bold mb-3 d-flex align-items-center gap-2">
+                        <i class="bi bi-send-check text-primary-accent" aria-hidden="true"></i> Lập & Truyền Tờ Khai 04/SS-HĐĐT sang Cơ Quan Thuế
+                    </h4>
+                    <p class="text-secondary small">Kê khai thông báo hóa đơn điện tử sai sót (Mẫu số 04/SS-HĐĐT), ký số HSM và gửi trực tiếp sang cổng tiếp nhận Tổng cục Thuế.</p>
+                    
+                    <form id="transmitForm04ssForm" class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium small mb-1" for="inputForm04TaxpayerMst">MST Người Nộp Thuế</label>
+                            <input type="text" class="form-control custom-input" id="inputForm04TaxpayerMst" value="0101234567" placeholder="MST công ty nộp tờ khai" required autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium small mb-1" for="inputForm04TaxpayerName">Tên Người Nộp Thuế</label>
+                            <input type="text" class="form-control custom-input" id="inputForm04TaxpayerName" value="CÔNG TY CỔ PHẦN CÔNG NGHỆ XML VIỆT NAM" required autocomplete="name">
+                        </div>
+                        
+                        <div class="col-md-12">
+                            <label class="form-label fw-medium small mb-1">Chọn hóa đơn báo cáo sai sót/hủy bỏ</label>
+                            <div class="p-3 rounded bg-white bg-opacity-5 border border-secondary border-opacity-10" style="max-height: 150px; overflow-y: auto;" id="badInvoicesCheckboxList">
+                                <div class="text-secondary small text-center py-3">Không có hóa đơn lỗi nào cần báo cáo.</div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-12 d-grid">
+                            <button type="submit" class="btn btn-primary-accent" id="btnTransmitForm04ss" style="min-height: 44px;">
+                                <i class="bi bi-cloud-arrow-up" aria-hidden="true"></i> Truyền Tờ Khai 04/SS sang GDT Gateway
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <!-- Result Pane for Form 04SS -->
+                    <div id="form04ResultPanel" class="mt-4 p-3 rounded bg-white bg-opacity-5 border border-secondary border-opacity-15 d-none animate__animated animate__fadeIn">
+                        <div class="p-2 bg-success bg-opacity-10 border border-success border-opacity-20 rounded mb-2">
+                            <div class="d-flex justify-content-between align-items-center text-success small fw-bold">
+                                <span><i class="bi bi-cloud-check-fill" aria-hidden="true"></i> ĐÃ NHẬN PHẢN HỒI GDT GATEWAY</span>
+                                <span class="badge bg-success" id="badgeForm04Status">200 OK</span>
+                            </div>
+                        </div>
+                        
+                        <div class="small text-secondary mb-2" style="font-size: 0.75rem;">
+                            <strong>Mã giao dịch GDT:</strong> <code class="text-light" id="textForm04GdtTxnId">GDT-TXN-XXXXXX</code><br>
+                            <strong>Thời gian phản hồi:</strong> <span id="textForm04GdtTimestamp">05/06/2026 12:00:00</span>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-secondary small fw-bold">Preview XML Tờ Khai 04/SS (Đã ký HSM)</span>
+                            <a href="#" class="btn btn-sm btn-outline-secondary py-0.5 px-2" id="linkDownloadForm04Xml" download style="font-size: 0.7rem;">
+                                <i class="bi bi-download" aria-hidden="true"></i> Tải XML
+                            </a>
+                        </div>
+                        <pre class="p-2 rounded text-white-50 border border-secondary border-opacity-20 font-monospace mb-0" style="background-color: #212529 !important; font-size: 0.72rem; max-height: 120px; overflow-y: auto;" id="textForm04XmlPreview"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
 
 <!-- Offcanvas Drawer for Invoice Details -->
 <div class="offcanvas offcanvas-end glass-drawer" tabindex="-1" id="invoiceDetailsDrawer" aria-labelledby="invoiceDetailsDrawerLabel">

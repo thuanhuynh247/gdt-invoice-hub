@@ -29,7 +29,7 @@
             <div class="card border-0 rounded-4 shadow-sm glass-card p-3">
                 <div class="d-flex justify-content-between align-items-center px-lg-5 position-relative">
                     <!-- Progress Line -->
-                    <div class="position-absolute top-50 start-0 end-0 translate-y-middle bg-light-border" style="height: 4px; z-index: 1;"></div>
+                    <div class="position-absolute top-50 start-0 end-0 translate-y-middle bg-premium-light-border" style="height: 4px; z-index: 1;"></div>
                     <div class="position-absolute top-50 start-0 bg-primary translate-y-middle transition-all" id="stepProgressBar" style="height: 4px; width: 0%; z-index: 2;"></div>
  
                     <!-- Step 1 -->
@@ -238,14 +238,14 @@
  
                 <!-- Complete Success Step -->
                 <div id="signStepSuccess" class="signing-step d-none animate__animated animate__bounceIn">
-                    <div class="success-icon bg-success text-white rounded-circle mx-auto mb-4 d-flex align-items-center justify-content-center shadow-lg" style="width: 80px; height: 80px; font-size: 3rem;">
+                    <div class="success-icon bg-success text-snow rounded-circle mx-auto mb-4 d-flex align-items-center justify-content-center shadow-lg" style="width: 80px; height: 80px; font-size: 3rem;">
                         <i class="bi bi-check-lg" aria-hidden="true"></i>
                     </div>
                     <h4 class="fw-bold text-success mb-2">Phát hành thành công!</h4>
                     <p class="text-muted small mb-4">Hóa đơn điện tử đã được ký số hợp lệ và truyền dữ liệu trực tiếp lên Cơ quan Thuế thành công.</p>
                     
                     <!-- Premium Certificate Metadata Summary -->
-                    <div class="bg-light p-3 rounded-4 text-start small mb-4 shadow-inner border border-light-subtle">
+                    <div class="bg-premium-light p-3 rounded-4 text-start small mb-4 shadow-inner border border-light-subtle">
                         <div class="d-flex justify-content-between mb-1">
                             <span class="text-muted">Chủ thể (CN):</span>
                             <span class="fw-semibold text-dark text-truncate ms-2" id="resCertSubject">CN=Tên Công Ty</span>
@@ -310,7 +310,7 @@
     box-shadow: 0 6px 20px rgba(var(--bs-primary-rgb), 0.55);
     transform: translateY(-1px);
 }
-.bg-light-border {
+.bg-premium-light-border {
     background-color: #e9ecef;
 }
 .step-badge {
@@ -687,7 +687,7 @@ function triggerSigningWorkflow() {
             <a href="#" class="list-group-item list-group-item-action active p-3 border-0 rounded-3 mb-2" id="cert-item-1">
                 <div class="d-flex w-100 justify-content-between align-items-center">
                     <h6 class="mb-1 fw-bold"><i class="bi bi-person-badge-fill me-1" aria-hidden="true"></i> ${document.getElementById("buyerName").value || "CÔNG TY PHÁT HÀNH MẪU"}</h6>
-                    <span class="badge bg-light text-primary rounded-pill small">Mặc định</span>
+                    <span class="badge bg-premium-light text-primary rounded-pill small">Mặc định</span>
                 </div>
                 <p class="mb-1 small opacity-90">MST: ${localStorage.getItem("active_taxpayer_mst") || "0108234857"}</p>
                 <small class="opacity-75"><i class="bi bi-calendar-check-fill me-1" aria-hidden="true"></i> Hiệu lực: 2024-01-01 đến 2029-12-31 | VNPT-CA</small>

@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import time
 from datetime import datetime, timezone
+import requests
 
 from flask import Blueprint, current_app, jsonify, redirect, render_template, request, session, url_for
 
@@ -68,6 +70,12 @@ def auth_captcha():
     )
 
 
+@auth_blueprint.get("/api/auth/captcha/stats")
+def api_captcha_stats():
+    """Expose real-time CAPTCHA solver statistics (US-143 / health dashboard)."""
+    from auth.captcha_solver import captcha_analytics
+    return jsonify(captcha_analytics.get_stats())
+
 
 @auth_blueprint.post("/api/auth/login")
 @rate_limit(limit=10, window=60)
@@ -113,7 +121,7 @@ def api_login():
                     if pre_solved:
                         solved_value = pre_solved
                     else:
-                        solved_value = solve_captcha_from_svg(current_captcha_svg)
+                        solved_value = solve_captcha_from_svg(current_captcha_svg, captcha_key=current_captcha_key)
                     current_app.logger.info(f"Auto-solved captcha attempt {attempt+1}: {solved_value}")
                 except Exception as ocr_err:
                     current_app.logger.error(f"Failed to solve captcha: {ocr_err}")
@@ -124,40 +132,73 @@ def api_login():
                     last_error = AuthenticationError(f"Loi giai ma captcha: {ocr_err}")
                     continue
 
-                current_app.config["CURRENT_CAPTCHA_KEY"] = current_captcha_key
-                current_app.config["CURRENT_CAPTCHA_COOKIES"] = current_captcha_cookies
-
                 try:
-                    auth_data = authenticate_user(username, password, solved_value)
+                    auth_data = authenticate_user(
+                        username,
+                        password,
+                        solved_value,
+                        captcha_key=current_captcha_key,
+                        captcha_cookies=current_captcha_cookies,
+                    )
                     from auth.captcha_solver import captcha_analytics
                     captcha_analytics.record_success()
                     break
-                except AuthenticationError as error:
+                except (AuthenticationError, requests.RequestException) as error:
                     last_error = error
                     msg = str(error)
-                    if "captcha" in msg.lower():
-                        current_app.logger.warning(f"Auto-solve attempt {attempt+1} failed with captcha error. Retrying...")
+                    
+                    # Check if this is a permanent credential/lock error
+                    is_permanent = False
+                    msg_lower = msg.lower()
+                    permanent_terms = [
+                        "mật khẩu không đúng",
+                        "tên đăng nhập hoặc mật khẩu",
+                        "tài khoản không tồn tại",
+                        "tài khoản đang bị khóa",
+                        "tài khoản chưa đăng ký",
+                        "locked",
+                        "thong tin dang nhap va captcha khong du"
+                    ]
+                    for term in permanent_terms:
+                        if term in msg_lower:
+                            is_permanent = True
+                            break
+                    
+                    if is_permanent:
+                        current_app.logger.error(f"Permanent credential failure detected: {msg}. Aborting retry loop.")
+                        raise error
+                    
+                    # Otherwise, it's a captcha error or transient network/GDT gateway error
+                    current_app.logger.warning(
+                        f"Auto-solve attempt {attempt+1} failed with transient error: {msg}. Retrying..."
+                    )
+                    
+                    # Record fail in captcha analytics if it seems to be captcha-related
+                    if "captcha" in msg_lower or isinstance(error, AuthenticationError):
                         from auth.captcha_solver import captcha_analytics
                         captcha_analytics.record_fail()
-                        current_captcha_svg = ""
-                        current_captcha_key = ""
-                        current_captcha_cookies = {}
-                        pre_solved = ""
-                    else:
-                        raise error
+                        
+                    current_captcha_svg = ""
+                    current_captcha_key = ""
+                    current_captcha_cookies = {}
+                    pre_solved = ""
+                    
+                    if attempt < attempts - 1:
+                        time.sleep(0.5)
             else:
                 raise last_error or AuthenticationError(f"Tu dong giaima captcha that bai sau {attempts} lan thu.")
         else:
-            current_app.config["CURRENT_CAPTCHA_KEY"] = session.get("auth_captcha_key", "")
-            current_app.config["CURRENT_CAPTCHA_COOKIES"] = session.get("auth_captcha_cookies", {})
-            auth_data = authenticate_user(username, password, captcha)
+            auth_data = authenticate_user(
+                username,
+                password,
+                captcha,
+                captcha_key=session.get("auth_captcha_key", ""),
+                captcha_cookies=session.get("auth_captcha_cookies", {}),
+            )
     except AuthenticationError as error:
         from invoices.security_audit_service import log_security_event
         log_security_event("AUTH", f"User login failed: {error}", username=username)
         return jsonify({"error": str(error)}), 401
-    finally:
-        current_app.config["CURRENT_CAPTCHA_KEY"] = ""
-        current_app.config["CURRENT_CAPTCHA_COOKIES"] = {}
 
 
     session.clear()
@@ -241,23 +282,38 @@ def session_status():
 
 @auth_blueprint.before_app_request
 def load_session_to_config():
-    """Load credentials and token from session to current_app config.
+    """Load credentials and token from session to current_app config and thread-local context.
     
     This ensures that downstream API callers in the current request thread
     can inspect and decrypt credentials if a 401 Unauthorized is returned
     by GDT, triggering automatic transparent re-authentication.
     """
     if session.get("logged_in"):
-        current_app.config["CURRENT_JWT"] = session.get("jwt")
-        current_app.config["CURRENT_USERNAME"] = session.get("username")
-        current_app.config["CURRENT_ENCRYPTED_PASSWORD"] = session.get("encrypted_password")
+        jwt = session.get("jwt")
+        username = session.get("username")
+        enc_password = session.get("encrypted_password")
+        
+        current_app.config["CURRENT_JWT"] = jwt
+        current_app.config["CURRENT_USERNAME"] = username
+        current_app.config["CURRENT_ENCRYPTED_PASSWORD"] = enc_password
+        
+        try:
+            from invoices.thread_local import set_current_thread_credentials
+            set_current_thread_credentials(username, enc_password, jwt=jwt)
+        except ImportError:
+            pass
 
 
 @auth_blueprint.teardown_app_request
 def clear_config_credentials(exception=None):
-    """Clean credentials from config after request processing completes."""
+    """Clean credentials from config and thread-local context after request completes."""
     # Prevent leaking passwords in application config across requests
     current_app.config.pop("CURRENT_JWT", None)
     current_app.config.pop("CURRENT_USERNAME", None)
     current_app.config.pop("CURRENT_ENCRYPTED_PASSWORD", None)
+    try:
+        from invoices.thread_local import clear_thread_local_context
+        clear_thread_local_context()
+    except ImportError:
+        pass
 

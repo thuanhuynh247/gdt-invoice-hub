@@ -1,0 +1,406 @@
+{% extends "base.html" %}
+
+{% block title %}EP Tax Law 57/2010 - Environmental Protection Tax Hub (v53){% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header Area -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
+        <div>
+            <span class="badge bg-success mb-2">Version 53.0.0 Spec Compliance</span>
+            <h1 class="h2 fw-bold text-gradient mb-1">Environmental Protection Tax Compliance Hub</h1>
+            <p class="text-muted mb-0">Fuel, coal, plastic bag, and HCFC chemical EP tax calculations with green transition exemptions under Luật Thuế BVMT 57/2010/QH12.</p>
+        </div>
+        <div class="d-flex gap-2 mt-3 mt-md-0">
+            <button id="btn-refresh-v53" class="btn btn-success text-white d-flex align-items-center gap-2">
+                <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Load Compliance Data
+            </button>
+            <span class="badge bg-success-subtle text-success border border-success d-flex align-items-center px-3">
+                <i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Law 57/2010/QH12
+            </span>
+        </div>
+    </div>
+
+    <!-- Bento Grid Layout -->
+    <div class="row g-4">
+        <!-- Pillar 1: Fuel EP Tax Calculator -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1"><i class="bi bi-fuel-pump-fill text-danger me-2" aria-hidden="true"></i>Fuel EP Tax Calculator</h5>
+                    <p class="text-muted small mb-0">Calculate absolute EP tax for petrol (2,000 VND/l), diesel (1,000 VND/l), and kerosene (600 VND/l). Transit/re-export fuels are 100% exempt.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="input-fuel-type" class="form-label small mb-1">Fuel Type:</label>
+                            <select id="input-fuel-type" class="form-select form-select-sm">
+                                <option value="petrol">Petrol (2,000 VND/l)</option>
+                                <option value="diesel">Diesel (1,000 VND/l)</option>
+                                <option value="kerosene">Kerosene (600 VND/l)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-fuel-qty" class="form-label small mb-1">Quantity (litres):</label>
+                            <input type="number" id="input-fuel-qty" class="form-control form-control-sm" value="1000" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-fuel-price" class="form-label small mb-1">Price Before Tax (VND):</label>
+                            <input type="number" id="input-fuel-price" class="form-control form-control-sm" value="25000" autocomplete="off">
+                        </div>
+                        <div class="col-md-6 d-flex align-items-end">
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" id="check-fuel-transit">
+                                <label class="form-check-input-label small" for="check-fuel-transit">Transit / Re-export?</label>
+                            </div>
+                        </div>
+                        <div class="col-12 text-end">
+                            <button id="btn-calculate-fuel" class="btn btn-danger btn-sm text-white">
+                                <i class="bi bi-calculator me-1" aria-hidden="true"></i> Calculate Fuel EP Tax
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
+                        <h6 class="fw-bold mb-2 text-danger"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Fuel EP Tax Result</h6>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>EP Tax Rate:</span>
+                            <span id="res-fuel-rate" class="fw-bold text-dark">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>EP Tax Amount:</span>
+                            <span id="res-fuel-amount" class="fw-bold text-danger">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Exempt:</span>
+                            <span id="res-fuel-exempt" class="fw-bold">-</span>
+                        </div>
+                        <div class="small text-muted border-top pt-2 mt-2">
+                            <strong>Note:</strong> <span id="res-fuel-note">Awaiting calculation…</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pillar 2: Coal EP Tax Calculator -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1"><i class="bi bi-minecart-loaded text-warning me-2" aria-hidden="true"></i>Coal EP Tax Calculator</h5>
+                    <p class="text-muted small mb-0">Calculate coal EP tax by type: Lignite/Sub-bituminous (20,000 VND/t), Anthracite (30,000 VND/t), Other (15,000 VND/t). Electricity generation & export exempt.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="input-coal-type" class="form-label small mb-1">Coal Type:</label>
+                            <select id="input-coal-type" class="form-select form-select-sm">
+                                <option value="anthracite">Anthracite (30,000 VND/t)</option>
+                                <option value="lignite">Lignite / Sub-bituminous (20,000 VND/t)</option>
+                                <option value="other">Other Coal (15,000 VND/t)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-coal-qty" class="form-label small mb-1">Quantity (tonnes):</label>
+                            <input type="number" id="input-coal-qty" class="form-control form-control-sm" value="500" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-coal-price" class="form-label small mb-1">Price Before Tax (VND):</label>
+                            <input type="number" id="input-coal-price" class="form-control form-control-sm" value="3000000" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-coal-usage" class="form-label small mb-1">Usage:</label>
+                            <select id="input-coal-usage" class="form-select form-select-sm">
+                                <option value="other">General (Taxable)</option>
+                                <option value="electricity_generation">Electricity Generation (Exempt)</option>
+                                <option value="export">Export by Licensed Miner (Exempt)</option>
+                            </select>
+                        </div>
+                        <div class="col-12 text-end">
+                            <button id="btn-calculate-coal" class="btn btn-warning btn-sm text-dark fw-bold">
+                                <i class="bi bi-calculator me-1" aria-hidden="true"></i> Calculate Coal EP Tax
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
+                        <h6 class="fw-bold mb-2 text-warning"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Coal EP Tax Result</h6>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>EP Tax Rate:</span>
+                            <span id="res-coal-rate" class="fw-bold text-dark">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>EP Tax Amount:</span>
+                            <span id="res-coal-amount" class="fw-bold text-warning">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Exempt:</span>
+                            <span id="res-coal-exempt" class="fw-bold">-</span>
+                        </div>
+                        <div class="small text-muted border-top pt-2 mt-2">
+                            <strong>Note:</strong> <span id="res-coal-note">Awaiting calculation…</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pillar 3: Plastic Bag EP Tax Calculator -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1"><i class="bi bi-bag-x-fill text-info me-2" aria-hidden="true"></i>Plastic Bag EP Tax Auditor</h5>
+                    <p class="text-muted small mb-0">Non-biodegradable plastic bags taxed at 50,000 VND/kg. Certified biodegradable bags receive 100% green transition exemption.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="input-bag-name" class="form-label small mb-1">Bag Name:</label>
+                            <input type="text" id="input-bag-name" class="form-control form-control-sm" value="Standard Plastic Bag" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-bag-weight" class="form-label small mb-1">Weight (kg):</label>
+                            <input type="number" step="0.01" id="input-bag-weight" class="form-control form-control-sm" value="100" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-bag-price" class="form-label small mb-1">Price Before Tax (VND):</label>
+                            <input type="number" id="input-bag-price" class="form-control form-control-sm" value="200000" autocomplete="off">
+                        </div>
+                        <div class="col-md-6 d-flex align-items-end">
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" id="check-bag-biodegradable">
+                                <label class="form-check-input-label small" for="check-bag-biodegradable">Certified Biodegradable?</label>
+                            </div>
+                        </div>
+                        <div class="col-12 text-end">
+                            <button id="btn-calculate-bag" class="btn btn-info btn-sm text-white">
+                                <i class="bi bi-calculator me-1" aria-hidden="true"></i> Calculate Bag EP Tax
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
+                        <h6 class="fw-bold mb-2 text-info"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Plastic Bag EP Tax Result</h6>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>EP Tax Rate:</span>
+                            <span id="res-bag-rate" class="fw-bold text-dark">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>EP Tax Amount:</span>
+                            <span id="res-bag-amount" class="fw-bold text-info">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Biodegradable:</span>
+                            <span id="res-bag-biodegradable" class="fw-bold">-</span>
+                        </div>
+                        <div class="small text-muted border-top pt-2 mt-2">
+                            <strong>Note:</strong> <span id="res-bag-note">Awaiting calculation…</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pillar 4: Chemical EP Tax Calculator -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1"><i class="bi bi-radioactive text-primary me-2" aria-hidden="true"></i>HCFC Chemical EP Tax Calculator</h5>
+                    <p class="text-muted small mb-0">HCFC (Hydrochlorofluorocarbon) chemicals taxed at 5,000 VND/kg to discourage ozone-depleting substances per Montreal Protocol obligations.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="input-chem-name" class="form-label small mb-1">Chemical Name:</label>
+                            <input type="text" id="input-chem-name" class="form-control form-control-sm" value="HCFC-22" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-chem-weight" class="form-label small mb-1">Weight (kg):</label>
+                            <input type="number" step="0.01" id="input-chem-weight" class="form-control form-control-sm" value="50" autocomplete="off">
+                        </div>
+                        <div class="col-md-12">
+                            <label for="input-chem-price" class="form-label small mb-1">Price Before Tax (VND):</label>
+                            <input type="number" id="input-chem-price" class="form-control form-control-sm" value="5000000" autocomplete="off">
+                        </div>
+                        <div class="col-12 text-end">
+                            <button id="btn-calculate-chem" class="btn btn-primary btn-sm text-white">
+                                <i class="bi bi-calculator me-1" aria-hidden="true"></i> Calculate Chemical EP Tax
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
+                        <h6 class="fw-bold mb-2 text-primary"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Chemical EP Tax Result</h6>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>EP Tax Rate:</span>
+                            <span id="res-chem-rate" class="fw-bold text-dark">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>EP Tax Amount:</span>
+                            <span id="res-chem-amount" class="fw-bold text-primary">-</span>
+                        </div>
+                        <div class="small text-muted border-top pt-2 mt-2">
+                            <strong>Note:</strong> <span id="res-chem-note">Awaiting calculation…</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Swarm Advisory Debate Panel -->
+        <div class="col-lg-12">
+            <div class="card shadow-sm border-light">
+                <div class="card-header bg-dark text-white py-3 d-flex align-items-center justify-content-between">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-success me-2" aria-hidden="true"></i>Multi-Agent Advisory Board Debate</h5>
+                    <span class="badge bg-secondary border border-secondary">Green Transition Consensus</span>
+                </div>
+                <div class="card-body">
+                    <div id="debate-container-v53" class="mb-3 d-flex flex-column gap-3">
+                    </div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus Summary Statement:</h6>
+                        <p id="consensus-text-v53" class="text-muted small mb-0">Awaiting simulation data execution…</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const formatVND = (n) => new Intl.NumberFormat("vi-VN").format(n) + " VND";
+
+    const loadData = () => {
+        fetch('/api/v53/compliance-data')
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "success") {
+                    renderFuel(data.fuel_audit);
+                    renderCoal(data.coal_audit);
+                    renderBag(data.bag_audit);
+                    renderChemical(data.chemical_audit);
+                    renderDebate(data.debate, data.consensus_summary);
+                }
+            })
+            .catch(err => console.error("Error loading v53 data:", err));
+    };
+
+    const calculateFuel = () => {
+        fetch('/api/v53/fuel/calculate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                fuel_type: document.getElementById("input-fuel-type").value,
+                quantity_litres: parseFloat(document.getElementById("input-fuel-qty").value),
+                price_before_tax: parseFloat(document.getElementById("input-fuel-price").value),
+                is_transit_or_reexport: document.getElementById("check-fuel-transit").checked
+            })
+        })
+        .then(res => res.json())
+        .then(data => { if (data.status === "success") renderFuel(data.results); })
+        .catch(err => console.error("Fuel calculate error:", err));
+    };
+
+    const calculateCoal = () => {
+        fetch('/api/v53/coal/calculate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                coal_type: document.getElementById("input-coal-type").value,
+                quantity_tonnes: parseFloat(document.getElementById("input-coal-qty").value),
+                price_before_tax: parseFloat(document.getElementById("input-coal-price").value),
+                usage: document.getElementById("input-coal-usage").value
+            })
+        })
+        .then(res => res.json())
+        .then(data => { if (data.status === "success") renderCoal(data.results); })
+        .catch(err => console.error("Coal calculate error:", err));
+    };
+
+    const calculateBag = () => {
+        fetch('/api/v53/bag/calculate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                bag_name: document.getElementById("input-bag-name").value,
+                weight_kg: parseFloat(document.getElementById("input-bag-weight").value),
+                price_before_tax: parseFloat(document.getElementById("input-bag-price").value),
+                is_certified_biodegradable: document.getElementById("check-bag-biodegradable").checked
+            })
+        })
+        .then(res => res.json())
+        .then(data => { if (data.status === "success") renderBag(data.results); })
+        .catch(err => console.error("Bag calculate error:", err));
+    };
+
+    const calculateChem = () => {
+        fetch('/api/v53/chemical/calculate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chemical_name: document.getElementById("input-chem-name").value,
+                weight_kg: parseFloat(document.getElementById("input-chem-weight").value),
+                price_before_tax: parseFloat(document.getElementById("input-chem-price").value)
+            })
+        })
+        .then(res => res.json())
+        .then(data => { if (data.status === "success") renderChemical(data.results); })
+        .catch(err => console.error("Chemical calculate error:", err));
+    };
+
+    const renderFuel = (res) => {
+        document.getElementById("res-fuel-rate").textContent = new Intl.NumberFormat("vi-VN").format(res.ep_tax_rate) + " VND/l";
+        document.getElementById("res-fuel-amount").textContent = formatVND(res.ep_tax_amount);
+        document.getElementById("res-fuel-exempt").textContent = res.is_exempt ? "✅ Yes - " + res.exemption_reason : "❌ No";
+        document.getElementById("res-fuel-note").textContent = res.notes || "-";
+    };
+
+    const renderCoal = (res) => {
+        document.getElementById("res-coal-rate").textContent = new Intl.NumberFormat("vi-VN").format(res.ep_tax_rate) + " VND/tonne";
+        document.getElementById("res-coal-amount").textContent = formatVND(res.ep_tax_amount);
+        document.getElementById("res-coal-exempt").textContent = res.is_exempt ? "✅ Yes - " + res.exemption_reason : "❌ No";
+        document.getElementById("res-coal-note").textContent = res.notes || "-";
+    };
+
+    const renderBag = (res) => {
+        document.getElementById("res-bag-rate").textContent = new Intl.NumberFormat("vi-VN").format(res.ep_tax_rate) + " VND/kg";
+        document.getElementById("res-bag-amount").textContent = formatVND(res.ep_tax_amount);
+        document.getElementById("res-bag-biodegradable").textContent = res.is_certified_biodegradable ? "✅ Yes - Exempt" : "❌ No - Taxable";
+        document.getElementById("res-bag-note").textContent = res.notes || "-";
+    };
+
+    const renderChemical = (res) => {
+        document.getElementById("res-chem-rate").textContent = new Intl.NumberFormat("vi-VN").format(res.ep_tax_rate) + " VND/kg";
+        document.getElementById("res-chem-amount").textContent = formatVND(res.ep_tax_amount);
+        document.getElementById("res-chem-note").textContent = res.notes || "-";
+    };
+
+    const renderDebate = (debate, summary) => {
+        const container = document.getElementById("debate-container-v53");
+        container.innerHTML = "";
+        const colors = { "Environmental Tax Inspector": "bg-danger", "Green Transition Advisor": "bg-success", "Customs Compliance Officer": "bg-warning text-dark" };
+        debate.forEach(msg => {
+            const div = document.createElement("div");
+            div.className = "d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";
+            div.innerHTML = `
+                <span class="badge ${colors[msg.speaker] || "bg-secondary"} py-2" style="min-width: 220px;">${msg.speaker}</span>
+                <div class="text-dark small">${msg.text}</div>
+            `;
+            container.appendChild(div);
+        });
+        document.getElementById("consensus-text-v53").textContent = summary;
+    };
+
+    // Attach listeners
+    document.getElementById("btn-calculate-fuel").addEventListener("click", calculateFuel);
+    document.getElementById("btn-calculate-coal").addEventListener("click", calculateCoal);
+    document.getElementById("btn-calculate-bag").addEventListener("click", calculateBag);
+    document.getElementById("btn-calculate-chem").addEventListener("click", calculateChem);
+    document.getElementById("btn-refresh-v53").addEventListener("click", loadData);
+
+    // Initial load
+    loadData();
+});
+</script>
+{% endblock %}

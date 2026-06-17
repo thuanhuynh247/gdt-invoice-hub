@@ -5,7 +5,7 @@
     <!-- Hero Header Section -->
     <div class="col-12">
         <div class="hero-panel mb-2">
-            <span class="eyebrow"><i class="bi bi-cpu-fill me-1" aria-hidden="true"></i> System Orchestration</span>
+            <span class="eyebrow"><i class="bi bi-cpu-fill me-1 text-primary-accent" aria-hidden="true"></i> System Orchestration</span>
             <h1 class="page-title mt-2">Harness Control Center</h1>
             <p class="page-subtitle mb-0">Manage stories, architectural decisions, harness backlog items, and trigger autonomous AI agent loops with live telemetry streaming.</p>
         </div>
@@ -23,7 +23,7 @@
                     <div class="stat-content">
                         <h4 class="stat-label">Stories</h4>
                         <div class="stat-value" id="statStoriesTotal">0</div>
-                        <p class="stat-subtext" id="statStoriesSub">0 in progress</p>
+                        <p class="stat-subtext text-warning" id="statStoriesSub">0 in progress</p>
                     </div>
                 </div>
             </div>
@@ -36,7 +36,7 @@
                     <div class="stat-content">
                         <h4 class="stat-label">Decisions</h4>
                         <div class="stat-value" id="statDecisionsTotal">0</div>
-                        <p class="stat-subtext" id="statDecisionsSub">0 accepted</p>
+                        <p class="stat-subtext text-success" id="statDecisionsSub">0 accepted</p>
                     </div>
                 </div>
             </div>
@@ -49,7 +49,7 @@
                     <div class="stat-content">
                         <h4 class="stat-label">Backlog</h4>
                         <div class="stat-value" id="statBacklogTotal">0</div>
-                        <p class="stat-subtext" id="statBacklogSub">0 open items</p>
+                        <p class="stat-subtext text-info" id="statBacklogSub">0 open items</p>
                     </div>
                 </div>
             </div>
@@ -86,7 +86,10 @@
                 <button class="nav-link" id="backlog-tab" data-bs-toggle="pill" data-bs-target="#tab-backlog" type="button" role="tab"><i class="bi bi-clipboard-pulse me-1" aria-hidden="true"></i> Backlog & Friction</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="traces-tab" data-bs-toggle="pill" data-bs-target="#tab-traces" type="button" role="tab"><i class="bi bi-hdd-stack me-1" aria-hidden="true"></i> Traces</button>
+                <button class="nav-link" id="traces-tab" data-bs-toggle="pill" data-bs-target="#tab-traces" type="button" role="tab"><i class="bi bi-database-fill me-1" aria-hidden="true"></i> DB & Telemetry</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="plugins-tab" data-bs-toggle="pill" data-bs-target="#tab-plugins" type="button" role="tab" onclick="onPluginsTabActive()"><i class="bi bi-puzzle-fill me-1" aria-hidden="true"></i> Antigravity Plugins</button>
             </li>
         </ul>
 
@@ -99,7 +102,7 @@
                         <h3 class="h5 mb-0 fw-bold"><i class="bi bi-terminal-fill me-2 text-success" aria-hidden="true"></i>Agent Configuration</h3>
                         <div class="search-tip-badge" id="agentStatusBadge" style="display: none;">
                             <span class="pulse-dot"></span>
-                            <span class="small fw-semibold text-secondary">Agent Running…</span>
+                            <span class="small fw-semibold text-success">Agent Running…</span>
                         </div>
                     </div>
 
@@ -138,49 +141,144 @@
                                 <label for="agentGoal" class="form-label">Agent Goal</label>
                                 <textarea id="agentGoal" class="form-control custom-input" rows="4" placeholder="Describe the goal for the autonomous agent…"></textarea>
                             </div>
-                            <div class="col-12 mt-4 text-end">
-                                <button type="submit" class="btn btn-primary-accent" id="btnStartAgent">
-                                    <i class="bi bi-lightning-charge-fill me-1" aria-hidden="true"></i> Activate Autonomous Agent
-                                </button>
-                                <button type="button" class="btn btn-danger btn-pill ms-2" id="btnStopAgent" style="display: none;">
-                                    <i class="bi bi-x-circle-fill me-1" aria-hidden="true"></i> Stop Agent
-                                </button>
+                            <div class="col-12 mt-4 d-flex justify-content-between align-items-center">
+                                <div class="validation-trigger-btn">
+                                    <button type="button" class="btn btn-outline-success btn-pill" id="btnRunValidation" onclick="runValidationGate()">
+                                        <i class="bi bi-shield-check me-1" aria-hidden="true"></i> Verify All Systems (Gate)
+                                    </button>
+                                </div>
+                                <div>
+                                    <button type="submit" class="btn btn-primary-accent" id="btnStartAgent">
+                                        <i class="bi bi-lightning-charge-fill me-1" aria-hidden="true"></i> Activate Autonomous Agent
+                                    </button>
+                                    <button type="button" class="btn btn-danger btn-pill ms-2" id="btnStopAgent" style="display: none;">
+                                        <i class="bi bi-x-circle-fill me-1" aria-hidden="true"></i> Stop Run
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </form>
                 </div>
 
-                <!-- Live Stream Console Output -->
+                <!-- Live Stream Console Output (Cyberpunk style) -->
                 <div class="glass-card bg-dark text-light border-dark font-monospace" style="border-radius: 16px;">
-                    <div class="d-flex align-items-center justify-content-between mb-3 border-bottom border-secondary pb-2">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between mb-3 border-bottom border-secondary pb-2 gap-2">
                         <span class="small fw-semibold text-secondary text-uppercase tracking-wider"><i class="bi bi-gpu-card me-1" aria-hidden="true"></i> Live Stream Telemetry</span>
-                        <button class="btn btn-sm btn-outline-secondary py-0 border-secondary px-2 text-secondary" onclick="clearConsole()"><i class="bi bi-trash" aria-hidden="true"></i> Clear</button>
+                        
+                        <!-- Log Filter Controls -->
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <input type="text" id="consoleSearch" class="form-control form-control-sm bg-dark text-light border-secondary" style="max-width: 150px;" placeholder="Search logs…" oninput="filterConsoleLogs()" autocomplete="off" aria-label="Search logs…">
+                            
+                            <select id="consoleFilter" class="form-select form-select-sm bg-dark text-light border-secondary" style="max-width: 130px;" onchange="filterConsoleLogs()">
+                                <option value="all">Show All</option>
+                                <option value="status">Status</option>
+                                <option value="assistant">Assistant</option>
+                                <option value="tools">Tool Calls</option>
+                                <option value="errors">Errors</option>
+                            </select>
+
+                            <div class="form-check form-switch custom-switch mb-0">
+                                <input class="form-check-input form-check-input-sm" type="checkbox" id="consoleAutoScroll" checked>
+                                <label class="form-check-label text-secondary small" for="consoleAutoScroll">Auto-scroll</label>
+                            </div>
+
+                            <button class="btn btn-sm btn-outline-secondary py-0 border-secondary px-2 text-secondary" onclick="clearConsole()"><i class="bi bi-trash" aria-hidden="true"></i> Clear</button>
+                        </div>
                     </div>
-                    <div id="agentConsole" class="p-3" style="max-height: 450px; overflow-y: auto; background-color: #0b0c0a; border-radius: 8px; font-size: 0.88rem; line-height: 1.5; color: #a4cfa4;">
-                        <div class="text-secondary">[System] Ready. Configure parameters above and launch the agent run.</div>
+                    
+                    <div id="agentConsole" class="p-3 console-container" style="max-height: 480px; overflow-y: auto; background-color: #080a06; border-radius: 8px; font-size: 0.88rem; line-height: 1.6; border: 1px solid #142a14;">
+                        <div class="console-row console-system">[System] Ready. Configure parameters above and launch the agent run or validation test.</div>
                     </div>
                 </div>
             </div>
 
-            <!-- 2. Stories & Specs Tab -->
+            <!-- 2. Stories & Specs Tab (Kanban + Spec Risk Classifier) -->
             <div class="tab-pane fade" id="tab-stories" role="tabpanel">
+                <!-- Spec Risk Analyzer Card -->
+                <div class="glass-card mb-4 border-accent-subtle">
+                    <h3 class="h5 mb-3 fw-bold text-gradient-primary"><i class="bi bi-shield-lock-fill me-2 text-warning" aria-hidden="true"></i>Socratic Spec Risk Lane Classifier</h3>
+                    <p class="text-secondary small mb-3">Paste your feature description or technical spec draft to classify it into the recommended risk lane and generate a Socratic checklist.</p>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <textarea id="specText" class="form-control custom-input" rows="3" placeholder="e.g. Implement user login, database schema migration for sessions and integrate VietQR payment API…"></textarea>
+                        </div>
+                        <div class="col-12 text-end">
+                            <button type="button" class="btn btn-sm btn-primary-accent" onclick="analyzeSpec()"><i class="bi bi-cpu" aria-hidden="true"></i> Evaluate Risk Lane</button>
+                        </div>
+                        <div id="specResult" class="col-12 mt-3" style="display: none;">
+                            <div class="p-3 bg-dark border border-secondary border-opacity-50 rounded-3 text-light">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h4 class="h6 mb-0 text-info fw-bold"><i class="bi bi-info-circle-fill me-1" aria-hidden="true"></i>Classification Result</h4>
+                                    <span id="specResultLane" class="badge"></span>
+                                </div>
+                                <div class="mb-2 text-secondary small"><strong>Risk Flags:</strong> <span id="specResultFlags" class="text-warning font-monospace"></span></div>
+                                <div id="specChecklist" class="mt-2 text-secondary small">
+                                    <strong>Socratic Checklist:</strong>
+                                    <ul class="mb-0 mt-1 list-unstyled" id="specChecklistItems"></ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kanban Board Section -->
                 <div class="glass-card mb-4">
-                    <h3 class="h5 mb-4 fw-bold border-bottom pb-3"><i class="bi bi-layers-half me-2" aria-hidden="true"></i>Active Stories</h3>
-                    <div class="table-responsive">
-                        <table class="table custom-table" id="storiesTable">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Title</th>
-                                    <th>Risk Lane</th>
-                                    <th>Status</th>
-                                    <th>Proofs (U/I/E/P)</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr><td colspan="5" class="text-center text-secondary">Loading stories…</td></tr>
-                            </tbody>
-                        </table>
+                    <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3">
+                        <h3 class="h5 mb-0 fw-bold"><i class="bi bi-kanban me-2 text-accent" aria-hidden="true"></i>Story Kanban Matrix</h3>
+                        <span class="badge bg-secondary-subtle text-secondary px-3 py-2">Total Stories: <span id="kanbanTotalStories">0</span></span>
+                    </div>
+                    
+                    <div class="row g-3 kanban-board">
+                        <!-- Planned Column -->
+                        <div class="col-lg-2-4 col-md-4 col-sm-6">
+                            <div class="kanban-column bg-dark-subtle p-3 rounded-3 border border-secondary border-opacity-25 h-100">
+                                <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                                    <span class="h6 mb-0 fw-bold text-secondary text-uppercase tracking-wider">Planned</span>
+                                    <span class="badge bg-secondary rounded-pill" id="count-planned">0</span>
+                                </div>
+                                <div class="kanban-cards-container d-flex flex-column gap-2" id="cards-planned" style="min-height: 250px;"></div>
+                            </div>
+                        </div>
+                        <!-- In Progress Column -->
+                        <div class="col-lg-2-4 col-md-4 col-sm-6">
+                            <div class="kanban-column bg-dark-subtle p-3 rounded-3 border border-warning border-opacity-25 h-100">
+                                <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                                    <span class="h6 mb-0 fw-bold text-warning text-uppercase tracking-wider">In Progress</span>
+                                    <span class="badge bg-warning text-dark rounded-pill" id="count-in_progress">0</span>
+                                </div>
+                                <div class="kanban-cards-container d-flex flex-column gap-2" id="cards-in_progress" style="min-height: 250px;"></div>
+                            </div>
+                        </div>
+                        <!-- Implemented Column -->
+                        <div class="col-lg-2-4 col-md-4 col-sm-6">
+                            <div class="kanban-column bg-dark-subtle p-3 rounded-3 border border-success border-opacity-25 h-100">
+                                <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                                    <span class="h6 mb-0 fw-bold text-success text-uppercase tracking-wider">Implemented</span>
+                                    <span class="badge bg-success rounded-pill" id="count-implemented">0</span>
+                                </div>
+                                <div class="kanban-cards-container d-flex flex-column gap-2" id="cards-implemented" style="min-height: 250px;"></div>
+                            </div>
+                        </div>
+                        <!-- Changed Column -->
+                        <div class="col-lg-2-4 col-md-4 col-sm-6">
+                            <div class="kanban-column bg-dark-subtle p-3 rounded-3 border border-info border-opacity-25 h-100">
+                                <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                                    <span class="h6 mb-0 fw-bold text-info text-uppercase tracking-wider">Changed</span>
+                                    <span class="badge bg-info text-dark rounded-pill" id="count-changed">0</span>
+                                </div>
+                                <div class="kanban-cards-container d-flex flex-column gap-2" id="cards-changed" style="min-height: 250px;"></div>
+                            </div>
+                        </div>
+                        <!-- Retired Column -->
+                        <div class="col-lg-2-4 col-md-4 col-sm-6">
+                            <div class="kanban-column bg-dark-subtle p-3 rounded-3 border border-danger border-opacity-25 h-100">
+                                <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                                    <span class="h6 mb-0 fw-bold text-danger text-uppercase tracking-wider">Retired</span>
+                                    <span class="badge bg-danger rounded-pill" id="count-retired">0</span>
+                                </div>
+                                <div class="kanban-cards-container d-flex flex-column gap-2" id="cards-retired" style="min-height: 250px;"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -188,7 +286,7 @@
             <!-- 3. Architecture Decisions Tab -->
             <div class="tab-pane fade" id="tab-decisions" role="tabpanel">
                 <div class="glass-card mb-4">
-                    <h3 class="h5 mb-4 fw-bold border-bottom pb-3"><i class="bi bi-journal-code me-2" aria-hidden="true"></i>Recorded ADRs</h3>
+                    <h3 class="h5 mb-4 fw-bold border-bottom pb-3"><i class="bi bi-journal-code me-2 text-primary-accent" aria-hidden="true"></i>Recorded ADRs</h3>
                     <div class="table-responsive">
                         <table class="table custom-table" id="decisionsTable">
                             <thead>
@@ -211,7 +309,7 @@
             <!-- 4. Backlog & Friction Tab -->
             <div class="tab-pane fade" id="tab-backlog" role="tabpanel">
                 <div class="glass-card mb-4">
-                    <h3 class="h5 mb-4 fw-bold border-bottom pb-3"><i class="bi bi-clipboard-pulse me-2" aria-hidden="true"></i>Harness Backlog</h3>
+                    <h3 class="h5 mb-4 fw-bold border-bottom pb-3"><i class="bi bi-clipboard-pulse me-2 text-primary-accent" aria-hidden="true"></i>Harness Backlog</h3>
                     <div class="table-responsive">
                         <table class="table custom-table" id="backlogTable">
                             <thead>
@@ -231,10 +329,37 @@
                 </div>
             </div>
 
-            <!-- 5. Traces Tab -->
+            <!-- 5. DB & Telemetry Tab -->
             <div class="tab-pane fade" id="tab-traces" role="tabpanel">
+                <!-- Database Inspector Card -->
+                <div class="glass-card mb-4 border-success-subtle">
+                    <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                        <h3 class="h5 mb-0 fw-bold"><i class="bi bi-database-fill-gear text-success me-2" aria-hidden="true"></i>SQLite Database Inspector</h3>
+                        <span class="badge bg-dark border border-secondary text-secondary small font-monospace">harness.db</span>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-3">
+                            <div class="p-2 border border-secondary border-opacity-25 rounded bg-dark bg-opacity-25">
+                                <div class="text-secondary small">Database Size</div>
+                                <div class="h5 mb-0 fw-bold text-success" id="dbSizeText">0.00 MB</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-2 border border-secondary border-opacity-25 rounded bg-dark bg-opacity-25">
+                                <div class="text-secondary small">Last Modified</div>
+                                <div class="h5 mb-0 fw-bold text-info" id="dbMTimeText">Unknown</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 d-flex align-items-center justify-content-end gap-2">
+                            <button class="btn btn-sm btn-outline-success" onclick="backupDatabase()"><i class="bi bi-cloud-arrow-down-fill me-1" aria-hidden="true"></i> Backup Database</button>
+                            <a class="btn btn-sm btn-outline-info" href="/api/harness/db/download" target="_blank"><i class="bi bi-download me-1" aria-hidden="true"></i> Download DB</a>
+                        </div>
+                    </div>
+                    <div class="row g-2" id="dbTablesRow"></div>
+                </div>
+
                 <div class="glass-card mb-4">
-                    <h3 class="h5 mb-4 fw-bold border-bottom pb-3"><i class="bi bi-hdd-stack me-2" aria-hidden="true"></i>Execution Traces</h3>
+                    <h3 class="h5 mb-4 fw-bold border-bottom pb-3"><i class="bi bi-hdd-stack me-2 text-primary-accent" aria-hidden="true"></i>Execution Traces</h3>
                     <div class="table-responsive">
                         <table class="table custom-table" id="tracesTable">
                             <thead>
@@ -250,6 +375,120 @@
                                 <tr><td colspan="5" class="text-center text-secondary">Loading traces…</td></tr>
                             </tbody>
                         </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. Antigravity Plugins Tab -->
+            <div class="tab-pane fade" id="tab-plugins" role="tabpanel">
+                <!-- Plugin Installation Card -->
+                <div class="glass-card mb-4 border-info-subtle">
+                    <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                        <h3 class="h5 mb-0 fw-bold"><i class="bi bi-download text-info me-2" aria-hidden="true"></i>Install New Antigravity Plugin / Skill</h3>
+                        <span class="badge bg-dark border border-secondary text-secondary small font-monospace">agy CLI installer</span>
+                    </div>
+                    <form id="pluginInstallForm">
+                        <div class="row g-3">
+                            <div class="col-md-9">
+                                <label for="pluginRepoUrl" class="form-label">GitHub Repository URL</label>
+                                <input type="url" id="pluginRepoUrl" class="form-control custom-input" placeholder="https://github.com/DietrichGebert/ponytail" required autocomplete="off" aria-label="Plugin Repo URL">
+                            </div>
+                            <div class="col-md-3 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary-accent w-100" id="btnInstallPlugin">
+                                    <i class="bi bi-cloud-arrow-down-fill me-1" aria-hidden="true"></i> Install Plugin
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Installed Plugins Card -->
+                <div class="glass-card mb-4">
+                    <h3 class="h5 mb-4 fw-bold border-bottom pb-3"><i class="bi bi-puzzle me-2 text-primary-accent" aria-hidden="true"></i>Installed Plugins & Skills</h3>
+                    <div class="table-responsive">
+                        <table class="table custom-table" id="pluginsTable">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Description</th>
+                                    <th>Version</th>
+                                    <th>License</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pluginsTableBody">
+                                <tr><td colspan="5" class="text-center text-secondary">Loading plugins…</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Bento Grid Layout for Ponytail Developer Tools -->
+                <div class="row g-4 mb-4">
+                    <!-- Column 1: Ponytail Debt Ledger -->
+                    <div class="col-lg-6">
+                        <div class="glass-card h-100 border-warning-subtle" style="border: 1px solid rgba(255, 193, 7, 0.25);">
+                            <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                                <h4 class="h5 mb-0 fw-bold"><i class="bi bi-wallet2 text-warning me-2" aria-hidden="true"></i>Ponytail Developer Debt Ledger</h4>
+                                <button class="btn btn-sm btn-outline-warning py-0 px-2" type="button" onclick="loadPonytailDebt()"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Load</button>
+                            </div>
+                            <p class="small text-secondary mb-3">All developer shortcuts marked with <code>ponytail:</code> comments in the codebase. These help bypass complex abstractions and track technical debt.</p>
+                            <div class="table-responsive" style="max-height: 280px; overflow-y: auto;">
+                                <table class="table custom-table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Location</th>
+                                            <th>Description</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ponytailDebtBody">
+                                        <tr><td colspan="2" class="text-center text-secondary">Click Load to read comments...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Column 2: Codebase Over-Engineering Auditor -->
+                    <div class="col-lg-6">
+                        <div class="glass-card h-100 border-danger-subtle" style="border: 1px solid rgba(220, 53, 69, 0.25);">
+                            <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                                <h4 class="h5 mb-0 fw-bold"><i class="bi bi-shield-lock-fill text-danger me-2" aria-hidden="true"></i>Over-Engineering Auditor</h4>
+                                <button class="btn btn-sm btn-outline-danger py-0 px-2" type="button" id="btnRunAudit" onclick="runCodebaseAudit()"><i class="bi bi-cpu" aria-hidden="true"></i> Run Audit</button>
+                            </div>
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <div class="text-center bg-dark p-2 rounded border border-secondary" style="min-width: 80px;">
+                                    <div class="small text-secondary uppercase tracking-wider" style="font-size: 0.65rem;">Audit Score</div>
+                                    <div class="h3 mb-0 fw-bold text-success" id="auditScoreVal">--</div>
+                                </div>
+                                <p class="small text-secondary mb-0">Analyzes the codebase against YAGNI principles, flag sizes, and deep indentation structures to recommend simplifications.</p>
+                            </div>
+                            <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
+                                <table class="table custom-table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Severity</th>
+                                            <th>File</th>
+                                            <th>Issue & Ponytail Suggestion</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ponytailAuditBody">
+                                        <tr><td colspan="3" class="text-center text-secondary">No audit findings loaded yet. Click Run Audit.</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Plugin Installation Logs Console -->
+                <div class="glass-card bg-dark text-light border-dark font-monospace" style="border-radius: 16px;">
+                    <div class="d-flex align-items-center justify-content-between mb-3 border-bottom border-secondary pb-2">
+                        <span class="small fw-semibold text-secondary text-uppercase tracking-wider"><i class="bi bi-terminal-fill me-1" aria-hidden="true"></i> Plugin Installation Output</span>
+                        <button class="btn btn-sm btn-outline-secondary py-0 border-secondary px-2 text-secondary" type="button" onclick="clearPluginConsole()"><i class="bi bi-trash" aria-hidden="true"></i> Clear Logs</button>
+                    </div>
+                    <div id="pluginConsole" class="p-3 console-container" style="max-height: 250px; overflow-y: auto; background-color: #080a06; border-radius: 8px; font-size: 0.88rem; line-height: 1.6; border: 1px solid #142a14;">
+                        <div class="console-row text-secondary">[System] Ready to install plugins. Enter a repository URL above.</div>
                     </div>
                 </div>
             </div>
@@ -439,10 +678,12 @@
 
 <script>
     let activeEventSource = null;
+    let rawConsoleLogs = []; // Stores formatted objects { text: '', type: '', timestamp: Date }
 
     document.addEventListener("DOMContentLoaded", function() {
         // Load initial summary data
         loadHarnessSummary();
+        loadDatabaseStats();
 
         // Setup forms
         document.getElementById("addStoryForm").addEventListener("submit", handleAddStory);
@@ -487,8 +728,8 @@
                     storySelect.appendChild(opt);
                 });
 
-                // Render tables
-                renderStories(data.stories);
+                // Render components
+                renderKanban(data.stories);
                 renderDecisions(data.decisions);
                 renderBacklog(data.backlog);
                 renderTraces(data.traces);
@@ -499,32 +740,181 @@
             });
     }
 
-    function renderStories(stories) {
-        const tbody = document.querySelector("#storiesTable tbody");
-        tbody.innerHTML = "";
-        if (stories.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-secondary">No registered stories yet.</td></tr>';
+    function loadDatabaseStats() {
+        fetch("/api/harness/db/stats")
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) return;
+                document.getElementById("dbSizeText").innerText = `${data.size_mb} MB`;
+                document.getElementById("dbMTimeText").innerText = data.last_modified;
+
+                const tablesRow = document.getElementById("dbTablesRow");
+                tablesRow.innerHTML = "";
+                for (const [tblName, count] of Object.entries(data.table_counts)) {
+                    const col = document.createElement("div");
+                    col.className = "col-md-3 col-6";
+                    col.innerHTML = `
+                        <div class="p-2 border border-secondary border-opacity-10 rounded text-center bg-dark bg-opacity-10">
+                            <span class="text-secondary small uppercase text-opacity-75">${tblName}s</span>
+                            <div class="h6 mb-0 fw-semibold text-light mt-1">${count} rows</div>
+                        </div>
+                    `;
+                    tablesRow.appendChild(col);
+                }
+            })
+            .catch(err => console.error("Error loading db stats:", err));
+    }
+
+    function backupDatabase() {
+        fetch("/api/harness/db/backup", { method: "POST" })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    showAppAlert(data.error, "danger");
+                } else {
+                    showAppAlert(data.message, "success");
+                    loadDatabaseStats();
+                }
+            })
+            .catch(err => showAppAlert("Lỗi sao lưu cơ sở dữ liệu.", "danger"));
+    }
+
+    function analyzeSpec() {
+        const text = document.getElementById("specText").value.trim();
+        if (!text) {
+            showAppAlert("Vui lòng nhập Spec để phân tích.", "warning");
             return;
         }
-        stories.forEach(s => {
-            const tr = document.createElement("tr");
-            tr.onclick = () => openStoryModal(s);
-            
-            const unit = s.unit_proof ? '<span class="badge bg-success-subtle text-success">Unit</span>' : '';
-            const integration = s.integration_proof ? '<span class="badge bg-info-subtle text-info">Integ</span>' : '';
-            const e2e = s.e2e_proof ? '<span class="badge bg-primary-subtle text-primary">E2E</span>' : '';
-            const platform = s.platform_proof ? '<span class="badge bg-warning-subtle text-warning">Plat</span>' : '';
-            const proofs = [unit, integration, e2e, platform].filter(p => p !== '').join(' ') || '<span class="text-secondary small">None</span>';
 
-            tr.innerHTML = `
-                <td><strong class="text-primary">${s.id}</strong></td>
-                <td>${s.title}</td>
-                <td><span class="badge bg-secondary-subtle text-secondary">${s.risk_lane}</span></td>
-                <td><span class="badge ${getStatusBadgeClass(s.status)}">${s.status}</span></td>
-                <td>${proofs}</td>
-            `;
-            tbody.appendChild(tr);
+        fetch("/api/harness/risk/evaluate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                showAppAlert(data.error, "danger");
+                return;
+            }
+
+            const resultContainer = document.getElementById("specResult");
+            const resultLane = document.getElementById("specResultLane");
+            const resultFlags = document.getElementById("specResultFlags");
+            const checklistItems = document.getElementById("specChecklistItems");
+
+            resultContainer.style.display = "block";
+            resultLane.innerText = data.suggested_lane.toUpperCase();
+            
+            // Badge classes
+            resultLane.className = "badge";
+            if (data.suggested_lane === "high_risk") {
+                resultLane.classList.add("bg-danger");
+            } else if (data.suggested_lane === "normal") {
+                resultLane.classList.add("bg-warning", "text-dark");
+            } else {
+                resultLane.classList.add("bg-info", "text-dark");
+            }
+
+            resultFlags.innerText = data.flags_found.length > 0 ? data.flags_found.join(", ") : "None";
+
+            // Socratic checklists
+            checklistItems.innerHTML = "";
+            if (data.suggested_lane === "high_risk") {
+                checklistItems.innerHTML = `
+                    <li class="mb-1"><i class="bi bi-square me-2 text-danger" aria-hidden="true"></i>Has a detailed Architecture Decision Record (ADR) been logged in docs/decisions/?</li>
+                    <li class="mb-1"><i class="bi bi-square me-2 text-danger" aria-hidden="true"></i>Have you verified the data model migration rollback strategy?</li>
+                    <li class="mb-1"><i class="bi bi-square me-2 text-danger" aria-hidden="true"></i>Is the public API contract backward compatible?</li>
+                    <li class="mb-1"><i class="bi bi-square me-2 text-danger" aria-hidden="true"></i>Does the intake need an security review (Auth/Secret/Audit)?</li>
+                `;
+            } else if (data.suggested_lane === "normal") {
+                checklistItems.innerHTML = `
+                    <li class="mb-1"><i class="bi bi-square me-2 text-warning" aria-hidden="true"></i>Are the unit/integration validation commands verified?</li>
+                    <li class="mb-1"><i class="bi bi-square me-2 text-warning" aria-hidden="true"></i>Has the test matrix in docs/TEST_MATRIX.md been updated?</li>
+                    <li class="mb-1"><i class="bi bi-square me-2 text-warning" aria-hidden="true"></i>Have client-visible fields changed (API shape contracts)?</li>
+                `;
+            } else {
+                checklistItems.innerHTML = `
+                    <li class="mb-1"><i class="bi bi-square me-2 text-info" aria-hidden="true"></i>Verification via standard test suite check is sufficient.</li>
+                `;
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            showAppAlert("Lỗi phân tích Spec.", "danger");
         });
+    }
+
+    function renderKanban(stories) {
+        document.getElementById("kanbanTotalStories").innerText = stories.length;
+        
+        // Reset columns
+        const columns = {
+            planned: document.getElementById("cards-planned"),
+            in_progress: document.getElementById("cards-in_progress"),
+            implemented: document.getElementById("cards-implemented"),
+            changed: document.getElementById("cards-changed"),
+            retired: document.getElementById("cards-retired")
+        };
+
+        const counts = { planned: 0, in_progress: 0, implemented: 0, changed: 0, retired: 0 };
+
+        for (const col in columns) {
+            columns[col].innerHTML = "";
+        }
+
+        if (stories.length === 0) {
+            for (const col in columns) {
+                columns[col].innerHTML = '<div class="text-center text-secondary py-3 small">No stories</div>';
+            }
+            return;
+        }
+
+        stories.forEach(s => {
+            const statusKey = s.status ? s.status.toLowerCase() : 'planned';
+            const container = columns[statusKey] || columns.planned;
+            counts[statusKey] = (counts[statusKey] || 0) + 1;
+
+            const card = document.createElement("div");
+            
+            // Risk class mapping
+            let riskBorderClass = "border-secondary";
+            if (s.risk_lane === "high_risk") riskBorderClass = "border-danger-glow";
+            else if (s.risk_lane === "normal") riskBorderClass = "border-warning-glow";
+            else if (s.risk_lane === "tiny") riskBorderClass = "border-info-glow";
+
+            card.className = `kanban-card p-3 rounded bg-card border ${riskBorderClass} position-relative`;
+            card.style.cursor = "pointer";
+            card.onclick = () => openStoryModal(s);
+
+            const unit = s.unit_proof ? '<span class="badge bg-success-subtle text-success small py-0 px-1 border border-success">U</span>' : '';
+            const integration = s.integration_proof ? '<span class="badge bg-info-subtle text-info small py-0 px-1 border border-info">I</span>' : '';
+            const e2e = s.e2e_proof ? '<span class="badge bg-primary-subtle text-primary small py-0 px-1 border border-primary">E</span>' : '';
+            const platform = s.platform_proof ? '<span class="badge bg-warning-subtle text-warning small py-0 px-1 border border-warning">P</span>' : '';
+            const proofsHtml = [unit, integration, e2e, platform].filter(p => p !== '').join(' ');
+
+            card.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="font-monospace fw-bold text-accent small">${s.id}</span>
+                    <span class="small text-secondary font-monospace" style="font-size:0.75rem;">${s.risk_lane}</span>
+                </div>
+                <div class="fw-semibold text-light mb-2 small text-truncate-2" title="${s.title}">${s.title}</div>
+                <div class="d-flex align-items-center justify-content-between mt-2 pt-2 border-top border-secondary border-opacity-10">
+                    <div class="proofs-list d-flex gap-1">${proofsHtml || '<span class="text-secondary small" style="font-size:0.75rem;">no proofs</span>'}</div>
+                    <i class="bi bi-chevron-right text-secondary small" aria-hidden="true"></i>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+
+        // Set status counts
+        for (const status in counts) {
+            const countBadge = document.getElementById(`count-${status}`);
+            if (countBadge) countBadge.innerText = counts[status];
+            if (counts[status] === 0 && columns[status]) {
+                columns[status].innerHTML = '<div class="text-center text-secondary py-3 small" style="font-size:0.75rem;">No stories</div>';
+            }
+        }
     }
 
     function renderDecisions(decisions) {
@@ -537,7 +927,7 @@
         decisions.forEach(d => {
             const tr = document.createElement("tr");
             tr.innerHTML = `
-                <td><strong>${d.id}</strong></td>
+                <td><strong class="text-accent">${d.id}</strong></td>
                 <td>${d.title}</td>
                 <td><span class="badge ${getStatusBadgeClass(d.status)}">${d.status}</span></td>
                 <td><code class="small text-secondary">${d.verify_command || 'None'}</code></td>
@@ -725,7 +1115,7 @@
         }
 
         clearConsole();
-        appendConsoleLine("[System] Gửi yêu cầu khởi động agent...", "secondary");
+        appendConsoleLine("[System] Gửi yêu cầu khởi động agent...", "system");
 
         // Toggle buttons
         document.getElementById("btnStartAgent").style.display = "none";
@@ -741,31 +1131,31 @@
                 const data = JSON.parse(event.data);
                 
                 if (data.type === 'status') {
-                    appendConsoleLine(`[Status] ${data.message}`, "info");
+                    appendConsoleLine(`[Status] ${data.message}`, "status");
                 } else if (data.type === 'event') {
                     const evt = data.event;
                     if (evt.type === 'assistant') {
                         evt.message.content.forEach(c => {
                             if (c.type === 'text') {
-                                appendConsole(c.text);
+                                appendConsole(c.text, "assistant");
                             }
                         });
                     } else if (evt.type === 'call') {
-                        appendConsoleLine(`\n[Calling Tool] ${evt.tool} with args: ${JSON.stringify(evt.args)}`, "warning");
+                        appendConsoleLine(`\n[Calling Tool] ${evt.tool} with args: ${JSON.stringify(evt.args)}`, "tools");
                     } else if (evt.type === 'result') {
-                        appendConsoleLine(`[Tool Result] ${evt.tool} finished.`, "success");
+                        appendConsoleLine(`[Tool Result] ${evt.tool} finished.`, "tools");
                     }
                 } else if (data.type === 'error') {
-                    appendConsoleLine(`\n[Agent Error] ${data.message}`, "danger");
+                    appendConsoleLine(`\n[Agent Error] ${data.message}`, "errors");
                     stopAgentRun();
                 }
             } catch (err) {
-                appendConsoleLine(`\n[SSE Parse Error] ${event.data}`, "danger");
+                appendConsoleLine(`\n[SSE Parse Error] ${event.data}`, "errors");
             }
         };
 
         activeEventSource.onerror = function(err) {
-            appendConsoleLine("\n[System] Luồng kết nối SSE bị đóng hoặc lỗi kết nối mạng.", "secondary");
+            appendConsoleLine("\n[System] Luồng kết nối SSE bị đóng hoặc kết thúc.", "system");
             stopAgentRun();
             loadHarnessSummary();
         };
@@ -779,31 +1169,138 @@
         document.getElementById("btnStartAgent").style.display = "inline-block";
         document.getElementById("btnStopAgent").style.display = "none";
         document.getElementById("agentStatusBadge").style.display = "none";
-        appendConsoleLine("\n[System] Agent run session ended.", "secondary");
+        appendConsoleLine("\n[System] Agent run session ended.", "system");
     }
 
-    // Console helper functions
+    // Run Automated Validation script validate.bat as SSE Stream
+    function runValidationGate() {
+        clearConsole();
+        appendConsoleLine("[System] Starting Validation Quality Gate check...", "system");
+        
+        document.getElementById("btnStartAgent").style.display = "none";
+        document.getElementById("btnStopAgent").style.display = "inline-block";
+        
+        const url = "/api/harness/validate/stream";
+        activeEventSource = new EventSource(url);
+        
+        activeEventSource.onmessage = function(event) {
+            try {
+                const data = JSON.parse(event.data);
+                if (data.type === 'status') {
+                    appendConsoleLine(`[Status] ${data.message}`, "status");
+                } else if (data.type === 'output') {
+                    // Check if tests pass/fail to apply visual styling
+                    let logType = "assistant";
+                    if (data.text.includes("passed") || data.text.includes("SUCCESS")) logType = "status";
+                    if (data.text.includes("failed") || data.text.includes("ERROR")) logType = "errors";
+                    appendConsole(data.text, logType);
+                } else if (data.type === 'error') {
+                    appendConsoleLine(`[Error] ${data.message}`, "errors");
+                    stopValidationRun();
+                } else if (data.type === 'done') {
+                    appendConsoleLine(data.success ? "\n[System] Validation PASS" : "\n[System] Validation FAIL", data.success ? "status" : "errors");
+                    stopValidationRun();
+                    loadHarnessSummary();
+                    loadDatabaseStats();
+                }
+            } catch (err) {
+                appendConsoleLine(`[SSE Parse Error] ${event.data}`, "errors");
+            }
+        };
+        
+        activeEventSource.onerror = function() {
+            appendConsoleLine("\n[System] Validation stream closed.", "system");
+            stopValidationRun();
+        };
+    }
+
+    function stopValidationRun() {
+        if (activeEventSource) {
+            activeEventSource.close();
+            activeEventSource = null;
+        }
+        document.getElementById("btnStartAgent").style.display = "inline-block";
+        document.getElementById("btnStopAgent").style.display = "none";
+    }
+
+    // Console styling and filtering helpers
     function clearConsole() {
         const consoleEl = document.getElementById("agentConsole");
         consoleEl.innerHTML = "";
+        rawConsoleLogs = [];
     }
 
-    function appendConsole(text) {
+    function appendConsole(text, type = "light") {
         const consoleEl = document.getElementById("agentConsole");
-        // Escape HTML
-        const span = document.createElement("span");
-        span.innerText = text;
-        consoleEl.appendChild(span);
-        consoleEl.scrollTop = consoleEl.scrollHeight;
+        
+        // Log locally
+        rawConsoleLogs.push({ text, type, timestamp: new Date() });
+        
+        // Render if matching filter
+        if (shouldShowLog(type)) {
+            const span = document.createElement("span");
+            span.className = getLogClass(type);
+            span.innerText = text;
+            consoleEl.appendChild(span);
+            if (document.getElementById("consoleAutoScroll").checked) {
+                consoleEl.scrollTop = consoleEl.scrollHeight;
+            }
+        }
     }
 
     function appendConsoleLine(text, type = "light") {
         const consoleEl = document.getElementById("agentConsole");
-        const div = document.createElement("div");
-        div.className = `text-${type} mt-1`;
-        div.innerText = text;
-        consoleEl.appendChild(div);
-        consoleEl.scrollTop = consoleEl.scrollHeight;
+        
+        // Log locally
+        rawConsoleLogs.push({ text: text + "\n", type, timestamp: new Date() });
+        
+        if (shouldShowLog(type)) {
+            const div = document.createElement("div");
+            div.className = `${getLogClass(type)} mt-1`;
+            div.innerText = text;
+            consoleEl.appendChild(div);
+            if (document.getElementById("consoleAutoScroll").checked) {
+                consoleEl.scrollTop = consoleEl.scrollHeight;
+            }
+        }
+    }
+
+    function getLogClass(type) {
+        switch (type) {
+            case "system": return "console-system";
+            case "status": return "console-status";
+            case "assistant": return "console-assistant";
+            case "tools": return "console-tool";
+            case "errors": return "console-error";
+            default: return "text-light";
+        }
+    }
+
+    function shouldShowLog(type) {
+        const filterVal = document.getElementById("consoleFilter").value;
+        if (filterVal === "all") return true;
+        return filterVal === type;
+    }
+
+    function filterConsoleLogs() {
+        const consoleEl = document.getElementById("agentConsole");
+        const searchVal = document.getElementById("consoleSearch").value.toLowerCase();
+        
+        consoleEl.innerHTML = "";
+        rawConsoleLogs.forEach(log => {
+            if (shouldShowLog(log.type)) {
+                if (!searchVal || log.text.toLowerCase().includes(searchVal)) {
+                    const span = document.createElement("span");
+                    span.className = getLogClass(log.type);
+                    span.innerText = log.text;
+                    consoleEl.appendChild(span);
+                }
+            }
+        });
+        
+        if (document.getElementById("consoleAutoScroll").checked) {
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+        }
     }
 
     function showAppAlert(message, type = "info") {
@@ -839,6 +1336,209 @@
             tbody.appendChild(tr);
         });
     }
+
+    function getStatusBadgeClass(status) {
+        const s = status.toLowerCase();
+        if (s === "implemented" || s === "success" || s === "passed" || s === "accepted") return "bg-success-subtle text-success";
+        if (s === "in_progress" || s === "proposed") return "bg-warning-subtle text-warning";
+        if (s === "planned" || s === "open") return "bg-secondary-subtle text-secondary";
+        if (s === "changed") return "bg-info-subtle text-info";
+        if (s === "failed" || s === "retired") return "bg-danger-subtle text-danger";
+        return "bg-secondary-subtle text-secondary";
+    }
+
+    // Antigravity Plugins management functions
+    function onPluginsTabActive() {
+        loadPluginsList();
+        loadPonytailDebt();
+    }
+
+    function loadPonytailDebt() {
+        const tbody = document.getElementById("ponytailDebtBody");
+        tbody.innerHTML = '<tr><td colspan="2" class="text-center text-secondary">Loading debt ledger…</td></tr>';
+        
+        fetch("/api/harness/plugins/ponytail/debt")
+            .then(res => res.json())
+            .then(data => {
+                tbody.innerHTML = "";
+                if (!data.debt || data.debt.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="2" class="text-center text-secondary">No Ponytail shortcuts found in the codebase. All clean!</td></tr>';
+                    return;
+                }
+                data.debt.forEach(d => {
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td class="font-monospace text-secondary small">
+                            <a href="#" class="text-warning text-decoration-none" onclick="showAppAlert('File path: ${d.file}:${d.line}', 'info'); return false;">
+                                ${d.file.split('/').pop()}:${d.line}
+                            </a>
+                        </td>
+                        <td class="text-light small">${d.description}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            })
+            .catch(err => {
+                console.error(err);
+                tbody.innerHTML = '<tr><td colspan="2" class="text-center text-danger">Failed to load debt ledger.</td></tr>';
+            });
+    }
+
+    function runCodebaseAudit() {
+        const btn = document.getElementById("btnRunAudit");
+        const tbody = document.getElementById("ponytailAuditBody");
+        const scoreVal = document.getElementById("auditScoreVal");
+        
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Auditing…';
+        tbody.innerHTML = '<tr><td colspan="3" class="text-center text-secondary">Scanning repository files against YAGNI principles…</td></tr>';
+        scoreVal.innerText = "--";
+        scoreVal.className = "h3 mb-0 fw-bold text-secondary";
+        
+        fetch("/api/harness/plugins/ponytail/audit")
+            .then(res => res.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-cpu"></i> Run Audit';
+                
+                scoreVal.innerText = data.score;
+                if (data.score >= 90) {
+                    scoreVal.className = "h3 mb-0 fw-bold text-success";
+                } else if (data.score >= 70) {
+                    scoreVal.className = "h3 mb-0 fw-bold text-warning";
+                } else {
+                    scoreVal.className = "h3 mb-0 fw-bold text-danger";
+                }
+                
+                tbody.innerHTML = "";
+                if (!data.findings || data.findings.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="3" class="text-center text-success fw-semibold"><i class="bi bi-check-circle me-1"></i> Perfect Score! No over-engineering detected.</td></tr>';
+                    return;
+                }
+                
+                data.findings.forEach(f => {
+                    const tr = document.createElement("tr");
+                    let badgeClass = "bg-info-subtle text-info";
+                    if (f.severity === "Medium") badgeClass = "bg-warning-subtle text-warning";
+                    if (f.severity === "High") badgeClass = "bg-danger-subtle text-danger";
+                    
+                    tr.innerHTML = `
+                        <td><span class="badge ${badgeClass}">${f.severity}</span></td>
+                        <td class="font-monospace text-secondary small">${f.file.split('/').pop()}</td>
+                        <td class="text-light small">
+                            <strong class="text-accent">${f.type}:</strong> ${f.message}
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            })
+            .catch(err => {
+                console.error(err);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-cpu"></i> Run Audit';
+                tbody.innerHTML = '<tr><td colspan="3" class="text-center text-danger">Audit run failed. See developer console.</td></tr>';
+            });
+    }
+
+    function loadPluginsList() {
+        const tbody = document.getElementById("pluginsTableBody");
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-secondary">Loading plugins…</td></tr>';
+        
+        fetch("/api/harness/plugins")
+            .then(res => res.json())
+            .then(data => {
+                tbody.innerHTML = "";
+                if (!data.plugins || data.plugins.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-secondary">No plugins/skills installed yet.</td></tr>';
+                    return;
+                }
+                data.plugins.forEach(p => {
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td><span class="badge bg-dark font-monospace">${p.id}</span></td>
+                        <td class="fw-semibold text-light">${p.name}</td>
+                        <td class="small text-secondary">${p.description}</td>
+                        <td><span class="badge bg-secondary-subtle text-secondary">${p.version}</span></td>
+                        <td><span class="badge bg-info-subtle text-info">${p.license}</span></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            })
+            .catch(err => {
+                console.error(err);
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Failed to load plugins.</td></tr>';
+            });
+    }
+
+    function clearPluginConsole() {
+        const consoleEl = document.getElementById("pluginConsole");
+        consoleEl.innerHTML = '<div class="console-row text-secondary">[System] Console cleared.</div>';
+    }
+
+    function appendPluginConsoleLine(text, type = "light") {
+        const consoleEl = document.getElementById("pluginConsole");
+        const div = document.createElement("div");
+        div.className = `console-row ${type === 'error' ? 'console-error' : type === 'status' ? 'console-status' : 'text-light'} mt-1`;
+        div.innerText = text;
+        consoleEl.appendChild(div);
+        consoleEl.scrollTop = consoleEl.scrollHeight;
+    }
+
+    // Handle Plugin Install Form Submit
+    document.addEventListener("DOMContentLoaded", function() {
+        const installForm = document.getElementById("pluginInstallForm");
+        if (installForm) {
+            installForm.addEventListener("submit", function(e) {
+                e.preventDefault();
+                const repoUrlInput = document.getElementById("pluginRepoUrl");
+                const repoUrl = repoUrlInput.value.trim();
+                if (!repoUrl) return;
+
+                const btn = document.getElementById("btnInstallPlugin");
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Installing…';
+
+                clearPluginConsole();
+                appendPluginConsoleLine(`[System] Connecting to installer for: ${repoUrl}`, "system");
+
+                const source = new EventSource(`/api/harness/plugins/install?repo_url=${encodeURIComponent(repoUrl)}`);
+
+                source.onmessage = function(event) {
+                    const data = JSON.parse(event.data);
+                    if (data.type === 'status') {
+                        appendPluginConsoleLine(data.message, "status");
+                    } else if (data.type === 'output') {
+                        appendPluginConsoleLine(data.text.trim(), "light");
+                    } else if (data.type === 'error') {
+                        appendPluginConsoleLine(data.message, "error");
+                        showAppAlert(data.message, "danger");
+                        source.close();
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="bi bi-cloud-arrow-down-fill me-1"></i> Install Plugin';
+                    } else if (data.type === 'done') {
+                        source.close();
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="bi bi-cloud-arrow-down-fill me-1"></i> Install Plugin';
+                        if (data.success) {
+                            showAppAlert("Plugin installed successfully!", "success");
+                            loadPluginsList();
+                            repoUrlInput.value = "";
+                        } else {
+                            showAppAlert("Plugin installation failed.", "danger");
+                        }
+                    }
+                };
+
+                source.onerror = function(err) {
+                    console.error("EventSource failed:", err);
+                    appendPluginConsoleLine("[System Error] SSE connection lost or failed.", "error");
+                    source.close();
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-cloud-arrow-down-fill me-1"></i> Install Plugin';
+                };
+            });
+        }
+    });
 </script>
 
 <style>
@@ -853,6 +1553,78 @@
     }
     .tracking-wider {
         letter-spacing: 0.08em;
+    }
+    .text-gradient-primary {
+        background: linear-gradient(135deg, #0d6efd, #00f2fe);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .col-lg-2-4 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+    @media (min-width: 992px) {
+        .col-lg-2-4 {
+            flex: 0 0 20%;
+            max-width: 20%;
+        }
+    }
+    
+    /* Kanban Styles */
+    .kanban-column {
+        transition: all 0.2s ease;
+    }
+    .kanban-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .kanban-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+    
+    /* Neon Status borders */
+    .border-danger-glow {
+        border-color: rgba(220, 53, 69, 0.4) !important;
+        box-shadow: 0 0 4px rgba(220, 53, 69, 0.1);
+    }
+    .border-warning-glow {
+        border-color: rgba(255, 193, 7, 0.4) !important;
+        box-shadow: 0 0 4px rgba(255, 193, 7, 0.1);
+    }
+    .border-info-glow {
+        border-color: rgba(13, 202, 240, 0.4) !important;
+        box-shadow: 0 0 4px rgba(13, 202, 240, 0.1);
+    }
+    
+    /* Cyberpunk Terminal colors */
+    .console-container {
+        scrollbar-width: thin;
+        scrollbar-color: #142a14 #080a06;
+    }
+    .console-system {
+        color: #00ffff;
+        font-weight: bold;
+    }
+    .console-status {
+        color: #00ff66;
+        text-shadow: 0 0 2px rgba(0, 255, 102, 0.3);
+    }
+    .console-assistant {
+        color: #a4cfa4;
+    }
+    .console-tool {
+        color: #ffa500;
+    }
+    .console-error {
+        color: #ff3333;
+        font-weight: bold;
+        text-shadow: 0 0 4px rgba(255, 51, 51, 0.4);
+    }
+    .text-truncate-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
     }
 </style>
 {% endblock %}

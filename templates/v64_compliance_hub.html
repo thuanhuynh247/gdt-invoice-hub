@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+{% block title %}Solid Waste Fee Decree 164/2016 - EPFSW Hub (v64){% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
+        <div>
+            <span class="badge bg-success text-white mb-2">Version 64.0.0 Spec Compliance</span>
+            <h1 class="h2 fw-bold text-gradient mb-1 text-success">Environment Protection Fee for Solid Waste Hub</h1>
+            <p class="text-muted mb-0">Manage EPFSW (Phí bảo vệ môi trường đối với chất thải rắn) under Decree 164/2016/NĐ-CP.</p>
+        </div>
+        <div class="d-flex gap-2 mt-3 mt-md-0">
+            <button id="btn-refresh-v64" class="btn btn-success text-white d-flex align-items-center gap-2"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Load Data</button>
+            <span class="badge bg-success-subtle text-success border border-success d-flex align-items-center px-3"><i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Decree 164/2016</span>
+        </div>
+    </div>
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1 text-success"><i class="bi bi-calculator text-success me-2" aria-hidden="true"></i>Interactive EPFSW Calculator</h5>
+                    <p class="text-muted small mb-0">Select solid waste category, disposal details, and volume to run the compliance auditor.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="input-waste-desc" class="form-label small mb-1">Waste Description / Batch:</label>
+                            <input type="text" id="input-waste-desc" class="form-control form-control-sm" value="Xỉ thải lò cao từ luyện gang thép Hòa Phát" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-waste-type" class="form-label small mb-1">Waste Category:</label>
+                            <select id="input-waste-type" class="form-select form-select-sm">
+                                <option value="hazardous_waste">Hazardous Solid Waste (Chất thải nguy hại - 100k VND/tonne)</option>
+                                <option value="ordinary_waste_industry">Ordinary Industrial Waste (Rác công nghiệp thông thường - 40k VND/tonne)</option>
+                                <option value="ordinary_waste_construction">Ordinary Construction Waste (Xà bần, rác xây dựng - 30k VND/tonne)</option>
+                                <option value="ordinary_waste_others">Ordinary Other Waste (Các loại chất thải rắn khác - 20k VND/tonne)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-volume" class="form-label small mb-1">Waste Weight (Tonnes):</label>
+                            <input type="number" step="0.1" id="input-volume" class="form-control form-control-sm" value="25.5" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-exemption" class="form-label small mb-1">Exemption Category:</label>
+                            <select id="input-exemption" class="form-select form-select-sm">
+                                <option value="none">No Exemption (Chịu phí đầy đủ)</option>
+                                <option value="self_recycled">On-Site Recycling (Tự tái chế, sử dụng lại)</option>
+                                <option value="agricultural_byproduct">Agricultural Composting (Phế phẩm nông nghiệp nuôi trồng)</option>
+                                <option value="domestic_rural">Domestic Rural Waste (Sinh hoạt nông thôn)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-12 text-end">
+                            <button id="btn-calc-epfsw" class="btn btn-success btn-sm text-white fw-bold"><i class="bi bi-play-fill me-1" aria-hidden="true"></i> Run Calculation</button>
+                        </div>
+                    </div>
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
+                        <h6 class="fw-bold mb-2 text-success"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Calculation Result</h6>
+                        <div class="d-flex justify-content-between small mb-1"><span>Base Standard Rate:</span><span id="res-base-rate" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Total Standard Fee:</span><span id="res-total-fee" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Effective Fee Payable:</span><span id="res-effective-fee" class="fw-bold text-success fs-6">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Exemption Status:</span><span id="res-exempt-badge" class="fw-bold">-</span></div>
+                        <div class="small text-muted border-top pt-2 mt-2"><strong>Exemption Reason:</strong> <span id="res-exemption-reason">Awaiting…</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0"><h5 class="fw-bold mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>EPFSW Baseline Verification</h5></div>
+                <div class="card-body d-flex flex-column gap-3">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Hazardous Waste Disposal</span><span class="badge bg-danger">Hazardous</span></div>
+                        <p class="small text-muted mb-2">15 tonnes of toxic battery slag disposed. Standard rate: 100,000 VND / tonne.</p>
+                        <div class="d-flex justify-content-between small"><span>Total Fee: <strong id="base1-tot">-</strong></span><span>Effective: <strong id="base1-eff" class="text-success">-</strong></span></div>
+                    </div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Industrial Waste (No exemption)</span><span class="badge bg-secondary">Industrial</span></div>
+                        <p class="small text-muted mb-2">120 tonnes of steel mill dust. Standard rate: 40,000 VND / tonne.</p>
+                        <div class="d-flex justify-content-between small"><span>Total Fee: <strong id="base2-tot">-</strong></span><span>Effective: <strong id="base2-eff" class="text-success">-</strong></span></div>
+                    </div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">On-Site Coal Ash Self-Recycling (100% Exempt)</span><span class="badge bg-success">Exempt</span></div>
+                        <p class="small text-muted mb-2">80 tonnes coal ash recycled to make building bricks. Exempted.</p>
+                        <div class="d-flex justify-content-between small"><span>Total Fee: <strong id="base3-tot">-</strong></span><span>Reason: <strong id="base3-reason" class="text-success">-</strong></span></div>
+                    </div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Straw and Husk Composting (100% Exempt)</span><span class="badge bg-success">Exempt</span></div>
+                        <p class="small text-muted mb-2">45 tonnes straw composted for organic fertilizer production.</p>
+                        <div class="d-flex justify-content-between small"><span>Total Fee: <strong id="base4-tot">-</strong></span><span>Reason: <strong id="base4-reason" class="text-success">-</strong></span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-12">
+            <div class="card shadow-sm border-light">
+                <div class="card-header bg-dark text-white py-3 d-flex align-items-center justify-content-between"><h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-success me-2" aria-hidden="true"></i>Multi-Agent Solid Waste Advisory Debate</h5><span class="badge bg-secondary">Environmental Consensus</span></div>
+                <div class="card-body"><div id="debate-container-v64" class="mb-3 d-flex flex-column gap-3"></div><div class="p-3 bg-premium-light rounded border border-light-subtle"><h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus:</h6><p id="consensus-text-v64" class="text-muted small mb-0">Awaiting…</p></div></div>
+            </div>
+        </div>
+        <div class="col-lg-12">
+            <div class="card shadow-sm border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-2"><h5 class="fw-bold mb-1"><i class="bi bi-clock-history text-muted me-2" aria-hidden="true"></i>Historical Audit Log</h5></div>
+                <div class="card-body p-0"><div class="table-responsive"><table class="table table-hover table-striped mb-0 small"><thead class="table-dark"><tr><th>ID</th><th>Description</th><th>Waste Type</th><th>Weight</th><th>Exemption</th><th>Base Rate</th><th>Total Fee</th><th>Effective Fee</th><th>Status</th><th>Time</th></tr></thead><tbody id="history-table-v64"><tr><td colspan="10" class="text-center text-muted py-4">No logs.</td></tr></tbody></table></div></div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+document.addEventListener("DOMContentLoaded",()=>{
+    const fVND = n => new Intl.NumberFormat("vi-VN").format(n) + " VND";
+    
+    const load = () => {
+        fetch('/api/v64/compliance-data').then(r=>r.json()).then(d=>{
+            if(d.status==="success"){
+                rB(d);
+                rD(d.debate,d.consensus_summary);
+                rH(d.history);
+            }
+        }).catch(e=>console.error(e));
+    };
+    
+    const calc = () => {
+        const p = {
+            waste_description: document.getElementById("input-waste-desc").value,
+            waste_type: document.getElementById("input-waste-type").value,
+            volume_tonnes: parseFloat(document.getElementById("input-volume").value || 0),
+            exemption_category: document.getElementById("input-exemption").value
+        };
+        fetch('/api/v64/calculate',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify(p)
+        }).then(r=>r.json()).then(d=>{
+            if(d.status==="success"){
+                rR(d.results);
+                load();
+            } else {
+                alert(d.error);
+            }
+        }).catch(e=>console.error(e));
+    };
+    
+    const rR = r => {
+        document.getElementById("res-base-rate").textContent = fVND(r.base_rate) + " / tonne";
+        document.getElementById("res-total-fee").textContent = fVND(r.total_fee_vnd);
+        document.getElementById("res-effective-fee").textContent = fVND(r.effective_fee_vnd);
+        
+        if (r.is_exempt) {
+            document.getElementById("res-exempt-badge").innerHTML = '<span class="badge bg-success">100% Exempt</span>';
+        } else {
+            document.getElementById("res-exempt-badge").innerHTML = '<span class="badge bg-danger">Fee Payable</span>';
+        }
+        document.getElementById("res-exemption-reason").textContent = r.exemption_reason || "None";
+    };
+    
+    const rB = d => {
+        document.getElementById("base1-tot").textContent = fVND(d.hazardous_standard.total_fee_vnd);
+        document.getElementById("base1-eff").textContent = fVND(d.hazardous_standard.effective_fee_vnd);
+        
+        document.getElementById("base2-tot").textContent = fVND(d.ordinary_standard.total_fee_vnd);
+        document.getElementById("base2-eff").textContent = fVND(d.ordinary_standard.effective_fee_vnd);
+        
+        document.getElementById("base3-tot").textContent = fVND(d.recycling_exempt.total_fee_vnd);
+        document.getElementById("base3-reason").textContent = d.recycling_exempt.exemption_reason;
+        
+        document.getElementById("base4-tot").textContent = fVND(d.agri_exempt.total_fee_vnd);
+        document.getElementById("base4-reason").textContent = d.agri_exempt.exemption_reason;
+    };
+    
+    const rD = (debate, summary) => {
+        const c = document.getElementById("debate-container-v64");
+        c.innerHTML = "";
+        const cl = {
+            "Waste Auditor": "bg-success text-white",
+            "Plant Manager": "bg-warning text-dark",
+            "MoNRE Legal Specialist": "bg-info text-dark"
+        };
+        debate.forEach(m => {
+            const div = document.createElement("div");
+            div.className = "d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";
+            div.innerHTML = `<span class="badge ${cl[m.speaker] || "bg-secondary"} py-2 px-3" style="min-width:200px">${m.speaker}</span><div class="text-dark small">${m.text}</div>`;
+            c.appendChild(div);
+        });
+        document.getElementById("consensus-text-v64").textContent = summary;
+    };
+    
+    const rH = h => {
+        const tb = document.getElementById("history-table-v64");
+        if (!h || !h.length) {
+            tb.innerHTML = '<tr><td colspan="10" class="text-center text-muted py-4">No logs.</td></tr>';
+            return;
+        }
+        tb.innerHTML = "";
+        h.forEach(l => {
+            const tr = document.createElement("tr");
+            let statusBadge = '<span class="badge bg-danger">Fee Payable</span>';
+            if (l.is_exempt) {
+                statusBadge = '<span class="badge bg-success">Exempt</span>';
+            }
+            tr.innerHTML = `
+                <td>${l.id}</td>
+                <td class="fw-bold">${l.waste_description}</td>
+                <td><span class="badge bg-secondary">${l.waste_type.toUpperCase()}</span></td>
+                <td>${l.volume_tonnes} tonnes</td>
+                <td><span class="badge bg-premium-light text-dark">${l.exemption_category.toUpperCase()}</span></td>
+                <td>${fVND(l.base_rate)}</td>
+                <td>${fVND(l.total_fee_vnd)}</td>
+                <td class="fw-bold text-dark">${fVND(l.effective_fee_vnd)}</td>
+                <td>${statusBadge}</td>
+                <td class="text-muted">${l.created_at}</td>
+            `;
+            tb.appendChild(tr);
+        });
+    };
+    
+    document.getElementById("btn-calc-epfsw").addEventListener("click", calc);
+    document.getElementById("btn-refresh-v64").addEventListener("click", load);
+    load();
+});
+</script>
+{% endblock %}

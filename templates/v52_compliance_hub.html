@@ -1,0 +1,398 @@
+{% extends "base.html" %}
+
+{% block title %}SCT Law 66/2025 Amendments - Special Consumption Tax Hub (v52){% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header Area -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
+        <div>
+            <span class="badge bg-danger mb-2">Version 52.0.0 Spec Compliance</span>
+            <h1 class="h2 fw-bold text-gradient mb-1">Special Consumption Tax Compliance Hub</h1>
+            <p class="text-muted mb-0">Sugary beverages roadmap, air conditioner thresholds, non-tariff zones, and promotion tax base adjustments under Luật số 66/2025/QH15.</p>
+        </div>
+        <div class="d-flex gap-2 mt-3 mt-md-0">
+            <button id="btn-refresh-v52" class="btn btn-danger text-white d-flex align-items-center gap-2">
+                <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Load Compliance Data
+            </button>
+            <span class="badge bg-danger-subtle text-danger border border-danger d-flex align-items-center px-3">
+                <i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Law 66/2025/QH15
+            </span>
+        </div>
+    </div>
+
+    <!-- Bento Grid Layout -->
+    <div class="row g-4">
+        <!-- Pillar 1: Sugary Beverages Calculator -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1"><i class="bi bi-cup-straw text-danger me-2" aria-hidden="true"></i>Sugary Beverages SCT Roadmap</h5>
+                    <p class="text-muted small mb-0">Audit sugary drinks sugar content (>5g/100ml) against the 2026-2028 tax roadmap (exempting milk, dairy, fruit juices, etc.).</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="input-beverage-name" class="form-label small mb-1">Drink Name:</label>
+                            <input type="text" id="input-beverage-name" class="form-control form-control-sm" value="Energy Drink Power" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-beverage-sugar" class="form-label small mb-1">Sugar Content (g/100ml):</label>
+                            <input type="number" step="0.1" id="input-beverage-sugar" class="form-control form-control-sm" value="7.5" autocomplete="off">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="input-beverage-cat" class="form-label small mb-1">Category:</label>
+                            <select id="input-beverage-cat" class="form-select form-select-sm">
+                                <option value="soft drink">Soft Drink</option>
+                                <option value="milk">Milk / Dairy</option>
+                                <option value="100% fruit juice">100% Fruit Juice</option>
+                                <option value="mineral water">Mineral Water</option>
+                                <option value="nectar">Nectar</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="input-beverage-year" class="form-label small mb-1">Tax Year:</label>
+                            <select id="input-beverage-year" class="form-select form-select-sm">
+                                <option value="2026">2026 (0%)</option>
+                                <option value="2027">2027 (8%)</option>
+                                <option value="2028">2028+ (10%)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="input-beverage-price" class="form-label small mb-1">Price Before Tax:</label>
+                            <input type="number" id="input-beverage-price" class="form-control form-control-sm" value="20000" autocomplete="off">
+                        </div>
+                        <div class="col-12 text-end">
+                            <button id="btn-calculate-beverage" class="btn btn-danger btn-sm text-white">
+                                <i class="bi bi-calculator me-1" aria-hidden="true"></i> Calculate Beverage SCT
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
+                        <h6 class="fw-bold mb-2 text-danger"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Beverage SCT Result</h6>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>SCT Rate:</span>
+                            <span id="res-beverage-rate" class="fw-bold text-dark">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>SCT Amount:</span>
+                            <span id="res-beverage-amount" class="fw-bold text-danger">-</span>
+                        </div>
+                        <div class="small text-muted border-top pt-2 mt-2">
+                            <strong>Note:</strong> <span id="res-beverage-note">Awaiting calculation…</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pillar 1: Air Conditioners Classifier -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1"><i class="bi bi-snow text-primary me-2" aria-hidden="true"></i>Air Conditioners Capacity Auditor</h5>
+                    <p class="text-muted small mb-0">Audit air conditioners capacity. Only capacities > 24k BTU and <= 90k BTU are subject to 10% SCT. Others are exempt.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="input-ac-model" class="form-label small mb-1">AC Model:</label>
+                            <input type="text" id="input-ac-model" class="form-control form-control-sm" value="CoolMax 30000" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-ac-capacity" class="form-label small mb-1">Capacity (BTU):</label>
+                            <input type="number" id="input-ac-capacity" class="form-control form-control-sm" value="30000" autocomplete="off">
+                        </div>
+                        <div class="col-md-12">
+                            <label for="input-ac-price" class="form-label small mb-1">Price Before Tax (VND):</label>
+                            <input type="number" id="input-ac-price" class="form-control form-control-sm" value="15000000" autocomplete="off">
+                        </div>
+                        <div class="col-12 text-end">
+                            <button id="btn-calculate-ac" class="btn btn-primary btn-sm text-white">
+                                <i class="bi bi-calculator me-1" aria-hidden="true"></i> Calculate AC SCT
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
+                        <h6 class="fw-bold mb-2 text-primary"><i class="bi bi-receipt me-2" aria-hidden="true"></i>AC SCT Result</h6>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>SCT Rate:</span>
+                            <span id="res-ac-rate" class="fw-bold text-dark">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>SCT Amount:</span>
+                            <span id="res-ac-amount" class="fw-bold text-primary">-</span>
+                        </div>
+                        <div class="small text-muted border-top pt-2 mt-2">
+                            <strong>Note:</strong> <span id="res-ac-note">Awaiting calculation…</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pillar 2: Inland to Non-Tariff Area Auditor -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1"><i class="bi bi-truck text-warning me-2" aria-hidden="true"></i>Inland to Non-Tariff Zone Auditor</h5>
+                    <p class="text-muted small mb-0">Audit inland sales to non-tariff areas under Law 66 rules. Exempts passenger cars with < 24 seats (taxed separately).</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="input-nt-item" class="form-label small mb-1">Item Name:</label>
+                            <input type="text" id="input-nt-item" class="form-control form-control-sm" value="Industrial Chemicals" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-nt-dest" class="form-label small mb-1">Non-Tariff Area Name:</label>
+                            <input type="text" id="input-nt-dest" class="form-control form-control-sm" value="Tan Thuan Export Processing Zone" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-nt-price" class="form-label small mb-1">Price Before Tax (VND):</label>
+                            <input type="number" id="input-nt-price" class="form-control form-control-sm" value="50000000" autocomplete="off">
+                        </div>
+                        <div class="col-md-6 d-flex align-items-end">
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" id="check-nt-car">
+                                <label class="form-check-input-label small" for="check-nt-car">Passenger car < 24 seats?</label>
+                            </div>
+                        </div>
+                        <div class="col-12 text-end">
+                            <button id="btn-calculate-nt" class="btn btn-warning btn-sm text-dark fw-bold">
+                                <i class="bi bi-calculator me-1" aria-hidden="true"></i> Calculate Non-Tariff SCT
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
+                        <h6 class="fw-bold mb-2 text-warning text-dark"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Non-Tariff SCT Result</h6>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>SCT Rate:</span>
+                            <span id="res-nt-rate" class="fw-bold text-dark">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>SCT Amount:</span>
+                            <span id="res-nt-amount" class="fw-bold text-warning text-dark">-</span>
+                        </div>
+                        <div class="small text-muted border-top pt-2 mt-2">
+                            <strong>Note:</strong> <span id="res-nt-note">Awaiting calculation…</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pillar 2: Promotion Price Auditor -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1"><i class="bi bi-gift text-success me-2" aria-hidden="true"></i>Promotional Goods SCT Base Adjuster</h5>
+                    <p class="text-muted small mb-0">Compute correct SCT for promotional/advertising goods using the market value of identical/equivalent products (not promo price).</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="input-promo-item" class="form-label small mb-1">Promotional Product:</label>
+                            <input type="text" id="input-promo-item" class="form-control form-control-sm" value="Premium Beer Can (Promo)" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-promo-qty" class="form-label small mb-1">Quantity:</label>
+                            <input type="number" id="input-promo-qty" class="form-control form-control-sm" value="1000" autocomplete="off">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="input-promo-price" class="form-label small mb-1">Promo Price (VND):</label>
+                            <input type="number" id="input-promo-price" class="form-control form-control-sm" value="0" autocomplete="off">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="input-promo-equivalent" class="form-label small mb-1">Equivalent Market Price (VND):</label>
+                            <input type="number" id="input-promo-equivalent" class="form-control form-control-sm" value="15000" autocomplete="off">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="input-promo-rate" class="form-label small mb-1">SCT Rate (%):</label>
+                            <input type="number" step="0.1" id="input-promo-rate" class="form-control form-control-sm" value="10" autocomplete="off">
+                        </div>
+                        <div class="col-12 text-end">
+                            <button id="btn-calculate-promo" class="btn btn-success btn-sm text-white">
+                                <i class="bi bi-calculator me-1" aria-hidden="true"></i> Calculate Promo SCT
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
+                        <h6 class="fw-bold mb-2 text-success"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Promo SCT Result</h6>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>SCT Taxable Base:</span>
+                            <span id="res-promo-base" class="fw-bold text-dark">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>SCT Amount:</span>
+                            <span id="res-promo-amount" class="fw-bold text-success">-</span>
+                        </div>
+                        <div class="small text-muted border-top pt-2 mt-2">
+                            <strong>Note:</strong> <span id="res-promo-note">Awaiting calculation…</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Swarm Advisory Debate Panel -->
+        <div class="col-lg-12">
+            <div class="card shadow-sm border-light">
+                <div class="card-header bg-dark text-white py-3 d-flex align-items-center justify-content-between">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-danger me-2" aria-hidden="true"></i>Multi-Agent Advisory Board Debate</h5>
+                    <span class="badge bg-secondary border border-secondary">Consensus Simulator</span>
+                </div>
+                <div class="card-body">
+                    <div id="debate-container-v52" class="mb-3 d-flex flex-column gap-3">
+                    </div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus Summary Statement:</h6>
+                        <p id="consensus-text-v52" class="text-muted small mb-0">Awaiting simulation data execution…</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const formatVND = (n) => new Intl.NumberFormat("vi-VN").format(n) + " VND";
+
+    const loadData = () => {
+        fetch('/api/v52/compliance-data')
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "success") {
+                    renderBeverage(data.beverage_audit);
+                    renderAC(data.ac_audit);
+                    renderNonTariff(data.nontariff_audit);
+                    renderPromo(data.promo_audit);
+                    renderDebate(data.debate, data.consensus_summary);
+                }
+            })
+            .catch(err => console.error("Error loading v52 data:", err));
+    };
+
+    const calculateBeverage = () => {
+        fetch('/api/v52/beverage/calculate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                drink_name: document.getElementById("input-beverage-name").value,
+                sugar_content: parseFloat(document.getElementById("input-beverage-sugar").value),
+                category: document.getElementById("input-beverage-cat").value,
+                year: parseInt(document.getElementById("input-beverage-year").value),
+                price_before_tax: parseFloat(document.getElementById("input-beverage-price").value)
+            })
+        })
+        .then(res => res.json())
+        .then(data => { if (data.status === "success") renderBeverage(data.results); })
+        .catch(err => console.error("Beverage calculate error:", err));
+    };
+
+    const calculateAC = () => {
+        fetch('/api/v52/ac/calculate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                model_name: document.getElementById("input-ac-model").value,
+                capacity_btu: parseFloat(document.getElementById("input-ac-capacity").value),
+                price_before_tax: parseFloat(document.getElementById("input-ac-price").value)
+            })
+        })
+        .then(res => res.json())
+        .then(data => { if (data.status === "success") renderAC(data.results); })
+        .catch(err => console.error("AC calculate error:", err));
+    };
+
+    const calculateNT = () => {
+        fetch('/api/v52/nontariff/calculate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                item_name: document.getElementById("input-nt-item").value,
+                destination: document.getElementById("input-nt-dest").value,
+                is_car_under_24_seats: document.getElementById("check-nt-car").checked,
+                price_before_tax: parseFloat(document.getElementById("input-nt-price").value)
+            })
+        })
+        .then(res => res.json())
+        .then(data => { if (data.status === "success") renderNonTariff(data.results); })
+        .catch(err => console.error("Non-Tariff calculate error:", err));
+    };
+
+    const calculatePromo = () => {
+        fetch('/api/v52/promotion/calculate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                item_name: document.getElementById("input-promo-item").value,
+                promo_price: parseFloat(document.getElementById("input-promo-price").value),
+                equivalent_price: parseFloat(document.getElementById("input-promo-equivalent").value),
+                quantity: parseInt(document.getElementById("input-promo-qty").value),
+                sct_rate: parseFloat(document.getElementById("input-promo-rate").value) / 100
+            })
+        })
+        .then(res => res.json())
+        .then(data => { if (data.status === "success") renderPromo(data.results); })
+        .catch(err => console.error("Promo calculate error:", err));
+    };
+
+    const renderBeverage = (res) => {
+        document.getElementById("res-beverage-rate").textContent = `${(res.sct_rate * 100).toFixed(0)}%`;
+        document.getElementById("res-beverage-amount").textContent = formatVND(res.sct_amount);
+        document.getElementById("res-beverage-note").textContent = res.notes || "-";
+    };
+
+    const renderAC = (res) => {
+        document.getElementById("res-ac-rate").textContent = `${(res.sct_rate * 100).toFixed(0)}%`;
+        document.getElementById("res-ac-amount").textContent = formatVND(res.sct_amount);
+        document.getElementById("res-ac-note").textContent = res.notes || "-";
+    };
+
+    const renderNonTariff = (res) => {
+        document.getElementById("res-nt-rate").textContent = `${(res.sct_rate * 100).toFixed(0)}%`;
+        document.getElementById("res-nt-amount").textContent = formatVND(res.sct_amount);
+        document.getElementById("res-nt-note").textContent = res.notes || "-";
+    };
+
+    const renderPromo = (res) => {
+        const totalBase = res.equivalent_price * res.quantity;
+        document.getElementById("res-promo-base").textContent = formatVND(totalBase);
+        document.getElementById("res-promo-amount").textContent = formatVND(res.sct_amount);
+        document.getElementById("res-promo-note").textContent = res.notes || "-";
+    };
+
+    const renderDebate = (debate, summary) => {
+        const container = document.getElementById("debate-container-v52");
+        container.innerHTML = "";
+        const colors = { "Tax Audit Inspector": "bg-danger", "SCT Specialist": "bg-success", "Compliance Counsel": "bg-warning text-dark" };
+        debate.forEach(msg => {
+            const div = document.createElement("div");
+            div.className = "d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";
+            div.innerHTML = `
+                <span class="badge ${colors[msg.speaker] || "bg-secondary"} py-2" style="min-width: 180px;">${msg.speaker}</span>
+                <div class="text-dark small">${msg.text}</div>
+            `;
+            container.appendChild(div);
+        });
+        document.getElementById("consensus-text-v52").textContent = summary;
+    };
+
+    // Attach listeners
+    document.getElementById("btn-calculate-beverage").addEventListener("click", calculateBeverage);
+    document.getElementById("btn-calculate-ac").addEventListener("click", calculateAC);
+    document.getElementById("btn-calculate-nt").addEventListener("click", calculateNT);
+    document.getElementById("btn-calculate-promo").addEventListener("click", calculatePromo);
+    document.getElementById("btn-refresh-v52").addEventListener("click", loadData);
+
+    // Initial load
+    loadData();
+});
+</script>
+{% endblock %}

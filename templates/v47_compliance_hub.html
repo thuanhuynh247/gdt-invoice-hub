@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+
+{% block title %}VAT Law 48/2024 - Rate Classifier & Input Credit Engine (v47){% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header Area -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
+        <div>
+            <span class="badge bg-primary mb-2">Version 47.0.0 Spec Compliance</span>
+            <h1 class="h2 fw-bold text-gradient mb-1">VAT Rate Classifier & Input Credit Hub</h1>
+            <p class="text-muted mb-0">Classify goods/services by VAT rate tier (0%, 5%, 10%) per Luật 48/2024/QH15, validate input credit eligibility, and estimate VAT refunds.</p>
+        </div>
+        <div class="d-flex gap-2 mt-3 mt-md-0">
+            <button id="btn-refresh-v47" class="btn btn-primary d-flex align-items-center gap-2">
+                <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Load Compliance Data
+            </button>
+            <span class="badge bg-primary-subtle text-primary border border-primary d-flex align-items-center px-3">
+                <i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Law 48/2024/QH15
+            </span>
+        </div>
+    </div>
+
+    <!-- Bento Grid Layout -->
+    <div class="row g-4">
+        <!-- Pillar 1: VAT Rate Classifier -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1"><i class="bi bi-tags-fill text-primary me-2" aria-hidden="true"></i>VAT Rate Classifier (Articles 5 & 9)</h5>
+                    <p class="text-muted small mb-0">Enter a goods/service description to classify into the correct VAT rate tier.</p>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="input-item-desc" class="form-label small mb-1">Item/Service Description:</label>
+                        <input type="text" id="input-item-desc" class="form-control" value="Thiết bị y tế chẩn đoán hình ảnh" autocomplete="off" placeholder="e.g. Hàng xuất khẩu, Sách giáo khoa, Dịch vụ tư vấn…">
+                    </div>
+                    <div class="text-end">
+                        <button id="btn-classify-rate" class="btn btn-primary btn-sm">
+                            <i class="bi bi-search me-1" aria-hidden="true"></i> Classify Rate
+                        </button>
+                    </div>
+
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
+                        <h6 class="fw-bold mb-2 text-primary"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Classification Result</h6>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>VAT Rate:</span>
+                            <span id="res-rate" class="badge bg-primary">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Legal Reference:</span>
+                            <span id="res-article" class="text-muted">-</span>
+                        </div>
+                        <div class="small text-muted border-top pt-2">
+                            <strong>Notes:</strong> <span id="res-rate-notes">Awaiting classification…</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pillar 2: Input Credit Eligibility -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Input Credit Validator (Article 14)</h5>
+                    <p class="text-muted small mb-0">Validate whether an input invoice qualifies for VAT credit deduction.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="input-credit-inv" class="form-label small mb-1">Invoice Number:</label>
+                            <input type="text" id="input-credit-inv" class="form-control form-control-sm" value="INV-2026-001" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-credit-amount" class="form-label small mb-1">Invoice Amount (VND):</label>
+                            <input type="number" id="input-credit-amount" class="form-control form-control-sm" value="50000000" autocomplete="off">
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check form-switch mb-1">
+                                <input class="form-check-input" type="checkbox" id="chk-vat-invoice" checked>
+                                <label class="form-check-label small" for="chk-vat-invoice">Has valid VAT invoice (Hóa đơn GTGT)</label>
+                            </div>
+                            <div class="form-check form-switch mb-1">
+                                <input class="form-check-input" type="checkbox" id="chk-bank-payment" checked>
+                                <label class="form-check-label small" for="chk-bank-payment">Has non-cash payment proof (Chứng từ thanh toán)</label>
+                            </div>
+                            <div class="form-check form-switch mb-1">
+                                <input class="form-check-input" type="checkbox" id="chk-seller-declared" checked>
+                                <label class="form-check-label small" for="chk-seller-declared">Seller has filed VAT declaration</label>
+                            </div>
+                        </div>
+                        <div class="col-12 text-end">
+                            <button id="btn-check-credit" class="btn btn-success btn-sm">
+                                <i class="bi bi-check2-square me-1" aria-hidden="true"></i> Check Eligibility
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
+                        <h6 class="fw-bold mb-2 text-success"><i class="bi bi-patch-check me-2" aria-hidden="true"></i>Credit Eligibility Result</h6>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Eligible for Input Credit:</span>
+                            <span id="res-credit-eligible" class="badge bg-secondary">-</span>
+                        </div>
+                        <div id="res-credit-reasons" class="small text-muted border-top pt-2">
+                            Awaiting eligibility check…
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pillar 2b: VAT Refund Estimator -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1"><i class="bi bi-cash-stack text-warning me-2" aria-hidden="true"></i>VAT Refund Estimator (Article 15)</h5>
+                    <p class="text-muted small mb-0">Estimate VAT refund eligibility based on the 300M VND threshold and 10% export cap.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="input-output-vat" class="form-label small mb-1">Total Output VAT (VND):</label>
+                            <input type="number" id="input-output-vat" class="form-control form-control-sm" value="100000000" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-input-vat" class="form-label small mb-1">Total Input VAT (VND):</label>
+                            <input type="number" id="input-input-vat" class="form-control form-control-sm" value="500000000" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-export-rev" class="form-label small mb-1">Export Revenue (VND):</label>
+                            <input type="number" id="input-export-rev" class="form-control form-control-sm" value="5000000000" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-period" class="form-label small mb-1">Period:</label>
+                            <input type="text" id="input-period" class="form-control form-control-sm" value="Q1-2026" autocomplete="off">
+                        </div>
+                        <div class="col-12 text-end">
+                            <button id="btn-estimate-refund" class="btn btn-warning btn-sm text-dark">
+                                <i class="bi bi-calculator me-1" aria-hidden="true"></i> Estimate Refund
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
+                        <h6 class="fw-bold mb-2 text-warning"><i class="bi bi-piggy-bank me-2" aria-hidden="true"></i>Refund Estimate</h6>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Uncredited Balance:</span>
+                            <span id="res-uncredited" class="fw-bold">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Eligible for Refund:</span>
+                            <span id="res-refund-eligible" class="badge bg-secondary">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Estimated Refund:</span>
+                            <span id="res-refund-amount" class="fw-bold text-success">-</span>
+                        </div>
+                        <div class="small text-muted border-top pt-2">
+                            <span id="res-refund-notes">Awaiting estimation…</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Swarm Advisory Debate Panel -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-obsidian text-snow py-3 d-flex align-items-center justify-content-between">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-primary me-2" aria-hidden="true"></i>Multi-Agent Advisory Board Debate</h5>
+                    <span class="badge bg-secondary border border-secondary">Consensus Simulator</span>
+                </div>
+                <div class="card-body">
+                    <div id="debate-container-v47" class="mb-3 d-flex flex-column gap-3">
+                        <!-- Debate Messages -->
+                    </div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus Summary Statement:</h6>
+                        <p id="consensus-text-v47" class="text-muted small mb-0">Awaiting simulation data execution…</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const formatVND = (n) => new Intl.NumberFormat("vi-VN").format(n) + " VND";
+
+    const loadData = () => {
+        fetch('/api/v47/compliance-data')
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "success") {
+                    renderRate(data.rate_classification);
+                    renderCredit(data.credit_check);
+                    renderRefund(data.refund_estimate);
+                    renderDebate(data.debate, data.consensus_summary);
+                }
+            })
+            .catch(err => console.error("Error loading v47 data:", err));
+    };
+
+    const classifyRate = () => {
+        fetch('/api/v47/rate/classify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ item_description: document.getElementById("input-item-desc").value })
+        })
+        .then(res => res.json())
+        .then(data => { if (data.status === "success") renderRate(data.results); })
+        .catch(err => console.error("Rate classify error:", err));
+    };
+
+    const checkCredit = () => {
+        fetch('/api/v47/credit/check', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                invoice_number: document.getElementById("input-credit-inv").value,
+                invoice_amount: parseFloat(document.getElementById("input-credit-amount").value),
+                has_vat_invoice: document.getElementById("chk-vat-invoice").checked,
+                has_bank_payment: document.getElementById("chk-bank-payment").checked,
+                seller_declared: document.getElementById("chk-seller-declared").checked
+            })
+        })
+        .then(res => res.json())
+        .then(data => { if (data.status === "success") renderCredit(data.results); })
+        .catch(err => console.error("Credit check error:", err));
+    };
+
+    const estimateRefund = () => {
+        fetch('/api/v47/refund/estimate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                period_label: document.getElementById("input-period").value,
+                total_output_vat: parseFloat(document.getElementById("input-output-vat").value),
+                total_input_vat: parseFloat(document.getElementById("input-input-vat").value),
+                export_revenue: parseFloat(document.getElementById("input-export-rev").value)
+            })
+        })
+        .then(res => res.json())
+        .then(data => { if (data.status === "success") renderRefund(data.results); })
+        .catch(err => console.error("Refund estimate error:", err));
+    };
+
+    const renderRate = (res) => {
+        const badge = document.getElementById("res-rate");
+        badge.textContent = res.classified_rate;
+        const colors = { "0%": "bg-info", "5%": "bg-warning text-dark", "10%": "bg-danger", "NON_TAXABLE": "bg-secondary" };
+        badge.className = "badge " + (colors[res.classified_rate] || "bg-primary");
+        document.getElementById("res-article").textContent = res.article_reference || "-";
+        document.getElementById("res-rate-notes").textContent = res.notes || "-";
+    };
+
+    const renderCredit = (res) => {
+        const badge = document.getElementById("res-credit-eligible");
+        badge.textContent = res.is_eligible ? "✅ ELIGIBLE" : "❌ REJECTED";
+        badge.className = "badge " + (res.is_eligible ? "bg-success" : "bg-danger");
+        const container = document.getElementById("res-credit-reasons");
+        if (res.rejection_reasons && res.rejection_reasons.length > 0) {
+            container.innerHTML = res.rejection_reasons.map(r =>
+                `<div class="alert alert-danger py-1 px-2 small mb-1"><i class="bi bi-x-circle me-1"></i>${r}</div>`
+            ).join("");
+        } else {
+            container.innerHTML = '<div class="text-success small"><i class="bi bi-check-circle-fill me-1"></i>All conditions met. Input credit is deductible.</div>';
+        }
+    };
+
+    const renderRefund = (res) => {
+        document.getElementById("res-uncredited").textContent = formatVND(res.uncredited_balance);
+        const badge = document.getElementById("res-refund-eligible");
+        badge.textContent = res.refund_eligible ? "✅ YES" : "❌ NO";
+        badge.className = "badge " + (res.refund_eligible ? "bg-success" : "bg-danger");
+        document.getElementById("res-refund-amount").textContent = formatVND(res.estimated_refund);
+        document.getElementById("res-refund-notes").textContent = res.notes || "Refund threshold met.";
+    };
+
+    const renderDebate = (debate, summary) => {
+        const container = document.getElementById("debate-container-v47");
+        container.innerHTML = "";
+        const colors = { "Tax Inspector": "bg-danger", "Legal Advisor": "bg-primary", "CFO": "bg-success" };
+        debate.forEach(msg => {
+            const div = document.createElement("div");
+            div.className = "d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";
+            div.innerHTML = `
+                <span class="badge ${colors[msg.speaker] || "bg-secondary"} py-2" style="min-width: 130px;">${msg.speaker}</span>
+                <div class="text-dark small">${msg.text}</div>
+            `;
+            container.appendChild(div);
+        });
+        document.getElementById("consensus-text-v47").textContent = summary;
+    };
+
+    // Attach listeners
+    document.getElementById("btn-classify-rate").addEventListener("click", classifyRate);
+    document.getElementById("btn-check-credit").addEventListener("click", checkCredit);
+    document.getElementById("btn-estimate-refund").addEventListener("click", estimateRefund);
+    document.getElementById("btn-refresh-v47").addEventListener("click", loadData);
+
+    // Initial load
+    loadData();
+});
+</script>
+{% endblock %}

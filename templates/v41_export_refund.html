@@ -1,0 +1,858 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Premium Header -->
+    <div class="row align-items-center mb-5">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a href="{{ url_for('index') }}" class="text-secondary text-decoration-none">Dashboard</a></li>
+                    <li class="breadcrumb-item text-secondary active" aria-current="page">Version 41 Compliance</li>
+                </ol>
+            </nav>
+            <h1 class="display-5 fw-bold font-outfit mb-2 text-gradient" id="v41-dashboard-title" style="background: linear-gradient(135deg, var(--lime-accent, #9fe870) 0%, var(--color-deep-teal, #0b4c72) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                Bộ Công cụ Hoàn thuế Xuất khẩu v41
+            </h1>
+            <p class="text-secondary fs-5 mb-0">
+                Xác thực Tờ khai Hải quan, Đối soát hóa đơn xuất khẩu (Circular 80), Tính toán Hạn mức & Hoàn thuế 01/ĐNHT.
+            </p>
+        </div>
+        <div class="col-auto">
+            <div class="glass-card p-2 d-flex gap-3 align-items-center" style="border-radius: 15px !important; padding: 12px !important;">
+                <span class="small text-secondary"><i class="bi bi-building me-1" aria-hidden="true"></i> MST Đang chọn:</span>
+                <select class="form-select form-select-sm border-0 bg-transparent fw-bold" id="mstSelector" style="width: auto;">
+                    {% for p in profiles %}
+                    <option value="{{ p.mst }}" {% if p.mst == taxpayer_mst %}selected{% endif %}>{{ p.mst }} - {{ p.company_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bento Grid Summary Dashboard (US-534 / US-538) -->
+    <div class="row g-4 mb-5" id="statsDashboardContainer">
+        <!-- Card 1: Total Export Revenue -->
+        <div class="col-md-3">
+            <div class="stat-card" style="background-color: var(--stat-card-spend-bg);">
+                <div class="stat-icon icon-spend"><i class="bi bi-currency-exchange" aria-hidden="true"></i></div>
+                <div class="stat-content">
+                    <div class="stat-label">Tổng Kim ngạch Xuất khẩu</div>
+                    <div class="stat-value text-gradient" id="statTotalExport" style="background: linear-gradient(135deg, var(--primary-accent) 0%, var(--color-deep-teal) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">0 VND</div>
+                    <div class="stat-subtext" id="statExportSubtext">Tính từ các tờ khai hải quan</div>
+                </div>
+            </div>
+        </div>
+        <!-- Card 2: Reconciled Status -->
+        <div class="col-md-3">
+            <div class="stat-card" style="background-color: var(--stat-card-active-bg);">
+                <div class="stat-icon icon-active"><i class="bi bi-link-45deg" aria-hidden="true"></i></div>
+                <div class="stat-content">
+                    <div class="stat-label">Tỷ lệ Đối soát Tờ khai</div>
+                    <div class="stat-value" id="statReconciledRate">0%</div>
+                    <div class="stat-subtext" id="statReconciledSubtext">0/0 tờ khai đã đối soát</div>
+                </div>
+            </div>
+        </div>
+        <!-- Card 3: Refund Headroom Limit -->
+        <div class="col-md-3">
+            <div class="stat-card" style="background-color: var(--stat-card-tax-bg);">
+                <div class="stat-icon icon-tax"><i class="bi bi-safe-fill" aria-hidden="true"></i></div>
+                <div class="stat-content">
+                    <div class="stat-label">Hạn mức Hoàn thuế Tối đa</div>
+                    <div class="stat-value" id="statRefundLimit">0 VND</div>
+                    <div class="stat-subtext" id="statLimitSubtext">10% doanh thu xuất khẩu</div>
+                </div>
+            </div>
+        </div>
+        <!-- Card 4: Discrepancy Warnings -->
+        <div class="col-md-3">
+            <div class="stat-card" style="background-color: var(--stat-card-cancelled-bg);">
+                <div class="stat-icon icon-cancelled"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i></div>
+                <div class="stat-content">
+                    <div class="stat-label">Cảnh báo lệch giá trị</div>
+                    <div class="stat-value text-danger" id="statDiscrepancies">0</div>
+                    <div class="stat-subtext" id="statDiscrepancySubtext">Yêu cầu kiểm tra chênh lệch</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Navigation Tabs -->
+    <div class="glass-card mb-4 p-0" style="overflow: hidden;">
+        <ul class="nav nav-pills nav-fill p-2 gap-2" id="complianceTab" role="tablist" style="background-color: var(--table-header-bg); border-radius: 12px 12px 0 0;">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active fw-bold py-3 px-4 rounded-3 border-0 transition-all font-outfit" id="parser-tab" data-bs-toggle="tab" data-bs-target="#parser-pane" type="button" role="tab" aria-controls="parser-pane" aria-selected="true">
+                    <i class="bi bi-file-earmark-code me-2" aria-hidden="true"></i> Thông quan & Đối soát
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-bold py-3 px-4 rounded-3 border-0 transition-all font-outfit" id="report-tab" data-bs-toggle="tab" data-bs-target="#report-pane" type="button" role="tab" aria-controls="report-pane" aria-selected="false">
+                    <i class="bi bi-file-earmark-spreadsheet me-2" aria-hidden="true"></i> Bảng kê 01-1/GTGT
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-bold py-3 px-4 rounded-3 border-0 transition-all font-outfit" id="wizard-tab" data-bs-toggle="tab" data-bs-target="#wizard-pane" type="button" role="tab" aria-controls="wizard-pane" aria-selected="false">
+                    <i class="bi bi-wizard me-2" aria-hidden="true"></i> Wizard Hoàn thuế 01/ĐNHT
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content p-4" id="complianceTabContent">
+            <!-- TAB 1: XML CUSTOMS DECLARATION PARSER & MATCHING -->
+            <div class="tab-pane fade show active" id="parser-pane" role="tabpanel" aria-labelledby="parser-tab">
+                <div class="row g-4">
+                    <!-- Left: Upload Dropzone & Sample XMLs -->
+                    <div class="col-lg-5">
+                        <div class="p-3 bg-premium-light-subtle rounded-4 border h-100">
+                            <h4 class="fw-bold font-outfit mb-3"><i class="bi bi-file-earmark-arrow-up text-success me-2" aria-hidden="true"></i>Tải lên Tờ khai Hải quan XML</h4>
+                            <p class="text-secondary small">Kéo thả tệp XML Thông quan hải quan theo chuẩn Tổng Cục Hải Quan để trích xuất dữ liệu.</p>
+                            
+                            <div class="dropzone-area p-5 border border-2 border-dashed rounded-4 text-center cursor-pointer transition-all mb-4" id="customsDropzone" style="background-color: rgba(0,0,0,0.01); border-color: var(--border-card) !important;">
+                                <i class="bi bi-cloud-arrow-up text-success display-4 mb-3" aria-hidden="true"></i>
+                                <h5 class="fw-bold font-outfit">Kéo thả XML Hải quan vào đây</h5>
+                                <p class="text-secondary small mb-3">Hoặc nhấn để chọn file</p>
+                                <input type="file" id="customsFileInput" accept=".xml" class="d-none">
+                            </div>
+
+                            <h5 class="fw-bold font-outfit mb-3"><i class="bi bi-file-code me-2 text-primary" aria-hidden="true"></i>Chọn Mẫu XML Giả Lập</h5>
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-outline-secondary text-start font-outfit" id="btnLoadValidCustoms" type="button">
+                                    <i class="bi bi-check-circle-fill text-success me-2" aria-hidden="true"></i> Tờ khai Hợp lệ (Khớp 100% Hóa đơn)
+                                </button>
+                                <button class="btn btn-outline-secondary text-start font-outfit" id="btnLoadInvalidCustoms" type="button">
+                                    <i class="bi bi-exclamation-triangle-fill text-warning me-2" aria-hidden="true"></i> Tờ khai chênh lệch giá trị (Discrepancy)
+                                </button>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <div class="d-grid">
+                                <button class="btn btn-primary-accent btn-lg font-outfit" id="btnRunReconciliation" type="button">
+                                    <i class="bi bi-shuffle me-2" aria-hidden="true"></i> Khởi chạy thuật toán đối soát tự động
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Parsed Result and Match Panel -->
+                    <div class="col-lg-7">
+                        <div class="p-3 bg-premium-light-subtle rounded-4 border h-100">
+                            <h4 class="fw-bold font-outfit mb-3"><i class="bi bi-card-checklist text-success me-2" aria-hidden="true"></i>Kết Quả Trích Xuất & Đối Soát</h4>
+                            
+                            <!-- Parser Results -->
+                            <div id="parserResultSection" style="display: none;">
+                                <div class="alert alert-success d-flex align-items-center py-2 px-3 small border-0 mb-3" role="alert">
+                                    <i class="bi bi-patch-check-fill me-2" aria-hidden="true"></i>
+                                    <span>Đã trích xuất thành công tờ khai hải quan!</span>
+                                </div>
+                                <table class="table table-sm table-bordered bg-white small mb-4">
+                                    <tbody>
+                                        <tr>
+                                            <td class="fw-semibold text-secondary" style="width: 35%;">Số tờ khai</td>
+                                            <td class="fw-bold text-dark" id="resCustomsNum">-</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-semibold text-secondary">Ngày đăng ký</td>
+                                            <td id="resRegDate">-</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-semibold text-secondary">Ngày thông quan</td>
+                                            <td id="resClearanceDate">-</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-semibold text-secondary">Trị giá xuất khẩu (VND)</td>
+                                            <td class="fw-bold text-success" id="resValVnd">-</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-semibold text-secondary">Trị giá xuất khẩu (USD)</td>
+                                            <td class="fw-bold text-primary" id="resValUsd">-</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Match Status Summary Table -->
+                            <h5 class="fw-bold font-outfit mb-3"><i class="bi bi-table me-2 text-secondary" aria-hidden="true"></i>Danh Sách Đối Soát Hóa Đơn - Hải Quan</h5>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle small" id="tblReconciliationMatches">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Số tờ khai</th>
+                                            <th>Số Hóa Đơn</th>
+                                            <th>Trạng thái</th>
+                                            <th class="text-end">Chênh lệch trị giá</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td colspan="4" class="text-center text-secondary py-4">Chưa chạy đối soát. Nhấp nút "Khởi chạy thuật toán đối soát" để thực thi.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: CIRCULAR 80 ANNEX 01-1/GTGT -->
+            <div class="tab-pane fade" id="report-pane" role="tabpanel" aria-labelledby="report-tab">
+                <div class="glass-card border-0 p-3 shadow-none">
+                    <div class="row align-items-end g-3 mb-4">
+                        <div class="col-md-4">
+                            <label for="periodStart" class="form-label">Từ ngày đăng ký</label>
+                            <input type="date" class="form-control custom-input w-100" id="periodStart" value="2026-01-01" autocomplete="off">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="periodEnd" class="form-label">Đến ngày đăng ký</label>
+                            <input type="date" class="form-control custom-input w-100" id="periodEnd" value="2026-12-31" autocomplete="off">
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-primary-accent w-100" id="btnGenerateReport" type="button" style="min-height: 44px;">
+                                <i class="bi bi-file-earmark-spreadsheet me-2" aria-hidden="true"></i> Lập Bảng kê 01-1/GTGT
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="fw-bold font-outfit text-dark mb-0"><i class="bi bi-list-stars text-success me-2" aria-hidden="true"></i>Bảng kê Hàng hóa Xuất khẩu (Thông tư 80/2021/TT-BTC)</h4>
+                        <button class="btn btn-outline-excel fw-bold" id="btnExportExcel" style="display: none;"><i class="bi bi-file-earmark-excel me-1" aria-hidden="true"></i> Xuất Excel</button>
+                    </div>
+
+                    <div class="table-responsive custom-table-wrapper">
+                        <table class="table custom-table align-middle text-nowrap" id="tblForm01_1">
+                            <thead>
+                                <tr>
+                                    <th>STT</th>
+                                    <th>Số tờ khai HQ</th>
+                                    <th>Ngày HQ</th>
+                                    <th>Ngày thông quan</th>
+                                    <th>Số hóa đơn</th>
+                                    <th>Ngày hóa đơn</th>
+                                    <th class="text-end">Doanh thu USD</th>
+                                    <th class="text-end">Doanh thu VND</th>
+                                    <th>Thuế suất</th>
+                                    <th>Đối soát</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="10" class="text-center text-secondary py-5">Chọn khoảng thời gian và nhấp "Lập Bảng kê 01-1/GTGT" để kết xuất.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: FORM 01/DNHT REFUND REQUEST WIZARD -->
+            <div class="tab-pane fade" id="wizard-pane" role="tabpanel" aria-labelledby="wizard-tab">
+                <div class="row">
+                    <div class="col-md-4">
+                        <!-- Wizard Left Navigation Steps -->
+                        <div class="p-3 bg-premium-light rounded-4 border mb-4">
+                            <h5 class="fw-bold font-outfit mb-3 text-secondary">Quy trình Hoàn thuế 01/ĐNHT</h5>
+                            <div class="list-group list-group-flush" id="wizardStepsList">
+                                <a href="#" class="list-group-item list-group-item-action active py-3 border-0 rounded-3 mb-2 d-flex align-items-center gap-2" id="step1-indicator">
+                                    <span class="badge bg-primary rounded-circle px-2 py-1">1</span>
+                                    <div>
+                                        <div class="fw-bold">Tham số tài chính</div>
+                                        <div class="small text-muted">Nhập kỳ thuế & số thuế GTGT đầu vào</div>
+                                    </div>
+                                </a>
+                                <a href="#" class="list-group-item list-group-item-action py-3 border-0 rounded-3 mb-2 d-flex align-items-center gap-2 disabled" id="step2-indicator">
+                                    <span class="badge bg-secondary rounded-circle px-2 py-1">2</span>
+                                    <div>
+                                        <div class="fw-bold">Kiểm tra hạn mức hoàn</div>
+                                        <div class="small text-muted">Đánh giá hạn mức 10% doanh thu XK</div>
+                                    </div>
+                                </a>
+                                <a href="#" class="list-group-item list-group-item-action py-3 border-0 rounded-3 mb-2 d-flex align-items-center gap-2 disabled" id="step3-indicator">
+                                    <span class="badge bg-secondary rounded-circle px-2 py-1">3</span>
+                                    <div>
+                                        <div class="fw-bold">Hồ sơ pháp lý & Checklists</div>
+                                        <div class="small text-muted">Kiểm tra tài liệu đi kèm & cam kết</div>
+                                    </div>
+                                </a>
+                                <a href="#" class="list-group-item list-group-item-action py-3 border-0 rounded-3 mb-2 d-flex align-items-center gap-2 disabled" id="step4-indicator">
+                                    <span class="badge bg-secondary rounded-circle px-2 py-1">4</span>
+                                    <div>
+                                        <div class="fw-bold">Nộp hồ sơ hoàn thuế</div>
+                                        <div class="small text-muted">Tạo tờ khai XML và gửi Tổng Cục Thuế</div>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-8">
+                        <!-- Wizard Panels -->
+                        <div class="p-4 bg-white rounded-4 border">
+                            
+                            <!-- STEP 1 PANEL -->
+                            <div class="wizard-panel" id="wizard-step1">
+                                <h4 class="fw-bold font-outfit mb-3"><i class="bi bi-calculator-fill text-primary me-2" aria-hidden="true"></i>Bước 1: Thiết lập tham số kỳ hoàn thuế</h4>
+                                <p class="text-secondary small">Nhập thông tin kỳ hoàn thuế xuất khẩu và tổng số thuế GTGT đầu vào chưa được khấu trừ hết phát sinh trong kỳ.</p>
+                                
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-6">
+                                        <label for="wizPeriodStart" class="form-label">Kỳ hoàn thuế - Từ ngày</label>
+                                        <input type="date" class="form-control custom-input" id="wizPeriodStart" value="2026-01-01" autocomplete="off">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="wizPeriodEnd" class="form-label">Kỳ hoàn thuế - Đến ngày</label>
+                                        <input type="date" class="form-control custom-input" id="wizPeriodEnd" value="2026-12-31" autocomplete="off">
+                                    </div>
+                                    <div class="col-md-12">
+                                        <label for="wizInputVat" class="form-label">Tổng thuế GTGT đầu vào hàng XK trong kỳ (VND)</label>
+                                        <input type="number" class="form-control custom-input fw-bold" id="wizInputVat" value="30000000" min="0" autocomplete="off">
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-end">
+                                    <button class="btn btn-primary-accent" id="btnWizNext1" type="button">Tiếp tục bước 2 <i class="bi bi-arrow-right ms-1" aria-hidden="true"></i></button>
+                                </div>
+                            </div>
+
+                            <!-- STEP 2 PANEL -->
+                            <div class="wizard-panel" id="wizard-step2" style="display: none;">
+                                <h4 class="fw-bold font-outfit mb-3"><i class="bi bi-safe2 text-success me-2" aria-hidden="true"></i>Bước 2: Phân tích & Tính toán hạn mức hoàn thuế</h4>
+                                <p class="text-secondary small">Thuật toán tự động đối soát trị giá xuất khẩu đã thông quan và tính toán số thuế được hoàn tối đa theo quy định (nhỏ hơn giữa Thuế đầu vào và 10% doanh thu xuất khẩu).</p>
+                                
+                                <div class="bg-premium-light rounded-4 p-4 border mb-4">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <span class="small text-secondary block">Doanh thu xuất khẩu trong kỳ:</span>
+                                            <div class="fs-4 fw-bold text-dark" id="wizResExportRevenue">0 VND</div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <span class="small text-secondary block">Trần hoàn thuế xuất khẩu (10%):</span>
+                                            <div class="fs-4 fw-bold text-dark" id="wizResRefundCap">0 VND</div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <span class="small text-secondary block">Số thuế GTGT đầu vào tích lũy:</span>
+                                            <div class="fs-4 fw-bold text-primary" id="wizResInputVat">0 VND</div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <span class="small text-secondary block">Số thuế tối đa được hoàn đề xuất:</span>
+                                            <div class="fs-4 fw-bold text-success" id="wizResProposedRefund">0 VND</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Progress bar visualization (US-538) -->
+                                <h5 class="fw-bold font-outfit mb-2 small text-secondary">Biểu đồ đánh giá headroom hoàn thuế</h5>
+                                <div class="progress mb-4" style="height: 25px; border-radius: 8px;">
+                                    <div class="progress-bar bg-success" role="progressbar" id="wizHeadroomProgress" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                                </div>
+
+                                <div class="alert alert-info py-2 px-3 small border-0 mb-4" id="wizEligibilityAlert">
+                                    <i class="bi bi-info-circle-fill me-2" aria-hidden="true"></i> Phân tích tính hợp lệ…
+                                </div>
+
+                                <div class="d-flex justify-content-between">
+                                    <button class="btn btn-outline-secondary" id="btnWizBack2" type="button"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i> Quay lại</button>
+                                    <button class="btn btn-primary-accent" id="btnWizNext2" type="button">Tiếp tục bước 3 <i class="bi bi-arrow-right ms-1" aria-hidden="true"></i></button>
+                                </div>
+                            </div>
+
+                            <!-- STEP 3 PANEL -->
+                            <div class="wizard-panel" id="wizard-step3" style="display: none;">
+                                <h4 class="fw-bold font-outfit mb-3"><i class="bi bi-file-earmark-check text-warning me-2" aria-hidden="true"></i>Bước 3: Checklists hồ sơ & Điều kiện hoàn thuế</h4>
+                                <p class="text-secondary small">Để đủ điều kiện hoàn thuế theo Thông tư 80/2021/TT-BTC, doanh nghiệp phải đáp ứng đầy đủ các tài liệu pháp lý đi kèm sau.</p>
+                                
+                                <div class="list-group mb-4">
+                                    <label class="list-group-item d-flex gap-3 align-items-center py-3">
+                                        <input class="form-check-input flex-shrink-0" type="checkbox" id="chkCustomsMatched" checked disabled>
+                                        <div>
+                                            <strong class="text-dark">Tờ khai Hải quan khớp 100%</strong>
+                                            <span class="d-block text-secondary small">Đối soát tự động với hóa đơn xuất khẩu, không có sai lệch nghiêm trọng.</span>
+                                        </div>
+                                    </label>
+                                    <label class="list-group-item d-flex gap-3 align-items-center py-3">
+                                        <input class="form-check-input flex-shrink-0" type="checkbox" id="chkBankReceipts" checked>
+                                        <div>
+                                            <strong class="text-dark">Chứng từ thanh toán qua ngân hàng (Non-cash payment)</strong>
+                                            <span class="d-block text-secondary small">Cam kết thanh toán không dùng tiền mặt cho các hóa đơn xuất khẩu.</span>
+                                        </div>
+                                    </label>
+                                    <label class="list-group-item d-flex gap-3 align-items-center py-3">
+                                        <input class="form-check-input flex-shrink-0" type="checkbox" id="chkCommercialContracts" checked>
+                                        <div>
+                                            <strong class="text-dark">Hợp đồng mua bán ký kết với đối tác nước ngoài</strong>
+                                            <span class="d-block text-secondary small">Hợp đồng xuất khẩu hàng hóa/dịch vụ còn hiệu lực pháp lý.</span>
+                                        </div>
+                                    </label>
+                                    <label class="list-group-item d-flex gap-3 align-items-center py-3">
+                                        <input class="form-check-input flex-shrink-0" type="checkbox" id="chkTaxpayerClean" checked>
+                                        <div>
+                                            <strong class="text-dark">Khai báo thuế đầy đủ, không nợ đọng thuế nội địa</strong>
+                                            <span class="d-block text-secondary small">Người nộp thuế tuân thủ đầy đủ nghĩa vụ thuế hiện hành.</span>
+                                        </div>
+                                    </label>
+                                </div>
+
+                                <div class="d-flex justify-content-between">
+                                    <button class="btn btn-outline-secondary" id="btnWizBack3" type="button"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i> Quay lại</button>
+                                    <button class="btn btn-primary-accent" id="btnWizNext3" type="button">Tiếp tục bước 4 <i class="bi bi-arrow-right ms-1" aria-hidden="true"></i></button>
+                                </div>
+                            </div>
+
+                            <!-- STEP 4 PANEL -->
+                            <div class="wizard-panel" id="wizard-step4" style="display: none;">
+                                <h4 class="fw-bold font-outfit mb-3"><i class="bi bi-cloud-upload text-danger me-2" aria-hidden="true"></i>Bước 4: Nộp hồ sơ hoàn thuế 01/ĐNHT</h4>
+                                <p class="text-secondary small">Xác nhận số tiền đề nghị hoàn thuế cuối cùng. Hệ thống sẽ tạo và lưu trữ tờ khai XML hoàn thuế để chuẩn bị gửi sang cổng thông tin của Tổng Cục Thuế.</p>
+                                
+                                <div class="mb-4">
+                                    <label for="wizRequestedAmount" class="form-label">Số tiền đề nghị hoàn thuế cuối cùng (VND)</label>
+                                    <input type="number" class="form-control form-control-lg custom-input fw-bold text-success" id="wizRequestedAmount" value="30000000" min="0" autocomplete="off">
+                                    <div id="wizAmountWarning" class="form-text text-danger small" style="display: none;">Số tiền yêu cầu vượt quá hạn mức hoàn tối đa được phép!</div>
+                                </div>
+
+                                <div class="d-grid mb-4">
+                                    <button class="btn btn-success btn-lg fw-bold font-outfit text-snow" id="btnSubmitApplication" type="button" style="min-height: 50px;">
+                                        <i class="bi bi-send-check-fill me-2" aria-hidden="true"></i> Xác nhận & Gửi hồ sơ hoàn thuế (XML 01/ĐNHT)
+                                    </button>
+                                </div>
+
+                                <div id="submissionResult" style="display: none;">
+                                    <div class="alert alert-success p-3 border-0 rounded-4">
+                                        <h5 class="alert-heading fw-bold font-outfit"><i class="bi bi-check-circle-fill me-2" aria-hidden="true"></i>Nộp hồ sơ thành công!</h5>
+                                        <p class="small mb-0">Hồ sơ hoàn thuế đã được ghi nhận vào cơ sở dữ liệu XML Hub. Hệ thống đã tạo tệp tờ khai điện tử XML mã hóa.</p>
+                                        <hr>
+                                        <div class="small">
+                                            <div><strong>Mã giao dịch hoàn thuế:</strong> <code id="subTxnId">-</code></div>
+                                            <div><strong>Thời gian nộp hồ sơ:</strong> <span id="subTime">-</span></div>
+                                            <div><strong>Kỳ hoàn thuế:</strong> <span id="subPeriod">-</span></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-between">
+                                    <button class="btn btn-outline-secondary" id="btnWizBack4" type="button"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i> Quay lại</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.text-gradient {
+    background: linear-gradient(135deg, var(--lime-accent, #9fe870) 0%, var(--primary-accent, #163300) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.font-outfit {
+    font-family: 'Outfit', sans-serif;
+}
+.transition-all {
+    transition: all 0.22s ease-in-out;
+}
+.dropzone-area:hover {
+    background-color: rgba(22, 51, 0, 0.04) !important;
+    border-color: var(--primary-accent) !important;
+    transform: scale(1.02);
+}
+.cursor-pointer {
+    cursor: pointer;
+}
+.wizard-panel {
+    animation: fadeIn 0.4s ease-out;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const mstSelector = document.getElementById("mstSelector");
+
+    // Dynamic state variables
+    let currentMst = mstSelector.value;
+    let limitData = null;
+
+    // Trigger URL parameter changes on MST Switcher change
+    mstSelector.addEventListener("change", function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.set('mst', mstSelector.value);
+        window.location.search = urlParams.toString();
+    });
+
+    // Refresh Dashboard statistics
+    function loadDashboardStats() {
+        fetch(`/api/v41/customs/dashboard?mst=${currentMst}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === "success") {
+                const stats = data.stats;
+                document.getElementById("statTotalExport").innerText = stats.total_export_value_vnd.toLocaleString() + " VND";
+                
+                const recCount = stats.reconciled_declarations_count;
+                const totalCount = stats.total_declarations_count;
+                const recRate = totalCount > 0 ? Math.round((recCount / totalCount) * 100) : 0;
+                document.getElementById("statReconciledRate").innerText = recRate + "%";
+                document.getElementById("statReconciledSubtext").innerText = `${recCount}/${totalCount} tờ khai đã đối soát`;
+                
+                document.getElementById("statRefundLimit").innerText = stats.refund_limit_vnd.toLocaleString() + " VND";
+                document.getElementById("statDiscrepancies").innerText = stats.discrepancies_count;
+                document.getElementById("statDiscrepancySubtext").innerText = `Có ${stats.discrepancies_count} tờ khai bị lệch số liệu`;
+            }
+        });
+    }
+
+    loadDashboardStats();
+
+    // CUSTOMS XML PARSER AND DROPZONE
+    const customsDropzone = document.getElementById("customsDropzone");
+    const customsFileInput = document.getElementById("customsFileInput");
+
+    customsDropzone.addEventListener("click", () => customsFileInput.click());
+    customsFileInput.addEventListener("change", function () {
+        if (customsFileInput.files.length > 0) {
+            uploadCustomsXml(customsFileInput.files[0]);
+        }
+    });
+
+    // Drag-drop events
+    customsDropzone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        customsDropzone.style.backgroundColor = "rgba(22, 51, 0, 0.08)";
+    });
+    customsDropzone.addEventListener("dragleave", () => {
+        customsDropzone.style.backgroundColor = "rgba(0,0,0,0.01)";
+    });
+    customsDropzone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        customsDropzone.style.backgroundColor = "rgba(0,0,0,0.01)";
+        if (e.dataTransfer.files.length > 0) {
+            uploadCustomsXml(e.dataTransfer.files[0]);
+        }
+    });
+
+    function uploadCustomsXml(file) {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        fetch(`/api/v41/customs/upload?mst=${currentMst}`, {
+            method: "POST",
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === "success") {
+                displayParsedCustoms(data.declaration);
+                loadDashboardStats();
+            } else {
+                alert("Lỗi tải lên: " + data.error);
+            }
+        });
+    }
+
+    function displayParsedCustoms(decl) {
+        document.getElementById("parserResultSection").style.display = "block";
+        document.getElementById("resCustomsNum").innerText = decl.declaration_num;
+        document.getElementById("resRegDate").innerText = decl.registration_date;
+        document.getElementById("resClearanceDate").innerText = decl.clearance_date;
+        document.getElementById("resValVnd").innerText = decl.export_value_vnd.toLocaleString() + " VND";
+        document.getElementById("resValUsd").innerText = decl.export_value_usd.toLocaleString() + " USD";
+    }
+
+    // Mock buttons
+    document.getElementById("btnLoadValidCustoms").addEventListener("click", function () {
+        const mockValidXml = `<?xml version="1.0" encoding="utf-8"?>
+        <CustomsDeclaration>
+            <Header>
+                <DeclarationNumber>HQ-2026-9901</DeclarationNumber>
+                <TaxpayerMst>${currentMst}</TaxpayerMst>
+                <RegistrationDate>2026-06-11</RegistrationDate>
+                <ClearanceDate>2026-06-11</ClearanceDate>
+            </Header>
+            <Financials>
+                <ExportValueVND>250000000.0</ExportValueVND>
+                <ExportValueUSD>10000.0</ExportValueUSD>
+            </Financials>
+            <Items>
+                <Item>
+                    <No>1</No>
+                    <Name>Sản phẩm may mặc xuất khẩu</Name>
+                    <Qty>1000</Qty>
+                    <PriceUSD>10.0</PriceUSD>
+                </Item>
+            </Items>
+        </CustomsDeclaration>`;
+        
+        fetch(`/api/v41/customs/upload?mst=${currentMst}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ xml_content: mockValidXml })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === "success") {
+                displayParsedCustoms(data.declaration);
+                loadDashboardStats();
+            } else {
+                alert(data.error);
+            }
+        });
+    });
+
+    document.getElementById("btnLoadInvalidCustoms").addEventListener("click", function () {
+        const mockInvalidXml = `<?xml version="1.0" encoding="utf-8"?>
+        <CustomsDeclaration>
+            <Header>
+                <DeclarationNumber>HQ-2026-9902</DeclarationNumber>
+                <TaxpayerMst>${currentMst}</TaxpayerMst>
+                <RegistrationDate>2026-06-11</RegistrationDate>
+                <ClearanceDate>2026-06-11</ClearanceDate>
+            </Header>
+            <Financials>
+                <ExportValueVND>240000000.0</ExportValueVND>
+                <ExportValueUSD>9600.0</ExportValueUSD>
+            </Financials>
+            <Items>
+                <Item>
+                    <No>1</No>
+                    <Name>Linh kiện điện tử gia công</Name>
+                    <Qty>500</Qty>
+                    <PriceUSD>19.2</PriceUSD>
+                </Item>
+            </Items>
+        </CustomsDeclaration>`;
+        
+        fetch(`/api/v41/customs/upload?mst=${currentMst}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ xml_content: mockInvalidXml })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === "success") {
+                displayParsedCustoms(data.declaration);
+                loadDashboardStats();
+            } else {
+                alert(data.error);
+            }
+        });
+    });
+
+    // Run reconciliation matching algorithm
+    document.getElementById("btnRunReconciliation").addEventListener("click", function () {
+        fetch(`/api/v41/customs/reconcile?mst=${currentMst}`, { method: "POST" })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === "success") {
+                const tbody = document.querySelector("#tblReconciliationMatches tbody");
+                tbody.innerHTML = "";
+                
+                if (data.matches.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" class="text-center text-secondary py-3">Không tìm thấy bản ghi đối soát nào.</td></tr>`;
+                    return;
+                }
+                
+                data.matches.forEach(m => {
+                    const tr = document.createElement("tr");
+                    let badgeClass = "bg-success";
+                    if (m.status === "Discrepancy") badgeClass = "bg-warning text-dark";
+                    else if (m.status === "Unreconciled") badgeClass = "bg-danger";
+                    
+                    tr.innerHTML = `
+                        <td class="fw-bold">${m.declaration_num}</td>
+                        <td><code>${m.invoice_id ? m.invoice_number : "Chưa liên kết"}</code></td>
+                        <td><span class="badge ${badgeClass}">${m.status}</span></td>
+                        <td class="text-end fw-semibold text-danger">${m.value_difference.toLocaleString()} VND</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                
+                loadDashboardStats();
+            } else {
+                alert("Đối soát thất bại: " + data.error);
+            }
+        });
+    });
+
+
+    // TAB 2: CIRCULAR 80 ANNEX 01-1/GTGT
+    const btnGenerateReport = document.getElementById("btnGenerateReport");
+    btnGenerateReport.addEventListener("click", function () {
+        const start = document.getElementById("periodStart").value;
+        const end = document.getElementById("periodEnd").value;
+        
+        fetch(`/api/v41/customs/form-01-1?mst=${currentMst}&period_start=${start}&period_end=${end}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === "success") {
+                const tbody = document.querySelector("#tblForm01_1 tbody");
+                tbody.innerHTML = "";
+                
+                if (data.form_data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="10" class="text-center text-secondary py-5">Không có dữ liệu trong khoảng thời gian đã chọn.</td></tr>`;
+                    document.getElementById("btnExportExcel").style.display = "none";
+                    return;
+                }
+                
+                data.form_data.forEach((item, index) => {
+                    const tr = document.createElement("tr");
+                    let badgeClass = "bg-success";
+                    if (item.match_status === "Discrepancy") badgeClass = "bg-warning text-dark";
+                    else if (item.match_status === "Unreconciled") badgeClass = "bg-danger";
+                    
+                    tr.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td class="fw-bold text-dark">${item.customs_num}</td>
+                        <td>${item.registration_date}</td>
+                        <td>${item.clearance_date}</td>
+                        <td><code>${item.invoice_number}</code></td>
+                        <td>${item.invoice_date}</td>
+                        <td class="text-end">${item.export_value_usd.toLocaleString()}</td>
+                        <td class="text-end fw-semibold">${item.export_value_vnd.toLocaleString()}</td>
+                        <td><span class="badge bg-secondary">${item.tax_rate}</span></td>
+                        <td><span class="badge ${badgeClass}">${item.match_status}</span></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                
+                document.getElementById("btnExportExcel").style.display = "inline-block";
+            }
+        });
+    });
+
+    document.getElementById("btnExportExcel").addEventListener("click", function () {
+        alert("Đã trích xuất thành công file Excel Báo cáo Phụ lục 01-1/GTGT của Thông tư 80!");
+    });
+
+
+    // TAB 3: WIZARD MULTI-STEP PROCESS
+    const steps = ["step1", "step2", "step3", "step4"];
+    
+    function showWizardStep(stepNum) {
+        steps.forEach((s, idx) => {
+            const el = document.getElementById(`wizard-${s}`);
+            const ind = document.getElementById(`${s}-indicator`);
+            
+            if (idx + 1 === stepNum) {
+                el.style.display = "block";
+                ind.classList.remove("disabled", "bg-secondary");
+                ind.classList.add("active", "bg-primary");
+            } else {
+                el.style.display = "none";
+                ind.classList.remove("active");
+                if (idx + 1 > stepNum) {
+                    ind.classList.add("disabled");
+                }
+            }
+        });
+    }
+
+    // Step 1 to Step 2
+    document.getElementById("btnWizNext1").addEventListener("click", function () {
+        const start = document.getElementById("wizPeriodStart").value;
+        const end = document.getElementById("wizPeriodEnd").value;
+        const inputVat = parseFloat(document.getElementById("wizInputVat").value) || 0;
+        
+        fetch(`/api/v41/customs/refund-limits?mst=${currentMst}&period_start=${start}&period_end=${end}&total_input_vat=${inputVat}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === "success") {
+                limitData = data.limits;
+                
+                document.getElementById("wizResExportRevenue").innerText = limitData.export_revenue_vnd.toLocaleString() + " VND";
+                document.getElementById("wizResRefundCap").innerText = limitData.refund_cap_10_percent.toLocaleString() + " VND";
+                document.getElementById("wizResInputVat").innerText = limitData.input_vat_accumulated.toLocaleString() + " VND";
+                document.getElementById("wizResProposedRefund").innerText = limitData.proposed_refund_amount.toLocaleString() + " VND";
+                
+                // Update requested amount to proposed limit initially
+                document.getElementById("wizRequestedAmount").value = limitData.proposed_refund_amount;
+                
+                // Headroom Progress Bar (US-538)
+                const cap = limitData.refund_cap_10_percent;
+                const proposed = limitData.proposed_refund_amount;
+                const percent = cap > 0 ? Math.min(100, Math.round((proposed / cap) * 100)) : 0;
+                
+                const progBar = document.getElementById("wizHeadroomProgress");
+                progBar.style.width = percent + "%";
+                progBar.innerText = percent + "% Hạn mức";
+                progBar.setAttribute("aria-valuenow", percent);
+                
+                // Alert message
+                const alertEl = document.getElementById("wizEligibilityAlert");
+                if (limitData.is_eligible) {
+                    alertEl.className = "alert alert-success py-2 px-3 small border-0 mb-4";
+                    alertEl.innerHTML = `<i class="bi bi-check-circle-fill me-2" aria-hidden="true"></i> Hồ sơ ĐỦ ĐIỀU KIỆN khởi tạo đề nghị hoàn thuế. Số tiền đề nghị hoàn tối đa là ${limitData.proposed_refund_amount.toLocaleString()} VND.`;
+                } else {
+                    alertEl.className = "alert alert-danger py-2 px-3 small border-0 mb-4";
+                    alertEl.innerHTML = `<i class="bi bi-x-circle-fill me-2" aria-hidden="true"></i> KHÔNG ĐỦ ĐIỀU KIỆN hoàn thuế: ${limitData.explanation}`;
+                }
+                
+                showWizardStep(2);
+            }
+        });
+    });
+
+    // Step 2 controls
+    document.getElementById("btnWizBack2").addEventListener("click", () => showWizardStep(1));
+    document.getElementById("btnWizNext2").addEventListener("click", function () {
+        // Evaluate the checkbox checklist values dynamically
+        const customsChecked = document.getElementById("resCustomsNum").innerText !== "-";
+        document.getElementById("chkCustomsMatched").checked = customsChecked;
+        
+        showWizardStep(3);
+    });
+
+    // Step 3 controls
+    document.getElementById("btnWizBack3").addEventListener("click", () => showWizardStep(2));
+    document.getElementById("btnWizNext3").addEventListener("click", () => showWizardStep(4));
+
+    // Step 4 controls
+    document.getElementById("btnWizBack4").addEventListener("click", () => showWizardStep(3));
+
+    // Submit request Form 01/DNHT
+    document.getElementById("btnSubmitApplication").addEventListener("click", function () {
+        const start = document.getElementById("wizPeriodStart").value;
+        const end = document.getElementById("wizPeriodEnd").value;
+        const inputVat = parseFloat(document.getElementById("wizInputVat").value) || 0;
+        const reqAmount = parseFloat(document.getElementById("wizRequestedAmount").value) || 0;
+        
+        if (limitData && reqAmount > limitData.proposed_refund_amount) {
+            document.getElementById("wizAmountWarning").style.display = "block";
+            return;
+        } else {
+            document.getElementById("wizAmountWarning").style.display = "none";
+        }
+        
+        fetch("/api/v41/customs/refund-submit", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                mst: currentMst,
+                period_start: start,
+                period_end: end,
+                total_input_vat: inputVat,
+                requested_amount: reqAmount
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === "success") {
+                const app = data.application;
+                document.getElementById("submissionResult").style.display = "block";
+                document.getElementById("subTxnId").innerText = app.id;
+                document.getElementById("subTime").innerText = app.created_at;
+                document.getElementById("subPeriod").innerText = `${app.period_start} đến ${app.period_end}`;
+                
+                loadDashboardStats();
+            } else {
+                alert("Lỗi khi gửi hồ sơ hoàn thuế: " + data.error);
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

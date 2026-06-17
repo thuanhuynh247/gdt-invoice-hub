@@ -1,0 +1,275 @@
+{% extends "base.html" %}
+{% block title %}Emissions Fee Decree 153/2024 - EPFE Hub (v62){% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
+        <div>
+            <span class="badge bg-info text-dark mb-2">Version 62.0.0 Spec Compliance</span>
+            <h1 class="h2 fw-bold text-gradient mb-1 text-info">Environment Protection Fee for Emissions Hub</h1>
+            <p class="text-muted mb-0">Manage EPFE (Phí bảo vệ môi trường đối với khí thải) under Decree 153/2024/NĐ-CP.</p>
+        </div>
+        <div class="d-flex gap-2 mt-3 mt-md-0">
+            <button id="btn-refresh-v62" class="btn btn-info text-dark d-flex align-items-center gap-2"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Load Data</button>
+            <span class="badge bg-info-subtle text-info border border-info d-flex align-items-center px-3"><i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Decree 153/2024</span>
+        </div>
+    </div>
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1 text-info"><i class="bi bi-calculator text-info me-2" aria-hidden="true"></i>Interactive EPFE Calculator</h5>
+                    <p class="text-muted small mb-0">Select facility category, discharge details, and pollutant loads to run the compliance auditor.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="input-emission-desc" class="form-label small mb-1">Emission Description:</label>
+                            <input type="text" id="input-emission-desc" class="form-control form-control-sm" value="Khí thải lò nung clinker" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-facility-type" class="form-label small mb-1">Facility Type:</label>
+                            <select id="input-facility-type" class="form-select form-select-sm">
+                                <option value="cement">Cement Production (Sản xuất xi măng)</option>
+                                <option value="iron_steel">Iron & Steel (Gang thép)</option>
+                                <option value="thermal_power">Thermal Power (Nhiệt điện)</option>
+                                <option value="petrochemical">Petrochemical (Hóa dầu)</option>
+                                <option value="waste_treatment">Waste Treatment (Xử lý chất thải)</option>
+                                <option value="coke_coal">Coke & Coal Gasification (Luyện cốc, khí hóa than)</option>
+                                <option value="general_industrial">General Industrial (Công nghiệp chung)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-period" class="form-label small mb-1">Reporting Period:</label>
+                            <select id="input-period" class="form-select form-select-sm">
+                                <option value="annual">Annual (Hàng năm - 3M VND fixed)</option>
+                                <option value="quarterly">Quarterly (Hàng quý - 750k VND fixed)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-exemption" class="form-label small mb-1">Exemption Category:</label>
+                            <select id="input-exemption" class="form-select form-select-sm">
+                                <option value="none">No Exemption (Chịu phí đầy đủ)</option>
+                                <option value="out_of_scope">Out of Scope (Hộ cá thể, cơ sở nhỏ)</option>
+                                <option value="zero_emissions">Zero Emission certified (Công nghệ sạch)</option>
+                                <option value="coop_welfare">Public Welfare (Phục vụ phúc lợi công cộng)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-check form-switch mt-2">
+                                <input class="form-check-input" type="checkbox" id="input-monitoring" checked>
+                                <label class="form-check-label small" for="input-monitoring">Subject to Mandatory Emissions Monitoring (Chịu phí biến đổi)</label>
+                            </div>
+                        </div>
+
+                        <!-- Variable pollutant loads -->
+                        <div class="col-md-12 border-top pt-3 mt-3" id="pollutants-wrapper-v62">
+                            <h6 class="fw-bold small text-info mb-2"><i class="bi bi-cloud-haze-fill me-1" aria-hidden="true"></i> Pollutant Loads (kg per period)</h6>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <label for="input-dust" class="form-label small mb-0">Dust / Bụi (0.8 VND/kg):</label>
+                                    <input type="number" step="0.1" id="input-dust" class="form-control form-control-sm" value="1000.0" autocomplete="off">
+                                </div>
+                                <div class="col-6">
+                                    <label for="input-nox" class="form-label small mb-0">NOx (0.8 VND/kg):</label>
+                                    <input type="number" step="0.1" id="input-nox" class="form-control form-control-sm" value="800.0" autocomplete="off">
+                                </div>
+                                <div class="col-6">
+                                    <label for="input-sox" class="form-label small mb-0">SOx (0.7 VND/kg):</label>
+                                    <input type="number" step="0.1" id="input-sox" class="form-control form-control-sm" value="1200.0" autocomplete="off">
+                                </div>
+                                <div class="col-6">
+                                    <label for="input-co" class="form-label small mb-0">CO (0.5 VND/kg):</label>
+                                    <input type="number" step="0.1" id="input-co" class="form-control form-control-sm" value="1500.0" autocomplete="off">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-12 text-end">
+                            <button id="btn-calc-epfe" class="btn btn-info btn-sm text-dark fw-bold"><i class="bi bi-play-fill me-1" aria-hidden="true"></i> Run Calculation</button>
+                        </div>
+                    </div>
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
+                        <h6 class="fw-bold mb-2 text-info"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Calculation Result</h6>
+                        <div class="d-flex justify-content-between small mb-1"><span>Base Fixed Fee:</span><span id="res-base-fee" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Variable Pollutant Fee:</span><span id="res-var-fee" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Total Standard Fee:</span><span id="res-total-fee" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Effective Fee Payable:</span><span id="res-effective-fee" class="fw-bold text-info fs-6">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Exemption Status:</span><span id="res-exempt-badge" class="fw-bold">-</span></div>
+                        <div class="small text-muted border-top pt-2 mt-2"><strong>Exemption Reason:</strong> <span id="res-exemption-reason">Awaiting…</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0"><h5 class="fw-bold mb-1"><i class="bi bi-shield-check text-info me-2" aria-hidden="true"></i>EPFE Baseline Verification</h5></div>
+                <div class="card-body d-flex flex-column gap-3">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Cement Factory Emission (Subject to monitoring)</span><span class="badge bg-secondary">Quarterly</span></div>
+                        <p class="small text-muted mb-2">Dust: 1,200kg, NOx: 800kg, SOx: 1,500kg, CO: 2,000kg. Quarterly period.</p>
+                        <div class="d-flex justify-content-between small"><span>Total Fee: <strong id="base1-tot">-</strong></span><span>Effective: <strong id="base1-eff" class="text-info">-</strong></span></div>
+                    </div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Small General Industrial Workshop (No monitoring)</span><span class="badge bg-warning text-dark">Fixed only</span></div>
+                        <p class="small text-muted mb-2">Not subject to mandatory continuous emissions monitoring. Annual period.</p>
+                        <div class="d-flex justify-content-between small"><span>Total Fee: <strong id="base2-tot">-</strong></span><span>Effective: <strong id="base2-eff" class="text-info">-</strong></span></div>
+                    </div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Solar Power Plant Clean Tech (100% Exempt)</span><span class="badge bg-success">Exempt</span></div>
+                        <p class="small text-muted mb-2">Certified zero-emission technology stack. Annual period.</p>
+                        <div class="d-flex justify-content-between small"><span>Total Fee: <strong id="base3-tot">-</strong></span><span>Reason: <strong id="base3-reason" class="text-success">-</strong></span></div>
+                    </div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Small Household Business (100% Exempt)</span><span class="badge bg-success">Exempt</span></div>
+                        <p class="small text-muted mb-2">Household business out of scope of environmental permit. Annual period.</p>
+                        <div class="d-flex justify-content-between small"><span>Total Fee: <strong id="base4-tot">-</strong></span><span>Reason: <strong id="base4-reason" class="text-success">-</strong></span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-12">
+            <div class="card shadow-sm border-light">
+                <div class="card-header bg-dark text-white py-3 d-flex align-items-center justify-content-between"><h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-info me-2" aria-hidden="true"></i>Multi-Agent EPFE Advisory Debate</h5><span class="badge bg-secondary">Environmental Consensus</span></div>
+                <div class="card-body"><div id="debate-container-v62" class="mb-3 d-flex flex-column gap-3"></div><div class="p-3 bg-premium-light rounded border border-light-subtle"><h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus:</h6><p id="consensus-text-v62" class="text-muted small mb-0">Awaiting…</p></div></div>
+            </div>
+        </div>
+        <div class="col-lg-12">
+            <div class="card shadow-sm border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-2"><h5 class="fw-bold mb-1"><i class="bi bi-clock-history text-muted me-2" aria-hidden="true"></i>Historical Audit Log</h5></div>
+                <div class="card-body p-0"><div class="table-responsive"><table class="table table-hover table-striped mb-0 small"><thead class="table-dark"><tr><th>ID</th><th>Description</th><th>Facility Type</th><th>Period</th><th>Monitoring</th><th>Dust (kg)</th><th>NOx (kg)</th><th>SOx (kg)</th><th>CO (kg)</th><th>Base Fee</th><th>Variable Fee</th><th>Effective Fee</th><th>Status</th><th>Time</th></tr></thead><tbody id="history-table-v62"><tr><td colspan="14" class="text-center text-muted py-4">No logs.</td></tr></tbody></table></div></div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+document.addEventListener("DOMContentLoaded",()=>{
+    const fVND = n => new Intl.NumberFormat("vi-VN").format(n) + " VND";
+    
+    // Toggle monitoring loads wrapper
+    const monitoringInput = document.getElementById("input-monitoring");
+    const pollutantsWrapper = document.getElementById("pollutants-wrapper-v62");
+    
+    monitoringInput.addEventListener("change", () => {
+        pollutantsWrapper.style.display = monitoringInput.checked ? "block" : "none";
+    });
+    
+    const load = () => {
+        fetch('/api/v62/compliance-data').then(r=>r.json()).then(d=>{
+            if(d.status==="success"){
+                rB(d);
+                rD(d.debate,d.consensus_summary);
+                rH(d.history);
+            }
+        }).catch(e=>console.error(e));
+    };
+    
+    const calc = () => {
+        const p = {
+            emission_description: document.getElementById("input-emission-desc").value,
+            facility_type: document.getElementById("input-facility-type").value,
+            period: document.getElementById("input-period").value,
+            is_subject_to_monitoring: monitoringInput.checked,
+            exemption_category: document.getElementById("input-exemption").value,
+            pollutant_dust_kg: parseFloat(document.getElementById("input-dust").value || 0),
+            pollutant_nox_kg: parseFloat(document.getElementById("input-nox").value || 0),
+            pollutant_sox_kg: parseFloat(document.getElementById("input-sox").value || 0),
+            pollutant_co_kg: parseFloat(document.getElementById("input-co").value || 0)
+        };
+        fetch('/api/v62/calculate',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify(p)
+        }).then(r=>r.json()).then(d=>{
+            if(d.status==="success"){
+                rR(d.results);
+                load();
+            } else {
+                alert(d.error);
+            }
+        }).catch(e=>console.error(e));
+    };
+    
+    const rR = r => {
+        document.getElementById("res-base-fee").textContent = fVND(r.base_fee_vnd);
+        document.getElementById("res-var-fee").textContent = fVND(r.variable_fee_vnd);
+        document.getElementById("res-total-fee").textContent = fVND(r.total_fee_vnd);
+        document.getElementById("res-effective-fee").textContent = fVND(r.effective_fee_vnd);
+        
+        if (r.is_exempt) {
+            document.getElementById("res-exempt-badge").innerHTML = '<span class="badge bg-success">100% Exempt</span>';
+        } else {
+            document.getElementById("res-exempt-badge").innerHTML = '<span class="badge bg-danger">Fee Payable</span>';
+        }
+        document.getElementById("res-exemption-reason").textContent = r.exemption_reason || "None";
+    };
+    
+    const rB = d => {
+        document.getElementById("base1-tot").textContent = fVND(d.standard_calc.total_fee_vnd);
+        document.getElementById("base1-eff").textContent = fVND(d.standard_calc.effective_fee_vnd);
+        
+        document.getElementById("base2-tot").textContent = fVND(d.no_monitoring_calc.total_fee_vnd);
+        document.getElementById("base2-eff").textContent = fVND(d.no_monitoring_calc.effective_fee_vnd);
+        
+        document.getElementById("base3-tot").textContent = fVND(d.exempt_zero_calc.total_fee_vnd);
+        document.getElementById("base3-reason").textContent = d.exempt_zero_calc.exemption_reason;
+        
+        document.getElementById("base4-tot").textContent = fVND(d.exempt_out_calc.total_fee_vnd);
+        document.getElementById("base4-reason").textContent = d.exempt_out_calc.exemption_reason;
+    };
+    
+    const rD = (debate, summary) => {
+        const c = document.getElementById("debate-container-v62");
+        c.innerHTML = "";
+        const cl = {
+            "Emissions Auditor": "bg-info text-dark",
+            "Factory Manager": "bg-warning text-dark",
+            "Environmental Legal Advisor": "bg-success text-white"
+        };
+        debate.forEach(m => {
+            const div = document.createElement("div");
+            div.className = "d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";
+            div.innerHTML = `<span class="badge ${cl[m.speaker] || "bg-secondary"} py-2 px-3" style="min-width:200px">${m.speaker}</span><div class="text-dark small">${m.text}</div>`;
+            c.appendChild(div);
+        });
+        document.getElementById("consensus-text-v62").textContent = summary;
+    };
+    
+    const rH = h => {
+        const tb = document.getElementById("history-table-v62");
+        if (!h || !h.length) {
+            tb.innerHTML = '<tr><td colspan="14" class="text-center text-muted py-4">No logs.</td></tr>';
+            return;
+        }
+        tb.innerHTML = "";
+        h.forEach(l => {
+            const tr = document.createElement("tr");
+            let statusBadge = '<span class="badge bg-danger">Fee Payable</span>';
+            if (l.is_exempt) {
+                statusBadge = '<span class="badge bg-success">Exempt</span>';
+            }
+            tr.innerHTML = `
+                <td>${l.id}</td>
+                <td class="fw-bold">${l.emission_description}</td>
+                <td><span class="badge bg-secondary">${l.facility_type.toUpperCase()}</span></td>
+                <td><span class="badge bg-premium-light text-dark">${l.period.toUpperCase()}</span></td>
+                <td><span class="badge bg-premium-light text-dark">${l.is_subject_to_monitoring ? 'YES' : 'NO'}</span></td>
+                <td>${l.pollutant_dust_kg} kg</td>
+                <td>${l.pollutant_nox_kg} kg</td>
+                <td>${l.pollutant_sox_kg} kg</td>
+                <td>${l.pollutant_co_kg} kg</td>
+                <td>${fVND(l.base_fee_vnd)}</td>
+                <td>${fVND(l.variable_fee_vnd)}</td>
+                <td class="fw-bold text-dark">${fVND(l.effective_fee_vnd)}</td>
+                <td>${statusBadge}</td>
+                <td class="text-muted">${l.created_at}</td>
+            `;
+            tb.appendChild(tr);
+        });
+    };
+    
+    document.getElementById("btn-calc-epfe").addEventListener("click", calc);
+    document.getElementById("btn-refresh-v62").addEventListener("click", load);
+    load();
+});
+</script>
+{% endblock %}

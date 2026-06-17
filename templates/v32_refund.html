@@ -1,0 +1,883 @@
+{% extends "base.html" %}
+
+{% block title %}Wise Compliance v32 - Exporter VAT Refund Wizard & AI Defense Swarm{% endblock %}
+
+{% block content %}
+<!-- Google Fonts & Styling References -->
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+    /* Premium Styling Tokens for Version 32.0.0 */
+    :root {
+        --v32-bg-glass: rgba(15, 23, 42, 0.75);
+        --v32-border-glass: rgba(255, 255, 255, 0.08);
+        --v32-glow-primary: rgba(59, 130, 246, 0.4);
+        --v32-glow-emerald: rgba(16, 185, 129, 0.35);
+        --v32-glow-amber: rgba(245, 158, 11, 0.35);
+        --v32-glow-rose: rgba(244, 63, 94, 0.45);
+        --v32-font-title: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+        --v32-font-mono: 'Fira Code', monospace;
+    }
+
+    body {
+        background-color: #070a13;
+        color: #f8fafc;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    .v32-card {
+        background: var(--v32-bg-glass);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--v32-border-glass);
+        border-radius: 18px;
+        box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.45);
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .v32-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.5), transparent);
+        transform: translateX(-100%);
+        transition: transform 0.6s ease;
+    }
+
+    .v32-card:hover::before {
+        transform: translateX(100%);
+    }
+
+    .v32-card:hover {
+        border-color: rgba(16, 185, 129, 0.3);
+        box-shadow: 0 16px 48px 0 rgba(16, 185, 129, 0.15);
+    }
+
+    .v32-title {
+        font-family: var(--v32-font-title);
+        font-weight: 800;
+        background: linear-gradient(135deg, #34d399 0%, #10b981 50%, #047857 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: -0.02em;
+    }
+
+    .step-indicator {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 30px;
+        position: relative;
+    }
+
+    .step-indicator::before {
+        content: '';
+        position: absolute;
+        top: 24px;
+        left: 10%;
+        right: 10%;
+        height: 3px;
+        background: rgba(255, 255, 255, 0.1);
+        z-index: 1;
+    }
+
+    .step-indicator-bar {
+        position: absolute;
+        top: 24px;
+        left: 10%;
+        width: 0%;
+        height: 3px;
+        background: #10b981;
+        z-index: 2;
+        transition: width 0.4s ease;
+    }
+
+    .step-node {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: #1e293b;
+        border: 3px solid #334155;
+        color: #94a3b8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-family: var(--v32-font-title);
+        z-index: 3;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .step-node.active {
+        background: #10b981;
+        border-color: #34d399;
+        color: #070a13;
+        box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+    }
+
+    .step-node.completed {
+        background: #047857;
+        border-color: #10b981;
+        color: #ffffff;
+    }
+
+    .glass-input {
+        background-color: rgba(15, 23, 42, 0.6) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: #ffffff !important;
+        border-radius: 8px;
+    }
+
+    .glass-input:focus {
+        border-color: #10b981 !important;
+        box-shadow: 0 0 0 0.25rem rgba(16, 185, 129, 0.25) !important;
+        background-color: rgba(15, 23, 42, 0.8) !important;
+    }
+
+    .table-v32 th {
+        font-family: var(--v32-font-title);
+        background: rgba(255, 255, 255, 0.02) !important;
+        color: #94a3b8 !important;
+        border-bottom: 1px solid var(--v32-border-glass) !important;
+    }
+
+    .table-v32 td {
+        border-bottom: 1px solid var(--v32-border-glass) !important;
+        color: #e2e8f0;
+    }
+
+    /* Swarm timeline bubbles */
+    .swarm-timeline {
+        border-left: 2px dashed rgba(16, 185, 129, 0.3);
+        margin-left: 15px;
+        padding-left: 20px;
+    }
+
+    .swarm-bubble {
+        position: relative;
+        margin-bottom: 20px;
+        animation: slideInV32 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        opacity: 0;
+    }
+
+    @keyframes slideInV32 {
+        from {
+            opacity: 0;
+            transform: translateX(-15px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    .swarm-bubble::before {
+        content: '';
+        position: absolute;
+        left: -26px;
+        top: 6px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #10b981;
+        box-shadow: 0 0 10px #10b981;
+    }
+
+    .swarm-bubble.RefundCoordinator::before { background: #10b981; box-shadow: 0 0 10px #10b981; }
+    .swarm-bubble.RefundAuditor::before { background: #f43f5e; box-shadow: 0 0 10px #f43f5e; }
+    .swarm-bubble.CustomsLiaison::before { background: #3b82f6; box-shadow: 0 0 10px #3b82f6; }
+    .swarm-bubble.TaxCounsel::before { background: #f59e0b; box-shadow: 0 0 10px #f59e0b; }
+
+    .badge-v32 {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--v32-border-glass);
+        color: #e2e8f0;
+        font-family: var(--v32-font-mono);
+        font-size: 0.75rem;
+    }
+</style>
+
+<div class="row">
+    <div class="col-12 mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <h1 class="v32-title mb-1"><i class="bi bi-gift-fill me-2" aria-hidden="true"></i>Wise Exporter VAT Refund Wizard (v32)</h1>
+            <p class="text-secondary mb-0">Hồ sơ hoàn thuế GTGT xuất khẩu theo Thông tư 80/2021/TT-BTC, kết xuất tờ khai Mẫu 01/ĐNHT và Swarm AI biện hộ pháp lý.</p>
+        </div>
+        <div>
+            <span class="badge bg-success text-white px-3 py-2 fs-6 rounded-pill" style="box-shadow: 0 0 15px rgba(16, 185, 129, 0.3); font-family: var(--v32-font-title); font-weight: 700;">
+                <i class="bi bi-cpu-fill me-1" aria-hidden="true"></i> Version 32.0.0 (VAT Refund Swarm)
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Metrics Overview Board -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="v32-card p-3 d-flex flex-column justify-content-between h-100">
+            <span class="text-secondary small d-block mb-1">TỔNG THUẾ ĐỀ NGHỊ HOÀN:</span>
+            <strong class="fs-4 text-emerald-400" id="lblTotalRefund">0 VNĐ</strong>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="v32-card p-3 d-flex flex-column justify-content-between h-100">
+            <span class="text-secondary small d-block mb-1">TỶ LỆ XUẤT KHẨU KỲ KÊ:</span>
+            <div class="d-flex align-items-center gap-2">
+                <strong class="fs-4 text-light" id="lblExportRatio">0%</strong>
+                <div class="progress flex-grow-1" style="height: 8px; background: rgba(255,255,255,0.08);">
+                    <div class="progress-bar bg-success" id="barExportRatio" role="progressbar" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="v32-card p-3 d-flex flex-column justify-content-between h-100">
+            <span class="text-secondary small d-block mb-1">HÓA ĐƠN BỊ LOẠI TRỪ:</span>
+            <strong class="fs-4 text-rose-400" id="lblExcludedCount">0</strong>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="v32-card p-3 d-flex flex-column justify-content-between h-100">
+            <span class="text-secondary small d-block mb-1">TRẠNG THÁI HỒ SƠ:</span>
+            <strong class="fs-5" id="lblRefundStatus">Chưa rà soát</strong>
+        </div>
+    </div>
+</div>
+
+<!-- Step Wizard Nodes -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="v32-card p-3">
+            <div class="step-indicator">
+                <div class="step-indicator-bar" id="stepIndicatorBar"></div>
+                <div class="step-node active" data-step="1" onclick="goToStep(1)">1</div>
+                <div class="step-node" data-step="2" onclick="goToStep(2)">2</div>
+                <div class="step-node" data-step="3" onclick="goToStep(3)">3</div>
+                <div class="step-node" data-step="4" onclick="goToStep(4)">4</div>
+            </div>
+            <div class="text-center text-secondary small" id="stepTitle">Bước 1: Cấu hình doanh nghiệp & tài khoản thụ hưởng</div>
+        </div>
+    </div>
+</div>
+
+<!-- Step Content Container -->
+<div class="row">
+    <div class="col-12">
+        <!-- Step 1: Profile & Bank Setup -->
+        <div class="v32-card p-4 mb-4 step-content" id="step1-pane">
+            <h4 class="mb-3" style="font-family: var(--v32-font-title); font-weight: 600;">Cấu Hình Hồ Sơ & Thông Tin Thụ Hưởng</h4>
+            <p class="text-secondary small">Cung cấp mã số thuế doanh nghiệp và số tài khoản ngân hàng để điền vào tờ khai đề nghị hoàn trả ngân sách mẫu 01/ĐNHT.</p>
+            
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label for="txtRefundMst" class="form-label small text-secondary">Mã số thuế doanh nghiệp (MST):</label>
+                    <input type="text" class="form-control glass-input" id="txtRefundMst" placeholder="Ví dụ: 0109998887" autocomplete="off" onchange="fetchTaxpayerData()">
+                </div>
+                <div class="col-md-6">
+                    <label for="txtRefundName" class="form-label small text-secondary">Tên người nộp thuế:</label>
+                    <input type="text" class="form-control glass-input" id="txtRefundName" placeholder="Tên doanh nghiệp sẽ tải tự động…" readonly autocomplete="off">
+                </div>
+                <div class="col-md-6">
+                    <label for="txtBankName" class="form-label small text-secondary">Tên ngân hàng thụ hưởng:</label>
+                    <input type="text" class="form-control glass-input" id="txtBankName" value="Vietcombank" placeholder="Ví dụ: Vietcombank" autocomplete="off">
+                </div>
+                <div class="col-md-6">
+                    <label for="txtBankAccount" class="form-label small text-secondary">Số tài khoản ngân hàng:</label>
+                    <input type="text" class="form-control glass-input" id="txtBankAccount" value="190123456789" placeholder="Ví dụ: 190xxxxxxxxxx" autocomplete="off">
+                </div>
+                <div class="col-md-12">
+                    <label for="selReasonType" class="form-label small text-secondary">Lý do đề nghị hoàn thuế:</label>
+                    <select class="form-select glass-input" id="selReasonType">
+                        <option value="export" selected>Hoàn thuế đối với hàng hóa, dịch vụ xuất khẩu</option>
+                        <option value="investment">Hoàn thuế đối với dự án đầu tư / hoạt động sản xuất kinh doanh tích lũy</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end mt-4">
+                <button class="btn btn-success fw-bold" onclick="goToStep(2)">
+                    Tiếp tục <i class="bi bi-arrow-right ms-1" aria-hidden="true"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 2: Purchase Invoices Audit -->
+        <div class="v32-card p-4 mb-4 step-content" id="step2-pane" style="display: none;">
+            <h4 class="mb-3" style="font-family: var(--v32-font-title); font-weight: 600;">Chọn & Loại Trừ Hóa Đơn Mua Vào</h4>
+            <p class="text-secondary small">Chọn các hóa đơn mua vào hợp lệ để đưa vào hồ sơ hoàn thuế. Hệ thống AI đã tự động cảnh báo và bỏ chọn các hóa đơn rủi ro.</p>
+            
+            <div class="table-responsive mb-3">
+                <table class="table table-dark table-v32 align-middle" style="font-size: 0.85rem;">
+                    <thead>
+                        <tr>
+                            <th style="width: 40px;"><input type="checkbox" id="chkSelectAllPurchases" onchange="toggleAllPurchases(this)"></th>
+                            <th>Số Hóa Đơn</th>
+                            <th>Ngày Lập</th>
+                            <th>Nhà Cung Cấp</th>
+                            <th class="text-end">Tiền Thuế GTGT</th>
+                            <th>Điểm Tin Cậy (T-Score)</th>
+                            <th>Cảnh Báo Rủi Ro</th>
+                        </tr>
+                    </thead>
+                    <tbody id="purchaseTableBody">
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-secondary">Vui lòng nhập MST doanh nghiệp ở Bước 1 để tải danh sách hóa đơn.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="d-flex justify-content-between mt-4">
+                <button class="btn btn-outline-light fw-bold" onclick="goToStep(1)">
+                    <i class="bi bi-arrow-left me-1" aria-hidden="true"></i> Quay lại
+                </button>
+                <button class="btn btn-success fw-bold" onclick="goToStep(3)">
+                    Tiếp tục <i class="bi bi-arrow-right ms-1" aria-hidden="true"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 3: Customs & Bank Match -->
+        <div class="v32-card p-4 mb-4 step-content" id="step3-pane" style="display: none;">
+            <div class="row">
+                <div class="col-lg-5 mb-4">
+                    <h4 class="mb-3" style="font-family: var(--v32-font-title); font-weight: 600;">Khai Báo Tờ Khai Hải Quan</h4>
+                    <p class="text-secondary small">Thêm các thông tin tờ khai hải quan thông quan hàng hóa xuất khẩu tương ứng để hệ thống đối chiếu tự động.</p>
+                    
+                    <form id="frmCustoms" onsubmit="addCustomsRow(event)">
+                        <div class="mb-3">
+                            <label class="form-label small text-secondary">Số tờ khai hải quan:</label>
+                            <input type="text" class="form-control glass-input" id="txtCustomsNo" placeholder="Ví dụ: HQ-2026-001" required autocomplete="off" aria-label="Ví dụ: HQ-2026-001">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small text-secondary">Mô tả sản phẩm xuất khẩu:</label>
+                            <input type="text" class="form-control glass-input" id="txtCustomsDesc" placeholder="Ví dụ: Phan mem xuat khau" required autocomplete="off" aria-label="Ví dụ: Phan mem xuat khau">
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label small text-secondary">Số lượng:</label>
+                                <input type="number" class="form-control glass-input" id="numCustomsQty" value="1" min="0" step="any" required autocomplete="off" aria-label="Numcustomsqty">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small text-secondary">Trị giá khai hải quan (VND):</label>
+                                <input type="number" class="form-control glass-input" id="numCustomsVal" value="200000000" min="0" required autocomplete="off" aria-label="Numcustomsval">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-outline-success w-100 fw-bold">
+                            <i class="bi bi-plus-circle me-1" aria-hidden="true"></i> Thêm Tờ Khai Hải Quan
+                        </button>
+                    </form>
+                </div>
+                
+                <div class="col-lg-7 mb-4">
+                    <h4 class="mb-3" style="font-family: var(--v32-font-title); font-weight: 600;">Đối Chiếu Hải Quan & Hóa Đơn Xuất Khẩu</h4>
+                    <p class="text-secondary small">Kết quả đối sánh tự động giữa tờ khai thông quan xuất khẩu và hóa đơn bán ra tương ứng.</p>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-dark table-v32 align-middle" style="font-size: 0.85rem;">
+                            <thead>
+                                <tr>
+                                    <th>Số Tờ Khai</th>
+                                    <th>Sản Phẩm</th>
+                                    <th class="text-end">Trị Giá (VND)</th>
+                                    <th>Hóa Đơn Đối Ứng</th>
+                                    <th>Khớp Số Liệu</th>
+                                    <th style="width: 40px;">Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody id="customsTableBody">
+                                <tr>
+                                    <td colspan="6" class="text-center py-4 text-secondary">Chưa khai báo tờ khai hải quan nào. Hãy thêm tờ khai ở khung bên trái.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between mt-4">
+                <button class="btn btn-outline-light fw-bold" onclick="goToStep(2)">
+                    <i class="bi bi-arrow-left me-1" aria-hidden="true"></i> Quay lại
+                </button>
+                <button class="btn btn-success fw-bold" onclick="runSwarmAndGenerateDossier()">
+                    Chạy Swarm & Soạn Thảo Biện Hộ <i class="bi bi-cpu ms-1" aria-hidden="true"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 4: Swarm Review & Exporters -->
+        <div class="v32-card p-4 mb-4 step-content" id="step4-pane" style="display: none;">
+            <div class="row">
+                <!-- Left half: Swarm Chat Timeline -->
+                <div class="col-lg-6 mb-4 d-flex flex-column">
+                    <h4 class="mb-3" style="font-family: var(--v32-font-title); font-weight: 600;">Thảo Luận Tác Tử AI Swarm Hoàn Thuế</h4>
+                    <div class="overflow-auto mb-3 p-3 border border-slate-800 rounded-3 bg-slate-950 flex-grow-1" style="max-height: 480px; min-height: 380px;" id="swarmLogContainer">
+                        <div class="swarm-timeline" id="swarmTimeline"></div>
+                    </div>
+                </div>
+
+                <!-- Right half: Reports & Downloads -->
+                <div class="col-lg-6 mb-4 d-flex flex-column">
+                    <ul class="nav nav-tabs mb-3" id="resultTabs" role="tablist" style="border-bottom: 1px solid rgba(255,255,255,0.08);">
+                        <li class="nav-item">
+                            <button class="nav-link active py-2 small fw-semibold text-success bg-transparent border-0" id="report-tab" data-bs-toggle="tab" data-bs-target="#report-pane" type="button" role="tab">
+                                <i class="bi bi-shield-check me-1" aria-hidden="true"></i> Văn Bản Giải Trình
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link py-2 small fw-semibold text-secondary bg-transparent border-0" id="xml-tab" data-bs-toggle="tab" data-bs-target="#xml-pane" type="button" role="tab">
+                                <i class="bi bi-filetype-xml me-1" aria-hidden="true"></i> Tờ khai XML 01/ĐNHT
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content flex-grow-1 d-flex flex-column" id="resultTabsContent">
+                        <!-- Pane 1: Report justification -->
+                        <div class="tab-pane fade show active flex-grow-1 d-flex flex-column" id="report-pane" role="tabpanel">
+                            <textarea class="form-control flex-grow-1 text-light mb-3" id="txtSwarmReport" rows="12" style="font-family: var(--v32-font-mono); font-size: 11px; background: #020617; border: 1px solid var(--v32-border-glass); min-height: 300px;" readonly></textarea>
+                            
+                            <div class="d-flex justify-content-end gap-2">
+                                <button class="btn btn-outline-light btn-sm" onclick="copyText('txtSwarmReport')">
+                                    <i class="bi bi-clipboard me-1" aria-hidden="true"></i> Sao chép
+                                </button>
+                                <button class="btn btn-outline-primary btn-sm" onclick="exportDossier('doc')">
+                                    <i class="bi bi-file-earmark-word text-primary" aria-hidden="true"></i> Tải file Word (.doc)
+                                </button>
+                                <button class="btn btn-success btn-sm" onclick="exportDossier('pdf')">
+                                    <i class="bi bi-file-earmark-pdf text-danger" aria-hidden="true"></i> Tải bản in PDF
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Pane 2: XML Form 01/ĐNHT -->
+                        <div class="tab-pane fade flex-grow-1 d-flex flex-column" id="xml-pane" role="tabpanel">
+                            <textarea class="form-control flex-grow-1 text-light mb-3" id="txtGeneratedXml" rows="12" style="font-family: var(--v32-font-mono); font-size: 11px; background: #020617; border: 1px solid var(--v32-border-glass); min-height: 300px;" readonly></textarea>
+                            
+                            <div class="d-flex justify-content-end gap-2">
+                                <button class="btn btn-outline-light btn-sm" onclick="copyText('txtGeneratedXml')">
+                                    <i class="bi bi-clipboard me-1" aria-hidden="true"></i> Sao chép
+                                </button>
+                                <button class="btn btn-success btn-sm" onclick="downloadXmlFile()">
+                                    <i class="bi bi-download me-1" aria-hidden="true"></i> Tải XML Tờ Khai
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between mt-4 border-top border-slate-800 pt-3">
+                <button class="btn btn-outline-light fw-bold" onclick="goToStep(3)">
+                    <i class="bi bi-arrow-left me-1" aria-hidden="true"></i> Quay lại
+                </button>
+                <div class="text-success small align-self-center"><i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i>Hồ sơ hoàn thuế hoàn thành rà soát.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // State storage variables
+    let currentStep = 1;
+    let taxpayerData = null;
+    let customsDeclarations = [
+        {
+            declaration_number: "HQ-2026-001",
+            product_description: "Phan mem xuat khau",
+            quantity: 1,
+            customs_value_vnd: 200000000
+        }
+    ];
+
+    document.addEventListener("DOMContentLoaded", function () {
+        // Sync active MST if present
+        if (window.activeTaxpayerMst) {
+            document.getElementById("txtRefundMst").value = window.activeTaxpayerMst;
+            fetchTaxpayerData();
+        }
+        
+        renderCustomsTable();
+    });
+
+    function goToStep(step) {
+        // Validation check
+        if (step > 1 && !document.getElementById("txtRefundMst").value) {
+            alert("Vui lòng điền MST doanh nghiệp ở Bước 1.");
+            return;
+        }
+
+        // Deactivate old node & pane
+        document.querySelector(`.step-node[data-step="${currentStep}"]`).classList.remove("active");
+        document.getElementById(`step${currentStep}-pane`).style.display = "none";
+
+        // Activate new node & pane
+        currentStep = step;
+        document.querySelector(`.step-node[data-step="${currentStep}"]`).classList.add("active");
+        document.getElementById(`step${currentStep}-pane`).style.display = "block";
+
+        // Update progress bar width
+        const progressWidths = { 1: "0%", 2: "33%", 3: "66%", 4: "100%" };
+        document.getElementById("stepIndicatorBar").style.width = progressWidths[step];
+
+        // Update title description
+        const titles = {
+            1: "Bước 1: Cấu hình doanh nghiệp & tài khoản thụ hưởng",
+            2: "Bước 2: Chọn & loại trừ hóa đơn mua vào",
+            3: "Bước 3: Khai báo tờ khai hải quan & đối chiếu xuất khẩu",
+            4: "Bước 4: Xem xét thảo luận Swarm & tải hồ sơ hoàn thuế"
+        };
+        document.getElementById("stepTitle").innerText = titles[step];
+    }
+
+    async function fetchTaxpayerData() {
+        const mst = document.getElementById("txtRefundMst").value;
+        if (!mst) return;
+
+        try {
+            const res = await fetch(`/api/reports/vat-refund-eligibility?mst=${mst}`);
+            const data = await res.json();
+            
+            if (data.error) {
+                alert("Lỗi: " + data.error);
+                return;
+            }
+
+            taxpayerData = data;
+            document.getElementById("txtRefundName").value = data.company_name;
+
+            // Fill Purchase Invoice table
+            const tbody = document.getElementById("purchaseTableBody");
+            tbody.innerHTML = "";
+            
+            // Combine eligible and ineligible invoices for wizard display
+            const allInvoices = [];
+            data.eligible_invoices.forEach(inv => {
+                allInvoices.push({ …inv, is_eligible: true, checked: true });
+            });
+            data.ineligible_invoices.forEach(inv => {
+                allInvoices.push({ …inv, is_eligible: false, checked: false });
+            });
+
+            if (allInvoices.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center text-secondary py-4">Không tìm thấy hóa đơn mua vào nào cho MST này.</td></tr>`;
+                return;
+            }
+
+            allInvoices.sort((a,b) => new Date(b.date) - new Date(a.date));
+
+            allInvoices.forEach(inv => {
+                const tr = document.createElement("tr");
+                const warningsStr = inv.disqualification_reasons 
+                    ? inv.disqualification_reasons.join(", ") 
+                    : '<span class="text-success"><i class="bi bi-shield-check-fill me-1" aria-hidden="true"></i>Hợp lệ</span>';
+                
+                const tScoreClass = inv.t_score >= 80 ? "text-success" : (inv.t_score >= 50 ? "text-warning" : "text-danger");
+                const rowClass = inv.is_eligible ? "" : "opacity-75 bg-slate-900 bg-opacity-50";
+
+                tr.className = rowClass;
+                tr.innerHTML = `
+                    <td>
+                        <input type="checkbox" class="purchase-chk" data-id="${inv.id}" ${inv.checked ? 'checked' : ''} onchange="recalculateMetrics()">
+                    </td>
+                    <td><strong>${inv.number}</strong></td>
+                    <td>${inv.date}</td>
+                    <td class="text-secondary">${inv.seller_name} <small class="d-block text-opacity-50">MST: ${inv.seller_mst}</small></td>
+                    <td class="text-end text-light fw-bold">${formatCurrency(inv.tax_amount)}đ</td>
+                    <td class="text-center font-monospace ${tScoreClass} fw-bold">${inv.t_score}</td>
+                    <td class="text-warning small">${warningsStr}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            recalculateMetrics();
+
+        } catch (err) {
+            console.error("Error fetching taxpayer data:", err);
+        }
+    }
+
+    function toggleAllPurchases(chk) {
+        document.querySelectorAll(".purchase-chk").forEach(box => {
+            box.checked = chk.checked;
+        });
+        recalculateMetrics();
+    }
+
+    function getSelectedInvoiceIds() {
+        const ids = [];
+        document.querySelectorAll(".purchase-chk:checked").forEach(box => {
+            ids.push(box.getAttribute("data-id"));
+        });
+        return ids;
+    }
+
+    async function recalculateMetrics() {
+        const mst = document.getElementById("txtRefundMst").value;
+        const inputInvoiceIds = getSelectedInvoiceIds();
+
+        try {
+            const res = await fetch("/api/audit/vat-refund-eligibility", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    mst: mst,
+                    input_invoice_ids: inputInvoiceIds,
+                    customs_declarations: customsDeclarations
+                })
+            });
+            const data = await res.json();
+            if (data.error) return;
+
+            // Update stats cards
+            const metrics = data.metrics;
+            document.getElementById("lblTotalRefund").innerText = formatCurrency(metrics.eligible_input_vat) + " VNĐ";
+            document.getElementById("lblExcludedCount").innerText = metrics.ineligible_invoice_count;
+            
+            const expRatio = (metrics.export_ratio * 100).toFixed(1) + "%";
+            document.getElementById("lblExportRatio").innerText = expRatio;
+            document.getElementById("barExportRatio").style.width = expRatio;
+
+            const statusLbl = document.getElementById("lblRefundStatus");
+            statusLbl.innerText = data.status;
+            if (data.status === "Safe") {
+                statusLbl.className = "fs-5 text-success";
+            } else if (data.status === "Caution") {
+                statusLbl.className = "fs-5 text-warning";
+            } else {
+                statusLbl.className = "fs-5 text-danger";
+            }
+
+            // Sync with Customs view matching
+            if (currentStep === 3) {
+                renderCustomsTable(data.customs_export_reconciliation);
+            }
+
+        } catch (err) {
+            console.error("Error recalculating metrics:", err);
+        }
+    }
+
+    function addCustomsRow(e) {
+        e.preventDefault();
+        const number = document.getElementById("txtCustomsNo").value.trim();
+        const description = document.getElementById("txtCustomsDesc").value.trim();
+        const quantity = parseFloat(document.getElementById("numCustomsQty").value) || 0;
+        const value = parseFloat(document.getElementById("numCustomsVal").value) || 0;
+
+        customsDeclarations.push({
+            declaration_number: number,
+            product_description: description,
+            quantity: quantity,
+            customs_value_vnd: value
+        });
+
+        document.getElementById("frmCustoms").reset();
+        document.getElementById("numCustomsQty").value = 1;
+        document.getElementById("numCustomsVal").value = 200000000;
+
+        recalculateMetrics().then(() => {
+            renderCustomsTable();
+        });
+    }
+
+    function removeCustoms(idx) {
+        customsDeclarations.splice(idx, 1);
+        recalculateMetrics().then(() => {
+            renderCustomsTable();
+        });
+    }
+
+    function renderCustomsTable(reconArray = null) {
+        const tbody = document.getElementById("customsTableBody");
+        tbody.innerHTML = "";
+
+        if (customsDeclarations.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center text-secondary py-4">Chưa khai báo tờ khai hải quan nào. Hãy thêm tờ khai ở khung bên trái.</td></tr>`;
+            return;
+        }
+
+        customsDeclarations.forEach((decl, idx) => {
+            const tr = document.createElement("tr");
+            let matchStatus = "Unmatched";
+            let matchedInvNo = "Chưa khớp";
+            let badgeClass = "bg-secondary";
+            
+            // If recon data returned from server API
+            if (reconArray && reconArray[idx]) {
+                const match = reconArray[idx];
+                matchStatus = match.match_status;
+                matchedInvNo = match.invoice_number ? "HĐ số " + match.invoice_number : "Chưa khớp";
+                
+                if (matchStatus === "Fully Matched") {
+                    badgeClass = "bg-success";
+                } else if (matchStatus === "Discrepancy") {
+                    badgeClass = "bg-warning text-dark";
+                } else {
+                    badgeClass = "bg-danger";
+                }
+            }
+
+            tr.innerHTML = `
+                <td><strong>${decl.declaration_number}</strong></td>
+                <td>${decl.product_description} <small class="d-block text-secondary">SL: ${decl.quantity}</small></td>
+                <td class="text-end text-light">${formatCurrency(decl.customs_value_vnd)}đ</td>
+                <td class="text-center font-monospace">${matchedInvNo}</td>
+                <td class="text-center"><span class="badge ${badgeClass}">${matchStatus}</span></td>
+                <td class="text-center">
+                    <button class="btn btn-sm text-danger" onclick="removeCustoms(${idx})" aria-label="Xóa tờ khai">
+                        <i class="bi bi-trash" aria-hidden="true"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    async function runSwarmAndGenerateDossier() {
+        const mst = document.getElementById("txtRefundMst").value;
+        const name = document.getElementById("txtRefundName").value;
+        const eligibleInvoiceIds = getSelectedInvoiceIds();
+
+        goToStep(4);
+
+        // Reset elements
+        const timeline = document.getElementById("swarmTimeline");
+        timeline.innerHTML = '<div class="text-secondary small"><i class="bi bi-arrow-repeat spin me-2" aria-hidden="true"></i>Đang khởi chạy AI Agent Swarm rà soát hoàn thuế…</div>';
+        document.getElementById("txtSwarmReport").value = "";
+        document.getElementById("txtGeneratedXml").value = "";
+
+        try {
+            // Run AI Swarm Audit discussion
+            const swarmRes = await fetch("/api/agents/swarm-v32-chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    taxpayer_mst: mst,
+                    taxpayer_name: name,
+                    eligible_invoice_ids: eligibleInvoiceIds,
+                    customs_declarations: customsDeclarations
+                })
+            });
+            const swarmData = await swarmRes.json();
+            if (swarmData.error) {
+                timeline.innerHTML = `<div class="text-danger small">Lỗi Swarm: ${swarmData.error}</div>`;
+                return;
+            }
+
+            // Populate XML Form 01/ĐNHT
+            const xmlRes = await fetch("/api/audit/export-refund-xml", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    mst: mst,
+                    eligible_invoice_ids: eligibleInvoiceIds,
+                    bank_account: document.getElementById("txtBankAccount").value,
+                    bank_name: document.getElementById("txtBankName").value,
+                    reason_type: document.getElementById("selReasonType").value
+                })
+            });
+            const xmlText = await xmlRes.text();
+            document.getElementById("txtGeneratedXml").value = xmlText;
+
+            // Render simulated step by step chat
+            timeline.innerHTML = "";
+            let idx = 0;
+            
+            function renderNextStep() {
+                if (idx >= swarmData.chat_steps.length) {
+                    // All steps completed, render final text report
+                    document.getElementById("txtSwarmReport").value = swarmData.report_markdown;
+                    return;
+                }
+                
+                const step = swarmData.chat_steps[idx];
+                const bubble = document.createElement("div");
+                bubble.className = `swarm-bubble ${step.agent}`;
+                bubble.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="badge badge-v32">${step.agent}</span>
+                        <span class="text-secondary small text-opacity-50" style="font-size: 0.75rem;">${step.timestamp}</span>
+                    </div>
+                    <p class="text-light small mb-0">${step.message}</p>
+                `;
+                timeline.appendChild(bubble);
+
+                // Auto-scroll
+                const container = document.getElementById("swarmLogContainer");
+                container.scrollTop = container.scrollHeight;
+
+                idx++;
+                setTimeout(renderNextStep, 600);
+            }
+            
+            renderNextStep();
+
+        } catch (err) {
+            console.error("Error running swarm and compiling dossier:", err);
+            timeline.innerHTML = `<div class="text-danger small">Lỗi kết nối máy chủ hoàn thuế.</div>`;
+        }
+    }
+
+    async function exportDossier(format) {
+        const reportText = document.getElementById("txtSwarmReport").value;
+        const mst = document.getElementById("txtRefundMst").value || "0109998887";
+        
+        try {
+            const res = await fetch("/api/reports/vat-refund-eligibility/dossier/export", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    content: reportText,
+                    format: format,
+                    type: "justification",
+                    filename: `Report_VAT_Refund_Defense_${mst}`
+                })
+            });
+            
+            if (!res.ok) {
+                alert("Lỗi xuất hồ sơ giải trình.");
+                return;
+            }
+
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = format === "doc" ? `Report_VAT_Refund_Defense_${mst}.doc` : `Report_VAT_Refund_Defense_${mst}.pdf`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+            
+        } catch (err) {
+            console.error("Export error:", err);
+            alert("Lỗi máy chủ khi xuất hồ sơ.");
+        }
+    }
+
+    function downloadXmlFile() {
+        const xmlContent = document.getElementById("txtGeneratedXml").value;
+        const mst = document.getElementById("txtRefundMst").value || "0109998887";
+        const blob = new Blob([xmlContent], { type: "application/xml;charset=utf-8" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `Form_01_DNHT_${mst}.xml`;
+        link.click();
+    }
+
+    // Helper functions
+    function formatCurrency(val) {
+        return new Intl.NumberFormat('vi-VN').format(val);
+    }
+
+    function copyText(elemId) {
+        const copyText = document.getElementById(elemId);
+        copyText.select();
+        copyText.setSelectionRange(0, 99999);
+        navigator.clipboard.writeText(copyText.value);
+        alert("Đã sao chép nội dung vào Clipboard!");
+    }
+</script>
+{% endblock %}

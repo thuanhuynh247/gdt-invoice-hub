@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+{% block title %}Hazardous Waste Hub (v73){% endblock %}
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
+        <div>
+            <span class="badge bg-success text-white mb-2">Version 73.0.0 Spec Compliance</span>
+            <h1 class="h2 fw-bold text-gradient mb-1 text-success">Hazardous Waste Compliance Hub</h1>
+            <p class="text-muted mb-0">Evaluate licensing charges and disposal fees under Decree 08/2022/NĐ-CP.</p>
+        </div>
+        <div class="d-flex gap-2 mt-3 mt-md-0">
+            <button id="btn-refresh-v73" class="btn btn-success text-white d-flex align-items-center gap-2">
+                <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Load Data
+            </button>
+            <span class="badge bg-success-subtle text-success border border-success d-flex align-items-center px-3">
+                <i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Decree 08/2022
+            </span>
+        </div>
+    </div>
+
+    <!-- Main Panels -->
+    <div class="row g-4">
+        <!-- Interactive Calculator -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1 text-success"><i class="bi bi-calculator text-success me-2" aria-hidden="true"></i>Hazardous Waste Fee Calculator</h5>
+                    <p class="text-muted small mb-0">Determine base licensing and category weight-based disposal costs.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="input-category" class="form-label small mb-1">Waste Category:</label>
+                            <select id="input-category" class="form-select form-select-sm">
+                                <option value="category_a">Category A - Standard (Rate: 2,000 VND/kg)</option>
+                                <option value="category_b">Category B - Hazardous/Clinical (Rate: 5,000 VND/kg)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-weight" class="form-label small mb-1">Disposal Batch Weight (kg):</label>
+                            <input type="number" step="0.1" id="input-weight" class="form-control form-control-sm" value="450" autocomplete="off">
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-check form-switch pt-2">
+                                <input class="form-check-input" type="checkbox" id="input-license" role="switch" checked>
+                                <label class="form-check-label small" for="input-license">Apply for Disposal/Licensing Permit (Base fee: 5,000,000 VND)</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-annual-weight" class="form-label small mb-1">Annual Generated Weight (kg):</label>
+                            <input type="number" step="0.1" id="input-annual-weight" class="form-control form-control-sm" value="1200" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check form-switch pt-4">
+                                <input class="form-check-input" type="checkbox" id="input-research" role="switch">
+                                <label class="form-check-label small" for="input-research">Certified Academic Research Lab</label>
+                            </div>
+                        </div>
+                        
+                        <div class="col-12 text-end">
+                            <button id="btn-calc-waste" class="btn btn-success btn-sm text-white fw-bold">
+                                <i class="bi bi-play-fill me-1" aria-hidden="true"></i> Calculate Waste Fee
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
+                        <h6 class="fw-bold mb-2 text-success"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Calculation Result</h6>
+                        <div class="d-flex justify-content-between small mb-1"><span>Licensing Fee:</span><span id="res-license" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Disposal Fee:</span><span id="res-disposal" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Total Fee:</span><span id="res-final" class="fw-bold text-success fs-6">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Exemption Status:</span><span id="res-exempt-badge" class="fw-bold">-</span></div>
+                        <div class="small text-muted border-top pt-2 mt-2"><strong>Notes:</strong> <span id="res-notes">Awaiting…</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Baseline Verification -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Hazardous Waste Baselines</h5>
+                </div>
+                <div class="card-body d-flex flex-column gap-3">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold small text-dark">Category A (Standard waste batch)</span>
+                            <span class="badge bg-success">Category A</span>
+                        </div>
+                        <p class="small text-muted mb-2">Weight: 450 kg. License application included. Rate: 2,000 VND/kg.</p>
+                        <div class="d-flex justify-content-between small">
+                            <span>Exempt: No</span>
+                            <span>Fee: <strong id="base1-eff" class="text-success">-</strong></span>
+                        </div>
+                    </div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold small text-dark">Category B (Heavy metal/clinical)</span>
+                            <span class="badge bg-success">Category B</span>
+                        </div>
+                        <p class="small text-muted mb-2">Weight: 200 kg. License application included. Rate: 5,000 VND/kg.</p>
+                        <div class="d-flex justify-content-between small">
+                            <span>Exempt: No</span>
+                            <span>Fee: <strong id="base2-eff" class="text-success">-</strong></span>
+                        </div>
+                    </div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold small text-dark">Research Lab Infectious Sample Batch</span>
+                            <span class="badge bg-danger">Lab Exempt</span>
+                        </div>
+                        <p class="small text-muted mb-2">Weight: 100 kg. Exemption: Certified research laboratory waiver.</p>
+                        <div class="d-flex justify-content-between small">
+                            <span>Exempt: Yes</span>
+                            <span>Fee: <strong id="base3-eff" class="text-success">-</strong></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Consensus Debate -->
+        <div class="col-lg-12">
+            <div class="card shadow-sm border-light">
+                <div class="card-header bg-dark text-white py-3 d-flex align-items-center justify-content-between">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-success me-2" aria-hidden="true"></i>Multi-Agent Toxic Waste Management Debate</h5>
+                    <span class="badge bg-secondary">Decree 08/2022/NĐ-CP Consensus</span>
+                </div>
+                <div class="card-body">
+                    <div id="debate-container-v73" class="mb-3 d-flex flex-column gap-3"></div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus:</h6>
+                        <p id="consensus-text-v73" class="text-muted small mb-0">Awaiting…</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Audit Log -->
+        <div class="col-lg-12">
+            <div class="card shadow-sm border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-2">
+                    <h5 class="fw-bold mb-1"><i class="bi bi-clock-history text-muted me-2" aria-hidden="true"></i>Hazardous Waste History Log</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped mb-0 small">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Waste Category</th>
+                                    <th>Weight (kg)</th>
+                                    <th>Permit Applied</th>
+                                    <th>Annual Weight (kg)</th>
+                                    <th>Research Lab</th>
+                                    <th>Licensing Fee</th>
+                                    <th>Disposal Fee</th>
+                                    <th>Total Surcharge</th>
+                                    <th>Status</th>
+                                    <th>Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-table-v73">
+                                <tr><td colspan="11" class="text-center text-muted py-4">No logs available.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const fVND = n => new Intl.NumberFormat("vi-VN").format(Math.round(n)) + " VND";
+    
+    const load = () => {
+        fetch('/api/v73/compliance-data').then(r=>r.json()).then(d=>{
+            if(d.status==="success"){
+                rB(d);
+                rD(d.debate, d.consensus_summary);
+                rH(d.history);
+            }
+        }).catch(e=>console.error(e));
+    };
+    
+    const calc = () => {
+        const p = {
+            waste_category: document.getElementById("input-category").value,
+            weight_kg: parseFloat(document.getElementById("input-weight").value || 0),
+            apply_license: document.getElementById("input-license").checked,
+            annual_weight_kg: parseFloat(document.getElementById("input-annual-weight").value || 0),
+            is_research_lab: document.getElementById("input-research").checked
+        };
+        fetch('/api/v73/calculate', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(p)
+        }).then(r=>r.json()).then(d=>{
+            if(d.status==="success"){
+                rR(d.results);
+                load();
+            } else {
+                alert(d.error);
+            }
+        }).catch(e=>console.error(e));
+    };
+    
+    const rR = r => {
+        document.getElementById("res-license").textContent = fVND(r.license_fee);
+        document.getElementById("res-disposal").textContent = fVND(r.disposal_fee);
+        document.getElementById("res-final").textContent = fVND(r.final_fee);
+        
+        if (r.is_exempt) {
+            document.getElementById("res-exempt-badge").innerHTML = '<span class="badge bg-success">Exempt</span>';
+        } else {
+            document.getElementById("res-exempt-badge").innerHTML = '<span class="badge bg-danger">Payable</span>';
+        }
+        document.getElementById("res-notes").textContent = r.notes || "None";
+    };
+    
+    const rB = d => {
+        document.getElementById("base1-eff").textContent = fVND(d.cat_a_sample.final_fee);
+        document.getElementById("base2-eff").textContent = fVND(d.cat_b_sample.final_fee);
+        document.getElementById("base3-eff").textContent = fVND(d.lab_exempt.final_fee);
+    };
+    
+    const rD = (debate, summary) => {
+        const c = document.getElementById("debate-container-v73");
+        c.innerHTML = "";
+        const cl = {
+            "Hazardous Waste Auditor": "bg-success text-white",
+            "R&D Lab Manager": "bg-warning text-dark",
+            "Small Workshop Owner": "bg-info text-dark"
+        };
+        debate.forEach(m => {
+            const div = document.createElement("div");
+            div.className = "d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";
+            div.innerHTML = `<span class="badge ${cl[m.speaker] || "bg-secondary"} py-2 px-3" style="min-width:220px">${m.speaker}</span><div class="text-dark small">${m.text}</div>`;
+            c.appendChild(div);
+        });
+        document.getElementById("consensus-text-v73").textContent = summary;
+    };
+    
+    const rH = h => {
+        const tb = document.getElementById("history-table-v73");
+        if (!h || !h.length) {
+            tb.innerHTML = '<tr><td colspan="11" class="text-center text-muted py-4">No logs available.</td></tr>';
+            return;
+        }
+        tb.innerHTML = "";
+        h.forEach(l => {
+            const tr = document.createElement("tr");
+            let statusBadge = l.is_exempt ? '<span class="badge bg-success">Exempt</span>' : '<span class="badge bg-danger">Payable</span>';
+            tr.innerHTML = `
+                <td>${l.id}</td>
+                <td class="fw-bold">${l.waste_category}</td>
+                <td>${l.weight_kg.toFixed(1)} kg</td>
+                <td>${l.apply_license ? 'Yes' : 'No'}</td>
+                <td>${l.annual_weight_kg.toFixed(1)} kg</td>
+                <td>${l.is_research_lab ? 'Yes' : 'No'}</td>
+                <td>${fVND(l.license_fee)}</td>
+                <td>${fVND(l.disposal_fee)}</td>
+                <td class="fw-bold text-dark">${fVND(l.final_fee)}</td>
+                <td>${statusBadge}</td>
+                <td class="text-muted">${l.created_at}</td>
+            `;
+            tb.appendChild(tr);
+        });
+    };
+    
+    document.getElementById("btn-calc-waste").addEventListener("click", calc);
+    document.getElementById("btn-refresh-v73").addEventListener("click", load);
+    load();
+});
+</script>
+{% endblock %}

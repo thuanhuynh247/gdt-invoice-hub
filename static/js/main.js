@@ -5,6 +5,39 @@
 
 let sessionWarningShown = false;
 
+// Skeleton screen placeholder generator for data tables
+function getSkeletonRows(columnCount, rowCount = 5) {
+    let rowsHtml = "";
+    for (let r = 0; r < rowCount; r++) {
+        rowsHtml += `<tr>`;
+        for (let c = 0; c < columnCount; c++) {
+            let width = "80%";
+            if (c === 0) width = "50%";
+            else if (c === 1) width = "65%";
+            else if (c === columnCount - 1) width = "40%";
+            
+            let cellClass = "";
+            if (columnCount === 7) {
+                if (c === 2) cellClass = "text-end";
+                else if (c === 6) cellClass = "text-center";
+            } else if (columnCount === 8) {
+                if (c === 2 || c === 4 || c === 5) cellClass = "text-end";
+                else if (c === 3 || c === 7) cellClass = "text-center";
+            } else if (columnCount === 9) {
+                if (c === 4 || c === 5 || c === 6) cellClass = "text-end";
+                else if (c === 7 || c === 8) cellClass = "text-center";
+            }
+            rowsHtml += `
+                <td class="${cellClass}">
+                    <div class="skeleton-loading" style="height: 18px; width: ${width}; display: inline-block;"></div>
+                </td>
+            `;
+        }
+        rowsHtml += `</tr>`;
+    }
+    return rowsHtml;
+}
+
 // 1. Alert Banner Helper
 function renderAlert(message, type = "info") {
     const region = document.getElementById("appAlertRegion");
@@ -1122,18 +1155,28 @@ async function handleInvoiceSearch(event) {
     const cancelledOnly = document.getElementById("cancelledOnly").checked;
     const direction = document.getElementById("invoiceDirection").value;
 
+    const body = document.getElementById("invoiceTableBody");
+    if (body) {
+        body.innerHTML = getSkeletonRows(7, 5);
+    }
+
     try {
         const data = await apiCall(`/api/invoices?from=${from}&to=${to}&cancelled_only=${cancelledOnly}&direction=${direction}`);
-        const body = document.getElementById("invoiceTableBody");
         const count = document.getElementById("resultsCount");
 
-        count.textContent = `Tổng cộng: ${data.total_count} hóa đơn`;
+        if (count) {
+            count.textContent = `Tổng cộng: ${data.total_count} hóa đơn`;
+        }
         if (!data.invoices.length) {
-            body.innerHTML = '<tr><td colspan="7" class="text-center text-secondary py-5"><div class="empty-state"><span class="empty-icon"><i class="bi bi-folder2-open"></i></span><p class="mb-0">Không tìm thấy hóa đơn nào trong khoảng thời gian này.</p></div></td></tr>';
+            if (body) {
+                body.innerHTML = '<tr><td colspan="7" class="text-center text-secondary py-5"><div class="empty-state"><span class="empty-icon"><i class="bi bi-folder2-open"></i></span><p class="mb-0">Không tìm thấy hóa đơn nào trong khoảng thời gian này.</p></div></td></tr>';
+            }
             return;
         }
 
-        body.innerHTML = data.invoices.map(buildInvoiceRow).join("");
+        if (body) {
+            body.innerHTML = data.invoices.map(buildInvoiceRow).join("");
+        }
 
         // Double-click row handler binding
         const rows = body.querySelectorAll("tr");
@@ -1323,7 +1366,7 @@ async function loadPartnersData() {
     const countBadge = document.getElementById("partnersCount");
     if (!tbody) return;
 
-    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Đang tải dữ liệu đối tác...</td></tr>';
+    tbody.innerHTML = getSkeletonRows(7, 5);
 
     try {
         const data = await apiCall(`/api/partners?from=${from}&to=${to}&direction=${direction}`);
@@ -1469,6 +1512,133 @@ async function loadPartnersSummary() {
 }
 
 
+let cachedPivotData = null;
+
+async function loadPartnersPivot() {
+    const year = document.getElementById("pivotYearFilter")?.value || "2026";
+    const metric = document.getElementById("pivotMetricType")?.value || "total_amount";
+    
+    const tbody = document.getElementById("pivotTableBody");
+    const thead = document.getElementById("pivotTableHeader");
+    const tfoot = document.getElementById("pivotTableFooter");
+    
+    if (!tbody) return;
+    
+    tbody.innerHTML = getSkeletonRows(15, 5);
+    if (thead) thead.innerHTML = '';
+    if (tfoot) tfoot.innerHTML = '';
+    
+    try {
+        const res = await apiCall(`/api/invoices/supplier-pivot?year=${year}&value_type=${metric}`);
+        if (!res || !res.success) {
+            throw new Error(res ? res.error : "Không thể lấy dữ liệu pivot");
+        }
+        
+        cachedPivotData = res;
+        renderPivotTable(res);
+    } catch (error) {
+        tbody.innerHTML = `<tr><td colspan="15" class="text-center text-danger py-4">Lỗi: ${error.message}</td></tr>`;
+    }
+}
+
+function renderPivotTable(data) {
+    const thead = document.getElementById("pivotTableHeader");
+    const tbody = document.getElementById("pivotTableBody");
+    const tfoot = document.getElementById("pivotTableFooter");
+    const searchQuery = document.getElementById("pivotSearchInput")?.value.toLowerCase().trim() || "";
+    
+    if (!thead || !tbody || !tfoot) return;
+    
+    const isCount = data.value_type === "invoice_count";
+    
+    // Render Header
+    let headerHtml = `
+        <tr style="background: rgba(255, 255, 255, 0.02);">
+            <th class="sticky-col text-center" style="width: 130px; min-width: 130px;">Mã số thuế</th>
+            <th class="sticky-col-2" style="width: 300px; min-width: 300px;">Tên nhà cung cấp</th>
+    `;
+    data.months.forEach(m => {
+        const displayMonth = m.length === 2 ? `Tháng ${m}` : m;
+        headerHtml += `<th class="text-end">${displayMonth}</th>`;
+    });
+    headerHtml += `
+            <th class="text-end pe-4" style="width: 150px; min-width: 150px;">Tổng cộng</th>
+        </tr>
+    `;
+    thead.innerHTML = headerHtml;
+    
+    // Filter rows
+    let filteredRows = data.rows || [];
+    if (searchQuery) {
+        filteredRows = filteredRows.filter(r => {
+            const mst = (r.seller_mst || "").toLowerCase();
+            const name = (r.seller_name || "").toLowerCase();
+            return mst.includes(searchQuery) || name.includes(searchQuery);
+        });
+    }
+    
+    if (filteredRows.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="${data.months.length + 3}" class="text-center text-secondary py-5">Không tìm thấy nhà cung cấp nào.</td></tr>`;
+        tfoot.innerHTML = "";
+        return;
+    }
+    
+    // Render Body
+    tbody.innerHTML = filteredRows.map(r => {
+        let cellsHtml = `
+            <tr>
+                <td class="sticky-col text-center font-monospace fw-semibold text-secondary" style="background-color: var(--card-bg, #1a1e29);">${r.seller_mst}</td>
+                <td class="sticky-col-2 fw-bold text-dark text-wrap" style="background-color: var(--card-bg, #1a1e29); max-width: 300px;">${r.seller_name}</td>
+        `;
+        data.months.forEach(m => {
+            const val = r.monthly_values[m] || 0;
+            const displayVal = val === 0 ? "-" : (isCount ? val.toLocaleString("vi-VN") : val.toLocaleString("vi-VN") + " ₫");
+            cellsHtml += `<td class="text-end">${displayVal}</td>`;
+        });
+        const totalVal = r.row_total === 0 ? "-" : (isCount ? r.row_total.toLocaleString("vi-VN") : r.row_total.toLocaleString("vi-VN") + " ₫");
+        cellsHtml += `
+                <td class="text-end fw-bold text-primary-accent pe-4">${totalVal}</td>
+            </tr>
+        `;
+        return cellsHtml;
+    }).join("");
+    
+    // Render Footer (Column Totals)
+    let footerTotals = {};
+    data.months.forEach(m => { footerTotals[m] = 0; });
+    let grandTotal = 0;
+    
+    filteredRows.forEach(r => {
+        data.months.forEach(m => {
+            footerTotals[m] += (r.monthly_values[m] || 0);
+        });
+        grandTotal += r.row_total;
+    });
+    
+    let footerHtml = `
+        <tr style="background: rgba(30, 41, 59, 0.6);">
+            <td colspan="2" class="text-center text-primary-accent sticky-col" style="background-color: var(--card-bg, #1a1e29);">TỔNG CỘNG</td>
+    `;
+    data.months.forEach(m => {
+        const val = footerTotals[m];
+        const displayVal = val === 0 ? "-" : (isCount ? val.toLocaleString("vi-VN") : val.toLocaleString("vi-VN") + " ₫");
+        footerHtml += `<td class="text-end text-primary-accent">${displayVal}</td>`;
+    });
+    const grandVal = grandTotal === 0 ? "-" : (isCount ? grandTotal.toLocaleString("vi-VN") : grandTotal.toLocaleString("vi-VN") + " ₫");
+    footerHtml += `
+            <td class="text-end text-primary-accent pe-4">${grandVal}</td>
+        </tr>
+    `;
+    tfoot.innerHTML = footerHtml;
+}
+
+function filterPivotRows() {
+    if (cachedPivotData) {
+        renderPivotTable(cachedPivotData);
+    }
+}
+
+
 // meInvoice-inspired: Load Tax Usage reports dynamically
 async function loadReportsData() {
     let from = "2026-05-01";
@@ -1500,7 +1670,7 @@ async function loadReportsData() {
     const tbody = document.getElementById("reportsTableBody");
     if (!tbody) return;
 
-    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Đang xuất báo cáo thuế...</td></tr>';
+    tbody.innerHTML = getSkeletonRows(7, 4);
 
     try {
         const data = await apiCall(`/api/reports/usage?from=${from}&to=${to}&direction=${direction}`);
@@ -1556,19 +1726,24 @@ document.addEventListener("DOMContentLoaded", () => {
     const partnersTab = document.getElementById("partners-tab");
     partnersTab?.addEventListener("shown.bs.tab", () => {
         const viewModeSummary = document.getElementById("viewModeSummary");
+        const viewModePivot = document.getElementById("viewModePivot");
         if (viewModeSummary && viewModeSummary.checked) {
             loadPartnersSummary();
+        } else if (viewModePivot && viewModePivot.checked) {
+            loadPartnersPivot();
         } else {
             loadPartnersData();
         }
     });
 
-    // Toggle Partners View Modes (Cumulative vs Monthly/Quarterly Aggregated Summary)
+    // Toggle Partners View Modes (Cumulative vs Monthly/Quarterly Aggregated Summary vs Pivot)
     const viewModeAll = document.getElementById("viewModeAll");
     const viewModeSummary = document.getElementById("viewModeSummary");
+    const viewModePivot = document.getElementById("viewModePivot");
     const summaryPeriodSelector = document.getElementById("summaryPeriodSelector");
     const partnersCumulativeContainer = document.getElementById("partnersCumulativeContainer");
     const partnersSummaryContainer = document.getElementById("partnersSummaryContainer");
+    const partnersPivotContainer = document.getElementById("partnersPivotContainer");
     const btnDownloadPartnersPdf = document.getElementById("btnDownloadPartnersPdf");
     const partnersTitleText = document.getElementById("partnersTitleText");
 
@@ -1576,6 +1751,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (viewModeAll?.checked) {
             if (partnersCumulativeContainer) partnersCumulativeContainer.style.setProperty("display", "block", "important");
             if (partnersSummaryContainer) partnersSummaryContainer.style.setProperty("display", "none", "important");
+            if (partnersPivotContainer) partnersPivotContainer.style.setProperty("display", "none", "important");
             if (summaryPeriodSelector) summaryPeriodSelector.style.setProperty("display", "none", "important");
             if (btnDownloadPartnersPdf) btnDownloadPartnersPdf.style.setProperty("display", "block", "important");
             if (partnersTitleText) partnersTitleText.textContent = "Danh Bạ Đối Tác (Mua vào / Bán ra)";
@@ -1583,17 +1759,37 @@ document.addEventListener("DOMContentLoaded", () => {
         } else if (viewModeSummary?.checked) {
             if (partnersCumulativeContainer) partnersCumulativeContainer.style.setProperty("display", "none", "important");
             if (partnersSummaryContainer) partnersSummaryContainer.style.setProperty("display", "block", "important");
+            if (partnersPivotContainer) partnersPivotContainer.style.setProperty("display", "none", "important");
             if (summaryPeriodSelector) summaryPeriodSelector.style.setProperty("display", "flex", "important");
             if (btnDownloadPartnersPdf) btnDownloadPartnersPdf.style.setProperty("display", "none", "important");
             if (partnersTitleText) partnersTitleText.textContent = "Bảng Kê Tổng Hợp Hóa Đơn Đầu Vào";
             loadPartnersSummary();
+        } else if (viewModePivot?.checked) {
+            if (partnersCumulativeContainer) partnersCumulativeContainer.style.setProperty("display", "none", "important");
+            if (partnersSummaryContainer) partnersSummaryContainer.style.setProperty("display", "none", "important");
+            if (partnersPivotContainer) partnersPivotContainer.style.setProperty("display", "block", "important");
+            if (summaryPeriodSelector) summaryPeriodSelector.style.setProperty("display", "none", "important");
+            if (btnDownloadPartnersPdf) btnDownloadPartnersPdf.style.setProperty("display", "none", "important");
+            if (partnersTitleText) partnersTitleText.textContent = "Bảng Tổng Hợp Hóa Đơn Đầu Vào Theo Nhà Cung Cấp (Pivot)";
+            loadPartnersPivot();
         }
     };
 
     viewModeAll?.addEventListener("change", togglePartnerViews);
     viewModeSummary?.addEventListener("change", togglePartnerViews);
+    viewModePivot?.addEventListener("change", togglePartnerViews);
     document.getElementById("summaryPeriodType")?.addEventListener("change", loadPartnersSummary);
     document.getElementById("summaryYear")?.addEventListener("change", loadPartnersSummary);
+
+    // Bind Pivot Table events
+    document.getElementById("pivotYearFilter")?.addEventListener("change", loadPartnersPivot);
+    document.getElementById("pivotMetricType")?.addEventListener("change", loadPartnersPivot);
+    document.getElementById("pivotSearchInput")?.addEventListener("input", filterPivotRows);
+    document.getElementById("btnPivotExport")?.addEventListener("click", () => {
+        const year = document.getElementById("pivotYearFilter")?.value || "2026";
+        const metric = document.getElementById("pivotMetricType")?.value || "total_amount";
+        window.location.href = `/api/invoices/supplier-pivot/export?year=${year}&value_type=${metric}`;
+    });
 
 
     const reportsTab = document.getElementById("reports-tab");
@@ -1915,7 +2111,7 @@ async function loadLocalInvoices() {
     const tbody = document.getElementById("localInvoicesTableBody");
     if (!tbody) return;
 
-    tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Đang tải kho dữ liệu cục bộ...</td></tr>';
+    tbody.innerHTML = getSkeletonRows(9, 5);
 
     try {
         const data = await apiCall("/api/invoices/local");
@@ -2194,6 +2390,20 @@ async function uploadFiles(files) {
     const duplicateStrategy = dupSelect ? dupSelect.value : "overwrite";
     formData.append("duplicate_strategy", duplicateStrategy);
 
+    const dropZone = document.getElementById("dropZone");
+    const originalContent = dropZone ? dropZone.innerHTML : null;
+    
+    if (dropZone) {
+        dropZone.style.pointerEvents = "none";
+        dropZone.innerHTML = `
+            <div class="drop-zone-content animate-pulse">
+                <span class="spinner-border spinner-border-lg text-primary-accent mb-3" role="status" aria-hidden="true" style="width: 2.5rem; height: 2.5rem; border-width: 0.25em;"></span>
+                <p class="mb-1 fw-bold text-light">Đang tải & trích xuất XML...</p>
+                <p class="text-secondary small mb-0">Đang đối soát chữ ký số & thông tin hóa đơn</p>
+            </div>
+        `;
+    }
+
     renderAlert("Đang trích xuất thông tin hóa đơn và chữ ký số...", "info");
 
     try {
@@ -2218,6 +2428,11 @@ async function uploadFiles(files) {
         await loadLocalInvoices();
     } catch (error) {
         renderAlert(error.message, "danger");
+    } finally {
+        if (dropZone && originalContent) {
+            dropZone.style.pointerEvents = "";
+            dropZone.innerHTML = originalContent;
+        }
     }
 }
 
@@ -2233,7 +2448,7 @@ async function handleItemSearch() {
         return;
     }
 
-    tbody.innerHTML = '<tr><td colspan="8" class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Đang tìm kiếm sản phẩm...</td></tr>';
+    tbody.innerHTML = getSkeletonRows(8, 3);
     wrapper.style.display = "block";
 
     try {
@@ -4116,6 +4331,11 @@ async function handleSwitchTaxpayerProfile(mst) {
             if (document.getElementById("vat-refund-content") && document.getElementById("vat-refund-content").classList.contains("show")) {
                 loadVATRefundData();
             }
+            
+            // If Advanced Audit page is active, reload
+            if (typeof refreshAllData === "function") {
+                refreshAllData();
+            }
             renderAlert(`Đã chuyển sang doanh nghiệp: ${mst === "all" ? "Tất cả" : mst}`, "success");
         }
     } catch (error) {
@@ -5065,6 +5285,8 @@ async function triggerAutoReconcileAI() {
 document.addEventListener("DOMContentLoaded", () => {
     initializeBankReconcileEvents();
     setupAgentHarnessEvents();
+    initCitOptimizationSandbox();
+    initGdtComplianceTab();
 });
 
 // ==========================================================================
@@ -5620,6 +5842,15 @@ function setupAgentHarnessEvents() {
                 failEl.textContent = totalFail.toLocaleString();
             }
 
+            const vectorCountEl = document.getElementById("captchaVectorCount");
+            const ocrCountEl = document.getElementById("captchaOcrCount");
+            if (vectorCountEl) {
+                vectorCountEl.textContent = (solverData.vector_solve_count || 0).toLocaleString();
+            }
+            if (ocrCountEl) {
+                ocrCountEl.textContent = (solverData.ocr_solve_count || 0).toLocaleString();
+            }
+
         } catch (error) {
             console.error("Lỗi khi tải trạng thái Sync Health:", error);
             if (crawlerStatusBadge) {
@@ -5656,4 +5887,409 @@ function setupAgentHarnessEvents() {
         });
     }
 }
+
+
+// =========================================================================
+// CIT Scenario Modeler Sandbox (US-375)
+// =========================================================================
+function initCitOptimizationSandbox() {
+    const tabEl = document.getElementById("tax-return-tab");
+    if (!tabEl) return;
+
+    const sliders = [
+        document.getElementById("slideCitPrefRate"),
+        document.getElementById("slideCitExemptYears"),
+        document.getElementById("slideCitReduceYears")
+    ];
+    const checks = [
+        document.getElementById("checkCitReduceLoanInterest"),
+        document.getElementById("checkCitEnforceBankTransfer")
+    ];
+
+    // Listen to changes
+    sliders.forEach(slide => {
+        if (!slide) return;
+        slide.addEventListener("input", (e) => {
+            const id = e.target.id;
+            if (id === "slideCitPrefRate") {
+                document.getElementById("valCitPrefRate").textContent = e.target.value + "%";
+            } else if (id === "slideCitExemptYears") {
+                document.getElementById("valCitExemptYears").textContent = e.target.value + " năm";
+            } else if (id === "slideCitReduceYears") {
+                document.getElementById("valCitReduceYears").textContent = e.target.value + " năm";
+            }
+            updateCitOptimization();
+        });
+    });
+
+    checks.forEach(chk => {
+        if (chk) chk.addEventListener("change", updateCitOptimization);
+    });
+
+    // Load first calculation when tab is clicked
+    tabEl.addEventListener("shown.bs.tab", () => {
+        updateCitOptimization();
+    });
+
+    // Report PDF download
+    document.getElementById("btnExportCitRecommendation")?.addEventListener("click", () => {
+        alert("Báo cáo Khuyến nghị Tối ưu thuế TNDN đang được xuất... Vui lòng kiểm tra file tải về.");
+    });
+}
+
+async function updateCitOptimization() {
+    const prefRate = parseFloat(document.getElementById("slideCitPrefRate")?.value || 20) / 100;
+    const exemptYears = parseInt(document.getElementById("slideCitExemptYears")?.value || 0);
+    const reduceYears = parseInt(document.getElementById("slideCitReduceYears")?.value || 0);
+    const reduceInterest = document.getElementById("checkCitReduceLoanInterest")?.checked || false;
+    const enforceBank = document.getElementById("checkCitEnforceBankTransfer")?.checked || false;
+
+    const payload = {
+        scenarios: [
+            {
+                name: "Mô phỏng tùy chỉnh",
+                preferential_rate: prefRate,
+                holiday_exempt_years: exemptYears,
+                holiday_reduce_years: reduceYears,
+                reduce_loan_interest: reduceInterest,
+                enforce_bank_transfer: enforceBank
+            }
+        ]
+    };
+
+    try {
+        const response = await fetch("/api/compliance/tax-optimization", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+        if (data.error) throw new Error(data.error);
+
+        const baselineVal = data.baseline?.cit_liability || 0;
+        const simVal = data.scenarios?.[0]?.cit_liability || 0;
+        const savingsVal = data.scenarios?.[0]?.tax_savings || 0;
+
+        document.getElementById("citBaselineValue").textContent = formatVatCurrency(baselineVal);
+        document.getElementById("citSimulatedValue").textContent = formatVatCurrency(simVal);
+        document.getElementById("citTaxSavingsText").textContent = formatVatCurrency(savingsVal);
+
+        renderCitChart(baselineVal, simVal);
+    } catch (err) {
+        console.error("Lỗi khi tối ưu hóa thuế TNDN:", err);
+    }
+}
+
+function renderCitChart(baseline, simulated) {
+    const svg = document.getElementById("citComparisonChart");
+    if (!svg) return;
+    
+    const maxVal = Math.max(baseline, simulated, 1000000);
+    const width = svg.clientWidth || 300;
+    const height = svg.clientHeight || 180;
+    const padding = { top: 25, right: 30, bottom: 30, left: 65 };
+    
+    const chartWidth = width - padding.left - padding.right;
+    const chartHeight = height - padding.top - padding.bottom;
+    
+    const getBarHeight = (val) => (val / maxVal) * chartHeight;
+    
+    const hBase = getBarHeight(baseline);
+    const hSim = getBarHeight(simulated);
+    
+    const xBase = padding.left + chartWidth * 0.25;
+    const xSim = padding.left + chartWidth * 0.65;
+    const barWidth = Math.min(chartWidth * 0.2, 50);
+    
+    let html = `
+        <defs>
+            <linearGradient id="baselineGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="rgba(239, 68, 68, 0.8)"/>
+                <stop offset="100%" stop-color="rgba(239, 68, 68, 0.2)"/>
+            </linearGradient>
+            <linearGradient id="simulatedGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="rgba(0, 242, 254, 0.8)"/>
+                <stop offset="100%" stop-color="rgba(0, 242, 254, 0.2)"/>
+            </linearGradient>
+        </defs>
+        
+        <line x1="${padding.left}" y1="${padding.top}" x2="${width - padding.right}" y2="${padding.top}" stroke="rgba(255,255,255,0.05)" stroke-dasharray="3,3" />
+        <line x1="${padding.left}" y1="${padding.top + chartHeight / 2}" x2="${width - padding.right}" y2="${padding.top + chartHeight / 2}" stroke="rgba(255,255,255,0.05)" stroke-dasharray="3,3" />
+        <line x1="${padding.left}" y1="${padding.top + chartHeight}" x2="${width - padding.right}" y2="${padding.top + chartHeight}" stroke="rgba(255,255,255,0.1)" />
+        
+        <rect x="${xBase - barWidth / 2}" y="${padding.top + chartHeight - hBase}" width="${barWidth}" height="${hBase}" rx="4" fill="url(#baselineGrad)" stroke="rgba(239, 68, 68, 0.5)" stroke-width="1.5">
+            <animate attributeName="height" from="0" to="${hBase}" dur="0.8s" fill="freeze" />
+            <animate attributeName="y" from="${padding.top + chartHeight}" to="${padding.top + chartHeight - hBase}" dur="0.8s" fill="freeze" />
+        </rect>
+        
+        <rect x="${xSim - barWidth / 2}" y="${padding.top + chartHeight - hSim}" width="${barWidth}" height="${hSim}" rx="4" fill="url(#simulatedGrad)" stroke="rgba(0, 242, 254, 0.5)" stroke-width="1.5">
+            <animate attributeName="height" from="0" to="${hSim}" dur="0.8s" fill="freeze" />
+            <animate attributeName="y" from="${padding.top + chartHeight}" to="${padding.top + chartHeight - hSim}" dur="0.8s" fill="freeze" />
+        </rect>
+        
+        <text x="${xBase}" y="${padding.top + chartHeight - hBase - 8}" text-anchor="middle" fill="#ef4444" font-size="10" font-weight="bold">${new Intl.NumberFormat('vi-VN', {notation: 'compact'}).format(baseline)}</text>
+        <text x="${xSim}" y="${padding.top + chartHeight - hSim - 8}" text-anchor="middle" fill="#00f2fe" font-size="10" font-weight="bold">${new Intl.NumberFormat('vi-VN', {notation: 'compact'}).format(simulated)}</text>
+        
+        <text x="${xBase}" y="${height - 10}" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="11">Cơ sở</text>
+        <text x="${xSim}" y="${height - 10}" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="11">Tối ưu</text>
+    `;
+    svg.innerHTML = html;
+}
+
+// =========================================================================
+// GDT Compliance & Decree 123 E-Invoice Corrections (US-371, US-372, US-373)
+// =========================================================================
+function initGdtComplianceTab() {
+    const tabEl = document.getElementById("compliance-tab");
+    if (!tabEl) return;
+
+    tabEl.addEventListener("shown.bs.tab", () => {
+        loadGdtComplianceData();
+    });
+
+    // Manual online GDT sync
+    document.getElementById("btnSyncGdtStatus")?.addEventListener("click", async () => {
+        const btn = document.getElementById("btnSyncGdtStatus");
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang đồng bộ...';
+
+        try {
+            const response = await fetch("/api/compliance/gdt-sync", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" }
+            });
+            const data = await response.json();
+            if (data.error) throw new Error(data.error);
+
+            renderAlert("Đồng bộ trạng thái hóa đơn Tổng cục Thuế thành công!", "success");
+            loadGdtComplianceData();
+        } catch (err) {
+            renderAlert(`Lỗi đồng bộ GDT: ${err.message}`, "danger");
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    });
+
+    // Decree 123 Correction / Replacement XML Form submit handler
+    const formCorr = document.getElementById("correctionXmlForm");
+    formCorr?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById("btnGenerateCorrectionXml");
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang tạo XML...';
+
+        const originalInvoiceId = document.getElementById("selectOriginalInvoice").value;
+        const typeChange = document.getElementById("selectCorrectionType").value;
+        const buyerMst = document.getElementById("inputCorrectionBuyerMst").value.trim();
+        const buyerName = document.getElementById("inputCorrectionBuyerName").value.trim();
+        const amount = document.getElementById("inputCorrectionAmount").value;
+        const taxAmount = document.getElementById("inputCorrectionTaxAmount").value;
+        const reason = document.getElementById("inputCorrectionReason").value.trim();
+
+        const payload = {
+            original_invoice_id: originalInvoiceId,
+            type_change: typeChange,
+            new_data: {
+                buyer_mst: buyerMst || null,
+                buyer_name: buyerName || null,
+                total_amount: amount ? parseFloat(amount) : null,
+                tax_amount: taxAmount ? parseFloat(taxAmount) : null,
+                reason: reason
+            }
+        };
+
+        try {
+            const response = await fetch("/api/compliance/generate-correction-xml", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+            const data = await response.json();
+            if (!response.ok || data.error) throw new Error(data.error || "Cannot generate XML");
+
+            // Display results
+            const panel = document.getElementById("correctionResultPanel");
+            panel.classList.remove("d-none");
+            
+            const link = document.getElementById("linkDownloadCorrectionXml");
+            link.href = "data:text/xml;charset=utf-8," + encodeURIComponent(data.xml);
+            link.download = data.filename;
+
+            document.getElementById("textCorrectionXmlPreview").textContent = data.xml;
+            renderAlert("Đã sinh và ký số XML thành công!", "success");
+        } catch (err) {
+            renderAlert(`Lỗi tạo XML: ${err.message}`, "danger");
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    });
+
+    // Form 04/SS submit handler
+    const form04 = document.getElementById("transmitForm04ssForm");
+    form04?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById("btnTransmitForm04ss");
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang truyền...';
+
+        const taxpayerMst = document.getElementById("inputForm04TaxpayerMst").value.trim();
+        const companyName = document.getElementById("inputForm04TaxpayerName").value.trim();
+        
+        // Gather selected bad invoices
+        const badInvoices = [];
+        document.querySelectorAll(".bad-invoice-check:checked").forEach(chk => {
+            badInvoices.push({
+                id: chk.getAttribute("data-id"),
+                number: chk.getAttribute("data-number"),
+                date: chk.getAttribute("data-date"),
+                reason: "Hủy bỏ/Sai sót thông tin hóa đơn gốc"
+            });
+        });
+
+        if (badInvoices.length === 0) {
+            renderAlert("Vui lòng chọn ít nhất một hóa đơn có sai sót để gửi tờ khai 04/SS.", "warning");
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            return;
+        }
+
+        const payload = {
+            taxpayer_mst: taxpayerMst,
+            company_name: companyName,
+            bad_invoices: badInvoices
+        };
+
+        try {
+            const response = await fetch("/api/compliance/transmit-form-04ss", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+            const data = await response.json();
+            if (!response.ok || data.error) throw new Error(data.error || "Cannot transmit Form 04/SS");
+
+            // Display results
+            const panel = document.getElementById("form04ResultPanel");
+            panel.classList.remove("d-none");
+
+            const tr = data.transmission_result || {};
+            document.getElementById("badgeForm04Status").textContent = (tr.status_code || "200") + " OK";
+            document.getElementById("textForm04GdtTxnId").textContent = tr.transaction_id || "GDT-TXN-SUCCESS";
+            document.getElementById("textForm04GdtTimestamp").textContent = new Date(tr.received_at || Date.now()).toLocaleString("vi-VN");
+
+            const link = document.getElementById("linkDownloadForm04Xml");
+            link.href = "data:text/xml;charset=utf-8," + encodeURIComponent(data.signed_xml);
+            link.download = `form_04ss_${taxpayerMst}.xml`;
+
+            document.getElementById("textForm04XmlPreview").textContent = data.signed_xml;
+            renderAlert("Đã gửi thông báo sai sót Form 04/SS sang GDT Gateway thành công!", "success");
+        } catch (err) {
+            renderAlert(`Lỗi truyền Form 04/SS: ${err.message}`, "danger");
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    });
+}
+
+async function loadGdtComplianceData() {
+    const tbody = document.getElementById("gdtComplianceTableBody");
+    if (!tbody) return;
+
+    try {
+        const response = await fetch("/api/compliance/gdt-status");
+        const data = await response.json();
+        if (data.error) throw new Error(data.error);
+
+        const invoices = data.invoices || [];
+        if (invoices.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-secondary">Không tìm thấy hóa đơn nào trong hệ thống.</td></tr>';
+            document.getElementById("selectOriginalInvoice").innerHTML = '<option value="">-- Không có hóa đơn gốc --</option>';
+            document.getElementById("badInvoicesCheckboxList").innerHTML = '<div class="text-secondary small text-center py-3">Không có hóa đơn lỗi nào cần báo cáo.</div>';
+            return;
+        }
+
+        // Render Table Body
+        tbody.innerHTML = invoices.map(inv => {
+            const dateStr = new Date(inv.date).toLocaleDateString("vi-VN");
+            
+            // Signature badge
+            const sigBadge = inv.has_signature 
+                ? '<span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-20"><i class="bi bi-patch-check"></i> Hợp lệ</span>'
+                : '<span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-20"><i class="bi bi-patch-exclamation"></i> Thiếu</span>';
+
+            // GDT status badge
+            let statusBadge = '';
+            if (inv.invoice_status === "approved" || inv.invoice_status === "verified") {
+                statusBadge = '<span class="badge bg-success"><i class="bi bi-check-all"></i> GDT Approved</span>';
+            } else if (inv.invoice_status === "rejected") {
+                statusBadge = '<span class="badge bg-danger"><i class="bi bi-x-circle"></i> GDT Rejected</span>';
+            } else {
+                statusBadge = '<span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split"></i> Pending</span>';
+            }
+
+            return `
+                <tr>
+                    <td class="fw-bold">${inv.number}</td>
+                    <td>${dateStr}</td>
+                    <td style="font-size: 0.8rem;">
+                        <div class="fw-semibold text-white">${inv.seller_name}</div>
+                        <div class="text-secondary">${inv.seller_mst}</div>
+                    </td>
+                    <td>${sigBadge}</td>
+                    <td>${statusBadge}</td>
+                    <td class="text-center">
+                        <button type="button" class="btn btn-xs btn-outline-primary py-1 px-2 select-for-action-btn" data-invoice-id="${inv.id}" data-number="${inv.number}" data-seller-mst="${inv.seller_mst}" data-seller-name="${inv.seller_name}" data-total-amount="${inv.total_amount}" style="font-size: 0.75rem;">
+                            Sửa đổi
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join("");
+
+        // Attach action buttons event listeners
+        document.querySelectorAll(".select-for-action-btn").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const id = btn.getAttribute("data-invoice-id");
+                const select = document.getElementById("selectOriginalInvoice");
+                select.value = id;
+                // Pre-populate details
+                document.getElementById("inputCorrectionBuyerMst").value = btn.getAttribute("data-seller-mst");
+                document.getElementById("inputCorrectionBuyerName").value = btn.getAttribute("data-seller-name");
+                document.getElementById("inputCorrectionAmount").value = btn.getAttribute("data-total-amount");
+                document.getElementById("inputCorrectionTaxAmount").value = Math.round(parseFloat(btn.getAttribute("data-total-amount")) * 0.1);
+                document.getElementById("inputCorrectionReason").value = `Sửa đổi/Thay thế hóa đơn số ${btn.getAttribute("data-number")} do sai sót thông tin.`;
+                
+                // Scroll to form
+                document.getElementById("correctionXmlForm").scrollIntoView({ behavior: "smooth" });
+            });
+        });
+
+        // Populate Correction original invoice dropdown
+        const select = document.getElementById("selectOriginalInvoice");
+        select.innerHTML = '<option value="">-- Chọn hóa đơn sai sót --</option>' + 
+            invoices.map(inv => `<option value="${inv.id}">HĐ Số ${inv.number} - ${inv.seller_name} (${formatVatCurrency(inv.total_amount)})</option>`).join("");
+
+        // Populate Bad invoices checkbox list
+        const badList = document.getElementById("badInvoicesCheckboxList");
+        badList.innerHTML = invoices.map(inv => `
+            <div class="form-check mb-2">
+                <input class="form-check-input bad-invoice-check" type="checkbox" id="badCheck-${inv.id}" data-id="${inv.id}" data-number="${inv.number}" data-date="${inv.date}" style="cursor: pointer;">
+                <label class="form-check-label small text-secondary" for="badCheck-${inv.id}">
+                    HĐ ${inv.number} - ${inv.seller_name} (${formatVatCurrency(inv.total_amount)}) [${inv.invoice_status}]
+                </label>
+            </div>
+        `).join("");
+
+    } catch (err) {
+        console.error("Lỗi khi tải dữ liệu đối soát GDT:", err);
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">Lỗi: ${err.message}</td></tr>`;
+    }
+}
+
 

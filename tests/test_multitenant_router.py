@@ -139,7 +139,7 @@ class TestEncryptedBackup:
         assert decrypted == original_data
 
     def test_wrong_key_fails_decryption(self, tenant_dir):
-        """Decryption with wrong key should NOT produce original content."""
+        """Decryption with wrong key should NOT produce original content or should raise an error."""
         test_file = os.path.join(tenant_dir, "test_secret.db")
         original_data = b"Highly confidential invoice data"
         with open(test_file, "wb") as f:
@@ -149,8 +149,12 @@ class TestEncryptedBackup:
         wrong_key = b"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 
         encrypted = encrypt_file_aes256(test_file, correct_key)
-        decrypted_wrong = decrypt_file_aes256(encrypted, wrong_key)
-        assert decrypted_wrong != original_data
+        try:
+            decrypted_wrong = decrypt_file_aes256(encrypted, wrong_key)
+            assert decrypted_wrong != original_data
+        except (ValueError, RuntimeError):
+            # Correct behaviour: wrong key fails decryption or unpadding under AES
+            pass
 
     def test_create_encrypted_backup(self, tenant_dir):
         """Full backup pipeline: bootstrap → encrypt → verify file exists."""
@@ -238,10 +242,13 @@ class TestTenantSQLAlchemyRouting:
         from invoices.multitenant_service import get_tenant_db_path
         import os
 
-        mst = "777888999"
+        mst = f"777888999_{os.getpid()}"
         db_path = get_tenant_db_path(mst).replace('\\', '/')
         if os.path.exists(db_path):
-            os.unlink(db_path)
+            try:
+                os.unlink(db_path)
+            except Exception:
+                pass
 
         # 1. Run in main app context with no tax_code in session (default db)
         with app.test_request_context():

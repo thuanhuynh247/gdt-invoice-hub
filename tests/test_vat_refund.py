@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from datetime import datetime
 from extensions import db
-from invoices.models import Invoice, LineItem, AIAuditResult, TaxpayerProfile
+from invoices.models import Invoice, LineItem, AIAuditResult, TaxpayerProfile, BankTransaction
 
 
 def _seed_refund_test_data(app):
@@ -15,6 +15,7 @@ def _seed_refund_test_data(app):
         LineItem.query.delete()
         Invoice.query.delete()
         TaxpayerProfile.query.delete()
+        BankTransaction.query.delete()
         db.session.commit()
 
         # 1. Create Taxpayer Profile
@@ -154,6 +155,21 @@ def _seed_refund_test_data(app):
         db.session.add_all([pur_valid, pur_low_t, pur_cash])
         db.session.commit()
 
+        # Seed matching bank transaction for PUR-VAL-01 to satisfy Rule 5b (non-cash bank payment matching)
+        tx_match = BankTransaction(
+            id="TX-VAL-01",
+            taxpayer_mst="0109998887",
+            bank_name="Vietcombank",
+            transaction_date="2026-05-13",
+            description="THANH TOAN TIEN MUA XANG DAU THEO HD 2001",
+            amount=-3520000000.0,
+            status="matched",
+            matched_invoice_id="PUR-VAL-01",
+            imported_at=datetime.now().isoformat()
+        )
+        db.session.add(tx_match)
+        db.session.commit()
+
 
 def test_vat_refund_eligibility_calculations(app):
     """Verify refund eligibility engine metrics, exclusions, and rates."""
@@ -257,3 +273,76 @@ def test_api_export_vat_refund_dossier_endpoint(logged_in_client):
     )
     assert response_pdf.status_code == 200
     assert response_pdf.mimetype == "application/pdf"
+
+
+def test_api_audit_vat_refund_eligibility_with_customs(logged_in_client, app):
+    """Verify POST /api/audit/vat-refund-eligibility endpoint works with custom input_invoice_ids and customs_declarations."""
+    _seed_refund_test_data(app)
+
+    customs_declarations = [
+        {
+            "declaration_number": "HQ-2026-001",
+            "product_description": "Phan mem xuat khau",
+            "quantity": 1,
+            "customs_value_vnd": 200000000.0
+        },
+        {
+            "declaration_number": "HQ-2026-002",
+            "product_description": "Unmatched Product",
+            "quantity": 5,
+            "customs_value_vnd": 150000000.0
+        }
+    ]
+
+    response = logged_in_client.post(
+        "/api/audit/vat-refund-eligibility",
+        json={
+            "mst": "0109998887",
+            "input_invoice_ids": ["PUR-VAL-01"],
+            "customs_declarations": customs_declarations
+        }
+    )
+    assert response.status_code == 200
+    payload = response.get_json()
+    assert payload["mst"] == "0109998887"
+    assert payload["is_eligible"] is True
+    
+    # Verify customs reconciliation list
+    recon = payload["customs_export_reconciliation"]
+    assert len(recon) == 2
+    
+    # First one should be matched
+    assert recon[0]["declaration_number"] == "HQ-2026-001"
+    assert recon[0]["match_status"] == "Fully Matched"
+    assert recon[0]["invoice_number"] == "1002"
+    
+    # Second one should be unmatched
+    assert recon[1]["declaration_number"] == "HQ-2026-002"
+    assert recon[1]["match_status"] == "Unmatched"
+    assert recon[1]["invoice_number"] is None
+
+
+def test_api_audit_export_refund_xml_endpoint(logged_in_client, app):
+    """Verify POST /api/audit/export-refund-xml endpoint returns valid XML structure."""
+    _seed_refund_test_data(app)
+
+    response = logged_in_client.post(
+        "/api/audit/export-refund-xml",
+        json={
+            "mst": "0109998887",
+            "eligible_invoice_ids": ["PUR-VAL-01"],
+            "bank_account": "123456789",
+            "bank_name": "Vietcombank",
+            "reason_type": "export"
+        }
+    )
+    assert response.status_code == 200
+    assert response.mimetype == "application/xml"
+    
+    xml_data = response.data.decode("utf-8")
+    assert "<MaTKhai>01_DNHT</MaTKhai>" in xml_data
+    assert "<Mst>0109998887</Mst>" in xml_data
+    assert "<TaiKhoanNhanHoan>123456789</TaiKhoanNhanHoan>" in xml_data
+    assert "<TenNganHangNhanHoan>Vietcombank</TenNganHangNhanHoan>" in xml_data
+    assert "<VATAmount>320000000.00</VATAmount>" in xml_data
+

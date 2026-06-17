@@ -158,3 +158,97 @@ def test_harness_page_success(logged_in_client):
     response = logged_in_client.get("/harness")
     assert response.status_code == 200
     assert b"Harness Control Center" in response.data
+
+
+def test_harness_risk_evaluate(logged_in_client):
+    """Test the risk evaluation API endpoint."""
+    payload = {"text": "Implement secure auth with database schema changes using sqlite migrate and payment api"}
+    response = logged_in_client.post(
+        "/api/harness/risk/evaluate",
+        data=json.dumps(payload),
+        content_type="application/json"
+    )
+    assert response.status_code == 200
+    data = response.get_json()
+    assert "suggested_lane" in data
+    assert data["suggested_lane"] == "high_risk"
+    assert "auth" in data["flags_found"]
+    assert "data_model" in data["flags_found"]
+
+
+def test_harness_db_stats(logged_in_client):
+    """Test retrieving database statistics."""
+    response = logged_in_client.get("/api/harness/db/stats")
+    assert response.status_code == 200
+    data = response.get_json()
+    assert "file_name" in data
+    assert "size_mb" in data
+    assert "table_counts" in data
+    assert "story" in data["table_counts"]
+
+
+def test_harness_db_backup(logged_in_client):
+    """Test database backup endpoint."""
+    response = logged_in_client.post("/api/harness/db/backup")
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["success"] is True
+    assert "backup_file" in data
+
+
+def test_harness_db_download(logged_in_client):
+    """Test downloading the harness DB."""
+    response = logged_in_client.get("/api/harness/db/download")
+    assert response.status_code == 200
+    assert response.headers["Content-Disposition"].startswith("attachment")
+
+
+def test_harness_validate_stream(logged_in_client):
+    """Test validation output SSE stream."""
+    response = logged_in_client.get("/api/harness/validate/stream")
+    assert response.status_code == 200
+    assert "text/event-stream" in response.headers["Content-Type"]
+
+
+def test_harness_plugins_list(logged_in_client):
+    """Test retrieving list of plugins."""
+    response = logged_in_client.get("/api/harness/plugins")
+    assert response.status_code == 200
+    data = response.get_json()
+    assert "plugins" in data
+    assert isinstance(data["plugins"], list)
+
+
+def test_harness_plugins_install_missing_url(logged_in_client):
+    """Test installing plugin without URL."""
+    response = logged_in_client.get("/api/harness/plugins/install")
+    assert response.status_code == 400
+
+
+def test_harness_plugins_install_stream(logged_in_client):
+    """Test plugin install SSE stream."""
+    response = logged_in_client.get("/api/harness/plugins/install?repo_url=https://github.com/DietrichGebert/ponytail")
+    assert response.status_code == 200
+    assert "text/event-stream" in response.headers["Content-Type"]
+
+
+def test_harness_plugins_ponytail_debt(logged_in_client):
+    """Test retrieving ponytail technical debt comments."""
+    response = logged_in_client.get("/api/harness/plugins/ponytail/debt")
+    assert response.status_code == 200
+    data = response.get_json()
+    assert "debt" in data
+    assert isinstance(data["debt"], list)
+
+
+def test_harness_plugins_ponytail_audit(logged_in_client):
+    """Test running the ponytail over-engineering audit."""
+    response = logged_in_client.get("/api/harness/plugins/ponytail/audit")
+    assert response.status_code == 200
+    data = response.get_json()
+    assert "score" in data
+    assert "findings" in data
+    assert "total_files_scanned" in data
+    assert "total_lines_scanned" in data
+    assert isinstance(data["findings"], list)
+

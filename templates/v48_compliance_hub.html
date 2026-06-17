@@ -1,0 +1,329 @@
+{% extends "base.html" %}
+
+{% block title %}VAT Law 149/2025 Amendments - Revenue Threshold & Agri-Product Engine (v48){% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header Area -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
+        <div>
+            <span class="badge bg-info mb-2">Version 48.0.0 Spec Compliance</span>
+            <h1 class="h2 fw-bold text-gradient mb-1">VAT Amendments Compliance Hub</h1>
+            <p class="text-muted mb-0">Revenue Threshold Reclassifier (200M→500M), Agricultural Product Exemption Updater, and Waste/Scrap Rate Engine per Luật 149/2025/QH15.</p>
+        </div>
+        <div class="d-flex gap-2 mt-3 mt-md-0">
+            <button id="btn-refresh-v48" class="btn btn-info text-white d-flex align-items-center gap-2">
+                <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Load Compliance Data
+            </button>
+            <span class="badge bg-info-subtle text-info border border-info d-flex align-items-center px-3">
+                <i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Law 149/2025/QH15
+            </span>
+        </div>
+    </div>
+
+    <!-- Bento Grid Layout -->
+    <div class="row g-4">
+        <!-- Pillar 1: Revenue Threshold Checker -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1"><i class="bi bi-graph-up-arrow text-info me-2" aria-hidden="true"></i>Revenue Threshold Reclassifier</h5>
+                    <p class="text-muted small mb-0">Check if a household/individual business is reclassified under the new 500M VND/year threshold (up from 200M).</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="input-biz-name" class="form-label small mb-1">Business Name:</label>
+                            <input type="text" id="input-biz-name" class="form-control form-control-sm" value="Quán Phở Bình" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-annual-rev" class="form-label small mb-1">Annual Revenue (VND):</label>
+                            <input type="number" id="input-annual-rev" class="form-control form-control-sm" value="350000000" autocomplete="off">
+                        </div>
+                        <div class="col-12 text-end">
+                            <button id="btn-check-threshold" class="btn btn-info btn-sm text-white">
+                                <i class="bi bi-bar-chart-steps me-1" aria-hidden="true"></i> Evaluate Threshold
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
+                        <h6 class="fw-bold mb-2 text-info"><i class="bi bi-arrow-left-right me-2" aria-hidden="true"></i>Threshold Comparison</h6>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Old Status (200M):</span>
+                            <span id="res-old-status" class="badge bg-secondary">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>New Status (500M):</span>
+                            <span id="res-new-status" class="badge bg-secondary">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Status Changed:</span>
+                            <span id="res-status-changed" class="badge bg-secondary">-</span>
+                        </div>
+                        <div class="small text-muted border-top pt-2">
+                            <strong>PIT Impact:</strong> <span id="res-pit-impact">Awaiting evaluation…</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pillar 2a: Agricultural Product Classifier -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1"><i class="bi bi-tree-fill text-success me-2" aria-hidden="true"></i>Agricultural Product VAT Classifier</h5>
+                    <p class="text-muted small mb-0">Check if unprocessed agricultural products between enterprises/cooperatives qualify for new "no declaration" treatment with preserved input credits.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label for="input-agri-desc" class="form-label small mb-1">Product Description:</label>
+                            <input type="text" id="input-agri-desc" class="form-control form-control-sm" value="Lúa gạo chưa chế biến" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="select-seller-type" class="form-label small mb-1">Seller Type:</label>
+                            <select id="select-seller-type" class="form-select form-select-sm">
+                                <option value="doanh nghiệp" selected>Doanh nghiệp (Enterprise)</option>
+                                <option value="hợp tác xã">Hợp tác xã (Cooperative)</option>
+                                <option value="cá nhân">Cá nhân (Individual)</option>
+                                <option value="hộ kinh doanh">Hộ kinh doanh (Household)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="select-buyer-type" class="form-label small mb-1">Buyer Type:</label>
+                            <select id="select-buyer-type" class="form-select form-select-sm">
+                                <option value="hợp tác xã" selected>Hợp tác xã (Cooperative)</option>
+                                <option value="doanh nghiệp">Doanh nghiệp (Enterprise)</option>
+                                <option value="cá nhân">Cá nhân (Individual)</option>
+                                <option value="hộ kinh doanh">Hộ kinh doanh (Household)</option>
+                            </select>
+                        </div>
+                        <div class="col-12 text-end">
+                            <button id="btn-classify-agri" class="btn btn-success btn-sm">
+                                <i class="bi bi-search me-1" aria-hidden="true"></i> Classify Product
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
+                        <h6 class="fw-bold mb-2 text-success"><i class="bi bi-patch-check me-2" aria-hidden="true"></i>Classification Result</h6>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Old Treatment:</span>
+                            <span id="res-agri-old" class="badge bg-secondary">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>New Treatment:</span>
+                            <span id="res-agri-new" class="badge bg-secondary">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Input Credit Deductible:</span>
+                            <span id="res-agri-credit" class="badge bg-secondary">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pillar 2b: Waste/Scrap Rate Engine -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1"><i class="bi bi-recycle text-warning me-2" aria-hidden="true"></i>Waste/Scrap VAT Rate Engine</h5>
+                    <p class="text-muted small mb-0">Compare old vs. new VAT rate treatment for waste, by-products, and scrap per Article 9.5 amendment.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="input-waste-desc" class="form-label small mb-1">Waste/Scrap Item:</label>
+                            <input type="text" id="input-waste-desc" class="form-control form-control-sm" value="Vỏ bào gỗ phế liệu" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-source-product" class="form-label small mb-1">Source Product:</label>
+                            <input type="text" id="input-source-product" class="form-control form-control-sm" value="Nội thất gỗ cao cấp" autocomplete="off">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="input-waste-rate" class="form-label small mb-1">Waste Rate (%):</label>
+                            <input type="number" id="input-waste-rate" class="form-control form-control-sm" value="5" step="0.5" autocomplete="off">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="input-source-rate" class="form-label small mb-1">Source Rate (%):</label>
+                            <input type="number" id="input-source-rate" class="form-control form-control-sm" value="10" step="0.5" autocomplete="off">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="input-waste-amount" class="form-label small mb-1">Amount (VND):</label>
+                            <input type="number" id="input-waste-amount" class="form-control form-control-sm" value="100000000" autocomplete="off">
+                        </div>
+                        <div class="col-12 text-end">
+                            <button id="btn-compute-waste" class="btn btn-warning btn-sm text-dark">
+                                <i class="bi bi-calculator me-1" aria-hidden="true"></i> Compute Rate
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
+                        <h6 class="fw-bold mb-2 text-warning"><i class="bi bi-arrow-repeat me-2" aria-hidden="true"></i>Rate Comparison</h6>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Old VAT (source rate):</span>
+                            <span id="res-waste-old-vat" class="fw-bold">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>New VAT (waste rate):</span>
+                            <span id="res-waste-new-vat" class="fw-bold text-success">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Rate Changed:</span>
+                            <span id="res-waste-changed" class="badge bg-secondary">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Swarm Advisory Debate Panel -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-obsidian text-snow py-3 d-flex align-items-center justify-content-between">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-info me-2" aria-hidden="true"></i>Multi-Agent Advisory Board Debate</h5>
+                    <span class="badge bg-secondary border border-secondary">Consensus Simulator</span>
+                </div>
+                <div class="card-body">
+                    <div id="debate-container-v48" class="mb-3 d-flex flex-column gap-3">
+                    </div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus Summary Statement:</h6>
+                        <p id="consensus-text-v48" class="text-muted small mb-0">Awaiting simulation data execution…</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const formatVND = (n) => new Intl.NumberFormat("vi-VN").format(n) + " VND";
+
+    const loadData = () => {
+        fetch('/api/v48/compliance-data')
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "success") {
+                    renderThreshold(data.threshold_audit);
+                    renderAgri(data.agri_classification);
+                    renderWaste(data.waste_scrap);
+                    renderDebate(data.debate, data.consensus_summary);
+                }
+            })
+            .catch(err => console.error("Error loading v48 data:", err));
+    };
+
+    const checkThreshold = () => {
+        fetch('/api/v48/threshold/evaluate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                business_name: document.getElementById("input-biz-name").value,
+                annual_revenue: parseFloat(document.getElementById("input-annual-rev").value)
+            })
+        })
+        .then(res => res.json())
+        .then(data => { if (data.status === "success") renderThreshold(data.results); })
+        .catch(err => console.error("Threshold error:", err));
+    };
+
+    const classifyAgri = () => {
+        fetch('/api/v48/agri/classify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                product_description: document.getElementById("input-agri-desc").value,
+                seller_type: document.getElementById("select-seller-type").value,
+                buyer_type: document.getElementById("select-buyer-type").value
+            })
+        })
+        .then(res => res.json())
+        .then(data => { if (data.status === "success") renderAgri(data.results); })
+        .catch(err => console.error("Agri classify error:", err));
+    };
+
+    const computeWaste = () => {
+        fetch('/api/v48/waste/compute', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                item_description: document.getElementById("input-waste-desc").value,
+                source_product: document.getElementById("input-source-product").value,
+                waste_rate_pct: parseFloat(document.getElementById("input-waste-rate").value),
+                source_rate_pct: parseFloat(document.getElementById("input-source-rate").value),
+                amount: parseFloat(document.getElementById("input-waste-amount").value)
+            })
+        })
+        .then(res => res.json())
+        .then(data => { if (data.status === "success") renderWaste(data.results); })
+        .catch(err => console.error("Waste compute error:", err));
+    };
+
+    const renderThreshold = (res) => {
+        const oldBadge = document.getElementById("res-old-status");
+        oldBadge.textContent = res.old_status;
+        oldBadge.className = "badge " + (res.old_status === "NON_TAXABLE" ? "bg-success" : "bg-danger");
+
+        const newBadge = document.getElementById("res-new-status");
+        newBadge.textContent = res.new_status;
+        newBadge.className = "badge " + (res.new_status === "NON_TAXABLE" ? "bg-success" : "bg-danger");
+
+        const changedBadge = document.getElementById("res-status-changed");
+        changedBadge.textContent = res.status_changed ? "✅ YES" : "No change";
+        changedBadge.className = "badge " + (res.status_changed ? "bg-warning text-dark" : "bg-secondary");
+
+        document.getElementById("res-pit-impact").textContent = res.pit_impact || "-";
+    };
+
+    const renderAgri = (res) => {
+        document.getElementById("res-agri-old").textContent = res.old_vat_treatment;
+        const newBadge = document.getElementById("res-agri-new");
+        newBadge.textContent = res.new_vat_treatment;
+        newBadge.className = "badge " + (res.treatment_changed ? "bg-info" : "bg-secondary");
+
+        const creditBadge = document.getElementById("res-agri-credit");
+        creditBadge.textContent = res.input_credit_deductible ? "✅ YES" : "❌ NO";
+        creditBadge.className = "badge " + (res.input_credit_deductible ? "bg-success" : "bg-danger");
+    };
+
+    const renderWaste = (res) => {
+        document.getElementById("res-waste-old-vat").textContent = formatVND(res.vat_old);
+        document.getElementById("res-waste-new-vat").textContent = formatVND(res.vat_new);
+        const changedBadge = document.getElementById("res-waste-changed");
+        changedBadge.textContent = res.rate_changed ? `${res.old_rate} → ${res.new_rate}` : "No change";
+        changedBadge.className = "badge " + (res.rate_changed ? "bg-warning text-dark" : "bg-secondary");
+    };
+
+    const renderDebate = (debate, summary) => {
+        const container = document.getElementById("debate-container-v48");
+        container.innerHTML = "";
+        const colors = { "Tax Policy Analyst": "bg-info", "Agricultural Advisor": "bg-success", "Accounting Director": "bg-warning text-dark" };
+        debate.forEach(msg => {
+            const div = document.createElement("div");
+            div.className = "d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";
+            div.innerHTML = `
+                <span class="badge ${colors[msg.speaker] || "bg-secondary"} py-2" style="min-width: 150px;">${msg.speaker}</span>
+                <div class="text-dark small">${msg.text}</div>
+            `;
+            container.appendChild(div);
+        });
+        document.getElementById("consensus-text-v48").textContent = summary;
+    };
+
+    // Attach listeners
+    document.getElementById("btn-check-threshold").addEventListener("click", checkThreshold);
+    document.getElementById("btn-classify-agri").addEventListener("click", classifyAgri);
+    document.getElementById("btn-compute-waste").addEventListener("click", computeWaste);
+    document.getElementById("btn-refresh-v48").addEventListener("click", loadData);
+
+    // Initial load
+    loadData();
+});
+</script>
+{% endblock %}

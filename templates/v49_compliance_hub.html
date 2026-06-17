@@ -1,0 +1,371 @@
+{% extends "base.html" %}
+
+{% block title %}CIT Law 67/2025 Amendments - SME Rates, RE Offsets & Green Exemptions Hub (v49){% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header Area -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
+        <div>
+            <span class="badge bg-info mb-2">Version 49.0.0 Spec Compliance</span>
+            <h1 class="h2 fw-bold text-gradient mb-1">CIT Amendments Compliance Hub</h1>
+            <p class="text-muted mb-0">SME Progressive Tax Classifiers, Real Estate Transfer Loss Offsets, Digital Platform CIT Audits, and Green Exemption Trackers per Luật 67/2025/QH15.</p>
+        </div>
+        <div class="d-flex gap-2 mt-3 mt-md-0">
+            <button id="btn-refresh-v49" class="btn btn-info text-white d-flex align-items-center gap-2">
+                <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Load Compliance Data
+            </button>
+            <span class="badge bg-info-subtle text-info border border-info d-flex align-items-center px-3">
+                <i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Law 67/2025/QH15
+            </span>
+        </div>
+    </div>
+
+    <!-- Bento Grid Layout -->
+    <div class="row g-4">
+        <!-- Pillar 1a: SME CIT Rate Classifier -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1"><i class="bi bi-percent text-info me-2" aria-hidden="true"></i>SME CIT Rate Classifier</h5>
+                    <p class="text-muted small mb-0">Determine CIT rate based on annual revenue: 15% under 3B VND, 17% up to 50B VND, or 20% standard rate.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="input-sme-name" class="form-label small mb-1">Business Name:</label>
+                            <input type="text" id="input-sme-name" class="form-control form-control-sm" value="Cong Ty SME A" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-sme-rev" class="form-label small mb-1">Annual Revenue (VND):</label>
+                            <input type="number" id="input-sme-rev" class="form-control form-control-sm" value="2500000000" autocomplete="off">
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="check-sme-tp">
+                                <label class="form-check-input-label small" for="check-sme-tp">Has Transfer Pricing Relationships (Disqualifies SME rate)</label>
+                            </div>
+                        </div>
+                        <div class="col-12 text-end">
+                            <button id="btn-classify-sme" class="btn btn-info btn-sm text-white">
+                                <i class="bi bi-patch-question me-1" aria-hidden="true"></i> Classify CIT Rate
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
+                        <h6 class="fw-bold mb-2 text-info"><i class="bi bi-info-circle me-2" aria-hidden="true"></i>Classification Result</h6>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>CIT Rate Applied:</span>
+                            <span id="res-sme-rate" class="fw-bold text-primary">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>SME Exemption Eligible:</span>
+                            <span id="res-sme-eligible" class="badge bg-secondary">-</span>
+                        </div>
+                        <div class="small text-muted border-top pt-2 mt-2">
+                            <strong>Note:</strong> <span id="res-sme-note">Awaiting evaluation…</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pillar 1b: Real Estate Loss Offset Engine -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1"><i class="bi bi-calculator-fill text-success me-2" aria-hidden="true"></i>RE Loss Offset Engine</h5>
+                    <p class="text-muted small mb-0">Offset real estate transfer losses directly against main production business income under amended rules.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="input-offset-year" class="form-label small mb-1">Tax Year:</label>
+                            <input type="number" id="input-offset-year" class="form-control form-control-sm" value="2025" autocomplete="off">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="input-main-income" class="form-label small mb-1">Main Income (VND):</label>
+                            <input type="number" id="input-main-income" class="form-control form-control-sm" value="1000000000" autocomplete="off">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="input-re-loss" class="form-label small mb-1">RE Loss (VND):</label>
+                            <input type="number" id="input-re-loss" class="form-control form-control-sm" value="200000000" autocomplete="off">
+                        </div>
+                        <div class="col-12 text-end">
+                            <button id="btn-offset-re" class="btn btn-success btn-sm">
+                                <i class="bi bi-arrow-left-right me-1" aria-hidden="true"></i> Apply Offset
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
+                        <h6 class="fw-bold mb-2 text-success"><i class="bi bi-wallet2 me-2" aria-hidden="true"></i>Offset Calculations</h6>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Offset Applied:</span>
+                            <span id="res-offset-applied" class="fw-bold text-success">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Final Taxable Income:</span>
+                            <span id="res-offset-final" class="fw-bold text-primary">-</span>
+                        </div>
+                        <div class="small text-muted border-top pt-2 mt-2">
+                            <strong>Note:</strong> <span id="res-offset-note">Awaiting evaluation…</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pillar 2a: Digital Platform CIT Auditor -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1"><i class="bi bi-globe text-warning me-2" aria-hidden="true"></i>Digital Platform CIT Auditor</h5>
+                    <p class="text-muted small mb-0">Evaluate CIT withholding requirements (5% services, 1% goods) for foreign digital entities without permanent establishment.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="input-vendor-name" class="form-label small mb-1">Foreign Vendor Name:</label>
+                            <input type="text" id="input-vendor-name" class="form-control form-control-sm" value="Google Ireland" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-trans-amount" class="form-label small mb-1">Transaction Value (VND):</label>
+                            <input type="number" id="input-trans-amount" class="form-control form-control-sm" value="500000000" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="select-component" class="form-label small mb-1">Component Type:</label>
+                            <select id="select-component" class="form-select form-select-sm">
+                                <option value="service" selected>Service Component (5% CIT)</option>
+                                <option value="trade">Trade/Goods Component (1% CIT)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 d-flex align-items-end">
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" id="check-is-foreign" checked>
+                                <label class="form-check-input-label small" for="check-is-foreign">Is Foreign Provider?</label>
+                            </div>
+                        </div>
+                        <div class="col-12 text-end">
+                            <button id="btn-audit-digital" class="btn btn-warning btn-sm text-dark">
+                                <i class="bi bi-shield-lock me-1" aria-hidden="true"></i> Audit Withholding
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
+                        <h6 class="fw-bold mb-2 text-warning"><i class="bi bi-safe me-2" aria-hidden="true"></i>Audit Ledger</h6>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Withholding Rate:</span>
+                            <span id="res-withholding-rate" class="fw-bold">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Withholding Tax Liability:</span>
+                            <span id="res-withholding-tax" class="fw-bold text-danger">-</span>
+                        </div>
+                        <div class="small text-muted border-top pt-2 mt-2">
+                            <strong>Note:</strong> <span id="res-digital-note">Awaiting evaluation…</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pillar 2b: Green Exemption Scanner -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1"><i class="bi bi-leaf text-success me-2" aria-hidden="true"></i>Green Exemption Scanner</h5>
+                    <p class="text-muted small mb-0">Identify and scan CIT exemptions for carbon credit transfers and green bond interest payments.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label for="input-item-desc" class="form-label small mb-1">Item Description / Contract Label:</label>
+                            <input type="text" id="input-item-desc" class="form-control form-control-sm" value="Interest from green bonds issued 2025" autocomplete="off">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="input-item-amount" class="form-label small mb-1">Income Amount (VND):</label>
+                            <input type="number" id="input-item-amount" class="form-control form-control-sm" value="50000000" autocomplete="off">
+                        </div>
+                        <div class="col-12 text-end">
+                            <button id="btn-scan-green" class="btn btn-success btn-sm">
+                                <i class="bi bi-lightning me-1" aria-hidden="true"></i> Scan Transaction
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
+                        <h6 class="fw-bold mb-2 text-success"><i class="bi bi-check2-all me-2" aria-hidden="true"></i>Exemption Verdict</h6>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Exemption Type:</span>
+                            <span id="res-green-type" class="fw-bold text-success">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Is CIT Exempt:</span>
+                            <span id="res-green-exempt" class="badge bg-secondary">-</span>
+                        </div>
+                        <div class="small text-muted border-top pt-2 mt-2">
+                            <strong>Note:</strong> <span id="res-green-note">Awaiting evaluation…</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Swarm Advisory Debate Panel -->
+        <div class="col-lg-12">
+            <div class="card shadow-sm border-light">
+                <div class="card-header bg-dark text-white py-3 d-flex align-items-center justify-content-between">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-info me-2" aria-hidden="true"></i>Multi-Agent Advisory Board Debate</h5>
+                    <span class="badge bg-secondary border border-secondary">Consensus Simulator</span>
+                </div>
+                <div class="card-body">
+                    <div id="debate-container-v49" class="mb-3 d-flex flex-column gap-3">
+                    </div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus Summary Statement:</h6>
+                        <p id="consensus-text-v49" class="text-muted small mb-0">Awaiting simulation data execution…</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const formatVND = (n) => new Intl.NumberFormat("vi-VN").format(n) + " VND";
+
+    const loadData = () => {
+        fetch('/api/v49/compliance-data')
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "success") {
+                    renderSme(data.sme_classification);
+                    renderOffset(data.re_loss_offset);
+                    renderDigital(data.digital_audit);
+                    renderGreen(data.green_exemption);
+                    renderDebate(data.debate, data.consensus_summary);
+                }
+            })
+            .catch(err => console.error("Error loading v49 data:", err));
+    };
+
+    const classifySme = () => {
+        fetch('/api/v49/sme-cit/calculate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                business_name: document.getElementById("input-sme-name").value,
+                annual_revenue: parseFloat(document.getElementById("input-sme-rev").value),
+                has_transfer_pricing: document.getElementById("check-sme-tp").checked
+            })
+        })
+        .then(res => res.json())
+        .then(data => { if (data.status === "success") renderSme(data.results); })
+        .catch(err => console.error("SME classify error:", err));
+    };
+
+    const applyOffset = () => {
+        fetch('/api/v49/re-loss/offset', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                tax_year: parseInt(document.getElementById("input-offset-year").value),
+                main_income: parseFloat(document.getElementById("input-main-income").value),
+                re_loss: parseFloat(document.getElementById("input-re-loss").value)
+            })
+        })
+        .then(res => res.json())
+        .then(data => { if (data.status === "success") renderOffset(data.results); })
+        .catch(err => console.error("RE offset error:", err));
+    };
+
+    const auditDigital = () => {
+        fetch('/api/v49/digital-cit/audit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                vendor_name: document.getElementById("input-vendor-name").value,
+                is_foreign_platform: document.getElementById("check-is-foreign").checked,
+                amount: parseFloat(document.getElementById("input-trans-amount").value),
+                component_type: document.getElementById("select-component").value
+            })
+        })
+        .then(res => res.json())
+        .then(data => { if (data.status === "success") renderDigital(data.results); })
+        .catch(err => console.error("Digital audit error:", err));
+    };
+
+    const scanGreen = () => {
+        fetch('/api/v49/green-exemption/scan', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                item_description: document.getElementById("input-item-desc").value,
+                amount: parseFloat(document.getElementById("input-item-amount").value)
+            })
+        })
+        .then(res => res.json())
+        .then(data => { if (data.status === "success") renderGreen(data.results); })
+        .catch(err => console.error("Green scan error:", err));
+    };
+
+    const renderSme = (res) => {
+        document.getElementById("res-sme-rate").textContent = res.classified_rate;
+        const eligibleBadge = document.getElementById("res-sme-eligible");
+        eligibleBadge.textContent = res.is_sme ? "✅ ELIGIBLE" : "❌ NO";
+        eligibleBadge.className = "badge " + (res.is_sme ? "bg-success" : "bg-danger");
+        document.getElementById("res-sme-note").textContent = res.notes || "-";
+    };
+
+    const renderOffset = (res) => {
+        document.getElementById("res-offset-applied").textContent = formatVND(res.offset_applied);
+        document.getElementById("res-offset-final").textContent = formatVND(res.final_taxable_income);
+        document.getElementById("res-offset-note").textContent = res.notes || "-";
+    };
+
+    const renderDigital = (res) => {
+        document.getElementById("res-withholding-rate").textContent = res.withholding_rate;
+        document.getElementById("res-withholding-tax").textContent = formatVND(res.withholding_tax);
+        document.getElementById("res-digital-note").textContent = res.notes || "-";
+    };
+
+    const renderGreen = (res) => {
+        document.getElementById("res-green-type").textContent = res.exemption_type.toUpperCase();
+        const exemptBadge = document.getElementById("res-green-exempt");
+        exemptBadge.textContent = res.is_exempt ? "✅ EXEMPT" : "❌ TAXABLE";
+        exemptBadge.className = "badge " + (res.is_exempt ? "bg-success" : "bg-danger");
+        document.getElementById("res-green-note").textContent = res.notes || "-";
+    };
+
+    const renderDebate = (debate, summary) => {
+        const container = document.getElementById("debate-container-v49");
+        container.innerHTML = "";
+        const colors = { "Tax Consultant": "bg-info", "Real Estate Analyst": "bg-success", "Environmental Economist": "bg-warning text-dark" };
+        debate.forEach(msg => {
+            const div = document.createElement("div");
+            div.className = "d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";
+            div.innerHTML = `
+                <span class="badge ${colors[msg.speaker] || "bg-secondary"} py-2" style="min-width: 180px;">${msg.speaker}</span>
+                <div class="text-dark small">${msg.text}</div>
+            `;
+            container.appendChild(div);
+        });
+        document.getElementById("consensus-text-v49").textContent = summary;
+    };
+
+    // Attach listeners
+    document.getElementById("btn-classify-sme").addEventListener("click", classifySme);
+    document.getElementById("btn-offset-re").addEventListener("click", applyOffset);
+    document.getElementById("btn-audit-digital").addEventListener("click", auditDigital);
+    document.getElementById("btn-scan-green").addEventListener("click", scanGreen);
+    document.getElementById("btn-refresh-v49").addEventListener("click", loadData);
+
+    // Initial load
+    loadData();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,305 @@
+{% extends "base.html" %}
+
+{% block title %}Decree 123 E-Invoice Incidents & Circular 78 Conversion Auditor (v46){% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header Area -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
+        <div>
+            <span class="badge bg-success mb-2">Version 46.0.0 Spec Compliance</span>
+            <h1 class="h2 fw-bold text-gradient mb-1">E-Invoice Error & Conversion Compliance Hub</h1>
+            <p class="text-muted mb-0">Track Form 04/SS-HĐĐT statuses under Decree 123 and audit paper copies vs electronic XML records under Circular 78.</p>
+        </div>
+        <div class="d-flex gap-2 mt-3 mt-md-0">
+            <button id="btn-recalculate" class="btn btn-success d-flex align-items-center gap-2">
+                <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Refresh Log Queues
+            </button>
+            <span id="sync-status" class="badge bg-success-subtle text-success border border-success d-flex align-items-center px-3">
+                <i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Connected to GDT Portal
+            </span>
+        </div>
+    </div>
+
+    <!-- Bento Grid Layout -->
+    <div class="row g-4">
+        <!-- Pillar 1: Form 04/SS Ingestion & Status Tracker -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1"><i class="bi bi-envelope-exclamation text-danger me-2" aria-hidden="true"></i>Form 04/SS-HĐĐT Error Notices</h5>
+                    <p class="text-muted small mb-0">Record error correction reports filed with the GDT and audit late submission timelines.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="input-ss-symbol" class="form-label small mb-1">Invoice Symbol:</label>
+                            <input type="text" id="input-ss-symbol" class="form-control form-control-sm" value="1C26TAA" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-ss-number" class="form-label small mb-1">Invoice Number:</label>
+                            <input type="text" id="input-ss-number" class="form-control form-control-sm" value="0000015" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-ss-invdate" class="form-label small mb-1">Invoice Date:</label>
+                            <input type="date" id="input-ss-invdate" class="form-control form-control-sm" value="2026-06-11" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-ss-filedate" class="form-label small mb-1">Filing Date to GDT:</label>
+                            <input type="date" id="input-ss-filedate" class="form-control form-control-sm" value="2026-07-25" autocomplete="off">
+                        </div>
+                        <div class="col-12">
+                            <label for="select-ss-status" class="form-label small mb-1">GDT Response status:</label>
+                            <select id="select-ss-status" class="form-select form-select-sm">
+                                <option value="1" selected>1 = GDT Chấp nhận (Accepted)</option>
+                                <option value="2">2 = GDT Từ chối (Rejected)</option>
+                                <option value="0">0 = Chờ xử lý (Pending GDT)</option>
+                            </select>
+                        </div>
+                        <div class="col-12 text-end">
+                            <button id="btn-submit-ss" class="btn btn-danger btn-sm">
+                                <i class="bi bi-send-fill me-1" aria-hidden="true"></i> Submit 04/SS Notice
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
+                        <h6 class="fw-bold mb-2 text-danger"><i class="bi bi-clock-history me-2" aria-hidden="true"></i>Filing Audit Results</h6>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Filing Status:</span>
+                            <span id="res-ss-status" class="badge bg-success">Accepted</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Delay Days:</span>
+                            <span id="res-ss-delay">0 days</span>
+                        </div>
+                        <div class="small text-muted border-top pt-2">
+                            <strong>Deadline Assessment:</strong> <span id="res-ss-warning" class="text-danger">None</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pillar 2: Conversion Duplicate Claim Auditor -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1"><i class="bi bi-printer text-primary me-2" aria-hidden="true"></i>Circular 78 Paper Conversions</h5>
+                    <p class="text-muted small mb-0">Reconcile paper prints, audit conversion count limits, and check duplicate CIT expense deduction risk.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="input-conv-symbol" class="form-label small mb-1">Invoice Symbol:</label>
+                            <input type="text" id="input-conv-symbol" class="form-control form-control-sm" value="1C26TAA" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-conv-number" class="form-label small mb-1">Invoice Number:</label>
+                            <input type="text" id="input-conv-number" class="form-control form-control-sm" value="0000015" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-conv-amount" class="form-label small mb-1">Invoice Total Amount:</label>
+                            <input type="number" id="input-conv-amount" class="form-control form-control-sm" value="100000000" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-conv-date" class="form-label small mb-1">Print Date:</label>
+                            <input type="date" id="input-conv-date" class="form-control form-control-sm" value="2026-06-12" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="slider-conv-count" class="form-label d-flex justify-content-between small mb-1">
+                                <span>Print Count:</span>
+                                <strong id="val-conv-count">2</strong>
+                            </label>
+                            <input type="range" class="form-range" id="slider-conv-count" min="1" max="5" step="1" value="2">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-conv-user" class="form-label small mb-1">Converted By:</label>
+                            <input type="text" id="input-conv-user" class="form-control form-control-sm" value="Admin Office" autocomplete="off">
+                        </div>
+                        <div class="col-12 text-end">
+                            <button id="btn-reconcile-conv" class="btn btn-primary btn-sm">
+                                <i class="bi bi-shield-shaded me-1" aria-hidden="true"></i> Audit Conversion prints
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
+                        <h6 class="fw-bold mb-2 text-primary"><i class="bi bi-shield-exclamation me-2" aria-hidden="true"></i>Conversion Risk Warnings</h6>
+                        <div id="conv-alerts-container">
+                            <div class="alert alert-warning py-2 px-3 small mb-1">
+                                <i class="bi bi-exclamation-triangle-fill me-1" aria-hidden="true"></i> MULTIPLE_CONVERSION_PRINTS_ALERT
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Swarm Advisory Debate Panel -->
+        <div class="col-12 mt-4">
+            <div class="card shadow-sm border-light">
+                <div class="card-header bg-obsidian text-snow py-3 d-flex align-items-center justify-content-between">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-success me-2" aria-hidden="true"></i>Multi-Agent Advisory Board Debate</h5>
+                    <span class="badge bg-secondary border border-secondary">Consensus Simulator</span>
+                </div>
+                <div class="card-body">
+                    <div id="debate-container" class="mb-3 d-flex flex-column gap-3">
+                        <!-- Debate Messages -->
+                    </div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus Summary Statement:</h6>
+                        <p id="consensus-text" class="text-muted small mb-0">Awaiting simulation data execution…</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    // Selectors
+    const ssSymbol = document.getElementById("input-ss-symbol");
+    const ssNumber = document.getElementById("input-ss-number");
+    const ssInvDate = document.getElementById("input-ss-invdate");
+    const ssFileDate = document.getElementById("input-ss-filedate");
+    const ssStatus = document.getElementById("select-ss-status");
+    const btnSubmitSS = document.getElementById("btn-submit-ss");
+
+    const convSymbol = document.getElementById("input-conv-symbol");
+    const convNumber = document.getElementById("input-conv-number");
+    const convAmount = document.getElementById("input-conv-amount");
+    const convDate = document.getElementById("input-conv-date");
+    const convCount = document.getElementById("slider-conv-count");
+    const convUser = document.getElementById("input-conv-user");
+    const btnReconcileConv = document.getElementById("btn-reconcile-conv");
+
+    const updateLabelDisplays = () => {
+        document.getElementById("val-conv-count").textContent = convCount.value;
+    };
+
+    const loadData = () => {
+        fetch('/api/v46/compliance-data')
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "success") {
+                    renderSS(data.incidents);
+                    renderConv(data.conversions);
+                    renderDebate(data.debate, data.consensus_summary);
+                }
+            })
+            .catch(err => console.error("Error loading v46 data:", err));
+    };
+
+    const submitSS = () => {
+        const payload = {
+            original_invoice_symbol: ssSymbol.value,
+            original_invoice_number: ssNumber.value,
+            invoice_date: ssInvDate.value,
+            filing_date: ssFileDate.value,
+            gdt_status: parseInt(ssStatus.value)
+        };
+
+        fetch('/api/v46/incidents/submit-form', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === "success") {
+                renderSS(data.results);
+            }
+        })
+        .catch(err => console.error("Error submitting Form 04/SS:", err));
+    };
+
+    const reconcileConv = () => {
+        const payload = {
+            invoice_symbol: convSymbol.value,
+            invoice_number: convNumber.value,
+            print_date: convDate.value,
+            print_count: parseInt(convCount.value),
+            converted_by: convUser.value,
+            invoice_amount: parseFloat(convAmount.value)
+        };
+
+        fetch('/api/v46/conversions/reconcile', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === "success") {
+                renderConv(data.results);
+            }
+        })
+        .catch(err => console.error("Error reconcilation print copy:", err));
+    };
+
+    // Attach listeners
+    convCount.addEventListener("input", updateLabelDisplays);
+    btnSubmitSS.addEventListener("click", submitSS);
+    btnReconcileConv.addEventListener("click", reconcileConv);
+    document.getElementById("btn-recalculate").addEventListener("click", loadData);
+
+    const renderSS = (res) => {
+        const statusBadge = document.getElementById("res-ss-status");
+        statusBadge.textContent = res.gdt_status;
+        if (res.gdt_status === "Accepted") statusBadge.className = "badge bg-success";
+        else if (res.gdt_status === "Rejected") statusBadge.className = "badge bg-danger";
+        else statusBadge.className = "badge bg-warning text-dark";
+
+        document.getElementById("res-ss-delay").textContent = `${res.submission_delay_days} days`;
+        document.getElementById("res-ss-warning").textContent = res.deadline_warning || "No warnings. Submission within normal period.";
+    };
+
+    const renderConv = (res) => {
+        const container = document.getElementById("conv-alerts-container");
+        container.innerHTML = "";
+        
+        if (res.alerts.length === 0) {
+            container.innerHTML = `<div class="text-success small"><i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> No conversion audit warnings found.</div>`;
+            return;
+        }
+
+        res.alerts.forEach(alert => {
+            const div = document.createElement("div");
+            div.className = "alert alert-warning py-2 px-3 small mb-1";
+            div.innerHTML = `<strong>${alert.type}:</strong> ${alert.details}`;
+            container.appendChild(div);
+        });
+    };
+
+    const renderDebate = (debate, summary) => {
+        const container = document.getElementById("debate-container");
+        container.innerHTML = "";
+        
+        const badgeColors = {
+            "Tax Officer": "bg-danger",
+            "Internal Auditor": "bg-primary",
+            "Finance Director": "bg-success"
+        };
+        
+        debate.forEach(msg => {
+            const badgeColor = badgeColors[msg.speaker] || "bg-secondary";
+            const div = document.createElement("div");
+            div.className = "d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";
+            div.innerHTML = `
+                <span class="badge ${badgeColor} py-2" style="min-width: 150px;">${msg.speaker}</span>
+                <div class="text-dark small">${msg.text}</div>
+            `;
+            container.appendChild(div);
+        });
+
+        document.getElementById("consensus-text").textContent = summary;
+    };
+
+    // Initial load
+    updateLabelDisplays();
+    loadData();
+});
+</script>
+{% endblock %}

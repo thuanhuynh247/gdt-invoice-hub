@@ -1,0 +1,292 @@
+{% extends "base.html" %}
+{% block title %}Oil Spill Response & Risk Fee - EPFOS Hub (v69){% endblock %}
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
+        <div>
+            <span class="badge bg-success text-white mb-2">Version 69.0.0 Spec Compliance</span>
+            <h1 class="h2 fw-bold text-gradient mb-1 text-success">Oil Spill Response & Risk Fee Hub</h1>
+            <p class="text-muted mb-0">Assess spill hazards, safety mitigation, and calculate risk fees under Decision 12/2021/QĐ-TTg.</p>
+        </div>
+        <div class="d-flex gap-2 mt-3 mt-md-0">
+            <button id="btn-refresh-v69" class="btn btn-success text-white d-flex align-items-center gap-2">
+                <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Load Data
+            </button>
+            <span class="badge bg-success-subtle text-success border border-success d-flex align-items-center px-3">
+                <i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Decision 12/2021
+            </span>
+        </div>
+    </div>
+
+    <!-- Main Panels -->
+    <div class="row g-4">
+        <!-- Interactive Calculator -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1 text-success"><i class="bi bi-calculator text-success me-2" aria-hidden="true"></i>Interactive Oil Spill Fee Calculator</h5>
+                    <p class="text-muted small mb-0">Compute quarterly liabilities based on petroleum capacity, facility types, and safety structures.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label for="input-facility-name" class="form-label small mb-1">Petroleum Facility / Vessel Fleet Name:</label>
+                            <input type="text" id="input-facility-name" class="form-control form-control-sm" value="Kho xăng dầu đầu mối Cát Lái" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-facility-type" class="form-label small mb-1">Facility Classification:</label>
+                            <select id="input-facility-type" class="form-select form-select-sm">
+                                <option value="refinery">Petrochemical Refinery (Nhà máy lọc dầu - 50M VND base)</option>
+                                <option value="storage_terminal">Storage Terminal (Kho chứa trung chuyển - 30M VND base)</option>
+                                <option value="transport_fleet">Marine Transport Fleet (Đội tàu dầu - 20M VND base)</option>
+                                <option value="fuel_station">Retail Fuel Station (Cửa hàng xăng dầu - 2M VND base)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-exemption-cat" class="form-label small mb-1">Exemption Category:</label>
+                            <select id="input-exemption-cat" class="form-select form-select-sm">
+                                <option value="none">No Exemption (Chịu phí đầy đủ)</option>
+                                <option value="military_petroleum">Military & Strategic Defense Reserves</option>
+                                <option value="disaster_relief">Disaster Relief Emergency Reservoirs</option>
+                                <option value="remote_agricultural_station">Remote Agricultural Cooperatives (&lt; 20m3)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-12">
+                            <label for="input-capacity" class="form-label small mb-1">Petroleum Storage/Transport Capacity (m³):</label>
+                            <input type="number" step="1" id="input-capacity" class="form-control form-control-sm" value="25000" autocomplete="off">
+                            <div class="form-text small text-muted">A capacity charge surcharge of 500 VND/m³ applies to the entire capacity.</div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check mt-1">
+                                <input class="form-check-input" type="checkbox" id="input-double-hull" checked>
+                                <label class="form-check-input-label small fw-bold text-dark" for="input-double-hull">
+                                    Double-Hull Vessels or Double-Walled Storage Tanks (30% discount on final fee liability)
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="col-12 text-end">
+                            <button id="btn-calc-spill" class="btn btn-success btn-sm text-white fw-bold">
+                                <i class="bi bi-play-fill me-1" aria-hidden="true"></i> Run Spill Risk Assessment
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
+                        <h6 class="fw-bold mb-2 text-success"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Assessment Result</h6>
+                        <div class="d-flex justify-content-between small mb-1"><span>Quarterly Base Fee:</span><span id="res-base" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Capacity Surcharge:</span><span id="res-surcharge" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Mitigation Discount Coefficient:</span><span id="res-discount" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Effective Quarterly Fee:</span><span id="res-effective-fee" class="fw-bold text-success fs-6">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Exemption Status:</span><span id="res-exempt-badge" class="fw-bold">-</span></div>
+                        <div class="small text-muted border-top pt-2 mt-2"><strong>Exemption Reason:</strong> <span id="res-exemption-reason">Awaiting…</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Baseline Verification -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Spill Fee Baselines</h5>
+                </div>
+                <div class="card-body d-flex flex-column gap-3">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold small text-dark">Kho cảng xăng dầu Nhà Bè</span>
+                            <span class="badge bg-danger">Terminal</span>
+                        </div>
+                        <p class="small text-muted mb-2">Terminal: 25,000 m³. Base: 30M. Surcharge: 12.5M. Double-hull: No.</p>
+                        <div class="d-flex justify-content-between small">
+                            <span>Surcharge Rate: 500 VND/m³</span>
+                            <span>Fee: <strong id="base1-eff" class="text-success">-</strong></span>
+                        </div>
+                    </div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold small text-dark">Đội tàu dầu Petrolimex V</span>
+                            <span class="badge bg-warning text-dark">Transport Fleet</span>
+                        </div>
+                        <p class="small text-muted mb-2">Fleet: 15,000 m³. Base: 20M. Surcharge: 7.5M. Double-hull: Yes (30% off).</p>
+                        <div class="d-flex justify-content-between small">
+                            <span>Surcharge: 7.5M VND</span>
+                            <span>Fee: <strong id="base2-eff" class="text-success">-</strong></span>
+                        </div>
+                    </div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold small text-dark">Kho xăng dầu quân đội K52 (Exempt)</span>
+                            <span class="badge bg-success">Exempt</span>
+                        </div>
+                        <p class="small text-muted mb-2">Capacity: 8,000 m³. Exemption: Military Petroleum Reserves.</p>
+                        <div class="d-flex justify-content-between small">
+                            <span>Base: 30M VND</span>
+                            <span>Reason: <strong id="base3-reason" class="text-success">-</strong></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Consensus Debate -->
+        <div class="col-lg-12">
+            <div class="card shadow-sm border-light">
+                <div class="card-header bg-dark text-white py-3 d-flex align-items-center justify-content-between">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-success me-2" aria-hidden="true"></i>Multi-Agent Maritime Safety Debate</h5>
+                    <span class="badge bg-secondary">Decision 12/2021/QĐ-TTg Consensus</span>
+                </div>
+                <div class="card-body">
+                    <div id="debate-container-v69" class="mb-3 d-flex flex-column gap-3"></div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus:</h6>
+                        <p id="consensus-text-v69" class="text-muted small mb-0">Awaiting…</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Audit Log -->
+        <div class="col-lg-12">
+            <div class="card shadow-sm border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-2">
+                    <h5 class="fw-bold mb-1"><i class="bi bi-clock-history text-muted me-2" aria-hidden="true"></i>Spill Fee Environmental History Log</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped mb-0 small">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Facility Name</th>
+                                    <th>Classification</th>
+                                    <th>Capacity (m³)</th>
+                                    <th>Double Hull</th>
+                                    <th>Exemption</th>
+                                    <th>Base Fee</th>
+                                    <th>Surcharge</th>
+                                    <th>Net Payable</th>
+                                    <th>Status</th>
+                                    <th>Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-table-v69">
+                                <tr><td colspan="11" class="text-center text-muted py-4">No logs available.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const fVND = n => new Intl.NumberFormat("vi-VN").format(Math.round(n)) + " VND";
+    
+    const load = () => {
+        fetch('/api/v69/compliance-data').then(r=>r.json()).then(d=>{
+            if(d.status==="success"){
+                rB(d);
+                rD(d.debate, d.consensus_summary);
+                rH(d.history);
+            }
+        }).catch(e=>console.error(e));
+    };
+    
+    const calc = () => {
+        const p = {
+            facility_name: document.getElementById("input-facility-name").value,
+            facility_type: document.getElementById("input-facility-type").value,
+            capacity_m3: parseFloat(document.getElementById("input-capacity").value || 0),
+            has_double_hull: document.getElementById("input-double-hull").checked,
+            exemption_category: document.getElementById("input-exemption-cat").value
+        };
+        fetch('/api/v69/calculate', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(p)
+        }).then(r=>r.json()).then(d=>{
+            if(d.status==="success"){
+                rR(d.results);
+                load();
+            } else {
+                alert(d.error);
+            }
+        }).catch(e=>console.error(e));
+    };
+    
+    const rR = r => {
+        document.getElementById("res-base").textContent = fVND(r.base_fee_vnd);
+        document.getElementById("res-surcharge").textContent = fVND(r.capacity_charge_vnd);
+        document.getElementById("res-discount").textContent = r.mitigation_discount_coefficient.toFixed(1) + " (double-hull)";
+        document.getElementById("res-effective-fee").textContent = fVND(r.effective_fee_vnd);
+        
+        if (r.is_exempt) {
+            document.getElementById("res-exempt-badge").innerHTML = '<span class="badge bg-success">100% Exempt</span>';
+        } else {
+            document.getElementById("res-exempt-badge").innerHTML = '<span class="badge bg-danger">Fee Payable</span>';
+        }
+        document.getElementById("res-exemption-reason").textContent = r.exemption_reason || "None";
+    };
+    
+    const rB = d => {
+        document.getElementById("base1-eff").textContent = fVND(d.terminal_standard.effective_fee_vnd);
+        document.getElementById("base2-eff").textContent = fVND(d.fleet_discount.effective_fee_vnd);
+        document.getElementById("base3-reason").textContent = d.military_exempt.exemption_reason;
+    };
+    
+    const rD = (debate, summary) => {
+        const c = document.getElementById("debate-container-v69");
+        c.innerHTML = "";
+        const cl = {
+            "Maritime Safety Inspector": "bg-success text-white",
+            "Marine Logistics Manager": "bg-warning text-dark",
+            "Military Logistics Quartermaster": "bg-info text-dark"
+        };
+        debate.forEach(m => {
+            const div = document.createElement("div");
+            div.className = "d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";
+            div.innerHTML = `<span class="badge ${cl[m.speaker] || "bg-secondary"} py-2 px-3" style="min-width:220px">${m.speaker}</span><div class="text-dark small">${m.text}</div>`;
+            c.appendChild(div);
+        });
+        document.getElementById("consensus-text-v69").textContent = summary;
+    };
+    
+    const rH = h => {
+        const tb = document.getElementById("history-table-v69");
+        if (!h || !h.length) {
+            tb.innerHTML = '<tr><td colspan="11" class="text-center text-muted py-4">No logs available.</td></tr>';
+            return;
+        }
+        tb.innerHTML = "";
+        h.forEach(l => {
+            const tr = document.createElement("tr");
+            let statusBadge = '<span class="badge bg-danger">Payable</span>';
+            if (l.is_exempt) {
+                statusBadge = '<span class="badge bg-success">Exempt</span>';
+            }
+            tr.innerHTML = `
+                <td>${l.id}</td>
+                <td class="fw-bold">${l.facility_name}</td>
+                <td><span class="badge bg-secondary">${l.facility_type.toUpperCase()}</span></td>
+                <td>${l.capacity_m3.toLocaleString()} m³</td>
+                <td>${l.has_double_hull ? '<span class="text-success"><i class="bi bi-check-circle-fill"></i> Yes</span>' : '<span class="text-muted">No</span>'}</td>
+                <td><span class="badge bg-premium-light text-dark">${l.exemption_category.toUpperCase()}</span></td>
+                <td>${fVND(l.base_fee_vnd)}</td>
+                <td>${fVND(l.capacity_charge_vnd)}</td>
+                <td class="fw-bold text-dark">${fVND(l.effective_fee_vnd)}</td>
+                <td>${statusBadge}</td>
+                <td class="text-muted">${l.created_at}</td>
+            `;
+            tb.appendChild(tr);
+        });
+    };
+    
+    document.getElementById("btn-calc-spill").addEventListener("click", calc);
+    document.getElementById("btn-refresh-v69").addEventListener("click", load);
+    load();
+});
+</script>
+{% endblock %}

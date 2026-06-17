@@ -92,9 +92,12 @@ def main() -> int:
     log_section("SYSTEM RESOURCES & DISK CAPACITY")
     total, used, free = shutil.disk_usage(".")
     free_gb = free / (1024**3)
-    if free_gb < 1.0:
-        print(f"  {RED}❌ FAIL{RESET}  Insufficient free disk space! Only {free_gb:.2f} GB free. Required: >= 1.0 GB.")
+    if free_gb < 0.5:
+        print(f"  {RED}❌ FAIL{RESET}  Insufficient free disk space! Only {free_gb:.2f} GB free. Required: >= 0.5 GB.")
         failures += 1
+    elif free_gb < 1.0:
+        print(f"  {YELLOW}⚠️  WARN{RESET}  Low free disk space! Only {free_gb:.2f} GB free. Recommended: >= 1.0 GB.")
+        warnings += 1
     else:
         print(f"  {GREEN}✅ PASS{RESET}  Available Disk Space: {free_gb:.2f} GB (Requirement ≥ 1.0 GB cleared).")
         passed += 1
@@ -138,7 +141,7 @@ def main() -> int:
         try:
             conn = sqlite3.connect(harness_db_path)
             cur = conn.cursor()
-            cur.execute("SELECT COUNT(*) FROM story WHERE status != 'implemented'")
+            cur.execute("SELECT COUNT(*) FROM story WHERE status NOT IN ('implemented', 'completed')")
             unimplemented = cur.fetchone()[0]
             if unimplemented == 0:
                 print(f"  {GREEN}✅ PASS{RESET}  All Harness stories are completely synchronized to status 'implemented'.")

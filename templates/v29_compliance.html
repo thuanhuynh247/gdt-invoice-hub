@@ -1,0 +1,903 @@
+{% extends "base.html" %}
+
+{% block title %}Wise Compliance v29 - Ghost-Company Inspector & Tax Graph Hub{% endblock %}
+
+{% block content %}
+<!-- Google Fonts & Styling References -->
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+    /* Premium Styling Tokens for Version 29.0.0 */
+    :root {
+        --v29-bg-glass: rgba(15, 23, 42, 0.75);
+        --v29-border-glass: rgba(255, 255, 255, 0.08);
+        --v29-glow-cyan: rgba(6, 182, 212, 0.4);
+        --v29-glow-emerald: rgba(16, 185, 129, 0.35);
+        --v29-glow-amber: rgba(245, 158, 11, 0.35);
+        --v29-glow-rose: rgba(244, 63, 94, 0.45);
+        --v29-font-title: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+        --v29-font-mono: 'Fira Code', monospace;
+    }
+
+    body {
+        background-color: #070a13;
+        color: #f8fafc;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    .v29-card {
+        background: var(--v29-bg-glass);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--v29-border-glass);
+        border-radius: 18px;
+        box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.45);
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .v29-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, rgba(6, 182, 212, 0.5), transparent);
+        transform: translateX(-100%);
+        transition: transform 0.6s ease;
+    }
+
+    .v29-card:hover::before {
+        transform: translateX(100%);
+    }
+
+    .v29-card:hover {
+        border-color: rgba(6, 182, 212, 0.3);
+        box-shadow: 0 16px 48px 0 rgba(6, 182, 212, 0.15);
+    }
+
+    .v29-title {
+        font-family: var(--v29-font-title);
+        font-weight: 800;
+        background: linear-gradient(135deg, #22d3ee 0%, #06b6d4 50%, #0891b2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: -0.02em;
+    }
+
+    .nav-tabs-v29 {
+        border-bottom: 1px solid var(--v29-border-glass);
+        gap: 10px;
+    }
+
+    .nav-tabs-v29 .nav-link {
+        background: transparent;
+        border: 1px solid transparent;
+        color: #94a3b8;
+        font-family: var(--v29-font-title);
+        font-weight: 600;
+        border-radius: 12px 12px 0 0;
+        padding: 14px 28px;
+        transition: all 0.3s ease;
+    }
+
+    .nav-tabs-v29 .nav-link:hover {
+        color: #f1f5f9;
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    .nav-tabs-v29 .nav-link.active {
+        color: #22d3ee;
+        background: rgba(6, 182, 212, 0.08);
+        border-color: var(--v29-border-glass) var(--v29-border-glass) transparent;
+        box-shadow: 0 -4px 16px rgba(6, 182, 212, 0.15);
+    }
+
+    /* Risk Speedometer Dial styling */
+    .risk-dial-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        margin: 20px 0;
+    }
+
+    .risk-svg {
+        width: 200px;
+        height: 200px;
+    }
+
+    .risk-bg-circle {
+        fill: none;
+        stroke: #1e293b;
+        stroke-width: 14;
+    }
+
+    .risk-progress-circle {
+        fill: none;
+        stroke-width: 14;
+        stroke-linecap: round;
+        stroke-dasharray: 565.48; /* 2 * pi * 90 */
+        stroke-dashoffset: 565.48;
+        transform: rotate(-90deg);
+        transform-origin: 100px 100px;
+        transition: stroke-dashoffset 1.5s cubic-bezier(0.16, 1, 0.3, 1), stroke 0.5s ease;
+    }
+
+    .risk-text-value {
+        font-family: var(--v29-font-title);
+        font-weight: 800;
+        font-size: 38px;
+        fill: #f8fafc;
+        text-anchor: middle;
+        dominant-baseline: middle;
+    }
+
+    /* SVG Tax Graph Visualization Stylings */
+    .tax-graph-wrapper {
+        background: #020617;
+        border: 1px solid var(--v29-border-glass);
+        border-radius: 16px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .tax-node {
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .tax-node:hover {
+        filter: drop-shadow(0 0 12px var(--v29-glow-cyan));
+    }
+
+    .tax-node.selected circle {
+        stroke: #22d3ee !important;
+        stroke-width: 3px !important;
+        filter: drop-shadow(0 0 16px rgba(6, 182, 212, 0.6));
+    }
+
+    .tax-link {
+        stroke: rgba(148, 163, 184, 0.25);
+        stroke-width: 2;
+        transition: stroke 0.3s, stroke-width 0.3s;
+        marker-end: url(#arrowhead);
+    }
+
+    .tax-link.active {
+        stroke: rgba(6, 182, 212, 0.6);
+        stroke-width: 3.5;
+    }
+
+    /* Timeline and Swarm Advisor log styling */
+    .swarm-v29-timeline {
+        border-left: 2px dashed rgba(6, 182, 212, 0.3);
+        margin-left: 15px;
+        padding-left: 20px;
+    }
+
+    .swarm-bubble {
+        position: relative;
+        margin-bottom: 20px;
+        animation: slideInV29 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        opacity: 0;
+    }
+
+    @keyframes slideInV29 {
+        from {
+            opacity: 0;
+            transform: translateX(-15px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    .swarm-bubble::before {
+        content: '';
+        position: absolute;
+        left: -26px;
+        top: 6px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #06b6d4;
+        box-shadow: 0 0 10px #06b6d4;
+    }
+
+    .swarm-bubble.RiskAuditorAgent::before { background: #f43f5e; box-shadow: 0 0 10px #f43f5e; }
+    .swarm-bubble.LegalDefenseAdvisor::before { background: #10b981; box-shadow: 0 0 10px #10b981; }
+    .swarm-bubble.PenaltyForecaster::before { background: #f59e0b; box-shadow: 0 0 10px #f59e0b; }
+
+    .badge-v29 {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--v29-border-glass);
+        color: #e2e8f0;
+        font-family: var(--v29-font-mono);
+        font-size: 0.75rem;
+    }
+</style>
+
+<div class="row">
+    <div class="col-12 mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <h1 class="v29-title mb-1"><i class="bi bi-shield-slash-fill me-2" aria-hidden="true"></i>Ghost-Company Inspector & Tax Regulations Graph</h1>
+            <p class="text-secondary mb-0">Hệ thống Giám sát Nhà cung cấp Rủi ro Đặc biệt, Tác tử Soạn thảo Giải trình Thuế & Bản đồ Tri thức Thuế SVG.</p>
+        </div>
+        <div>
+            <span class="badge bg-warning text-dark px-3 py-2 fs-6 rounded-pill" style="box-shadow: 0 0 15px rgba(245, 158, 11, 0.3); font-family: var(--v29-font-title); font-weight: 700;">
+                <i class="bi bi-cpu-fill me-1" aria-hidden="true"></i> Version 29.0.0 (High Compliance)
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Navigation Tabs -->
+<div class="row mb-4">
+    <div class="col-12">
+        <ul class="nav nav-tabs nav-tabs-v29" id="v29Tabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="inspector-tab" data-bs-toggle="tab" data-bs-target="#inspector" type="button" role="tab" aria-controls="inspector" aria-selected="true">
+                    <i class="bi bi-search-heart me-2" aria-hidden="true"></i> Ghost-Company Inspector
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="defense-tab" data-bs-toggle="tab" data-bs-target="#defense" type="button" role="tab" aria-controls="defense" aria-selected="false">
+                    <i class="bi bi-journal-check me-2" aria-hidden="true"></i> Audit Defense Swarm Hub
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="graph-tab" data-bs-toggle="tab" data-bs-target="#graph" type="button" role="tab" aria-controls="graph" aria-selected="false">
+                    <i class="bi bi-diagram-3 me-2" aria-hidden="true"></i> Tax Law Knowledge Graph
+                </button>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<div class="tab-content" id="v29TabsContent">
+    <!-- Tab 1: Ghost-Company Inspector -->
+    <div class="tab-pane fade show active" id="inspector" role="tabpanel" aria-labelledby="inspector-tab">
+        <div class="row">
+            <div class="col-lg-5 mb-4">
+                <div class="v29-card p-4 h-100">
+                    <h4 class="mb-3 d-flex justify-content-between align-items-center">
+                        <span style="font-family: var(--v29-font-title); font-weight: 600;">Tra Cứu Đối Tác Mua Hóa Đơn</span>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-info dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Chọn Mẫu Rủi Ro
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-dark">
+                                <li><a class="dropdown-item" href="#" onclick="loadSampleInspector('0316482931', 'Công ty TNHH Thương mại Dịch vụ Khánh An', 250000000)">Khánh An (Bỏ địa chỉ kinh doanh)</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="loadSampleInspector('0108924810', 'Công ty Cổ phần Vật liệu Xây dựng Trường Thịnh', 8500000000)">Trường Thịnh (Vốn cực thấp, giao dịch lớn)</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="loadSampleInspector('0201948291', 'Công ty TNHH Đầu tư và Xuất nhập khẩu Hoàng Hải', 18000000000)">Hoàng Hải (Doanh thu tăng vọt bất thường)</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="loadSampleInspector('0109998887', 'Công ty TNHH Giải pháp Ánh Sáng', 45000000)">Ánh Sáng (Giao dịch chuẩn, An toàn)</a></li>
+                            </ul>
+                        </div>
+                    </h4>
+                    <p class="text-secondary small">Tra cứu chéo MST người bán với danh sách đen của Tổng cục Thuế và thực hiện chấm điểm rủi ro hành vi tài chính.</p>
+                    
+                    <div class="mb-3">
+                        <label for="txtInspectorMst" class="form-label small text-secondary">Mã số thuế bên bán (Seller MST):</label>
+                        <input type="text" class="form-control bg-slate-900 border-slate-800 text-white" id="txtInspectorMst" placeholder="Nhập MST (Ví dụ: 0316482931)" autocomplete="off">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="txtInspectorName" class="form-label small text-secondary">Tên nhà cung cấp:</label>
+                        <input type="text" class="form-control bg-slate-900 border-slate-800 text-white" id="txtInspectorName" placeholder="Tên doanh nghiệp" autocomplete="off">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="txtInspectorValue" class="form-label small text-secondary">Giá trị hóa đơn (VNĐ):</label>
+                        <input type="number" class="form-control bg-slate-900 border-slate-800 text-white" id="txtInspectorValue" placeholder="Tổng tiền trước thuế" autocomplete="off">
+                    </div>
+
+                    <div class="d-grid mt-4">
+                        <button class="btn btn-info text-dark fw-bold" id="btnRunInspector">
+                            <i class="bi bi-shield-shaded me-1" aria-hidden="true"></i> Rà Soát & Tính Toán Chỉ Số Rủi Ro
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-7 mb-4">
+                <div class="v29-card p-4 h-100 d-flex flex-column">
+                    <h4 class="mb-3" style="font-family: var(--v29-font-title); font-weight: 600;">Chỉ Số Rủi Ro Hoạt Động (Risk Score Card)</h4>
+                    
+                    <div id="inspectorPlaceholder" class="text-center my-auto py-5">
+                        <i class="bi bi-shield-fill-exclamation display-2 text-secondary opacity-25" aria-hidden="true"></i>
+                        <p class="mt-3 text-secondary">Vui lòng chọn hoặc nhập thông tin doanh nghiệp cần kiểm tra rủi ro hóa đơn ma.</p>
+                    </div>
+
+                    <div id="inspectorResultsArea" style="display: none;" class="flex-grow-1 d-flex flex-column">
+                        <div class="row align-items-center">
+                            <div class="col-md-5">
+                                <div class="risk-dial-container">
+                                    <svg class="risk-svg" id="riskDialSvg">
+                                        <circle class="risk-bg-circle" cx="100" cy="100" r="90"></circle>
+                                        <circle class="risk-progress-circle" id="riskProgressCircle" cx="100" cy="100" r="90" stroke="#10b981"></circle>
+                                        <text class="risk-text-value" id="riskTextValue" x="100" y="100">0%</text>
+                                    </svg>
+                                    <div class="mt-2 text-center">
+                                        <span class="badge px-3 py-2 fs-6 rounded-pill" id="riskStatusBadge">Hợp chuẩn / An toàn</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-7">
+                                <h5 class="text-white mb-2" id="lblResultName">Tên doanh nghiệp</h5>
+                                <div class="mb-2 small">
+                                    <span class="text-secondary">Trạng thái thuế:</span> <strong id="lblResultStatus" class="text-light">Đang hoạt động</strong>
+                                </div>
+                                <div class="mb-2 small">
+                                    <span class="text-secondary">Vốn điều lệ đăng ký:</span> <strong id="lblResultCapital" class="text-light">10.000.000.000 VNĐ</strong>
+                                </div>
+                                <div class="mb-3 small">
+                                    <span class="text-secondary">Ngày thành lập:</span> <strong id="lblResultDate" class="text-light">01/01/2020</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-3 border-top border-slate-800">
+                            <h6 class="text-info small uppercase tracking-wider mb-2">Các cờ cảnh báo (Statutory Flags):</h6>
+                            <ul class="list-group list-group-flush bg-transparent" id="lstInspectorFlags"></ul>
+                        </div>
+
+                        <div class="mt-3 alert alert-secondary" id="boxInspectorWarnings" style="border-radius: 10px; display: none;">
+                            <div class="d-flex gap-2">
+                                <i class="bi bi-exclamation-triangle-fill text-warning fs-5" aria-hidden="true"></i>
+                                <div id="lblInspectorWarningText" class="small text-white-50"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 2: Audit Defense Swarm Hub -->
+    <div class="tab-pane fade" id="defense" role="tabpanel" aria-labelledby="defense-tab">
+        <div class="row">
+            <div class="col-lg-5 mb-4">
+                <div class="v29-card p-4 h-100 d-flex flex-column">
+                    <h4 class="mb-3" style="font-family: var(--v29-font-title); font-weight: 600;">Lập Hồ Sơ Giải Trình Swarm</h4>
+                    <p class="text-secondary small">Sử dụng Multi-Agent Swarm để tự động đề xuất phương án bảo vệ quyền lợi khấu trừ thuế đối với hóa đơn nghi ngờ.</p>
+
+                    <div class="mb-3">
+                        <label for="txtDefenseMst" class="form-label small text-secondary">MST Doanh nghiệp bán:</label>
+                        <input type="text" class="form-control bg-slate-900 border-slate-800 text-white" id="txtDefenseMst" placeholder="Ví dụ: 0316482931" readonly autocomplete="off">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="txtDefenseName" class="form-label small text-secondary">Tên doanh nghiệp bán:</label>
+                        <input type="text" class="form-control bg-slate-900 border-slate-800 text-white" id="txtDefenseName" placeholder="Ví dụ: Công ty TNHH Khánh An" readonly autocomplete="off">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="txtDefenseValue" class="form-label small text-secondary">Trị giá giao dịch giải trình (VNĐ):</label>
+                        <input type="number" class="form-control bg-slate-900 border-slate-800 text-white" id="txtDefenseValue" readonly autocomplete="off">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="selPaymentMethod" class="form-label small text-secondary">Phương thức thanh toán đối ứng:</label>
+                        <select class="form-select bg-slate-900 border-slate-800 text-white" id="selPaymentMethod">
+                            <option value="Chuyển khoản Ngân hàng (Khớp lệnh Napas)">Chuyển khoản qua Ngân hàng đối ứng (Khớp lệnh Napas)</option>
+                            <option value="Ủy nhiệm chi ngân hàng thương mại">Ủy nhiệm chi ngân hàng (UNC)</option>
+                            <option value="Thanh toán bù trừ công nợ theo hợp đồng">Thanh toán bù trừ công nợ đối ứng</option>
+                        </select>
+                    </div>
+
+                    <div class="d-grid mt-auto pt-3">
+                        <button class="btn btn-warning text-dark fw-bold" id="btnRunDefenseSwarm">
+                            <i class="bi bi-chat-left-dots-fill me-1" aria-hidden="true"></i> Khởi Chạy Swarm Lập Hồ Sơ Giải Trình
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-7 mb-4">
+                <div class="v29-card p-4 h-100 d-flex flex-column">
+                    <h4 class="mb-3" style="font-family: var(--v29-font-title); font-weight: 600;">Luồng Quyết Định Swarm & Dự Thảo Văn Bản</h4>
+                    
+                    <div id="defensePlaceholder" class="text-center my-auto py-5">
+                        <i class="bi bi-chat-square-quote display-2 text-secondary opacity-25" aria-hidden="true"></i>
+                        <p class="mt-3 text-secondary">Vui lòng chạy chức năng "Inspector" trước hoặc nhấn Khởi Chạy để soạn thảo văn bản giải trình.</p>
+                    </div>
+
+                    <div id="defenseResultsArea" style="display: none;" class="flex-grow-1 d-flex flex-column">
+                        <!-- Live Swarm Timeline -->
+                        <div class="overflow-auto mb-4 p-3 border border-slate-800 rounded-3 bg-slate-950" style="max-height: 250px;" id="swarmLogContainer">
+                            <div class="swarm-v29-timeline" id="swarmV29Timeline"></div>
+                        </div>
+
+                        <!-- Generated Letter Section -->
+                        <div class="flex-grow-1 d-flex flex-column" id="letterSection" style="display: none !important;">
+                            <label for="txtMitigationLetter" class="form-label small text-info uppercase font-title">Bản Dự Thảo Đề Xuất Giải Trình (Có Thể Chỉnh Sửa):</label>
+                            <textarea class="form-control mb-3 flex-grow-1" id="txtMitigationLetter" rows="12" style="font-family: var(--v29-font-mono); font-size: 12px; background: #020617; color: #e2e8f0; border: 1px solid var(--v29-border-glass);"></textarea>
+                            
+                            <div class="d-flex justify-content-end gap-2">
+                                <button class="btn btn-outline-light" id="btnCopyLetter">
+                                    <i class="bi bi-clipboard me-1" aria-hidden="true"></i> Sao chép
+                                </button>
+                                <button class="btn btn-primary" id="btnDownloadLetter">
+                                    <i class="bi bi-download me-1" aria-hidden="true"></i> Tải File Văn Bản
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 3: Tax Law Knowledge Graph -->
+    <div class="tab-pane fade" id="graph" role="tabpanel" aria-labelledby="graph-tab">
+        <div class="row">
+            <div class="col-lg-8 mb-4">
+                <div class="v29-card p-4 h-100">
+                    <h4 class="mb-3 d-flex justify-content-between align-items-center">
+                        <span style="font-family: var(--v29-font-title); font-weight: 600;">Bản Đồ Mối Quan Hệ Quy Định Thuế Việt Nam (Circular Graph)</span>
+                        <span class="badge bg-info-subtle text-info">Tương tác trực quan</span>
+                    </h4>
+                    <p class="text-secondary small">Nhấp chuột vào các nút (quy định pháp luật) bên dưới để xem tóm tắt nội dung, cấu trúc và liên kết thực thi tương ứng.</p>
+                    
+                    <!-- Dynamic responsive SVG Node Link Network Graph -->
+                    <div class="tax-graph-wrapper p-3">
+                        <svg id="svgTaxNetwork" viewBox="0 0 800 450" width="100%" height="450">
+                            <!-- Defs for markers/shadows -->
+                            <defs>
+                                <marker id="arrowhead" viewBox="0 0 10 10" refX="28" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                    <path d="M 0 0 L 10 5 L 0 10 z" fill="rgba(6, 182, 212, 0.6)"></path>
+                                </marker>
+                                <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                                    <feGaussianBlur stdDeviation="6" result="blur"></feGaussianBlur>
+                                    <feComposite in="SourceGraphic" in2="blur" operator="over"></feComposite>
+                                </filter>
+                            </defs>
+                            
+                            <!-- Links -->
+                            <g id="svgLinksGroup"></g>
+                            
+                            <!-- Nodes -->
+                            <g id="svgNodesGroup"></g>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4 mb-4">
+                <div class="v29-card p-4 h-100 d-flex flex-column">
+                    <h4 class="mb-3" style="font-family: var(--v29-font-title); font-weight: 600;">Nội Dung Quy Định</h4>
+                    
+                    <div id="nodeDetailPlaceholder" class="text-center my-auto py-5">
+                        <i class="bi bi-book display-2 text-secondary opacity-25" aria-hidden="true"></i>
+                        <p class="mt-3 text-secondary">Hãy nhấp vào một nút quy định trên bản đồ mạng lưới để xem chi tiết điều khoản chi phối.</p>
+                    </div>
+
+                    <div id="nodeDetailsArea" style="display: none;" class="flex-grow-1">
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <span class="badge px-3 py-2 text-white" id="nodeDetailBadge" style="font-size: 1.1em; background: #0891b2;">Quy định</span>
+                        </div>
+                        <h4 class="text-white mb-2" id="nodeDetailTitle">Tiêu đề quy định</h4>
+                        
+                        <div class="p-3 bg-slate-900 border border-slate-800 rounded-3 mb-4">
+                            <p class="mb-0 small text-slate-300" id="nodeDetailDesc" style="line-height: 1.6;"></p>
+                        </div>
+
+                        <h6 class="text-info small uppercase font-title mb-2">Các mối liên kết liên quan (References):</h6>
+                        <div class="list-group list-group-flush bg-transparent" id="lstNodeEdges"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let globalGraphData = null;
+    let selectedNodeId = null;
+
+    document.addEventListener("DOMContentLoaded", function () {
+        // Automatically fetch and load the Tax regulations graph on page load
+        fetchTaxKnowledgeGraph();
+    });
+
+    // ── Helper to load sample values in the inspector ────────────────────────
+    function loadSampleInspector(mst, name, value) {
+        document.getElementById("txtInspectorMst").value = mst;
+        document.getElementById("txtInspectorName").value = name;
+        document.getElementById("txtInspectorValue").value = value;
+    }
+
+    // ── Tab 1 Actions: Ghost Company Inspector ───────────────────────────────
+    const btnRunInspector = document.getElementById("btnRunInspector");
+    const inspectorPlaceholder = document.getElementById("inspectorPlaceholder");
+    const inspectorResultsArea = document.getElementById("inspectorResultsArea");
+    const riskProgressCircle = document.getElementById("riskProgressCircle");
+    const riskTextValue = document.getElementById("riskTextValue");
+    const riskStatusBadge = document.getElementById("riskStatusBadge");
+    const lblResultName = document.getElementById("lblResultName");
+    const lblResultStatus = document.getElementById("lblResultStatus");
+    const lblResultCapital = document.getElementById("lblResultCapital");
+    const lblResultDate = document.getElementById("lblResultDate");
+    const lstInspectorFlags = document.getElementById("lstInspectorFlags");
+    const boxInspectorWarnings = document.getElementById("boxInspectorWarnings");
+    const lblInspectorWarningText = document.getElementById("lblInspectorWarningText");
+
+    // Defense inputs to link together
+    const txtDefenseMst = document.getElementById("txtDefenseMst");
+    const txtDefenseName = document.getElementById("txtDefenseName");
+    const txtDefenseValue = document.getElementById("txtDefenseValue");
+
+    btnRunInspector.addEventListener("click", async function () {
+        const mst = document.getElementById("txtInspectorMst").value.trim();
+        const name = document.getElementById("txtInspectorName").value.trim() || "Doanh nghiệp mẫu";
+        const val = parseFloat(document.getElementById("txtInspectorValue").value) || 0;
+
+        if (!mst) {
+            alert("Vui lòng điền Mã số thuế bên bán.");
+            return;
+        }
+
+        try {
+            const response = await fetch("/api/compliance/ghost-check", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ seller_mst: mst, seller_name: name, invoice_value: val })
+            });
+            const data = await response.json();
+
+            if (data.error) {
+                alert("Lỗi tra cứu: " + data.error);
+                return;
+            }
+
+            // Sync values to Defense Form
+            txtDefenseMst.value = data.mst;
+            txtDefenseName.value = data.name;
+            txtDefenseValue.value = val;
+
+            // Render Results
+            inspectorPlaceholder.style.display = "none";
+            inspectorResultsArea.style.display = "block";
+
+            lblResultName.innerText = data.name;
+            lblResultStatus.innerText = data.details.tax_status;
+            lblResultDate.innerText = data.details.establishment_date;
+            lblResultCapital.innerText = parseFloat(data.details.registered_capital).toLocaleString('vi-VN') + " VNĐ";
+
+            // Animate Dial
+            animateRiskDial(data.risk_score);
+
+            // Risk status text styling
+            if (data.status === "Critical") {
+                riskStatusBadge.className = "badge bg-danger text-white px-3 py-2 fs-6 rounded-pill";
+                riskStatusBadge.innerText = "Mức độ: CỰC KỲ NGUY HIỂM";
+            } else if (data.status === "Warning") {
+                riskStatusBadge.className = "badge bg-warning text-dark px-3 py-2 fs-6 rounded-pill";
+                riskStatusBadge.innerText = "Mức độ: CẢNH BÁO CAO";
+            } else {
+                riskStatusBadge.className = "badge bg-success text-white px-3 py-2 fs-6 rounded-pill";
+                riskStatusBadge.innerText = "Mức độ: AN TOÀN";
+            }
+
+            // Flags
+            let flagsHtml = "";
+            if (data.flags.length > 0) {
+                data.flags.forEach(f => {
+                    flagsHtml += `<li class="list-group-item bg-transparent text-slate-300 border-0 p-1 small"><i class="bi bi-flag-fill text-info me-2" aria-hidden="true"></i>${f}</li>`;
+                });
+            } else {
+                flagsHtml = `<li class="list-group-item bg-transparent text-success border-0 p-1 small"><i class="bi bi-shield-check me-2" aria-hidden="true"></i>Không phát hiện dấu hiệu bất thường về điều lệ hay thâm niên.</li>`;
+            }
+            lstInspectorFlags.innerHTML = flagsHtml;
+
+            // Warnings box
+            if (data.warnings.length > 0) {
+                boxInspectorWarnings.style.display = "block";
+                lblInspectorWarningText.innerHTML = data.warnings.join("<br/>");
+            } else {
+                boxInspectorWarnings.style.display = "none";
+            }
+
+        } catch (e) {
+            alert("Lỗi kết nối kiểm tra rủi ro: " + e.message);
+        }
+    });
+
+    function animateRiskDial(score) {
+        // Circumference is 565.48. Fill ratio is offset = circ * (1 - score / 100)
+        const circumference = 565.48;
+        const offset = circumference - (score / 100) * circumference;
+        
+        // Color transition based on score
+        let color = "#10b981"; // Safe green
+        if (score >= 75) {
+            color = "#f43f5e"; // Rose critical
+        } else if (score >= 35) {
+            color = "#f59e0b"; // Amber warning
+        }
+
+        riskProgressCircle.style.stroke = color;
+        riskProgressCircle.style.strokeDashoffset = offset;
+        
+        // Counter animation
+        let count = 0;
+        const duration = 1200; // ms
+        const stepTime = Math.abs(Math.floor(duration / score)) || 20;
+        
+        const timer = setInterval(() => {
+            if (count >= score) {
+                riskTextValue.textContent = score + "%";
+                clearInterval(timer);
+            } else {
+                count++;
+                riskTextValue.textContent = count + "%";
+            }
+        }, stepTime);
+    }
+
+    // ── Tab 2 Actions: Audit Defense Swarm Hub ───────────────────────────────
+    const btnRunDefenseSwarm = document.getElementById("btnRunDefenseSwarm");
+    const defensePlaceholder = document.getElementById("defensePlaceholder");
+    const defenseResultsArea = document.getElementById("defenseResultsArea");
+    const swarmV29Timeline = document.getElementById("swarmV29Timeline");
+    const swarmLogContainer = document.getElementById("swarmLogContainer");
+    const letterSection = document.getElementById("letterSection");
+    const txtMitigationLetter = document.getElementById("txtMitigationLetter");
+    const btnCopyLetter = document.getElementById("btnCopyLetter");
+    const btnDownloadLetter = document.getElementById("btnDownloadLetter");
+
+    btnRunDefenseSwarm.addEventListener("click", async function () {
+        const mst = txtDefenseMst.value.trim();
+        const name = txtDefenseName.value.trim();
+        const val = parseFloat(txtDefenseValue.value) || 0;
+
+        if (!mst || !name) {
+            alert("Vui lòng thực hiện kiểm tra rủi ro nhà cung cấp tại Tab 1 trước.");
+            return;
+        }
+
+        defensePlaceholder.style.display = "none";
+        defenseResultsArea.style.display = "block";
+        letterSection.style.setProperty("display", "none", "important");
+        swarmV29Timeline.innerHTML = `
+            <div class="text-center py-4">
+                <div class="spinner-border text-info" role="status"></div>
+                <p class="mt-2 text-secondary small">Kích hoạt Swarm Agent tư vấn pháp lý. Xin chờ…</p>
+            </div>
+        `;
+
+        try {
+            const response = await fetch("/api/agents/swarm-v29-chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ seller_mst: mst, seller_name: name, invoice_value: val })
+            });
+            const data = await response.json();
+
+            if (data.error) {
+                swarmV29Timeline.innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+                return;
+            }
+
+            // Animate chat steps sequentially
+            swarmV29Timeline.innerHTML = "";
+            let idx = 0;
+            
+            function showNextStep() {
+                if (idx < data.chat_steps.length) {
+                    const step = data.chat_steps[idx];
+                    const bubble = document.createElement("div");
+                    bubble.className = `swarm-bubble ${step.agent}`;
+                    
+                    bubble.innerHTML = `
+                        <div class="p-3 bg-slate-900 border border-slate-800 rounded-3 mb-3">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <span class="badge ${step.avatar_class} text-xs px-2 py-1">${step.agent[0]}</span>
+                                <div>
+                                    <strong class="text-light small">${step.agent}</strong>
+                                    <span class="text-muted text-xs ms-1">(${step.role})</span>
+                                </div>
+                                <span class="ms-auto text-secondary text-xs">${step.timestamp}</span>
+                            </div>
+                            <div class="text-slate-300 text-xs" style="line-height: 1.5;">
+                                ${step.message}
+                            </div>
+                        </div>
+                    `;
+                    swarmV29Timeline.appendChild(bubble);
+                    swarmLogContainer.scrollTop = swarmLogContainer.scrollHeight;
+                    idx++;
+                    setTimeout(showNextStep, 1000);
+                } else {
+                    // Populate and display the letter draft
+                    txtMitigationLetter.value = data.report_markdown;
+                    letterSection.style.setProperty("display", "block", "important");
+                }
+            }
+
+            showNextStep();
+
+        } catch (e) {
+            swarmV29Timeline.innerHTML = `<div class="alert alert-danger">${e.message}</div>`;
+        }
+    });
+
+    btnCopyLetter.addEventListener("click", function () {
+        navigator.clipboard.writeText(txtMitigationLetter.value);
+        alert("Đã sao chép văn bản giải trình vào Clipboard!");
+    });
+
+    btnDownloadLetter.addEventListener("click", function () {
+        const text = txtMitigationLetter.value;
+        const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "Ban_giai_trinh_rui_ro_hoa_don.txt";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    });
+
+    // ── Tab 3: Interactive SVG Tax regulations Graph ──────────────────────────
+    async function fetchTaxKnowledgeGraph() {
+        try {
+            const response = await fetch("/api/compliance/tax-knowledge-graph");
+            const data = await response.json();
+            globalGraphData = data;
+            renderTaxSvgGraph(data);
+        } catch (e) {
+            console.error("Error fetching tax graph data: " + e.message);
+        }
+    }
+
+    function renderTaxSvgGraph(data) {
+        const svg = document.getElementById("svgTaxNetwork");
+        const linksGroup = document.getElementById("svgLinksGroup");
+        const nodesGroup = document.getElementById("svgNodesGroup");
+
+        // Fixed neat coordinate layout for nodes for clean visuals
+        const coordinates = {
+            "LQLT38": { x: 400, y: 80 },
+            "ND123":  { x: 200, y: 200 },
+            "TT80":   { x: 600, y: 200 },
+            "ND125":  { x: 400, y: 350 },
+            "TT219":  { x: 150, y: 340 },
+            "ND132":  { x: 650, y: 340 }
+        };
+
+        // Render Links
+        let linksHtml = "";
+        data.edges.forEach((edge, i) => {
+            const source = coordinates[edge.from];
+            const target = coordinates[edge.to];
+            if (source && target) {
+                linksHtml += `
+                    <line 
+                        class="tax-link" 
+                        id="link-${edge.from}-${edge.to}"
+                        x1="${source.x}" 
+                        y1="${source.y}" 
+                        x2="${target.x}" 
+                        y2="${target.y}"
+                    />
+                `;
+            }
+        });
+        linksGroup.innerHTML = linksHtml;
+
+        // Render Nodes
+        let nodesHtml = "";
+        data.nodes.forEach((node) => {
+            const pos = coordinates[node.id];
+            if (pos) {
+                let color = "#06b6d4"; // Cyan default
+                if (node.group === "law") color = "#3b82f6";     // Blue Law
+                if (node.group === "penalty") color = "#f43f5e"; // Rose Penalty
+                if (node.group === "vat") color = "#10b981";     // Green GTGT
+                if (node.group === "tp") color = "#f59e0b";      // Amber TP
+
+                nodesHtml += `
+                    <g class="tax-node" id="node-${node.id}" onclick="selectGraphNode('${node.id}')">
+                        <circle 
+                            cx="${pos.x}" 
+                            cy="${pos.y}" 
+                            r="${node.val + 2}" 
+                            fill="${color}" 
+                            stroke="rgba(255,255,255,0.2)" 
+                            stroke-width="2"
+                            filter="url(#glow)"
+                        />
+                        <text 
+                            x="${pos.x}" 
+                            y="${pos.y + 4}" 
+                            fill="#ffffff" 
+                            font-size="11" 
+                            font-weight="bold" 
+                            font-family="var(--v29-font-title)"
+                            text-anchor="middle"
+                        >${node.id}</text>
+                        <text 
+                            x="${pos.x}" 
+                            y="${pos.y + node.val + 16}" 
+                            fill="#cbd5e1" 
+                            font-size="10" 
+                            font-family="var(--v29-font-title)"
+                            text-anchor="middle"
+                        >${node.label}</text>
+                    </g>
+                `;
+            }
+        });
+        nodesGroup.innerHTML = nodesHtml;
+    }
+
+    function selectGraphNode(nodeId) {
+        // Highlight Node in SVG
+        const nodes = document.querySelectorAll(".tax-node");
+        nodes.forEach(n => n.classList.remove("selected"));
+        
+        const selNode = document.getElementById(`node-${nodeId}`);
+        if (selNode) selNode.classList.add("selected");
+
+        // Highlight active connections
+        const links = document.querySelectorAll(".tax-link");
+        links.forEach(l => l.classList.remove("active"));
+
+        globalGraphData.edges.forEach(edge => {
+            if (edge.from === nodeId || edge.to === nodeId) {
+                const linkEl = document.getElementById(`link-${edge.from}-${edge.to}`);
+                if (linkEl) linkEl.classList.add("active");
+            }
+        });
+
+        // Show details card
+        const node = globalGraphData.nodes.find(n => n.id === nodeId);
+        const placeholder = document.getElementById("nodeDetailPlaceholder");
+        const detailsArea = document.getElementById("nodeDetailsArea");
+
+        placeholder.style.display = "none";
+        detailsArea.style.display = "block";
+
+        document.getElementById("nodeDetailTitle").innerText = node.label;
+        document.getElementById("nodeDetailDesc").innerText = node.desc;
+
+        const badge = document.getElementById("nodeDetailBadge");
+        badge.innerText = node.group.toUpperCase();
+        if (node.group === "law") badge.style.backgroundColor = "#3b82f6";
+        else if (node.group === "penalty") badge.style.backgroundColor = "#f43f5e";
+        else if (node.group === "vat") badge.style.backgroundColor = "#10b981";
+        else if (node.group === "tp") badge.style.backgroundColor = "#f59e0b";
+        else badge.style.backgroundColor = "#0891b2";
+
+        // Render connected references list
+        const lstNodeEdges = document.getElementById("lstNodeEdges");
+        let edgesHtml = "";
+        
+        globalGraphData.edges.forEach(edge => {
+            if (edge.from === nodeId) {
+                const targetNode = globalGraphData.nodes.find(n => n.id === edge.to);
+                edgesHtml += `
+                    <div class="list-group-item bg-transparent border-0 ps-0 text-slate-300 small">
+                        <i class="bi bi-arrow-right-short text-info fs-5 align-middle" aria-hidden="true"></i>
+                        Liên kết sang <strong>${targetNode.label}</strong>: ${edge.desc}
+                    </div>
+                `;
+            } else if (edge.to === nodeId) {
+                const sourceNode = globalGraphData.nodes.find(n => n.id === edge.from);
+                edgesHtml += `
+                    <div class="list-group-item bg-transparent border-0 ps-0 text-slate-300 small">
+                        <i class="bi bi-arrow-left-short text-warning fs-5 align-middle" aria-hidden="true"></i>
+                        Được dẫn chiếu bởi <strong>${sourceNode.label}</strong>: ${edge.desc}
+                    </div>
+                `;
+            }
+        });
+
+        lstNodeEdges.innerHTML = edgesHtml || `<div class="text-secondary small italic">Không có dẫn chiếu liên kết ngoài trực tiếp.</div>`;
+    }
+</script>
+{% endblock %}

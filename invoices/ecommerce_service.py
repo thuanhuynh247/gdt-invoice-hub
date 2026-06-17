@@ -226,19 +226,26 @@ def sync_ecommerce_orders(orders: list[dict], taxpayer_mst: str, platform: str) 
     }
 
 def reconcile_ecommerce_tax(taxpayer_mst: str, platform_orders: list[dict]) -> dict:
-    """US-205: Audit e-commerce platform order payouts against GDT output invoices.
+    """US-205 & US-343: Audit e-commerce platform order payouts against GDT output invoices.
     
     Detects:
-      - un-invoiced_revenue: order is paid but order_id is not in any GDT output invoice note.
-      - vat_deduction_risk: platform fee charged but no matching input invoice exists.
+      - UNINVOICED_SALES_WARNING: order is paid but order_id is not in any GDT output invoice notes/filenames.
+      - PRICE_MISMATCH_WARNING: order is matched to an invoice line item but the price differs.
+      - VAT_DEDUCTION_RISK: platform fee charged but no matching input invoice exists.
     """
     # Fetch all output sales e-invoices
     sales = Invoice.query.filter_by(taxpayer_mst=taxpayer_mst, invoice_type="sale").all()
     # Fetch all input purchase e-invoices
     purchases = Invoice.query.filter_by(taxpayer_mst=taxpayer_mst, invoice_type="purchase").all()
     
+    # Fetch line items for sales invoices to verify individual item price matching
+    sales_ids = [s.id for s in sales]
+    line_items = LineItem.query.filter(LineItem.invoice_id.in_(sales_ids)).all() if sales_ids else []
+    
     un_invoiced_revenue = []
     vat_deduction_risk = []
+    price_mismatches = []
+    warnings_list = []
     
     total_platform_revenue = 0.0
     matched_revenue = 0.0
@@ -257,12 +264,40 @@ def reconcile_ecommerce_tax(taxpayer_mst: str, platform_orders: list[dict]) -> d
                 break
                 
         if not found_in_invoice:
+            warning_msg = f"Đơn hàng {order_id} trị giá {gross:,.0f} VND đã thanh toán nhưng chưa xuất hóa đơn GTGT."
             un_invoiced_revenue.append({
                 "order_id": order_id,
                 "date": order.get("date"),
                 "amount": gross,
-                "message": f"Đơn hàng {order_id} trị giá {gross:,.0f} VND đã thanh toán nhưng chưa xuất hóa đơn GTGT."
+                "warning_type": "UNINVOICED_SALES_WARNING",
+                "message": warning_msg
             })
+            warnings_list.append({
+                "code": "UNINVOICED_SALES_WARNING",
+                "target": order_id,
+                "message": warning_msg
+            })
+        else:
+            # Check price mismatch against line items referencing this order
+            # The sales invoice line items store: amount_before_tax = gross - seller_voucher
+            expected_net = gross - order.get("seller_voucher", 0.0)
+            for item in line_items:
+                if order_id in (item.item_name or ""):
+                    if abs(item.amount_before_tax - expected_net) > 10.0:
+                        mismatch_msg = f"Sai lệch giá bán: Đơn hàng {order_id} trị giá net {expected_net:,.0f} VND nhưng hóa đơn ghi nhận {item.amount_before_tax:,.0f} VND."
+                        price_mismatches.append({
+                            "order_id": order_id,
+                            "order_amount": expected_net,
+                            "invoice_amount": item.amount_before_tax,
+                            "warning_type": "PRICE_MISMATCH_WARNING",
+                            "message": mismatch_msg
+                        })
+                        warnings_list.append({
+                            "code": "PRICE_MISMATCH_WARNING",
+                            "target": order_id,
+                            "message": mismatch_msg
+                        })
+                        break
             
         # Check VAT deduction risk on commission/service fees
         fees = order.get("commission_fee", 0.0) + order.get("service_fee", 0.0)
@@ -284,7 +319,7 @@ def reconcile_ecommerce_tax(taxpayer_mst: str, platform_orders: list[dict]) -> d
                 })
                 
     # Calculate audit risk score
-    discrepancy_rate = (len(un_invoiced_revenue) / len(platform_orders)) * 100 if platform_orders else 0.0
+    discrepancy_rate = ((len(un_invoiced_revenue) + len(price_mismatches)) / len(platform_orders)) * 100 if platform_orders else 0.0
     
     if discrepancy_rate > 30:
         risk_score = 90  # Extremely High Risk
@@ -302,7 +337,98 @@ def reconcile_ecommerce_tax(taxpayer_mst: str, platform_orders: list[dict]) -> d
         "matched_revenue": matched_revenue,
         "discrepancy_rate_percent": round(discrepancy_rate, 2),
         "un_invoiced_revenue": un_invoiced_revenue,
+        "price_mismatches": price_mismatches,
         "vat_deduction_risk": vat_deduction_risk,
+        "warnings": warnings_list,
         "audit_risk_score": risk_score,
         "risk_level": risk_level
     }
+
+def normalize_ecommerce_orders(raw_orders: list[dict], platform: str) -> list[dict]:
+    """US-342: Map raw platform order fields from Lazada, Shopee, and TikTok Shop into standard internal model."""
+    normalized = []
+    
+    for raw in raw_orders:
+        # Standard default fields
+        order_id = ""
+        order_date = datetime.now().strftime("%Y-%m-%d")
+        gross = 0.0
+        seller_v = 0.0
+        platform_v = 0.0
+        comm = 0.0
+        service = 0.0
+        
+        plat_lower = (raw.get("platform") or platform).lower()
+        
+        # Helper to extract values by list of potential keys
+        def extract(keys, default_val=None):
+            for k in keys:
+                if k in raw:
+                    return raw[k]
+                # Try lowercase match
+                for raw_k, raw_v in raw.items():
+                    if raw_k.lower() == k.lower():
+                        return raw_v
+            return default_val
+            
+        def get_float_val(val):
+            if val is None or str(val).strip() == "":
+                return 0.0
+            try:
+                return float(str(val).replace(',', '').replace(' ', ''))
+            except ValueError:
+                return 0.0
+                
+        if "shopee" in plat_lower:
+            order_id = str(extract(["order_id", "Mã đơn hàng", "Order ID", "Mã đơn"], "")).strip()
+            order_date = str(extract(["date", "order_date", "Ngày hoàn thành", "Ngày thanh toán", "Completed Date"], order_date)).strip()
+            gross = get_float_val(extract(["gross_revenue", "Doanh thu", "Gross Sales", "Giá bán", "Số tiền"]))
+            seller_v = get_float_val(extract(["seller_voucher", "Voucher người bán", "Seller Voucher", "Khuyến mãi người bán"]))
+            platform_v = get_float_val(extract(["platform_voucher", "Voucher Shopee", "Shopee Voucher"]))
+            comm = get_float_val(extract(["commission_fee", "Phí cố định", "Fixed Fee", "Phí hoa hồng"]))
+            service = get_float_val(extract(["service_fee", "Phí dịch vụ", "Phí thanh toán", "Service Fee"]))
+            
+        elif "lazada" in plat_lower:
+            order_id = str(extract(["order_id", "Order Number", "Mã đơn hàng Lazada", "Mã đơn"], "")).strip()
+            order_date = str(extract(["date", "order_date", "Transaction Date", "Ngày giao dịch", "Ngày"], order_date)).strip()
+            gross = get_float_val(extract(["gross_revenue", "Amount", "Số tiền", "Doanh thu"]))
+            seller_v = get_float_val(extract(["seller_voucher", "Seller Voucher", "Voucher người bán"]))
+            platform_v = get_float_val(extract(["platform_voucher", "Lazada Voucher", "Voucher Lazada"]))
+            comm = get_float_val(extract(["commission_fee", "Commission", "Phí hoa hồng"]))
+            service = get_float_val(extract(["service_fee", "Payment Fee", "Phí thanh toán", "Phí dịch vụ"]))
+            
+        elif "tiktok" in plat_lower:
+            order_id = str(extract(["order_id", "Order ID", "Mã đơn hàng TikTok", "Mã đơn"], "")).strip()
+            order_date = str(extract(["date", "order_date", "Settlement Time", "Thời gian quyết toán", "Ngày quyết toán"], order_date)).strip()
+            gross = get_float_val(extract(["gross_revenue", "Gross Revenue", "Doanh thu gộp", "Doanh thu"]))
+            seller_v = get_float_val(extract(["seller_voucher", "Seller Coupon", "Coupon người bán"]))
+            platform_v = get_float_val(extract(["platform_voucher", "TikTok Shop Coupon", "Coupon TikTok"]))
+            comm = get_float_val(extract(["commission_fee", "Platform Fee", "Phí nền tảng", "Phí hoa hồng"]))
+            service = get_float_val(extract(["service_fee", "Subsidized Shipping Fee", "Phí vận chuyển được trợ giá", "Phí dịch vụ"]))
+            
+        else:
+            # Fallback direct map
+            order_id = str(extract(["order_id", "id"], "")).strip()
+            order_date = str(extract(["date", "order_date", "time"], order_date)).strip()
+            gross = get_float_val(extract(["gross_revenue", "gross"]))
+            seller_v = get_float_val(extract(["seller_voucher", "seller"]))
+            platform_v = get_float_val(extract(["platform_voucher", "platform"]))
+            comm = get_float_val(extract(["commission_fee", "commission"]))
+            service = get_float_val(extract(["service_fee", "service"]))
+            
+        # Clean date to YYYY-MM-DD
+        if " " in order_date:
+            order_date = order_date.split(" ")[0]
+            
+        normalized.append({
+            "order_id": order_id,
+            "date": order_date,
+            "gross_revenue": gross,
+            "seller_voucher": seller_v,
+            "platform_voucher": platform_v,
+            "commission_fee": comm,
+            "service_fee": service
+        })
+        
+    return normalized
+

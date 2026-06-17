@@ -1,0 +1,285 @@
+{% extends "base.html" %}
+{% block title %}Scrap Import Environmental Deposit - EPFSD Hub (v67){% endblock %}
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
+        <div>
+            <span class="badge bg-success text-white mb-2">Version 67.0.0 Spec Compliance</span>
+            <h1 class="h2 fw-bold text-gradient mb-1 text-success">Scrap Import Deposit Hub</h1>
+            <p class="text-muted mb-0">Manage environmental deposits for scrap imports under Decree 08/2022/NĐ-CP.</p>
+        </div>
+        <div class="d-flex gap-2 mt-3 mt-md-0">
+            <button id="btn-refresh-v67" class="btn btn-success text-white d-flex align-items-center gap-2">
+                <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Load Data
+            </button>
+            <span class="badge bg-success-subtle text-success border border-success d-flex align-items-center px-3">
+                <i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Decree 08/2022
+            </span>
+        </div>
+    </div>
+
+    <!-- Main Panels -->
+    <div class="row g-4">
+        <!-- Interactive Calculator -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1 text-success"><i class="bi bi-calculator text-success me-2" aria-hidden="true"></i>Interactive Deposit Calculator</h5>
+                    <p class="text-muted small mb-0">Select scrap category, volume, cargo valuation, and run the deposit calculation.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label for="input-scrap-desc" class="form-label small mb-1">Scrap Cargo Description / Bill of Lading:</label>
+                            <input type="text" id="input-scrap-desc" class="form-control form-control-sm" value="Thép phế liệu HMS 1/2 từ Cảng Yokohama" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-scrap-type" class="form-label small mb-1">Scrap Category:</label>
+                            <select id="input-scrap-type" class="form-select form-select-sm">
+                                <option value="scrap_steel">Scrap Steel & Iron (Sắt thép phế liệu - 10%/15%/20%)</option>
+                                <option value="scrap_paper">Scrap Paper & Cardboard (Giấy phế liệu - 15%/20%)</option>
+                                <option value="scrap_plastic">Scrap Plastic & Polymers (Nhựa phế liệu - 18%/25%)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-exemption-cat" class="form-label small mb-1">Exemption Category:</label>
+                            <select id="input-exemption-cat" class="form-select form-select-sm">
+                                <option value="none">No Exemption (Ký quỹ đầy đủ)</option>
+                                <option value="laboratory_research">Laboratory & Scientific Research (&lt; 5 tonnes)</option>
+                                <option value="state_import">State-Managed Strategic Material Import</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-volume" class="form-label small mb-1">Volume (Tonnes):</label>
+                            <input type="number" step="0.1" id="input-volume" class="form-control form-control-sm" value="650.0" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-value" class="form-label small mb-1">Cargo Value (VND):</label>
+                            <input type="number" step="1" id="input-value" class="form-control form-control-sm" value="4800000000" autocomplete="off">
+                        </div>
+                        
+                        <div class="col-12 text-end">
+                            <button id="btn-calc-scrap" class="btn btn-success btn-sm text-white fw-bold">
+                                <i class="bi bi-play-fill me-1" aria-hidden="true"></i> Run Compliance Calculation
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
+                        <h6 class="fw-bold mb-2 text-success"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Calculation Result</h6>
+                        <div class="d-flex justify-content-between small mb-1"><span>Applied Deposit Rate (%):</span><span id="res-rate" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Total Cargo Valuation:</span><span id="res-valuation" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Required Deposit Amount:</span><span id="res-deposit" class="fw-bold text-success fs-6">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Exemption Status:</span><span id="res-exempt-badge" class="fw-bold">-</span></div>
+                        <div class="small text-muted border-top pt-2 mt-2"><strong>Exemption Reason:</strong> <span id="res-exemption-reason">Awaiting…</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Baseline Verification -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Scrap Deposit Baselines</h5>
+                </div>
+                <div class="card-body d-flex flex-column gap-3">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold small text-dark">Lô phế liệu sắt thép HP</span>
+                            <span class="badge bg-secondary">Steel</span>
+                        </div>
+                        <p class="small text-muted mb-2">Steel: 600 tonnes. Value: 5.0B VND. Rate: 15% (bracket: 500-1000t).</p>
+                        <div class="d-flex justify-content-between small">
+                            <span>Valuation: <strong id="base1-val">-</strong></span>
+                            <span>Deposit: <strong id="base1-eff" class="text-success">-</strong></span>
+                        </div>
+                    </div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold small text-dark">Lô nhựa PET tái chế</span>
+                            <span class="badge bg-secondary">Plastic</span>
+                        </div>
+                        <p class="small text-muted mb-2">Plastic: 80 tonnes. Value: 1.5B VND. Rate: 18% (bracket: &lt; 100t).</p>
+                        <div class="d-flex justify-content-between small">
+                            <span>Valuation: <strong id="base2-val">-</strong></span>
+                            <span>Deposit: <strong id="base2-eff" class="text-success">-</strong></span>
+                        </div>
+                    </div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold small text-dark">Mẫu thử nghiệm nhựa sinh học (Exempt)</span>
+                            <span class="badge bg-success">Exempt</span>
+                        </div>
+                        <p class="small text-muted mb-2">Plastic: 3 tonnes for scientific analysis. Under 5t research limit.</p>
+                        <div class="d-flex justify-content-between small">
+                            <span>Weight: <strong>3 tonnes</strong></span>
+                            <span>Reason: <strong id="base3-reason" class="text-success">-</strong></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Consensus Debate -->
+        <div class="col-lg-12">
+            <div class="card shadow-sm border-light">
+                <div class="card-header bg-dark text-white py-3 d-flex align-items-center justify-content-between">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-success me-2" aria-hidden="true"></i>Multi-Agent Import Compliance Debate</h5>
+                    <span class="badge bg-secondary">Decree 08/2022/NĐ-CP Consensus</span>
+                </div>
+                <div class="card-body">
+                    <div id="debate-container-v67" class="mb-3 d-flex flex-column gap-3"></div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus:</h6>
+                        <p id="consensus-text-v67" class="text-muted small mb-0">Awaiting…</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Audit Log -->
+        <div class="col-lg-12">
+            <div class="card shadow-sm border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-2">
+                    <h5 class="fw-bold mb-1"><i class="bi bi-clock-history text-muted me-2" aria-hidden="true"></i>Deposit Compliance History Log</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped mb-0 small">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Description / BL</th>
+                                    <th>Scrap Type</th>
+                                    <th>Weight (t)</th>
+                                    <th>Valuation</th>
+                                    <th>Deposit Rate</th>
+                                    <th>Required Deposit</th>
+                                    <th>Exemption</th>
+                                    <th>Status</th>
+                                    <th>Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-table-v67">
+                                <tr><td colspan="10" class="text-center text-muted py-4">No logs available.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const fVND = n => new Intl.NumberFormat("vi-VN").format(Math.round(n)) + " VND";
+    
+    const load = () => {
+        fetch('/api/v67/compliance-data').then(r=>r.json()).then(d=>{
+            if(d.status==="success"){
+                rB(d);
+                rD(d.debate, d.consensus_summary);
+                rH(d.history);
+            }
+        }).catch(e=>console.error(e));
+    };
+    
+    const calc = () => {
+        const p = {
+            scrap_description: document.getElementById("input-scrap-desc").value,
+            scrap_type: document.getElementById("input-scrap-type").value,
+            volume_tonnes: parseFloat(document.getElementById("input-volume").value || 0),
+            cargo_value_vnd: parseFloat(document.getElementById("input-value").value || 0),
+            exemption_category: document.getElementById("input-exemption-cat").value
+        };
+        fetch('/api/v67/calculate', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(p)
+        }).then(r=>r.json()).then(d=>{
+            if(d.status==="success"){
+                rR(d.results);
+                load();
+            } else {
+                alert(d.error);
+            }
+        }).catch(e=>console.error(e));
+    };
+    
+    const rR = r => {
+        document.getElementById("res-rate").textContent = (r.deposit_rate * 100).toFixed(0) + " %";
+        document.getElementById("res-valuation").textContent = fVND(r.cargo_value_vnd);
+        document.getElementById("res-deposit").textContent = fVND(r.required_deposit_vnd);
+        
+        if (r.is_exempt) {
+            document.getElementById("res-exempt-badge").innerHTML = '<span class="badge bg-success">Exempt (No Deposit)</span>';
+        } else {
+            document.getElementById("res-exempt-badge").innerHTML = '<span class="badge bg-danger">Deposit Required</span>';
+        }
+        document.getElementById("res-exemption-reason").textContent = r.exemption_reason || "None";
+    };
+    
+    const rB = d => {
+        document.getElementById("base1-val").textContent = fVND(d.steel_standard.cargo_value_vnd);
+        document.getElementById("base1-eff").textContent = fVND(d.steel_standard.required_deposit_vnd);
+        
+        document.getElementById("base2-val").textContent = fVND(d.plastic_standard.cargo_value_vnd);
+        document.getElementById("base2-eff").textContent = fVND(d.plastic_standard.required_deposit_vnd);
+        
+        document.getElementById("base3-reason").textContent = d.research_exempt.exemption_reason;
+    };
+    
+    const rD = (debate, summary) => {
+        const c = document.getElementById("debate-container-v67");
+        c.innerHTML = "";
+        const cl = {
+            "Customs Compliance Officer": "bg-success text-white",
+            "Recycling Industry President": "bg-warning text-dark",
+            "VEPF Deposit Custodian": "bg-info text-dark"
+        };
+        debate.forEach(m => {
+            const div = document.createElement("div");
+            div.className = "d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";
+            div.innerHTML = `<span class="badge ${cl[m.speaker] || "bg-secondary"} py-2 px-3" style="min-width:220px">${m.speaker}</span><div class="text-dark small">${m.text}</div>`;
+            c.appendChild(div);
+        });
+        document.getElementById("consensus-text-v67").textContent = summary;
+    };
+    
+    const rH = h => {
+        const tb = document.getElementById("history-table-v67");
+        if (!h || !h.length) {
+            tb.innerHTML = '<tr><td colspan="10" class="text-center text-muted py-4">No logs available.</td></tr>';
+            return;
+        }
+        tb.innerHTML = "";
+        h.forEach(l => {
+            const tr = document.createElement("tr");
+            let statusBadge = '<span class="badge bg-danger">Deposited</span>';
+            if (l.is_exempt) {
+                statusBadge = '<span class="badge bg-success">Exempt</span>';
+            }
+            tr.innerHTML = `
+                <td>${l.id}</td>
+                <td class="fw-bold">${l.scrap_description}</td>
+                <td><span class="badge bg-secondary">${l.scrap_type.replace("scrap_", "").toUpperCase()}</span></td>
+                <td>${l.volume_tonnes.toFixed(1)}</td>
+                <td>${fVND(l.cargo_value_vnd)}</td>
+                <td>${(l.deposit_rate * 100).toFixed(0)}%</td>
+                <td class="fw-bold text-dark">${fVND(l.required_deposit_vnd)}</td>
+                <td><span class="badge bg-premium-light text-dark">${l.exemption_category.toUpperCase()}</span></td>
+                <td>${statusBadge}</td>
+                <td class="text-muted">${l.created_at}</td>
+            `;
+            tb.appendChild(tr);
+        });
+    };
+    
+    document.getElementById("btn-calc-scrap").addEventListener("click", calc);
+    document.getElementById("btn-refresh-v67").addEventListener("click", load);
+    load();
+});
+</script>
+{% endblock %}

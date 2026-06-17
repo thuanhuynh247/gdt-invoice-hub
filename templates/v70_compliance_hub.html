@@ -1,0 +1,283 @@
+{% extends "base.html" %}
+{% block title %}Ozone-Depleting Substances (ODS) Quotas & Fees - EPFODS Hub (v70){% endblock %}
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
+        <div>
+            <span class="badge bg-success text-white mb-2">Version 70.0.0 Spec Compliance</span>
+            <h1 class="h2 fw-bold text-gradient mb-1 text-success">ODS Quotas & Licensing Fees Hub</h1>
+            <p class="text-muted mb-0">Monitor ODP equivalents and calculate ODS import/manufacturing fees under Decree 06/2022/NĐ-CP.</p>
+        </div>
+        <div class="d-flex gap-2 mt-3 mt-md-0">
+            <button id="btn-refresh-v70" class="btn btn-success text-white d-flex align-items-center gap-2">
+                <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Load Data
+            </button>
+            <span class="badge bg-success-subtle text-success border border-success d-flex align-items-center px-3">
+                <i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Decree 06/2022
+            </span>
+        </div>
+    </div>
+
+    <!-- Main Panels -->
+    <div class="row g-4">
+        <!-- Interactive Calculator -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1 text-success"><i class="bi bi-calculator text-success me-2" aria-hidden="true"></i>Interactive ODS Fee Calculator</h5>
+                    <p class="text-muted small mb-0">Determine ODP scaling and calculate regulatory fees by entering weight and chemical group.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label for="input-substance-name" class="form-label small mb-1">Substance Commercial / IUPAC Name:</label>
+                            <input type="text" id="input-substance-name" class="form-control form-control-sm" value="Chất làm lạnh R-22 (Difluorochloromethane)" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-substance-group" class="form-label small mb-1">Controlled ODS Group:</label>
+                            <select id="input-substance-group" class="form-select form-select-sm">
+                                <option value="cfc">Chlorofluorocarbons (CFC) - ODP: 1.0 (Rate: 150k VND/kg)</option>
+                                <option value="hcfc">Hydrochlorofluorocarbons (HCFC) - ODP: 0.055 (Rate: 30k VND/kg)</option>
+                                <option value="hfc">Hydrofluorocarbons (HFC) - ODP: 0.002 (Rate: 15k VND/kg)</option>
+                                <option value="halon">Halons - ODP: 10.0 (Rate: 2.5M VND/kg)</option>
+                                <option value="methyl_bromide">Methyl Bromide - ODP: 0.6 (Rate: 100k VND/kg)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-exemption-cat" class="form-label small mb-1">Exemption Category:</label>
+                            <select id="input-exemption-cat" class="form-select form-select-sm">
+                                <option value="none">No Exemption (Chịu phí đầy đủ)</option>
+                                <option value="medical_use">Essential Medical Use (Inhalers, etc.)</option>
+                                <option value="research_study">Scientific / Laboratory Research & Reference Standards</option>
+                                <option value="low_volume_waiver">Low-Volume Waiver (&lt; 50 kg/year)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-12">
+                            <label for="input-weight" class="form-label small mb-1">Controlled Substance Mass (kg):</label>
+                            <input type="number" step="0.1" id="input-weight" class="form-control form-control-sm" value="1200.0" autocomplete="off">
+                        </div>
+                        
+                        <div class="col-12 text-end">
+                            <button id="btn-calc-ods" class="btn btn-success btn-sm text-white fw-bold">
+                                <i class="bi bi-play-fill me-1" aria-hidden="true"></i> Calculate ODS Import Fee
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
+                        <h6 class="fw-bold mb-2 text-success"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Calculation Result</h6>
+                        <div class="d-flex justify-content-between small mb-1"><span>Substance ODP Factor:</span><span id="res-odp-factor" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Total ODP-Equivalent Mass:</span><span id="res-odp-equivalent" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Base Rate per kg:</span><span id="res-base" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Effective Licensing Fee:</span><span id="res-effective-fee" class="fw-bold text-success fs-6">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Exemption Status:</span><span id="res-exempt-badge" class="fw-bold">-</span></div>
+                        <div class="small text-muted border-top pt-2 mt-2"><strong>Exemption Reason:</strong> <span id="res-exemption-reason">Awaiting…</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Baseline Verification -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>ODS Licensing Baselines</h5>
+                </div>
+                <div class="card-body d-flex flex-column gap-3">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold small text-dark">Freon R-12</span>
+                            <span class="badge bg-danger">CFC Group</span>
+                        </div>
+                        <p class="small text-muted mb-2">CFC: 800 kg. ODP equivalent: 800 kg. Rate: 150k VND/kg.</p>
+                        <div class="d-flex justify-content-between small">
+                            <span>ODP Factor: 1.0</span>
+                            <span>Fee: <strong id="base1-eff" class="text-success">-</strong></span>
+                        </div>
+                    </div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold small text-dark">Refrigerant R-22</span>
+                            <span class="badge bg-warning text-dark">HCFC Group</span>
+                        </div>
+                        <p class="small text-muted mb-2">HCFC: 1,200 kg. ODP equivalent: 66 kg. Rate: 30k VND/kg.</p>
+                        <div class="d-flex justify-content-between small">
+                            <span>ODP Factor: 0.055</span>
+                            <span>Fee: <strong id="base2-eff" class="text-success">-</strong></span>
+                        </div>
+                    </div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold small text-dark">Propellant CFC-11 Medical (Exempt)</span>
+                            <span class="badge bg-success">Exempt</span>
+                        </div>
+                        <p class="small text-muted mb-2">CFC: 150 kg for metered-dose inhalers. Exemption: Medical.</p>
+                        <div class="d-flex justify-content-between small">
+                            <span>ODP equivalent: 150 kg</span>
+                            <span>Reason: <strong id="base3-reason" class="text-success">-</strong></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Consensus Debate -->
+        <div class="col-lg-12">
+            <div class="card shadow-sm border-light">
+                <div class="card-header bg-dark text-white py-3 d-flex align-items-center justify-content-between">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-success me-2" aria-hidden="true"></i>Multi-Agent Atmospheric Protection Debate</h5>
+                    <span class="badge bg-secondary">Decree 06/2022/NĐ-CP Consensus</span>
+                </div>
+                <div class="card-body">
+                    <div id="debate-container-v70" class="mb-3 d-flex flex-column gap-3"></div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus:</h6>
+                        <p id="consensus-text-v70" class="text-muted small mb-0">Awaiting…</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Audit Log -->
+        <div class="col-lg-12">
+            <div class="card shadow-sm border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-2">
+                    <h5 class="fw-bold mb-1"><i class="bi bi-clock-history text-muted me-2" aria-hidden="true"></i>ODS Compliance History Log</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped mb-0 small">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Chemical Name</th>
+                                    <th>ODS Group</th>
+                                    <th>Weight (kg)</th>
+                                    <th>ODP Factor</th>
+                                    <th>ODP Eq (kg)</th>
+                                    <th>Base Rate</th>
+                                    <th>Exemption</th>
+                                    <th>Licensing Fee</th>
+                                    <th>Status</th>
+                                    <th>Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-table-v70">
+                                <tr><td colspan="11" class="text-center text-muted py-4">No logs available.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const fVND = n => new Intl.NumberFormat("vi-VN").format(Math.round(n)) + " VND";
+    
+    const load = () => {
+        fetch('/api/v70/compliance-data').then(r=>r.json()).then(d=>{
+            if(d.status==="success"){
+                rB(d);
+                rD(d.debate, d.consensus_summary);
+                rH(d.history);
+            }
+        }).catch(e=>console.error(e));
+    };
+    
+    const calc = () => {
+        const p = {
+            substance_name: document.getElementById("input-substance-name").value,
+            substance_group: document.getElementById("input-substance-group").value,
+            weight_kg: parseFloat(document.getElementById("input-weight").value || 0),
+            exemption_category: document.getElementById("input-exemption-cat").value
+        };
+        fetch('/api/v70/calculate', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(p)
+        }).then(r=>r.json()).then(d=>{
+            if(d.status==="success"){
+                rR(d.results);
+                load();
+            } else {
+                alert(d.error);
+            }
+        }).catch(e=>console.error(e));
+    };
+    
+    const rR = r => {
+        document.getElementById("res-odp-factor").textContent = r.odp_factor.toFixed(4);
+        document.getElementById("res-odp-equivalent").textContent = r.odp_equivalent_kg.toFixed(3) + " ODP-kg";
+        document.getElementById("res-base").textContent = fVND(r.base_rate_per_kg) + " / kg";
+        document.getElementById("res-effective-fee").textContent = fVND(r.effective_fee_vnd);
+        
+        if (r.is_exempt) {
+            document.getElementById("res-exempt-badge").innerHTML = '<span class="badge bg-success">100% Exempt</span>';
+        } else {
+            document.getElementById("res-exempt-badge").innerHTML = '<span class="badge bg-danger">Fee Payable</span>';
+        }
+        document.getElementById("res-exemption-reason").textContent = r.exemption_reason || "None";
+    };
+    
+    const rB = d => {
+        document.getElementById("base1-eff").textContent = fVND(d.cfc_standard.effective_fee_vnd);
+        document.getElementById("base2-eff").textContent = fVND(d.hcfc_standard.effective_fee_vnd);
+        document.getElementById("base3-reason").textContent = d.medical_exempt.exemption_reason;
+    };
+    
+    const rD = (debate, summary) => {
+        const c = document.getElementById("debate-container-v70");
+        c.innerHTML = "";
+        const cl = {
+            "Ozone Layer Inspector": "bg-success text-white",
+            "Pharma Production Director": "bg-warning text-dark",
+            "Customs Licensing Specialist": "bg-info text-dark"
+        };
+        debate.forEach(m => {
+            const div = document.createElement("div");
+            div.className = "d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";
+            div.innerHTML = `<span class="badge ${cl[m.speaker] || "bg-secondary"} py-2 px-3" style="min-width:220px">${m.speaker}</span><div class="text-dark small">${m.text}</div>`;
+            c.appendChild(div);
+        });
+        document.getElementById("consensus-text-v70").textContent = summary;
+    };
+    
+    const rH = h => {
+        const tb = document.getElementById("history-table-v70");
+        if (!h || !h.length) {
+            tb.innerHTML = '<tr><td colspan="11" class="text-center text-muted py-4">No logs available.</td></tr>';
+            return;
+        }
+        tb.innerHTML = "";
+        h.forEach(l => {
+            const tr = document.createElement("tr");
+            let statusBadge = '<span class="badge bg-danger">Payable</span>';
+            if (l.is_exempt) {
+                statusBadge = '<span class="badge bg-success">Exempt</span>';
+            }
+            tr.innerHTML = `
+                <td>${l.id}</td>
+                <td class="fw-bold">${l.substance_name}</td>
+                <td><span class="badge bg-secondary">${l.substance_group.toUpperCase()}</span></td>
+                <td>${l.weight_kg.toFixed(1)} kg</td>
+                <td>${l.odp_factor.toFixed(4)}</td>
+                <td>${l.odp_equivalent_kg.toFixed(3)} kg</td>
+                <td>${fVND(l.base_rate_per_kg)}</td>
+                <td><span class="badge bg-premium-light text-dark">${l.exemption_category.toUpperCase()}</span></td>
+                <td class="fw-bold text-dark">${fVND(l.effective_fee_vnd)}</td>
+                <td>${statusBadge}</td>
+                <td class="text-muted">${l.created_at}</td>
+            `;
+            tb.appendChild(tr);
+        });
+    };
+    
+    document.getElementById("btn-calc-ods").addEventListener("click", calc);
+    document.getElementById("btn-refresh-v70").addEventListener("click", load);
+    load();
+});
+</script>
+{% endblock %}

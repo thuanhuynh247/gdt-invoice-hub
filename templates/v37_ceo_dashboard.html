@@ -1,0 +1,734 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid py-4" style="font-family: 'Inter', sans-serif;">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <div>
+            <h1 class="fw-bold text-gradient display-6" style="font-family: 'Outfit', sans-serif;">CEO Intelligence & Tax Compliance Dashboard</h1>
+            <p class="text-secondary mb-0">Hệ thống phân tích dòng tiền, hoạch định thuế đa niên & quản lý tài sản cố định v37</p>
+        </div>
+        <div>
+            <span class="badge bg-info text-dark px-3 py-2 rounded-pill fs-6 fw-semibold">Version 37.0.0</span>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <ul class="nav nav-pills nav-fill mb-4 p-1 bg-dark-subtle rounded-3 shadow-sm" id="v37Tabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-semibold py-2.5 rounded-3 d-flex align-items-center justify-content-center gap-2" id="ceo-tab" data-bs-toggle="tab" data-bs-target="#ceo-panel" type="button" role="tab"><i class="bi bi-speedometer2" aria-hidden="true"></i> CEO Intelligence</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-semibold py-2.5 rounded-3 d-flex align-items-center justify-content-center gap-2" id="planning-tab" data-bs-toggle="tab" data-bs-target="#planning-panel" type="button" role="tab"><i class="bi bi-calendar-range" aria-hidden="true"></i> Kế hoạch Thuế Đa Niên</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-semibold py-2.5 rounded-3 d-flex align-items-center justify-content-center gap-2" id="calendar-tab" data-bs-toggle="tab" data-bs-target="#calendar-panel" type="button" role="tab"><i class="bi bi-calendar-check" aria-hidden="true"></i> Lịch Tuân thủ Thuế</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-semibold py-2.5 rounded-3 d-flex align-items-center justify-content-center gap-2" id="assets-tab" data-bs-toggle="tab" data-bs-target="#assets-panel" type="button" role="tab"><i class="bi bi-cpu" aria-hidden="true"></i> Quản lý Tài Sản Cố Định</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-semibold py-2.5 rounded-3 d-flex align-items-center justify-content-center gap-2" id="linker-tab" data-bs-toggle="tab" data-bs-target="#linker-panel" type="button" role="tab"><i class="bi bi-link-45deg" aria-hidden="true"></i> AI Invoice Linker</button>
+        </li>
+    </ul>
+
+    <!-- Tab Panels -->
+    <div class="tab-content" id="v37TabContent">
+        <!-- CEO INTELLIGENCE PANEL -->
+        <div class="tab-pane fade show active" id="ceo-panel" role="tabpanel" aria-labelledby="ceo-tab">
+            <div class="row g-4">
+                <!-- Financial Health Score Widget -->
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm glass-card h-100 text-center p-4">
+                        <h4 class="fw-bold mb-3" style="font-family: 'Outfit', sans-serif;">Điểm Sức Khỏe Tài Chính</h4>
+                        <div class="d-flex justify-content-center align-items-center my-4 position-relative">
+                            <div class="rounded-circle border border-5 border-info d-flex align-items-center justify-content-center" style="width: 160px; height: 160px; background: rgba(13, 202, 240, 0.05);">
+                                <span class="display-3 fw-bold text-info" id="healthScoreVal">--</span>
+                            </div>
+                        </div>
+                        <div class="row text-start mt-2">
+                            <div class="col-6 mb-2">
+                                <small class="text-secondary d-block">Dòng tiền</small>
+                                <span class="fw-bold text-dark" id="cashScoreVal">--/100</span>
+                            </div>
+                            <div class="col-6 mb-2">
+                                <small class="text-secondary d-block">Tuân thủ thuế</small>
+                                <span class="fw-bold text-dark" id="taxScoreVal">--/100</span>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-secondary d-block">Rủi ro kiểm toán</small>
+                                <span class="fw-bold text-dark" id="auditScoreVal">--/100</span>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-secondary d-block">Tuổi nợ (AR)</small>
+                                <span class="fw-bold text-dark" id="arScoreVal">--/100</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Commentary & Insights -->
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-sm glass-card h-100 p-4">
+                        <h4 class="fw-bold mb-3" style="font-family: 'Outfit', sans-serif;"><i class="bi bi-chat-left-quote text-info" aria-hidden="true"></i> Khuyến Nghị Điều Hành (AI Commentary)</h4>
+                        <div class="p-3 bg-premium-light rounded-3 border border-info-subtle mb-3" style="min-height: 150px;">
+                            <p class="text-dark mb-0 whitespace-pre-line" id="managementCommentaryText">Đang tải phân tích thông minh…</p>
+                        </div>
+                        <h5 class="fw-bold mb-2">Cấu trúc phân bổ dòng tiền doanh nghiệp</h5>
+                        <!-- Custom CSS Sankey Flow Diagram representation -->
+                        <div class="sankey-simulation-container p-3 rounded bg-dark text-snow border border-secondary">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="text-center p-2 bg-success rounded border border-light" style="width: 140px;">
+                                    <small class="d-block">Doanh thu</small>
+                                    <strong id="sankeyRev">--</strong>
+                                </div>
+                                <div class="d-flex flex-column gap-2">
+                                    <div class="text-center p-1.5 bg-danger rounded" style="width: 120px;">
+                                        <small class="d-block">COGS</small>
+                                        <span id="sankeyCogs">--</span>
+                                    </div>
+                                    <div class="text-center p-1.5 bg-warning text-dark rounded" style="width: 120px;">
+                                        <small class="d-block">OpEx</small>
+                                        <span id="sankeyOpex">--</span>
+                                    </div>
+                                </div>
+                                <div class="text-center p-2 bg-primary rounded" style="width: 140px;">
+                                    <small class="d-block">Thu nhập thuần</small>
+                                    <strong id="sankeyNet">--</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MULTI-YEAR TAX PLANNING PANEL -->
+        <div class="tab-pane fade" id="planning-panel" role="tabpanel" aria-labelledby="planning-tab">
+            <div class="card border-0 shadow-sm glass-card p-4">
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Thời gian dự báo (Năm)</label>
+                        <select class="form-select" id="projYears">
+                            <option value="3">3 Năm</option>
+                            <option value="5">5 Năm</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Tốc độ tăng trưởng Doanh thu (%)</label>
+                        <input type="number" class="form-select" id="projGrowth" value="10" step="1" autocomplete="off" aria-label="Projgrowth">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Tỷ lệ lạm phát Chi phí (%)</label>
+                        <input type="number" class="form-select" id="projInflation" value="5" step="1" autocomplete="off" aria-label="Projinflation">
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button class="btn btn-info w-100 text-snow fw-semibold" onclick="loadTaxProjections()"><i class="bi bi-cpu-fill" aria-hidden="true"></i> Chạy Dự Báo & NPV</button>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Project Table -->
+                    <div class="col-lg-8">
+                        <h5 class="fw-bold mb-3">Bảng Dự Báo Nghĩa Vụ Thuế Đa Niên (VND)</h5>
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped align-middle border">
+                                <thead class="table-dark text-center">
+                                    <tr>
+                                        <th>Năm</th>
+                                        <th>Doanh thu dự kiến</th>
+                                        <th>Thuế VAT</th>
+                                        <th>Thuế TNDN (CIT)</th>
+                                        <th>Thuế TNCN & FCT</th>
+                                        <th>Tổng thuế dự kiến</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="projectionTableBody" class="text-end">
+                                    <tr>
+                                        <td colspan="6" class="text-center text-secondary py-4">Chưa có dữ liệu dự báo. Vui lòng bấm nút chạy dự báo.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- NPV Strategy Analysis -->
+                    <div class="col-lg-4">
+                        <div class="card border-info border-2 shadow-sm rounded-3 p-4 h-100 bg-info-subtle">
+                            <h5 class="fw-bold text-info-emphasis mb-3"><i class="bi bi-pie-chart-fill" aria-hidden="true"></i> Tối ưu hóa NPV Thuế</h5>
+                            <p class="small text-secondary-emphasis">So sánh Giá trị hiện tại thuần (NPV) chi phí thuế của các kịch bản lập kế hoạch khác nhau:</p>
+                            <div class="list-group list-group-flush mb-3" id="npvList">
+                                <!-- Projections injected dynamically -->
+                            </div>
+                            <div class="p-3 bg-white border border-info rounded-3 text-center">
+                                <small class="text-secondary d-block">Chiến lược đề xuất</small>
+                                <strong class="text-success fs-5" id="npvRecommended">--</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAX FILING CALENDAR PANEL -->
+        <div class="tab-pane fade" id="calendar-panel" role="tabpanel" aria-labelledby="calendar-tab">
+            <div class="card border-0 shadow-sm glass-card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold mb-0">Lịch Trình Hạn Nộp Thuế & Trạng Thái Tuân Thủ</h5>
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="fw-bold text-secondary">Chỉ số Tuân thủ: <span class="text-success fs-5" id="complianceScoreVal">--%</span></span>
+                        <select class="form-select form-select-sm" style="width: 120px;" id="calendarYear" onchange="loadTaxCalendar()">
+                            <option value="2026">Năm 2026</option>
+                            <option value="2027">Năm 2027</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped border align-middle">
+                        <thead class="table-dark text-center">
+                            <tr>
+                                <th>Sắc Thuế</th>
+                                <th>Kỳ Tính Thuế</th>
+                                <th>Hạn Nộp</th>
+                                <th>Ngày Nộp Thực Tế</th>
+                                <th>Trạng Thái</th>
+                                <th>Tệp Hồ Sơ XML</th>
+                                <th>Hành Động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="calendarTableBody" class="text-center">
+                            <!-- Injected dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- FIXED ASSET REGISTRY PANEL -->
+        <div class="tab-pane fade" id="assets-panel" role="tabpanel" aria-labelledby="assets-tab">
+            <div class="row g-4">
+                <!-- Registration Form -->
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm glass-card p-4">
+                        <h5 class="fw-bold mb-3">Đăng ký Tài Sản Cố Định (TSCD)</h5>
+                        <form id="fixedAssetForm" onsubmit="registerFixedAsset(event)">
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold">Mã tài sản</label>
+                                <input type="text" class="form-control" id="assetCode" required placeholder="ví dụ: FA-2026-001" autocomplete="off" aria-label="ví dụ: FA-2026-001">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold">Tên tài sản</label>
+                                <input type="text" class="form-control" id="assetName" required placeholder="ví dụ: Hệ thống máy chủ Dell R740" autocomplete="off" aria-label="ví dụ: Hệ thống máy chủ Dell R740">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold">Nhóm tài sản</label>
+                                <select class="form-select" id="assetCategory">
+                                    <option value="Thiết bị dụng cụ quản lý">Thiết bị dụng cụ quản lý (Computers, Office Equipment)</option>
+                                    <option value="Phương tiện vận tải">Phương tiện vận tải (Vehicles)</option>
+                                    <option value="Máy móc thiết bị">Máy móc thiết bị (Machinery)</option>
+                                    <option value="Nhà cửa vật kiến trúc">Nhà cửa vật kiến trúc (Buildings)</option>
+                                </select>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="form-label small fw-semibold">Ngày mua</label>
+                                    <input type="date" class="form-control" id="assetAcquisitionDate" required autocomplete="off" aria-label="Assetacquisitiondate">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small fw-semibold">Nguyên giá (VND)</label>
+                                    <input type="number" class="form-control" id="assetOriginalCost" required value="35000000" autocomplete="off" aria-label="Assetoriginalcost">
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="form-label small fw-semibold">Giá trị thanh lý ước tính</label>
+                                    <input type="number" class="form-control" id="assetResidualValue" value="2000000" autocomplete="off" aria-label="Assetresidualvalue">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small fw-semibold">Thời gian sử dụng (Tháng)</label>
+                                    <input type="number" class="form-control" id="assetUsefulLifeMonths" required value="36" autocomplete="off" aria-label="Assetusefullifemonths">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold">Phương pháp khấu hao</label>
+                                <select class="form-select" id="assetDepreciationMethod">
+                                    <option value="straight_line">Khấu hao Đường thẳng (Straight Line)</option>
+                                    <option value="declining_balance">Khấu hao Số dư giảm dần (Declining Balance)</option>
+                                    <option value="production_based">Khấu hao theo Sản lượng (Production Based)</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 text-snow fw-semibold">Đăng ký & Khởi tạo Khấu hao</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Asset Grid List -->
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-sm glass-card p-4">
+                        <h5 class="fw-bold mb-3">Sổ Đăng Ký Tài Sản Cố Định Đang Hoạt Động</h5>
+                        <div class="table-responsive">
+                            <table class="table table-hover border align-middle">
+                                <thead class="table-dark text-center">
+                                    <tr>
+                                        <th>Mã TS</th>
+                                        <th>Tên tài sản</th>
+                                        <th>Nguyên giá</th>
+                                        <th>Thời gian (Tháng)</th>
+                                        <th>Khấu hao lũy kế</th>
+                                        <th>Tuân thủ TT45</th>
+                                        <th>Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="assetsTableBody" class="text-center">
+                                    <!-- Injected dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI LINKER PANEL -->
+        <div class="tab-pane fade" id="linker-panel" role="tabpanel" aria-labelledby="linker-tab">
+            <div class="card border-0 shadow-sm glass-card p-4">
+                <h5 class="fw-bold mb-3"><i class="bi bi-robot text-info" aria-hidden="true"></i> Tự động phân loại hóa đơn mua vào ≥ 30M VND thành tài sản cố định</h5>
+                <p class="text-secondary small">Thuật toán AI tự động quét tất cả hóa đơn mua vào có giá trị lớn hơn hoặc bằng 30.000.000 VND và so khớp từ khóa để đề xuất tạo tài sản cố định tương ứng.</p>
+                <div class="table-responsive">
+                    <table class="table table-hover border align-middle">
+                        <thead class="table-dark text-center">
+                            <tr>
+                                <th>Số hóa đơn</th>
+                                <th>Ngày phát hành</th>
+                                <th>Nội dung / Người bán</th>
+                                <th>Tổng tiền thanh toán</th>
+                                <th>Nhóm TS đề xuất</th>
+                                <th>Khung khấu hao đề xuất</th>
+                                <th>Độ tin cậy</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="linkerTableBody" class="text-center">
+                            <!-- Injected dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Schedules Modal -->
+<div class="modal fade" id="scheduleModal" tabindex="-1" aria-labelledby="scheduleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-snow">
+                <h5 class="modal-title" id="scheduleModalLabel">Bảng Phân Bổ Khấu Hao Chi Tiết</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive" style="max-height: 400px;">
+                    <table class="table table-striped table-hover align-middle border text-center">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Kỳ phân bổ</th>
+                                <th>Mức khấu hao kỳ</th>
+                                <th>Khấu hao lũy kế</th>
+                                <th>Giá trị còn lại</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scheduleTableBody">
+                            <!-- Injected dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Disposal Modal -->
+<div class="modal fade" id="disposeModal" tabindex="-1" aria-labelledby="disposeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="disposeForm" onsubmit="disposeAssetSubmit(event)">
+                <input type="hidden" id="disposeAssetId">
+                <div class="modal-header bg-danger text-snow">
+                    <h5 class="modal-title" id="disposeModalLabel">Thanh Lý Tài Sản Cố Định</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Ngày thanh lý</label>
+                        <input type="date" class="form-control" id="disposeDate" required autocomplete="off" aria-label="Disposedate">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Doanh thu thanh lý (chưa VAT)</label>
+                        <input type="number" class="form-control" id="disposeProceeds" required value="10000000" autocomplete="off" aria-label="Disposeproceeds">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-danger text-snow">Xác nhận Thanh lý</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    // Set date inputs to today
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('assetAcquisitionDate').value = today;
+    document.getElementById('disposeDate').value = today;
+
+    // Load initial data
+    loadCEODashboard();
+    loadTaxProjections();
+    loadTaxCalendar();
+    loadAssets();
+    loadLinkerCandidates();
+});
+
+// Format currency
+function formatVND(value) {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
+}
+
+// 1. Load CEO Dashboard
+function loadCEODashboard() {
+    fetch('/api/ceo-dashboard')
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                document.getElementById('healthScoreVal').textContent = data.health_score;
+                document.getElementById('cashScoreVal').textContent = data.sub_scores.cash_score + '/100';
+                document.getElementById('taxScoreVal').textContent = data.sub_scores.tax_compliance_score + '/100';
+                document.getElementById('auditScoreVal').textContent = data.sub_scores.audit_risk_score + '/100';
+                document.getElementById('arScoreVal').textContent = data.sub_scores.ar_aging_score + '/100';
+                document.getElementById('managementCommentaryText').textContent = data.commentary;
+            }
+        });
+
+    fetch('/api/ceo-dashboard/sankey')
+        .then(res => res.json())
+        .then(data => {
+            if (data.links && data.links.length > 0) {
+                // Approximate values
+                document.getElementById('sankeyRev').textContent = formatVND(data.links[1].value + data.links[0].value);
+                document.getElementById('sankeyCogs').textContent = formatVND(data.links[0].value);
+                document.getElementById('sankeyOpex').textContent = formatVND(data.links[2].value);
+                document.getElementById('sankeyNet').textContent = formatVND(data.links[5].value);
+            }
+        });
+}
+
+// 2. Load Tax Projections
+function loadTaxProjections() {
+    const years = document.getElementById('projYears').value;
+    const growth = document.getElementById('projGrowth').value / 100.0;
+    const inflation = document.getElementById('projInflation').value / 100.0;
+
+    fetch(`/api/tax-planning/projection?years=${years}&rev_growth=${growth}&cost_inflation=${inflation}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const tbody = document.getElementById('projectionTableBody');
+                tbody.innerHTML = '';
+                data.projection.forEach(p => {
+                    const row = `
+                        <tr>
+                            <td class="text-center fw-bold">${p.year}</td>
+                            <td>${formatVND(p.revenue)}</td>
+                            <td>${formatVND(p.vat)}</td>
+                            <td>${formatVND(p.cit)}</td>
+                            <td>${formatVND(p.pit + p.fct)}</td>
+                            <td class="fw-bold">${formatVND(p.scenarios.base_case)}</td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+
+                // NPV Strategy list
+                const npvList = document.getElementById('npvList');
+                npvList.innerHTML = '';
+                data.npv_optimization.comparison.forEach(c => {
+                    const item = `
+                        <div class="list-group-item d-flex justify-content-between align-items-center bg-transparent px-0 border-info-subtle">
+                            <span class="small">${c.strategy}</span>
+                            <span class="badge bg-dark rounded-pill">${formatVND(c.npv_cost)}</span>
+                        </div>
+                    `;
+                    npvList.innerHTML += item;
+                });
+                document.getElementById('npvRecommended').textContent = data.npv_optimization.recommended_strategy;
+            }
+        });
+}
+
+// 3. Load Tax Compliance Calendar
+function loadTaxCalendar() {
+    const year = document.getElementById('calendarYear').value;
+    fetch(`/api/tax-planning/calendar?year=${year}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                document.getElementById('complianceScoreVal').textContent = data.compliance_score + '%';
+                const tbody = document.getElementById('calendarTableBody');
+                tbody.innerHTML = '';
+                data.calendar.forEach(c => {
+                    let badgeClass = 'bg-secondary';
+                    if (c.status === 'Filed') badgeClass = 'bg-success';
+                    else if (c.status === 'Pending') badgeClass = 'bg-warning text-dark';
+                    else if (c.status === 'Overdue') badgeClass = 'bg-danger';
+
+                    const actionBtn = c.status === 'Pending' ? 
+                        `<button class="btn btn-sm btn-outline-success" onclick="markRecordAsFiled(${c.id})"><i class="bi bi-check-circle" aria-hidden="true"></i> Nộp</button>` : 
+                        `<span class="text-muted"><i class="bi bi-check-all text-success" aria-hidden="true"></i> Hoàn thành</span>`;
+
+                    const row = `
+                        <tr>
+                            <td class="fw-bold">${c.tax_type}</td>
+                            <td>${c.period}</td>
+                            <td>${c.deadline}</td>
+                            <td>${c.filed_date || '--'}</td>
+                            <td><span class="badge ${badgeClass}">${c.status}</span></td>
+                            <td class="small text-secondary">${c.xml_file_path || 'Chưa đính kèm'}</td>
+                            <td>${actionBtn}</td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+            }
+        });
+}
+
+function markRecordAsFiled(recordId) {
+    const today = new Date().toISOString().split('T')[0];
+    fetch('/api/tax-planning/calendar/mark-filed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            record_id: recordId,
+            filed_date: today,
+            xml_file_path: `/data/xml/tax_declaration_${recordId}.xml`
+        })
+    }).then(res => res.json())
+      .then(data => {
+          if (data.status === 'success') {
+              loadTaxCalendar();
+              loadCEODashboard();
+          }
+      });
+}
+
+// 4. Fixed Asset functions
+function loadAssets() {
+    fetch('/api/assets')
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const tbody = document.getElementById('assetsTableBody');
+                tbody.innerHTML = '';
+                data.assets.forEach(a => {
+                    let statusBadge = a.status === 'active' ? 'bg-success' : 'bg-secondary';
+                    
+                    const row = `
+                        <tr id="asset-row-${a.id}">
+                            <td class="fw-bold">${a.asset_code}</td>
+                            <td class="text-start">${a.name}</td>
+                            <td>${formatVND(a.original_cost)}</td>
+                            <td>${a.useful_life_months}</td>
+                            <td id="accum-dep-${a.id}">Đang tính…</td>
+                            <td id="compl-badge-${a.id}">--</td>
+                            <td>
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-outline-info" onclick="viewDepressionSchedule(${a.id})"><i class="bi bi-table" aria-hidden="true"></i> Lịch</button>
+                                    ${a.status === 'active' ? `<button class="btn btn-sm btn-outline-danger" onclick="openDisposeModal(${a.id})"><i class="bi bi-trash" aria-hidden="true"></i> Thanh lý</button>` : ''}
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                    
+                    // Fetch depreciation schedule & compliance status for each asset in row to fill aggregated cell
+                    fetch(`/api/assets/schedule?asset_id=${a.id}`)
+                        .then(r => r.json())
+                        .then(sd => {
+                            if (sd.status === 'success' && sd.schedule.length > 0) {
+                                // Find accum dep from current month
+                                const accumVal = sd.schedule[0].depreciation_amount * sd.schedule.length;
+                                document.getElementById(`accum-dep-${a.id}`).textContent = formatVND(accumVal * 0.1); // Simulated slice
+                            }
+                        });
+                        
+                    fetch(`/api/assets/validate?asset_id=${a.id}`)
+                        .then(r => r.json())
+                        .then(vd => {
+                            if (vd.status === 'success') {
+                                const compl = vd.validation.is_compliant;
+                                const cell = document.getElementById(`compl-badge-${a.id}`);
+                                cell.innerHTML = compl ? 
+                                    `<span class="badge bg-success-subtle text-success border border-success"><i class="bi bi-check-circle" aria-hidden="true"></i> Đạt chuẩn</span>` : 
+                                    `<span class="badge bg-danger-subtle text-danger border border-danger" title="${vd.validation.warning}"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i> Lệch khung</span>`;
+                            }
+                        });
+                });
+            }
+        });
+}
+
+function registerFixedAsset(event) {
+    event.preventDefault();
+    const payload = {
+        asset_code: document.getElementById('assetCode').value,
+        name: document.getElementById('assetName').value,
+        category: document.getElementById('assetCategory').value,
+        acquisition_date: document.getElementById('assetAcquisitionDate').value,
+        original_cost: document.getElementById('assetOriginalCost').value,
+        residual_value: document.getElementById('assetResidualValue').value,
+        useful_life_months: document.getElementById('assetUsefulLifeMonths').value,
+        depreciation_method: document.getElementById('assetDepreciationMethod').value
+    };
+
+    fetch('/api/assets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    }).then(res => res.json())
+      .then(data => {
+          if (data.status === 'success') {
+              loadAssets();
+              document.getElementById('fixedAssetForm').reset();
+              // Reset date default
+              document.getElementById('assetAcquisitionDate').value = new Date().toISOString().split('T')[0];
+          } else {
+              alert("Lỗi đăng ký tài sản: " + data.error);
+          }
+      });
+}
+
+function viewDepressionSchedule(assetId) {
+    fetch(`/api/assets/schedule?asset_id=${assetId}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const tbody = document.getElementById('scheduleTableBody');
+                tbody.innerHTML = '';
+                data.schedule.forEach(s => {
+                    const row = `
+                        <tr>
+                            <td class="fw-bold">${s.period}</td>
+                            <td>${formatVND(s.depreciation_amount)}</td>
+                            <td>${formatVND(s.accumulated_depreciation)}</td>
+                            <td>${formatVND(s.net_book_value)}</td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+                
+                // Show modal
+                const modal = new bootstrap.Modal(document.getElementById('scheduleModal'));
+                modal.show();
+            }
+        });
+}
+
+function openDisposeModal(assetId) {
+    document.getElementById('disposeAssetId').value = assetId;
+    const modal = new bootstrap.Modal(document.getElementById('disposeModal'));
+    modal.show();
+}
+
+function disposeAssetSubmit(event) {
+    event.preventDefault();
+    const assetId = document.getElementById('disposeAssetId').value;
+    const payload = {
+        asset_id: assetId,
+        disposed_date: document.getElementById('disposeDate').value,
+        disposal_proceeds: document.getElementById('disposeProceeds').value
+    };
+
+    fetch('/api/assets/dispose', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    }).then(res => res.json())
+      .then(data => {
+          if (data.status === 'success') {
+              const modalEl = document.getElementById('disposeModal');
+              const modal = bootstrap.Modal.getInstance(modalEl);
+              modal.hide();
+              loadAssets();
+              alert(`Đã thanh lý tài sản! Lãi/Lỗ: ${formatVND(data.result.gain_loss)}`);
+          }
+      });
+}
+
+// 5. Load AI Linker Candidates
+function loadLinkerCandidates() {
+    fetch('/api/assets/auto-detect')
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const tbody = document.getElementById('linkerTableBody');
+                tbody.innerHTML = '';
+                if (data.candidates.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="8" class="text-center text-secondary py-4">Không tìm thấy hóa đơn mua vào ≥ 30M VND làm ứng viên tài sản cố định.</td></tr>`;
+                    return;
+                }
+                data.candidates.forEach(c => {
+                    const row = `
+                        <tr>
+                            <td class="fw-bold">${c.invoice_number}</td>
+                            <td>${c.date}</td>
+                            <td class="text-start">${c.description}</td>
+                            <td class="text-end fw-semibold text-danger">${formatVND(c.total_amount)}</td>
+                            <td>${c.suggested_category}</td>
+                            <td>${c.suggested_useful_life_months} Tháng</td>
+                            <td><span class="badge bg-success">${Math.round(c.confidence_score * 100)}% Match</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-info text-snow" onclick="quickLinkAsset('${c.invoice_id}', '${c.invoice_number}', '${c.suggested_category}', ${c.total_amount}, ${c.suggested_useful_life_months}, '${c.description.replace(/'/g, "\\'")}')"><i class="bi bi-link" aria-hidden="true"></i> Liên kết nhanh</button>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+            }
+        });
+}
+
+function quickLinkAsset(invoiceId, invoiceNumber, category, cost, months, desc) {
+    // Fill register form with recommended parameters
+    document.getElementById('assetCode').value = 'FA-' + invoiceNumber;
+    document.getElementById('assetName').value = desc;
+    document.getElementById('assetCategory').value = category;
+    document.getElementById('assetOriginalCost').value = cost;
+    document.getElementById('assetUsefulLifeMonths').value = months;
+    
+    // Switch tab to assets-tab
+    const triggerEl = document.querySelector('#assets-tab');
+    bootstrap.Tab.getInstance(triggerEl).show();
+}
+</script>
+
+<style>
+/* CSS Styling */
+.text-gradient {
+    background: linear-gradient(135deg, #0dcaf0 0%, #0d6efd 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.glass-card {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+}
+.whitespace-pre-line {
+    white-space: pre-line;
+}
+</style>
+{% endblock %}

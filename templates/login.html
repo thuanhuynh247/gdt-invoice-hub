@@ -1,49 +1,118 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-lg-5">
-        <section class="card border-0 glass-card">
-            <div class="card-body p-4 p-md-5">
-                <p class="eyebrow mb-2">HỆ THỐNG AN NINH GDT</p>
-                <h1 class="h3 mb-3">Đăng nhập Hệ thống Hóa đơn</h1>
-                <p class="text-secondary mb-4">
-                    Vui lòng nhập tài khoản để bắt đầu. Captcha được tải trực tiếp từ hệ thống hóa đơn của Cơ quan thuế, người dùng tự nhập để hoàn thành đăng nhập.
-                </p>
+<div class="login-wrapper-premium position-relative overflow-hidden py-4 py-md-5 px-3 rounded-4">
+    <!-- Ambient Background Blobs -->
+    <div class="ambient-glow bg-blob-1" aria-hidden="true"></div>
+    <div class="ambient-glow bg-blob-2" aria-hidden="true"></div>
+    <div class="ambient-glow bg-blob-3" aria-hidden="true"></div>
 
-                <form id="loginForm" class="vstack gap-3">
-                    <div>
-                        <label class="form-label fw-medium" for="username">Tên đăng nhập</label>
-                        <input class="form-control custom-input" id="username" name="username" autocomplete="username" placeholder="Nhập tên tài khoản GDT…" required autofocus aria-label="Nhập tên tài khoản GDT…">
-                    </div>
-                    <div>
-                        <label class="form-label fw-medium" for="password">Mật khẩu</label>
-                        <div class="input-group">
-                            <input class="form-control custom-input border-end-0" id="password" name="password" type="password" autocomplete="current-password" placeholder="Nhập mật khẩu…" required aria-label="Nhập mật khẩu…">
-                            <button class="btn btn-password-toggle border-start-0" type="button" id="togglePassword" aria-label="Hiện/Ẩn mật khẩu">
-                                <i class="bi bi-eye" id="togglePasswordIcon" aria-hidden="true"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="row g-3 align-items-end" id="captchaRow">
-                        <div class="col-sm-7">
-                            <label class="form-label fw-medium" for="captcha">Mã Captcha</label>
-                            <input class="form-control custom-input" id="captcha" name="captcha" autocomplete="off" placeholder="Mã bảo mật…" required aria-label="Mã bảo mật…">
-                        </div>
-                        <div class="col-sm-5">
-                            <div class="captcha-box" id="captchaBox">Đang tải captcha…</div>
-                        </div>
-                    </div>
-                    <button class="btn btn-tertiary-outline w-100" id="refreshCaptchaButton" type="button">
-                        <i class="bi bi-arrow-clockwise me-1" aria-hidden="true"></i> Tải lại Captcha
-                    </button>
-                    <button class="btn btn-primary-accent btn-lg w-100" id="loginSubmitButton" type="submit">
-                        <span class="button-label">Đăng nhập</span>
-                        <span class="spinner-border spinner-border-sm d-none" aria-hidden="true"></span>
-                    </button>
-                </form>
+    <div class="row align-items-center justify-content-center g-5 position-relative z-1">
+        <!-- Left Column: Premium Interactive/Decorative Artwork -->
+        <div class="col-lg-6 col-md-6 d-none d-md-flex flex-column align-items-center text-center text-lg-start align-items-lg-start">
+            <div class="hero-brand mb-4">
+                <span class="badge bg-primary bg-opacity-25 text-primary px-3 py-2 rounded-pill mb-3">GDT SECURE CHANNEL</span>
+                <h2 class="display-6 fw-bold tracking-tight text-gradient">Smart XML Compliance Hub</h2>
+                <p class="text-secondary mt-2 fs-5">
+                    Nền tảng tích hợp, rà soát hóa đơn XML chuyên sâu và tối ưu hóa các kịch bản quyết toán thuế tự động.
+                </p>
             </div>
-        </section>
+            
+            <!-- Secure Flow Illustration (Animated SVG) -->
+            <div class="secure-illustration-box w-100 p-4 rounded-4 shadow-sm border border-light border-opacity-10 position-relative overflow-hidden" style="background: rgba(255,255,255,0.03); backdrop-filter: blur(10px);">
+                <svg viewBox="0 0 400 200" width="100%" height="200" style="background: transparent;" aria-label="Sơ đồ mô phỏng dòng dữ liệu hóa đơn an toàn">
+                    <!-- Connection lines with animated dashes -->
+                    <path d="M 50 100 L 150 100" stroke="var(--primary-accent)" stroke-width="2.5" stroke-dasharray="6, 4" class="node-link" fill="none" />
+                    <path d="M 150 100 L 250 50" stroke="var(--lime-accent)" stroke-width="2" stroke-dasharray="6, 4" class="node-link" fill="none" />
+                    <path d="M 150 100 L 250 150" stroke="var(--color-deep-teal)" stroke-width="2" stroke-dasharray="6, 4" class="node-link" fill="none" />
+                    <path d="M 250 50 L 350 100" stroke="var(--lime-accent)" stroke-width="2" stroke-dasharray="6, 4" class="node-link" fill="none" />
+                    <path d="M 250 150 L 350 100" stroke="var(--color-deep-teal)" stroke-width="2" stroke-dasharray="6, 4" class="node-link" fill="none" />
+                    
+                    <!-- Pulsing wave rings -->
+                    <circle cx="150" cy="100" r="14" fill="var(--primary-accent)" fill-opacity="0.15" class="pulse-ring" />
+                    
+                    <!-- Nodes -->
+                    <g transform="translate(30, 80)">
+                        <circle cx="20" cy="20" r="18" fill="var(--bg-card)" stroke="var(--primary-accent)" stroke-width="2" />
+                        <path d="M 15 13 L 25 13 L 25 27 L 15 27 Z" fill="none" stroke="var(--primary-accent)" stroke-width="1.5"/>
+                        <path d="M 18 17 L 22 17 M 18 21 L 22 21 M 18 25 L 22 25" stroke="var(--primary-accent)" stroke-width="1.5"/>
+                    </g>
+                    
+                    <g transform="translate(130, 80)">
+                        <circle cx="20" cy="20" r="22" fill="var(--primary-accent-soft)" stroke="var(--primary-accent)" stroke-width="2.5" />
+                        <path d="M 14 17 L 26 17 L 26 25 L 14 25 Z" fill="none" stroke="var(--primary-accent)" stroke-width="1.5"/>
+                        <path d="M 17 17 L 17 14 C 17 12, 23 12, 23 14 L 23 17" fill="none" stroke="var(--primary-accent)" stroke-width="1.5"/>
+                    </g>
+                    
+                    <g transform="translate(230, 30)">
+                        <circle cx="20" cy="20" r="18" fill="var(--bg-card)" stroke="var(--lime-accent)" stroke-width="2" />
+                        <path d="M 14 20 L 18 24 L 26 16" fill="none" stroke="var(--lime-accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </g>
+                    
+                    <g transform="translate(230, 130)">
+                        <circle cx="20" cy="20" r="18" fill="var(--bg-card)" stroke="var(--color-deep-teal)" stroke-width="2" />
+                        <path d="M 15 15 L 25 15 L 25 25 L 15 25 Z" fill="none" stroke="var(--color-deep-teal)" stroke-width="1.5"/>
+                        <path d="M 18 18 L 22 18 M 18 22 L 22 22" stroke="var(--color-deep-teal)" stroke-width="1.5"/>
+                    </g>
+                    
+                    <g transform="translate(330, 80)">
+                        <circle cx="20" cy="20" r="18" fill="var(--bg-card)" stroke="var(--primary-accent)" stroke-width="2" />
+                        <path d="M 14 17 C 14 13, 26 13, 26 17 C 29 17, 29 23, 26 23 L 14 23 C 11 23, 11 17, 14 17 Z" fill="none" stroke="var(--primary-accent)" stroke-width="1.5"/>
+                    </g>
+                </svg>
+                
+                <div class="d-flex justify-content-around mt-3 text-secondary small">
+                    <span class="d-flex align-items-center gap-1"><i class="bi bi-circle-fill text-primary" style="font-size: 6px;" aria-hidden="true"></i> Hóa đơn XML</span>
+                    <span class="d-flex align-items-center gap-1"><i class="bi bi-circle-fill text-success" style="font-size: 6px;" aria-hidden="true"></i> Kê khai Tự động</span>
+                    <span class="d-flex align-items-center gap-1"><i class="bi bi-circle-fill text-info" style="font-size: 6px;" aria-hidden="true"></i> Đồng bộ GDT</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Login Card -->
+        <div class="col-lg-5 col-md-6">
+            <section class="card border-0 glass-card login-card-stagger">
+                <div class="card-body p-4 p-md-5">
+                    <p class="eyebrow mb-2">HỆ THỐNG AN NINH GDT</p>
+                    <h1 class="h3 mb-3">Đăng nhập Hệ thống Hóa đơn</h1>
+                    <p class="text-secondary mb-4 small">
+                        Vui lòng nhập tài khoản để bắt đầu. Captcha được tải trực tiếp từ hệ thống hóa đơn của Cơ quan thuế, người dùng tự nhập để hoàn thành đăng nhập.
+                    </p>
+
+                    <form id="loginForm" class="vstack gap-3">
+                        <div>
+                            <label class="form-label fw-medium small" for="username">Tên đăng nhập</label>
+                            <input class="form-control custom-input" id="username" name="username" autocomplete="username" placeholder="Nhập tên tài khoản GDT…" required autofocus aria-label="Nhập tên tài khoản GDT…">
+                        </div>
+                        <div>
+                            <label class="form-label fw-medium small" for="password">Mật khẩu</label>
+                            <div class="input-group">
+                                <input class="form-control custom-input border-end-0" id="password" name="password" type="password" autocomplete="current-password" placeholder="Nhập mật khẩu…" required aria-label="Nhập mật khẩu…">
+                                <button class="btn btn-password-toggle border-start-0" type="button" id="togglePassword" aria-label="Hiện/Ẩn mật khẩu">
+                                    <i class="bi bi-eye" id="togglePasswordIcon" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="row g-3 align-items-end" id="captchaRow">
+                            <div class="col-sm-7">
+                                <label class="form-label fw-medium small" for="captcha">Mã Captcha</label>
+                                <input class="form-control custom-input" id="captcha" name="captcha" autocomplete="off" placeholder="Mã bảo mật…" required aria-label="Mã bảo mật…">
+                            </div>
+                            <div class="col-sm-5">
+                                <div class="captcha-box" id="captchaBox">Đang tải captcha…</div>
+                            </div>
+                        </div>
+                        <button class="btn btn-tertiary-outline w-100" id="refreshCaptchaButton" type="button">
+                            <i class="bi bi-arrow-clockwise me-1" aria-hidden="true"></i> Tải lại Captcha
+                        </button>
+                        <button class="btn btn-primary-accent btn-lg w-100" id="loginSubmitButton" type="submit">
+                            <span class="button-label">Đăng nhập</span>
+                            <span class="spinner-border spinner-border-sm d-none" aria-hidden="true"></span>
+                        </button>
+                    </form>
+                </div>
+            </section>
+        </div>
     </div>
 </div>
 {% endblock %}

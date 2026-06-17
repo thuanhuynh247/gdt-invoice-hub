@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+
+{% block title %}Tax Administration Law 108/2025 Amendments - E-Signatures & Cross-Border Withholding Hub (v51){% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header Area -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
+        <div>
+            <span class="badge bg-info mb-2">Version 51.0.0 Spec Compliance</span>
+            <h1 class="h2 fw-bold text-gradient mb-1">Tax Administration Compliance Hub</h1>
+            <p class="text-muted mb-0">XML Invoice Digital Signature Verification (24-hour transmission rule) and Foreign E-Commerce Vendor B2B Withholding Tax Audits per Luật 108/2025/QH15.</p>
+        </div>
+        <div class="d-flex gap-2 mt-3 mt-md-0">
+            <button id="btn-refresh-v51" class="btn btn-info text-white d-flex align-items-center gap-2">
+                <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Load Compliance Data
+            </button>
+            <span class="badge bg-info-subtle text-info border border-info d-flex align-items-center px-3">
+                <i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Law 108/2025/QH15
+            </span>
+        </div>
+    </div>
+
+    <!-- Bento Grid Layout -->
+    <div class="row g-4">
+        <!-- Pillar 1: E-Transaction Signature Integrity Auditor -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1"><i class="bi bi-file-earmark-lock2 text-info me-2" aria-hidden="true"></i>E-Signature & Transmission delay Auditor</h5>
+                    <p class="text-muted small mb-0">Audit digital signature certificate status and check GDT reception delay (flag warnings for delays over 24 hours).</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="input-sig-inv" class="form-label small mb-1">Invoice Number:</label>
+                            <input type="text" id="input-sig-inv" class="form-control form-control-sm" value="INV2026-001" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-sig-expiry" class="form-label small mb-1">Cert Expiry Date (YYYY-MM-DD):</label>
+                            <input type="text" id="input-sig-expiry" class="form-control form-control-sm" value="2027-12-31 23:59:59" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-sig-sign" class="form-label small mb-1">Sign Date & Time:</label>
+                            <input type="text" id="input-sig-sign" class="form-control form-control-sm" value="2026-07-01 10:00:00" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-sig-receive" class="form-label small mb-1">GDT Receive Date & Time:</label>
+                            <input type="text" id="input-sig-receive" class="form-control form-control-sm" value="2026-07-01 11:30:00" autocomplete="off">
+                        </div>
+                        <div class="col-12 text-end">
+                            <button id="btn-verify-signature" class="btn btn-info btn-sm text-white">
+                                <i class="bi bi-shield-check me-1" aria-hidden="true"></i> Verify Signature
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
+                        <h6 class="fw-bold mb-2 text-info"><i class="bi bi-clock me-2" aria-hidden="true"></i>Verification Results</h6>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Compliance Status:</span>
+                            <span id="res-sig-status" class="badge bg-secondary">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Transmission Delay:</span>
+                            <span id="res-sig-delay" class="fw-bold text-primary">-</span>
+                        </div>
+                        <div class="small text-muted border-top pt-2 mt-2">
+                            <strong>Note:</strong> <span id="res-sig-note">Awaiting evaluation…</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pillar 2: Cross-Border B2B Withholding Calculator -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1"><i class="bi bi-globe2 text-success me-2" aria-hidden="true"></i>Cross-Border B2B Withholding Calculator</h5>
+                    <p class="text-muted small mb-0">Compute withholding taxes (VAT + CIT) on B2B purchases from foreign digital contractors not registered directly on GDT vendor portal.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="input-vendor-name" class="form-label small mb-1">Foreign Supplier Name:</label>
+                            <input type="text" id="input-vendor-name" class="form-control form-control-sm" value="Meta Platforms" autocomplete="off">
+                        </div>
+                        <div class="col-md-6 d-flex align-items-end">
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" id="check-vendor-registered">
+                                <label class="form-check-input-label small" for="check-vendor-registered">Registered directly on GDT vendor portal?</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-service-amt" class="form-label small mb-1">Service Amount (VND):</label>
+                            <input type="number" id="input-service-amt" class="form-control form-control-sm" value="100000000" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-goods-amt" class="form-label small mb-1">Goods/Digital Content Amount (VND):</label>
+                            <input type="number" id="input-goods-amt" class="form-control form-control-sm" value="50000000" autocomplete="off">
+                        </div>
+                        <div class="col-12 text-end">
+                            <button id="btn-calculate-withholding" class="btn btn-success btn-sm">
+                                <i class="bi bi-calculator me-1" aria-hidden="true"></i> Calculate Withholding
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
+                        <h6 class="fw-bold mb-2 text-success"><i class="bi bi-piggy-bank me-2" aria-hidden="true"></i>Withholding Tax Calculations</h6>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>VAT Withholding (5%):</span>
+                            <span id="res-withhold-vat" class="fw-bold text-success">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>CIT Withholding (5% service / 1% goods):</span>
+                            <span id="res-withhold-cit" class="fw-bold text-success">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Total Withheld:</span>
+                            <span id="res-withhold-total" class="fw-bold text-danger">-</span>
+                        </div>
+                        <div class="small text-muted border-top pt-2 mt-2">
+                            <strong>Note:</strong> <span id="res-withhold-note">Awaiting calculation…</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Swarm Advisory Debate Panel -->
+        <div class="col-lg-12">
+            <div class="card shadow-sm border-light">
+                <div class="card-header bg-dark text-white py-3 d-flex align-items-center justify-content-between">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-info me-2" aria-hidden="true"></i>Multi-Agent Advisory Board Debate</h5>
+                    <span class="badge bg-secondary border border-secondary">Consensus Simulator</span>
+                </div>
+                <div class="card-body">
+                    <div id="debate-container-v51" class="mb-3 d-flex flex-column gap-3">
+                    </div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus Summary Statement:</h6>
+                        <p id="consensus-text-v51" class="text-muted small mb-0">Awaiting simulation data execution…</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const formatVND = (n) => new Intl.NumberFormat("vi-VN").format(n) + " VND";
+
+    const loadData = () => {
+        fetch('/api/v51/compliance-data')
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "success") {
+                    renderSignature(data.signature_audit);
+                    renderWithholding(data.withholding_calculation);
+                    renderDebate(data.debate, data.consensus_summary);
+                }
+            })
+            .catch(err => console.error("Error loading v51 data:", err));
+    };
+
+    const verifySignature = () => {
+        fetch('/api/v51/signature/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                invoice_number: document.getElementById("input-sig-inv").value,
+                cert_expiry_date: document.getElementById("input-sig-expiry").value,
+                sign_date: document.getElementById("input-sig-sign").value,
+                receive_date: document.getElementById("input-sig-receive").value
+            })
+        })
+        .then(res => res.json())
+        .then(data => { if (data.status === "success") renderSignature(data.results); })
+        .catch(err => console.error("Signature verify error:", err));
+    };
+
+    const calculateWithholding = () => {
+        fetch('/api/v51/withholding/calculate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                vendor_name: document.getElementById("input-vendor-name").value,
+                is_registered_vendor: document.getElementById("check-vendor-registered").checked,
+                service_amount: parseFloat(document.getElementById("input-service-amt").value),
+                goods_amount: parseFloat(document.getElementById("input-goods-amt").value)
+            })
+        })
+        .then(res => res.json())
+        .then(data => { if (data.status === "success") renderWithholding(data.results); })
+        .catch(err => console.error("Withholding calculate error:", err));
+    };
+
+    const renderSignature = (res) => {
+        const statusBadge = document.getElementById("res-sig-status");
+        statusBadge.textContent = res.signature_status;
+        if (res.signature_status === "COMPLIANT") {
+            statusBadge.className = "badge bg-success";
+        } else if (res.signature_status === "SIGNATURE_EXPIRED") {
+            statusBadge.className = "badge bg-danger";
+        } else {
+            statusBadge.className = "badge bg-warning text-dark";
+        }
+
+        document.getElementById("res-sig-delay").textContent = `${res.transmission_delay_hours.toFixed(1)} hours`;
+        document.getElementById("res-sig-note").textContent = res.notes || "-";
+    };
+
+    const renderWithholding = (res) => {
+        document.getElementById("res-withhold-vat").textContent = formatVND(res.vat_withholding);
+        document.getElementById("res-withhold-cit").textContent = formatVND(res.cit_withholding);
+        document.getElementById("res-withhold-total").textContent = formatVND(res.total_withholding);
+        document.getElementById("res-withhold-note").textContent = res.notes || "-";
+    };
+
+    const renderDebate = (debate, summary) => {
+        const container = document.getElementById("debate-container-v51");
+        container.innerHTML = "";
+        const colors = { "Tax Audit Inspector": "bg-info", "E-Commerce Expert": "bg-success", "IT Director": "bg-warning text-dark" };
+        debate.forEach(msg => {
+            const div = document.createElement("div");
+            div.className = "d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";
+            div.innerHTML = `
+                <span class="badge ${colors[msg.speaker] || "bg-secondary"} py-2" style="min-width: 180px;">${msg.speaker}</span>
+                <div class="text-dark small">${msg.text}</div>
+            `;
+            container.appendChild(div);
+        });
+        document.getElementById("consensus-text-v51").textContent = summary;
+    };
+
+    // Attach listeners
+    document.getElementById("btn-verify-signature").addEventListener("click", verifySignature);
+    document.getElementById("btn-calculate-withholding").addEventListener("click", calculateWithholding);
+    document.getElementById("btn-refresh-v51").addEventListener("click", loadData);
+
+    // Initial load
+    loadData();
+});
+</script>
+{% endblock %}

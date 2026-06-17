@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+{% block title %}Extended Producer Responsibility Decree 08/2022 - EPR Hub (v65){% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
+        <div>
+            <span class="badge bg-primary text-white mb-2">Version 65.0.0 Spec Compliance</span>
+            <h1 class="h2 fw-bold text-gradient mb-1 text-primary">Extended Producer Responsibility (EPR) Hub</h1>
+            <p class="text-muted mb-0">Manage EPR Recycling Contributions (Đóng góp tài chính hỗ trợ tái chế) under Decree 08/2022/NĐ-CP.</p>
+        </div>
+        <div class="d-flex gap-2 mt-3 mt-md-0">
+            <button id="btn-refresh-v65" class="btn btn-primary text-white d-flex align-items-center gap-2"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Load Data</button>
+            <span class="badge bg-primary-subtle text-primary border border-primary d-flex align-items-center px-3"><i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Decree 08/2022</span>
+        </div>
+    </div>
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1 text-primary"><i class="bi bi-calculator text-primary me-2" aria-hidden="true"></i>Interactive EPR Calculator</h5>
+                    <p class="text-muted small mb-0">Select packaging/product type, weight parameters, annual financial data, and run calculations.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label for="input-product-desc" class="form-label small mb-1">Product Description / Batch Name:</label>
+                            <input type="text" id="input-product-desc" class="form-control form-control-sm" value="Vỏ lon nhôm đựng bia Heineken 330ml" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-product-type" class="form-label small mb-1">Product Category:</label>
+                            <select id="input-product-type" class="form-select form-select-sm">
+                                <option value="packaging_paper_carton">Paper & Carton Packaging (R=15%, Fs=2.5k VND/kg)</option>
+                                <option value="packaging_plastic">Plastic Packaging (R=22%, Fs=8.0k VND/kg)</option>
+                                <option value="packaging_metal">Metal Packaging (R=20%, Fs=4.0k VND/kg)</option>
+                                <option value="battery_lead_acid">Lead Acid Battery (R=18%, Fs=6.0k VND/kg)</option>
+                                <option value="lubricant_oil">Lubricant Oil (R=10%, Fs=5.0k VND/kg)</option>
+                                <option value="electronic_appliances">Electronic Appliances (R=12%, Fs=7.0k VND/kg)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-volume" class="form-label small mb-1">Total Product Weight (kg):</label>
+                            <input type="number" step="0.1" id="input-volume" class="form-control form-control-sm" value="50000.0" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-revenue" class="form-label small mb-1">Annual Revenue (VND):</label>
+                            <input type="number" id="input-revenue" class="form-control form-control-sm" value="35000000000" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-import" class="form-label small mb-1">Annual Import Value (VND):</label>
+                            <input type="number" id="input-import" class="form-control form-control-sm" value="25000000000" autocomplete="off">
+                        </div>
+                        <div class="col-md-12">
+                            <label for="input-exemption" class="form-label small mb-1">EPR Exemption Claim:</label>
+                            <select id="input-exemption" class="form-select form-select-sm">
+                                <option value="none">No Exemption (Chịu nghĩa vụ nộp phí tái chế đầy đủ)</option>
+                                <option value="small_scale_revenue">Revenue Exemption (< 30 Billion VND)</option>
+                                <option value="small_scale_import">Import Exemption (< 20 Billion VND)</option>
+                                <option value="closed_loop_recycling">Certified Closed-Loop Self-Recycling System</option>
+                                <option value="export_only">100% Export-Only Products</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-12 text-end">
+                            <button id="btn-calc-epr" class="btn btn-primary btn-sm text-white fw-bold"><i class="bi bi-play-fill me-1" aria-hidden="true"></i> Run Calculation</button>
+                        </div>
+                    </div>
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
+                        <h6 class="fw-bold mb-2 text-primary"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Calculation Result</h6>
+                        <div class="d-flex justify-content-between small mb-1"><span>Mandatory Recycling Rate (R):</span><span id="res-recycling-rate" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Cost Coefficient (Fs):</span><span id="res-cost-coeff" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>EPR Contribution (F):</span><span id="res-total-fee" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Effective Amount Payable:</span><span id="res-effective-fee" class="fw-bold text-primary fs-6">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>EPR Exemption Status:</span><span id="res-exempt-badge" class="fw-bold">-</span></div>
+                        <div class="small text-muted border-top pt-2 mt-2"><strong>Exemption Reason:</strong> <span id="res-exemption-reason">Awaiting…</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0"><h5 class="fw-bold mb-1"><i class="bi bi-shield-check text-primary me-2" aria-hidden="true"></i>EPR Baseline Verification</h5></div>
+                <div class="card-body d-flex flex-column gap-3">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Plastic Packaging Standard (No exemption)</span><span class="badge bg-danger">Plastic Packaging</span></div>
+                        <p class="small text-muted mb-2">100,000 kg plastic packaging. R=22%, Fs=8,000 VND/kg. Enterprise above thresholds.</p>
+                        <div class="d-flex justify-content-between small"><span>Total Contribution: <strong id="base1-tot">-</strong></span><span>Effective: <strong id="base1-eff" class="text-primary">-</strong></span></div>
+                    </div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Paper Carton Packaging Standard</span><span class="badge bg-secondary">Paper Carton</span></div>
+                        <p class="small text-muted mb-2">250,000 kg paper packaging. R=15%, Fs=2,500 VND/kg. Enterprise above thresholds.</p>
+                        <div class="d-flex justify-content-between small"><span>Total Contribution: <strong id="base2-tot">-</strong></span><span>Effective: <strong id="base2-eff" class="text-primary">-</strong></span></div>
+                    </div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Small Business Revenue Exemption (100% Exempt)</span><span class="badge bg-success">Exempt</span></div>
+                        <p class="small text-muted mb-2">15,000 kg plastic. Annual revenue: 25B VND (< 30B VND threshold).</p>
+                        <div class="d-flex justify-content-between small"><span>Total Contribution: <strong id="base3-tot">-</strong></span><span>Reason: <strong id="base3-reason" class="text-success">-</strong></span></div>
+                    </div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Certified Closed-Loop Recycling (100% Exempt)</span><span class="badge bg-success">Exempt</span></div>
+                        <p class="small text-muted mb-2">Lead-acid batteries. Certified recycling facility meets 18% mandatory rate.</p>
+                        <div class="d-flex justify-content-between small"><span>Total Contribution: <strong id="base4-tot">-</strong></span><span>Reason: <strong id="base4-reason" class="text-success">-</strong></span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-12">
+            <div class="card shadow-sm border-light">
+                <div class="card-header bg-dark text-white py-3 d-flex align-items-center justify-content-between"><h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-primary me-2" aria-hidden="true"></i>Multi-Agent EPR Recycling Advisory Debate</h5><span class="badge bg-secondary">Environmental Consensus</span></div>
+                <div class="card-body"><div id="debate-container-v65" class="mb-3 d-flex flex-column gap-3"></div><div class="p-3 bg-premium-light rounded border border-light-subtle"><h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus:</h6><p id="consensus-text-v65" class="text-muted small mb-0">Awaiting…</p></div></div>
+            </div>
+        </div>
+        <div class="col-lg-12">
+            <div class="card shadow-sm border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-2"><h5 class="fw-bold mb-1"><i class="bi bi-clock-history text-muted me-2" aria-hidden="true"></i>Historical Audit Log</h5></div>
+                <div class="card-body p-0"><div class="table-responsive"><table class="table table-hover table-striped mb-0 small"><thead class="table-dark"><tr><th>ID</th><th>Description</th><th>Product Type</th><th>Weight</th><th>Revenue</th><th>Import</th><th>Exemption</th><th>Total Contribution</th><th>Effective Contribution</th><th>Status</th><th>Time</th></tr></thead><tbody id="history-table-v65"><tr><td colspan="11" class="text-center text-muted py-4">No logs.</td></tr></tbody></table></div></div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+document.addEventListener("DOMContentLoaded",()=>{
+    const fVND = n => new Intl.NumberFormat("vi-VN").format(n) + " VND";
+    
+    const load = () => {
+        fetch('/api/v65/compliance-data').then(r=>r.json()).then(d=>{
+            if(d.status==="success"){
+                rB(d);
+                rD(d.debate,d.consensus_summary);
+                rH(d.history);
+            }
+        }).catch(e=>console.error(e));
+    };
+    
+    const calc = () => {
+        const p = {
+            product_description: document.getElementById("input-product-desc").value,
+            product_type: document.getElementById("input-product-type").value,
+            volume_kg: parseFloat(document.getElementById("input-volume").value || 0),
+            annual_revenue_vnd: parseFloat(document.getElementById("input-revenue").value || 0),
+            annual_import_vnd: parseFloat(document.getElementById("input-import").value || 0),
+            exemption_category: document.getElementById("input-exemption").value
+        };
+        fetch('/api/v65/calculate',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify(p)
+        }).then(r=>r.json()).then(d=>{
+            if(d.status==="success"){
+                rR(d.results);
+                load();
+            } else {
+                alert(d.error);
+            }
+        }).catch(e=>console.error(e));
+    };
+    
+    const rR = r => {
+        document.getElementById("res-recycling-rate").textContent = (r.recycling_rate * 100).toFixed(1) + "%";
+        document.getElementById("res-cost-coeff").textContent = fVND(r.cost_coefficient) + " / kg";
+        document.getElementById("res-total-fee").textContent = fVND(r.total_fee_vnd);
+        document.getElementById("res-effective-fee").textContent = fVND(r.effective_fee_vnd);
+        
+        if (r.is_exempt) {
+            document.getElementById("res-exempt-badge").innerHTML = '<span class="badge bg-success">100% Exempt</span>';
+        } else {
+            document.getElementById("res-exempt-badge").innerHTML = '<span class="badge bg-danger">Contribution Required</span>';
+        }
+        document.getElementById("res-exemption-reason").textContent = r.exemption_reason || "None";
+    };
+    
+    const rB = d => {
+        document.getElementById("base1-tot").textContent = fVND(d.plastic_standard.total_fee_vnd);
+        document.getElementById("base1-eff").textContent = fVND(d.plastic_standard.effective_fee_vnd);
+        
+        document.getElementById("base2-tot").textContent = fVND(d.paper_standard.total_fee_vnd);
+        document.getElementById("base2-eff").textContent = fVND(d.paper_standard.effective_fee_vnd);
+        
+        document.getElementById("base3-tot").textContent = fVND(d.small_revenue_exempt.total_fee_vnd);
+        document.getElementById("base3-reason").textContent = d.small_revenue_exempt.exemption_reason;
+        
+        document.getElementById("base4-tot").textContent = fVND(d.closed_loop_exempt.total_fee_vnd);
+        document.getElementById("base4-reason").textContent = d.closed_loop_exempt.exemption_reason;
+    };
+    
+    const rD = (debate, summary) => {
+        const c = document.getElementById("debate-container-v65");
+        c.innerHTML = "";
+        const cl = {
+            "EPR Compliance Officer": "bg-primary text-white",
+            "Operations Director": "bg-warning text-dark",
+            "MoNRE EPR Council Chair": "bg-info text-dark"
+        };
+        debate.forEach(m => {
+            const div = document.createElement("div");
+            div.className = "d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";
+            div.innerHTML = `<span class="badge ${cl[m.speaker] || "bg-secondary"} py-2 px-3" style="min-width:200px">${m.speaker}</span><div class="text-dark small">${m.text}</div>`;
+            c.appendChild(div);
+        });
+        document.getElementById("consensus-text-v65").textContent = summary;
+    };
+    
+    const rH = h => {
+        const tb = document.getElementById("history-table-v65");
+        if (!h || !h.length) {
+            tb.innerHTML = '<tr><td colspan="11" class="text-center text-muted py-4">No logs.</td></tr>';
+            return;
+        }
+        tb.innerHTML = "";
+        h.forEach(l => {
+            const tr = document.createElement("tr");
+            let statusBadge = '<span class="badge bg-danger">Contribution Required</span>';
+            if (l.is_exempt) {
+                statusBadge = '<span class="badge bg-success">Exempt</span>';
+            }
+            tr.innerHTML = `
+                <td>${l.id}</td>
+                <td class="fw-bold">${l.product_description}</td>
+                <td><span class="badge bg-secondary">${l.product_type.toUpperCase()}</span></td>
+                <td>${l.volume_kg.toLocaleString()} kg</td>
+                <td>${fVND(l.annual_revenue_vnd)}</td>
+                <td>${fVND(l.annual_import_vnd)}</td>
+                <td><span class="badge bg-premium-light text-dark">${l.exemption_category.toUpperCase()}</span></td>
+                <td>${fVND(l.total_fee_vnd)}</td>
+                <td class="fw-bold text-dark">${fVND(l.effective_fee_vnd)}</td>
+                <td>${statusBadge}</td>
+                <td class="text-muted">${l.created_at}</td>
+            `;
+            tb.appendChild(tr);
+        });
+    };
+    
+    document.getElementById("btn-calc-epr").addEventListener("click", calc);
+    document.getElementById("btn-refresh-v65").addEventListener("click", load);
+    load();
+});
+</script>
+{% endblock %}

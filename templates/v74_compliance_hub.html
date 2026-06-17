@@ -1,0 +1,290 @@
+{% extends "base.html" %}
+{% block title %}Noise & Vibration Surcharge Hub (v74){% endblock %}
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
+        <div>
+            <span class="badge bg-success text-white mb-2">Version 74.0.0 Spec Compliance</span>
+            <h1 class="h2 fw-bold text-gradient mb-1 text-success">Noise & Vibration Surcharge Hub</h1>
+            <p class="text-muted mb-0">Evaluate decibel exceedance levels, vibration thresholds, shift multipliers, and public works exemptions.</p>
+        </div>
+        <div class="d-flex gap-2 mt-3 mt-md-0">
+            <button id="btn-refresh-v74" class="btn btn-success text-white d-flex align-items-center gap-2">
+                <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Load Data
+            </button>
+            <span class="badge bg-success-subtle text-success border border-success d-flex align-items-center px-3">
+                <i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Law on EP 2020
+            </span>
+        </div>
+    </div>
+
+    <!-- Main Panels -->
+    <div class="row g-4">
+        <!-- Interactive Calculator -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1 text-success"><i class="bi bi-calculator text-success me-2" aria-hidden="true"></i>Noise/Vibration Surcharge Calculator</h5>
+                    <p class="text-muted small mb-0">Evaluate excess sound pressure and displacement limits and calculate levies.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="input-noise" class="form-label small mb-1">Measured Noise Level (dBA):</label>
+                            <input type="number" step="0.1" id="input-noise" class="form-control form-control-sm" value="75" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-vibration" class="form-label small mb-1">Measured Vibration (m/s²):</label>
+                            <input type="number" step="0.001" id="input-vibration" class="form-control form-control-sm" value="0.065" autocomplete="off">
+                        </div>
+                        <div class="col-md-12">
+                            <label for="input-shift" class="form-label small mb-1">Monitoring Time Shift:</label>
+                            <select id="input-shift" class="form-select form-select-sm">
+                                <option value="day">Day Shift (06:00 - 21:00) - Limits: 70 dBA / 0.055 m/s²</option>
+                                <option value="night">Night Shift (21:00 - 06:00) - Limits: 55 dBA / 0.055 m/s² (1.5x Multiplier)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check form-switch pt-2">
+                                <input class="form-check-input" type="checkbox" id="input-infrastructure" role="switch">
+                                <label class="form-check-label small" for="input-infrastructure">Public Infrastructure</label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check form-switch pt-2">
+                                <input class="form-check-input" type="checkbox" id="input-emergency" role="switch">
+                                <label class="form-check-label small" for="input-emergency">Emergency Relief</label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check form-switch pt-2">
+                                <input class="form-check-input" type="checkbox" id="input-festival" role="switch">
+                                <label class="form-check-label small" for="input-festival">Traditional Festival</label>
+                            </div>
+                        </div>
+                        
+                        <div class="col-12 text-end">
+                            <button id="btn-calc-surcharge" class="btn btn-success btn-sm text-white fw-bold">
+                                <i class="bi bi-play-fill me-1" aria-hidden="true"></i> Calculate Surcharge
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
+                        <h6 class="fw-bold mb-2 text-success"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Calculation Result</h6>
+                        <div class="d-flex justify-content-between small mb-1"><span>Noise Surcharge:</span><span id="res-noise" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Vibration Surcharge:</span><span id="res-vibration" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Gross Surcharge:</span><span id="res-gross" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Final Surcharge:</span><span id="res-final" class="fw-bold text-success fs-6">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Exemption Status:</span><span id="res-exempt-badge" class="fw-bold">-</span></div>
+                        <div class="small text-muted border-top pt-2 mt-2"><strong>Notes:</strong> <span id="res-notes">Awaiting…</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Baseline Verification -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Noise & Vibration Baselines</h5>
+                </div>
+                <div class="card-body d-flex flex-column gap-3">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold small text-dark">Day Shift Construction Hub</span>
+                            <span class="badge bg-success">Day Shift</span>
+                        </div>
+                        <p class="small text-muted mb-2">Noise: 75.0 dBA. Vibration: 0.065 m/s². Surcharges apply.</p>
+                        <div class="d-flex justify-content-between small">
+                            <span>Exempt: No</span>
+                            <span>Fee: <strong id="base1-eff" class="text-success">-</strong></span>
+                        </div>
+                    </div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold small text-dark">Night Shift Transport Hub</span>
+                            <span class="badge bg-success">Night Shift</span>
+                        </div>
+                        <p class="small text-muted mb-2">Noise: 58.0 dBA. Vibration: 0.045 m/s². 1.5x night multiplier applies.</p>
+                        <div class="d-flex justify-content-between small">
+                            <span>Exempt: No</span>
+                            <span>Fee: <strong id="base2-eff" class="text-success">-</strong></span>
+                        </div>
+                    </div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold small text-dark">Traditional Festival Loudspeaker Event</span>
+                            <span class="badge bg-danger">Festival Exempt</span>
+                        </div>
+                        <p class="small text-muted mb-2">Noise: 85.0 dBA. Vibration: 0.090 m/s². Exemption: traditional cultural festival.</p>
+                        <div class="d-flex justify-content-between small">
+                            <span>Exempt: Yes</span>
+                            <span>Notes: <strong id="base3-notes" class="text-success">-</strong></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Consensus Debate -->
+        <div class="col-lg-12">
+            <div class="card shadow-sm border-light">
+                <div class="card-header bg-dark text-white py-3 d-flex align-items-center justify-content-between">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-success me-2" aria-hidden="true"></i>Multi-Agent Acoustic & Vibration Impact Debate</h5>
+                    <span class="badge bg-secondary">Law on EP 2020 Consensus</span>
+                </div>
+                <div class="card-body">
+                    <div id="debate-container-v74" class="mb-3 d-flex flex-column gap-3"></div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus:</h6>
+                        <p id="consensus-text-v74" class="text-muted small mb-0">Awaiting…</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Audit Log -->
+        <div class="col-lg-12">
+            <div class="card shadow-sm border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-2">
+                    <h5 class="fw-bold mb-1"><i class="bi bi-clock-history text-muted me-2" aria-hidden="true"></i>Acoustic & Vibration Compliance History Log</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped mb-0 small">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Noise Level (dBA)</th>
+                                    <th>Vibration (m/s²)</th>
+                                    <th>Shift</th>
+                                    <th>Public Infra</th>
+                                    <th>Emergency</th>
+                                    <th>Festival</th>
+                                    <th>Noise Fee</th>
+                                    <th>Vibration Fee</th>
+                                    <th>Total Fee</th>
+                                    <th>Status</th>
+                                    <th>Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-table-v74">
+                                <tr><td colspan="12" class="text-center text-muted py-4">No logs available.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const fVND = n => new Intl.NumberFormat("vi-VN").format(Math.round(n)) + " VND";
+    
+    const load = () => {
+        fetch('/api/v74/compliance-data').then(r=>r.json()).then(d=>{
+            if(d.status==="success"){
+                rB(d);
+                rD(d.debate, d.consensus_summary);
+                rH(d.history);
+            }
+        }).catch(e=>console.error(e));
+    };
+    
+    const calc = () => {
+        const p = {
+            noise_db: parseFloat(document.getElementById("input-noise").value || 0),
+            vibration_m_s2: parseFloat(document.getElementById("input-vibration").value || 0),
+            shift: document.getElementById("input-shift").value,
+            public_infrastructure: document.getElementById("input-infrastructure").checked,
+            emergency_relief: document.getElementById("input-emergency").checked,
+            traditional_festival: document.getElementById("input-festival").checked
+        };
+        fetch('/api/v74/calculate', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(p)
+        }).then(r=>r.json()).then(d=>{
+            if(d.status==="success"){
+                rR(d.results);
+                load();
+            } else {
+                alert(d.error);
+            }
+        }).catch(e=>console.error(e));
+    };
+    
+    const rR = r => {
+        document.getElementById("res-noise").textContent = fVND(r.noise_surcharge);
+        document.getElementById("res-vibration").textContent = fVND(r.vibration_surcharge);
+        document.getElementById("res-gross").textContent = fVND(r.gross_fee);
+        document.getElementById("res-final").textContent = fVND(r.final_fee);
+        
+        if (r.is_exempt) {
+            document.getElementById("res-exempt-badge").innerHTML = '<span class="badge bg-success">Exempt</span>';
+        } else {
+            document.getElementById("res-exempt-badge").innerHTML = '<span class="badge bg-danger">Payable</span>';
+        }
+        document.getElementById("res-notes").textContent = r.notes || "None";
+    };
+    
+    const rB = d => {
+        document.getElementById("base1-eff").textContent = fVND(d.day_surcharge.final_fee);
+        document.getElementById("base2-eff").textContent = fVND(d.night_surcharge.final_fee);
+        document.getElementById("base3-notes").textContent = d.festival_exempt.notes;
+    };
+    
+    const rD = (debate, summary) => {
+        const c = document.getElementById("debate-container-v74");
+        c.innerHTML = "";
+        const cl = {
+            "Acoustic Monitoring Officer": "bg-success text-white",
+            "Shift Supervisor": "bg-warning text-dark",
+            "Civil Project Lead": "bg-info text-dark"
+        };
+        debate.forEach(m => {
+            const div = document.createElement("div");
+            div.className = "d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";
+            div.innerHTML = `<span class="badge ${cl[m.speaker] || "bg-secondary"} py-2 px-3" style="min-width:220px">${m.speaker}</span><div class="text-dark small">${m.text}</div>`;
+            c.appendChild(div);
+        });
+        document.getElementById("consensus-text-v74").textContent = summary;
+    };
+    
+    const rH = h => {
+        const tb = document.getElementById("history-table-v74");
+        if (!h || !h.length) {
+            tb.innerHTML = '<tr><td colspan="12" class="text-center text-muted py-4">No logs available.</td></tr>';
+            return;
+        }
+        tb.innerHTML = "";
+        h.forEach(l => {
+            const tr = document.createElement("tr");
+            let statusBadge = l.is_exempt ? '<span class="badge bg-success">Exempt</span>' : '<span class="badge bg-danger">Payable</span>';
+            tr.innerHTML = `
+                <td>${l.id}</td>
+                <td>${l.noise_db.toFixed(1)}</td>
+                <td>${l.vibration_m_s2.toFixed(4)}</td>
+                <td><span class="badge bg-secondary">${l.shift.toUpperCase()}</span></td>
+                <td>${l.public_infrastructure ? 'Yes' : 'No'}</td>
+                <td>${l.emergency_relief ? 'Yes' : 'No'}</td>
+                <td>${l.traditional_festival ? 'Yes' : 'No'}</td>
+                <td>${fVND(l.noise_surcharge)}</td>
+                <td>${fVND(l.vibration_surcharge)}</td>
+                <td class="fw-bold text-dark">${fVND(l.final_fee)}</td>
+                <td>${statusBadge}</td>
+                <td class="text-muted">${l.created_at}</td>
+            `;
+            tb.appendChild(tr);
+        });
+    };
+    
+    document.getElementById("btn-calc-surcharge").addEventListener("click", calc);
+    document.getElementById("btn-refresh-v74").addEventListener("click", load);
+    load();
+});
+</script>
+{% endblock %}

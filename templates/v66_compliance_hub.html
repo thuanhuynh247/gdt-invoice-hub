@@ -1,0 +1,302 @@
+{% extends "base.html" %}
+{% block title %}Greenhouse Gas (GHG) Emissions & Carbon Credits - EPFGHG Hub (v66){% endblock %}
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
+        <div>
+            <span class="badge bg-success text-white mb-2">Version 66.0.0 Spec Compliance</span>
+            <h1 class="h2 fw-bold text-gradient mb-1 text-success">GHG Emissions & Carbon Credits Hub</h1>
+            <p class="text-muted mb-0">Manage GHG emissions compliance under Decree 06/2022/NĐ-CP & IPCC AR5 standard.</p>
+        </div>
+        <div class="d-flex gap-2 mt-3 mt-md-0">
+            <button id="btn-refresh-v66" class="btn btn-success text-white d-flex align-items-center gap-2">
+                <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Load Data
+            </button>
+            <span class="badge bg-success-subtle text-success border border-success d-flex align-items-center px-3">
+                <i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Decree 06/2022
+            </span>
+        </div>
+    </div>
+
+    <!-- Main Panels -->
+    <div class="row g-4">
+        <!-- Interactive Calculator -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1 text-success"><i class="bi bi-calculator text-success me-2" aria-hidden="true"></i>Interactive GHG Calculator</h5>
+                    <p class="text-muted small mb-0">Input greenhouse gases (CO2, CH4, N2O) and credits offset to run the audit.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label for="input-emission-desc" class="form-label small mb-1">Emission Facility / Batch:</label>
+                            <input type="text" id="input-emission-desc" class="form-control form-control-sm" value="Nhà máy nhiệt điện Vũng Áng 1 - Tổ máy số 2" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-facility-cat" class="form-label small mb-1">Facility Category:</label>
+                            <select id="input-facility-cat" class="form-select form-select-sm">
+                                <option value="energy">Energy & Utility Sector (150k VND / tCO2e)</option>
+                                <option value="industrial_processes">Industrial Processes & Cement (120k VND / tCO2e)</option>
+                                <option value="agriculture">Agriculture & Forestry (80k VND / tCO2e)</option>
+                                <option value="waste">Waste Management (100k VND / tCO2e)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-exemption-cat" class="form-label small mb-1">Exemption Category:</label>
+                            <select id="input-exemption-cat" class="form-select form-select-sm">
+                                <option value="none">No Exemption (Chịu phí đầy đủ)</option>
+                                <option value="small_emitter">Small Emitter (&lt; 3,000 tCO2e/year)</option>
+                                <option value="clean_energy">Clean & Renewable Power Generation</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="input-co2" class="form-label small mb-1">CO2 (Tonnes):</label>
+                            <input type="number" step="0.01" id="input-co2" class="form-control form-control-sm" value="2800.0" autocomplete="off">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="input-ch4" class="form-label small mb-1">CH4 (Tonnes):</label>
+                            <input type="number" step="0.01" id="input-ch4" class="form-control form-control-sm" value="8.5" autocomplete="off">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="input-n2o" class="form-label small mb-1">N2O (Tonnes):</label>
+                            <input type="number" step="0.01" id="input-n2o" class="form-control form-control-sm" value="2.1" autocomplete="off">
+                        </div>
+                        <div class="col-12">
+                            <label for="input-credits" class="form-label small mb-1">Carbon Credits Offset (CERs/VERs - Tonnes of CO2e):</label>
+                            <input type="number" step="0.1" id="input-credits" class="form-control form-control-sm" value="250.0" autocomplete="off">
+                            <div class="form-text small text-muted">Decree 06/2022/NĐ-CP caps offset contribution at 10% of total emissions.</div>
+                        </div>
+                        
+                        <div class="col-12 text-end">
+                            <button id="btn-calc-ghg" class="btn btn-success btn-sm text-white fw-bold">
+                                <i class="bi bi-play-fill me-1" aria-hidden="true"></i> Run Compliance Audit
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
+                        <h6 class="fw-bold mb-2 text-success"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Calculation Result</h6>
+                        <div class="d-flex justify-content-between small mb-1"><span>Total CO2e (IPCC GWP):</span><span id="res-co2e" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Carbon Credits Applied:</span><span id="res-credits" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Effective CO2e Chargeable:</span><span id="res-chargeable" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Effective Fee Payable:</span><span id="res-effective-fee" class="fw-bold text-success fs-6">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Exemption Status:</span><span id="res-exempt-badge" class="fw-bold">-</span></div>
+                        <div class="small text-muted border-top pt-2 mt-2"><strong>Exemption Reason:</strong> <span id="res-exemption-reason">Awaiting…</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Baseline Verification -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>GHG Compliance Baselines</h5>
+                </div>
+                <div class="card-body d-flex flex-column gap-3">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold small text-dark">Nhà máy nhiệt điện Phả Lại</span>
+                            <span class="badge bg-danger">Energy Sector</span>
+                        </div>
+                        <p class="small text-muted mb-2">CO2: 4500t, CH4: 12t, N2O: 3.5t. Standard rate: 150,000 VND / tCO2e.</p>
+                        <div class="d-flex justify-content-between small">
+                            <span>CO2e: <strong id="base1-co2e">-</strong></span>
+                            <span>Fee: <strong id="base1-eff" class="text-success">-</strong></span>
+                        </div>
+                    </div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold small text-dark">Nhà máy xi măng Hà Tiên (Offset)</span>
+                            <span class="badge bg-warning text-dark">Industrial Offset</span>
+                        </div>
+                        <p class="small text-muted mb-2">CO2: 5000t, CH4: 5t, N2O: 1t. Credits: 350t (Limited to 10% cap).</p>
+                        <div class="d-flex justify-content-between small">
+                            <span>Credits Used: <strong id="base2-credits">-</strong></span>
+                            <span>Fee: <strong id="base2-eff" class="text-success">-</strong></span>
+                        </div>
+                    </div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold small text-dark">Cơ sở may mặc nhỏ (Exempt)</span>
+                            <span class="badge bg-success">Exempt</span>
+                        </div>
+                        <p class="small text-muted mb-2">CO2: 200t, CH4: 0.5t, N2O: 0.1t. Under 3,000 tCO2e threshold.</p>
+                        <div class="d-flex justify-content-between small">
+                            <span>CO2e: <strong id="base3-co2e">-</strong></span>
+                            <span>Reason: <strong id="base3-reason" class="text-success">-</strong></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Consensus Debate -->
+        <div class="col-lg-12">
+            <div class="card shadow-sm border-light">
+                <div class="card-header bg-dark text-white py-3 d-flex align-items-center justify-content-between">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-success me-2" aria-hidden="true"></i>Multi-Agent Climate Policy Advisory Debate</h5>
+                    <span class="badge bg-secondary">Decree 06/2022/NĐ-CP Consensus</span>
+                </div>
+                <div class="card-body">
+                    <div id="debate-container-v66" class="mb-3 d-flex flex-column gap-3"></div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus:</h6>
+                        <p id="consensus-text-v66" class="text-muted small mb-0">Awaiting…</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Audit Log -->
+        <div class="col-lg-12">
+            <div class="card shadow-sm border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-2">
+                    <h5 class="fw-bold mb-1"><i class="bi bi-clock-history text-muted me-2" aria-hidden="true"></i>GHG Emissions Compliance Audit Log</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped mb-0 small">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Facility / Batch</th>
+                                    <th>Sector</th>
+                                    <th>CO2e (tonnes)</th>
+                                    <th>Credits Offset</th>
+                                    <th>Net CO2e</th>
+                                    <th>Base Rate</th>
+                                    <th>Total Fee</th>
+                                    <th>Payable</th>
+                                    <th>Status</th>
+                                    <th>Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-table-v66">
+                                <tr><td colspan="11" class="text-center text-muted py-4">No logs available.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const fVND = n => new Intl.NumberFormat("vi-VN").format(Math.round(n)) + " VND";
+    
+    const load = () => {
+        fetch('/api/v66/compliance-data').then(r=>r.json()).then(d=>{
+            if(d.status==="success"){
+                rB(d);
+                rD(d.debate, d.consensus_summary);
+                rH(d.history);
+            }
+        }).catch(e=>console.error(e));
+    };
+    
+    const calc = () => {
+        const p = {
+            emission_description: document.getElementById("input-emission-desc").value,
+            facility_category: document.getElementById("input-facility-cat").value,
+            co2_tonnes: parseFloat(document.getElementById("input-co2").value || 0),
+            ch4_tonnes: parseFloat(document.getElementById("input-ch4").value || 0),
+            n2o_tonnes: parseFloat(document.getElementById("input-n2o").value || 0),
+            carbon_credits_offset: parseFloat(document.getElementById("input-credits").value || 0),
+            exemption_category: document.getElementById("input-exemption-cat").value
+        };
+        fetch('/api/v66/calculate', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(p)
+        }).then(r=>r.json()).then(d=>{
+            if(d.status==="success"){
+                rR(d.results);
+                load();
+            } else {
+                alert(d.error);
+            }
+        }).catch(e=>console.error(e));
+    };
+    
+    const rR = r => {
+        document.getElementById("res-co2e").textContent = r.total_co2e_tonnes.toFixed(2) + " tCO2e";
+        document.getElementById("res-credits").textContent = r.applied_credits_tonnes.toFixed(2) + " tCO2e";
+        document.getElementById("res-chargeable").textContent = r.net_co2e_chargeable.toFixed(2) + " tCO2e";
+        document.getElementById("res-effective-fee").textContent = fVND(r.effective_fee_vnd);
+        
+        if (r.is_exempt) {
+            document.getElementById("res-exempt-badge").innerHTML = '<span class="badge bg-success">100% Exempt</span>';
+        } else {
+            document.getElementById("res-exempt-badge").innerHTML = '<span class="badge bg-danger">Fee Payable</span>';
+        }
+        document.getElementById("res-exemption-reason").textContent = r.exemption_reason || "None";
+    };
+    
+    const rB = d => {
+        document.getElementById("base1-co2e").textContent = d.standard_emissions.total_co2e_tonnes.toFixed(2) + " tCO2e";
+        document.getElementById("base1-eff").textContent = fVND(d.standard_emissions.effective_fee_vnd);
+        
+        document.getElementById("base2-credits").textContent = d.offset_emissions.applied_credits_tonnes.toFixed(2) + " tCO2e";
+        document.getElementById("base2-eff").textContent = fVND(d.offset_emissions.effective_fee_vnd);
+        
+        document.getElementById("base3-co2e").textContent = d.small_exempt.total_co2e_tonnes.toFixed(2) + " tCO2e";
+        document.getElementById("base3-reason").textContent = d.small_exempt.exemption_reason;
+    };
+    
+    const rD = (debate, summary) => {
+        const c = document.getElementById("debate-container-v66");
+        c.innerHTML = "";
+        const cl = {
+            "Climate Policy Auditor": "bg-success text-white",
+            "Factory Environmental Manager": "bg-warning text-dark",
+            "MoNRE Climate Change Inspector": "bg-info text-dark"
+        };
+        debate.forEach(m => {
+            const div = document.createElement("div");
+            div.className = "d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";
+            div.innerHTML = `<span class="badge ${cl[m.speaker] || "bg-secondary"} py-2 px-3" style="min-width:220px">${m.speaker}</span><div class="text-dark small">${m.text}</div>`;
+            c.appendChild(div);
+        });
+        document.getElementById("consensus-text-v66").textContent = summary;
+    };
+    
+    const rH = h => {
+        const tb = document.getElementById("history-table-v66");
+        if (!h || !h.length) {
+            tb.innerHTML = '<tr><td colspan="11" class="text-center text-muted py-4">No logs available.</td></tr>';
+            return;
+        }
+        tb.innerHTML = "";
+        h.forEach(l => {
+            const tr = document.createElement("tr");
+            let statusBadge = '<span class="badge bg-danger">Payable</span>';
+            if (l.is_exempt) {
+                statusBadge = '<span class="badge bg-success">Exempt</span>';
+            }
+            tr.innerHTML = `
+                <td>${l.id}</td>
+                <td class="fw-bold">${l.emission_description}</td>
+                <td><span class="badge bg-secondary">${l.facility_category.toUpperCase()}</span></td>
+                <td>${l.total_co2e_tonnes.toFixed(2)}</td>
+                <td>${l.applied_credits_tonnes.toFixed(2)}</td>
+                <td>${l.net_co2e_chargeable.toFixed(2)}</td>
+                <td>${fVND(l.base_rate)}</td>
+                <td>${fVND(l.total_fee_vnd)}</td>
+                <td class="fw-bold text-dark">${fVND(l.effective_fee_vnd)}</td>
+                <td>${statusBadge}</td>
+                <td class="text-muted">${l.created_at}</td>
+            `;
+            tb.appendChild(tr);
+        });
+    };
+    
+    document.getElementById("btn-calc-ghg").addEventListener("click", calc);
+    document.getElementById("btn-refresh-v66").addEventListener("click", load);
+    load();
+});
+</script>
+{% endblock %}

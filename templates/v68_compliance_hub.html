@@ -1,0 +1,297 @@
+{% extends "base.html" %}
+{% block title %}Biodiversity Offset & Conservation Fee - EPFBD Hub (v68){% endblock %}
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
+        <div>
+            <span class="badge bg-success text-white mb-2">Version 68.0.0 Spec Compliance</span>
+            <h1 class="h2 fw-bold text-gradient mb-1 text-success">Biodiversity Offset & Conservation Fee Hub</h1>
+            <p class="text-muted mb-0">Assess biodiversity impact and calculate offsets/fees under Law on Biodiversity 2008.</p>
+        </div>
+        <div class="d-flex gap-2 mt-3 mt-md-0">
+            <button id="btn-refresh-v68" class="btn btn-success text-white d-flex align-items-center gap-2">
+                <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Load Data
+            </button>
+            <span class="badge bg-success-subtle text-success border border-success d-flex align-items-center px-3">
+                <i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Law on Biodiversity 2008
+            </span>
+        </div>
+    </div>
+
+    <!-- Main Panels -->
+    <div class="row g-4">
+        <!-- Interactive Calculator -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1 text-success"><i class="bi bi-calculator text-success me-2" aria-hidden="true"></i>Interactive Biodiversity Calculator</h5>
+                    <p class="text-muted small mb-0">Assess ecosystem categories, affected land area, severity rating, and mitigation discounts.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label for="input-project-name" class="form-label small mb-1">Development Project Name:</label>
+                            <input type="text" id="input-project-name" class="form-control form-control-sm" value="Khu du lịch sinh thái Bà Nà Hills - Cáp treo mới" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-ecosystem-type" class="form-label small mb-1">Ecosystem Category:</label>
+                            <select id="input-ecosystem-type" class="form-select form-select-sm">
+                                <option value="national_park">National Park (Vườn quốc gia - 250M VND/ha)</option>
+                                <option value="nature_reserve">Nature Reserve (Khu bảo tồn thiên nhiên - 180M VND/ha)</option>
+                                <option value="habitat_conservation">Species/Habitat Conservation Area (Khu bảo tồn loài - 120M VND/ha)</option>
+                                <option value="landscape_protected">Protected Landscape Area (Khu bảo vệ cảnh quan - 80M VND/ha)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-exemption-cat" class="form-label small mb-1">Exemption Category:</label>
+                            <select id="input-exemption-cat" class="form-select form-select-sm">
+                                <option value="none">No Exemption (Chịu phí đầy đủ)</option>
+                                <option value="national_defense">National Defense or Border Security Infrastructure</option>
+                                <option value="scientific_research">Scientific Conservation Research & Surveys</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-area" class="form-label small mb-1">Impact Area (Hectares):</label>
+                            <input type="number" step="0.01" id="input-area" class="form-control form-control-sm" value="4.5" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-impact-rating" class="form-label small mb-1">Impact Severity Rating:</label>
+                            <select id="input-impact-rating" class="form-select form-select-sm">
+                                <option value="low">Low Impact (Multiplier: 1.0x)</option>
+                                <option value="medium" selected>Medium Impact (Multiplier: 1.2x)</option>
+                                <option value="high">High Impact (Multiplier: 1.5x)</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check mt-1">
+                                <input class="form-check-input" type="checkbox" id="input-offset-plan" checked>
+                                <label class="form-check-input-label small fw-bold text-dark" for="input-offset-plan">
+                                    Has Approved 1:1 Biodiversity Offset Plan (40% discount on final fee liability)
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="col-12 text-end">
+                            <button id="btn-calc-biodiversity" class="btn btn-success btn-sm text-white fw-bold">
+                                <i class="bi bi-play-fill me-1" aria-hidden="true"></i> Run Ecological Assessment
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
+                        <h6 class="fw-bold mb-2 text-success"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Assessment Result</h6>
+                        <div class="d-flex justify-content-between small mb-1"><span>Ecosystem Rate per Ha:</span><span id="res-base-rate" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Impact Multiplier:</span><span id="res-multiplier" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Offset Discount Coefficient:</span><span id="res-discount" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Total Conservation Fee:</span><span id="res-effective-fee" class="fw-bold text-success fs-6">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Exemption Status:</span><span id="res-exempt-badge" class="fw-bold">-</span></div>
+                        <div class="small text-muted border-top pt-2 mt-2"><strong>Exemption Reason:</strong> <span id="res-exemption-reason">Awaiting…</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Baseline Verification -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Ecological Baselines</h5>
+                </div>
+                <div class="card-body d-flex flex-column gap-3">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold small text-dark">Khu nghỉ dưỡng Cát Bà</span>
+                            <span class="badge bg-danger">National Park</span>
+                        </div>
+                        <p class="small text-muted mb-2">Park: 12.0 hectares. Severity: High (1.5x). Offset: No.</p>
+                        <div class="d-flex justify-content-between small">
+                            <span>Base Rate: 250M VND/ha</span>
+                            <span>Fee: <strong id="base1-eff" class="text-success">-</strong></span>
+                        </div>
+                    </div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold small text-dark">Cáp treo sinh thái Phú Quốc</span>
+                            <span class="badge bg-warning text-dark">Reserve Offset</span>
+                        </div>
+                        <p class="small text-muted mb-2">Reserve: 8.0 hectares. Severity: Medium (1.2x). Offset: Yes (40% off).</p>
+                        <div class="d-flex justify-content-between small">
+                            <span>Base Rate: 180M VND/ha</span>
+                            <span>Fee: <strong id="base2-eff" class="text-success">-</strong></span>
+                        </div>
+                    </div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold small text-dark">Trạm radar Sơn Trà (Exempt)</span>
+                            <span class="badge bg-success">Exempt</span>
+                        </div>
+                        <p class="small text-muted mb-2">Landscape: 1.5 hectares. Exemption: National Defense.</p>
+                        <div class="d-flex justify-content-between small">
+                            <span>Area: 1.5 ha</span>
+                            <span>Reason: <strong id="base3-reason" class="text-success">-</strong></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Consensus Debate -->
+        <div class="col-lg-12">
+            <div class="card shadow-sm border-light">
+                <div class="card-header bg-dark text-white py-3 d-flex align-items-center justify-content-between">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-success me-2" aria-hidden="true"></i>Multi-Agent Biodiversity Compliance Debate</h5>
+                    <span class="badge bg-secondary">Law on Biodiversity 2008 Consensus</span>
+                </div>
+                <div class="card-body">
+                    <div id="debate-container-v68" class="mb-3 d-flex flex-column gap-3"></div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus:</h6>
+                        <p id="consensus-text-v68" class="text-muted small mb-0">Awaiting…</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Audit Log -->
+        <div class="col-lg-12">
+            <div class="card shadow-sm border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-2">
+                    <h5 class="fw-bold mb-1"><i class="bi bi-clock-history text-muted me-2" aria-hidden="true"></i>Biodiversity Assessments History Log</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped mb-0 small">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Project Name</th>
+                                    <th>Ecosystem Type</th>
+                                    <th>Area (ha)</th>
+                                    <th>Severity</th>
+                                    <th>Offset Plan</th>
+                                    <th>Exemption</th>
+                                    <th>Conservation Fee</th>
+                                    <th>Status</th>
+                                    <th>Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-table-v68">
+                                <tr><td colspan="10" class="text-center text-muted py-4">No logs available.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const fVND = n => new Intl.NumberFormat("vi-VN").format(Math.round(n)) + " VND";
+    
+    const load = () => {
+        fetch('/api/v68/compliance-data').then(r=>r.json()).then(d=>{
+            if(d.status==="success"){
+                rB(d);
+                rD(d.debate, d.consensus_summary);
+                rH(d.history);
+            }
+        }).catch(e=>console.error(e));
+    };
+    
+    const calc = () => {
+        const p = {
+            project_name: document.getElementById("input-project-name").value,
+            ecosystem_type: document.getElementById("input-ecosystem-type").value,
+            impact_area_ha: parseFloat(document.getElementById("input-area").value || 0),
+            impact_rating: document.getElementById("input-impact-rating").value,
+            has_offset_plan: document.getElementById("input-offset-plan").checked,
+            exemption_category: document.getElementById("input-exemption-cat").value
+        };
+        fetch('/api/v68/calculate', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(p)
+        }).then(r=>r.json()).then(d=>{
+            if(d.status==="success"){
+                rR(d.results);
+                load();
+            } else {
+                alert(d.error);
+            }
+        }).catch(e=>console.error(e));
+    };
+    
+    const rR = r => {
+        document.getElementById("res-base-rate").textContent = fVND(r.base_rate_per_ha) + " / hectare";
+        document.getElementById("res-multiplier").textContent = r.impact_multiplier.toFixed(1) + " x";
+        document.getElementById("res-discount").textContent = r.offset_discount_coefficient.toFixed(1) + " (offset plan)";
+        document.getElementById("res-effective-fee").textContent = fVND(r.effective_fee_vnd);
+        
+        if (r.is_exempt) {
+            document.getElementById("res-exempt-badge").innerHTML = '<span class="badge bg-success">100% Exempt</span>';
+        } else {
+            document.getElementById("res-exempt-badge").innerHTML = '<span class="badge bg-danger">Fee Payable</span>';
+        }
+        document.getElementById("res-exemption-reason").textContent = r.exemption_reason || "None";
+    };
+    
+    const rB = d => {
+        document.getElementById("base1-eff").textContent = fVND(d.park_standard.effective_fee_vnd);
+        document.getElementById("base2-eff").textContent = fVND(d.reserve_offset.effective_fee_vnd);
+        document.getElementById("base3-reason").textContent = d.defense_exempt.exemption_reason;
+    };
+    
+    const rD = (debate, summary) => {
+        const c = document.getElementById("debate-container-v68");
+        c.innerHTML = "";
+        const cl = {
+            "Biodiversity Inspector": "bg-success text-white",
+            "Project Engineer": "bg-warning text-dark",
+            "Defense Command Representative": "bg-info text-dark"
+        };
+        debate.forEach(m => {
+            const div = document.createElement("div");
+            div.className = "d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";
+            div.innerHTML = `<span class="badge ${cl[m.speaker] || "bg-secondary"} py-2 px-3" style="min-width:220px">${m.speaker}</span><div class="text-dark small">${m.text}</div>`;
+            c.appendChild(div);
+        });
+        document.getElementById("consensus-text-v68").textContent = summary;
+    };
+    
+    const rH = h => {
+        const tb = document.getElementById("history-table-v68");
+        if (!h || !h.length) {
+            tb.innerHTML = '<tr><td colspan="10" class="text-center text-muted py-4">No logs available.</td></tr>';
+            return;
+        }
+        tb.innerHTML = "";
+        h.forEach(l => {
+            const tr = document.createElement("tr");
+            let statusBadge = '<span class="badge bg-danger">Payable</span>';
+            if (l.is_exempt) {
+                statusBadge = '<span class="badge bg-success">Exempt</span>';
+            }
+            tr.innerHTML = `
+                <td>${l.id}</td>
+                <td class="fw-bold">${l.project_name}</td>
+                <td><span class="badge bg-secondary">${l.ecosystem_type.toUpperCase()}</span></td>
+                <td>${l.impact_area_ha.toFixed(2)} ha</td>
+                <td>${l.impact_rating.toUpperCase()}</td>
+                <td>${l.has_offset_plan ? '<span class="text-success"><i class="bi bi-check-circle-fill"></i> Yes</span>' : '<span class="text-muted">No</span>'}</td>
+                <td><span class="badge bg-premium-light text-dark">${l.exemption_category.toUpperCase()}</span></td>
+                <td class="fw-bold text-dark">${fVND(l.effective_fee_vnd)}</td>
+                <td>${statusBadge}</td>
+                <td class="text-muted">${l.created_at}</td>
+            `;
+            tb.appendChild(tr);
+        });
+    };
+    
+    document.getElementById("btn-calc-biodiversity").addEventListener("click", calc);
+    document.getElementById("btn-refresh-v68").addEventListener("click", load);
+    load();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,347 @@
+{% extends "base.html" %}
+
+{% block title %}Circular 80 CIT Incentives & Decree 132 TP Safe Harbors (v45){% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header Area -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
+        <div>
+            <span class="badge bg-success mb-2">Version 45.0.0 Spec Compliance</span>
+            <h1 class="h2 fw-bold text-gradient mb-1">CIT Incentives & Transfer Pricing Hub</h1>
+            <p class="text-muted mb-0">Apportion corporate income under Circular 80, simulate tax holidays, and audit Transfer Pricing Safe Harbors under Decree 132.</p>
+        </div>
+        <div class="d-flex gap-2 mt-3 mt-md-0">
+            <button id="btn-recalculate" class="btn btn-success d-flex align-items-center gap-2">
+                <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Recalculate Compliance
+            </button>
+            <span id="sync-status" class="badge bg-success-subtle text-success border border-success d-flex align-items-center px-3">
+                <i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Isolated Tenant DB
+            </span>
+        </div>
+    </div>
+
+    <!-- Bento Grid Layout -->
+    <div class="row g-4">
+        <!-- Interactive Simulator Block -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1"><i class="bi bi-sliders text-success me-2" aria-hidden="true"></i>Circular 80 CIT Incentives Model</h5>
+                    <p class="text-muted small mb-0">Adjust income allocations, preferential tax rates, and tax holidays exemptions.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label for="slider-total-taxable" class="form-label d-flex justify-content-between small mb-1">
+                                <span>Total Taxable Income:</span>
+                                <strong id="val-total-taxable">1,200,000,000 VND</strong>
+                            </label>
+                            <input type="range" class="form-range" id="slider-total-taxable" min="100000000" max="5000000000" step="50000000" value="1200000000">
+                        </div>
+                        <div class="col-12">
+                            <label for="slider-preferential-income" class="form-label d-flex justify-content-between small mb-1">
+                                <span>Preferential Income:</span>
+                                <strong id="val-preferential-income">700,000,000 VND</strong>
+                            </label>
+                            <input type="range" class="form-range" id="slider-preferential-income" min="0" max="5000000000" step="50000000" value="700000000">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="select-pref-rate" class="form-label small mb-1">Preferential Rate:</label>
+                            <select id="select-pref-rate" class="form-select form-select-sm">
+                                <option value="0.10" selected>10% Preferential</option>
+                                <option value="0.15">15% Preferential</option>
+                                <option value="0.17">17% Preferential</option>
+                                <option value="0.20">20% Standard</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-start-year" class="form-label small mb-1">Holiday Start Year:</label>
+                            <input type="number" id="input-start-year" class="form-control form-control-sm" value="2024" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-exemption-years" class="form-label small mb-1">Exemption Years (100%):</label>
+                            <input type="number" id="input-exemption-years" class="form-control form-control-sm" value="2" min="0" max="4" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-reduction-years" class="form-label small mb-1">Reduction Years (50%):</label>
+                            <input type="number" id="input-reduction-years" class="form-control form-control-sm" value="4" min="0" max="9" autocomplete="off">
+                        </div>
+                    </div>
+
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
+                        <h6 class="fw-bold mb-2 text-success"><i class="bi bi-calculator me-2" aria-hidden="true"></i>CIT Optimization Result</h6>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Standard Tax Liability:</span>
+                            <span id="res-standard-tax">0 VND</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Preferential Tax Liability:</span>
+                            <span id="res-preferential-tax">0 VND</span>
+                        </div>
+                        <div class="d-flex justify-content-between border-top pt-2 fw-bold mb-1">
+                            <span>Total CIT Due:</span>
+                            <span id="res-total-due" class="text-danger">0 VND</span>
+                        </div>
+                        <div class="d-flex justify-content-between text-success fw-bold small">
+                            <span>Overall CIT Savings:</span>
+                            <span id="res-savings">0 VND</span>
+                        </div>
+                        <div class="mt-2 text-center text-muted small">
+                            Holiday status: <span id="res-holiday-status" class="badge bg-primary">Loading…</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transfer Pricing Widget -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1"><i class="bi bi-diagram-3 text-primary me-2" aria-hidden="true"></i>Decree 132 Transfer Pricing Auditor</h5>
+                    <p class="text-muted small mb-0">Evaluate Safe Harbor conditions and log APA interquartile ranges compliance.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label for="slider-revenue" class="form-label d-flex justify-content-between small mb-1">
+                                <span>Total Revenue:</span>
+                                <strong id="val-revenue">48,000,000,000 VND</strong>
+                            </label>
+                            <input type="range" class="form-range" id="slider-revenue" min="1000000000" max="300000000000" step="5000000000" value="48000000000">
+                        </div>
+                        <div class="col-12">
+                            <label for="slider-txn-value" class="form-label d-flex justify-content-between small mb-1">
+                                <span>Related-Party Transactions Value:</span>
+                                <strong id="val-txn-value">28,000,000,000 VND</strong>
+                            </label>
+                            <input type="range" class="form-range" id="slider-txn-value" min="500000000" max="100000000000" step="500000000" value="28000000000">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="select-activity" class="form-label small mb-1">Activity Sector Type:</label>
+                            <select id="select-activity" class="form-select form-select-sm">
+                                <option value="trading" selected>Distribution/Trading (Min NPM 2.0%)</option>
+                                <option value="manufacturing">Manufacturing (Min NPM 10.0%)</option>
+                                <option value="service">Service (Min NPM 15.0%)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="slider-npm" class="form-label d-flex justify-content-between small mb-1">
+                                <span>Operating NPM:</span>
+                                <strong id="val-npm">3.5%</strong>
+                            </label>
+                            <input type="range" class="form-range" id="slider-npm" min="0" max="0.30" step="0.005" value="0.035">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="input-apa-lower" class="form-label small mb-1">APA Lower Bound:</label>
+                            <input type="number" id="input-apa-lower" class="form-control form-control-sm" value="0.03" step="0.01" autocomplete="off">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="input-apa-upper" class="form-label small mb-1">APA Upper Bound:</label>
+                            <input type="number" id="input-apa-upper" class="form-control form-control-sm" value="0.05" step="0.01" autocomplete="off">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="input-apa-actual" class="form-label small mb-1">APA Actual Margin:</label>
+                            <input type="number" id="input-apa-actual" class="form-control form-control-sm" value="0.04" step="0.01" autocomplete="off">
+                        </div>
+                    </div>
+
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
+                        <h6 class="fw-bold mb-2 text-primary"><i class="bi bi-shield-check me-2" aria-hidden="true"></i>Transfer Pricing Verdict</h6>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Safe Harbor Status:</span>
+                            <span id="res-safe-harbor" class="badge bg-success">Eligible</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-2">
+                            <span>APA Compliance Status:</span>
+                            <span id="res-apa-status" class="badge bg-primary">Compliant</span>
+                        </div>
+                        <div class="small text-muted border-top pt-2">
+                            <strong>Audit Reason:</strong> <span id="res-sh-reason">Loading assessment reason details…</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Swarm Advisory Debate Panel -->
+        <div class="col-12 mt-4">
+            <div class="card shadow-sm border-light">
+                <div class="card-header bg-obsidian text-snow py-3 d-flex align-items-center justify-content-between">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-success me-2" aria-hidden="true"></i>Multi-Agent Advisory Board Debate</h5>
+                    <span class="badge bg-secondary border border-secondary">Consensus Simulator</span>
+                </div>
+                <div class="card-body">
+                    <div id="debate-container" class="mb-3 d-flex flex-column gap-3">
+                        <!-- Debate Messages -->
+                    </div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus Summary Statement:</h6>
+                        <p id="consensus-text" class="text-muted small mb-0">Awaiting simulation data execution…</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    // Selectors
+    const totalTaxable = document.getElementById("slider-total-taxable");
+    const prefIncome = document.getElementById("slider-preferential-income");
+    const prefRate = document.getElementById("select-pref-rate");
+    const startYear = document.getElementById("input-start-year");
+    const exemptionYears = document.getElementById("input-exemption-years");
+    const reductionYears = document.getElementById("input-reduction-years");
+
+    const revenue = document.getElementById("slider-revenue");
+    const txnValue = document.getElementById("slider-txn-value");
+    const activity = document.getElementById("select-activity");
+    const npm = document.getElementById("slider-npm");
+
+    const apaLower = document.getElementById("input-apa-lower");
+    const apaUpper = document.getElementById("input-apa-upper");
+    const apaActual = document.getElementById("input-apa-actual");
+
+    const formatVND = (val) => {
+        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
+    };
+
+    const updateLabelDisplays = () => {
+        document.getElementById("val-total-taxable").textContent = formatVND(totalTaxable.value);
+        document.getElementById("val-preferential-income").textContent = formatVND(prefIncome.value);
+        document.getElementById("val-revenue").textContent = formatVND(revenue.value);
+        document.getElementById("val-txn-value").textContent = formatVND(txnValue.value);
+        document.getElementById("val-npm").textContent = `${(npm.value * 100).toFixed(1)}%`;
+        prefIncome.max = totalTaxable.value;
+    };
+
+    const loadData = () => {
+        fetch('/api/v45/compliance-data')
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "success") {
+                    renderCIT(data.cit_simulation);
+                    renderTP(data.tp_safe_harbor);
+                    renderDebate(data.debate, data.consensus_summary);
+                }
+            })
+            .catch(err => console.error("Error loading v45 data:", err));
+    };
+
+    const runCITSimulation = () => {
+        const payload = {
+            year: 2026,
+            total_taxable_income: parseFloat(totalTaxable.value),
+            preferential_income: parseFloat(prefIncome.value),
+            preferential_rate: parseFloat(prefRate.value),
+            holiday_start_year: parseInt(startYear.value),
+            exemption_years: parseInt(exemptionYears.value),
+            reduction_years: parseInt(reductionYears.value)
+        };
+
+        fetch('/api/v45/cit-incentives/calculate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === "success") {
+                renderCIT(data.results);
+            }
+        })
+        .catch(err => console.error("Error CIT simulation:", err));
+    };
+
+    const runTPSimulation = () => {
+        const payload = {
+            year: 2026,
+            total_revenue: parseFloat(revenue.value),
+            related_party_txn_value: parseFloat(txnValue.value),
+            net_profit_margin: parseFloat(npm.value),
+            activity_type: activity.value,
+            apa_lower: parseFloat(apaLower.value),
+            apa_upper: parseFloat(apaUpper.value),
+            actual_margin: parseFloat(apaActual.value)
+        };
+
+        fetch('/api/v45/tp-safe-harbors/evaluate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === "success") {
+                renderTP(data.results);
+            }
+        })
+        .catch(err => console.error("Error TP evaluation:", err));
+    };
+
+    // Attach listeners
+    [totalTaxable, prefIncome, prefRate, startYear, exemptionYears, reductionYears].forEach(el => {
+        el.addEventListener("input", updateLabelDisplays);
+        el.addEventListener("change", runCITSimulation);
+    });
+
+    [revenue, txnValue, activity, npm, apaLower, apaUpper, apaActual].forEach(el => {
+        el.addEventListener("input", updateLabelDisplays);
+        el.addEventListener("change", runTPSimulation);
+    });
+
+    document.getElementById("btn-recalculate").addEventListener("click", loadData);
+
+    const renderCIT = (res) => {
+        document.getElementById("res-standard-tax").textContent = formatVND(res.cit_standard_liability);
+        document.getElementById("res-preferential-tax").textContent = formatVND(res.cit_preferential_liability);
+        document.getElementById("res-total-due").textContent = formatVND(res.cit_total_due);
+        document.getElementById("res-savings").textContent = formatVND(res.cit_savings);
+        document.getElementById("res-holiday-status").textContent = res.holiday_status;
+    };
+
+    const renderTP = (res) => {
+        const shBadge = document.getElementById("res-safe-harbor");
+        shBadge.textContent = res.safe_harbor_eligible ? "Eligible" : "Ineligible";
+        shBadge.className = res.safe_harbor_eligible ? "badge bg-success" : "badge bg-danger";
+
+        const apaBadge = document.getElementById("res-apa-status");
+        apaBadge.textContent = res.apa_status;
+        apaBadge.className = res.apa_status === "Compliant" ? "badge bg-success" : "badge bg-danger";
+
+        document.getElementById("res-sh-reason").textContent = res.exemption_reason;
+    };
+
+    const renderDebate = (debate, summary) => {
+        const container = document.getElementById("debate-container");
+        container.innerHTML = "";
+        
+        const badgeColors = {
+            "Tax Inspector": "bg-danger",
+            "CFO": "bg-success",
+            "Auditor": "bg-primary"
+        };
+        
+        debate.forEach(msg => {
+            const badgeColor = badgeColors[msg.speaker] || "bg-secondary";
+            const div = document.createElement("div");
+            div.className = "d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";
+            div.innerHTML = `
+                <span class="badge ${badgeColor} py-2" style="min-width: 150px;">${msg.speaker}</span>
+                <div class="text-dark small">${msg.text}</div>
+            `;
+            container.appendChild(div);
+        });
+
+        document.getElementById("consensus-text").textContent = summary;
+    };
+
+    // Initial load
+    updateLabelDisplays();
+    loadData();
+});
+</script>
+{% endblock %}

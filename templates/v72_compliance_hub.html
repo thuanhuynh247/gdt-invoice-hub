@@ -1,0 +1,290 @@
+{% extends "base.html" %}
+{% block title %}Industrial Wastewater Compliance Hub (v72){% endblock %}
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
+        <div>
+            <span class="badge bg-success text-white mb-2">Version 72.0.0 Spec Compliance</span>
+            <h1 class="h2 fw-bold text-gradient mb-1 text-success">Wastewater Surcharge Compliance Hub</h1>
+            <p class="text-muted mb-0">Monitor wastewater effluent discharges and calculate environmental surcharges under Decree 53/2020/NĐ-CP.</p>
+        </div>
+        <div class="d-flex gap-2 mt-3 mt-md-0">
+            <button id="btn-refresh-v72" class="btn btn-success text-white d-flex align-items-center gap-2">
+                <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Load Data
+            </button>
+            <span class="badge bg-success-subtle text-success border border-success d-flex align-items-center px-3">
+                <i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Decree 53/2020
+            </span>
+        </div>
+    </div>
+
+    <!-- Main Panels -->
+    <div class="row g-4">
+        <!-- Interactive Calculator -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1 text-success"><i class="bi bi-calculator text-success me-2" aria-hidden="true"></i>Wastewater Surcharge Calculator</h5>
+                    <p class="text-muted small mb-0">Determine flat-rate or pollutant-load fees based on chemical concentration inputs.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="input-volume" class="form-label small mb-1">Quarterly Discharge Volume (m³):</label>
+                            <input type="number" step="0.1" id="input-volume" class="form-control form-control-sm" value="5000" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-cod" class="form-label small mb-1">COD Concentration (mg/L):</label>
+                            <input type="number" step="0.1" id="input-cod" class="form-control form-control-sm" value="300" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-tss" class="form-label small mb-1">TSS Concentration (mg/L):</label>
+                            <input type="number" step="0.1" id="input-tss" class="form-control form-control-sm" value="150" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-pb" class="form-label small mb-1">Lead (Pb) Concentration (mg/L):</label>
+                            <input type="number" step="0.01" id="input-pb" class="form-control form-control-sm" value="0.2" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-hg" class="form-label small mb-1">Mercury (Hg) Concentration (mg/L):</label>
+                            <input type="number" step="0.001" id="input-hg" class="form-control form-control-sm" value="0.0" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-cd" class="form-label small mb-1">Cadmium (Cd) Concentration (mg/L):</label>
+                            <input type="number" step="0.01" id="input-cd" class="form-control form-control-sm" value="0.1" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check form-switch pt-2">
+                                <input class="form-check-input" type="checkbox" id="input-cooling" role="switch">
+                                <label class="form-check-label small" for="input-cooling">Uncontaminated Cooling Loops (Exempt)</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check form-switch pt-2">
+                                <input class="form-check-input" type="checkbox" id="input-municipal" role="switch">
+                                <label class="form-check-label small" for="input-municipal">Central Sewer Inflow (Exempt)</label>
+                            </div>
+                        </div>
+                        
+                        <div class="col-12 text-end">
+                            <button id="btn-calc-surcharge" class="btn btn-success btn-sm text-white fw-bold">
+                                <i class="bi bi-play-fill me-1" aria-hidden="true"></i> Calculate Surcharge
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
+                        <h6 class="fw-bold mb-2 text-success"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Calculation Result</h6>
+                        <div class="d-flex justify-content-between small mb-1"><span>Gross Surcharge:</span><span id="res-gross" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Final Surcharge:</span><span id="res-final" class="fw-bold text-success fs-6">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Exemption Status:</span><span id="res-exempt-badge" class="fw-bold">-</span></div>
+                        <div class="small text-muted border-top pt-2 mt-2"><strong>Notes:</strong> <span id="res-notes">Awaiting…</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Baseline Verification -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Wastewater Baselines</h5>
+                </div>
+                <div class="card-body d-flex flex-column gap-3">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold small text-dark">Low-discharge Flat Rate Facility</span>
+                            <span class="badge bg-success">1,000 m³ / quarter</span>
+                        </div>
+                        <p class="small text-muted mb-2">Average: 11.1 m³/day (< 20 m³/day limit). Subtotal: Flat rate 375,000 VND.</p>
+                        <div class="d-flex justify-content-between small">
+                            <span>Exempt: No</span>
+                            <span>Fee: <strong id="base1-eff" class="text-success">-</strong></span>
+                        </div>
+                    </div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold small text-dark">High-discharge Process Facility</span>
+                            <span class="badge bg-success">5,000 m³ / quarter</span>
+                        </div>
+                        <p class="small text-muted mb-2">Average: 55.5 m³/day (> 20 m³/day limit). Pollutant load-based fees applied.</p>
+                        <div class="d-flex justify-content-between small">
+                            <span>Exempt: No</span>
+                            <span>Fee: <strong id="base2-eff" class="text-success">-</strong></span>
+                        </div>
+                    </div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold small text-dark">Cooling Water Discharge Loop</span>
+                            <span class="badge bg-danger">Cooling Exempt</span>
+                        </div>
+                        <p class="small text-muted mb-2">Process loop closed, certified non-contact cooling. Volume: 10,000 m³.</p>
+                        <div class="d-flex justify-content-between small">
+                            <span>Exempt: Yes</span>
+                            <span>Notes: <strong id="base3-notes" class="text-success">-</strong></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Consensus Debate -->
+        <div class="col-lg-12">
+            <div class="card shadow-sm border-light">
+                <div class="card-header bg-dark text-white py-3 d-flex align-items-center justify-content-between">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-success me-2" aria-hidden="true"></i>Multi-Agent Wastewater Policy Debate</h5>
+                    <span class="badge bg-secondary">Decree 53/2020/NĐ-CP Consensus</span>
+                </div>
+                <div class="card-body">
+                    <div id="debate-container-v72" class="mb-3 d-flex flex-column gap-3"></div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus:</h6>
+                        <p id="consensus-text-v72" class="text-muted small mb-0">Awaiting…</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Audit Log -->
+        <div class="col-lg-12">
+            <div class="card shadow-sm border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-2">
+                    <h5 class="fw-bold mb-1"><i class="bi bi-clock-history text-muted me-2" aria-hidden="true"></i>Wastewater Compliance History Log</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped mb-0 small">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Volume (m³)</th>
+                                    <th>COD (mg/L)</th>
+                                    <th>TSS (mg/L)</th>
+                                    <th>Pb (mg/L)</th>
+                                    <th>Hg (mg/L)</th>
+                                    <th>Cd (mg/L)</th>
+                                    <th>Cooling</th>
+                                    <th>Sewer</th>
+                                    <th>Gross Fee</th>
+                                    <th>Final Fee</th>
+                                    <th>Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-table-v72">
+                                <tr><td colspan="12" class="text-center text-muted py-4">No logs available.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const fVND = n => new Intl.NumberFormat("vi-VN").format(Math.round(n)) + " VND";
+    
+    const load = () => {
+        fetch('/api/v72/compliance-data').then(r=>r.json()).then(d=>{
+            if(d.status==="success"){
+                rB(d);
+                rD(d.debate, d.consensus_summary);
+                rH(d.history);
+            }
+        }).catch(e=>console.error(e));
+    };
+    
+    const calc = () => {
+        const p = {
+            volume_m3: parseFloat(document.getElementById("input-volume").value || 0),
+            cod_mg_l: parseFloat(document.getElementById("input-cod").value || 0),
+            tss_mg_l: parseFloat(document.getElementById("input-tss").value || 0),
+            pb_mg_l: parseFloat(document.getElementById("input-pb").value || 0),
+            hg_mg_l: parseFloat(document.getElementById("input-hg").value || 0),
+            cd_mg_l: parseFloat(document.getElementById("input-cd").value || 0),
+            cooling_water: document.getElementById("input-cooling").checked,
+            municipal_treatment_inflow: document.getElementById("input-municipal").checked
+        };
+        fetch('/api/v72/calculate', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(p)
+        }).then(r=>r.json()).then(d=>{
+            if(d.status==="success"){
+                rR(d.results);
+                load();
+            } else {
+                alert(d.error);
+            }
+        }).catch(e=>console.error(e));
+    };
+    
+    const rR = r => {
+        document.getElementById("res-gross").textContent = fVND(r.gross_fee);
+        document.getElementById("res-final").textContent = fVND(r.final_fee);
+        
+        if (r.is_exempt) {
+            document.getElementById("res-exempt-badge").innerHTML = '<span class="badge bg-success">Exempt</span>';
+        } else {
+            document.getElementById("res-exempt-badge").innerHTML = '<span class="badge bg-danger">Payable</span>';
+        }
+        document.getElementById("res-notes").textContent = r.notes || "None";
+    };
+    
+    const rB = d => {
+        document.getElementById("base1-eff").textContent = fVND(d.flat_rate_sample.final_fee);
+        document.getElementById("base2-eff").textContent = fVND(d.load_rate_sample.final_fee);
+        document.getElementById("base3-notes").textContent = d.cooling_exempt.notes;
+    };
+    
+    const rD = (debate, summary) => {
+        const c = document.getElementById("debate-container-v72");
+        c.innerHTML = "";
+        const cl = {
+            "Wastewater Quality Inspector": "bg-success text-white",
+            "Plant Operations Engineer": "bg-warning text-dark",
+            "Central Sewer Authority": "bg-info text-dark"
+        };
+        debate.forEach(m => {
+            const div = document.createElement("div");
+            div.className = "d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";
+            div.innerHTML = `<span class="badge ${cl[m.speaker] || "bg-secondary"} py-2 px-3" style="min-width:220px">${m.speaker}</span><div class="text-dark small">${m.text}</div>`;
+            c.appendChild(div);
+        });
+        document.getElementById("consensus-text-v72").textContent = summary;
+    };
+    
+    const rH = h => {
+        const tb = document.getElementById("history-table-v72");
+        if (!h || !h.length) {
+            tb.innerHTML = '<tr><td colspan="12" class="text-center text-muted py-4">No logs available.</td></tr>';
+            return;
+        }
+        tb.innerHTML = "";
+        h.forEach(l => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>${l.id}</td>
+                <td>${l.volume_m3.toFixed(1)}</td>
+                <td>${l.cod_mg_l.toFixed(1)}</td>
+                <td>${l.tss_mg_l.toFixed(1)}</td>
+                <td>${l.pb_mg_l.toFixed(2)}</td>
+                <td>${l.hg_mg_l.toFixed(3)}</td>
+                <td>${l.cd_mg_l.toFixed(2)}</td>
+                <td>${l.cooling_water ? 'Yes' : 'No'}</td>
+                <td>${l.municipal_treatment_inflow ? 'Yes' : 'No'}</td>
+                <td>${fVND(l.gross_fee)}</td>
+                <td class="fw-bold text-dark">${fVND(l.final_fee)}</td>
+                <td class="text-muted">${l.created_at}</td>
+            `;
+            tb.appendChild(tr);
+        });
+    };
+    
+    document.getElementById("btn-calc-surcharge").addEventListener("click", calc);
+    document.getElementById("btn-refresh-v72").addEventListener("click", load);
+    load();
+});
+</script>
+{% endblock %}

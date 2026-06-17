@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+
+{% block title %}PIT Law 109/2025 Amendments - Household Exemptions & Progressive Brackets Hub (v50){% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header Area -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
+        <div>
+            <span class="badge bg-info mb-2">Version 50.0.0 Spec Compliance</span>
+            <h1 class="h2 fw-bold text-gradient mb-1">PIT Amendments Compliance Hub</h1>
+            <p class="text-muted mb-0">Household PIT Exemption Audits (500M VND limit) and Salary Progressive Bracket Tax Calculators per Luật 109/2025/QH15.</p>
+        </div>
+        <div class="d-flex gap-2 mt-3 mt-md-0">
+            <button id="btn-refresh-v50" class="btn btn-info text-white d-flex align-items-center gap-2">
+                <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Load Compliance Data
+            </button>
+            <span class="badge bg-info-subtle text-info border border-info d-flex align-items-center px-3">
+                <i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Law 109/2025/QH15
+            </span>
+        </div>
+    </div>
+
+    <!-- Bento Grid Layout -->
+    <div class="row g-4">
+        <!-- Pillar 1: Household PIT Exemption Auditor -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1"><i class="bi bi-house-door text-info me-2" aria-hidden="true"></i>Household PIT Exemption Auditor</h5>
+                    <p class="text-muted small mb-0">Audit individual or household business revenue against the new 500M VND threshold and apply proper PIT rates for taxable businesses.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="input-house-name" class="form-label small mb-1">Business/Owner Name:</label>
+                            <input type="text" id="input-house-name" class="form-control form-control-sm" value="Tiem tap hoa Vy" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-house-rev" class="form-label small mb-1">Annual Revenue (VND):</label>
+                            <input type="number" id="input-house-rev" class="form-control form-control-sm" value="450000000" autocomplete="off">
+                        </div>
+                        <div class="col-md-12">
+                            <label for="select-house-activity" class="form-label small mb-1">Business Activity Type:</label>
+                            <select id="select-house-activity" class="form-select form-select-sm">
+                                <option value="distribution" selected>Distribution & Retail (0.5% PIT)</option>
+                                <option value="services">Services & Construction without materials (2.0% PIT)</option>
+                                <option value="manufacturing">Manufacturing, Transport & Construction with materials (1.5% PIT)</option>
+                                <option value="other">Other Business Activities (1.0% PIT)</option>
+                            </select>
+                        </div>
+                        <div class="col-12 text-end">
+                            <button id="btn-evaluate-household" class="btn btn-info btn-sm text-white">
+                                <i class="bi bi-shield-check me-1" aria-hidden="true"></i> Evaluate Exemption
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
+                        <h6 class="fw-bold mb-2 text-info"><i class="bi bi-wallet me-2" aria-hidden="true"></i>Evaluation Ledger</h6>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Exemption Status:</span>
+                            <span id="res-house-status" class="badge bg-secondary">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Applied Rate:</span>
+                            <span id="res-house-rate" class="fw-bold text-primary">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>PIT Liability:</span>
+                            <span id="res-house-liability" class="fw-bold text-danger">-</span>
+                        </div>
+                        <div class="small text-muted border-top pt-2 mt-2">
+                            <strong>Note:</strong> <span id="res-house-note">Awaiting evaluation…</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pillar 2: Wage PIT Calculator -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1"><i class="bi bi-cash-stack text-success me-2" aria-hidden="true"></i>Wage PIT Bracket Calculator</h5>
+                    <p class="text-muted small mb-0">Compute monthly salary PIT using new personal deduction (15M VND), dependent deduction (5.5M VND), and progressive brackets.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="input-emp-name" class="form-label small mb-1">Employee Name:</label>
+                            <input type="text" id="input-emp-name" class="form-control form-control-sm" value="Nguyen Van A" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-emp-salary" class="form-label small mb-1">Monthly Salary (VND):</label>
+                            <input type="number" id="input-emp-salary" class="form-control form-control-sm" value="35000000" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-emp-dependents" class="form-label small mb-1">Number of Dependents:</label>
+                            <input type="number" id="input-emp-dependents" class="form-control form-control-sm" value="2" min="0" autocomplete="off">
+                        </div>
+                        <div class="col-12 text-end">
+                            <button id="btn-calculate-wage" class="btn btn-success btn-sm">
+                                <i class="bi bi-calculator me-1" aria-hidden="true"></i> Calculate PIT
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
+                        <h6 class="fw-bold mb-2 text-success"><i class="bi bi-file-earmark-spreadsheet me-2" aria-hidden="true"></i>Payroll Calculations</h6>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Personal Deduction:</span>
+                            <span id="res-emp-personal" class="fw-bold text-success">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Dependent Deduction:</span>
+                            <span id="res-emp-dependent" class="fw-bold text-success">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Taxable Income:</span>
+                            <span id="res-emp-taxable" class="fw-bold text-primary">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Calculated PIT:</span>
+                            <span id="res-emp-pit" class="fw-bold text-danger">-</span>
+                        </div>
+                        <div class="small text-muted border-top pt-2 mt-2">
+                            <strong>Note:</strong> <span id="res-emp-note">Awaiting calculation…</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Swarm Advisory Debate Panel -->
+        <div class="col-lg-12">
+            <div class="card shadow-sm border-light">
+                <div class="card-header bg-dark text-white py-3 d-flex align-items-center justify-content-between">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-info me-2" aria-hidden="true"></i>Multi-Agent Advisory Board Debate</h5>
+                    <span class="badge bg-secondary border border-secondary">Consensus Simulator</span>
+                </div>
+                <div class="card-body">
+                    <div id="debate-container-v50" class="mb-3 d-flex flex-column gap-3">
+                    </div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus Summary Statement:</h6>
+                        <p id="consensus-text-v50" class="text-muted small mb-0">Awaiting simulation data execution…</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const formatVND = (n) => new Intl.NumberFormat("vi-VN").format(n) + " VND";
+
+    const loadData = () => {
+        fetch('/api/v50/compliance-data')
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "success") {
+                    renderHousehold(data.household_evaluation);
+                    renderWage(data.wage_calculation);
+                    renderDebate(data.debate, data.consensus_summary);
+                }
+            })
+            .catch(err => console.error("Error loading v50 data:", err));
+    };
+
+    const evaluateHousehold = () => {
+        fetch('/api/v50/household-pit/evaluate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                business_name: document.getElementById("input-house-name").value,
+                annual_revenue: parseFloat(document.getElementById("input-house-rev").value),
+                activity_type: document.getElementById("select-house-activity").value
+            })
+        })
+        .then(res => res.json())
+        .then(data => { if (data.status === "success") renderHousehold(data.results); })
+        .catch(err => console.error("Household evaluation error:", err));
+    };
+
+    const calculateWage = () => {
+        fetch('/api/v50/wage-pit/calculate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                employee_name: document.getElementById("input-emp-name").value,
+                monthly_salary: parseFloat(document.getElementById("input-emp-salary").value),
+                dependent_count: parseInt(document.getElementById("input-emp-dependents").value)
+            })
+        })
+        .then(res => res.json())
+        .then(data => { if (data.status === "success") renderWage(data.results); })
+        .catch(err => console.error("Wage calculate error:", err));
+    };
+
+    const renderHousehold = (res) => {
+        const statusBadge = document.getElementById("res-house-status");
+        statusBadge.textContent = res.is_exempt ? "EXEMPT (Miễn thuế)" : "TAXABLE (Phải nộp)";
+        statusBadge.className = "badge " + (res.is_exempt ? "bg-success" : "bg-danger");
+
+        document.getElementById("res-house-rate").textContent = res.applied_rate;
+        document.getElementById("res-house-liability").textContent = formatVND(res.pit_liability);
+        document.getElementById("res-house-note").textContent = res.notes || "-";
+    };
+
+    const renderWage = (res) => {
+        document.getElementById("res-emp-personal").textContent = formatVND(res.personal_deduction);
+        document.getElementById("res-emp-dependent").textContent = formatVND(res.dependent_deduction);
+        document.getElementById("res-emp-taxable").textContent = formatVND(res.taxable_income);
+        document.getElementById("res-emp-pit").textContent = formatVND(res.calculated_pit);
+        document.getElementById("res-emp-note").textContent = res.notes || "-";
+    };
+
+    const renderDebate = (debate, summary) => {
+        const container = document.getElementById("debate-container-v50");
+        container.innerHTML = "";
+        const colors = { "Tax Policy Expert": "bg-info", "HR Director": "bg-success", "Payroll Auditor": "bg-warning text-dark" };
+        debate.forEach(msg => {
+            const div = document.createElement("div");
+            div.className = "d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";
+            div.innerHTML = `
+                <span class="badge ${colors[msg.speaker] || "bg-secondary"} py-2" style="min-width: 180px;">${msg.speaker}</span>
+                <div class="text-dark small">${msg.text}</div>
+            `;
+            container.appendChild(div);
+        });
+        document.getElementById("consensus-text-v50").textContent = summary;
+    };
+
+    // Attach listeners
+    document.getElementById("btn-evaluate-household").addEventListener("click", evaluateHousehold);
+    document.getElementById("btn-calculate-wage").addEventListener("click", calculateWage);
+    document.getElementById("btn-refresh-v50").addEventListener("click", loadData);
+
+    // Initial load
+    loadData();
+});
+</script>
+{% endblock %}

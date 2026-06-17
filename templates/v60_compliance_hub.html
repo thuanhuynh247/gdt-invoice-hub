@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+{% block title %}Agricultural Land Use Tax Law 1993 - ALUT Hub (v60){% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
+        <div>
+            <span class="badge bg-success text-white mb-2">Version 60.0.0 Spec Compliance</span>
+            <h1 class="h2 fw-bold text-gradient mb-1 text-success">Agricultural Land Use Tax Hub</h1>
+            <p class="text-muted mb-0">Manage ALUT (Thuế sử dụng đất nông nghiệp) under Law on ALUT 1993 & Resolution 117/2020/QH14.</p>
+        </div>
+        <div class="d-flex gap-2 mt-3 mt-md-0">
+            <button id="btn-refresh-v60" class="btn btn-success text-white d-flex align-items-center gap-2"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Load Data</button>
+            <span class="badge bg-success-subtle text-success border border-success d-flex align-items-center px-3"><i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Law 1993 / Res 117</span>
+        </div>
+    </div>
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-1 text-success"><i class="bi bi-calculator text-success me-2" aria-hidden="true"></i>Interactive ALUT Calculator</h5>
+                    <p class="text-muted small mb-0">Select crop type, land grade, area, and producer type to calculate ALUT and apply exemptions.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="input-land-desc" class="form-label small mb-1">Land Description:</label>
+                            <input type="text" id="input-land-desc" class="form-control form-control-sm" value="Cánh đồng lúa Hải Hậu" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-producer-type" class="form-label small mb-1">Producer Type:</label>
+                            <select id="input-producer-type" class="form-select form-select-sm">
+                                <option value="household">Household/Farmer (Hộ gia đình/Cá nhân)</option>
+                                <option value="cooperative">Agricultural Cooperative (HTX Nông nghiệp)</option>
+                                <option value="research">Research/Educational Farm (Nghiên cứu/Thực nghiệm)</option>
+                                <option value="state_org">State Enterprise/Org (Doanh nghiệp nhà nước)</option>
+                                <option value="general_org">General Company (Doanh nghiệp thương mại)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="input-crop-type" class="form-label small mb-1">Crop Type:</label>
+                            <select id="input-crop-type" class="form-select form-select-sm">
+                                <option value="annual">Annual Crops (Đất trồng cây hàng năm)</option>
+                                <option value="perennial">Perennial Crops (Đất trồng cây lâu năm)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="input-land-grade" class="form-label small mb-1">Land Grade (Hạng đất):</label>
+                            <select id="input-land-grade" class="form-select form-select-sm">
+                                <option value="1">Grade 1 (Hạng 1)</option>
+                                <option value="2">Grade 2 (Hạng 2)</option>
+                                <option value="3">Grade 3 (Hạng 3)</option>
+                                <option value="4">Grade 4 (Hạng 4)</option>
+                                <option value="5">Grade 5 (Hạng 5)</option>
+                                <option value="6">Grade 6 (Hạng 6 - Annual Only)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="input-area-ha" class="form-label small mb-1">Area (ha):</label>
+                            <input type="number" step="0.01" id="input-area-ha" class="form-control form-control-sm" value="5.0" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-rice-price" class="form-label small mb-1">Rice Price (VND/kg):</label>
+                            <input type="number" id="input-rice-price" class="form-control form-control-sm" value="8000" autocomplete="off">
+                        </div>
+                        <div class="col-md-6 text-end d-flex align-items-end justify-content-end">
+                            <button id="btn-calc-alut" class="btn btn-success btn-sm text-white fw-bold"><i class="bi bi-play-fill me-1" aria-hidden="true"></i> Run Calculation</button>
+                        </div>
+                    </div>
+                    <div class="mt-4 p-3 bg-premium-light rounded border">
+                        <h6 class="fw-bold mb-2 text-success"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Calculation Result</h6>
+                        <div class="d-flex justify-content-between small mb-1"><span>Rate per Ha:</span><span id="res-rate-rice" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Total Rice Tax:</span><span id="res-tax-rice" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Standard Tax Amount:</span><span id="res-tax-vnd" class="fw-bold text-dark">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Effective Tax Billing:</span><span id="res-effective-vnd" class="fw-bold text-success fs-6">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Exemption Status:</span><span id="res-exempt-badge" class="fw-bold">-</span></div>
+                        <div class="small text-muted border-top pt-2 mt-2"><strong>Exemption Reason:</strong> <span id="res-exemption-reason">Awaiting…</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0"><h5 class="fw-bold mb-1"><i class="bi bi-shield-check text-info me-2" aria-hidden="true"></i>ALUT Baseline Verification</h5></div>
+                <div class="card-body d-flex flex-column gap-3">
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Household Farmer (100% Exempt)</span><span class="badge bg-success">Resolution 117</span></div>
+                        <p class="small text-muted mb-2">Paddy land Grade 1, 5.0 ha. Fully waived.</p>
+                        <div class="d-flex justify-content-between small"><span>Standard Tax: <strong id="base1-std">-</strong></span><span>Effective Tax: <strong id="base1-eff" class="text-success">-</strong></span></div>
+                    </div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Agricultural Cooperative (100% Exempt)</span><span class="badge bg-success">Resolution 117</span></div>
+                        <p class="small text-muted mb-2">Tea plantation Grade 2, 12.0 ha. Fully waived.</p>
+                        <div class="d-flex justify-content-between small"><span>Standard Tax: <strong id="base2-std">-</strong></span><span>Effective Tax: <strong id="base2-eff" class="text-success">-</strong></span></div>
+                    </div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">State Rubber Farm (50% Reduced)</span><span class="badge bg-warning text-dark">50% Waiver</span></div>
+                        <p class="small text-muted mb-2">Perennial trees Grade 1, 50.0 ha. Subject to half tax.</p>
+                        <div class="d-flex justify-content-between small"><span>Standard Tax: <strong id="base3-std">-</strong></span><span>Effective Tax: <strong id="base3-eff" class="text-warning">-</strong></span></div>
+                    </div>
+                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Commercial Producer (No Waiver)</span><span class="badge bg-danger">Taxable</span></div>
+                        <p class="small text-muted mb-2">Annual crop Grade 3, 10.0 ha. Standard rate applies.</p>
+                        <div class="d-flex justify-content-between small"><span>Standard Tax: <strong id="base4-std">-</strong></span><span>Effective Tax: <strong id="base4-eff" class="text-danger">-</strong></span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-12">
+            <div class="card shadow-sm border-light">
+                <div class="card-header bg-dark text-white py-3 d-flex align-items-center justify-content-between"><h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-success me-2" aria-hidden="true"></i>Multi-Agent ALUT Advisory Debate</h5><span class="badge bg-secondary">Agricultural Policy Consensus</span></div>
+                <div class="card-body"><div id="debate-container-v60" class="mb-3 d-flex flex-column gap-3"></div><div class="p-3 bg-premium-light rounded border border-light-subtle"><h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus:</h6><p id="consensus-text-v60" class="text-muted small mb-0">Awaiting…</p></div></div>
+            </div>
+        </div>
+        <div class="col-lg-12">
+            <div class="card shadow-sm border-light">
+                <div class="card-header bg-transparent border-0 pt-4 pb-2"><h5 class="fw-bold mb-1"><i class="bi bi-clock-history text-muted me-2" aria-hidden="true"></i>Historical Audit Log</h5></div>
+                <div class="card-body p-0"><div class="table-responsive"><table class="table table-hover table-striped mb-0 small"><thead class="table-dark"><tr><th>ID</th><th>Description</th><th>Crop Type</th><th>Grade</th><th>Area</th><th>Standard Rice Rate</th><th>Standard Tax</th><th>Effective Tax</th><th>Status</th><th>Exemption Reason</th><th>Time</th></tr></thead><tbody id="history-table-v60"><tr><td colspan="11" class="text-center text-muted py-4">No logs.</td></tr></tbody></table></div></div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+document.addEventListener("DOMContentLoaded",()=>{
+    const fVND = n => new Intl.NumberFormat("vi-VN").format(n) + " VND";
+    const fRice = n => new Intl.NumberFormat("vi-VN").format(n) + " kg";
+    
+    const load = () => {
+        fetch('/api/v60/compliance-data').then(r=>r.json()).then(d=>{
+            if(d.status==="success"){
+                rB(d);
+                rD(d.debate,d.consensus_summary);
+                rH(d.history);
+            }
+        }).catch(e=>console.error(e));
+    };
+    
+    const calc = () => {
+        const p = {
+            land_description: document.getElementById("input-land-desc").value,
+            producer_type: document.getElementById("input-producer-type").value,
+            crop_type: document.getElementById("input-crop-type").value,
+            land_grade: parseInt(document.getElementById("input-land-grade").value),
+            area_ha: parseFloat(document.getElementById("input-area-ha").value),
+            rice_price_per_kg: parseFloat(document.getElementById("input-rice-price").value)
+        };
+        fetch('/api/v60/calculate',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify(p)
+        }).then(r=>r.json()).then(d=>{
+            if(d.status==="success"){
+                rR(d.results);
+                load();
+            } else {
+                alert(d.error);
+            }
+        }).catch(e=>console.error(e));
+    };
+    
+    const rR = r => {
+        document.getElementById("res-rate-rice").textContent = fRice(r.standard_rice_rate_kg) + "/ha";
+        document.getElementById("res-tax-rice").textContent = fRice(r.tax_amount_rice);
+        document.getElementById("res-tax-vnd").textContent = fVND(r.tax_amount_vnd);
+        document.getElementById("res-effective-vnd").textContent = fVND(r.effective_amount_vnd);
+        
+        if (r.is_exempt && r.effective_amount_vnd === 0) {
+            document.getElementById("res-exempt-badge").innerHTML = '<span class="badge bg-success">100% Exempt</span>';
+        } else if (r.is_exempt && r.effective_amount_vnd > 0) {
+            document.getElementById("res-exempt-badge").innerHTML = '<span class="badge bg-warning text-dark">50% Reduced</span>';
+        } else {
+            document.getElementById("res-exempt-badge").innerHTML = '<span class="badge bg-danger">Taxable</span>';
+        }
+        document.getElementById("res-exemption-reason").textContent = r.exemption_reason || "None";
+    };
+    
+    const rB = d => {
+        document.getElementById("base1-std").textContent = fVND(d.household_exempt.tax_amount_vnd);
+        document.getElementById("base1-eff").textContent = fVND(d.household_exempt.effective_amount_vnd);
+        
+        document.getElementById("base2-std").textContent = fVND(d.coop_exempt.tax_amount_vnd);
+        document.getElementById("base2-eff").textContent = fVND(d.coop_exempt.effective_amount_vnd);
+        
+        document.getElementById("base3-std").textContent = fVND(d.state_enterprise_reduced.tax_amount_vnd);
+        document.getElementById("base3-eff").textContent = fVND(d.state_enterprise_reduced.effective_amount_vnd);
+        
+        document.getElementById("base4-std").textContent = fVND(d.general_company_taxable.tax_amount_vnd);
+        document.getElementById("base4-eff").textContent = fVND(d.general_company_taxable.effective_amount_vnd);
+    };
+    
+    const rD = (debate, summary) => {
+        const c = document.getElementById("debate-container-v60");
+        c.innerHTML = "";
+        const cl = {
+            "Agricultural Tax Inspector": "bg-success text-white",
+            "Rural Policy Advisor": "bg-warning text-dark",
+            "State Audit Specialist": "bg-info text-dark"
+        };
+        debate.forEach(m => {
+            const div = document.createElement("div");
+            div.className = "d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";
+            div.innerHTML = `<span class="badge ${cl[m.speaker] || "bg-secondary"} py-2 px-3" style="min-width:200px">${m.speaker}</span><div class="text-dark small">${m.text}</div>`;
+            c.appendChild(div);
+        });
+        document.getElementById("consensus-text-v60").textContent = summary;
+    };
+    
+    const rH = h => {
+        const tb = document.getElementById("history-table-v60");
+        if (!h || !h.length) {
+            tb.innerHTML = '<tr><td colspan="11" class="text-center text-muted py-4">No logs.</td></tr>';
+            return;
+        }
+        tb.innerHTML = "";
+        h.forEach(l => {
+            const tr = document.createElement("tr");
+            let statusBadge = '<span class="badge bg-danger">Taxable</span>';
+            if (l.is_exempt && l.effective_amount_vnd === 0) {
+                statusBadge = '<span class="badge bg-success">Exempt</span>';
+            } else if (l.is_exempt) {
+                statusBadge = '<span class="badge bg-warning text-dark">Reduced</span>';
+            }
+            tr.innerHTML = `
+                <td>${l.id}</td>
+                <td class="fw-bold">${l.land_description}</td>
+                <td><span class="badge bg-secondary">${l.crop_type.toUpperCase()}</span></td>
+                <td>Grade ${l.land_grade}</td>
+                <td>${l.area_ha} ha</td>
+                <td>${fRice(l.standard_rice_rate_kg)}/ha</td>
+                <td>${fVND(l.tax_amount_vnd)}</td>
+                <td class="fw-bold text-dark">${fVND(l.effective_amount_vnd)}</td>
+                <td>${statusBadge}</td>
+                <td class="text-muted small">${l.exemption_reason || "-"}</td>
+                <td class="text-muted">${l.created_at}</td>
+            `;
+            tb.appendChild(tr);
+        });
+    };
+    
+    document.getElementById("btn-calc-alut").addEventListener("click", calc);
+    document.getElementById("btn-refresh-v60").addEventListener("click", load);
+    load();
+});
+</script>
+{% endblock %}

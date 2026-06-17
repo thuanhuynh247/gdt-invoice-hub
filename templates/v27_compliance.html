@@ -1,0 +1,858 @@
+{% extends "base.html" %}
+{% block title %}Wise Compliance v27 - GDT PXK & Tax Risk Dashboard{% endblock %}
+
+{% block content %}
+<style>
+    /* Premium styling for Version 27.0.0 Compliance and Tax Risk Radar */
+    .glass-card {
+        background: var(--bg-card, #1e293b);
+        border: 1px solid var(--border-card, rgba(255, 255, 255, 0.08));
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .glass-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.3);
+    }
+    .badge-v27 {
+        font-weight: 700;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 6px 12px;
+        border-radius: 9999px;
+        background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+        color: #ffffff;
+    }
+    .nav-tabs-compliance {
+        border-bottom: 2px solid var(--border-card, rgba(255, 255, 255, 0.08));
+        gap: 0.5rem;
+    }
+    .nav-tabs-compliance .nav-link {
+        font-family: var(--font-heading, 'Outfit', sans-serif);
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: var(--text-secondary, #94a3b8);
+        border: none;
+        padding: 0.8rem 1.5rem;
+        border-radius: 12px 12px 0 0;
+        transition: all 0.2s ease;
+        background: transparent;
+    }
+    .nav-tabs-compliance .nav-link:hover {
+        color: var(--text-primary, #f8fafc);
+        background-color: rgba(139, 92, 246, 0.08);
+    }
+    .nav-tabs-compliance .nav-link.active {
+        color: #a78bfa;
+        border-bottom: 3px solid #8b5cf6;
+        background-color: var(--bg-card, #1e293b);
+    }
+    .xml-textarea {
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 0.85rem;
+        background: rgba(15, 23, 42, 0.6) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: #38bdf8 !important;
+        border-radius: 8px;
+    }
+    .reconcile-diff-row {
+        background-color: rgba(239, 68, 68, 0.08);
+        border-left: 4px solid #ef4444 !important;
+    }
+    .reconcile-match-row {
+        background-color: rgba(34, 197, 94, 0.08);
+        border-left: 4px solid #22c55e !important;
+    }
+    .radar-chart-container {
+        background: rgba(15, 23, 42, 0.4);
+        border-radius: 16px;
+        padding: 1rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .radar-chart-container svg {
+        max-width: 100%;
+        height: auto;
+    }
+    .kpi-metric-box {
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        padding: 1rem;
+        text-align: center;
+    }
+    .sandbox-slider-card {
+        background: rgba(139, 92, 246, 0.03);
+        border: 1px solid rgba(139, 92, 246, 0.15);
+    }
+</style>
+
+<div class="mb-4">
+    <span class="badge badge-v27 mb-2"><i class="bi bi-shield-lock-fill me-1" aria-hidden="true"></i>Version 27.0.0</span>
+    <h1 class="h3 fw-bold mb-1" style="color: var(--text-primary, #f8fafc);">Wise Compliance, Tax Risk Radar & Treasury Sandbox</h1>
+    <p class="text-secondary mb-0">Đối soát Phiếu xuất kho điện tử (PXK), Giám sát Rủi ro thuế liên kết 5 trục & Kịch bản Sandbox Kho quỹ.</p>
+</div>
+
+<!-- Tabs -->
+<ul class="nav nav-tabs nav-tabs-compliance mb-4" id="complianceV27Tabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="pxk-tab" data-bs-toggle="tab" data-bs-target="#pxk-pane" type="button" role="tab" aria-controls="pxk-pane" aria-selected="true">
+            <i class="bi bi-truck me-2" aria-hidden="true"></i>Đầu 1: Phiếu xuất kho (US-390/391)
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="risk-tab" data-bs-toggle="tab" data-bs-target="#risk-pane" type="button" role="tab" aria-controls="risk-pane" aria-selected="false">
+            <i class="bi bi-activity me-2" aria-hidden="true"></i>Đầu 2: Radar Rủi ro Thuế (US-392/393)
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="treasury-tab" data-bs-toggle="tab" data-bs-target="#treasury-pane" type="button" role="tab" aria-controls="treasury-pane" aria-selected="false">
+            <i class="bi bi-cash-coin me-2" aria-hidden="true"></i>Đầu 3: Sandbox Kho quỹ & E-Contract (US-394/395)
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content" id="complianceV27TabsContent">
+
+    <!-- ── TAB 1: ELECTRONIC DELIVERY NOTES (PXK) ──────────────────────────────── -->
+    <div class="tab-pane fade show active" id="pxk-pane" role="tabpanel" aria-labelledby="pxk-tab">
+        <div class="row g-4">
+            <!-- Left: XML Ingestion & Parse -->
+            <div class="col-lg-5">
+                <div class="glass-card mb-4">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-filetype-xml me-2 text-info" aria-hidden="true"></i>Đọc Phiếu Xuất Kho XML (Decree 123)</h5>
+                    <div class="mb-3">
+                        <label for="pxkXmlContent" class="form-label small text-secondary">Dán nội dung XML Phiếu xuất kho kiêm vận chuyển nội bộ:</label>
+                        <textarea class="form-control xml-textarea" id="pxkXmlContent" rows="10" placeholder="<?xml version='1.0' encoding='utf-8'?>…"></textarea>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-info btn-sm" id="loadMockPxkBtn"><i class="bi bi-file-earmark-code me-1" aria-hidden="true"></i>Mock XML mẫu</button>
+                        <button class="btn btn-primary btn-sm flex-fill" id="parsePxkBtn"><i class="bi bi-braces me-1" aria-hidden="true"></i>Phân tích XML</button>
+                    </div>
+                </div>
+
+                <div class="glass-card">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-shield-check me-2 text-success" aria-hidden="true"></i>Kết quả xác thực Chữ ký số</h5>
+                    <div id="pxkSignatureStatus" class="p-3 rounded text-center" style="background: rgba(255,255,255,0.02);">
+                        <p class="text-secondary small mb-0">Chưa tải dữ liệu XML</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Reconciler Engine -->
+            <div class="col-lg-7">
+                <div class="glass-card h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0"><i class="bi bi-layers-half me-2 text-warning" aria-hidden="true"></i>Đối soát số lượng: Phiếu xuất kho vs Hóa đơn</h5>
+                        <button class="btn btn-sm btn-outline-success" id="exportPxkCsvBtn" disabled><i class="bi bi-download me-1" aria-hidden="true"></i>Tải Báo cáo CSV</button>
+                    </div>
+                    <p class="text-secondary small mb-3">So khớp chi tiết từng mã hàng (SKU Code) giữa PXK vận chuyển và hóa đơn thương mại thực tế.</p>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Mã SKU</th>
+                                    <th>Tên hàng hóa</th>
+                                    <th class="text-end">SL Phiếu XK</th>
+                                    <th class="text-end">SL Hóa đơn</th>
+                                    <th class="text-end">Chênh lệch</th>
+                                    <th>Kết quả</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pxkReconciliationTable">
+                                <tr>
+                                    <td colspan="6" class="text-center text-secondary py-5">
+                                        <i class="bi bi-arrow-left-right display-6 mb-3 d-block" aria-hidden="true"></i>
+                                        Bấm nút "Phân tích XML" hoặc chạy Đối soát tự động để hiển thị kết quả.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── TAB 2: PRE-AUDIT TAX RISK RADAR ────────────────────────────────────── -->
+    <div class="tab-pane fade" id="risk-pane" role="tabpanel" aria-labelledby="risk-tab">
+        <div class="row g-4">
+            <!-- Left: Configurations & Indicators -->
+            <div class="col-lg-4">
+                <div class="glass-card mb-4">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-bank2 me-2 text-primary" aria-hidden="true"></i>Thông tin Giao dịch Liên kết</h5>
+                    <div class="mb-3">
+                        <label for="relatedEbitda" class="form-label small">Chỉ số EBITDA của Doanh nghiệp (VND):</label>
+                        <input type="number" class="form-control" id="relatedEbitda" value="5000000000" min="1" autocomplete="off">
+                    </div>
+                    <div class="mb-3">
+                        <label for="relatedNetInterest" class="form-label small">Tổng chi phí lãi vay ròng liên kết (VND):</label>
+                        <input type="number" class="form-control" id="relatedNetInterest" value="1800000000" min="0" autocomplete="off">
+                    </div>
+                    <button class="btn btn-primary w-100" id="runTaxRiskBtn"><i class="bi bi-play-circle me-1" aria-hidden="true"></i>Tính toán rủi ro thuế</button>
+                </div>
+
+                <div class="glass-card">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-calculator me-2 text-warning" aria-hidden="true"></i>Khả năng thanh kiểm tra</h5>
+                    <div class="text-center py-3">
+                        <h2 class="display-5 fw-bold text-danger" id="overallRiskScore">--</h2>
+                        <span class="badge bg-danger-subtle text-danger px-3 py-2 fw-bold" id="overallRiskLabel">Chưa đánh giá</span>
+                    </div>
+                    <div class="border-top pt-3 mt-3">
+                        <div class="d-flex justify-content-between mb-2 small">
+                            <span>Trần lãi vay 30% EBITDA:</span>
+                            <strong id="ebitdaCapText">--</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2 small">
+                            <span>Vượt trần lãi vay:</span>
+                            <strong class="text-danger" id="ebitdaExcessText">--</strong>
+                        </div>
+                        <div class="d-flex justify-content-between small">
+                            <span>Tỷ lệ hóa đơn bị hủy:</span>
+                            <strong id="cancelRateText">--</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Dynamic SVG Radar Chart Display -->
+            <div class="col-lg-8">
+                <div class="glass-card h-100">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-compass me-2 text-danger" aria-hidden="true"></i>Bản đồ mạng nhện Rủi ro Thuế (5 Trục)</h5>
+                    <p class="text-secondary small mb-3">Xác định xác suất rủi ro dựa trên 5 chiều: Giao dịch liên kết, Nhà cung cấp thuộc danh sách đen, Độ trễ ký số, Hạn mức tiền mặt và Tần suất hủy hóa đơn.</p>
+                    
+                    <div class="row align-items-center">
+                        <div class="col-md-7">
+                            <div class="radar-chart-container" id="radarChartWrapper">
+                                <svg width="350" height="350" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+                                    <circle cx="200" cy="200" r="150" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1" />
+                                    <circle cx="200" cy="200" r="100" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1" />
+                                    <circle cx="200" cy="200" r="50" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1" />
+                                    <text x="200" y="200" fill="rgba(255,255,255,0.3)" font-size="12" text-anchor="middle" dominant-baseline="middle">Bắt đầu</text>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <h6 class="fw-bold mb-3">Chi tiết điểm thành phần (Thang 100):</h6>
+                            <div class="d-flex flex-column gap-2">
+                                <div class="p-2 rounded" style="background: rgba(255,255,255,0.02); border-left: 3px solid #8b5cf6;">
+                                    <div class="d-flex justify-content-between small fw-bold">
+                                        <span>Giao dịch Liên kết:</span>
+                                        <span id="scoreRelatedParty">--</span>
+                                    </div>
+                                </div>
+                                <div class="p-2 rounded" style="background: rgba(255,255,255,0.02); border-left: 3px solid #ef4444;">
+                                    <div class="d-flex justify-content-between small fw-bold">
+                                        <span>NCC Danh sách đen:</span>
+                                        <span id="scoreBlacklist">--</span>
+                                    </div>
+                                </div>
+                                <div class="p-2 rounded" style="background: rgba(255,255,255,0.02); border-left: 3px solid #3b82f6;">
+                                    <div class="d-flex justify-content-between small fw-bold">
+                                        <span>Độ trễ ký số:</span>
+                                        <span id="scoreLatency">--</span>
+                                    </div>
+                                </div>
+                                <div class="p-2 rounded" style="background: rgba(255,255,255,0.02); border-left: 3px solid #eab308;">
+                                    <div class="d-flex justify-content-between small fw-bold">
+                                        <span>Hạn mức tiền mặt (>20tr):</span>
+                                        <span id="scoreCashLimit">--</span>
+                                    </div>
+                                </div>
+                                <div class="p-2 rounded" style="background: rgba(255,255,255,0.02); border-left: 3px solid #10b981;">
+                                    <div class="d-flex justify-content-between small fw-bold">
+                                        <span>Hóa đơn bị hủy/thay thế:</span>
+                                        <span id="scoreCancellation">--</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── TAB 3: TREASURY FORECAST SIMULATION ────────────────────────────────── -->
+    <div class="tab-pane fade" id="treasury-pane" role="tabpanel" aria-labelledby="treasury-tab">
+        <div class="row g-4">
+            <!-- Left: E-Contract & Parameters -->
+            <div class="col-lg-4">
+                <div class="glass-card mb-4">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-file-earmark-text me-2 text-violet" aria-hidden="true"></i>Khớp Hợp đồng & Tiến độ (Milestones)</h5>
+                    <div class="mb-3">
+                        <label for="econtractJsonInput" class="form-label small text-secondary">JSON Hợp đồng điện tử:</label>
+                        <textarea class="form-control xml-textarea" id="econtractJsonInput" rows="6" placeholder="Nhập cấu trúc Hợp đồng…"></textarea>
+                    </div>
+                    <div class="d-flex gap-2 mb-3">
+                        <button class="btn btn-outline-secondary btn-sm" id="loadMockContractBtn">Mock hợp đồng</button>
+                        <button class="btn btn-primary btn-sm flex-fill" id="reconcileContractBtn">Khớp tiến độ</button>
+                    </div>
+                    <div class="border-top pt-2">
+                        <small class="text-secondary d-block">Trạng thái khớp tiến độ:</small>
+                        <span class="badge bg-secondary-subtle text-secondary" id="contractMatchStatus">Chưa khớp</span>
+                    </div>
+                </div>
+
+                <div class="glass-card sandbox-slider-card">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-sliders2-vertical me-2 text-primary" aria-hidden="true"></i>Thông số Sandbox Kho quỹ</h5>
+                    <div class="mb-3">
+                        <label for="startingCash" class="form-label d-flex justify-content-between small">
+                            <span>Dòng tiền ban đầu:</span>
+                            <strong class="text-primary" id="startingCashVal">1,000,000,000đ</strong>
+                        </label>
+                        <input type="number" class="form-control form-control-sm" id="startingCash" value="1000000000" min="0" autocomplete="off">
+                    </div>
+                    <div class="mb-3">
+                        <label for="delayDaysRange" class="form-label d-flex justify-content-between small">
+                            <span>Độ trễ thanh toán khách hàng:</span>
+                            <strong class="text-primary"><span id="delayDaysVal">0</span> ngày</strong>
+                        </label>
+                        <input type="range" class="form-range" id="delayDaysRange" min="0" max="60" step="5" value="0">
+                    </div>
+                    <div class="mb-3">
+                        <label for="citDiscountRange" class="form-label d-flex justify-content-between small">
+                            <span>Ưu đãi Thuế thu nhập DN (CIT):</span>
+                            <strong class="text-primary"><span id="citDiscountVal">0</span>%</strong>
+                        </label>
+                        <input type="range" class="form-range" id="citDiscountRange" min="0" max="50" step="5" value="0">
+                    </div>
+                    <button class="btn btn-warning w-100 fw-bold" id="runForecastBtn"><i class="bi bi-magic me-1" aria-hidden="true"></i>Chạy Dự báo Dòng tiền</button>
+                </div>
+            </div>
+
+            <!-- Right: Projected Cash Flows & VAT/CIT Liabilites -->
+            <div class="col-lg-8">
+                <div class="glass-card h-100">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-graph-up-arrow me-2 text-success" aria-hidden="true"></i>Dự phóng Dòng tiền 60 ngày & Thuế Phải nộp</h5>
+                    <p class="text-secondary small mb-3">Dự phóng biến động tài khoản thanh toán và các đợt quyết toán thuế giá trị gia tăng (VAT) & thuế thu nhập doanh nghiệp (CIT) tạm nộp.</p>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <div class="kpi-metric-box">
+                                <span class="text-secondary small d-block">Điểm thấp nhất (Cash Min)</span>
+                                <h4 class="fw-bold mt-1 text-danger" id="kpiMinCash">--</h4>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="kpi-metric-box">
+                                <span class="text-secondary small d-block">Số dư Cuối kỳ (End Balance)</span>
+                                <h4 class="fw-bold mt-1 text-success" id="kpiEndCash">--</h4>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="kpi-metric-box">
+                                <span class="text-secondary small d-block">Tổng Thuế phát sinh</span>
+                                <h4 class="fw-bold mt-1 text-warning" id="kpiTotalTax">--</h4>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive" style="max-height: 300px;">
+                        <table class="table table-sm table-hover text-nowrap">
+                            <thead>
+                                <tr>
+                                    <th>Ngày</th>
+                                    <th>Loại giao dịch</th>
+                                    <th class="text-end">Dòng tiền thu</th>
+                                    <th class="text-end">Dòng tiền chi</th>
+                                    <th class="text-end">Thuế phát sinh</th>
+                                    <th class="text-end">Số dư lũy kế</th>
+                                </tr>
+                            </thead>
+                            <tbody id="treasuryForecastTable">
+                                <tr>
+                                    <td colspan="6" class="text-center text-secondary py-4">Chưa có dữ liệu dự phóng dòng tiền. Hãy bấm nút "Chạy Dự báo Dòng tiền".</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        // --- Static Mock Data ---
+        const MOCK_XML_PXK = `<?xml version="1.0" encoding="UTF-8"?>
+<HDon>
+    <DLHDon>
+        <TTChung>
+            <PBan>1.0.0</PBan>
+            <MSo>8-PXK-Decree123</MSo>
+            <Ten>Phiếu xuất kho kiêm vận chuyển nội bộ</Ten>
+            <Ngay>2026-06-01</Ngay>
+            <KyHieu>5C26PXK</KyHieu>
+        </TTChung>
+        <NDHDon>
+            <DSCuocVanChuyen>
+                <ChiTiet>
+                    <STT>1</STT>
+                    <MaHang>SKU-1001</MaHang>
+                    <TenHang>Bộ Vi Xử Lý Intel Core i9-14900K</TenHang>
+                    <DVT>Cái</DVT>
+                    <SoLuong>15</SoLuong>
+                </ChiTiet>
+                <ChiTiet>
+                    <STT>2</STT>
+                    <MaHang>SKU-1002</MaHang>
+                    <TenHang>RAM Corsair Vengeance 64GB DDR5</TenHang>
+                    <DVT>Bộ</DVT>
+                    <SoLuong>30</SoLuong>
+                </ChiTiet>
+                <ChiTiet>
+                    <STT>3</STT>
+                    <MaHang>SKU-1003</MaHang>
+                    <TenHang>Ổ Cứng SSD Samsung 990 Pro 2TB</TenHang>
+                    <DVT>Cái</DVT>
+                    <SoLuong>50</SoLuong>
+                </ChiTiet>
+            </DSCuocVanChuyen>
+        </NDHDon>
+    </DLHDon>
+    <Signature>
+        <SignedInfo>
+            <Reference URI="GDT-Decree123-Sign" />
+            <DigestValue>dGhpcy1pcy1hLW1vY2stc2lnbmF0dXJlLWRpZ2VzdC12YWx1ZQ==</DigestValue>
+        </SignedInfo>
+        <SignatureValue>MOCK_SIGNATURE_DATA_VALID_SHA256_RSA</SignatureValue>
+    </Signature>
+</HDon>`;
+
+        const MOCK_CONTRACT_JSON = `{
+  "contract_id": "CONTRACT-2026-999",
+  "title": "Hợp đồng Cung cấp Thiết bị số 999/HD-AS",
+  "partner_name": "Công ty TNHH Giải pháp Phần mềm Ánh Sáng",
+  "partner_mst": "0109999999",
+  "signed_date": "2026-05-15",
+  "total_value": 750000000.0,
+  "milestones": [
+    {
+      "milestone_id": "MS-01",
+      "description": "Tạm ứng đợt 1 sau khi ký hợp đồng",
+      "due_date": "2026-05-20",
+      "amount": 225000000.0,
+      "percentage": 30
+    },
+    {
+      "milestone_id": "MS-02",
+      "description": "Thanh toán đợt 2 sau khi giao hàng phần cứng",
+      "due_date": "2026-06-15",
+      "amount": 375000000.0,
+      "percentage": 50
+    },
+    {
+      "milestone_id": "MS-03",
+      "description": "Thanh toán đợt 3 nghiệm thu thanh lý hợp đồng",
+      "due_date": "2026-07-10",
+      "amount": 150000000.0,
+      "percentage": 20
+    }
+  ]
+}`;
+
+        // Mock database invoices for tab 1 and tab 2 calculations
+        const MOCK_INVOICES = [
+            { "invoice_id": "INV-001", "sku": "SKU-1001", "qty": 15, "amount": 120000000.0, "tax": 12000000.0, "is_cash": false, "cancelled": false, "blacklist": false, "signing_delay": 1 },
+            { "invoice_id": "INV-002", "sku": "SKU-1002", "qty": 28, "amount": 180000000.0, "tax": 18000000.0, "is_cash": false, "cancelled": false, "blacklist": false, "signing_delay": 3 },
+            { "invoice_id": "INV-003", "sku": "SKU-1003", "qty": 50, "amount": 150000000.0, "tax": 15000000.0, "is_cash": true, "cancelled": false, "blacklist": false, "signing_delay": 0 },
+            { "invoice_id": "INV-004", "sku": "SKU-9999", "qty": 1, "amount": 25000000.0, "tax": 2500000.0, "is_cash": true, "cancelled": false, "blacklist": true, "signing_delay": 12 }
+        ];
+
+        // Mock payments
+        const MOCK_PAYMENTS = [
+            { "id": "PAY-001", "milestone_id": "MS-01", "amount": 225000000.0, "payment_date": "2026-05-19", "status": "reconciled" }
+        ];
+
+        // --- Tab 1 variables and handlers ---
+        const loadMockPxkBtn = document.getElementById("loadMockPxkBtn");
+        const parsePxkBtn = document.getElementById("parsePxkBtn");
+        const pxkXmlContent = document.getElementById("pxkXmlContent");
+        const pxkSignatureStatus = document.getElementById("pxkSignatureStatus");
+        const pxkReconciliationTable = document.getElementById("pxkReconciliationTable");
+        const exportPxkCsvBtn = document.getElementById("exportPxkCsvBtn");
+
+        loadMockPxkBtn.addEventListener("click", () => {
+            pxkXmlContent.value = MOCK_XML_PXK;
+        });
+
+        parsePxkBtn.addEventListener("click", () => {
+            const xml = pxkXmlContent.value.trim();
+            if (!xml) {
+                alert("Hãy nhập dữ liệu XML trước");
+                return;
+            }
+
+            parsePxkBtn.disabled = true;
+            parsePxkBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span>Đang xử lý...`;
+
+            fetch("/api/compliance/pxk-parse", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ xml_content: xml })
+            })
+            .then(res => res.json())
+            .then(parsedData => {
+                if (parsedData.error) {
+                    alert(parsedData.error);
+                    parsePxkBtn.disabled = false;
+                    parsePxkBtn.innerHTML = `<i class="bi bi-braces me-1" aria-hidden="true"></i>Phân tích XML`;
+                    return;
+                }
+
+                // Render signature status
+                if (parsedData.signature_valid) {
+                    pxkSignatureStatus.className = "p-3 rounded text-center bg-success-subtle text-success";
+                    pxkSignatureStatus.innerHTML = `<i class="bi bi-patch-check-fill fs-3 mb-2 d-block" aria-hidden="true"></i><strong>Chữ ký số HỢP LỆ</strong><br><small class="text-secondary">Thuật toán: SHA256withRSA</small>`;
+                } else {
+                    pxkSignatureStatus.className = "p-3 rounded text-center bg-danger-subtle text-danger";
+                    pxkSignatureStatus.innerHTML = `<i class="bi bi-patch-exclamation-fill fs-3 mb-2 d-block" aria-hidden="true"></i><strong>Chữ ký số KHÔNG HỢP LỆ hoặc Thiếu chữ ký</strong>`;
+                }
+
+                // Run Reconciliation
+                const deliveryNotes = [parsedData];
+                return fetch("/api/compliance/pxk-reconcile", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ delivery_notes: deliveryNotes, invoices: MOCK_INVOICES })
+                });
+            })
+            .then(res => res.json())
+            .then(reconciliationReport => {
+                parsePxkBtn.disabled = false;
+                parsePxkBtn.innerHTML = `<i class="bi bi-braces me-1" aria-hidden="true"></i>Phân tích XML`;
+                
+                if (!reconciliationReport) return;
+
+                exportPxkCsvBtn.disabled = false;
+
+                pxkReconciliationTable.innerHTML = "";
+                reconciliationReport.discrepancies.forEach(item => {
+                    const tr = document.createElement("tr");
+                    const statusClass = item.status === "matched" ? "reconcile-match-row" : "reconcile-diff-row";
+                    const statusBadge = item.status === "matched" 
+                        ? `<span class="badge bg-success-subtle text-success">Khớp</span>`
+                        : `<span class="badge bg-danger-subtle text-danger">Lệch</span>`;
+
+                    tr.className = statusClass;
+                    tr.innerHTML = `
+                        <td><strong>${item.sku}</strong></td>
+                        <td>${item.name}</td>
+                        <td class="text-end fw-bold">${item.delivery_qty}</td>
+                        <td class="text-end fw-bold">${item.invoice_qty}</td>
+                        <td class="text-end fw-bold text-warning">${item.qty_difference}</td>
+                        <td>${statusBadge}</td>
+                    `;
+                    pxkReconciliationTable.appendChild(tr);
+                });
+            })
+            .catch(err => {
+                parsePxkBtn.disabled = false;
+                parsePxkBtn.innerHTML = `<i class="bi bi-braces me-1" aria-hidden="true"></i>Phân tích XML`;
+                console.error(err);
+                alert("Lỗi phân tích hoặc đối soát XML");
+            });
+        });
+
+        exportPxkCsvBtn.addEventListener("click", () => {
+            const xml = pxkXmlContent.value.trim();
+            if (!xml) return;
+
+            fetch("/api/compliance/pxk-parse", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ xml_content: xml })
+            })
+            .then(res => res.json())
+            .then(parsedData => {
+                const deliveryNotes = [parsedData];
+                return fetch("/api/compliance/pxk-export-csv", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ delivery_notes: deliveryNotes, invoices: MOCK_INVOICES })
+                });
+            })
+            .then(res => res.blob())
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = "pxk_reconciliation_report.csv";
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            })
+            .catch(err => console.error(err));
+        });
+
+        // --- Tab 2: Tax Risk variables and handlers ---
+        const runTaxRiskBtn = document.getElementById("runTaxRiskBtn");
+        const relatedEbitda = document.getElementById("relatedEbitda");
+        const relatedNetInterest = document.getElementById("relatedNetInterest");
+        const overallRiskScore = document.getElementById("overallRiskScore");
+        const overallRiskLabel = document.getElementById("overallRiskLabel");
+        const ebitdaCapText = document.getElementById("ebitdaCapText");
+        const ebitdaExcessText = document.getElementById("ebitdaExcessText");
+        const cancelRateText = document.getElementById("cancelRateText");
+        const radarChartWrapper = document.getElementById("radarChartWrapper");
+
+        const scoreRelatedParty = document.getElementById("scoreRelatedParty");
+        const scoreBlacklist = document.getElementById("scoreBlacklist");
+        const scoreLatency = document.getElementById("scoreLatency");
+        const scoreCashLimit = document.getElementById("scoreCashLimit");
+        const scoreCancellation = document.getElementById("scoreCancellation");
+
+        runTaxRiskBtn.addEventListener("click", () => {
+            const ebitdaVal = parseFloat(relatedEbitda.value) || 0;
+            const interestVal = parseFloat(relatedNetInterest.value) || 0;
+
+            runTaxRiskBtn.disabled = true;
+            runTaxRiskBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span>Đang đánh giá...`;
+
+            fetch("/api/compliance/pre-audit-risk", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    invoices: MOCK_INVOICES,
+                    related_party_context: {
+                        ebitda: ebitdaVal,
+                        net_interest: interestVal
+                    }
+                })
+            })
+            .then(res => res.json())
+            .then(report => {
+                runTaxRiskBtn.disabled = false;
+                runTaxRiskBtn.innerHTML = `<i class="bi bi-play-circle me-1" aria-hidden="true"></i>Tính toán rủi ro thuế`;
+
+                if (report.error) {
+                    alert(report.error);
+                    return;
+                }
+
+                // Render metrics
+                overallRiskScore.textContent = `${report.overall_risk_score}/100`;
+                overallRiskLabel.textContent = report.audit_probability_label;
+                if (report.overall_risk_score > 60) {
+                    overallRiskLabel.className = "badge bg-danger text-white px-3 py-2 fw-bold";
+                    overallRiskScore.className = "display-5 fw-bold text-danger";
+                } else if (report.overall_risk_score > 30) {
+                    overallRiskLabel.className = "badge bg-warning text-dark px-3 py-2 fw-bold";
+                    overallRiskScore.className = "display-5 fw-bold text-warning";
+                } else {
+                    overallRiskLabel.className = "badge bg-success text-white px-3 py-2 fw-bold";
+                    overallRiskScore.className = "display-5 fw-bold text-success";
+                }
+
+                ebitdaCapText.textContent = `${(ebitdaVal * 0.3).toLocaleString('vi-VN')} VND`;
+                const excess = Math.max(0, interestVal - ebitdaVal * 0.3);
+                ebitdaExcessText.textContent = `${excess.toLocaleString('vi-VN')} VND`;
+                cancelRateText.textContent = `${(report.cancellation_rate * 100).toFixed(1)}%`;
+
+                // Set individual scores
+                scoreRelatedParty.textContent = `${report.axes_scores.related_party}/100`;
+                scoreBlacklist.textContent = `${report.axes_scores.blacklist}/100`;
+                scoreLatency.textContent = `${report.axes_scores.latency}/100`;
+                scoreCashLimit.textContent = `${report.axes_scores.cash_limit}/100`;
+                scoreCancellation.textContent = `${report.axes_scores.cancellation}/100`;
+
+                // Fetch SVG radar markup
+                return fetch("/api/compliance/risk-radar-svg", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ scores: report.axes_scores })
+                });
+            })
+            .then(res => res.json())
+            .then(svgData => {
+                if (svgData && svgData.svg_markup) {
+                    radarChartWrapper.innerHTML = svgData.svg_markup;
+                }
+            })
+            .catch(err => {
+                runTaxRiskBtn.disabled = false;
+                runTaxRiskBtn.innerHTML = `<i class="bi bi-play-circle me-1" aria-hidden="true"></i>Tính toán rủi ro thuế`;
+                console.error(err);
+            });
+        });
+
+        // --- Tab 3: Econtract & Treasury handlers ---
+        const econtractJsonInput = document.getElementById("econtractJsonInput");
+        const loadMockContractBtn = document.getElementById("loadMockContractBtn");
+        const reconcileContractBtn = document.getElementById("reconcileContractBtn");
+        const contractMatchStatus = document.getElementById("contractMatchStatus");
+
+        const startingCash = document.getElementById("startingCash");
+        const delayDaysRange = document.getElementById("delayDaysRange");
+        const citDiscountRange = document.getElementById("citDiscountRange");
+
+        const startingCashVal = document.getElementById("startingCashVal");
+        const delayDaysVal = document.getElementById("delayDaysVal");
+        const citDiscountVal = document.getElementById("citDiscountVal");
+
+        const runForecastBtn = document.getElementById("runForecastBtn");
+        const kpiMinCash = document.getElementById("kpiMinCash");
+        const kpiEndCash = document.getElementById("kpiEndCash");
+        const kpiTotalTax = document.getElementById("kpiTotalTax");
+        const treasuryForecastTable = document.getElementById("treasuryForecastTable");
+
+        let activeParsedContract = null;
+
+        loadMockContractBtn.addEventListener("click", () => {
+            econtractJsonInput.value = MOCK_CONTRACT_JSON;
+        });
+
+        startingCash.addEventListener("input", (e) => {
+            const v = parseFloat(e.target.value) || 0;
+            startingCashVal.textContent = `${v.toLocaleString('vi-VN')}đ`;
+        });
+
+        delayDaysRange.addEventListener("input", (e) => {
+            delayDaysVal.textContent = e.target.value;
+        });
+
+        citDiscountRange.addEventListener("input", (e) => {
+            citDiscountVal.textContent = e.target.value;
+        });
+
+        reconcileContractBtn.addEventListener("click", () => {
+            const jsonText = econtractJsonInput.value.trim();
+            if (!jsonText) {
+                alert("Hãy nhập dữ liệu hợp đồng trước");
+                return;
+            }
+
+            reconcileContractBtn.disabled = true;
+            reconcileContractBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span>Đang khớp...`;
+
+            fetch("/api/compliance/econtract-parse", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ json_content: jsonText })
+            })
+            .then(res => res.json())
+            .then(parsedContract => {
+                if (parsedContract.error) {
+                    alert(parsedContract.error);
+                    reconcileContractBtn.disabled = false;
+                    reconcileContractBtn.innerHTML = `Khớp tiến độ`;
+                    return;
+                }
+
+                activeParsedContract = parsedContract;
+
+                return fetch("/api/compliance/econtract-reconcile", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        contract: parsedContract,
+                        invoices: MOCK_INVOICES,
+                        payments: MOCK_PAYMENTS
+                    })
+                });
+            })
+            .then(res => res.json())
+            .then(report => {
+                reconcileContractBtn.disabled = false;
+                reconcileContractBtn.innerHTML = `Khớp tiến độ`;
+
+                if (!report) return;
+
+                contractMatchStatus.textContent = `Đã khớp: ${report.matched_milestones_count}/${report.total_milestones_count} tiến độ (Tổng: ${report.total_reconciled_amount.toLocaleString('vi-VN')} VND)`;
+                contractMatchStatus.className = "badge bg-success-subtle text-success";
+            })
+            .catch(err => {
+                reconcileContractBtn.disabled = false;
+                reconcileContractBtn.innerHTML = `Khớp tiến độ`;
+                console.error(err);
+                alert("Lỗi khớp tiến độ hợp đồng");
+            });
+        });
+
+        runForecastBtn.addEventListener("click", () => {
+            if (!activeParsedContract) {
+                alert("Vui lòng tải và khớp tiến độ hợp đồng (Đầu 3) trước khi chạy dự phóng.");
+                return;
+            }
+
+            const initialCash = parseFloat(startingCash.value) || 0;
+            const daysDelay = parseInt(delayDaysRange.value) || 0;
+            const citRed = (parseFloat(citDiscountRange.value) || 0) / 100.0;
+
+            runForecastBtn.disabled = true;
+            runForecastBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span>Đang tính toán...`;
+
+            fetch("/api/compliance/treasury-forecast", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    milestones: activeParsedContract.milestones,
+                    invoices: MOCK_INVOICES,
+                    starting_cash: initialCash,
+                    delay_days: daysDelay,
+                    cit_discount: citRed
+                })
+            })
+            .then(res => res.json())
+            .then(forecast => {
+                runForecastBtn.disabled = false;
+                runForecastBtn.innerHTML = `<i class="bi bi-magic me-1" aria-hidden="true"></i>Chạy Dự báo Dòng tiền`;
+
+                if (forecast.error) {
+                    alert(forecast.error);
+                    return;
+                }
+
+                // Render KPIs
+                kpiMinCash.textContent = `${forecast.minimum_cash_position.toLocaleString('vi-VN')}đ`;
+                if (forecast.minimum_cash_position < 0) {
+                    kpiMinCash.className = "fw-bold mt-1 text-danger animate__animated animate__headShake";
+                } else {
+                    kpiMinCash.className = "fw-bold mt-1 text-info";
+                }
+                kpiEndCash.textContent = `${forecast.ending_cash_position.toLocaleString('vi-VN')}đ`;
+                kpiTotalTax.textContent = `${forecast.total_tax_liability.toLocaleString('vi-VN')}đ`;
+
+                // Fill timeline table
+                treasuryForecastTable.innerHTML = "";
+                forecast.projection_timeline.forEach(step => {
+                    const tr = document.createElement("tr");
+                    const inflow = step.inflow > 0 ? `<span class="text-success">+${step.inflow.toLocaleString('vi-VN')}</span>` : "-";
+                    const outflow = step.outflow > 0 ? `<span class="text-danger">-${step.outflow.toLocaleString('vi-VN')}</span>` : "-";
+                    const tax = step.tax_accrual > 0 ? `<span class="text-warning">${step.tax_accrual.toLocaleString('vi-VN')}</span>` : "-";
+                    
+                    let rowClass = "";
+                    if (step.cash_balance < 0) {
+                        rowClass = "table-danger-subtle";
+                    }
+
+                    tr.className = rowClass;
+                    tr.innerHTML = `
+                        <td><span class="font-monospace">${step.date}</span></td>
+                        <td><small class="text-wrap">${step.event || 'Số dư hàng ngày'}</small></td>
+                        <td class="text-end font-monospace">${inflow}</td>
+                        <td class="text-end font-monospace">${outflow}</td>
+                        <td class="text-end font-monospace text-warning">${tax}</td>
+                        <td class="text-end font-monospace fw-bold ${step.cash_balance < 0 ? 'text-danger' : 'text-success'}">${step.cash_balance.toLocaleString('vi-VN')}</td>
+                    `;
+                    treasuryForecastTable.appendChild(tr);
+                });
+            })
+            .catch(err => {
+                runForecastBtn.disabled = false;
+                runForecastBtn.innerHTML = `<i class="bi bi-magic me-1" aria-hidden="true"></i>Chạy Dự báo Dòng tiền`;
+                console.error(err);
+            });
+        });
+    });
+</script>
+{% endblock %}

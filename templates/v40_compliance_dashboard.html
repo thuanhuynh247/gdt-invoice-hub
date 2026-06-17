@@ -1,0 +1,902 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Premium Header -->
+    <div class="row align-items-center mb-5">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a href="{{ url_for('index') }}" class="text-secondary decoration-none">Dashboard</a></li>
+                    <li class="breadcrumb-item text-secondary active" aria-current="page">Version 40 Compliance</li>
+                </ol>
+            </nav>
+            <h1 class="display-5 fw-bold font-outfit text-gradient mb-2" id="v40-dashboard-title">
+                Bộ Công cụ Tuân thủ Thuế v40
+            </h1>
+            <p class="text-secondary fs-5 mb-0">
+                Quản lý FCT (Thông tư 103), EBITDA Giao dịch liên kết (Decree 132) và Xác thực Chữ ký số Hóa đơn (Decree 123).
+            </p>
+        </div>
+        <div class="col-auto">
+            <div class="glass-card p-2 d-flex gap-3 align-items-center">
+                <span class="small text-secondary"><i class="bi bi-building me-1" aria-hidden="true"></i> MST Đang chọn:</span>
+                <select class="form-select form-select-sm border-0 bg-transparent fw-bold" id="mstSelector" style="width: auto;">
+                    {% for p in profiles %}
+                    <option value="{{ p.mst }}" {% if p.mst == taxpayer_mst %}selected{% endif %}>{{ p.mst }} - {{ p.company_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Compliance Hub Navigation Cards -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <a href="#fct-section" class="card-link text-decoration-none" onclick="switchTab('fct-tab')">
+                <div class="glass-card hover-lift p-4 h-100 border-start border-4 border-warning">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="icon-shape bg-warning-subtle text-warning rounded-3 p-3">
+                            <i class="bi bi-globe fs-3" aria-hidden="true"></i>
+                        </div>
+                        <span class="badge bg-warning-subtle text-warning rounded-pill">TT 103/2014/TT-BTC</span>
+                    </div>
+                    <h3 class="h4 fw-bold text-dark font-outfit">Thuế Nhà Thầu Nước Ngoài (FCT)</h3>
+                    <p class="text-secondary small mb-0">Tính toán khấu trừ FCT-VAT, FCT-CIT cho hợp đồng Gross/Net và lập tờ khai 01/NTNN.</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="#related-party-section" class="card-link text-decoration-none" onclick="switchTab('related-party-tab')">
+                <div class="glass-card hover-lift p-4 h-100 border-start border-4 border-info">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="icon-shape bg-info-subtle text-info rounded-3 p-3">
+                            <i class="bi bi-diagram-3 fs-3" aria-hidden="true"></i>
+                        </div>
+                        <span class="badge bg-info-subtle text-info rounded-pill">NĐ 132/2020/NĐ-CP</span>
+                    </div>
+                    <h3 class="h4 fw-bold text-dark font-outfit">Giao Dịch Liên Kết</h3>
+                    <p class="text-secondary small mb-0">Kiểm tra trần chi phí lãi vay EBITDA 30% và tính toán loại trừ thu nhập chịu thuế TNDN.</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="#xml-section" class="card-link text-decoration-none" onclick="switchTab('xml-tab')">
+                <div class="glass-card hover-lift p-4 h-100 border-start border-4 border-danger">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="icon-shape bg-danger-subtle text-danger rounded-3 p-3">
+                            <i class="bi bi-shield-check fs-3" aria-hidden="true"></i>
+                        </div>
+                        <span class="badge bg-danger-subtle text-danger rounded-pill">NĐ 123/2020/NĐ-CP</span>
+                    </div>
+                    <h3 class="h4 fw-bold text-dark font-outfit">Xác Thực Chữ Ký XML</h3>
+                    <p class="text-secondary small mb-0">Kiểm tra tính toàn vẹn của chữ ký số hóa đơn điện tử XML và chứng chỉ CA Việt Nam.</p>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Navigation Tabs -->
+    <div class="glass-card mb-4">
+        <ul class="nav nav-pills nav-fill p-2 gap-2" id="complianceTab" role="tablist" style="background-color: var(--card-bg-subtle, #f8f9fa); border-radius: 12px;">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active fw-bold py-3 px-4 rounded-3 border-0 transition-all font-outfit" id="fct-tab" data-bs-toggle="tab" data-bs-target="#fct-pane" type="button" role="tab" aria-controls="fct-pane" aria-selected="true">
+                    <i class="bi bi-globe me-2" aria-hidden="true"></i> Thuế Nhà Thầu FCT
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-bold py-3 px-4 rounded-3 border-0 transition-all font-outfit" id="related-party-tab" data-bs-toggle="tab" data-bs-target="#related-party-pane" type="button" role="tab" aria-controls="related-party-pane" aria-selected="false">
+                    <i class="bi bi-diagram-3 me-2" aria-hidden="true"></i> Trần Lãi Vay EBITDA
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-bold py-3 px-4 rounded-3 border-0 transition-all font-outfit" id="xml-tab" data-bs-toggle="tab" data-bs-target="#xml-pane" type="button" role="tab" aria-controls="xml-pane" aria-selected="false">
+                    <i class="bi bi-shield-check me-2" aria-hidden="true"></i> Xác Thực Chứng Thư XML
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content p-4" id="complianceTabContent">
+            <!-- TAB 1: FCT WITHHOLDING AND FORM 01/NTNN -->
+            <div class="tab-pane fade show active" id="fct-pane" role="tabpanel" aria-labelledby="fct-tab">
+                <div class="row g-4">
+                    <!-- Calculator Panel -->
+                    <div class="col-lg-5">
+                        <div class="border-0 bg-transparent p-2">
+                            <h4 class="fw-bold font-outfit text-dark mb-3"><i class="bi bi-calculator me-2 text-warning" aria-hidden="true"></i>Bộ Tính Toán Khấu Trừ FCT</h4>
+                            <p class="text-secondary small">Nhập giá trị hợp đồng để tự động hóa việc tính toán FCT và gợi ý bút toán ghi sổ kế toán.</p>
+                            
+                            <div class="mb-3">
+                                <label for="fctContractValue" class="form-label fw-semibold text-secondary">Giá trị hợp đồng (VND)</label>
+                                <input type="number" class="form-control form-control-lg fw-bold" id="fctContractValue" value="500000000" min="0" autocomplete="off">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="fctContractType" class="form-label fw-semibold text-secondary">Loại hợp đồng</label>
+                                <select class="form-select form-select-lg" id="fctContractType">
+                                    <option value="net">Net (Doanh nghiệp chịu thuế thay nhà thầu)</option>
+                                    <option value="gross">Gross (Đã bao gồm thuế nhà thầu)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="fctCategory" class="form-label fw-semibold text-secondary">Danh mục Dịch vụ (Theo TT 103)</label>
+                                <select class="form-select form-select-lg" id="fctCategory">
+                                    <option value="services" selected>Dịch vụ (VAT 5%, CIT 5%)</option>
+                                    <option value="goods_supply">Cung cấp hàng hóa (VAT Exempt, CIT 1%)</option>
+                                    <option value="technical_services">Dịch vụ đi kèm hàng hóa (VAT 5%, CIT 5%)</option>
+                                    <option value="software_royalty">Bản quyền phần mềm / Bản quyền (VAT Exempt, CIT 10%)</option>
+                                    <option value="construction_with_materials">Xây dựng có bao thầu vật tư (VAT 3%, CIT 2%)</option>
+                                    <option value="construction_without_materials">Xây dựng không bao thầu vật tư (VAT 5%, CIT 2%)</option>
+                                </select>
+                            </div>
+                            
+                            <button class="btn btn-warning btn-lg w-100 fw-bold font-outfit" id="btnCalculateFCT" type="button">
+                                Tính toán & Đề xuất Hạch toán
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Calculator Results -->
+                    <div class="col-lg-7">
+                        <div class="bg-premium-light-subtle rounded-4 p-4 border" style="background-color: var(--card-bg-subtle, #fcfcfc);">
+                            <h4 class="fw-bold font-outfit text-dark mb-4"><i class="bi bi-clipboard-data me-2 text-warning" aria-hidden="true"></i>Kết Quả Khấu Trừ</h4>
+                            
+                            <div class="row g-3 mb-4">
+                                <div class="col-6 col-md-3">
+                                    <div class="p-3 bg-white rounded-3 border text-center shadow-xs">
+                                        <div class="small text-secondary mb-1">Thuế suất VAT</div>
+                                        <div class="fs-4 fw-bold text-dark" id="resFCTVatRate">0%</div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="p-3 bg-white rounded-3 border text-center shadow-xs">
+                                        <div class="small text-secondary mb-1">Thuế suất CIT</div>
+                                        <div class="fs-4 fw-bold text-dark" id="resFCTCitRate">0%</div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="p-3 bg-white rounded-3 border text-center shadow-xs">
+                                        <div class="small text-secondary mb-1">Tổng Thuế FCT</div>
+                                        <div class="fs-5 fw-bold text-danger" id="resFCTTotal">0 VND</div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="p-3 bg-white rounded-3 border text-center shadow-xs">
+                                        <div class="small text-secondary mb-1">Thực trả Vendor</div>
+                                        <div class="fs-5 fw-bold text-success" id="resFCTNet">0 VND</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <table class="table table-bordered bg-white rounded-3 shadow-xs overflow-hidden mb-4">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Chỉ tiêu hạch toán</th>
+                                        <th class="text-end">Doanh thu chịu thuế</th>
+                                        <th class="text-end">Tiền thuế nhà thầu</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="fw-semibold">FCT - VAT (Thuế GTGT nhà thầu)</td>
+                                        <td class="text-end" id="resFCTRevenueVat">0 VND</td>
+                                        <td class="text-end fw-bold text-dark" id="resFCTVatAmount">0 VND</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-semibold">FCT - CIT (Thuế TNDN nhà thầu)</td>
+                                        <td class="text-end" id="resFCTRevenueCit">0 VND</td>
+                                        <td class="text-end fw-bold text-dark" id="resFCTCitAmount">0 VND</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <!-- Journal Entries -->
+                            <h5 class="fw-bold text-dark mb-3"><i class="bi bi-journal-check text-warning me-2" aria-hidden="true"></i>Bút Toán Ghi Sổ Đề Xuất (VAS)</h5>
+                            <div class="list-group list-group-flush border rounded-3 bg-white overflow-hidden" id="fctJournalList">
+                                <div class="list-group-item text-secondary py-3 text-center">
+                                    Chưa có dữ liệu tính toán. Hãy bấm nút "Tính toán & Đề xuất Hạch toán".
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form 01/NTNN Mapping -->
+                <div class="row mt-5">
+                    <div class="col-12">
+                        <div class="glass-card p-4">
+                            <div class="d-flex align-items-center justify-content-between mb-4">
+                                <h4 class="fw-bold font-outfit text-dark mb-0"><i class="bi bi-file-earmark-spreadsheet text-warning me-2" aria-hidden="true"></i>Bản Đồ Chỉ Tiêu Tờ Khai 01/NTNN (Khấu trừ FCT)</h4>
+                                <button class="btn btn-outline-warning fw-bold" id="btnLoadFCTDeclaration"><i class="bi bi-arrow-clockwise me-1" aria-hidden="true"></i> Tải dữ liệu Tờ khai</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle" id="tblFCTDeclaration">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>STT</th>
+                                            <th>Tên nhà thầu nước ngoài</th>
+                                            <th>Số hợp đồng</th>
+                                            <th>Loại hình / Danh mục</th>
+                                            <th class="text-end">Doanh thu chịu thuế VAT</th>
+                                            <th class="text-end">Thuế VAT khấu trừ</th>
+                                            <th class="text-end">Doanh thu chịu thuế CIT</th>
+                                            <th class="text-end">Thuế CIT khấu trừ</th>
+                                            <th class="text-end">Tổng cộng thuế withheld</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td colspan="9" class="text-center text-secondary py-4">Bấm "Tải dữ liệu Tờ khai" để tổng hợp hóa đơn nước ngoài nhập khẩu trong kỳ.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: DECREE 132 RELATED PARTY INTEREST EXPENSE CAP -->
+            <div class="tab-pane fade" id="related-party-pane" role="tabpanel" aria-labelledby="related-party-tab">
+                <div class="row g-4">
+                    <!-- Sidebar configuration -->
+                    <div class="col-lg-5">
+                        <div class="glass-card p-4 mb-4">
+                            <h4 class="fw-bold font-outfit text-dark mb-3"><i class="bi bi-plus-circle-fill text-info me-2" aria-hidden="true"></i>Thêm Mới Quan Hệ Liên Kết</h4>
+                            
+                            <div class="mb-3">
+                                <label for="rpPartnerMst" class="form-label small fw-semibold text-secondary">Mã số thuế bên liên kết</label>
+                                <input type="text" class="form-control" id="rpPartnerMst" placeholder="E.g., 0101234567" autocomplete="off">
+                            </div>
+                            <div class="mb-3">
+                                <label for="rpPartnerName" class="form-label small fw-semibold text-secondary">Tên doanh nghiệp liên kết</label>
+                                <input type="text" class="form-control" id="rpPartnerName" placeholder="E.g., Công ty TNHH Mẹ Holding" autocomplete="off">
+                            </div>
+                            <div class="mb-3">
+                                <label for="rpType" class="form-label small fw-semibold text-secondary">Hình thức liên kết (Theo NĐ 132/2020)</label>
+                                <select class="form-select" id="rpType">
+                                    <option value="ownership_ge_25">Sở hữu trực tiếp/gián tiếp tối thiểu 25% vốn (Điểm a)</option>
+                                    <option value="guarantee_ge_25_debt_ge_50">Doanh nghiệp bảo lãnh/cho vay >= 25% VCSH và > 50% tổng nợ (Điểm d)</option>
+                                    <option value="shared_control">Cùng chịu sự kiểm soát trực tiếp/gián tiếp của bên thứ ba (Điểm g)</option>
+                                    <option value="family_relation">Cá nhân có quan hệ gia đình điều hành cả hai doanh nghiệp (Điểm l)</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="rpOwnership" class="form-label small fw-semibold text-secondary">Tỷ lệ sở hữu / Bảo lãnh (%)</label>
+                                <input type="number" class="form-control" id="rpOwnership" value="25" min="0" max="100" autocomplete="off">
+                            </div>
+                            <div class="mb-4">
+                                <label for="rpDetails" class="form-label small fw-semibold text-secondary">Chi tiết / Thuyết minh giao dịch</label>
+                                <textarea class="form-control" id="rpDetails" rows="2" placeholder="Ghi chú thêm về quan hệ…"></textarea>
+                            </div>
+                            
+                            <button class="btn btn-info w-100 fw-bold font-outfit text-snow" id="btnAddRelatedParty" type="button">
+                                <i class="bi bi-check-circle me-1" aria-hidden="true"></i> Lưu Quan Hệ Liên Kết
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Simulator Column -->
+                    <div class="col-lg-7">
+                        <div class="glass-card p-4">
+                            <h4 class="fw-bold font-outfit text-dark mb-4"><i class="bi bi-sliders text-info me-2" aria-hidden="true"></i>Trình Giả Lập EBITDA & Chi Phí Lãi Vay (30% Cap)</h4>
+                            <p class="text-secondary small">Sử dụng thanh trượt bên dưới để tinh chỉnh số liệu tài chính để kiểm tra tính năng loại trừ lãi vay.</p>
+                            
+                            <!-- Slider 1 -->
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="fw-semibold text-secondary">Lợi nhuận trước thuế (EBT)</span>
+                                    <span class="fw-bold text-dark" id="valEbt">1,000,000,000 VND</span>
+                                </div>
+                                <input type="range" class="form-range" id="slideEbt" min="-500000000" max="5000000000" step="50000000" value="1000000000">
+                            </div>
+
+                            <!-- Slider 2 -->
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="fw-semibold text-secondary">Chi phí lãi vay phát sinh trong kỳ</span>
+                                    <span class="fw-bold text-danger" id="valInterestExpense">400,000,000 VND</span>
+                                </div>
+                                <input type="range" class="form-range" id="slideInterestExpense" min="0" max="2000000000" step="20000000" value="400000000">
+                            </div>
+
+                            <!-- Slider 3 -->
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="fw-semibold text-secondary">Doanh thu tiền lãi gửi/cho vay</span>
+                                    <span class="fw-bold text-success" id="valInterestIncome">50,000,000 VND</span>
+                                </div>
+                                <input type="range" class="form-range" id="slideInterestIncome" min="0" max="500000000" step="5000000" value="50000000">
+                            </div>
+
+                            <!-- Slider 4 -->
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="fw-semibold text-secondary">Khấu hao tài sản cố định & Phân bổ (D&A)</span>
+                                    <span class="fw-bold text-dark" id="valDepreciation">200,000,000 VND</span>
+                                </div>
+                                <input type="range" class="form-range" id="slideDepreciation" min="0" max="1500000000" step="10000000" value="200000000">
+                            </div>
+
+                            <!-- Calculations Panel -->
+                            <div class="bg-premium-light rounded-4 p-4 mt-4 border">
+                                <h5 class="fw-bold font-outfit text-dark mb-3"><i class="bi bi-calculator-fill text-info me-2" aria-hidden="true"></i>Tính Toán EBITDA & Chi Phí Loại Trừ</h5>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="small text-secondary">EBITDA Doanh nghiệp:</div>
+                                        <div class="fs-4 fw-bold text-dark" id="resEbitda">0 VND</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="small text-secondary">Trần Chi Phí Lãi Vay (30% EBITDA):</div>
+                                        <div class="fs-4 fw-bold text-dark" id="resEbitdaCap">0 VND</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="small text-secondary">Lãi vay thuần phát sinh:</div>
+                                        <div class="fs-4 fw-bold text-dark" id="resNetInterest">0 VND</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="small text-secondary">Lãi vay không được trừ (Bị loại):</div>
+                                        <div class="fs-4 fw-bold text-danger" id="resDisallowedInterest">0 VND</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-4 pt-3 border-top">
+                                    <div class="small text-secondary">Điều chỉnh lợi nhuận chịu thuế TNDN (Dòng B4):</div>
+                                    <div class="fs-3 fw-bold text-gradient" id="resAdjustedProfit">0 VND</div>
+                                </div>
+                                
+                                <div class="alert alert-info mt-3 py-2 px-3 small border-0 d-flex gap-2 align-items-center" role="alert">
+                                    <i class="bi bi-info-circle-fill" aria-hidden="true"></i>
+                                    <span id="resRpExplanation">Đang phân tích trạng thái giao dịch liên kết…</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: E-INVOICE CRYPTOGRAPHIC XML SIGNATURE VALIDATOR -->
+            <div class="tab-pane fade" id="xml-pane" role="tabpanel" aria-labelledby="xml-tab">
+                <div class="row g-4">
+                    <!-- File upload dropzone -->
+                    <div class="col-lg-5">
+                        <div class="glass-card p-4">
+                            <h4 class="fw-bold font-outfit text-dark mb-3"><i class="bi bi-file-earmark-code text-danger me-2" aria-hidden="true"></i>Tải Lên Hóa Đơn Điện Tử XML</h4>
+                            <p class="text-secondary small">Kéo thả hoặc duyệt file hóa đơn định dạng XML của Tổng Cục Thuế để xác thực chữ ký và CA.</p>
+                            
+                            <div class="dropzone-area p-5 border border-2 border-dashed rounded-4 text-center cursor-pointer transition-all" id="xmlDropzone" style="background-color: var(--card-bg-subtle, #fafafa); border-color: var(--bs-danger-bg-subtle) !important;">
+                                <i class="bi bi-cloud-arrow-up-fill text-danger display-4 mb-3" aria-hidden="true"></i>
+                                <h5 class="fw-bold text-dark font-outfit">Kéo thả XML vào đây</h5>
+                                <p class="text-secondary small mb-3">Hoặc nhấn để chọn file từ máy tính</p>
+                                <input type="file" id="xmlFileInput" accept=".xml" class="d-none">
+                            </div>
+                            
+                            <div class="text-center my-3 text-secondary font-outfit fw-semibold">HOẶC DÙNG MẪU KHÁC</div>
+                            
+                            <button class="btn btn-outline-danger w-100 fw-bold py-2 mb-2 font-outfit" id="btnTestValidXml" type="button">
+                                <i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Kiểm tra với Mẫu XML Hợp lệ
+                            </button>
+                            <button class="btn btn-outline-warning w-100 fw-bold py-2 font-outfit" id="btnTestExpiredXml" type="button">
+                                <i class="bi bi-exclamation-triangle-fill me-1" aria-hidden="true"></i> Kiểm tra với Mẫu XML Hết hạn
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- XML Audit Report card -->
+                    <div class="col-lg-7">
+                        <div class="glass-card p-4" id="xmlReportCard" style="display: none;">
+                            <div class="d-flex align-items-center justify-content-between mb-4">
+                                <h4 class="fw-bold font-outfit text-dark mb-0"><i class="bi bi-file-text text-danger me-2" aria-hidden="true"></i>Kết Quả Thẩm Định Chữ Ký Số</h4>
+                                <span class="badge px-3 py-2 rounded-pill font-outfit" id="lblXmlStatus">VALID</span>
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="p-3 bg-premium-light rounded-3 border">
+                                        <div class="small text-secondary">Trạng thái chữ ký:</div>
+                                        <div class="fw-bold text-dark" id="valXmlHasSig">CÓ CHỮ KÝ</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="p-3 bg-premium-light rounded-3 border">
+                                        <div class="small text-secondary">Tên node chữ ký:</div>
+                                        <div class="fw-bold text-dark" id="valXmlSigType">-</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="p-3 bg-premium-light rounded-3 border">
+                                        <div class="small text-secondary">Thông tin chứng thư (Subject CN):</div>
+                                        <div class="fw-bold text-dark small" id="valXmlSubject">-</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="p-3 bg-premium-light rounded-3 border">
+                                        <div class="small text-secondary">Nhà cung cấp chứng thư (Issuer):</div>
+                                        <div class="fw-bold text-dark small" id="valXmlIssuer">-</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="p-3 bg-premium-light rounded-3 border">
+                                        <div class="small text-secondary">Nhà mạng được GDT tin cậy:</div>
+                                        <div class="fw-bold text-dark" id="valXmlTrustedCa">ĐÃ XÁC MINH</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="p-3 bg-premium-light rounded-3 border">
+                                        <div class="small text-secondary">Có hiệu lực từ:</div>
+                                        <div class="fw-bold text-dark small" id="valXmlValidFrom">-</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="p-3 bg-premium-light rounded-3 border">
+                                        <div class="small text-secondary">Hết hạn vào ngày:</div>
+                                        <div class="fw-bold text-dark small" id="valXmlValidTo">-</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Validation Logs -->
+                            <div class="mt-4 pt-3 border-top">
+                                <h5 class="fw-bold text-dark font-outfit mb-2"><i class="bi bi-list-task me-1 text-danger" aria-hidden="true"></i>Chi tiết Đánh giá An toàn</h5>
+                                <ul class="list-group list-group-flush small mb-3" id="xmlValidationErrors">
+                                    <li class="list-group-item text-success"><i class="bi bi-patch-check-fill me-2" aria-hidden="true"></i>Chữ ký số hợp lệ và cấu trúc XML hoàn chỉnh.</li>
+                                </ul>
+                            </div>
+
+                            <!-- AI Remediation Recommendations -->
+                            <div class="accordion mt-3" id="xmlRemediationAccordion">
+                                <div class="accordion-item border rounded-3 overflow-hidden">
+                                    <h2 class="accordion-header" id="headingRemediation">
+                                        <button class="accordion-button collapsed fw-bold font-outfit small py-2.5" type="button" data-bs-toggle="collapse" data-bs-target="#collapseRemediation" aria-expanded="false" aria-controls="collapseRemediation">
+                                            <i class="bi bi-lightbulb-fill text-warning me-2" aria-hidden="true"></i>Khuyến nghị xử lý & Hướng dẫn Pháp lý
+                                        </button>
+                                    </h2>
+                                    <div id="collapseRemediation" class="accordion-collapse collapse" aria-labelledby="headingRemediation" data-bs-parent="#xmlRemediationAccordion">
+                                        <div class="accordion-body bg-premium-light-subtle text-secondary small" id="xmlRemediationBody">
+                                            Vui lòng tải XML để xem khuyến nghị pháp lý tương ứng.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- XML Content Viewer -->
+                            <div class="accordion mt-3" id="xmlStructureAccordion">
+                                <div class="accordion-item border rounded-3 overflow-hidden">
+                                    <h2 class="accordion-header" id="headingXmlContent">
+                                        <button class="accordion-button collapsed fw-bold font-outfit small py-2.5" type="button" data-bs-toggle="collapse" data-bs-target="#collapseXmlContent" aria-expanded="false" aria-controls="collapseXmlContent">
+                                            <i class="bi bi-code-slash text-primary me-2" aria-hidden="true"></i>Cấu trúc XML mã hóa
+                                        </button>
+                                    </h2>
+                                    <div id="collapseXmlContent" class="accordion-collapse collapse" aria-labelledby="headingXmlContent" data-bs-parent="#xmlStructureAccordion">
+                                        <div class="accordion-body bg-dark text-snow p-0">
+                                            <pre class="m-0 p-3" style="max-height: 250px; overflow-y: auto; font-family: var(--font-monospace); font-size: 0.8rem; white-space: pre-wrap;"><code id="xmlCodeContent">Chưa có nội dung XML.</code></pre>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Empty placeholder state -->
+                        <div class="glass-card p-5 text-center text-secondary border border-2 border-dashed rounded-4 h-100 d-flex flex-column align-items-center justify-content-center" id="xmlEmptyState">
+                            <i class="bi bi-file-earmark-code display-3 text-secondary mb-3" aria-hidden="true"></i>
+                            <h5 class="fw-bold text-dark font-outfit">Chưa có tệp XML để kiểm tra</h5>
+                            <p class="small mb-0">Tải lên tệp hóa đơn hoặc chọn tệp mẫu để xem kết quả thẩm định chữ ký.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.glass-card {
+    background: var(--card-bg, rgba(255, 255, 255, 0.85));
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border-color, rgba(0, 0, 0, 0.08));
+    border-radius: 16px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.04);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.08);
+}
+.text-gradient {
+    background: linear-gradient(135deg, #FF9900 0%, #00B2FE 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.font-outfit {
+    font-family: 'Outfit', sans-serif;
+}
+.transition-all {
+    transition: all 0.2s ease-in-out;
+}
+.dropzone-area:hover {
+    background-color: var(--card-bg-subtle-hover, #f5f5f5) !important;
+    transform: scale(1.02);
+}
+.cursor-pointer {
+    cursor: pointer;
+}
+.icon-shape {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+</style>
+
+<script>
+function switchTab(tabId) {
+    const triggerEl = document.querySelector(`#complianceTab button[id="${tabId}"]`);
+    if (triggerEl) {
+        bootstrap.Tab.getInstance(triggerEl)?.show() || new bootstrap.Tab(triggerEl).show();
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    // MST Selector Change
+    const mstSelector = document.getElementById("mstSelector");
+    mstSelector.addEventListener("change", function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.set('mst', mstSelector.value);
+        window.location.search = urlParams.toString();
+    });
+
+    // FCT Calculator Handler
+    const btnCalculateFCT = document.getElementById("btnCalculateFCT");
+    btnCalculateFCT.addEventListener("click", function () {
+        const val = parseFloat(document.getElementById("fctContractValue").value) || 0;
+        const ctype = document.getElementById("fctContractType").value;
+        const cat = document.getElementById("fctCategory").value;
+        
+        fetch("/api/v40/fct/calculate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ contract_value: val, contract_type: ctype, service_category: cat })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === "success") {
+                const calc = data.calculation;
+                document.getElementById("resFCTVatRate").innerText = (calc.fct_vat_rate * 100) + "%";
+                document.getElementById("resFCTCitRate").innerText = (calc.fct_cit_rate * 100) + "%";
+                document.getElementById("resFCTTotal").innerText = calc.total_fct_withheld.toLocaleString() + " VND";
+                document.getElementById("resFCTNet").innerText = calc.net_payment_contractor.toLocaleString() + " VND";
+                
+                document.getElementById("resFCTRevenueVat").innerText = calc.taxable_revenue_vat.toLocaleString() + " VND";
+                document.getElementById("resFCTVatAmount").innerText = calc.fct_vat_amount.toLocaleString() + " VND";
+                document.getElementById("resFCTRevenueCit").innerText = calc.taxable_revenue_cit.toLocaleString() + " VND";
+                document.getElementById("resFCTCitAmount").innerText = calc.fct_cit_amount.toLocaleString() + " VND";
+                
+                // Render suggested journal entries
+                const journalList = document.getElementById("fctJournalList");
+                journalList.innerHTML = "";
+                calc.suggested_journal_entries.forEach(entry => {
+                    const el = document.createElement("div");
+                    el.className = "list-group-item py-3";
+                    el.innerHTML = `
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="fw-bold text-dark">${entry.description}</span>
+                            <span class="fw-bold text-primary">${entry.amount.toLocaleString()} VND</span>
+                        </div>
+                        <div class="d-flex gap-3 text-secondary small">
+                            <span>Nợ TK: <strong class="text-dark">${entry.account_debit}</strong></span>
+                            <span>Có TK: <strong class="text-dark">${entry.account_credit}</strong></span>
+                        </div>
+                    `;
+                    journalList.appendChild(el);
+                });
+            }
+        });
+    });
+
+    // FCT Declaration Load
+    const btnLoadFCTDeclaration = document.getElementById("btnLoadFCTDeclaration");
+    btnLoadFCTDeclaration.addEventListener("click", function () {
+        const mst = mstSelector.value;
+        fetch(`/api/v40/fct/declaration?mst=${mst}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === "success") {
+                const dec = data.declaration;
+                const tbody = document.querySelector("#tblFCTDeclaration tbody");
+                tbody.innerHTML = "";
+                
+                if (dec.items.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="9" class="text-center text-secondary py-4">Không tìm thấy giao dịch với nhà thầu nước ngoài nào cho MST ${mst} trong kỳ.</td></tr>`;
+                    return;
+                }
+                
+                dec.items.forEach(item => {
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td>${item.item_no}</td>
+                        <td class="fw-bold text-dark">${item.contractor_name}</td>
+                        <td><code>${item.contract_no}</code></td>
+                        <td><span class="badge bg-secondary">${item.category}</span></td>
+                        <td class="text-end">${item.taxable_revenue_vat.toLocaleString()}</td>
+                        <td class="text-end fw-semibold text-danger">${item.fct_vat_amount.toLocaleString()}</td>
+                        <td class="text-end">${item.taxable_revenue_cit.toLocaleString()}</td>
+                        <td class="text-end fw-semibold text-danger">${item.fct_cit_amount.toLocaleString()}</td>
+                        <td class="text-end fw-bold text-dark">${item.total_fct.toLocaleString()}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+        });
+    });
+
+    // Related Party EBITDA Slider & Calculation
+    const slides = ["slideEbt", "slideInterestExpense", "slideInterestIncome", "slideDepreciation"];
+    const labels = {
+        "slideEbt": "valEbt",
+        "slideInterestExpense": "valInterestExpense",
+        "slideInterestIncome": "valInterestIncome",
+        "slideDepreciation": "valDepreciation"
+    };
+    
+    function updateEbitdaLimit() {
+        const ebt = parseFloat(document.getElementById("slideEbt").value);
+        const ie = parseFloat(document.getElementById("slideInterestExpense").value);
+        const ii = parseFloat(document.getElementById("slideInterestIncome").value);
+        const depr = parseFloat(document.getElementById("slideDepreciation").value);
+        
+        // Update label values
+        document.getElementById("valEbt").innerText = ebt.toLocaleString() + " VND";
+        document.getElementById("valInterestExpense").innerText = ie.toLocaleString() + " VND";
+        document.getElementById("valInterestIncome").innerText = ii.toLocaleString() + " VND";
+        document.getElementById("valDepreciation").innerText = depr.toLocaleString() + " VND";
+        
+        const mst = mstSelector.value;
+        fetch(`/api/v40/related-party/ebitda-limit?mst=${mst}&profit_before_tax=${ebt}&interest_expense=${ie}&interest_income=${ii}&depreciation_amortization=${depr}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === "success") {
+                const audit = data.audit;
+                document.getElementById("resEbitda").innerText = audit.ebitda.toLocaleString() + " VND";
+                document.getElementById("resEbitdaCap").innerText = audit.interest_cap_30.toLocaleString() + " VND";
+                document.getElementById("resNetInterest").innerText = audit.net_interest_expense.toLocaleString() + " VND";
+                document.getElementById("resDisallowedInterest").innerText = audit.disallowed_interest.toLocaleString() + " VND";
+                document.getElementById("resAdjustedProfit").innerText = audit.adjusted_taxable_profit.toLocaleString() + " VND";
+                document.getElementById("resRpExplanation").innerText = audit.explanation;
+            }
+        });
+    }
+
+    slides.forEach(id => {
+        document.getElementById(id).addEventListener("input", updateEbitdaLimit);
+    });
+    
+    // Initial run
+    updateEbitdaLimit();
+
+    // Related Party Add
+    const btnAddRelatedParty = document.getElementById("btnAddRelatedParty");
+    btnAddRelatedParty.addEventListener("click", function () {
+        const pmst = document.getElementById("rpPartnerMst").value;
+        const pname = document.getElementById("rpPartnerName").value;
+        const rtype = document.getElementById("rpType").value;
+        const own = parseFloat(document.getElementById("rpOwnership").value) || 0;
+        const details = document.getElementById("rpDetails").value;
+        const mst = mstSelector.value;
+
+        if (!pmst || !pname) {
+            alert("Vui lòng nhập đầy đủ mã số thuế và tên đối tác liên kết!");
+            return;
+        }
+
+        fetch("/api/v40/related-party/relationship", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                mst: mst,
+                partner_mst: pmst,
+                partner_name: pname,
+                relationship_type: rtype,
+                ownership_percentage: own,
+                details: details
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === "success") {
+                alert("Đã lưu thành công quan hệ liên kết!");
+                updateEbitdaLimit();
+            } else {
+                alert("Lỗi: " + data.error);
+            }
+        });
+    });
+
+    // XML Dropzone Verification
+    const xmlDropzone = document.getElementById("xmlDropzone");
+    const xmlFileInput = document.getElementById("xmlFileInput");
+    const xmlReportCard = document.getElementById("xmlReportCard");
+    const xmlEmptyState = document.getElementById("xmlEmptyState");
+    
+    xmlDropzone.addEventListener("click", () => xmlFileInput.click());
+    xmlFileInput.addEventListener("change", function () {
+        if (xmlFileInput.files.length > 0) {
+            uploadXml(xmlFileInput.files[0]);
+        }
+    });
+
+    function uploadXml(file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById("xmlCodeContent").innerText = e.target.result;
+        };
+        reader.readAsText(file);
+
+        const formData = new FormData();
+        formData.append("file", file);
+        
+        fetch("/api/v40/xml/verify", {
+            method: "POST",
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === "success") {
+                renderXmlReport(data.verification);
+            }
+        });
+    }
+
+    function renderXmlReport(report) {
+        xmlEmptyState.style.display = "none";
+        xmlReportCard.style.display = "block";
+        
+        document.getElementById("valXmlHasSig").innerText = report.has_signature ? "ĐÃ KÝ SỐ" : "KHÔNG CÓ CHỮ KÝ";
+        document.getElementById("valXmlSigType").innerText = report.signature_node_type || "N/A";
+        document.getElementById("valXmlSubject").innerText = report.cert_subject || "N/A";
+        document.getElementById("valXmlIssuer").innerText = report.cert_issuer || "N/A";
+        document.getElementById("valXmlTrustedCa").innerText = report.is_trusted_ca ? "TIN CẬY (GDT Approved)" : "CHƯA KIỂM CHỨNG";
+        document.getElementById("valXmlValidFrom").innerText = report.valid_from || "N/A";
+        document.getElementById("valXmlValidTo").innerText = report.valid_to || "N/A";
+        
+        const badge = document.getElementById("lblXmlStatus");
+        badge.innerText = report.status;
+        badge.className = "badge px-3 py-2 rounded-pill font-outfit";
+        if (report.status === "VALID") {
+            badge.classList.add("bg-success");
+        } else if (report.status === "EXPIRED") {
+            badge.classList.add("bg-warning");
+        } else {
+            badge.classList.add("bg-danger");
+        }
+        
+        const errorsList = document.getElementById("xmlValidationErrors");
+        errorsList.innerHTML = "";
+        if (report.validation_errors.length === 0) {
+            const li = document.createElement("li");
+            li.className = "list-group-item text-success d-flex gap-2 align-items-center";
+            li.innerHTML = `<i class="bi bi-check-circle-fill" aria-hidden="true"></i> Chứng thư hợp lệ. Chữ ký số an toàn theo Nghị định 123/2020.`;
+            errorsList.appendChild(li);
+        } else {
+            report.validation_errors.forEach(err => {
+                const li = document.createElement("li");
+                li.className = "list-group-item text-danger d-flex gap-2 align-items-center";
+                li.innerHTML = `<i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i> ${err}`;
+                errorsList.appendChild(li);
+            });
+        }
+
+        // Dynamic AI Recommendations & Legal Remediation Guidelines
+        const recBody = document.getElementById("xmlRemediationBody");
+        let recHtml = "";
+        if (report.status === "VALID") {
+            recHtml = `
+                <div class="p-3 bg-success-subtle text-success-emphasis rounded-3 border border-success border-opacity-25 mb-2">
+                    <p class="mb-1 fw-bold"><i class="bi bi-shield-fill-check me-1"></i> Khuyến nghị từ AI Agent (Luật Kế toán & Nghị định 123):</p>
+                    <p class="mb-0">Hóa đơn điện tử này đã được ký số hợp lệ bằng chứng thư số tin cậy. 
+                    Doanh nghiệp được phép kê khai thuế GTGT đầu vào và hạch toán chi phí hợp lý. 
+                    Hãy thực hiện lưu trữ tệp XML gốc tối thiểu 10 năm tại hệ thống kế toán nội bộ hoặc lưu trữ đám mây an toàn.</p>
+                </div>
+            `;
+        } else if (report.status === "EXPIRED") {
+            recHtml = `
+                <div class="p-3 bg-warning-subtle text-warning-emphasis rounded-3 border border-warning border-opacity-25 mb-2">
+                    <p class="mb-1 fw-bold"><i class="bi bi-exclamation-triangle-fill me-1"></i> Hướng dẫn pháp lý & Hành động xử lý:</p>
+                    <p class="mb-2">Chứng thư số ký hóa đơn đã hết hạn hiệu lực tại thời điểm ký hoặc kiểm tra. 
+                    Theo Nghị định 123/2020/NĐ-CP, hóa đơn điện tử không có chữ ký số hợp lệ sẽ không được khấu trừ thuế đầu vào.</p>
+                    <p class="mb-0 fw-bold"><i class="bi bi-arrow-right-short"></i> Các bước xử lý đề xuất:</p>
+                    <ul class="mb-0 ps-3">
+                        <li><strong>Bước 1:</strong> Liên hệ ngay với bên bán để yêu cầu lập hóa đơn thay thế mới sử dụng chữ ký số đang còn hạn.</li>
+                        <li><strong>Bước 2:</strong> Nếu thời điểm ký thực tế (trong chứng thư) vẫn hợp lệ nhưng thời điểm kiểm tra hết hạn, hãy xuất trình nhật ký ký số (Time-stamping) để giải trình với Cơ quan Thuế.</li>
+                    </ul>
+                </div>
+            `;
+        } else {
+            recHtml = `
+                <div class="p-3 bg-danger-subtle text-danger-emphasis rounded-3 border border-danger border-opacity-25 mb-2">
+                    <p class="mb-1 fw-bold"><i class="bi bi-x-octagon-fill me-1"></i> Cảnh báo Pháp lý & Hành động khẩn cấp:</p>
+                    <p class="mb-2">Chữ ký số không hợp lệ, không có cấu trúc chữ ký ký số, hoặc sử dụng chứng thư tự ký (Self-signed) không được Bộ Thông tin và Truyền thông / Tổng cục Thuế công nhận.</p>
+                    <p class="mb-0 fw-bold"><i class="bi bi-arrow-right-short"></i> Các bước xử lý đề xuất:</p>
+                    <ul class="mb-0 ps-3">
+                        <li><strong>Bước 1:</strong> Không sử dụng hóa đơn này để kê khai thuế GTGT hoặc hạch toán chi phí được trừ khi tính thuế TNDN.</li>
+                        <li><strong>Bước 2:</strong> Gửi thông báo sai sót hóa đơn điện tử cho bên bán, yêu cầu họ làm thủ tục hủy hóa đơn lỗi này và phát hành lại hóa đơn điện tử hợp lệ mới.</li>
+                    </ul>
+                </div>
+            `;
+        }
+        recBody.innerHTML = recHtml;
+    }
+
+    // Mock Sample Buttons
+    document.getElementById("btnTestValidXml").addEventListener("click", function () {
+        const mockValid = `<?xml version="1.0" encoding="utf-8"?>
+<HDon>
+    <DLHDon>
+        <MHD>HD-123456</MHD>
+        <SOHDON>0001245</SOHDON>
+        <NGAYHD>2026-06-11</NGAYHD>
+    </DLHDon>
+    <Signature>
+        <SignedInfo>
+            <CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" />
+            <SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256" />
+        </SignedInfo>
+        <SignatureValue>SIG_VALUE_VALID_MOCK</SignatureValue>
+        <KeyInfo>
+            <X509Data>
+                <X509Certificate>MIIFxTCCBK2gAwIBAgIUTESTING...</X509Certificate>
+            </X509Data>
+        </KeyInfo>
+    </Signature>
+</HDon>`;
+        document.getElementById("xmlCodeContent").innerText = mockValid;
+        fetch("/api/v40/xml/verify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ xml_content: mockValid })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === "success") {
+                renderXmlReport(data.verification);
+            }
+        });
+    });
+
+    document.getElementById("btnTestExpiredXml").addEventListener("click", function () {
+        const mockExpired = `<?xml version="1.0" encoding="utf-8"?>
+<HDon>
+    <DLHDon>
+        <MHD>HD-EXPIRED-99</MHD>
+        <SOHDON>0009988</SOHDON>
+        <NGAYHD>2020-05-15</NGAYHD>
+    </DLHDon>
+    <Signature>
+        <SignedInfo>
+            <CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" />
+            <SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256" />
+        </SignedInfo>
+        <SignatureValue>SIG_VALUE_EXPIRED</SignatureValue>
+        <KeyInfo>
+            <X509Data>
+                <X509Certificate>EXPIRED_CERT_METADATA_MOCK_BASE64</X509Certificate>
+            </X509Data>
+        </KeyInfo>
+    </Signature>
+</HDon>`;
+        document.getElementById("xmlCodeContent").innerText = mockExpired;
+        fetch("/api/v40/xml/verify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ xml_content: mockExpired })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === "success") {
+                renderXmlReport(data.verification);
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

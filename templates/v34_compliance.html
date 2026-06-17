@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}V34 - Phân Tích Tuổi Nợ & Quản Lý Công Nợ{% endblock %}
+{% block content %}
+<div class="container-fluid px-4 py-4">
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h2 class="fw-bold mb-1" style="letter-spacing:-0.5px">
+        <i class="bi bi-graph-up-arrow me-2 text-danger" aria-hidden="true"></i>Phân Tích Tuổi Nợ & Quản Lý Công Nợ AR/AP
+      </h2>
+      <p class="text-secondary mb-0">Version 34.0.0 - Invoice Aging Analysis & Accounts Receivable/Payable Management</p>
+    </div>
+    <span class="badge bg-danger bg-opacity-25 text-danger px-3 py-2 fs-6 rounded-pill">US-460 • US-461</span>
+  </div>
+
+  <!-- KPI Summary Cards -->
+  <div class="row g-3 mb-4" id="kpiCards" style="display:none">
+    <div class="col-md-3"><div class="card border-0 shadow-sm h-100" style="border-radius:14px"><div class="card-body text-center">
+      <div class="text-primary mb-1"><i class="bi bi-arrow-down-circle fs-3" aria-hidden="true"></i></div>
+      <div class="small text-muted">Tổng phải thu (AR)</div>
+      <div class="fw-bold fs-5" id="kpiAR">-</div>
+    </div></div></div>
+    <div class="col-md-3"><div class="card border-0 shadow-sm h-100" style="border-radius:14px"><div class="card-body text-center">
+      <div class="text-warning mb-1"><i class="bi bi-arrow-up-circle fs-3" aria-hidden="true"></i></div>
+      <div class="small text-muted">Tổng phải trả (AP)</div>
+      <div class="fw-bold fs-5" id="kpiAP">-</div>
+    </div></div></div>
+    <div class="col-md-3"><div class="card border-0 shadow-sm h-100" style="border-radius:14px"><div class="card-body text-center">
+      <div class="text-danger mb-1"><i class="bi bi-exclamation-triangle fs-3" aria-hidden="true"></i></div>
+      <div class="small text-muted">AR quá hạn</div>
+      <div class="fw-bold fs-5" id="kpiOverdue">-</div>
+    </div></div></div>
+    <div class="col-md-3"><div class="card border-0 shadow-sm h-100" style="border-radius:14px"><div class="card-body text-center">
+      <div class="text-success mb-1"><i class="bi bi-cash-stack fs-3" aria-hidden="true"></i></div>
+      <div class="small text-muted">Vị thế ròng</div>
+      <div class="fw-bold fs-5" id="kpiNet">-</div>
+    </div></div></div>
+  </div>
+
+  <!-- Controls -->
+  <div class="card border-0 shadow-sm mb-4" style="border-radius:14px">
+    <div class="card-body px-4 py-3 d-flex align-items-center gap-3">
+      <label class="form-label mb-0 fw-semibold small">Ngày phân tích:</label>
+      <input type="date" id="asOfDate" class="form-control form-control-sm w-auto" value="2026-06-10" style="border-radius:8px" autocomplete="off" aria-label="Asofdate">
+      <button class="btn btn-danger btn-sm rounded-pill px-4" onclick="runAging()"><i class="bi bi-bar-chart me-1" aria-hidden="true"></i>Phân tích</button>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Heatmap -->
+    <div class="col-lg-7">
+      <div class="card border-0 shadow-sm h-100" style="border-radius:16px">
+        <div class="card-header bg-transparent border-0 pt-4 pb-2 px-4">
+          <h5 class="fw-bold mb-0"><i class="bi bi-grid-3x3-gap me-2 text-danger" aria-hidden="true"></i>Bản Đồ Nhiệt Tuổi Nợ</h5>
+        </div>
+        <div class="card-body px-4 pb-4">
+          <div id="heatmapContainer" class="text-center text-secondary py-5">
+            <i class="bi bi-grid-3x3 fs-1 d-block mb-2" aria-hidden="true"></i>Nhấn <strong>Phân tích</strong> để hiển thị.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Swarm Chat -->
+    <div class="col-lg-5">
+      <div class="card border-0 shadow-sm h-100" style="border-radius:16px">
+        <div class="card-header bg-transparent border-0 pt-4 pb-2 px-4">
+          <h5 class="fw-bold mb-0"><i class="bi bi-robot me-2 text-warning" aria-hidden="true"></i>AI Swarm Tư Vấn Công Nợ</h5>
+        </div>
+        <div class="card-body px-4 pb-4 d-flex flex-column">
+          <div id="swarmChat" class="flex-grow-1 overflow-auto mb-3 p-3 rounded-3"
+               style="background:var(--bs-tertiary-bg);min-height:300px;max-height:420px;border-radius:12px!important">
+            <div class="text-center text-secondary py-5"><i class="bi bi-chat-dots fs-1 d-block mb-2" aria-hidden="true"></i>Nhấn <strong>Phân tích Swarm</strong> sau khi phân tích tuổi nợ.</div>
+          </div>
+          <button class="btn btn-warning rounded-pill px-4" onclick="runSwarm()" id="btnSwarm" disabled>
+            <i class="bi bi-lightning me-1" aria-hidden="true"></i>Phân tích Swarm AI
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function fmt(n){return new Intl.NumberFormat('vi-VN').format(Math.round(n));}
+
+function runAging(){
+  const d=document.getElementById('asOfDate').value;
+  fetch('/api/compliance/invoice-aging',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({as_of_date:d})})
+  .then(r=>r.json()).then(data=>{
+    const ar=data.accounts_receivable, ap=data.accounts_payable;
+    document.getElementById('kpiAR').textContent=fmt(ar.total_outstanding)+'đ';
+    document.getElementById('kpiAP').textContent=fmt(ap.total_outstanding)+'đ';
+    document.getElementById('kpiOverdue').textContent=fmt(ar.overdue_amount)+'đ ('+ar.overdue_pct.toFixed(1)+'%)';
+    document.getElementById('kpiNet').textContent=fmt(ar.total_outstanding-ap.total_outstanding)+'đ';
+    document.getElementById('kpiCards').style.display='';
+    document.getElementById('btnSwarm').disabled=false;
+    // Load heatmap
+    fetch('/api/compliance/aging-heatmap',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({as_of_date:d})})
+    .then(r=>r.json()).then(hm=>{renderHeatmap(hm);});
+  });
+}
+
+function renderHeatmap(hm){
+  const c=document.getElementById('heatmapContainer');c.innerHTML='';
+  hm.sections.forEach(s=>{
+    let html=`<div class="mb-4"><h6 class="fw-bold text-start mb-2">${s.label} <span class="text-muted fw-normal small">(Tổng: ${fmt(s.grand_total)}đ)</span></h6><div class="d-flex gap-2 flex-wrap">`;
+    s.cells.forEach(cell=>{
+      const opacity=0.15+cell.intensity*0.85;
+      html+=`<div class="rounded-3 p-3 text-center flex-fill" style="background:${cell.color};opacity:${opacity};min-width:120px;color:#fff">
+        <div class="fw-bold">${cell.label}</div>
+        <div class="fs-5 fw-bold">${cell.count} HĐ</div>
+        <div class="small">${fmt(cell.total)}đ</div>
+        <div class="small">${cell.percentage}%</div>
+      </div>`;
+    });
+    html+='</div></div>';
+    c.innerHTML+=html;
+  });
+}
+
+function runSwarm(){
+  const chat=document.getElementById('swarmChat');
+  chat.innerHTML='<div class="text-center py-4"><div class="spinner-border text-warning"></div></div>';
+  fetch('/api/agents/swarm-v34-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({taxpayer_name:'Công ty TNHH Giải pháp Phần mềm'})})
+  .then(r=>r.json()).then(d=>{
+    chat.innerHTML='';
+    d.chat_steps.forEach((s,i)=>{
+      const div=document.createElement('div');div.className='mb-3';
+      div.innerHTML=`<div class="d-flex gap-2 align-items-start">
+        <span class="badge ${s.avatar_class} rounded-circle p-2 flex-shrink-0" style="width:34px;height:34px;display:flex;align-items:center;justify-content:center"><i class="bi bi-robot" aria-hidden="true"></i></span>
+        <div><div class="fw-bold small">${s.agent} <span class="text-muted fw-normal">: ${s.role}</span><span class="text-muted ms-2" style="font-size:0.7rem">${s.timestamp}</span></div>
+        <div class="small mt-1">${s.message}</div></div></div>`;
+      chat.appendChild(div);
+    });
+  });
+}
+</script>
+{% endblock %}

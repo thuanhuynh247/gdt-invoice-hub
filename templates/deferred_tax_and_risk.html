@@ -1,0 +1,734 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid py-4" style="font-family: 'Inter', sans-serif;">
+    <!-- Page Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 pb-3 border-bottom gap-3">
+        <div>
+            <h1 class="fw-bold text-gradient display-6 mb-1" style="font-family: 'Outfit', sans-serif;">Hoãn Thuế VAS 17 & Rủi Ro Dòng Tiền - Nhà Cung Cấp</h1>
+            <p class="text-secondary mb-0">Hệ thống phân tích chênh lệch thuế hoãn lại, kịch bản stress test dòng tiền & mạng lưới rủi ro đối tác v39</p>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <span class="badge bg-primary text-snow px-3 py-2 rounded-pill fs-6 fw-semibold">Version 39.0.0</span>
+        </div>
+    </div>
+
+    <!-- Active MST Switcher & Global Filters -->
+    <div class="card border-0 shadow-sm glass-card mb-4 p-3">
+        <div class="row g-3 align-items-center">
+            <div class="col-md-4">
+                <label class="form-label small fw-semibold text-secondary mb-1">Doanh Nghiệp Đang Phân Tích</label>
+                <select class="form-select" id="v39TaxpayerSelector" onchange="switchTaxpayerMst(this.value)">
+                    {% for p in profiles %}
+                    <option value="{{ p.mst }}" {% if p.mst == taxpayer_mst %}selected{% endif %}>{{ p.company_name }} ({{ p.mst }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold text-secondary mb-1">Năm Quyết Toán</label>
+                <select class="form-select" id="v39FilingYear" onchange="loadDeferredTaxData()">
+                    <option value="2026" selected>Năm 2026</option>
+                    <option value="2027">Năm 2027</option>
+                </select>
+            </div>
+            <div class="col-md-5 d-flex justify-content-md-end align-items-end pt-2">
+                <button class="btn btn-primary text-snow fw-semibold px-4" onclick="refreshAllV39Data()">
+                    <i class="bi bi-arrow-clockwise me-2" aria-hidden="true"></i> Tải Lại Toàn Bộ Dữ Liệu
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs (Bento Grid View Options) -->
+    <ul class="nav nav-pills nav-fill mb-4 p-1 bg-dark-subtle rounded-3 shadow-sm" id="v39Tabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-semibold py-2.5 rounded-3 d-flex align-items-center justify-content-center gap-2" id="tax-tab" data-bs-toggle="tab" data-bs-target="#tax-panel" type="button" role="tab"><i class="bi bi-bank" aria-hidden="true"></i> Hoãn Thuế (VAS 17)</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-semibold py-2.5 rounded-3 d-flex align-items-center justify-content-center gap-2" id="stress-tab" data-bs-toggle="tab" data-bs-target="#stress-panel" type="button" role="tab"><i class="bi bi-graph-down-arrow" aria-hidden="true"></i> Stress Test Dòng Tiền</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-semibold py-2.5 rounded-3 d-flex align-items-center justify-content-center gap-2" id="risk-tab" data-bs-toggle="tab" data-bs-target="#risk-panel" type="button" role="tab"><i class="bi bi-shield-exclamation" aria-hidden="true"></i> Rủi Ro Nhà Cung Cấp</button>
+        </li>
+    </ul>
+
+    <!-- Tab Panels -->
+    <div class="tab-content" id="v39TabContent">
+        
+        <!-- 1. VAS 17 DEFERRED TAX PANEL -->
+        <div class="tab-pane fade show active" id="tax-panel" role="tabpanel" aria-labelledby="tax-tab">
+            <div class="row g-4">
+                <!-- Summary Stats (Top Bento Item) -->
+                <div class="col-12">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <div class="card border-0 shadow-sm glass-card p-3 text-center">
+                                <small class="text-secondary d-block mb-1">Lợi nhuận kế toán</small>
+                                <strong class="fs-4 text-dark" id="lblAccountingProfit">--</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-0 shadow-sm glass-card p-3 text-center">
+                                <small class="text-secondary d-block mb-1">Thu nhập tính thuế</small>
+                                <strong class="fs-4 text-primary" id="lblTaxableIncome">--</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-0 shadow-sm glass-card p-3 text-center">
+                                <small class="text-secondary d-block mb-1">Tài sản thuế hoãn lại</small>
+                                <strong class="fs-4 text-success" id="lblDeferredTaxAssets">--</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-0 shadow-sm glass-card p-3 text-center">
+                                <small class="text-secondary d-block mb-1">Biến động DTA kỳ này</small>
+                                <strong class="fs-4 text-info" id="lblDtaMovement">--</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Temporary & Permanent Differences Tables -->
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-sm glass-card p-4 mb-4">
+                        <h4 class="fw-bold mb-3" style="font-family: 'Outfit', sans-serif;"><i class="bi bi-calculator text-primary" aria-hidden="true"></i> Chi Tiết Chênh Lệch Tạm Thời (Temporary Differences)</h4>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle border">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Loại Chênh Lệch</th>
+                                        <th>Mô Tả / Mã tài sản</th>
+                                        <th class="text-end">Khấu hao kế toán</th>
+                                        <th class="text-end">Khấu hao tính thuế</th>
+                                        <th class="text-end">Giá Trị Chênh Lệch</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="deprDiffTableBody">
+                                    <!-- Dynamic -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <h4 class="fw-bold mt-4 mb-3" style="font-family: 'Outfit', sans-serif;"><i class="bi bi-exclamation-triangle text-warning" aria-hidden="true"></i> Chênh Lệch Vĩnh Viễn (Disallowed Expenses)</h4>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle border">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Loại Chi Phí Không Được Trừ</th>
+                                        <th class="text-end">Giá Trị</th>
+                                        <th>Căn cứ Pháp lý / Giải thích</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="permDiffTableBody">
+                                    <!-- Dynamic -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Journal Entry Scaffolder -->
+                <div class="col-lg-4">
+                    <div class="card border-info border-2 shadow-sm rounded-3 p-4 bg-info-subtle mb-4">
+                        <h4 class="fw-bold text-info-emphasis mb-3" style="font-family: 'Outfit', sans-serif;"><i class="bi bi-book-half" aria-hidden="true"></i> Bút Toán Ghi Nhận Đề Xuất</h4>
+                        <p class="small text-secondary-emphasis">Bút toán định khoản tự động cho chênh lệch thuế thu nhập hoãn lại theo Thông tư 200 & VAS 17:</p>
+                        
+                        <div id="journalEntriesContainer">
+                            <!-- Dynamic -->
+                        </div>
+
+                        <div class="mt-4 text-center">
+                            <button class="btn btn-outline-info text-dark fw-bold w-100" onclick="exportJournalJSON()">
+                                <i class="bi bi-file-earmark-arrow-down-fill me-2" aria-hidden="true"></i> Xuất Bút Toán JSON
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. CASH-FLOW STRESS TEST PANEL -->
+        <div class="tab-pane fade" id="stress-panel" role="tabpanel" aria-labelledby="stress-tab">
+            <div class="row g-4">
+                <!-- Sliders & Inputs -->
+                <div class="col-lg-5">
+                    <div class="card border-0 shadow-sm glass-card p-4 h-100">
+                        <h4 class="fw-bold mb-3" style="font-family: 'Outfit', sans-serif;"><i class="bi bi-sliders text-primary" aria-hidden="true"></i> Thanh Trượt Kịch Bản Stress Test</h4>
+                        <p class="text-secondary small">Kéo các thanh trượt để mô phỏng sự biến động của chu kỳ thu hồi nợ (DSO) và chu kỳ thanh toán cho nhà cung cấp (DPO).</p>
+                        
+                        <!-- DSO Slider -->
+                        <div class="mb-4 pt-2">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="fw-semibold small">Trễ hạn Thu hồi nợ (DSO Offset)</label>
+                                <span class="badge bg-primary px-2 py-1" id="valDso">0 ngày</span>
+                            </div>
+                            <input type="range" class="form-range" id="sliderDso" min="0" max="90" value="0" step="5" oninput="updateSlidersAndSimulate()">
+                            <div class="d-flex justify-content-between text-muted small mt-1">
+                                <span>0d (Bình thường)</span>
+                                <span>+45d</span>
+                                <span>+90d (Stress nặng)</span>
+                            </div>
+                        </div>
+
+                        <!-- DPO Slider -->
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="fw-semibold small">Kéo dài hạn Trả nợ (DPO Offset)</label>
+                                <span class="badge bg-info text-dark px-2 py-1" id="valDpo">0 ngày</span>
+                            </div>
+                            <input type="range" class="form-range" id="sliderDpo" min="0" max="90" value="0" step="5" oninput="updateSlidersAndSimulate()">
+                            <div class="d-flex justify-content-between text-muted small mt-1">
+                                <span>0d (Bình thường)</span>
+                                <span>+45d</span>
+                                <span>+90d (Giảm áp lực)</span>
+                            </div>
+                        </div>
+
+                        <!-- Financial Indicators Summary -->
+                        <div class="p-3 bg-premium-light rounded-3 border">
+                            <h5 class="fw-bold small text-secondary uppercase mb-3">Thông Số Cơ Bản Doanh Nghiệp</h5>
+                            <div class="row g-2 text-start">
+                                <div class="col-6 mb-2">
+                                    <small class="text-muted d-block">Số dư tiền mặt hiện tại</small>
+                                    <strong class="text-dark" id="lblCurrentCash">2.500.000.000đ</strong>
+                                </div>
+                                <div class="col-6 mb-2">
+                                    <small class="text-muted d-block">Chi phí cố định hàng tháng</small>
+                                    <strong class="text-dark" id="lblMonthlyOpex">450.000.000đ</strong>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted d-block">Dự thu 90 ngày tới</small>
+                                    <strong class="text-success" id="lblProjectedInflows">--</strong>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted d-block">Dự chi 90 ngày tới</small>
+                                    <strong class="text-danger" id="lblProjectedOutflows">--</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Simulation Gauge & Runway Indicators -->
+                <div class="col-lg-7">
+                    <div class="card border-0 shadow-sm glass-card p-4 h-100 text-center d-flex flex-column justify-content-between">
+                        <div>
+                            <h4 class="fw-bold mb-3 text-start" style="font-family: 'Outfit', sans-serif;"><i class="bi bi-speedometer text-info" aria-hidden="true"></i> Chỉ Số Duy Trì Dòng Tiền (Cash Runway Gauge)</h4>
+                            <p class="text-secondary small text-start">Thời gian tối đa doanh nghiệp có thể hoạt động bằng dòng tiền hiện tại trước khi cạn kiệt nguồn lực.</p>
+                        </div>
+
+                        <!-- Circular SVG Runway Gauge -->
+                        <div class="d-flex justify-content-center align-items-center my-4" id="runwayGaugeContainer">
+                            <!-- Gauge injected here -->
+                        </div>
+
+                        <div class="p-3 rounded-3 border border-secondary-subtle" id="runwayAlertBox">
+                            <h5 class="fw-bold mb-1" id="lblRunwayStatus">Đang phân tích…</h5>
+                            <p class="mb-0 small" id="lblRunwayMsg">Vui lòng điều chỉnh thanh trượt để kiểm tra.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. SUPPLIER RISK & NETWORK GRAPH PANEL -->
+        <div class="tab-pane fade" id="risk-panel" role="tabpanel" aria-labelledby="risk-tab">
+            <div class="row g-4">
+                <!-- Network Graph Bento Column -->
+                <div class="col-lg-7">
+                    <div class="card border-0 shadow-sm glass-card p-4 h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h4 class="fw-bold mb-0" style="font-family: 'Outfit', sans-serif;"><i class="bi bi-diagram-3-fill text-primary" aria-hidden="true"></i> Bản Đồ Mạng Lưới Rủi Ro Đối Tác</h4>
+                            <span class="badge bg-secondary">Nhà cung cấp ngoại vi</span>
+                        </div>
+                        <p class="text-secondary small">Kích thước nút thể hiện quy mô giao dịch. Màu sắc thể hiện xếp hạng tín nhiệm của nhà cung cấp. Bấm vào nút để xem thông tin chi tiết.</p>
+                        
+                        <!-- Interactive SVG Graph Container -->
+                        <div class="border rounded bg-dark position-relative d-flex align-items-center justify-content-center" style="height: 400px; min-height: 400px;" id="networkGraphContainer">
+                            <!-- SVG injected dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Supplier Scorecard and Live GDT Auditor Column -->
+                <div class="col-lg-5">
+                    <div class="card border-0 shadow-sm glass-card p-4 h-100">
+                        <h4 class="fw-bold mb-3" style="font-family: 'Outfit', sans-serif;"><i class="bi bi-shield-check text-success" aria-hidden="true"></i> Kiểm Tra Nhanh Trạng Thái MST Tổng Cục Thuế</h4>
+                        <p class="text-secondary small">Trực tiếp mô phỏng việc truy vấn cổng thông tin Tổng cục Thuế để xác minh trạng thái pháp lý của đối tác.</p>
+                        
+                        <div class="row g-2 mb-4">
+                            <div class="col-8">
+                                <input type="text" class="form-control" id="txtScraperMst" placeholder="Nhập MST nhà cung cấp" autocomplete="off" aria-label="Nhập MST nhà cung cấp">
+                            </div>
+                            <div class="col-4">
+                                <button class="btn btn-success text-snow w-100 fw-semibold" onclick="simulateGdtCheck()">
+                                    <i class="bi bi-search" aria-hidden="true"></i> Kiểm Tra
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Live Scraper Result Box -->
+                        <div class="p-3 bg-premium-light rounded border border-success-subtle mb-4 d-none" id="scraperResultBox">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="fw-bold mb-0 text-success" id="scraperTaxName">TÊN DOANH NGHIỆP</h6>
+                                <span class="badge bg-success" id="scraperStatus">ACTIVE</span>
+                            </div>
+                            <div class="small text-secondary mb-2">
+                                <i class="bi bi-clock-history" aria-hidden="true"></i> Kiểm tra lúc: <span id="scraperTime">--</span>
+                            </div>
+                            <p class="small mb-0 text-dark" id="scraperMsg">Thông tin chi tiết tuân thủ.</p>
+                        </div>
+
+                        <hr>
+
+                        <h4 class="fw-bold mb-3" style="font-family: 'Outfit', sans-serif;"><i class="bi bi-file-earmark-ruled text-info" aria-hidden="true"></i> Danh Sách Xếp Hạng Rủi Ro Đối Tác</h4>
+                        <div class="table-responsive" style="max-height: 250px;">
+                            <table class="table table-hover align-middle border text-center">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Tên / MST</th>
+                                        <th>Hạng rủi ro</th>
+                                        <th>Điểm</th>
+                                        <th>Hành động</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="supplierRankingTableBody">
+                                    <!-- Dynamic -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Supplier Audit Side Drawer (Offcanvas) -->
+<div class="offcanvas offcanvas-end glass-card border-start-0" tabindex="-1" id="supplierAuditOffcanvas" aria-labelledby="supplierAuditLabel" style="width: 450px;">
+    <div class="offcanvas-header bg-dark text-snow">
+        <h5 class="offcanvas-title fw-bold" id="supplierAuditLabel" style="font-family: 'Outfit', sans-serif;"><i class="bi bi-shield-shaded me-2" aria-hidden="true"></i> Hồ Sơ Rủi Ro Đối Tác</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+        <!-- Main details -->
+        <div class="text-center mb-4">
+            <h4 class="fw-bold text-dark mb-1" id="drawSupplierName">--</h4>
+            <small class="text-muted d-block mb-3" id="drawSupplierMst">MST: --</small>
+            
+            <div class="d-inline-flex align-items-center gap-2 p-2 bg-premium-light rounded-3 border mb-3">
+                <div>
+                    <small class="text-secondary d-block text-start" style="font-size: 10px;">XẾP HẠNG AI</small>
+                    <strong class="fs-4 text-primary" id="drawSupplierRating">--</strong>
+                </div>
+                <div class="vr mx-2"></div>
+                <div>
+                    <small class="text-secondary d-block text-start" style="font-size: 10px;">ĐIỂM RỦI RO</small>
+                    <strong class="fs-4 text-danger" id="drawSupplierScore">--</strong>
+                </div>
+            </div>
+        </div>
+
+        <hr>
+
+        <!-- Risk indicators list -->
+        <h5 class="fw-bold mb-3 small uppercase text-secondary">Chỉ số Đánh giá & Cảnh báo</h5>
+        <div class="list-group list-group-flush" id="drawSupplierIndicators">
+            <!-- Dynamic -->
+        </div>
+
+        <div class="mt-4 pt-2">
+            <button class="btn btn-outline-danger w-100 fw-semibold" id="btnSyncGdtDraw">
+                <i class="bi bi-arrow-repeat me-2" aria-hidden="true"></i> Buộc Đồng Bộ Lại GDT Portal
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Format currency to VND helper
+function formatVND(value) {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    refreshAllV39Data();
+});
+
+// Refresh all components
+function refreshAllV39Data() {
+    loadDeferredTaxData();
+    loadCashStressSimulation();
+    loadSupplierRiskNetwork();
+}
+
+// Switch taxpayers
+function switchTaxpayerMst(mst) {
+    const url = new URL(window.location.href);
+    url.searchParams.set("mst", mst);
+    window.location.href = url.toString();
+}
+
+// 1. Load Deferred Tax data
+function loadDeferredTaxData() {
+    const selector = document.getElementById("v39TaxpayerSelector");
+    if (!selector) return;
+    const mst = selector.value;
+    const year = document.getElementById("v39FilingYear").value;
+
+    fetch(`/api/v39/deferred-tax?mst=${mst}&year=${year}`)
+        .then(res => res.json())
+        .then(resData => {
+            if (resData.status === "success") {
+                const data = resData.data;
+                document.getElementById("lblAccountingProfit").textContent = formatVND(data.accounting_profit);
+                document.getElementById("lblTaxableIncome").textContent = formatVND(data.taxable_income);
+                document.getElementById("lblDeferredTaxAssets").textContent = formatVND(data.deferred_tax_assets);
+                
+                const movementEl = document.getElementById("lblDtaMovement");
+                movementEl.textContent = formatVND(data.dta_movement);
+                if (data.dta_movement >= 0) {
+                    movementEl.className = "fs-4 text-success";
+                } else {
+                    movementEl.className = "fs-4 text-danger";
+                }
+
+                // Render depreciation table
+                const deprBody = document.getElementById("deprDiffTableBody");
+                deprBody.innerHTML = "";
+                if (data.depreciation_differences.length === 0) {
+                    deprBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">Không có chênh lệch khấu hao tài sản cố định.</td></tr>`;
+                } else {
+                    data.depreciation_differences.forEach(d => {
+                        deprBody.innerHTML += `
+                            <tr>
+                                <td class="fw-semibold">${d.asset_code}</td>
+                                <td>${d.asset_name}</td>
+                                <td class="text-end">${formatVND(d.accounting_annual)}</td>
+                                <td class="text-end">${formatVND(d.tax_annual)}</td>
+                                <td class="text-end text-danger fw-bold">+${formatVND(d.temporary_difference)}</td>
+                            </tr>
+                        `;
+                    });
+                }
+
+                // Render provisions & deductible table
+                const permBody = document.getElementById("permDiffTableBody");
+                permBody.innerHTML = "";
+                
+                // Merge deductible differences & permanent ones in list
+                data.deductible_differences.forEach(d => {
+                    permBody.innerHTML += `
+                        <tr class="table-info">
+                            <td class="fw-semibold">${d.type} (Tạm thời)</td>
+                            <td class="text-end fw-bold text-info">+${formatVND(d.amount)}</td>
+                            <td>${d.explanation}</td>
+                        </tr>
+                    `;
+                });
+
+                data.permanent_differences.forEach(p => {
+                    permBody.innerHTML += `
+                        <tr class="table-warning">
+                            <td class="fw-semibold">${p.type} (Vĩnh viễn)</td>
+                            <td class="text-end fw-bold text-danger">+${formatVND(p.amount)}</td>
+                            <td>${p.explanation}</td>
+                        </tr>
+                    `;
+                });
+            }
+        });
+
+    // Load suggested journal entries
+    fetch(`/api/v39/journal-entries?mst=${mst}&year=${year}`)
+        .then(res => res.json())
+        .then(resData => {
+            if (resData.status === "success") {
+                const container = document.getElementById("journalEntriesContainer");
+                container.innerHTML = "";
+                if (resData.journal_entries.length === 0) {
+                    container.innerHTML = `<div class="alert alert-secondary mb-0 text-center">Không phát sinh bút toán hoãn lại trong kỳ này.</div>`;
+                    return;
+                }
+                resData.journal_entries.forEach(je => {
+                    container.innerHTML += `
+                        <div class="p-3 bg-white rounded border border-info mb-2">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="fw-bold text-primary">Nợ TK ${je.account_debit}</span>
+                                <span class="text-muted">${je.debit_description}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="fw-bold text-success">Có TK ${je.account_credit}</span>
+                                <span class="text-muted">${je.credit_description}</span>
+                            </div>
+                            <hr class="my-2">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="fw-bold">Số tiền:</span>
+                                <span class="text-danger fw-bold">${formatVND(je.amount)}</span>
+                            </div>
+                            <small class="text-secondary d-block mt-1">${je.explanation}</small>
+                        </div>
+                    `;
+                });
+            }
+        });
+}
+
+// 2. Load & Simulate cash runway
+function updateSlidersAndSimulate() {
+    const dso = document.getElementById("sliderDso").value;
+    const dpo = document.getElementById("sliderDpo").value;
+    
+    document.getElementById("valDso").textContent = `+${dso} ngày`;
+    document.getElementById("valDpo").textContent = `+${dpo} ngày`;
+
+    loadCashStressSimulation(dso, dpo);
+}
+
+function loadCashStressSimulation(dso = 0, dpo = 0) {
+    const selector = document.getElementById("v39TaxpayerSelector");
+    if (!selector) return;
+    const mst = selector.value;
+
+    fetch(`/api/v39/cash-stress?mst=${mst}&dso_days=${dso}&dpo_days=${dpo}`)
+        .then(res => res.json())
+        .then(resData => {
+            if (resData.status === "success") {
+                const sim = resData.simulation;
+                document.getElementById("lblCurrentCash").textContent = formatVND(sim.current_cash);
+                document.getElementById("lblMonthlyOpex").textContent = formatVND(sim.monthly_opex);
+                document.getElementById("lblProjectedInflows").textContent = formatVND(sim.projected_inflows);
+                document.getElementById("lblProjectedOutflows").textContent = formatVND(sim.projected_outflows);
+
+                // Inject circular gauge
+                document.getElementById("runwayGaugeContainer").innerHTML = sim.gauge_svg;
+
+                // Update alert status
+                const alertBox = document.getElementById("runwayAlertBox");
+                const title = document.getElementById("lblRunwayStatus");
+                const msg = document.getElementById("lblRunwayMsg");
+
+                title.textContent = `Runway: ${sim.runway_months} Tháng`;
+                msg.textContent = sim.warning_message;
+
+                // Adjust color classes
+                if (sim.risk_level === "Red") {
+                    alertBox.className = "p-3 rounded-3 border border-danger bg-danger-subtle text-danger-emphasis";
+                } else if (sim.risk_level === "Amber") {
+                    alertBox.className = "p-3 rounded-3 border border-warning bg-warning-subtle text-warning-emphasis";
+                } else {
+                    alertBox.className = "p-3 rounded-3 border border-success bg-success-subtle text-success-emphasis";
+                }
+            }
+        });
+}
+
+// 3. Load Supplier Risk Network
+function loadSupplierRiskNetwork() {
+    const selector = document.getElementById("v39TaxpayerSelector");
+    if (!selector) return;
+    const mst = selector.value;
+
+    fetch(`/api/v39/supplier-network?mst=${mst}`)
+        .then(res => res.json())
+        .then(resData => {
+            if (resData.status === "success") {
+                // Populate SVG Graph
+                document.getElementById("networkGraphContainer").innerHTML = resData.network.svg_graph;
+
+                // Populate side ranking list table
+                const tbody = document.getElementById("supplierRankingTableBody");
+                tbody.innerHTML = "";
+                
+                // Nodes excluding center (index 0 is center)
+                const suppliers = resData.network.nodes.slice(1);
+                if (suppliers.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted">Không tìm thấy giao dịch nhà cung cấp.</td></tr>`;
+                    return;
+                }
+
+                suppliers.forEach(s => {
+                    let ratingBadge = "bg-success";
+                    if (s.trust_rating === "C") ratingBadge = "bg-warning text-dark";
+                    else if (s.trust_rating === "D") ratingBadge = "bg-danger";
+                    else if (s.trust_rating === "E") ratingBadge = "bg-danger fw-bold";
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td class="text-start">
+                                <strong class="d-block">${s.name}</strong>
+                                <small class="text-secondary">${s.id}</small>
+                            </td>
+                            <td><span class="badge ${ratingBadge}">${s.trust_rating}</span></td>
+                            <td class="fw-bold">${s.risk_score}/100</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary" onclick="openSupplierAudit('${s.id}')">
+                                    <i class="bi bi-file-earmark-text" aria-hidden="true"></i> Xem hồ sơ
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+        });
+}
+
+// 4. Open Supplier Audit Profile Drawer
+function openSupplierAudit(supplierMst) {
+    const selector = document.getElementById("v39TaxpayerSelector");
+    if (!selector) return;
+    const taxpayerMst = selector.value;
+
+    // Fetch details dynamically using the network endpoint nodes
+    fetch(`/api/v39/supplier-network?mst=${taxpayerMst}`)
+        .then(res => res.json())
+        .then(resData => {
+            if (resData.status === "success") {
+                const node = resData.network.nodes.find(n => n.id === supplierMst);
+                if (!node) return;
+
+                document.getElementById("drawSupplierName").textContent = node.name;
+                document.getElementById("drawSupplierMst").textContent = `MST: ${node.id}`;
+                document.getElementById("drawSupplierRating").textContent = node.trust_rating;
+                document.getElementById("drawSupplierScore").textContent = `${node.risk_score}/100`;
+
+                // Set sync button action
+                const syncBtn = document.getElementById("btnSyncGdtDraw");
+                syncBtn.onclick = function() {
+                    triggerDrawGdtSync(node.id);
+                };
+
+                // Build detailed scorecard list
+                const indicators = document.getElementById("drawSupplierIndicators");
+                indicators.innerHTML = "";
+
+                // GDT tax code status
+                let gdtBadge = "bg-success";
+                if (node.gdt_status !== "ACTIVE") gdtBadge = "bg-danger";
+                indicators.innerHTML += `
+                    <div class="list-group-item d-flex justify-content-between align-items-center py-2.5">
+                        <span class="small fw-semibold">Trạng thái Tổng Cục Thuế (GDT)</span>
+                        <span class="badge ${gdtBadge}">${node.gdt_status}</span>
+                    </div>
+                `;
+
+                // Additional compliance rules (mock criteria)
+                indicators.innerHTML += `
+                    <div class="list-group-item d-flex justify-content-between align-items-center py-2.5">
+                        <span class="small fw-semibold">Hóa đơn thanh toán tiền mặt >= 20M</span>
+                        <span class="badge bg-secondary">${node.risk_score > 30 ? "Có phát hiện" : "Không phát hiện"}</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center py-2.5">
+                        <span class="small fw-semibold">Độ trễ ký số chứng từ đầu vào</span>
+                        <span class="badge bg-secondary">${node.risk_score > 50 ? "Trễ > 7 ngày" : "Kịp thời"}</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center py-2.5">
+                        <span class="small fw-semibold">Đột biến doanh số giao dịch đột ngột</span>
+                        <span class="badge bg-secondary">Bình thường</span>
+                    </div>
+                `;
+
+                // Open offcanvas drawer
+                const drawerEl = document.getElementById("supplierAuditOffcanvas");
+                const drawer = new bootstrap.Offcanvas(drawerEl);
+                drawer.show();
+            }
+        });
+}
+
+// 5. Live GDT verification simulation
+function simulateGdtCheck() {
+    const mst = document.getElementById("txtScraperMst").value.trim();
+    if (!mst) {
+        alert("Vui lòng nhập Mã số thuế cần kiểm tra.");
+        return;
+    }
+
+    fetch("/api/v39/supplier-scraper-check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ seller_mst: mst })
+    })
+        .then(res => res.json())
+        .then(resData => {
+            if (resData.status === "success") {
+                const result = resData.check_result;
+                const box = document.getElementById("scraperResultBox");
+                box.classList.remove("d-none");
+
+                document.getElementById("scraperTaxName").textContent = result.taxpayer_name;
+                document.getElementById("scraperStatus").textContent = result.gdt_status;
+                
+                const statusBadge = document.getElementById("scraperStatus");
+                if (result.gdt_status === "ACTIVE") {
+                    statusBadge.className = "badge bg-success";
+                    box.className = "p-3 bg-premium-light rounded border border-success-subtle mb-4";
+                } else {
+                    statusBadge.className = "badge bg-danger";
+                    box.className = "p-3 bg-premium-light rounded border border-danger-subtle mb-4";
+                }
+
+                document.getElementById("scraperTime").textContent = result.last_checked;
+                document.getElementById("scraperMsg").textContent = result.compliance_message;
+                
+                // Refresh risk scoring network maps
+                loadSupplierRiskNetwork();
+            } else {
+                alert("Lỗi kiểm tra: " + resData.error);
+            }
+        });
+}
+
+function triggerDrawGdtSync(mst) {
+    document.getElementById("txtScraperMst").value = mst;
+    simulateGdtCheck();
+    
+    // Close offcanvas drawer
+    const drawerEl = document.getElementById("supplierAuditOffcanvas");
+    const drawer = bootstrap.Offcanvas.getInstance(drawerEl);
+    if (drawer) drawer.hide();
+}
+
+// 6. Export suggested journal entries to JSON file
+function exportJournalJSON() {
+    const selector = document.getElementById("v39TaxpayerSelector");
+    if (!selector) return;
+    const mst = selector.value;
+    const year = document.getElementById("v39FilingYear").value;
+
+    fetch(`/api/v39/journal-entries?mst=${mst}&year=${year}`)
+        .then(res => res.json())
+        .then(resData => {
+            if (resData.status === "success") {
+                const entries = resData.journal_entries;
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(entries, null, 2));
+                const downloadAnchor = document.createElement("a");
+                downloadAnchor.setAttribute("href", dataStr);
+                downloadAnchor.setAttribute("download", `vas17_journal_entries_${mst}_${year}.json`);
+                document.body.appendChild(downloadAnchor);
+                downloadAnchor.click();
+                downloadAnchor.remove();
+            }
+        });
+}
+</script>
+
+<style>
+/* Gradient and Glassmorphism */
+.text-gradient {
+    background: linear-gradient(135deg, #0dcaf0 0%, #0d6efd 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.glass-card {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+}
+.offcanvas.glass-card {
+    background: rgba(255, 255, 255, 0.85);
+}
+</style>
+{% endblock %}
