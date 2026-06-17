@@ -2,7 +2,7 @@
 id: PRD-DOWNLOAD
 type: prd
 brd_goals:
-  - BRD-G_AUTHENTICATION
+  - BRD-G5
 status: draft
 lang: en
 owner: Dev-Lead

@@ -2,7 +2,7 @@
 id: PRD-COMPLIANCE
 type: prd
 brd_goals:
-  - BRD-G_COMPLIANCE
+  - BRD-G6
 status: draft
 lang: en
 owner: Dev-Lead

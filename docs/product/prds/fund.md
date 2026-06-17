@@ -2,7 +2,7 @@
 id: PRD-FUND
 type: prd
 brd_goals: ["BRD-G1", "BRD-G2", "BRD-G3"]
-status: draft
+status: approved
 lang: vi
 owner: TBD
 version: 0.1.0

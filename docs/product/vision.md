@@ -28,10 +28,18 @@ Sổ Quỹ giải quyết đúng điểm đó: biến cuốn sổ quỹ của m�
 
 ## Personas | Nhóm người dùng
 
-- **roommate** — *Thành viên ở ghép* (persona chính, phục vụ trước). Người trẻ (sinh viên, đi làm) thuê trọ hoặc ở ghép dài hạn, mỗi tháng cùng góp một khoản cho các chi phí sinh hoạt chung. Họ không phải người giữ quỹ, nhưng là người "phải tin" — và chính họ chịu thiệt khi thiếu minh bạch. Cái họ cần: mở app là thấy ngay mình đã nộp đủ chưa, quỹ còn bao nhiêu, tháng này tiêu vào những gì. Dùng mobile gần như tuyệt đối.
-- **fund-keeper** — *Trưởng nhóm / người giữ quỹ*. Người đứng ra thu tiền và chi tiêu từ quỹ chung. Đây là "người mua" thực sự của sản phẩm: họ chịu trách nhiệm minh bạch và mệt mỏi vì luôn có thể bị nghi ngờ. Công cụ tốt giúp họ chứng minh sự trung thực mà không phải giải trình thủ công — và chính họ là người kéo cả phòng vào app.
-- **long-term-group** — *Hội nhóm dài hạn* (ưu tiên sau persona chính). CLB, đội nhóm, gia đình góp quỹ định kỳ cho một mục đích chung (quỹ lớp, quỹ đội bóng, quỹ gia đình). Mô hình quỹ giống hệt phòng trọ nhưng quy mô thành viên lớn hơn, tần suất giao dịch thường thấp hơn.
-- **trip-group** — *Nhóm bạn đi chơi* (ưu tiên thấp nhất). Nhóm du lịch/ăn nhậu ngắn hạn, gom tiền theo chuyến rồi giải tán. Lưu ý: nhóm này gần như không có "quỹ chung tồn tại liên tục", nên lệch với mô hình lõi QUỸ; giữ trong tầm nhìn dài hạn nhưng không định hình sản phẩm giai đoạn đầu.
+### roommate
+*Thành viên ở ghép* (persona chính, phục vụ trước). Người trẻ (sinh viên, đi làm) thuê trọ hoặc ở ghép dài hạn, mỗi tháng cùng góp một khoản cho các chi phí sinh hoạt chung. Họ không phải người giữ quỹ, nhưng là người "phải tin" — và chính họ chịu thiệt khi thiếu minh bạch. Cái họ cần: mở app là thấy ngay mình đã nộp đủ chưa, quỹ còn bao nhiêu, tháng này tiêu vào những gì. Dùng mobile gần như tuyệt đối.
+
+### fund-keeper
+*Trưởng nhóm / người giữ quỹ*. Người đứng ra thu tiền và chi tiêu từ quỹ chung. Đây là "người mua" thực sự của sản phẩm: họ chịu trách nhiệm minh bạch và mệt mỏi vì luôn có thể bị nghi ngờ. Công cụ tốt giúp họ chứng minh sự trung thực mà không phải giải trình thủ công — và chính họ là người kéo cả phòng vào app.
+
+### long-term-group
+*Hội nhóm dài hạn* (ưu tiên sau persona chính). CLB, đội nhóm, gia đình góp quỹ định kỳ cho một mục đích chung (quỹ lớp, quỹ đội bóng, quỹ gia đình). Mô hình quỹ giống hệt phòng trọ nhưng quy mô thành viên lớn hơn, tần suất giao dịch thường thấp hơn.
+
+### trip-group
+*Nhóm bạn đi chơi* (ưu tiên thấp nhất). Nhóm du lịch/ăn nhậu ngắn hạn, gom tiền theo chuyến rồi giải tán. Lưu ý: nhóm này gần như không có "quỹ chung tồn tại liên tục", nên lệch với mô hình lõi QUỸ; giữ trong tầm nhìn dài hạn nhưng không định hình sản phẩm giai đoạn đầu.
+
 
 ## Value Proposition | Đề xuất giá trị
 

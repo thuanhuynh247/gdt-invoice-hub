@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard View</title>
+  <style>
+/* product-spec shared design system — ONE source for every HTML output
+   (the 9 --viz views + board + explorer + export). Theme via [data-theme];
+   semantic + status palette; .ve-card depth tiers; print-CSS; stagger. */
+:root{
+  --bg:#fbfbfa; --surface:#fff; --recessed:#f4f4f2; --text:#1f2328; --muted:#6a737d;
+  --border:#e2e2df; --accent:#3b6ea5; --shadow:0 1px 2px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04);
+  --green:#1a7f37; --red:#cf222e; --amber:#9a6700; --sage:#3d7d6e; --teal:#1b6b75; --plum:#8250df;
+  --green-dim:#dafbe1; --red-dim:#ffebe9; --amber-dim:#fff8c5; --sage-dim:#d8f3ec; --teal-dim:#d4f0f3; --plum-dim:#f3eafc;
+}
+[data-theme="dark"]{
+  --bg:#0d1117; --surface:#161b22; --recessed:#1c2128; --text:#e6edf3; --muted:#8b949e;
+  --border:#30363d; --accent:#6ea8fe; --shadow:0 1px 2px rgba(0,0,0,.4);
+  --green:#3fb950; --red:#f85149; --amber:#d29922; --sage:#56d4bc; --teal:#39c0d0; --plum:#bc8cff;
+  --green-dim:#12361f; --red-dim:#3c1618; --amber-dim:#3a2d04; --sage-dim:#0f352e; --teal-dim:#0d343a; --plum-dim:#2a1b46;
+}
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);margin:0;padding:2rem 1.5rem;line-height:1.55;}
+.ps-wrap{max-width:1100px;margin:0 auto;}
+h1{font-size:1.6rem;margin:0 0 .25rem;} h2{font-size:1.2rem;margin:1.4rem 0 .5rem;} h3{font-size:1rem;margin:1rem 0 .4rem;}
+a{color:var(--accent);} code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.85rem;}
+pre{background:var(--recessed);padding:1rem;border-radius:6px;overflow:auto;}
+.ps-meta{color:var(--muted);font-size:.85rem;margin-bottom:1.25rem;}
+.ve-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem;min-width:0;}
+.ve-card--elevated{box-shadow:var(--shadow);}
+.ve-card--recessed{background:var(--recessed);}
+.ve-card--hero{border-left:4px solid var(--accent);}
+.badge{display:inline-block;font-size:.72rem;padding:.1rem .5rem;border-radius:999px;border:1px solid var(--border);margin:.1rem .25rem .1rem 0;white-space:nowrap;}
+.badge--status{background:var(--teal-dim);color:var(--teal);}
+.badge--moscow{background:var(--plum-dim);color:var(--plum);}
+.badge--persona{background:var(--sage-dim);color:var(--sage);}
+.badge--type{background:var(--amber-dim);color:var(--amber);}
+.ps-toggle{position:fixed;top:1rem;right:1rem;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:999px;width:2.2rem;height:2.2rem;cursor:pointer;font-size:1rem;box-shadow:var(--shadow);z-index:50;}
+.ps-banner{background:var(--red-dim);color:var(--red);border:1px solid var(--red);border-radius:6px;padding:.6rem .9rem;margin-bottom:1rem;font-size:.85rem;}
+.ps-fallback{white-space:pre-wrap;}
+/* Slide-in detail panel — ONE definition shared by board + explorer (was
+   duplicated, and explorer had diverged: it hardcoded the geometry inline and
+   omitted the :first-child margin reset, so a body opening with a heading gained
+   an extra top-margin only in the explorer). */
+.ps-detail{position:fixed;top:0;right:0;width:min(34rem,92vw);height:100vh;background:var(--surface);border-left:1px solid var(--border);box-shadow:var(--shadow);padding:1.2rem 1.4rem;overflow:auto;z-index:60;}
+.ps-detail .close{position:absolute;top:.6rem;right:.8rem;background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--muted);}
+.ps-detail-body :first-child{margin-top:0;}
+.ps-search{width:100%;padding:.5rem .7rem;font-size:.95rem;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);margin-bottom:.75rem;}
+.ps-facets{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:1rem;}
+.ps-facets button{font-size:.78rem;padding:.2rem .6rem;border:1px solid var(--border);border-radius:999px;background:var(--surface);color:var(--muted);cursor:pointer;}
+.ps-facets button[aria-pressed="true"]{background:var(--accent);color:#fff;border-color:var(--accent);}
+.ve-card,.ps-row{animation:ps-fade .28s ease both;}
+@keyframes ps-fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media print{
+  .ps-toggle,.ps-search,.ps-facets,.controls,.ps-detail{display:none!important;}
+  body{padding:0;background:#fff;color:#000;} .ve-card{box-shadow:none;border-color:#ccc;break-inside:avoid;}
+  details{open:true;} a{color:#000;text-decoration:underline;}
+}
+</style>
+<script>
+/* Shared client helpers — defined in <head>, called after the vendored libs
+   (injected later in <body>) have loaded. */
+(function(){
+  try{var t=localStorage.getItem("ps-theme");if(t){document.documentElement.setAttribute("data-theme",t);}}catch(e){}
+})();
+function psToggleTheme(){
+  var cur=document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark";
+  document.documentElement.setAttribute("data-theme",cur);
+  try{localStorage.setItem("ps-theme",cur);}catch(e){}
+  var b=document.querySelector(".ps-toggle");if(b){b.textContent=cur==="dark"?"☀":"☾";}
+}
+function psEscapeHtml(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");}
+/* NOTE: the markdown sanitize chokepoint is NOT defined here. It is
+   body-view-only and ships inside the markdown-libs script block, so the 9
+   legacy graph views inline NO sanitizer code (symmetric gating).
+   The generic helpers below are shared by every view. */
+function psReadSpecData(){
+  var el=document.getElementById("ps-spec-data");
+  if(!el){return {};}
+  try{return JSON.parse(el.textContent);}catch(e){return {};}
+}
+/* The detail-panel controls (psOpenDetail/psCloseDetail + Escape) are NOT here:
+   they call the sanitize chokepoint, so they ship in the body-view-only script
+   block (render_html._BODY_RENDER_JS) to keep the 9 legacy graph views free of
+   any sanitizer reference (symmetric gating). */
+</script>
+
+  <style>
+    /* Legacy graph-view specifics layered on the shared design system. */
+    /* Graph views use the full window width (the shared 1100px wrap is meant for
+       reading prose, too cramped for a zoomed graph/gantt). */
+    .ps-wrap { max-width: none; }
+    /* The diagram is a fixed full-height scroll viewport, NOT an auto-sized box:
+       a CSS `transform: scale()` grows the content visually but leaves its layout
+       box unchanged, so without a tall viewport a zoomed-in diagram is clipped to
+       its original size with no room to pan. `calc(100vh - …)` reserves space for
+       the title + meta + zoom controls above and the footer note below, so the
+       footer stays on screen while the diagram fills the rest. */
+    .diagram { overflow: auto; height: calc(100vh - 12rem); }
+    .controls { margin-bottom: 0.75rem; }
+    .controls button { padding: 4px 10px; margin-right: 6px; cursor: pointer; background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 6px; }
+    /* Mermaid text legibility is handled by matching the Mermaid THEME to the
+       page theme at render time (see the init script below) — NOT by force-
+       setting `fill: var(--text)`, which painted light text onto the light
+       section backgrounds of gantt/quadrant charts (light-on-light → invisible).
+       Only the flowchart edge-label chip keeps a surface background so the edge
+       text never sits on a graph line. */
+    .mermaid .edgeLabel { background: var(--surface) !important; }
+    /* Chart-label SVG <text> (gantt task/section/title, quadrant title + axis,
+       timeline) defaults to a faint Mermaid gray that washes out on the light
+       page. Force it to the theme text colour — safe in BOTH modes because the
+       Mermaid theme is matched to the page (so the diagram background contrasts
+       var(--text)). Scoped to <text> ONLY: flowchart node labels are HTML
+       <span class="nodeLabel"> (styled via `color`, not `fill`), so classDef-
+       tinted nodes keep their own ink and are untouched. */
+    .mermaid text { fill: var(--text) !important; }
+    .mermaid .grid .tick text { fill: var(--muted) !important; }
+    /* Hover-on-ID tooltip: floating box + the hover affordance on tagged IDs. */
+    #ps-tip { position: fixed; z-index: 80; display: none; max-width: 22rem; background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 8px; box-shadow: var(--shadow); padding: .5rem .7rem; font-size: .82rem; line-height: 1.4; pointer-events: none; }
+    #ps-tip .ps-tip-h strong { color: var(--accent); }
+    #ps-tip .ps-tip-t { font-weight: 600; }
+    #ps-tip .ps-tip-m { margin-top: .25rem; color: var(--muted); font-size: .76rem; }
+    .ps-tipword { cursor: help; }
+    span.ps-tipword { text-decoration: underline dotted var(--border); text-underline-offset: 2px; }
+  </style>
+</head>
+<body>
+  <button class="ps-toggle" onclick="psToggleTheme()" aria-label="Toggle light/dark theme" title="Toggle theme">☾</button>
+  <div class="ps-wrap">
+    <h1>Dashboard View</h1>
+    <div class="ps-meta">Generated 2026-06-17T01:54:45Z · Product: Sổ Quỹ · View: dashboard</div>
+    <div class="controls">
+      <button onclick="zoomIn()">Zoom +</button>
+      <button onclick="zoomOut()">Zoom -</button>
+      <button onclick="resetZoom()">Reset</button>
+    </div>
+    <div class="diagram ve-card ve-card--recessed" id="diagram"><div id="diagram-scale"><style>.db-panel{margin:0 0 2rem;}.db-title{font-size:1.1rem;margin:0 0 .75rem;padding-bottom:.3rem;border-bottom:1px solid var(--border);}.db-h{font-size:.9rem;color:var(--muted);margin:.75rem 0 .35rem;}.db-roadmap{border-collapse:collapse;width:100%;max-width:48rem;margin-bottom:.5rem;}.db-roadmap th,.db-roadmap td{border:1px solid var(--border);padding:.4rem .6rem;text-align:left;}.db-roadmap thead th,.db-roadmap tbody th{background:var(--recessed);color:var(--muted);font-weight:600;font-size:.85rem;}.db-nodate,.db-empty{color:var(--muted);font-style:italic;}</style><section class="db-panel"><h2 class="db-title">Roadmap &amp; Deadlines</h2><h3 class="db-h">NOW</h3><table class="db-roadmap"><thead><tr><th scope="col">item</th><th scope="col">target date</th></tr></thead><tbody><tr><th scope="row">PRD-AUTH</th><td><span class="db-nodate">—</span></td></tr><tr><th scope="row">PRD-COMPLIANCE</th><td><span class="db-nodate">—</span></td></tr><tr><th scope="row">PRD-COMPLIANCE-E1</th><td><span class="db-nodate">—</span></td></tr><tr><th scope="row">PRD-COMPLIANCE-E1-S1</th><td><span class="db-nodate">—</span></td></tr><tr><th scope="row">PRD-COMPLIANCE-E1-S2</th><td><span class="db-nodate">—</span></td></tr><tr><th scope="row">PRD-COMPLIANCE-E2</th><td><span class="db-nodate">—</span></td></tr><tr><th scope="row">PRD-COMPLIANCE-E2-S1</th><td><span class="db-nodate">—</span></td></tr><tr><th scope="row">PRD-DOWNLOAD</th><td><span class="db-nodate">—</span></td></tr><tr><th scope="row">PRD-ERP</th><td><span class="db-nodate">—</span></td></tr><tr><th scope="row">PRD-FUND</th><td><span class="db-nodate">—</span></td></tr><tr><th scope="row">PRD-FUND-E1</th><td><span class="db-nodate">—</span></td></tr><tr><th scope="row">PRD-FUND-E1-S1</th><td><span class="db-nodate">—</span></td></tr><tr><th scope="row">PRD-FUND-E2</th><td><span class="db-nodate">—</span></td></tr><tr><th scope="row">PRD-FUND-E2-S1</th><td><span class="db-nodate">—</span></td></tr><tr><th scope="row">PRD-FUND-E2-S2</th><td><span class="db-nodate">—</span></td></tr><tr><th scope="row">PRD-FUND-E3</th><td><span class="db-nodate">—</span></td></tr><tr><th scope="row">PRD-FUND-E3-S1</th><td><span class="db-nodate">—</span></td></tr><tr><th scope="row">PRD-FUND-E3-S2</th><td><span class="db-nodate">—</span></td></tr></tbody></table><h3 class="db-h">NEXT</h3><table class="db-roadmap"><thead><tr><th scope="col">item</th><th scope="col">target date</th></tr></thead><tbody><tr><td class="db-empty" colspan="2">(none)</td></tr></tbody></table><h3 class="db-h">LATER</h3><table class="db-roadmap"><thead><tr><th scope="col">item</th><th scope="col">target date</th></tr></thead><tbody><tr><td class="db-empty" colspan="2">(none)</td></tr></tbody></table><h3 class="db-h">UNSPECIFIED</h3><table class="db-roadmap"><thead><tr><th scope="col">item</th><th scope="col">target date</th></tr></thead><tbody><tr><th scope="row">PRD-AUTH-E1</th><td><span class="db-nodate">—</span></td></tr><tr><th scope="row">PRD-DOWNLOAD-E1</th><td><span class="db-nodate">—</span></td></tr><tr><th scope="row">PRD-ERP-E1</th><td><span class="db-nodate">—</span></td></tr><tr><th scope="row">PRD-ERP-E1-S1</th><td><span class="db-nodate">—</span></td></tr><tr><th scope="row">PRD-ERP-E1-S2</th><td><span class="db-nodate">—</span></td></tr><tr><th scope="row">PRD-ERP-E2</th><td><span class="db-nodate">—</span></td></tr><tr><th scope="row">PRD-ERP-E2-S1</th><td><span class="db-nodate">—</span></td></tr><tr><th scope="row">PRD-ERP-E3</th><td><span class="db-nodate">—</span></td></tr><tr><th scope="row">PRD-ERP-E3-S1</th><td><span class="db-nodate">—</span></td></tr><tr><th scope="row">PRD-ERP-E4</th><td><span class="db-nodate">—</span></td></tr><tr><th scope="row">PRD-ERP-E4-S1</th><td><span class="db-nodate">—</span></td></tr></tbody></table></section><section class="db-panel"><h2 class="db-title">Risk</h2><style>.risk-grid{border-collapse:collapse;width:100%;max-width:48rem;}.risk-grid th,.risk-grid td{border:1px solid var(--border);padding:.5rem .6rem;vertical-align:top;text-align:left;}.risk-grid thead th,.risk-grid tbody th{background:var(--recessed);color:var(--muted);font-weight:600;font-size:.85rem;}.rg-caption{caption-side:top;text-align:left;color:var(--muted);font-size:.85rem;margin-bottom:.5rem;}.rg-cell--low{background:var(--green-dim);}.rg-cell--mid{background:var(--amber-dim);}.rg-cell--high{background:var(--red-dim);}.rg-cell--unrated{background:var(--surface);}.rg-empty{color:var(--muted);}.rg-detail summary{cursor:pointer;font-weight:600;}.rg-list{margin:.4rem 0 0;padding-left:1.1rem;}.rg-list li{margin:.3rem 0;}.rg-desc{font-weight:600;}.rg-mit{font-size:.85rem;color:var(--text);}.rg-mit--none{color:var(--muted);font-style:italic;}.rg-mit-label{color:var(--muted);}.rg-src{font-size:.75rem;color:var(--muted);font-family:ui-monospace,monospace;}.rg-badge--green{background:var(--green-dim);color:var(--green);}.rg-badge--amber{background:var(--amber-dim);color:var(--amber);}.rg-badge--teal{background:var(--teal-dim);color:var(--teal);}</style><table class="risk-grid"><caption class="rg-caption">Risk: impact (rows) × likelihood (columns). Click a count to see description, mitigation, and status.</caption><thead><tr><th scope='col'>impact \ likelihood</th><th scope='col'>low</th><th scope='col'>med</th><th scope='col'>high</th></tr></thead><tbody><tr><th scope='row'>high</th><td class="rg-cell rg-cell--mid"><span class="rg-empty">0</span></td><td class="rg-cell rg-cell--high"><details class="rg-detail"><summary>6</summary><ul class="rg-list"><li><div class="rg-desc">Bank feed ingestion formats are highly variable. <span class="badge rg-badge--amber">open</span></div><div class="rg-mit"><span class="rg-mit-label">Mitigation:</span> Create a flexible bank-feed normalizer service and adapter layer.</div><div class="rg-src">PRD-ERP</div></li><li><div class="rg-desc">Chicken-and-egg: quỹ chung chỉ có giá trị khi cả nhóm cùng dùng, một người dùng lẻ không đủ <span class="badge rg-badge--amber">open</span></div><div class="rg-mit"><span class="rg-mit-label">Mitigation:</span> Onboarding kéo cả nhóm trong một lần (fund-keeper mời hàng loạt); đảm bảo có giá trị ngay cả khi mới một người ghi sổ</div><div class="rg-src">BRD</div></li><li><div class="rg-desc">Complex tax audit rules change with new decrees. <span class="badge rg-badge--amber">open</span></div><div class="rg-mit"><span class="rg-mit-label">Mitigation:</span> Keep transfer pricing formulas and rules dynamic and configurable.</div><div class="rg-src">PRD-COMPLIANCE</div></li><li><div class="rg-desc">GDT Portal changes its login form parameters or captcha structure. <span class="badge rg-badge--amber">open</span></div><div class="rg-mit"><span class="rg-mit-label">Mitigation:</span> Use modular parser and browser-based Selenium fallback.</div><div class="rg-src">PRD-AUTH</div></li><li><div class="rg-desc">Niềm tin dữ liệu tài chính: sai sót số liệu quỹ hoặc lộ dữ liệu làm mất niềm tin tức thì <span class="badge rg-badge--amber">open</span></div><div class="rg-mit"><span class="rg-mit-label">Mitigation:</span> Bảo mật dữ liệu; giai đoạn đầu KHÔNG giữ tiền thật (chỉ ghi sổ); lịch sử minh bạch, bất biến để ai cũng đối soát được</div><div class="rg-src">BRD</div></li><li><div class="rg-desc">Số dư quỹ sai lệch so với thực tế sẽ làm sụp đổ niềm tin vào tính minh bạch <span class="badge rg-badge--amber">open</span></div><div class="rg-mit"><span class="rg-mit-label">Mitigation:</span> Số dư luôn dẫn xuất = tổng nộp − tổng chi; mọi sửa/xóa giao dịch đều lưu vết; không cho chỉnh số dư trực tiếp</div><div class="rg-src">PRD-FUND</div></li></ul></details></td><td class="rg-cell rg-cell--high"><details class="rg-detail"><summary>1</summary><ul class="rg-list"><li><div class="rg-desc">Mục tiêu 10.000 nhóm/năm có thể bất khả thi nếu thiếu kênh phân phối lớn hoặc viral mạnh <span class="badge rg-badge--amber">open</span></div><div class="rg-mit"><span class="rg-mit-label">Mitigation:</span> Đặt mốc trung gian (vd 500 → 2.000 → 10.000), xác định kênh phân phối cụ thể (cộng đồng trọ, trường ĐH); coi 10k là stretch goal, có mốc nền thấp hơn để không vỡ kế hoạch</div><div class="rg-src">BRD</div></li></ul></details></td></tr><tr><th scope='row'>med</th><td class="rg-cell rg-cell--low"><span class="rg-empty">0</span></td><td class="rg-cell rg-cell--mid"><details class="rg-detail"><summary>2</summary><ul class="rg-list"><li><div class="rg-desc">GDT Portal download APIs throttle or block concurrent requests. <span class="badge rg-badge--amber">open</span></div><div class="rg-mit"><span class="rg-mit-label">Mitigation:</span> Implement request throttling and exponential backoff.</div><div class="rg-src">PRD-DOWNLOAD</div></li><li><div class="rg-desc">Quỹ chỉ hữu ích khi cả nhóm cùng theo dõi; nếu chỉ fund-keeper ghi thì thành viên vẫn phải tin <span class="badge rg-badge--amber">open</span></div><div class="rg-mit"><span class="rg-mit-label">Mitigation:</span> Cho mọi thành viên xem realtime số dư + lịch sử; đợt sau cho thành viên tự ghi khoản nộp của mình</div><div class="rg-src">PRD-FUND</div></li></ul></details></td><td class="rg-cell rg-cell--high"><details class="rg-detail"><summary>1</summary><ul class="rg-list"><li><div class="rg-desc">Thói quen Zalo/Messenger + chuyển khoản tay đã ăn sâu, đổi thói quen là rào cản lớn <span class="badge rg-badge--amber">open</span></div><div class="rg-mit"><span class="rg-mit-label">Mitigation:</span> Giảm ma sát nhập liệu so với nhắn tay; nhắc nợ/tổng kết tự động mà nhắn tay không làm được</div><div class="rg-src">BRD</div></li></ul></details></td></tr><tr><th scope='row'>low</th><td class="rg-cell rg-cell--low"><span class="rg-empty">0</span></td><td class="rg-cell rg-cell--low"><span class="rg-empty">0</span></td><td class="rg-cell rg-cell--mid"><span class="rg-empty">0</span></td></tr></tbody></table></section><section class="db-panel"><h2 class="db-title">Competition</h2><style>.comp-section{margin:0 0 1.5rem;}.comp-matrix,.comp-heatmap{border-collapse:collapse;width:100%;max-width:48rem;}.comp-matrix th,.comp-matrix td,.comp-heatmap th,.comp-heatmap td{border:1px solid var(--border);padding:.5rem .6rem;vertical-align:top;text-align:left;}.comp-matrix thead th,.comp-matrix tbody th,.comp-heatmap thead th,.comp-heatmap tbody th{background:var(--recessed);color:var(--muted);font-weight:600;font-size:.85rem;}.cm-caption{caption-side:top;text-align:left;color:var(--muted);font-size:.85rem;margin-bottom:.5rem;}.cm-empty{color:var(--muted);font-style:italic;}.cm-ahead{background:var(--green-dim);}.cm-parity{background:var(--teal-dim);}.cm-behind{background:var(--red-dim);}.cm-none{background:var(--surface);color:var(--muted);}.cm-t-low{background:var(--green-dim);}.cm-t-med{background:var(--amber-dim);}.cm-t-high{background:var(--red-dim);}</style><section class="comp-section"><table class="comp-matrix"><caption class="cm-caption">Competitive parity: competitors (rows) × PRDs (columns). Each cell is the PRD’s parity verdict for that competitor (ahead / parity / behind / none).</caption><thead><tr><th scope='col'>competitor \ PRD</th><th scope='col'>PRD-AUTH</th><th scope='col'>PRD-COMPLIANCE</th><th scope='col'>PRD-DOWNLOAD</th><th scope='col'>PRD-ERP</th><th scope='col'>PRD-FUND</th></tr></thead><tbody><tr><th scope='row'>Splitwise</th><td class="cm-cell "></td><td class="cm-cell "></td><td class="cm-cell "></td><td class="cm-cell "></td><td class="cm-cell cm-ahead">ahead</td></tr><tr><th scope='row'>Money Lover / Sổ Thu Chi</th><td class="cm-cell "></td><td class="cm-cell "></td><td class="cm-cell "></td><td class="cm-cell "></td><td class="cm-cell cm-none">none</td></tr><tr><th scope='row'>Zalo/Messenger + chuyển khoản tay</th><td class="cm-cell "></td><td class="cm-cell "></td><td class="cm-cell "></td><td class="cm-cell "></td><td class="cm-cell cm-ahead">ahead</td></tr></tbody></table></section><section class="comp-section"><table class="comp-heatmap"><caption class="cm-caption">Threat heatmap: each competitor’s threat tier (low / med / high).</caption><thead><tr><th scope='col'>competitor</th><th scope='col'>threat</th></tr></thead><tbody><tr><th scope='row'>Splitwise</th><td class="cm-cell cm-t-med">med</td></tr><tr><th scope='row'>Money Lover / Sổ Thu Chi</th><td class="cm-cell cm-t-med">med</td></tr><tr><th scope='row'>Zalo/Messenger + chuyển khoản tay</th><td class="cm-cell cm-t-high">high</td></tr></tbody></table></section></section></div></div>
+    <p class="ps-meta">Self-contained HTML. To re-render: python3 visualize.py --view dashboard --format html --root &lt;dir&gt;</p>
+  </div>
+  <script type="application/json" id="ps-tip-data">{"BRD-G1": {"d": "goal · approved · @ TBD", "t": "Đạt 10.000 nhóm tạo quỹ thật trong 12 tháng đầu"}, "BRD-G2": {"d": "goal · approved · @ TBD", "t": "Giữ tỷ lệ nhóm còn hoạt động sau 30 ngày ≥ 50%"}, "BRD-G3": {"d": "goal · approved · @ TBD", "t": "Đạt trung bình ≥ 8 giao dịch quỹ / nhóm hoạt động / tháng"}, "BRD-G4": {"d": "goal · approved · @ TBD", "t": "Đạt trung bình ≥ 3 thành viên / nhóm"}, "BRD-G5": {"d": "goal · approved · @ Dev-Lead", "t": "Reliable GDT portal login and captcha solving"}, "BRD-G6": {"d": "goal · approved · @ Dev-Lead", "t": "Automate tax audit preparation and risk scorecards"}, "PRD-AUTH": {"d": "prd · draft · now · must · in · @ Dev-Lead", "t": "Authentication & Captcha Bypass"}, "PRD-AUTH-E1": {"d": "epic · draft · @ Dev-Lead", "t": "Authentication & Credential Management"}, "PRD-COMPLIANCE": {"d": "prd · draft · now · must · in · @ Dev-Lead", "t": "Tax Compliance & Transfer Pricing Audit"}, "PRD-COMPLIANCE-E1": {"d": "epic · draft · now · must · in · @ Dev-Lead", "t": "Transfer Pricing Compliance Engine"}, "PRD-COMPLIANCE-E1-S1": {"d": "story · draft · now · must · in · @ Dev-Lead", "t": "Transfer Pricing Margin Calculations"}, "PRD-COMPLIANCE-E1-S2": {"d": "story · draft · now · must · in · @ Dev-Lead", "t": "Arm's Length Range Visualizer"}, "PRD-COMPLIANCE-E2": {"d": "epic · draft · now · must · in · @ Dev-Lead", "t": "Audit Swarm & Dossier Exporter"}, "PRD-COMPLIANCE-E2-S1": {"d": "story · draft · now · must · in · @ Dev-Lead", "t": "AI Tax Audit Prep Swarm & Exporter"}, "PRD-DOWNLOAD": {"d": "prd · draft · now · must · in · @ Dev-Lead", "t": "Invoice Download & Excel Export"}, "PRD-DOWNLOAD-E1": {"d": "epic · draft · @ Dev-Lead", "t": "Bulk Downloading & Excel Export"}, "PRD-ERP": {"d": "prd · draft · now · must · in · @ Dev-Lead", "t": "Enterprise ERP & Advanced Tax Accounting Suite"}, "PRD-ERP-E1": {"d": "epic · draft · @ Dev-Lead", "t": "ERP Ledgers & Bank Reconciliation"}, "PRD-ERP-E1-S1": {"d": "story · draft · @ Dev-Lead", "t": "Statutory Financial Report BCTC Scaffolder"}, "PRD-ERP-E1-S2": {"d": "story · draft · @ Dev-Lead", "t": "Ledger Integrity Auditor"}, "PRD-ERP-E2": {"d": "epic · draft · @ Dev-Lead", "t": "E-Commerce & Digital Commerce Sync"}, "PRD-ERP-E2-S1": {"d": "story · draft · @ Dev-Lead", "t": "Shopee/Lazada Order Normalizer"}, "PRD-ERP-E3": {"d": "epic · draft · @ Dev-Lead", "t": "OCR Physical Invoices & Decree 123 Audits"}, "PRD-ERP-E3-S1": {"d": "story · draft · @ Dev-Lead", "t": "Decree 123 XML Auto-Repair Suite"}, "PRD-ERP-E4": {"d": "epic · draft · @ Dev-Lead", "t": "Cryptographic Merkle Ledgers & Security"}, "PRD-ERP-E4-S1": {"d": "story · draft · @ Dev-Lead", "t": "Immutable Merkle Ledger"}, "PRD-FUND": {"d": "prd · approved · now · must · core-value · @ TBD", "t": "Quỹ phòng cốt lõi"}, "PRD-FUND-E1": {"d": "epic · approved · now · must · core-value · @ TBD", "t": "Thiết lập quỹ"}, "PRD-FUND-E1-S1": {"d": "story · approved · now · must · core-value · @ TBD", "t": "Tạo quỹ nhóm"}, "PRD-FUND-E2": {"d": "epic · approved · now · must · core-value · @ TBD", "t": "Ghi giao dịch quỹ"}, "PRD-FUND-E2-S1": {"d": "story · approved · now · must · core-value · @ TBD", "t": "Ghi khoản nộp quỹ"}, "PRD-FUND-E2-S2": {"d": "story · approved · now · must · core-value · @ TBD", "t": "Ghi khoản chi từ quỹ"}, "PRD-FUND-E3": {"d": "epic · approved · now · must · core-value · @ TBD", "t": "Theo dõi quỹ"}, "PRD-FUND-E3-S1": {"d": "story · approved · now · must · core-value · @ TBD", "t": "Xem số dư quỹ"}, "PRD-FUND-E3-S2": {"d": "story · approved · now · must · core-value · @ TBD", "t": "Xem lịch sử thu chi"}, "PRODUCT": {"d": "product · draft · @ TBD", "t": "Sổ Quỹ"}, "VISION": {"d": "vision · draft · @ TBD", "t": "Vision — Sổ Quỹ | Tầm nhìn"}}</script>
+  <script>
+
+  </script>
+  
+<script>
+(function(){
+  var island=document.getElementById("ps-tip-data"); if(!island) return;
+  var TIP; try{ TIP=JSON.parse(island.textContent); }catch(e){ return; }
+  var ids=Object.keys(TIP).filter(Boolean); if(!ids.length) return;
+  ids.sort(function(a,b){return b.length-a.length;});          // longest-first: PRD-X-E1 before PRD-X
+  function esc(s){return s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");}
+  var alt="(?<![A-Za-z0-9-])("+ids.map(esc).join("|")+")(?![A-Za-z0-9-])";
+  // SVG label variant WITHOUT the trailing boundary: a Mermaid flowchart node
+  // label concatenates "ID" + title into one textContent ("BRD-G1Onboard…"), so
+  // the trailing boundary would reject every multi-line node. longest-first
+  // ordering still makes PRD-X-E1 win over PRD-X at the same position.
+  var altSvg="(?<![A-Za-z0-9-])("+ids.map(esc).join("|")+")";
+  var reTest=new RegExp(alt);
+  var box=document.createElement("div"); box.id="ps-tip"; box.setAttribute("role","tooltip");
+  document.body.appendChild(box);
+  function show(id,x,y){
+    var d=TIP[id]; if(!d){box.style.display="none";return;}
+    box.textContent="";
+    var h=document.createElement("div"); h.className="ps-tip-h";
+    var s=document.createElement("strong"); s.textContent=id; h.appendChild(s);
+    if(d.t){var t=document.createElement("span"); t.className="ps-tip-t"; t.textContent=" "+d.t; h.appendChild(t);}
+    box.appendChild(h);
+    if(d.d){var m=document.createElement("div"); m.className="ps-tip-m"; m.textContent=d.d; box.appendChild(m);}
+    box.style.display="block";
+    var px=Math.min(x+14, window.innerWidth-box.offsetWidth-8);
+    var py=Math.min(y+16, window.innerHeight-box.offsetHeight-8);
+    box.style.left=Math.max(8,px)+"px"; box.style.top=Math.max(8,py)+"px";
+  }
+  function hide(){box.style.display="none";}
+  function tagSvg(){
+    // SVG text labels (gantt/flowchart): tag the whole <text> AFTER Mermaid has
+    // rendered (skip already-tagged so re-scans are idempotent and late renders
+    // still get picked up). A span can't live inside SVG <text>, so wrapText must
+    // NOT touch this subtree (see acceptNode) — it is handled here exclusively.
+    document.querySelectorAll("svg text, svg .nodeLabel").forEach(function(t){
+      if(t.getAttribute("data-psid")) return;
+      var m=(t.textContent||"").match(new RegExp(altSvg));
+      if(m){ t.setAttribute("data-psid",m[1]); t.classList.add("ps-tipword"); }
+    });
+  }
+  function wrapText(){
+    var walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,{acceptNode:function(node){
+      if(!node.nodeValue||!reTest.test(node.nodeValue)) return NodeFilter.FILTER_REJECT;
+      var p=node.parentNode;
+      while(p&&p!==document.body){
+        var tag=(p.tagName||"").toLowerCase();
+        // Reject the ENTIRE Mermaid container: wrapping a span into its raw source
+        // text (a race with Mermaid's async render) corrupts the diagram — the
+        // span markup renders as literal text or breaks parsing. Mermaid labels go
+        // through tagSvg instead.
+        if(tag==="script"||tag==="style"||tag==="svg"||p.id==="ps-tip"||(p.classList&&(p.classList.contains("ps-tipword")||p.classList.contains("mermaid")))) return NodeFilter.FILTER_REJECT;
+        p=p.parentNode;
+      }
+      return NodeFilter.FILTER_ACCEPT;
+    }});
+    var nodes=[],n; while((n=walker.nextNode())) nodes.push(n);
+    nodes.forEach(function(node){
+      var txt=node.nodeValue, frag=document.createDocumentFragment(), last=0, mm, r=new RegExp(alt,"g");
+      while((mm=r.exec(txt))){
+        if(mm.index>last) frag.appendChild(document.createTextNode(txt.slice(last,mm.index)));
+        var sp=document.createElement("span"); sp.className="ps-tipword"; sp.setAttribute("data-psid",mm[1]); sp.textContent=mm[0];
+        frag.appendChild(sp); last=mm.index+mm[0].length;
+      }
+      if(last<txt.length) frag.appendChild(document.createTextNode(txt.slice(last)));
+      node.parentNode.replaceChild(frag,node);
+    });
+  }
+  function scan(){ try{tagSvg();wrapText();}catch(e){} }
+  // Exposed so the shell can re-tag SVG labels after it re-renders Mermaid on a
+  // theme toggle (the old SVG + its data-psid tags are replaced wholesale).
+  window.psRescanTooltips=scan;
+  function idOf(t){ if(!t) return null; if(t.getAttribute){var d=t.getAttribute("data-psid"); if(d) return d;} if(t.closest){var c=t.closest("[data-psid]"); if(c) return c.getAttribute("data-psid");} return null; }
+  document.addEventListener("mouseover",function(e){ var id=idOf(e.target); if(id) show(id,e.clientX,e.clientY); });
+  document.addEventListener("mouseout",function(e){ if(idOf(e.target)) hide(); });
+  scan(); setTimeout(scan,400); setTimeout(scan,1200);
+})();
+</script>
+
+  <script>
+    (function () {
+      if (!window.mermaid) return;
+      // A Mermaid SVG is baked once at render with whatever theme was active then.
+      // The theme toggle only swaps CSS vars, so a diagram rendered light would go
+      // stale (dark text/lines) on a dark page and vice-versa. Capture the DSL
+      // source up-front, then (re)render in the CURRENT theme on load AND on every
+      // theme flip — keeping the diagram theme in lock-step with the page.
+      var scaleEl = document.getElementById("diagram-scale");
+      var mermaidDiv = scaleEl ? scaleEl.querySelector(".mermaid") : null;
+      var src = mermaidDiv ? mermaidDiv.textContent : null;
+      function render() {
+        if (!mermaidDiv || src === null) return;
+        var dark = document.documentElement.getAttribute("data-theme") === "dark";
+        window.mermaid.initialize({ startOnLoad: false, securityLevel: "strict", theme: dark ? "dark" : "default" });
+        mermaidDiv.removeAttribute("data-processed");
+        mermaidDiv.textContent = src;
+        try { window.mermaid.run({ nodes: [mermaidDiv] }); } catch (e) {}
+        // Re-tag hover targets on the freshly rendered SVG.
+        if (window.psRescanTooltips) setTimeout(window.psRescanTooltips, 150);
+      }
+      var orig = window.psToggleTheme;
+      window.psToggleTheme = function () { if (orig) orig(); render(); };
+      window.addEventListener("load", render);
+    })();
+    let scale = 1;
+    function applyScale() {
+      // Scale the inner wrapper, NOT #diagram itself: #diagram carries the
+      // .ve-card class whose shared ps-fade entrance animation (fill-mode: both)
+      // holds `transform: none` on the to-keyframe, and an animation's value wins
+      // over inline style — scaling #diagram would be silently clobbered. The
+      // wrapper has no animated transform, and #diagram keeps overflow:auto so a
+      // zoomed-in diagram becomes scrollable instead of clipping.
+      const d = document.getElementById("diagram-scale");
+      d.style.transform = `scale(${scale})`;
+      d.style.transformOrigin = "top left";
+    }
+    function zoomIn() { scale = Math.min(scale + 0.1, 3); applyScale(); }
+    function zoomOut() { scale = Math.max(scale - 0.1, 0.3); applyScale(); }
+    function resetZoom() { scale = 1; applyScale(); }
+  </script>
+</body>
+</html>

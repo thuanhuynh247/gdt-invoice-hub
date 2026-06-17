@@ -3,7 +3,7 @@ id: PRD-COMPLIANCE-E2
 type: epic
 prd: PRD-COMPLIANCE
 brd_goals:
-  - BRD-G_COMPLIANCE
+  - BRD-G6
 status: draft
 lang: en
 owner: Dev-Lead
@@ -30,7 +30,7 @@ Create the JointAuditCoordinator multi-agent swarm chat panel and the dossier ex
 ## Business Context | Bối cảnh kinh doanh
 
 - **PRD requirement | Yêu cầu PRD:** PRD-COMPLIANCE
-- **BRD goal | Mục tiêu BRD:** BRD-G_COMPLIANCE
+- **BRD goal | Mục tiêu BRD:** BRD-G6
 
 ## Success Criteria | Tiêu chí thành công
 

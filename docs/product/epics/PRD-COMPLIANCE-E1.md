@@ -3,7 +3,7 @@ id: PRD-COMPLIANCE-E1
 type: epic
 prd: PRD-COMPLIANCE
 brd_goals:
-  - BRD-G_COMPLIANCE
+  - BRD-G6
 status: draft
 lang: en
 owner: Dev-Lead
@@ -31,7 +31,7 @@ Build the core transfer pricing evaluation engine, penalty projector, and markup
 ## Business Context | Bối cảnh kinh doanh
 
 - **PRD requirement | Yêu cầu PRD:** PRD-COMPLIANCE
-- **BRD goal | Mục tiêu BRD:** BRD-G_COMPLIANCE
+- **BRD goal | Mục tiêu BRD:** BRD-G6
 
 ## Success Criteria | Tiêu chí thành công
 

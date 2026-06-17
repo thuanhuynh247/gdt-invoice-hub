@@ -3,7 +3,7 @@ id: PRD-FUND-E2
 type: epic
 prd: PRD-FUND
 brd_goals: ["BRD-G3"]
-status: draft
+status: approved
 lang: vi
 owner: TBD
 version: 0.1.0
