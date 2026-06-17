@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+completed
 
 ## Lane
 
@@ -14,10 +14,10 @@ The system tracks e-commerce MST registration statuses for foreign suppliers (e.
 
 ## Acceptance Criteria
 
-- [ ] Create `foreign_vendor_registrations` and `ecommerce_withholding_logs` tables in tenant databases.
-- [ ] Determine if withholding is required (required if the foreign supplier is not registered on the GDT NTNN portal).
-- [ ] Calculate B2B withholding tax: 5% VAT on digital services, and CIT at 5% (services component) or 1% (goods component).
-- [ ] Log calculated tax amounts, foreign supplier MSTs, and transaction values.
+- [x] Create `foreign_vendor_registrations` and `ecommerce_withholding_logs` tables in tenant databases.
+- [x] Determine if withholding is required (required if the foreign supplier is not registered on the GDT NTNN portal).
+- [x] Calculate B2B withholding tax: 5% VAT on digital services, and CIT at 5% (services component) or 1% (goods component).
+- [x] Log calculated tax amounts, foreign supplier MSTs, and transaction values.
 
 ## Validation
 

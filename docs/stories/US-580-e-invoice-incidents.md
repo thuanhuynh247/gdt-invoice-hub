@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+completed
 
 ## Lane
 
@@ -14,10 +14,10 @@ The system provides an error notice status tracker and reporting log for Form 04
 
 ## Acceptance Criteria
 
-- [ ] Create `einvoice_incidents` and `form_04_ss_logs` tables in tenant databases.
-- [ ] Parse and log Form 04/SS-HĐĐT statuses (Accepted, Rejected, Pending).
-- [ ] Enforce filing deadlines: alert warning if Form 04/SS-HĐĐT is submitted after the last day of the subsequent month/quarter.
-- [ ] Save the audit warning indicators in the compliance ledger.
+- [x] Create `einvoice_incidents` and `form_04_ss_logs` tables in tenant databases.
+- [x] Parse and log Form 04/SS-HĐĐT statuses (Accepted, Rejected, Pending).
+- [x] Enforce filing deadlines: alert warning if Form 04/SS-HĐĐT is submitted after the last day of the subsequent month/quarter.
+- [x] Save the audit warning indicators in the compliance ledger.
 
 ## Validation
 

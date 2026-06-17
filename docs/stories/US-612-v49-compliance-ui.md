@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+completed
 
 ## Lane
 
@@ -14,9 +14,9 @@ The system provides a web dashboard at `/v49-compliance-hub` and backend REST AP
 
 ## Acceptance Criteria
 
-- [ ] Register routes `/v49-compliance-hub` and API endpoints `/api/v49/compliance-data`, `/api/v49/sme-cit/calculate`, and `/api/v49/re-loss/offset`.
-- [ ] Implement an interactive dashboard page displaying threshold alerts, CIT calculations, and exemption logs.
-- [ ] Ensure full integration with the application layout and navigation bar.
+- [x] Register routes `/v49-compliance-hub` and API endpoints `/api/v49/compliance-data`, `/api/v49/sme-cit/calculate`, and `/api/v49/re-loss/offset`.
+- [x] Implement an interactive dashboard page displaying threshold alerts, CIT calculations, and exemption logs.
+- [x] Ensure full integration with the application layout and navigation bar.
 
 ## Validation
 

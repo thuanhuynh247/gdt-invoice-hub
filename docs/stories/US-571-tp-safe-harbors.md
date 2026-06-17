@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+completed
 
 ## Lane
 
@@ -14,11 +14,11 @@ The system provides a transfer pricing auditor engine under Decree 132/2020/NĐ-
 
 ## Acceptance Criteria
 
-- [ ] Create `tp_safe_harbor_assessments` and `apa_margin_compliance` tables in tenant databases.
-- [ ] Evaluate Safe Harbor eligibility: revenue < 50B VND and related-party transactions < 30B VND.
-- [ ] Evaluate alternative Safe Harbor: revenue < 200B VND and Net Profit Margin (NPM) exceeds industry minimums (2% trading, 10% manufacturing, 15% services).
-- [ ] Ingest APA terms and verify if actual profit margins fall within the agreed interquartile margin ranges.
-- [ ] Flag compliance warning statuses: "Eligible" (Safe Harbor met), "Ineligible" (requires TP files), "APA Compliant", or "APA Non-Compliant".
+- [x] Create `tp_safe_harbor_assessments` and `apa_margin_compliance` tables in tenant databases.
+- [x] Evaluate Safe Harbor eligibility: revenue < 50B VND and related-party transactions < 30B VND.
+- [x] Evaluate alternative Safe Harbor: revenue < 200B VND and Net Profit Margin (NPM) exceeds industry minimums (2% trading, 10% manufacturing, 15% services).
+- [x] Ingest APA terms and verify if actual profit margins fall within the agreed interquartile margin ranges.
+- [x] Flag compliance warning statuses: "Eligible" (Safe Harbor met), "Ineligible" (requires TP files), "APA Compliant", or "APA Non-Compliant".
 
 ## Validation
 

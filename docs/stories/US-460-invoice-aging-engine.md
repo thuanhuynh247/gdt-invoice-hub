@@ -1,7 +1,7 @@
 # Spec: US-460 — Invoice Aging Analysis & Accounts Receivable/Payable Engine
 
 ## Status
-implemented
+completed
 
 ## Lane
 normal

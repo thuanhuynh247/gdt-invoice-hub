@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+completed
 
 ## Lane
 
@@ -14,9 +14,9 @@ The system aggregates cleared and matched export transactions to auto-compile th
 
 ## Acceptance Criteria
 
-- [ ] Extract all matched export declarations and invoices for a specific tax taxpayer and period.
-- [ ] Compile them into standard Circular 80 Form 01-1/GTGT columns: customs number, registration date, invoice number, invoice date, export revenue, and tax rate (0%).
-- [ ] Render the Form 01-1/GTGT list in the web UI.
+- [x] Extract all matched export declarations and invoices for a specific tax taxpayer and period.
+- [x] Compile them into standard Circular 80 Form 01-1/GTGT columns: customs number, registration date, invoice number, invoice date, export revenue, and tax rate (0%).
+- [x] Render the Form 01-1/GTGT list in the web UI.
 
 ## Validation
 

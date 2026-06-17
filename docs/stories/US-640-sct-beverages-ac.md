@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+completed
 
 ## Lane
 
@@ -14,10 +14,10 @@ The system classifies sugary beverages (>5g/100ml) and calculates SCT based on t
 
 ## Acceptance Criteria
 
-- [ ] Create `sugary_beverage_sct_logs` and `air_conditioner_sct_logs` tables in tenant databases.
-- [ ] Evaluate sugary beverage sugar content. Apply SCT roadmap rates: 2026 = 0%, 2027 = 8%, 2028+ = 10%.
-- [ ] Exclude milk, dairy, 100% fruit juice, coconut water, mineral water, and nectar from sugary beverage SCT.
-- [ ] Validate air conditioner capacities. Apply 10% SCT to capacity > 24,000 BTU and <= 90,000 BTU. Flag capacity <= 24k BTU or > 90k BTU as EXEMPT.
+- [x] Create `sugary_beverage_sct_logs` and `air_conditioner_sct_logs` tables in tenant databases.
+- [x] Evaluate sugary beverage sugar content. Apply SCT roadmap rates: 2026 = 0%, 2027 = 8%, 2028+ = 10%.
+- [x] Exclude milk, dairy, 100% fruit juice, coconut water, mineral water, and nectar from sugary beverage SCT.
+- [x] Validate air conditioner capacities. Apply 10% SCT to capacity > 24,000 BTU and <= 90,000 BTU. Flag capacity <= 24k BTU or > 90k BTU as EXEMPT.
 
 ## Validation
 

@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+completed
 
 ## Lane
 
@@ -14,10 +14,10 @@ The system provides a comprehensive verification suite validating all business r
 
 ## Acceptance Criteria
 
-- [ ] Create `tests/test_v52_features.py` testing sugary beverages roadmap calculations (2026/2027/2028), product exclusions, and BTU capacity checks.
-- [ ] Test inland-to-nontariff area checks (including passenger car exclusions) and promotional equivalent pricing calculations.
-- [ ] Test the `/v52-compliance-hub` endpoint and all dashboard API routes under a mock logged-in session.
-- [ ] Ensure the tests can be successfully executed by the validation wrapper.
+- [x] Create `tests/test_v52_features.py` testing sugary beverages roadmap calculations (2026/2027/2028), product exclusions, and BTU capacity checks.
+- [x] Test inland-to-nontariff area checks (including passenger car exclusions) and promotional equivalent pricing calculations.
+- [x] Test the `/v52-compliance-hub` endpoint and all dashboard API routes under a mock logged-in session.
+- [x] Ensure the tests can be successfully executed by the validation wrapper.
 
 ## Validation
 

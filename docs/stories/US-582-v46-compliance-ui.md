@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+completed
 
 ## Lane
 
@@ -14,10 +14,10 @@ Exposes REST API endpoints and a web console at `/v46-compliance-hub` to track F
 
 ## Acceptance Criteria
 
-- [ ] Register `/v46-compliance-hub` page route and API endpoints `/api/v46/compliance-data`, `/api/v46/incidents/submit-form`, and `/api/v46/conversions/reconcile`.
-- [ ] Render incident trackers, status timelines, and conversion warning alerts.
-- [ ] Ingest mock GDT responses via API simulation endpoints.
-- [ ] Display an advisory debate panel simulating audit risks and solutions.
+- [x] Register `/v46-compliance-hub` page route and API endpoints `/api/v46/compliance-data`, `/api/v46/incidents/submit-form`, and `/api/v46/conversions/reconcile`.
+- [x] Render incident trackers, status timelines, and conversion warning alerts.
+- [x] Ingest mock GDT responses via API simulation endpoints.
+- [x] Display an advisory debate panel simulating audit risks and solutions.
 
 ## Validation
 

@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+completed
 
 ## Lane
 
@@ -14,13 +14,13 @@ Classify and calculate Natural Resources Tax (NRT) on minerals, water, timber, a
 
 ## Acceptance Criteria
 
-- [ ] Calculate metallic ore NRT: Iron 12%, Copper 13%, Gold 15%, Tin 20%.
-- [ ] Calculate non-metallic mineral NRT: Granite 8%, Sand 7%, Marble 9%, Limestone 5%.
-- [ ] Calculate water resource NRT: Surface water 2% default, Groundwater 4% default.
-- [ ] Calculate timber NRT: Natural forest hardwood 25% default, Plantation 3% default.
-- [ ] Calculate marine product NRT: Aquatic products 2% default, Pearls/Coral 8% default.
-- [ ] Formula: `NRT = Quantity × Unit Price × Tax Rate (%)`.
-- [ ] Log all calculations to tenant-specific SQLite tables.
+- [x] Calculate metallic ore NRT: Iron 12%, Copper 13%, Gold 15%, Tin 20%.
+- [x] Calculate non-metallic mineral NRT: Granite 8%, Sand 7%, Marble 9%, Limestone 5%.
+- [x] Calculate water resource NRT: Surface water 2% default, Groundwater 4% default.
+- [x] Calculate timber NRT: Natural forest hardwood 25% default, Plantation 3% default.
+- [x] Calculate marine product NRT: Aquatic products 2% default, Pearls/Coral 8% default.
+- [x] Formula: `NRT = Quantity × Unit Price × Tax Rate (%)`.
+- [x] Log all calculations to tenant-specific SQLite tables.
 
 ## Validation
 

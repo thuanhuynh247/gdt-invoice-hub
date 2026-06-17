@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+completed
 
 ## Lane
 
@@ -14,11 +14,11 @@ The system contains comprehensive unit, integration, and E2E regression tests ve
 
 ## Acceptance Criteria
 
-- [ ] Implement Pytest test suite covering all services in `invoices/v41_service.py`.
-- [ ] Verify XML parser correctly extracts fields and handles errors.
-- [ ] Test the matching logic with tolerances and legal time limit alerts.
-- [ ] Verify correct math for tax refund request limits.
-- [ ] Verify API routes return status 200 for authenticated requests.
+- [x] Implement Pytest test suite covering all services in `invoices/v41_service.py`.
+- [x] Verify XML parser correctly extracts fields and handles errors.
+- [x] Test the matching logic with tolerances and legal time limit alerts.
+- [x] Verify correct math for tax refund request limits.
+- [x] Verify API routes return status 200 for authenticated requests.
 
 ## Validation
 

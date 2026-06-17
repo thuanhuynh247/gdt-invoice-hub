@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+completed
 
 ## Lane
 
@@ -14,10 +14,10 @@ The system renders an interactive compliance dashboard including non-cash bank p
 
 ## Acceptance Criteria
 
-- [ ] Render a dashboard page with summary stats (cleared export value, pending refund amount, compliance rate).
-- [ ] Render a zero-dependency SVG roadmap representing refund stages: Drafting -> Submission -> Customs check -> Payment check -> GDT Decision -> Refund Completed.
-- [ ] Hovering over a node displays audit criteria and compliance checklist.
-- [ ] Include quick-action button to trigger automatic non-cash proof verification.
+- [x] Render a dashboard page with summary stats (cleared export value, pending refund amount, compliance rate).
+- [x] Render a zero-dependency SVG roadmap representing refund stages: Drafting -> Submission -> Customs check -> Payment check -> GDT Decision -> Refund Completed.
+- [x] Hovering over a node displays audit criteria and compliance checklist.
+- [x] Include quick-action button to trigger automatic non-cash proof verification.
 
 ## Validation
 

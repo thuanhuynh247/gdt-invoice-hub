@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+completed
 
 ## Lane
 
@@ -14,10 +14,10 @@ The system provides an automated end-to-end verification test suite to ensure th
 
 ## Acceptance Criteria
 
-- [ ] Write integration and end-to-end unit tests in `tests/test_v51_features.py`.
-- [ ] Verify database state changes and transaction logs after auditing.
-- [ ] Test boundaries for certificate expiration and 24-hour transmission late periods.
-- [ ] Ensure execution through the harness validation wrapper.
+- [x] Write integration and end-to-end unit tests in `tests/test_v51_features.py`.
+- [x] Verify database state changes and transaction logs after auditing.
+- [x] Test boundaries for certificate expiration and 24-hour transmission late periods.
+- [x] Ensure execution through the harness validation wrapper.
 
 ## Validation
 

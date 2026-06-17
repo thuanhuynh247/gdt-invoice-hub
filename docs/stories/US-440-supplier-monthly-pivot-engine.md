@@ -1,7 +1,7 @@
 # Spec: US-440 — Input Invoice Supplier Monthly Pivot Summary Engine
 
 ## Status
-implemented
+completed
 
 ## Lane
 high_risk

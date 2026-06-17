@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+completed
 
 ## Lane
 
@@ -14,9 +14,9 @@ The system provides a web dashboard at `/v51-compliance-hub` and backend REST AP
 
 ## Acceptance Criteria
 
-- [ ] Register routes `/v51-compliance-hub` and API endpoints `/api/v51/compliance-data`, `/api/v51/signature/verify`, and `/api/v51/withholding/calculate`.
-- [ ] Implement an interactive dashboard page displaying digital signature logs, late transmission alerts, and withholding ledgers.
-- [ ] Ensure full integration with the application layout and navigation bar.
+- [x] Register routes `/v51-compliance-hub` and API endpoints `/api/v51/compliance-data`, `/api/v51/signature/verify`, and `/api/v51/withholding/calculate`.
+- [x] Implement an interactive dashboard page displaying digital signature logs, late transmission alerts, and withholding ledgers.
+- [x] Ensure full integration with the application layout and navigation bar.
 
 ## Validation
 

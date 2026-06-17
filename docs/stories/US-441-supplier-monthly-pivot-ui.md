@@ -1,7 +1,7 @@
 # Spec: US-441 — Interactive Input Invoice Supplier Monthly Pivot Table Dashboard UI
 
 ## Status
-implemented
+completed
 
 ## Lane
 high_risk

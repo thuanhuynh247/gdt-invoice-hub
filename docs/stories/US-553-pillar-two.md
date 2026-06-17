@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+completed
 
 ## Lane
 
@@ -14,9 +14,9 @@ The system estimates consolidated group ETR and Top-up Tax under OECD Pillar Two
 
 ## Acceptance Criteria
 
-- [ ] Support consolidated estimation across a list of taxpayer tenant profiles (MSTs).
-- [ ] Calculate consolidated covered taxes and GloBE income to determine the group ETR.
-- [ ] Determine the top-up tax rate (target minimum 15% - group ETR) and apply it to GloBE income after substance-based income exclusion (SBIE).
+- [x] Support consolidated estimation across a list of taxpayer tenant profiles (MSTs).
+- [x] Calculate consolidated covered taxes and GloBE income to determine the group ETR.
+- [x] Determine the top-up tax rate (target minimum 15% - group ETR) and apply it to GloBE income after substance-based income exclusion (SBIE).
 
 ## Validation
 

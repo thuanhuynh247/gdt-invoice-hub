@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+completed
 
 ## Lane
 
@@ -14,9 +14,9 @@ The system manages revenue recognition under IFRS 15. It handles performance obl
 
 ## Acceptance Criteria
 
-- [ ] Support `ifrs15_revenue_contracts` and `ifrs15_performance_obligations` tables in the tenant database.
-- [ ] Implement price allocation engine that splits contract transaction price proportionally based on relative Standalone Selling Price (SSP).
-- [ ] Implement milestone matching that updates recognized and deferred revenue upon obligation satisfaction.
+- [x] Support `ifrs15_revenue_contracts` and `ifrs15_performance_obligations` tables in the tenant database.
+- [x] Implement price allocation engine that splits contract transaction price proportionally based on relative Standalone Selling Price (SSP).
+- [x] Implement milestone matching that updates recognized and deferred revenue upon obligation satisfaction.
 
 ## Validation
 

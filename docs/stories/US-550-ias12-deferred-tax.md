@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+completed
 
 ## Lane
 
@@ -14,11 +14,11 @@ The system ingests asset and liability carrying amounts (IFRS) and tax bases (VA
 
 ## Acceptance Criteria
 
-- [ ] Create/ensure `ifrs_deferred_tax_ledger` table inside isolated tenant database.
-- [ ] Implement temporary difference calculation logic:
+- [x] Create/ensure `ifrs_deferred_tax_ledger` table inside isolated tenant database.
+- [x] Implement temporary difference calculation logic:
   - Asset: Carrying > Tax Base -> DTL; Carrying < Tax Base -> DTA.
   - Liability: Carrying > Tax Base -> DTA; Carrying < Tax Base -> DTL.
-- [ ] Save calculated DTA/DTL values back to the ledger and return them to the caller.
+- [x] Save calculated DTA/DTL values back to the ledger and return them to the caller.
 
 ## Validation
 

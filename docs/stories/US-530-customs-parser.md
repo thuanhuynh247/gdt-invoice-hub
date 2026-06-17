@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+completed
 
 ## Lane
 
@@ -20,10 +20,10 @@ The system parses export customs declaration XML files (Tờ khai hải quan xu�
 
 ## Acceptance Criteria
 
-- [ ] Provide an XML parsing function inside `invoices/v41_service.py` to extract all required fields.
-- [ ] Add `CustomsDeclaration` database model to store parsed customs declaration information.
-- [ ] Render a mock XML file uploader in the web UI for testing customs declaration uploads.
-- [ ] Handle bad XML formats or missing clearance dates gracefully.
+- [x] Provide an XML parsing function inside `invoices/v41_service.py` to extract all required fields.
+- [x] Add `CustomsDeclaration` database model to store parsed customs declaration information.
+- [x] Render a mock XML file uploader in the web UI for testing customs declaration uploads.
+- [x] Handle bad XML formats or missing clearance dates gracefully.
 
 ## Validation
 

@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+completed
 
 ## Lane
 
@@ -14,10 +14,10 @@ Audit NRT exemptions for agricultural water, small-scale hydropower (≤ 2MW ins
 
 ## Acceptance Criteria
 
-- [ ] Exempt natural water used for agriculture, forestry, fishery, salt production (100%).
-- [ ] Exempt hydropower stations with installed capacity ≤ 2MW (100%).
-- [ ] Apply 70% rate for resources extracted and consumed internally by mining enterprises.
-- [ ] Log exemption audit results to tenant-specific SQLite tables.
+- [x] Exempt natural water used for agriculture, forestry, fishery, salt production (100%).
+- [x] Exempt hydropower stations with installed capacity ≤ 2MW (100%).
+- [x] Apply 70% rate for resources extracted and consumed internally by mining enterprises.
+- [x] Log exemption audit results to tenant-specific SQLite tables.
 
 ## Validation
 

@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+completed
 
 ## Lane
 
@@ -14,8 +14,8 @@ The system implements a simulator and optimizer for the Science and Technology D
 
 ## Acceptance Criteria
 
-- [ ] Create `sci_tech_fund_ledger` and `sci_tech_expenditures` tables in the tenant database.
-- [ ] Implement fund optimization calculations:
+- [x] Create `sci_tech_fund_ledger` and `sci_tech_expenditures` tables in the tenant database.
+- [x] Implement fund optimization calculations:
   - Max CIT taxable income deduction allocation (up to 10% of profit).
   - Simulate the 5-year timeline from allocation year, tracking qualified expenditures vs non-qualified expenditures.
   - Calculate CIT clawback amount (taxable portion of unspent fund multiplied by statutory CIT rate).

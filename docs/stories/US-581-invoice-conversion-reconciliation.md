@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+completed
 
 ## Lane
 
@@ -14,10 +14,10 @@ The system provides a conversion invoice auditing engine under Circular 78/2021/
 
 ## Acceptance Criteria
 
-- [ ] Create `invoice_conversion_prints` and `conversion_reconciliation` tables in tenant databases.
-- [ ] Implement conversion print counter limits to flag multiple prints of the same electronic invoice.
-- [ ] Match legacy bills/tickets with corresponding XML e-invoices by date, seller MST, and amount.
-- [ ] Raise warning flags (e.g. `DUPLICATE_CONVERSION_CLAIM`) if both conversion print and XML are claimed.
+- [x] Create `invoice_conversion_prints` and `conversion_reconciliation` tables in tenant databases.
+- [x] Implement conversion print counter limits to flag multiple prints of the same electronic invoice.
+- [x] Match legacy bills/tickets with corresponding XML e-invoices by date, seller MST, and amount.
+- [x] Raise warning flags (e.g. `DUPLICATE_CONVERSION_CLAIM`) if both conversion print and XML are claimed.
 
 ## Validation
 

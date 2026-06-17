@@ -85,9 +85,9 @@ Mối quan hệ giữa các phân hệ tuân thủ được phân loại như sa
 
 ## Trang 7: Lộ trình & Nghiệm thu (DoD)
 - **Định nghĩa Hoàn thành (DoD)**:
-  - [ ] Tạo route `/compliance-concept-map` trong `invoices/routes/core.py`.
-  - [ ] Tạo giao diện `templates/compliance_concept_map.html` kế thừa `base.html` được thiết kế theo phong cách Wise Fintech/Premium Dark Mode.
-  - [ ] Tích hợp thư viện đồ họa thuần SVG kết hợp CSS-in-JS linh hoạt, không phụ thuộc thư viện ngoài cồng kềnh để tối ưu tốc độ load.
-  - [ ] Thêm liên kết truy cập bản đồ khái niệm vào menu chính của trang.
-  - [ ] Viết unit/integration test xác thực route hoạt động và trả về HTTP 200.
-  - [ ] Đăng ký Story trong Harness DB và chạy Unified Quality Gate để ký UAT report.
+  - [x] Tạo route `/compliance-concept-map` trong `invoices/routes/core.py`.
+  - [x] Tạo giao diện `templates/compliance_concept_map.html` kế thừa `base.html` được thiết kế theo phong cách Wise Fintech/Premium Dark Mode.
+  - [x] Tích hợp thư viện đồ họa thuần SVG kết hợp CSS-in-JS linh hoạt, không phụ thuộc thư viện ngoài cồng kềnh để tối ưu tốc độ load.
+  - [x] Thêm liên kết truy cập bản đồ khái niệm vào menu chính của trang.
+  - [x] Viết unit/integration test xác thực route hoạt động và trả về HTTP 200.
+  - [x] Đăng ký Story trong Harness DB và chạy Unified Quality Gate để ký UAT report.

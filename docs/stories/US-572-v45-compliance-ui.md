@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+completed
 
 ## Lane
 
@@ -14,10 +14,10 @@ The system exposes REST API endpoints and a web console at `/v45-compliance-hub`
 
 ## Acceptance Criteria
 
-- [ ] Register routes `/v45-compliance-hub` and API endpoints `/api/v45/compliance-data`, `/api/v45/cit-incentives/calculate`, and `/api/v45/tp-safe-harbors/evaluate`.
-- [ ] Implement input sliders on UI for taxable income segmentation, revenue, and margins.
-- [ ] Render interactive charts/widgets displaying CIT savings and Safe Harbor status.
-- [ ] Display an advisory debate panel simulating tax inspectors and CFO consultancies.
+- [x] Register routes `/v45-compliance-hub` and API endpoints `/api/v45/compliance-data`, `/api/v45/cit-incentives/calculate`, and `/api/v45/tp-safe-harbors/evaluate`.
+- [x] Implement input sliders on UI for taxable income segmentation, revenue, and margins.
+- [x] Render interactive charts/widgets displaying CIT savings and Safe Harbor status.
+- [x] Display an advisory debate panel simulating tax inspectors and CFO consultancies.
 
 ## Validation
 

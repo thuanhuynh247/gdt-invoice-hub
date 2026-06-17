@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+completed
 
 ## Lane
 
@@ -14,12 +14,12 @@ The system ingests related party transactions and compares the taxpayer's profit
 
 ## Acceptance Criteria
 
-- [ ] Implement `RelatedPartyTransaction` and `TransferPricingBenchmark` models in database (`invoices/models.py`).
-- [ ] Create benchmarking calculation logic in `invoices/v42_service.py` to:
+- [x] Implement `RelatedPartyTransaction` and `TransferPricingBenchmark` models in database (`invoices/models.py`).
+- [x] Create benchmarking calculation logic in `invoices/v42_service.py` to:
   - Calculate taxpayer's margin.
   - Determine if it falls within the interquartile range.
   - Apply adjustment to the median of the benchmark range if below the 25th percentile.
-- [ ] Return detailed comparison object including original margin, range, adjustment amount, and status.
+- [x] Return detailed comparison object including original margin, range, adjustment amount, and status.
 
 ## Validation
 

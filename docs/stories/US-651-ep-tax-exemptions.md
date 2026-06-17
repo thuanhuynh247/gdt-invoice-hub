@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+completed
 
 ## Lane
 
@@ -14,10 +14,10 @@ The system audits Environmental Protection (EP) Tax exemptions and exclusions un
 
 ## Acceptance Criteria
 
-- [ ] Support 100% exemption for plastic bags with certified biodegradable status.
-- [ ] Support 100% exemption for coal used directly for electricity generation or coal directly exported by miners.
-- [ ] Support 100% exemption for fuels used in transit or temporarily imported for re-export.
-- [ ] Log the audit reason and exemption status accurately in the respective tenant database logs.
+- [x] Support 100% exemption for plastic bags with certified biodegradable status.
+- [x] Support 100% exemption for coal used directly for electricity generation or coal directly exported by miners.
+- [x] Support 100% exemption for fuels used in transit or temporarily imported for re-export.
+- [x] Log the audit reason and exemption status accurately in the respective tenant database logs.
 
 ## Validation
 

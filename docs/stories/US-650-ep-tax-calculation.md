@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+completed
 
 ## Lane
 
@@ -14,11 +14,11 @@ The system classifies taxable environmental items (fuels, coal, plastic bags, ch
 
 ## Acceptance Criteria
 
-- [ ] Create `ep_tax_fuel_logs`, `ep_tax_coal_logs`, `ep_tax_plastic_bag_logs`, and `ep_tax_chemical_logs` tables in tenant databases.
-- [ ] Calculate fuel EP tax using rates: Petrol = 2,000 VND/l, Diesel = 1,000 VND/l, Kerosene = 600 VND/l.
-- [ ] Calculate coal EP tax by type: Lignite/Sub-bituminous = 20,000 VND/tonne, Anthracite = 30,000 VND/tonne, Other coal = 15,000 VND/tonne.
-- [ ] Calculate non-biodegradable plastic bags EP tax at 50,000 VND/kg.
-- [ ] Calculate HCFC chemical EP tax at 5,000 VND/kg.
+- [x] Create `ep_tax_fuel_logs`, `ep_tax_coal_logs`, `ep_tax_plastic_bag_logs`, and `ep_tax_chemical_logs` tables in tenant databases.
+- [x] Calculate fuel EP tax using rates: Petrol = 2,000 VND/l, Diesel = 1,000 VND/l, Kerosene = 600 VND/l.
+- [x] Calculate coal EP tax by type: Lignite/Sub-bituminous = 20,000 VND/tonne, Anthracite = 30,000 VND/tonne, Other coal = 15,000 VND/tonne.
+- [x] Calculate non-biodegradable plastic bags EP tax at 50,000 VND/kg.
+- [x] Calculate HCFC chemical EP tax at 5,000 VND/kg.
 
 ## Validation
 

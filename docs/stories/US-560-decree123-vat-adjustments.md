@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+completed
 
 ## Lane
 
@@ -14,14 +14,14 @@ The system provides an auditing and reconciliation engine for VAT adjustment inv
 
 ## Acceptance Criteria
 
-- [ ] Create `decree123_invoice_adjustments` table inside isolated tenant database.
-- [ ] Match adjustment/replacement/discount invoices against original sales/purchase invoices by original invoice symbol/number.
-- [ ] Implement validation audit rules:
+- [x] Create `decree123_invoice_adjustments` table inside isolated tenant database.
+- [x] Match adjustment/replacement/discount invoices against original sales/purchase invoices by original invoice symbol/number.
+- [x] Implement validation audit rules:
   - The sum of adjustment amounts (positive or negative) must not exceed the original invoice's net amount or VAT amount.
   - Buyer and seller taxpayer MSTs must match the original invoice.
   - The tax rate (VAT) must match the adjusted line item's original tax rate.
   - Flag any adjustment without a valid original invoice reference as "Unlinked".
-- [ ] Expose reconciliation service functions and save the audit results.
+- [x] Expose reconciliation service functions and save the audit results.
 
 ## Validation
 

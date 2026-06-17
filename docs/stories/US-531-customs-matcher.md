@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+completed
 
 ## Lane
 
@@ -18,9 +18,9 @@ The system reconciles export customs declarations with corresponding GTGT export
 
 ## Acceptance Criteria
 
-- [ ] Implement `DeclarationInvoiceMatch` model in database to record match state and discrepancies.
-- [ ] Add a service method to perform automatic matching and flag unmatched or value-mismatched records.
-- [ ] Render matching status in the UI (e.g. matched, value mismatch, unmatched).
+- [x] Implement `DeclarationInvoiceMatch` model in database to record match state and discrepancies.
+- [x] Add a service method to perform automatic matching and flag unmatched or value-mismatched records.
+- [x] Render matching status in the UI (e.g. matched, value mismatch, unmatched).
 
 ## Validation
 

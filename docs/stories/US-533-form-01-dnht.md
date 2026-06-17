@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+completed
 
 ## Lane
 
@@ -14,10 +14,10 @@ The system provides a step-by-step wizard to compile the official export VAT tax
 
 ## Acceptance Criteria
 
-- [ ] Support calculation of cumulative input tax credits and allocated export VAT refund requests.
-- [ ] Implement `VatRefundApplication` database model to save drafts and submissions.
-- [ ] Provide user inputs for bank details, refund reasons, and compliance checkpoints.
-- [ ] Auto-validate that the refund request amount does not exceed the allowed threshold (10% of export revenue or 300 million VND).
+- [x] Support calculation of cumulative input tax credits and allocated export VAT refund requests.
+- [x] Implement `VatRefundApplication` database model to save drafts and submissions.
+- [x] Provide user inputs for bank details, refund reasons, and compliance checkpoints.
+- [x] Auto-validate that the refund request amount does not exceed the allowed threshold (10% of export revenue or 300 million VND).
 
 ## Validation
 

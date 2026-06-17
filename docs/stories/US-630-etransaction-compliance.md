@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+completed
 
 ## Lane
 
@@ -14,10 +14,10 @@ The system audits the integrity of digital signatures on XML invoices, verifies 
 
 ## Acceptance Criteria
 
-- [ ] Create `etransaction_signature_audit` and `transmission_delay_logs` tables in tenant databases.
-- [ ] Verify digital certificate validity range relative to invoice date. Flag `SIGNATURE_EXPIRED` warnings.
-- [ ] Compute signing-to-reception delays and flag a `LATE_TRANSMISSION` warning if it exceeds 24 hours.
-- [ ] Log signature status, timestamps, and compliance flags in the tenant database ledger.
+- [x] Create `etransaction_signature_audit` and `transmission_delay_logs` tables in tenant databases.
+- [x] Verify digital certificate validity range relative to invoice date. Flag `SIGNATURE_EXPIRED` warnings.
+- [x] Compute signing-to-reception delays and flag a `LATE_TRANSMISSION` warning if it exceeds 24 hours.
+- [x] Log signature status, timestamps, and compliance flags in the tenant database ledger.
 
 ## Validation
 

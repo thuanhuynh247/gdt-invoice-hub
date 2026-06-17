@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+completed
 
 ## Lane
 
@@ -14,10 +14,10 @@ The system provides a comprehensive verification suite to test all components of
 
 ## Acceptance Criteria
 
-- [ ] Implement robust tests inside `tests/test_v44_features.py`.
-- [ ] Test Decree 123 VAT Adjustment rules: original invoice linking, amount ceiling validation, taxpayer MST matching, and mismatch flag assertions.
-- [ ] Test Circular 67 Science & Tech Fund calculations: tax-deductible ceiling, qualified spending timeline, CIT clawback amount, and daily late payment interest (lãi chậm nộp).
-- [ ] Test all three REST endpoints with mock sessions and isolated multi-tenant database paths.
+- [x] Implement robust tests inside `tests/test_v44_features.py`.
+- [x] Test Decree 123 VAT Adjustment rules: original invoice linking, amount ceiling validation, taxpayer MST matching, and mismatch flag assertions.
+- [x] Test Circular 67 Science & Tech Fund calculations: tax-deductible ceiling, qualified spending timeline, CIT clawback amount, and daily late payment interest (lãi chậm nộp).
+- [x] Test all three REST endpoints with mock sessions and isolated multi-tenant database paths.
 
 ## Validation
 

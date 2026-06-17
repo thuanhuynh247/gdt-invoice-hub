@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+completed
 
 ## Lane
 
@@ -14,9 +14,9 @@ The system provides a web dashboard at `/v50-compliance-hub` and backend REST AP
 
 ## Acceptance Criteria
 
-- [ ] Register routes `/v50-compliance-hub` and API endpoints `/api/v50/compliance-data`, `/api/v50/wage-pit/calculate`, and `/api/v50/household-pit/evaluate`.
-- [ ] Implement an interactive dashboard page displaying family deductions configuration, wage sliders, and tax audit tables.
-- [ ] Ensure full integration with the application layout and navigation bar.
+- [x] Register routes `/v50-compliance-hub` and API endpoints `/api/v50/compliance-data`, `/api/v50/wage-pit/calculate`, and `/api/v50/household-pit/evaluate`.
+- [x] Implement an interactive dashboard page displaying family deductions configuration, wage sliders, and tax audit tables.
+- [x] Ensure full integration with the application layout and navigation bar.
 
 ## Validation
 

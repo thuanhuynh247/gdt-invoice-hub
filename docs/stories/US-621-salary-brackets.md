@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+completed
 
 ## Lane
 
@@ -14,10 +14,10 @@ The system implements the progressive PIT brackets calculation (5% to 35%) and m
 
 ## Acceptance Criteria
 
-- [ ] Create `salary_pit_deductions` and `progressive_pit_ledgers` tables in tenant databases.
-- [ ] Implement personal deduction of 15,000,000 VND/month and dependent deduction of 5,500,000 VND/month per dependent.
-- [ ] Build the 7-grade progressive tax bracket calculator based on taxable income.
-- [ ] Log deductions and final PIT calculated in the tenant database ledger.
+- [x] Create `salary_pit_deductions` and `progressive_pit_ledgers` tables in tenant databases.
+- [x] Implement personal deduction of 15,000,000 VND/month and dependent deduction of 5,500,000 VND/month per dependent.
+- [x] Build the 7-grade progressive tax bracket calculator based on taxable income.
+- [x] Log deductions and final PIT calculated in the tenant database ledger.
 
 ## Validation
 

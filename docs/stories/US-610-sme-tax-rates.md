@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+completed
 
 ## Lane
 
@@ -14,10 +14,10 @@ The system implements the progressive Corporate Income Tax (CIT) rate classifier
 
 ## Acceptance Criteria
 
-- [ ] Create `sme_cit_classifications` and `re_loss_offset_logs` tables in tenant databases.
-- [ ] Determine the CIT rate based on annual revenue thresholds (15% for revenue <3B, 17% for 3B-50B, 20% standard rate).
-- [ ] Implement the offsetting rule: permit offsetting real estate transfer losses directly against main production income in the same tax period.
-- [ ] Log classification results and computed offsets in the tenant database ledger.
+- [x] Create `sme_cit_classifications` and `re_loss_offset_logs` tables in tenant databases.
+- [x] Determine the CIT rate based on annual revenue thresholds (15% for revenue <3B, 17% for 3B-50B, 20% standard rate).
+- [x] Implement the offsetting rule: permit offsetting real estate transfer losses directly against main production income in the same tax period.
+- [x] Log classification results and computed offsets in the tenant database ledger.
 
 ## Validation
 

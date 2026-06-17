@@ -1,7 +1,7 @@
 # Spec: US-461 — Interactive AR/AP Aging Dashboard & Heatmap UI
 
 ## Status
-implemented
+completed
 
 ## Lane
 normal

@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+completed
 
 ## Lane
 
@@ -14,10 +14,10 @@ The system provides an interactive dashboard UI at `/v52-compliance-hub` and sup
 
 ## Acceptance Criteria
 
-- [ ] Create `/v52-compliance-hub` Flask route rendering `v52_compliance_hub.html`.
-- [ ] Implement REST APIs under `/api/v52/` for sugary beverage calculation, air conditioner classification, non-tariff area audits, and promotional price adjustments.
-- [ ] Include interactive simulation calculators for each pillar on the dashboard UI.
-- [ ] Add the mock consensus debate panel containing transcripts between auditors, tax managers, and advisors regarding Law 66 implementation details.
+- [x] Create `/v52-compliance-hub` Flask route rendering `v52_compliance_hub.html`.
+- [x] Implement REST APIs under `/api/v52/` for sugary beverage calculation, air conditioner classification, non-tariff area audits, and promotional price adjustments.
+- [x] Include interactive simulation calculators for each pillar on the dashboard UI.
+- [x] Add the mock consensus debate panel containing transcripts between auditors, tax managers, and advisors regarding Law 66 implementation details.
 
 ## Validation
 

@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+completed
 
 ## Lane
 
@@ -14,10 +14,10 @@ The system audits inland sales into non-tariff zones (taxable under SCT, excludi
 
 ## Acceptance Criteria
 
-- [ ] Create `nontariff_sct_logs` and `promotion_sct_logs` tables in tenant databases.
-- [ ] Audit transactions sold into non-tariff areas. Apply SCT (default 10%) unless the item is classified as a passenger car with < 24 seats.
-- [ ] Determine correct SCT base price for promotional goods using equivalent or identical market values instead of promotional price (e.g. 0 VND).
-- [ ] Log all calculations and warnings in the tenant database.
+- [x] Create `nontariff_sct_logs` and `promotion_sct_logs` tables in tenant databases.
+- [x] Audit transactions sold into non-tariff areas. Apply SCT (default 10%) unless the item is classified as a passenger car with < 24 seats.
+- [x] Determine correct SCT base price for promotional goods using equivalent or identical market values instead of promotional price (e.g. 0 VND).
+- [x] Log all calculations and warnings in the tenant database.
 
 ## Validation
 

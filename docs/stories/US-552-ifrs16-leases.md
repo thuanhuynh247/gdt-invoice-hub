@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+completed
 
 ## Lane
 
@@ -14,9 +14,9 @@ The system automates lease amortization schedules and Right-of-Use (ROU) asset/l
 
 ## Acceptance Criteria
 
-- [ ] Support `lease_amortization_schedule` table in the tenant database.
-- [ ] Implement present value calculation of future lease payments as the opening balance of ROU Asset / Lease Liability.
-- [ ] Generate a monthly amortization schedule tracking interest expense (using periodic rate) and principal repayments, reducing liability balance to zero.
+- [x] Support `lease_amortization_schedule` table in the tenant database.
+- [x] Implement present value calculation of future lease payments as the opening balance of ROU Asset / Lease Liability.
+- [x] Generate a monthly amortization schedule tracking interest expense (using periodic rate) and principal repayments, reducing liability balance to zero.
 
 ## Validation
 

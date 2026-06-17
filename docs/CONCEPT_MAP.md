@@ -184,9 +184,9 @@ Hệ thống được thiết kế để vận hành tối ưu trong phạm vi �
 
 ### Tiêu chuẩn hoàn thành kiểm tra chất lượng (Quality Check)
 
-- [ ] Bản đồ khái niệm đã bao quát đầy đủ 7 trang cấu trúc chuẩn.
-- [ ] Định rõ Focus Question và True Purpose liên quan trực tiếp đến dự án Webapp XML.
-- [ ] Đã phân tách ranh giới rõ ràng giữa các thành phần cốt lõi và các tính năng nâng cao.
-- [ ] Các mối quan hệ kỹ thuật được chuyển hóa thành các mệnh đề logic hoạt động chi tiết.
-- [ ] Bản đồ cung cấp đầy đủ thông tin về luồng xử lý dữ liệu, ranh giới lỗi và lộ trình phát triển.
-- [ ] Người đọc có thể giải thích được cách thức hoạt động của hệ thống multi-tenant và module định tuyến mới sau khi nghiên cứu bản đồ này.
+- [x] Bản đồ khái niệm đã bao quát đầy đủ 7 trang cấu trúc chuẩn.
+- [x] Định rõ Focus Question và True Purpose liên quan trực tiếp đến dự án Webapp XML.
+- [x] Đã phân tách ranh giới rõ ràng giữa các thành phần cốt lõi và các tính năng nâng cao.
+- [x] Các mối quan hệ kỹ thuật được chuyển hóa thành các mệnh đề logic hoạt động chi tiết.
+- [x] Bản đồ cung cấp đầy đủ thông tin về luồng xử lý dữ liệu, ranh giới lỗi và lộ trình phát triển.
+- [x] Người đọc có thể giải thích được cách thức hoạt động của hệ thống multi-tenant và module định tuyến mới sau khi nghiên cứu bản đồ này.

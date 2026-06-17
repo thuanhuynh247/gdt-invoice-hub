@@ -1,7 +1,7 @@
 # Spec: US-451 — Interactive Tax Compliance Calendar & Deadline Dashboard UI
 
 ## Status
-implemented
+completed
 
 ## Lane
 high_risk

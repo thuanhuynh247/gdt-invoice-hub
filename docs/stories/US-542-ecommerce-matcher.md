@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+completed
 
 ## Lane
 
@@ -14,12 +14,12 @@ The system reconciles platform transaction logs with issued sales invoices, dete
 
 ## Acceptance Criteria
 
-- [ ] Implement `ECommercePlatformTransaction` and `ECommerceReconciliationReport` models in `invoices/models.py`.
-- [ ] Create E-Commerce matching logic in `invoices/v42_service.py` to:
+- [x] Implement `ECommercePlatformTransaction` and `ECommerceReconciliationReport` models in `invoices/models.py`.
+- [x] Create E-Commerce matching logic in `invoices/v42_service.py` to:
   - Match platform records with sales invoices by date, buyer, and amount (within 1% tolerance).
   - Calculate platform revenue, invoiced revenue, and gap amounts.
   - Audit withholding compliance (flag if the platform did not withhold VAT 1% or PIT 0.5% for individual sellers, or check corporate credentials).
-- [ ] Return a comprehensive reconciliation report dict.
+- [x] Return a comprehensive reconciliation report dict.
 
 ## Validation
 

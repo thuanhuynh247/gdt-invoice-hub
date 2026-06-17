@@ -1,7 +1,7 @@
 # Spec: US-450 — CIT Quarterly Provisional Declaration Engine (Form 01A/TNDN XML Builder)
 
 ## Status
-implemented
+completed
 
 ## Lane
 high_risk
