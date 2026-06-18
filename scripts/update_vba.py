@@ -46,6 +46,19 @@ def main():
         components.Import(bas_login)
         print("Successfully imported modSmartInvoiceLogin.")
         
+        # 1b. Update/Import modHTTPRequest (Standard Module)
+        bas_http = r"D:\LearnAnyThing\Hoa Don VBA\vba_modules\modHTTPRequest.bas"
+        try:
+            comp_http = components("modHTTPRequest")
+            components.Remove(comp_http)
+            print("Removed existing modHTTPRequest component.")
+        except Exception:
+            pass
+            
+        print(f"Importing standard module: {bas_http}")
+        components.Import(bas_http)
+        print("Successfully imported modHTTPRequest.")
+        
         # 2. Update frmDangNhap code (UserForm)
         # Instead of importing (which would fail or create a standard module), we update its CodeModule directly.
         try:

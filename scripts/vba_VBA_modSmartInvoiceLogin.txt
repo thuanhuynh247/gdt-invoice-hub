@@ -17,8 +17,8 @@ Option Explicit
 ' credentials and handle the token response.
 ' ===========================================================================
 
-' Configurable base URL for the Webapp XML server
-Public Const WEBAPP_BASE_URL As String = "http://localhost:5000"
+' Default base URL for the Webapp XML server
+Public Const DEFAULT_WEBAPP_BASE_URL As String = "http://localhost:5000"
 
 ' Maximum number of auto-login retry attempts
 Public Const MAX_LOGIN_RETRIES As Long = 3
@@ -26,6 +26,114 @@ Public Const MAX_LOGIN_RETRIES As Long = 3
 ' Delay between retries (milliseconds)
 Public Const RETRY_DELAY_MS As Long = 1000
 
+' ===========================================================================
+' Dynamic configuration resolver for the Webapp base URL
+' Searches cell T2 of the LinkTraCuu sheet. Falls back to default.
+' ===========================================================================
+Public Function GetWebappBaseUrl() As String
+    On Error Resume Next
+    Dim urlVal As String
+    urlVal = ThisWorkbook.Sheets("LinkTraCuu").Range("T2").Value
+    If Left(LCase(Trim(urlVal)), 4) = "http" Then
+        GetWebappBaseUrl = Trim(urlVal)
+    Else
+        GetWebappBaseUrl = DEFAULT_WEBAPP_BASE_URL
+    End If
+    On Error GoTo 0
+End Function
+
+' ===========================================================================
+' Structured Audit Log Sheet Creator and Logger
+' ===========================================================================
+Public Sub WriteAuditLog(ByVal level As String, ByVal action As String, ByVal details As String)
+    On Error GoTo EH
+    
+    Dim ws As Worksheet
+    Dim wsExists As Boolean
+    wsExists = False
+    
+    For Each ws In ThisWorkbook.Worksheets
+        If ws.Name = "Audit_Trail" Then
+            wsExists = True
+            Exit For
+        End If
+    Next ws
+    
+    ' Create the worksheet if it doesn't exist
+    If Not wsExists Then
+        Set ws = ThisWorkbook.Worksheets.Add(After:=ThisWorkbook.Worksheets(ThisWorkbook.Worksheets.count))
+        ws.Name = "Audit_Trail"
+        
+        ' Style the header
+        With ws
+            .Range("A1").Value = "Timestamp"
+            .Range("B1").Value = "Level"
+            .Range("C1").Value = "Action"
+            .Range("D1").Value = "Detail"
+            .Range("E1").Value = "Taxpayer MST"
+            
+            ' Professional header style: Dark Navy slate background, White text, Bold, Segoe UI
+            With .Range("A1:E1")
+                .Font.Name = "Segoe UI"
+                .Font.Size = 11
+                .Font.Bold = True
+                .Font.Color = RGB(255, 255, 255)
+                .Interior.Color = RGB(30, 41, 59) ' Slate Navy
+                .HorizontalAlignment = xlCenter
+                .VerticalAlignment = xlCenter
+            End With
+            ws.Rows(1).RowHeight = 26
+        End With
+    Else
+        Set ws = ThisWorkbook.Worksheets("Audit_Trail")
+    End If
+    
+    ' Find next empty row
+    Dim nextRow As Long
+    nextRow = ws.Cells(ws.Rows.count, "A").End(xlUp).row + 1
+    
+    ' Limit size to 5000 rows to keep spreadsheet performant
+    If nextRow > 5000 Then
+        ws.Rows("2:100").Delete
+        nextRow = ws.Cells(ws.Rows.count, "A").End(xlUp).row + 1
+    End If
+    
+    ' Write data
+    ws.Cells(nextRow, "A").Value = Format(Now, "yyyy-mm-dd hh:mm:ss")
+    ws.Cells(nextRow, "B").Value = UCase(level)
+    ws.Cells(nextRow, "C").Value = action
+    ws.Cells(nextRow, "D").Value = details
+    ws.Cells(nextRow, "E").Value = sMST
+    
+    ' Format cells dynamically
+    With ws.Range(ws.Cells(nextRow, "A"), ws.Cells(nextRow, "E"))
+        .Font.Name = "Segoe UI"
+        .Font.Size = 10
+    End With
+    
+    ' Accent level color
+    Dim levelCell As Range
+    Set levelCell = ws.Cells(nextRow, "B")
+    Select Case UCase(level)
+        Case "SUCCESS"
+            levelCell.Font.Color = RGB(21, 128, 61) ' Dark Green
+            levelCell.Font.Bold = True
+        Case "WARNING"
+            levelCell.Font.Color = RGB(194, 65, 12) ' Dark Orange
+            levelCell.Font.Bold = True
+        Case "ERROR"
+            levelCell.Font.Color = RGB(185, 28, 28) ' Crimson Red
+            levelCell.Font.Bold = True
+        Case Else
+            levelCell.Font.Color = RGB(71, 85, 105) ' Slate Gray
+    End Select
+    
+    ' Auto-fit columns
+    ws.Columns("A:E").AutoFit
+    Exit Sub
+EH:
+    Debug.Print "Error in WriteAuditLog: " & err.Description
+End Sub
 
 Public Function SmartLogin(ByVal username As String, ByVal password As String) As String
     ' Returns: JWT token on success, empty string on failure.
@@ -38,6 +146,7 @@ Public Function SmartLogin(ByVal username As String, ByVal password As String) A
         token = TrySmartLogin(username, password, attempt)
         If Len(token) > 0 Then
             SmartLogin = token
+            Call WriteAuditLog("SUCCESS", "SMART_LOGIN", "Authenticated taxpayer successfully (Attempt: " & attempt & ")")
             Exit Function
         End If
         
@@ -47,6 +156,7 @@ Public Function SmartLogin(ByVal username As String, ByVal password As String) A
         End If
     Next attempt
     
+    Call WriteAuditLog("ERROR", "SMART_LOGIN", "Failed to authenticate taxpayer after " & MAX_LOGIN_RETRIES & " attempts.")
     SmartLogin = ""
 End Function
 
@@ -65,7 +175,7 @@ Private Function TrySmartLogin(ByVal username As String, ByVal password As Strin
     Dim jsResult As Object
     Dim apiUrl As String
     
-    apiUrl = WEBAPP_BASE_URL & "/API/login"
+    apiUrl = GetWebappBaseUrl() & "/API/login"
     
     ' === PHASE 1: Request captcha from webapp ===
     phase1Body = "{""username"":""" & username & """,""password"":""" & password & """,""captcha"":"""",""key"":""""}"
@@ -102,12 +212,10 @@ Private Function TrySmartLogin(ByVal username As String, ByVal password As Strin
     captchaContent = jsResult("content")
     
     ' Try local SVG vector detection as a quick pre-check
-    ' (the webapp already solves it, but we can also try locally for speed)
     solvedCaptcha = detectSVGCaptcha(captchaContent)
     
     If Len(solvedCaptcha) = 0 Then
         ' If local detection fails, use a placeholder - the webapp will re-solve
-        ' In practice, the webapp auto-solves before returning the token
         Debug.Print "[SmartLogin] Local SVG detection failed, using webapp auto-solve"
         solvedCaptcha = "AUTO"
     End If
@@ -166,7 +274,6 @@ End Function
 Public Function SmartLoginDirect(ByVal username As String, ByVal password As String) As String
     ' Direct login to GDT without webapp proxy (legacy fallback).
     ' Uses the original GDT endpoint with local SVG captcha detection.
-    ' This is the original flow preserved as a fallback.
     
     On Error GoTo EH
     
@@ -230,9 +337,11 @@ Public Function SmartLoginDirect(ByVal username As String, ByVal password As Str
     If IsInDict(jsLogin, "token") Then
         SmartLoginDirect = jsLogin("token")
         Debug.Print "[DirectLogin] Login successful"
+        Call WriteAuditLog("SUCCESS", "DIRECT_LOGIN", "Authenticated directly with GDT portal.")
     Else
         If IsInDict(jsLogin, "message") Then
             Debug.Print "[DirectLogin] Login failed: " & jsLogin("message")
+            Call WriteAuditLog("ERROR", "DIRECT_LOGIN", "Direct GDT Auth failed: " & jsLogin("message"))
         End If
         SmartLoginDirect = ""
     End If
@@ -263,7 +372,7 @@ Public Function TestWebappConnection() As Boolean
     Dim http As Object
     Set http = CreateObject("MSXML2.ServerXMLHTTP.6.0")
     With http
-        .Open "GET", WEBAPP_BASE_URL & "/health", False
+        .Open "GET", GetWebappBaseUrl() & "/health", False
         .setTimeouts 3000, 3000, 5000, 5000
         .send
         TestWebappConnection = (.Status = 200)
@@ -292,9 +401,9 @@ Public Function UploadXMLToWebappBytes(ByRef fileBytes As Variant, ByVal userMst
     Dim uploadUrl As String
     
     ' Construct URL with taxpayer MST and filename parameters
-    uploadUrl = WEBAPP_BASE_URL & "/API/upload_xml/" & userMst & "?filename=" & fileName & "&duplicate_strategy=overwrite"
+    uploadUrl = GetWebappBaseUrl() & "/API/upload_xml/" & userMst & "?filename=" & fileName & "&duplicate_strategy=overwrite"
     
-    Set http = CreateObject("MSXML2.ServerXMLHTTP.6.0")
+    Set http = GetxmlHttp() ' Reuse the global HTTP Keep-Alive client
     With http
         .Open "POST", uploadUrl, False
         .setRequestHeader "Content-Type", "application/zip"
@@ -306,17 +415,21 @@ Public Function UploadXMLToWebappBytes(ByRef fileBytes As Variant, ByVal userMst
         If .Status = 200 Or .Status = 207 Then
             UploadXMLToWebappBytes = True
             Debug.Print "[UploadXMLToWebapp] Successfully uploaded bytes for: " & fileName
+            Call WriteAuditLog("SUCCESS", "UPLOAD_XML", "Uploaded " & fileName & " (MST: " & userMst & ")")
         Else
             UploadXMLToWebappBytes = False
-            Debug.Print "[UploadXMLToWebapp] Upload bytes failed with status: " & .Status & " - " & .responseText
+            Dim errBody As String
+            errBody = .responseText
+            Debug.Print "[UploadXMLToWebapp] Upload bytes failed with status: " & .Status & " - " & errBody
+            Call WriteAuditLog("ERROR", "UPLOAD_XML", "Failed " & fileName & " (Status: " & .Status & ") response: " & Left(errBody, 100))
         End If
     End With
-    Set http = Nothing
     Exit Function
     
 EH:
-    Debug.Print "[UploadXMLToWebapp] Error: " & Err.Number & " - " & Err.Description
+    Dim errDesc As String
+    errDesc = Err.Number & " - " & Err.Description
+    Debug.Print "[UploadXMLToWebapp] Error: " & errDesc
+    Call WriteAuditLog("ERROR", "UPLOAD_XML_EXCEPTION", "Exception uploading " & fileName & ": " & errDesc)
     UploadXMLToWebappBytes = False
-    Set http = Nothing
 End Function
-

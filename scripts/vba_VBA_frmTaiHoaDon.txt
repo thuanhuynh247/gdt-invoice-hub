@@ -523,17 +523,32 @@ Sub taiHoaDon_Total(Optional rowTotalstart As Long = 3, Optional rowDetailStart 
         url2 = url & sort & "&size=" & size & "&search=" & search
 
 nextPage:
-
-        If httpGet(url2, bearer, res) = False Or Len(res) = 0 Then
-
-            'MsgBoxUni "L" & ChrW(7895) & "i ph" & ChrW(225) & "t sinh t" & ChrW(7915) & " ng" & ChrW(224) & "y " & arrDate(k, 1) & " - " & arrDate(k, 2), vbExclamation, "Thông báo"
-
+        ' === Resilient Search Retry Loop ===
+        Dim searchAttempt As Long
+        Dim searchSuccess As Boolean
+        searchSuccess = False
+        
+        For searchAttempt = 1 To 3
+            If httpGet(url2, bearer, res, SilentMode:=True) And Len(res) > 0 Then
+                If InStr(1, res, "error") = 0 Then
+                    searchSuccess = True
+                    Exit For
+                End If
+            End If
+            
+            Debug.Print "[taiHoaDon_Total] Search attempt " & searchAttempt & " failed for URL: " & url2
+            Call WriteAuditLog("WARNING", "SEARCH_RETRY", "Attempt " & searchAttempt & " failed for period: " & arrDate(k, 1) & " - " & arrDate(k, 2))
+            
+            If searchAttempt < 3 Then
+                Sleep (1000 * searchAttempt)
+            End If
+        Next searchAttempt
+        
+        If Not searchSuccess Then
             errMsg = errMsg & "Loi tai hoa don tong hop ngay: " & arrDate(k, 1) & " - " & arrDate(k, 2) & vbCrLf
-
+            Call WriteAuditLog("ERROR", "SEARCH_FAIL", "Failed to search invoices for period: " & arrDate(k, 1) & " - " & arrDate(k, 2))
             If getStatus = 429 Or getStatus = 500 Then GoTo errLog
-
-            GoTo nextDatePeriod 'Khi co loi phat sinh --> tiep tuc lay du lieu khoang thoi gian ke tiep
-
+            GoTo nextDatePeriod
         End If
 
         
@@ -597,17 +612,32 @@ nextPage:
         url2 = url_sco & sort & "&size=" & size & "&search=" & search
 
 nextPage_sco:
-
-        If httpGet(url2, bearer, res) = False Or Len(res) = 0 Then
-
-            'MsgBoxUni "L" & ChrW(7895) & "i ph" & ChrW(225) & "t sinh t" & ChrW(7915) & " ng" & ChrW(224) & "y " & arrDate(k, 1) & " - " & arrDate(k, 2), vbExclamation, "Thông báo"
-
+        ' === Resilient SCO Search Retry Loop ===
+        Dim scoSearchAttempt As Long
+        Dim scoSearchSuccess As Boolean
+        scoSearchSuccess = False
+        
+        For scoSearchAttempt = 1 To 3
+            If httpGet(url2, bearer, res, SilentMode:=True) And Len(res) > 0 Then
+                If InStr(1, res, "error") = 0 Then
+                    scoSearchSuccess = True
+                    Exit For
+                End If
+            End If
+            
+            Debug.Print "[taiHoaDon_Total] SCO Search attempt " & scoSearchAttempt & " failed for URL: " & url2
+            Call WriteAuditLog("WARNING", "SCO_SEARCH_RETRY", "Attempt " & scoSearchAttempt & " failed for period: " & arrDate(k, 1) & " - " & arrDate(k, 2))
+            
+            If scoSearchAttempt < 3 Then
+                Sleep (1000 * scoSearchAttempt)
+            End If
+        Next scoSearchAttempt
+        
+        If Not scoSearchSuccess Then
             errMsg = errMsg & "Loi tai hoa don tong hop ngay: " & arrDate(k, 1) & " - " & arrDate(k, 2) & vbCrLf
-
+            Call WriteAuditLog("ERROR", "SCO_SEARCH_FAIL", "Failed to search SCO invoices for period: " & arrDate(k, 1) & " - " & arrDate(k, 2))
             If getStatus = 429 Or getStatus = 500 Then GoTo errLog
-
             GoTo nextDatePeriod
-
         End If
 
         
@@ -720,14 +750,41 @@ nextDatePeriod: 'arrDate ke tiep
 
         End If
 
-        url_ct = url_ct & "nbmst=" & arrHDChiTiet(j, 0) & "&khhdon=" & arrHDChiTiet(j, 1) & "&shdon=" & arrHDChiTiet(j, 2) & "&khmshdon=" & arrHDChiTiet(j, 3)
+        
+        Dim khhdon_ct As String, shdon_ct As String
+        khhdon_ct = arrHDChiTiet(j, 1)
+        shdon_ct = arrHDChiTiet(j, 2)
+        url_ct = url_ct & "nbmst=" & arrHDChiTiet(j, 0) & "&khhdon=" & khhdon_ct & "&shdon=" & shdon_ct & "&khmshdon=" & arrHDChiTiet(j, 3)
 
-        If httpGet(url_ct, bearer, res) = False Or Len(res) = 0 Then
+        ' Update status label for user feedback
+        Me.lblStatus.Caption = "Dang tai chi tiet: " & khhdon_ct & "_" & shdon_ct & " (" & (j + 1) & "/" & n & ")"
+        DoEvents
 
-            MsgBoxUni "L" & ChrW(7895) & "i ph" & ChrW(225) & "t sinh t" & ChrW(7915) & " ng" & ChrW(224) & "y " & arrDate(k, 1) & " - " & arrDate(k, 2), vbExclamation, "Thông báo"
-
+        ' === Resilient Detail Retry Loop ===
+        Dim detailAttempt As Long
+        Dim detailSuccess As Boolean
+        detailSuccess = False
+        
+        For detailAttempt = 1 To 3
+            If httpGet(url_ct, bearer, res, SilentMode:=True) And Len(res) > 0 Then
+                If InStr(1, res, "error") = 0 Then
+                    detailSuccess = True
+                    Exit For
+                End If
+            End If
+            
+            Debug.Print "[taiHoaDon_Total] Detail attempt " & detailAttempt & " failed for: " & khhdon_ct & "_" & shdon_ct
+            Call WriteAuditLog("WARNING", "DETAIL_RETRY", "Attempt " & detailAttempt & " failed for: " & khhdon_ct & "_" & shdon_ct)
+            
+            If detailAttempt < 3 Then
+                Sleep (1000 * detailAttempt)
+            End If
+        Next detailAttempt
+        
+        If Not detailSuccess Then
+            errMsg = errMsg & "- Loi tai chi tiet hoa don: " & khhdon_ct & "_" & shdon_ct & vbCrLf
+            Call WriteAuditLog("ERROR", "DETAIL_FAIL", "Failed to retrieve invoice detail for: " & khhdon_ct & "_" & shdon_ct)
             GoTo nextInvoice
-
         End If
 
         Set js = JsonConverter.ParseJSON(res)
@@ -937,190 +994,140 @@ End Sub
 
 
 Sub taiXML_zip(soHD As Long)
-
     On Error GoTo EH
 
     Dim nbmst As String, khhdon As String, shdon As String, khmshdon As String
-
     Dim urlXml As String, payload As String, filePath As Variant, m As Long
-
-    
-
-    '/ Tao folder luu file giai nen
-
     Dim strDate As String
-
+    
+    '/ Tao folder luu file giai nen
     strDate = Format(Now, "_yyyymmdd_hhmmss")
-
-    oSaveUnzipFolder = Me.txtXMLFolderPath & "FileGiaiNen" & strDate '& "\"
-
+    oSaveUnzipFolder = Me.txtXMLFolderPath & "FileGiaiNen" & strDate
     MkDir oSaveUnzipFolder
-
-    MsgBox oSaveUnzipFolder
-
+    
+    Call WriteAuditLog("INFO", "TAI_XML_START", "Created save folder: " & oSaveUnzipFolder & " for " & soHD & " invoices.")
+    
     '-----------------------------------/
-
-    
-
     Application.Cursor = xlWait
+    DoEvents
 
-    
+    Dim client As Object, stream As Object
+    Set client = GetxmlHttp() ' Reuse global HTTP Keep-Alive client
+    Set stream = CreateObject("ADODB.Stream")
 
     For m = 0 To soHD - 1
-
         If arrHDChiTiet(m, 4) = 1 Then  'query
-
             urlXml = "https://hoadondientu.gdt.gov.vn:30000/query/invoices/export-xml?"
-
         Else    'sco-query
-
             urlXml = "https://hoadondientu.gdt.gov.vn:30000/sco-query/invoices/export-xml?"
-
         End If
 
         nbmst = arrHDChiTiet(m, 0)
-
         khhdon = arrHDChiTiet(m, 1)
-
         shdon = arrHDChiTiet(m, 2)
-
         khmshdon = arrHDChiTiet(m, 3)
-
         payload = "nbmst=" & nbmst & "&khhdon=" & khhdon & "&shdon=" & shdon & "&khmshdon=" & khmshdon
-
         urlXml = urlXml & payload
 
-        'Call httpOption(urlXml)
+        ' Update status label for user feedback
+        Me.lblStatus.Caption = "Dang tai XML: " & khhdon & "_" & shdon & " (" & (m + 1) & "/" & soHD & ")"
+        DoEvents
 
-        
+        ' === Resilient Retry Loop with Exponential Backoff ===
+        Dim attempt As Long
+        Dim success As Boolean
+        Dim httpStatus As Long
+        success = False
 
-        Dim http As Object, stream As Object
+        For attempt = 1 To 3
+            On Error Resume Next
+            client.Open "GET", urlXml, False
+            client.setRequestHeader "User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
+            client.setRequestHeader "Accept", "application/zip,application/octet-stream,*/*"
+            client.setRequestHeader "Accept-Encoding", "gzip"
+            client.setRequestHeader "Authorization", "Bearer " & bearer
+            client.send
+            
+            httpStatus = client.Status
+            Dim errNum As Long
+            errNum = err.Number
+            On Error GoTo EH
 
-        Set stream = CreateObject("ADODB.Stream")
-
-        Set http = CreateObject("MSXML2.XMLHTTP")
-
-        With http
-
-            .Open "GET", urlXml, False
-
-            .setRequestHeader "User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
-
-            .setRequestHeader "Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
-
-            .setRequestHeader "Accept-Encoding", "gzip"
-
-            .setRequestHeader "Content-type", "application/zip"
-
-            .setRequestHeader "Authorization", "Bearer " & bearer & ""
-
-            .send
-
-        End With
-
-        
-
-        Select Case http.Status
-
-            Case 200
-
-                stream.Type = 1 ' Binary
-
-                stream.Open
-
-                stream.Write http.responseBody ' Write the binary response to the stream
-
-                filePath = Me.txtXMLFolderPath & khhdon & "_" & shdon & ".zip"
-
-                stream.SaveToFile filePath, 2 ' Overwrite
-
-                stream.Close
-
-                DoEvents
-
+            If errNum = 0 And httpStatus = 200 Then
+                ' Double-check Content-Type to make sure GDT didn't return an error page/JSON as 200 OK
+                Dim contentType As String
+                On Error Resume Next
+                contentType = LCase(client.getResponseHeader("Content-Type"))
+                On Error GoTo EH
                 
-
-                '//Unzip file vua tai, chi lay file xml/html
-
-                Call Unzip(filePath, oSaveUnzipFolder)
-
-                '// Upload directly to local Webapp XML database if connection is active
-
-                If TestWebappConnection() Then
-
-                    Dim zipFileName As String
-
-                    zipFileName = khhdon & "_" & shdon & ".zip"
-
-                    Call UploadXMLToWebappBytes(http.responseBody, sMST, zipFileName, bearer)
-
+                If InStr(contentType, "zip") > 0 Or InStr(contentType, "octet-stream") > 0 Or Len(contentType) = 0 Then
+                    success = True
+                    Exit For
+                Else
+                    Debug.Print "[taiXML_zip] Got HTML/JSON instead of ZIP: " & contentType
                 End If
+            End If
 
-                
+            Debug.Print "[taiXML_zip] Attempt " & attempt & " failed for " & khhdon & "_" & shdon & " (Status: " & httpStatus & ")"
+            If attempt < 3 Then
+                Sleep (1000 * attempt)
+            End If
+        Next attempt
 
-            Case 500
+        If success Then
+            stream.Type = 1 ' Binary
+            stream.Open
+            stream.Write client.responseBody ' Write the binary response to the stream
+            filePath = Me.txtXMLFolderPath & khhdon & "_" & shdon & ".zip"
+            stream.SaveToFile filePath, 2 ' Overwrite
+            stream.Close
+            DoEvents
 
-                Debug.Print "Loi download file hoa don (zip): " & http.Status & "__" & khhdon & "_" & shdon & " res: " & http.responseText
+            '//Unzip file vua tai, chi lay file xml/html
+            Call Unzip(filePath, oSaveUnzipFolder)
 
+            '// Upload directly to local Webapp XML database if connection is active
+            If TestWebappConnection() Then
+                Dim zipFileName As String
+                zipFileName = khhdon & "_" & shdon & ".zip"
+                Call UploadXMLToWebappBytes(client.responseBody, sMST, zipFileName, bearer)
+            End If
+        Else
+            ' Log failure and proceed to next invoice (do not block user with MsgBox)
+            Dim failDetail As String
+            If httpStatus = 500 Then
+                failDetail = "500 Internal Error (ho so goc khong ton tai)"
                 errMsg = errMsg & "- Khong ton tai ho so goc cua hoa don: " & khhdon & "_" & shdon & vbCrLf
-
-                GoTo nextInvoice
-
-            Case 429
-
-                MsgBoxUni "L" & ChrW(7895) & "i 429 - G" & ChrW(7917) & "i qu" & ChrW(225) & " nhi" & ChrW(7873) & "u y" & ChrW(234) & "u c" & ChrW(7847) & "u t" & ChrW(7899) & "i m" & ChrW(225) & "y ch" & ChrW(7911) & " Web.", vbExclamation, "Tai XML Error 429"
-
-                errMsg = errMsg & "- Qua nhieu yeu cau toi may chu web: " & khhdon & "_" & shdon & vbCrLf
-
-                GoTo EH_Exit
-
-            Case Else
-
-                errMsg = errMsg & "- Loi ket noi: " & khhdon & "_" & shdon & vbCrLf
-
-                GoTo nextInvoice
-
-        End Select
-
-        
+            ElseIf httpStatus = 429 Then
+                failDetail = "429 Too Many Requests (bi chan boi GDT)"
+                errMsg = errMsg & "- Qua nhieu yeu cau: " & khhdon & "_" & shdon & vbCrLf
+            Else
+                failDetail = "Status " & httpStatus & " / Loi ket noi"
+                errMsg = errMsg & "- Loi tai file hoac loi ket noi: " & khhdon & "_" & shdon & vbCrLf
+            End If
+            
+            Call WriteAuditLog("ERROR", "TAI_XML_FAIL", "Failed to download " & khhdon & "_" & shdon & " after 3 attempts: " & failDetail)
+            GoTo nextInvoice
+        End If
 
 nextInvoice:
-
         Sleep Me.txtSleep
-
     Next m
 
-    
-
-    
-
 EH_Exit:
-
     If errMsg <> "" Then
-
         ghiLog errMsg
-
     End If
-
+    
     Set stream = Nothing
-
-    Set http = Nothing
-
-     Application.Cursor = xlDefault
-
+    Application.Cursor = xlDefault
     Exit Sub
 
 EH:
-
     Application.Cursor = xlDefault
-
-    MsgBoxUni "C" & ChrW(243) & " l" & ChrW(7895) & "i ph" & ChrW(225) & "t sinh trong qu" & ChrW(225) & " tr" & ChrW(236) & "nh t" & ChrW(7843) & "i h" & ChrW(243) & "a " & ChrW(273) & ChrW(417) & "n.", vbCritical, "L" & ChrW(7895) & "i t" & ChrW(7843) & "i h" & ChrW(243) & "a " & ChrW(273) & ChrW(417) & "n"
-
-    MsgBox "Ma loi: " & err.Number & vbCrLf & "Noi dung: " & err.Description, vbCritical, "L" & ChrW(7895) & "i t" & ChrW(7843) & "i h" & ChrW(243) & "a " & ChrW(273) & ChrW(417) & "n"
-
+    Dim errDesc As String
+    errDesc = "Ma loi: " & err.Number & vbCrLf & "Noi dung: " & err.Description
+    Call WriteAuditLog("ERROR", "TAI_XML_EXCEPTION", "Exception in taiXML_zip: " & errDesc)
     Resume EH_Exit
-
-    
-
 End Sub
 

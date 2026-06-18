@@ -114,7 +114,7 @@ Private Sub UserForm_Initialize()
         Me.lblCaptcha.Visible = False
         On Error GoTo 0
         
-        Debug.Print "[frmDangNhap] Smart mode: Webapp connected at " & WEBAPP_BASE_URL
+        Debug.Print "[frmDangNhap] Smart mode: Webapp connected at " & GetWebappBaseUrl()
     Else
         ' Legacy mode: manual/SVG captcha detection
         Me.Caption = "Dang nhap - Captcha thu cong"
