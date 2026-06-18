@@ -125,6 +125,21 @@ To build secure integration channels and resilient offline tax regulations RAG:
 
 **Full entry:** [20260605-v23_roadmap.md](file:///d:/LearnAnyThing/Webapp%20XML/history/learnings/20260605-v23_roadmap.md)
 
+---
+
+## [20260618] Modular Routing Architecture & Isolated Background Workers
+**Category:** pattern
+**Feature:** webapp_routes_refactor
+**Tags:** [flask-blueprints, modularity, background-workers, windows-compatibility]
+
+To split massive route monolithic files and ensure safe test execution and OS compatibility:
+- Use a root package blueprint file (`invoices/__init__.py`) that imports and binds all sub-route files sequentially. This decouples logic while keeping absolute backward compatibility for `url_for` route lookups.
+- Separate background daemon worker loops into dedicated lifecycle modules (`invoices/workers.py`) conditionalized with configuration checks to prevent background threads from starting during automated test execution.
+- Utilize access-control fallback logic (chmod to writable) in Windows-based folder deletion procedures to bypass access locks on git object files.
+
+**Full entry:** [20260618-webapp-routes-refactor.md](file:///d:/LearnAnyThing/Webapp%20XML/history/learnings/20260618-webapp-routes-refactor.md)
+
+
 
 
 
