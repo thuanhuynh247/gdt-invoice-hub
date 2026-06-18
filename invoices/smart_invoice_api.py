@@ -316,3 +316,110 @@ def get_purchase_items(mst: str, *, _token: str = ""):
             current_app.config["CURRENT_JWT"] = original_jwt
         else:
             current_app.config.pop("CURRENT_JWT", None)
+
+
+# ===========================================================================
+# POST /API/upload_xml/<mst>
+# ===========================================================================
+@smart_invoice_blueprint.post("/API/upload_xml/<mst>")
+@_require_token
+def api_upload_xml(mst: str, *, _token: str = ""):
+    """Upload XML or ZIP files (multi-part form or raw body) to import into the local database.
+
+    Supports GDT session-free authentication token validation.
+    """
+    import zipfile
+    import io
+    import os
+    from invoices.service import import_xml_invoice
+
+    duplicate_strategy = request.args.get("duplicate_strategy", "overwrite").strip()
+
+    # We will accumulate inputs as a list of (file_bytes, filename)
+    file_inputs = []
+
+    # 1. Check if files are uploaded via standard multi-part form
+    if "files" in request.files:
+        files = request.files.getlist("files")
+        for file in files:
+            if file.filename:
+                file_inputs.append((file.read(), file.filename))
+    
+    # 2. Check if raw body upload
+    if not file_inputs:
+        raw_data = request.get_data()
+        if raw_data:
+            # Try to get filename from query parameter or header
+            filename = request.args.get("filename", "").strip()
+            if not filename:
+                content_type = request.headers.get("Content-Type", "")
+                if "zip" in content_type:
+                    filename = "upload.zip"
+                else:
+                    filename = "upload.xml"
+            file_inputs.append((raw_data, filename))
+
+    if not file_inputs:
+        return jsonify({"error": "Khong tim thay du lieu tep tin de tai len."}), 400
+
+    imported_count = 0
+    skipped_count = 0
+    overwritten_count = 0
+    errors = []
+
+    for file_bytes, filename in file_inputs:
+        try:
+            if filename.lower().endswith(".xml"):
+                res = import_xml_invoice(
+                    file_bytes,
+                    filename,
+                    duplicate_strategy=duplicate_strategy,
+                    taxpayer_mst=mst
+                )
+                status = res.get("import_status", "imported")
+                if status == "skipped":
+                    skipped_count += 1
+                elif status == "overwritten":
+                    overwritten_count += 1
+                else:
+                    imported_count += 1
+            elif filename.lower().endswith(".zip"):
+                with zipfile.ZipFile(io.BytesIO(file_bytes)) as z:
+                    for zinfo in z.infolist():
+                        if zinfo.filename.lower().endswith(".xml") and not zinfo.is_dir():
+                            xml_content = z.read(zinfo.filename)
+                            base_xml_name = os.path.basename(zinfo.filename)
+                            res = import_xml_invoice(
+                                xml_content,
+                                base_xml_name,
+                                duplicate_strategy=duplicate_strategy,
+                                taxpayer_mst=mst
+                            )
+                            status = res.get("import_status", "imported")
+                            if status == "skipped":
+                                skipped_count += 1
+                            elif status == "overwritten":
+                                overwritten_count += 1
+                            else:
+                                imported_count += 1
+            else:
+                errors.append(f"Tep {filename} khong dung dinh dang XML hoac ZIP.")
+        except Exception as e:
+            errors.append(f"Loi khi nhap tep {filename}: {str(e)}")
+
+    if errors:
+        return jsonify({
+            "status": "partial_success" if (imported_count > 0 or overwritten_count > 0) else "failed",
+            "imported_count": imported_count,
+            "skipped_count": skipped_count,
+            "overwritten_count": overwritten_count,
+            "errors": errors
+        }), 207 if (imported_count > 0 or overwritten_count > 0) else 400
+
+    return jsonify({
+        "status": "success",
+        "imported_count": imported_count,
+        "skipped_count": skipped_count,
+        "overwritten_count": overwritten_count
+    })
+

@@ -1,0 +1,322 @@
+Attribute VB_Name = "modSmartInvoiceLogin"
+Option Explicit
+
+' ===========================================================================
+' Module: modSmartInvoiceLogin
+' Purpose: Login to GDT via local Webapp XML Smart Invoice API proxy
+'          which handles CAPTCHA auto-solving internally.
+'
+' Flow:
+'   1) POST /API/login {username, password, captcha:"", key:""}
+'      -> Returns {content: "<svg>...", key: "abc123"}
+'   2) POST /API/login {username, password, captcha: "<solved>", key: "abc123"}
+'      -> Returns raw JWT token as text/plain
+'
+' The webapp solves the CAPTCHA automatically using vector signature
+' matching + ddddocr OCR fallback. The VBA client only needs to relay
+' credentials and handle the token response.
+' ===========================================================================
+
+' Configurable base URL for the Webapp XML server
+Public Const WEBAPP_BASE_URL As String = "http://localhost:5000"
+
+' Maximum number of auto-login retry attempts
+Public Const MAX_LOGIN_RETRIES As Long = 3
+
+' Delay between retries (milliseconds)
+Public Const RETRY_DELAY_MS As Long = 1000
+
+
+Public Function SmartLogin(ByVal username As String, ByVal password As String) As String
+    ' Returns: JWT token on success, empty string on failure.
+    ' This function performs the two-phase login via the Webapp XML API.
+    
+    Dim attempt As Long
+    Dim token As String
+    
+    For attempt = 1 To MAX_LOGIN_RETRIES
+        token = TrySmartLogin(username, password, attempt)
+        If Len(token) > 0 Then
+            SmartLogin = token
+            Exit Function
+        End If
+        
+        ' Wait before retry (except on last attempt)
+        If attempt < MAX_LOGIN_RETRIES Then
+            Sleep RETRY_DELAY_MS
+        End If
+    Next attempt
+    
+    SmartLogin = ""
+End Function
+
+
+Private Function TrySmartLogin(ByVal username As String, ByVal password As String, ByVal attempt As Long) As String
+    ' Single attempt at the two-phase Smart Invoice login flow.
+    ' Returns JWT token on success, empty string on failure.
+    
+    On Error GoTo EH
+    
+    Dim http As Object
+    Dim phase1Body As String, phase1Res As String
+    Dim phase2Body As String, phase2Res As String
+    Dim captchaKey As String, captchaContent As String
+    Dim solvedCaptcha As String
+    Dim jsResult As Object
+    Dim apiUrl As String
+    
+    apiUrl = WEBAPP_BASE_URL & "/API/login"
+    
+    ' === PHASE 1: Request captcha from webapp ===
+    phase1Body = "{""username"":""" & username & """,""password"":""" & password & """,""captcha"":"""",""key"":""""}"
+    
+    Set http = CreateObject("MSXML2.ServerXMLHTTP.6.0")
+    With http
+        .Open "POST", apiUrl, False
+        .setRequestHeader "Content-Type", "application/json"
+        .setRequestHeader "User-Agent", "TaiHoaDonDienTu-VBA/6.2"
+        .setTimeouts 10000, 10000, 30000, 60000
+        .send phase1Body
+        
+        If .Status <> 200 Then
+            Debug.Print "[SmartLogin] Phase 1 failed (attempt " & attempt & "): HTTP " & .Status
+            TrySmartLogin = ""
+            Exit Function
+        End If
+        
+        phase1Res = .responseText
+    End With
+    Set http = Nothing
+    
+    ' Parse phase 1 response to get captcha key
+    Set jsResult = JsonConverter.ParseJSON(phase1Res)
+    
+    ' Check for error response
+    If IsInDict(jsResult, "error") Then
+        Debug.Print "[SmartLogin] Phase 1 error: " & jsResult("error")
+        TrySmartLogin = ""
+        Exit Function
+    End If
+    
+    captchaKey = jsResult("key")
+    captchaContent = jsResult("content")
+    
+    ' Try local SVG vector detection as a quick pre-check
+    ' (the webapp already solves it, but we can also try locally for speed)
+    solvedCaptcha = detectSVGCaptcha(captchaContent)
+    
+    If Len(solvedCaptcha) = 0 Then
+        ' If local detection fails, use a placeholder - the webapp will re-solve
+        ' In practice, the webapp auto-solves before returning the token
+        Debug.Print "[SmartLogin] Local SVG detection failed, using webapp auto-solve"
+        solvedCaptcha = "AUTO"
+    End If
+    
+    ' === PHASE 2: Submit credentials + solved captcha ===
+    phase2Body = "{""username"":""" & username & """,""password"":""" & password & """,""captcha"":""" & solvedCaptcha & """,""key"":""" & captchaKey & """}"
+    
+    Set http = CreateObject("MSXML2.ServerXMLHTTP.6.0")
+    With http
+        .Open "POST", apiUrl, False
+        .setRequestHeader "Content-Type", "application/json"
+        .setRequestHeader "User-Agent", "TaiHoaDonDienTu-VBA/6.2"
+        .setTimeouts 10000, 10000, 30000, 60000
+        .send phase2Body
+        
+        Select Case .Status
+        Case 200
+            ' Success - response body is raw JWT token (text/plain)
+            TrySmartLogin = Trim(.responseText)
+            Debug.Print "[SmartLogin] Login successful (attempt " & attempt & ")"
+            
+        Case 401
+            ' Auth failed - wrong password or captcha
+            Dim errRes As String
+            errRes = .responseText
+            Debug.Print "[SmartLogin] Auth failed (attempt " & attempt & "): " & errRes
+            
+            ' Parse error message for user display
+            On Error Resume Next
+            Set jsResult = JsonConverter.ParseJSON(errRes)
+            If Not jsResult Is Nothing Then
+                If IsInDict(jsResult, "error") Then
+                    Debug.Print "[SmartLogin] Error detail: " & jsResult("error")
+                End If
+            End If
+            On Error GoTo EH
+            
+            TrySmartLogin = ""
+            
+        Case Else
+            Debug.Print "[SmartLogin] Phase 2 unexpected status (attempt " & attempt & "): HTTP " & .Status
+            TrySmartLogin = ""
+        End Select
+    End With
+    Set http = Nothing
+    
+    Exit Function
+
+EH:
+    Debug.Print "[SmartLogin] Error (attempt " & attempt & "): " & Err.Number & " - " & Err.Description
+    TrySmartLogin = ""
+    Set http = Nothing
+End Function
+
+
+Public Function SmartLoginDirect(ByVal username As String, ByVal password As String) As String
+    ' Direct login to GDT without webapp proxy (legacy fallback).
+    ' Uses the original GDT endpoint with local SVG captcha detection.
+    ' This is the original flow preserved as a fallback.
+    
+    On Error GoTo EH
+    
+    Dim http As Object
+    Dim captchaRes As String, loginRes As String
+    Dim jsCaptcha As Object, jsLogin As Object
+    Dim captchaKey As String, solvedCaptcha As String
+    Dim formData As String
+    
+    ' Step 1: Fetch captcha from GDT
+    Set http = CreateObject("MSXML2.ServerXMLHTTP.6.0")
+    With http
+        .Open "GET", "https://hoadondientu.gdt.gov.vn:30000/captcha", False
+        .setRequestHeader "User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+        .setTimeouts 10000, 10000, 30000, 30000
+        .send
+        
+        If .Status <> 200 Then
+            Debug.Print "[DirectLogin] Captcha fetch failed: HTTP " & .Status
+            SmartLoginDirect = ""
+            Exit Function
+        End If
+        captchaRes = .responseText
+    End With
+    Set http = Nothing
+    
+    ' Parse captcha
+    Set jsCaptcha = JsonConverter.ParseJSON(captchaRes)
+    captchaKey = jsCaptcha("key")
+    
+    ' Solve captcha locally using SVG vector detection
+    solvedCaptcha = detectSVGCaptcha(captchaRes)
+    If Len(solvedCaptcha) = 0 Then
+        Debug.Print "[DirectLogin] SVG captcha detection failed"
+        SmartLoginDirect = ""
+        Exit Function
+    End If
+    
+    ' Step 2: Authenticate
+    formData = "{""username"":""" & username & """,""password"":""" & password & """,""cvalue"":""" & solvedCaptcha & """,""ckey"":""" & captchaKey & """}"
+    
+    Set http = CreateObject("MSXML2.ServerXMLHTTP.6.0")
+    With http
+        ' OPTIONS preflight
+        .Open "OPTIONS", "https://hoadondientu.gdt.gov.vn:30000/security-taxpayer/authenticate", False
+        .setRequestHeader "User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+        .send
+    End With
+    
+    With http
+        .Open "POST", "https://hoadondientu.gdt.gov.vn:30000/security-taxpayer/authenticate", False
+        .setRequestHeader "User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+        .setRequestHeader "Content-Type", "application/json"
+        .send formData
+        loginRes = .responseText
+    End With
+    Set http = Nothing
+    
+    Set jsLogin = JsonConverter.ParseJSON(loginRes)
+    
+    If IsInDict(jsLogin, "token") Then
+        SmartLoginDirect = jsLogin("token")
+        Debug.Print "[DirectLogin] Login successful"
+    Else
+        If IsInDict(jsLogin, "message") Then
+            Debug.Print "[DirectLogin] Login failed: " & jsLogin("message")
+        End If
+        SmartLoginDirect = ""
+    End If
+    
+    Exit Function
+
+EH:
+    Debug.Print "[DirectLogin] Error: " & Err.Number & " - " & Err.Description
+    SmartLoginDirect = ""
+    Set http = Nothing
+End Function
+
+
+Private Function IsInDict(dict As Object, key As String) As Boolean
+    ' Safe check if a key exists in a Scripting.Dictionary or parsed JSON object
+    On Error Resume Next
+    Dim v As Variant
+    v = dict(key)
+    IsInDict = (Err.Number = 0)
+    On Error GoTo 0
+End Function
+
+
+Public Function TestWebappConnection() As Boolean
+    ' Quick health check to verify the webapp is running and accessible.
+    On Error GoTo EH
+    
+    Dim http As Object
+    Set http = CreateObject("MSXML2.ServerXMLHTTP.6.0")
+    With http
+        .Open "GET", WEBAPP_BASE_URL & "/health", False
+        .setTimeouts 3000, 3000, 5000, 5000
+        .send
+        TestWebappConnection = (.Status = 200)
+    End With
+    Set http = Nothing
+    Exit Function
+
+EH:
+    TestWebappConnection = False
+    Set http = Nothing
+End Function
+
+
+Public Function UploadXMLToWebappBytes(ByRef fileBytes As Variant, ByVal userMst As String, ByVal fileName As String, ByVal gdtToken As String) As Boolean
+    ' Upload raw file bytes directly to the Webapp XML server's import API.
+    ' Authenticates via the GDT bearer token.
+    ' Returns True on success, False on failure.
+    On Error GoTo EH
+    
+    If Not TestWebappConnection() Then
+        UploadXMLToWebappBytes = False
+        Exit Function
+    End If
+    
+    Dim http As Object
+    Dim uploadUrl As String
+    
+    ' Construct URL with taxpayer MST and filename parameters
+    uploadUrl = WEBAPP_BASE_URL & "/API/upload_xml/" & userMst & "?filename=" & fileName & "&duplicate_strategy=overwrite"
+    
+    Set http = CreateObject("MSXML2.ServerXMLHTTP.6.0")
+    With http
+        .Open "POST", uploadUrl, False
+        .setRequestHeader "Content-Type", "application/zip"
+        .setRequestHeader "User-Agent", "TaiHoaDonDienTu-VBA/6.2"
+        .setRequestHeader "token", gdtToken
+        .setTimeouts 10000, 10000, 30000, 60000
+        .send fileBytes
+        
+        If .Status = 200 Or .Status = 207 Then
+            UploadXMLToWebappBytes = True
+            Debug.Print "[UploadXMLToWebapp] Successfully uploaded bytes for: " & fileName
+        Else
+            UploadXMLToWebappBytes = False
+            Debug.Print "[UploadXMLToWebapp] Upload bytes failed with status: " & .Status & " - " & .responseText
+        End If
+    End With
+    Set http = Nothing
+    Exit Function
+    
+EH:
+    Debug.Print "[UploadXMLToWebapp] Error: " & Err.Number & " - " & Err.Description
+    UploadXMLToWebappBytes = False
+    Set http = Nothing
+End Function
+

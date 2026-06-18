@@ -297,3 +297,123 @@ class TestApiGetPurchaseItems:
         )
         assert resp.status_code == 200
         assert resp.get_json() == []
+
+
+# ── /API/upload_xml/<mst> ──────────────────────────────────────────────────
+
+
+class TestApiUploadXml:
+    """XML/ZIP invoice upload and stateless import."""
+
+    TOKEN = "mock-session-0316459946"
+
+    def test_requires_token(self, client):
+        """Missing token → 401."""
+        resp = client.post("/API/upload_xml/0316459946", data=b"<xml></xml>")
+        assert resp.status_code == 401
+
+    def test_upload_raw_xml_success(self, client, monkeypatch):
+        """Uploading raw XML body -> success."""
+        imported_invoices = []
+
+        def mock_import(xml_bytes, filename, duplicate_strategy, taxpayer_mst):
+            imported_invoices.append((xml_bytes, filename, duplicate_strategy, taxpayer_mst))
+            return {"import_status": "imported"}
+
+        monkeypatch.setattr("invoices.service.import_xml_invoice", mock_import)
+
+        xml_data = b"<HDon><DLHDon>InvoiceData</DLHDon></HDon>"
+        resp = client.post(
+            "/API/upload_xml/0316459946?filename=invoice_123.xml&duplicate_strategy=skip",
+            headers={"token": self.TOKEN, "Content-Type": "application/xml"},
+            data=xml_data
+        )
+
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert data["status"] == "success"
+        assert data["imported_count"] == 1
+        assert len(imported_invoices) == 1
+        assert imported_invoices[0] == (xml_data, "invoice_123.xml", "skip", "0316459946")
+
+    def test_upload_raw_zip_success(self, client, monkeypatch):
+        """Uploading raw ZIP containing XML files -> parses and imports each."""
+        import zipfile
+        import io
+
+        imported_invoices = []
+
+        def mock_import(xml_bytes, filename, duplicate_strategy, taxpayer_mst):
+            imported_invoices.append((xml_bytes, filename, duplicate_strategy, taxpayer_mst))
+            return {"import_status": "overwritten"}
+
+        monkeypatch.setattr("invoices.service.import_xml_invoice", mock_import)
+
+        # Create a mock zip with two files (one XML, one txt to ignore)
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, "w") as zf:
+            zf.writestr("subfolder/inv1.xml", b"<xml>1</xml>")
+            zf.writestr("inv2.xml", b"<xml>2</xml>")
+            zf.writestr("readme.txt", b"Ignore me")
+        zip_bytes = zip_buffer.getvalue()
+
+        resp = client.post(
+            "/API/upload_xml/0316459946?duplicate_strategy=overwrite",
+            headers={"token": self.TOKEN, "Content-Type": "application/zip"},
+            data=zip_bytes
+        )
+
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert data["status"] == "success"
+        assert data["overwritten_count"] == 2
+        assert len(imported_invoices) == 2
+        # Verify both xmls are passed
+        filenames = [item[1] for item in imported_invoices]
+        assert "inv1.xml" in filenames
+        assert "inv2.xml" in filenames
+        assert imported_invoices[0][2] == "overwrite"
+        assert imported_invoices[0][3] == "0316459946"
+
+    def test_upload_multipart_form_success(self, client, monkeypatch):
+        """Uploading multiple files via multipart/form-data -> success."""
+        import io
+        imported_invoices = []
+
+        def mock_import(xml_bytes, filename, duplicate_strategy, taxpayer_mst):
+            imported_invoices.append((xml_bytes, filename, duplicate_strategy, taxpayer_mst))
+            return {"import_status": "imported"}
+
+        monkeypatch.setattr("invoices.service.import_xml_invoice", mock_import)
+
+        resp = client.post(
+            "/API/upload_xml/0316459946",
+            headers={"token": self.TOKEN},
+            data={
+                "files": [
+                    (io.BytesIO(b"<xml>file1</xml>"), "file1.xml"),
+                    (io.BytesIO(b"<xml>file2</xml>"), "file2.xml"),
+                ]
+            },
+            content_type="multipart/form-data"
+        )
+
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert data["status"] == "success"
+        assert data["imported_count"] == 2
+        assert len(imported_invoices) == 2
+
+    def test_upload_invalid_format_fails(self, client, monkeypatch):
+        """Unsupported format -> returns partial/error status."""
+        resp = client.post(
+            "/API/upload_xml/0316459946?filename=notes.txt",
+            headers={"token": self.TOKEN},
+            data=b"Just raw text"
+        )
+        assert resp.status_code == 400
+        data = resp.get_json()
+        assert data["status"] == "failed"
+        assert len(data["errors"]) > 0
+        assert "notes.txt" in data["errors"][0]
+
