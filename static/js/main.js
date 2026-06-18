@@ -548,8 +548,8 @@ async function showInvoiceDetails(invoiceId) {
         
         // Find row to extract display fields
         const row = document.querySelector(`tr[data-id="${invoiceId}"]`);
+        const isLocal = row ? row.closest("#localInvoicesTableBody") !== null : false;
         if (row) {
-            const isLocal = row.closest("#localInvoicesTableBody") !== null;
             if (isLocal) {
                 document.getElementById("detDate").textContent = row.children[1].textContent;
                 const issuerEl = row.children[2].querySelector(".fw-semibold");
@@ -564,6 +564,62 @@ async function showInvoiceDetails(invoiceId) {
             }
         }
 
+        // Enriched VBA parity / deep parser fields
+        const detMccqtRow = document.getElementById("detMccqtRow");
+        const detMccqt = document.getElementById("detMccqt");
+        if (detMccqtRow && detMccqt) {
+            if (details.mccqt) {
+                detMccqt.textContent = details.mccqt;
+                detMccqtRow.style.display = "";
+            } else {
+                detMccqtRow.style.display = "none";
+            }
+        }
+
+        const detMsttcgpRow = document.getElementById("detMsttcgpRow");
+        const detMsttcgp = document.getElementById("detMsttcgp");
+        if (detMsttcgpRow && detMsttcgp) {
+            if (details.msttcgp) {
+                detMsttcgp.textContent = details.msttcgp;
+                detMsttcgpRow.style.display = "";
+            } else {
+                detMsttcgpRow.style.display = "none";
+            }
+        }
+
+        const detLookupCodeRow = document.getElementById("detLookupCodeRow");
+        const detLookupCode = document.getElementById("detLookupCode");
+        if (detLookupCodeRow && detLookupCode) {
+            if (details.lookup_code) {
+                detLookupCode.textContent = details.lookup_code;
+                detLookupCodeRow.style.display = "";
+            } else {
+                detLookupCodeRow.style.display = "none";
+            }
+        }
+
+        const detLookupUrlRow = document.getElementById("detLookupUrlRow");
+        const detLookupUrl = document.getElementById("detLookupUrl");
+        if (detLookupUrlRow && detLookupUrl) {
+            if (details.lookup_url) {
+                detLookupUrl.innerHTML = `<a href="${details.lookup_url}" target="_blank" class="text-info text-decoration-none d-inline-flex align-items-center gap-1"><i class="bi bi-box-arrow-up-right"></i> Liên kết tra cứu</a>`;
+                detLookupUrlRow.style.display = "";
+            } else {
+                detLookupUrlRow.style.display = "none";
+            }
+        }
+
+        const detExchangeRateRow = document.getElementById("detExchangeRateRow");
+        const detExchangeRate = document.getElementById("detExchangeRate");
+        if (detExchangeRateRow && detExchangeRate) {
+            if (details.exchange_rate && details.exchange_rate !== 1.0) {
+                detExchangeRate.textContent = Number(details.exchange_rate).toLocaleString("vi-VN") + " (VND)";
+                detExchangeRateRow.style.display = "";
+            } else {
+                detExchangeRateRow.style.display = "none";
+            }
+        }
+
         // Reset AI Repair section
         const detAiRepairContent = document.getElementById("detAiRepairContent");
         const detAiRepairStatusPlaceholder = document.getElementById("detAiRepairStatusPlaceholder");
@@ -572,7 +628,6 @@ async function showInvoiceDetails(invoiceId) {
         if (detAiRepairContent) detAiRepairContent.classList.add("d-none");
         if (detAiRepairStatusPlaceholder) detAiRepairStatusPlaceholder.classList.remove("d-none");
         if (btnRunAiRepair) {
-            const isLocal = row ? row.closest("#localInvoicesTableBody") !== null : false;
             btnRunAiRepair.style.display = (isLocal && window.currentUserRole !== "viewer") ? "inline-block" : "none";
         }
 
@@ -633,6 +688,65 @@ async function showInvoiceDetails(invoiceId) {
             document.getElementById("detBeforeTax").textContent = sumBeforeTax.toLocaleString("vi-VN") + " ₫";
             document.getElementById("detTotalTax").textContent = sumTax.toLocaleString("vi-VN") + " ₫";
             document.getElementById("detTotalPay").textContent = totalPay.toLocaleString("vi-VN") + " ₫";
+        }
+
+        // Populate VAT & Fees Breakdown Section
+        const detTaxFeesBreakdownBox = document.getElementById("detTaxFeesBreakdownBox");
+        const detTaxBreakdownContainer = document.getElementById("detTaxBreakdownContainer");
+        const detFeesBreakdownContainer = document.getElementById("detFeesBreakdownContainer");
+
+        if (detTaxFeesBreakdownBox && detTaxBreakdownContainer && detFeesBreakdownContainer) {
+            let hasBreakdownData = false;
+            let taxHtml = "";
+            let feesHtml = "";
+
+            if (details.tax_breakdown && details.tax_breakdown.length > 0) {
+                hasBreakdownData = true;
+                taxHtml = `
+                    <div class="fw-semibold text-secondary-accent mb-1 small">Chi tiết Thuế suất (VAT)</div>
+                    <table class="table table-sm table-borderless text-light mb-0" style="font-size: 0.8rem; background: transparent;">
+                        <thead>
+                            <tr class="border-bottom border-secondary border-opacity-25" style="color: rgba(255,255,255,0.5);">
+                                <th>Thuế Suất</th>
+                                <th class="text-end">Tiền Trước Thuế</th>
+                                <th class="text-end">Tiền Thuế</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${details.tax_breakdown.map(tax => `
+                                <tr>
+                                    <td class="fw-semibold text-info">${tax.tsuat}</td>
+                                    <td class="text-end">${Number(tax.thtien).toLocaleString("vi-VN")} ₫</td>
+                                    <td class="text-end text-warning fw-semibold">${Number(tax.tthue).toLocaleString("vi-VN")} ₫</td>
+                                </tr>
+                            `).join("")}
+                        </tbody>
+                    </table>
+                `;
+            }
+
+            if (details.fees_breakdown && details.fees_breakdown.length > 0) {
+                hasBreakdownData = true;
+                feesHtml = `
+                    <div class="fw-semibold text-secondary-accent mt-2 mb-1 small">Chi tiết Phí / Phụ thu</div>
+                    <div class="d-flex flex-column gap-1.5" style="font-size: 0.8rem;">
+                        ${details.fees_breakdown.map(fee => `
+                            <div class="d-flex justify-content-between py-1 border-bottom border-secondary border-opacity-10">
+                                <span class="text-secondary-accent">${fee.tlphi || "Phí / Phụ thu khác"}</span>
+                                <span class="text-warning fw-semibold">${Number(fee.tphi).toLocaleString("vi-VN")} ₫</span>
+                            </div>
+                        `).join("")}
+                    </div>
+                `;
+            }
+
+            if (hasBreakdownData) {
+                detTaxBreakdownContainer.innerHTML = taxHtml;
+                detFeesBreakdownContainer.innerHTML = feesHtml;
+                detTaxFeesBreakdownBox.style.display = "";
+            } else {
+                detTaxFeesBreakdownBox.style.display = "none";
+            }
         }
 
         // Populate Smart Audit warning logs inside drawer

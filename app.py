@@ -87,12 +87,42 @@ def create_app() -> Flask:
             if "merkle_index" not in columns:
                 db.session.execute(db.text("ALTER TABLE invoice ADD COLUMN merkle_index INTEGER NULL;"))
                 db.session.commit()
+            if "mccqt" not in columns:
+                db.session.execute(db.text("ALTER TABLE invoice ADD COLUMN mccqt VARCHAR(100) NULL;"))
+                db.session.commit()
+            if "msttcgp" not in columns:
+                db.session.execute(db.text("ALTER TABLE invoice ADD COLUMN msttcgp VARCHAR(20) NULL;"))
+                db.session.commit()
+            if "lookup_code" not in columns:
+                db.session.execute(db.text("ALTER TABLE invoice ADD COLUMN lookup_code VARCHAR(100) NULL;"))
+                db.session.commit()
+            if "lookup_url" not in columns:
+                db.session.execute(db.text("ALTER TABLE invoice ADD COLUMN lookup_url TEXT NULL;"))
+                db.session.commit()
+            if "exchange_rate" not in columns:
+                db.session.execute(db.text("ALTER TABLE invoice ADD COLUMN exchange_rate FLOAT DEFAULT 1.0;"))
+                db.session.commit()
+            if "tax_breakdown_json" not in columns:
+                db.session.execute(db.text("ALTER TABLE invoice ADD COLUMN tax_breakdown_json TEXT NULL;"))
+                db.session.commit()
+            if "fees_breakdown_json" not in columns:
+                db.session.execute(db.text("ALTER TABLE invoice ADD COLUMN fees_breakdown_json TEXT NULL;"))
+                db.session.commit()
 
 
             res_item = db.session.execute(db.text("PRAGMA table_info(line_item);")).fetchall()
             columns_item = [r[1] for r in res_item]
             if "expense_category" not in columns_item:
                 db.session.execute(db.text("ALTER TABLE line_item ADD COLUMN expense_category VARCHAR(100) NULL;"))
+                db.session.commit()
+            if "discount_rate" not in columns_item:
+                db.session.execute(db.text("ALTER TABLE line_item ADD COLUMN discount_rate FLOAT DEFAULT 0.0;"))
+                db.session.commit()
+            if "discount_amount" not in columns_item:
+                db.session.execute(db.text("ALTER TABLE line_item ADD COLUMN discount_amount FLOAT DEFAULT 0.0;"))
+                db.session.commit()
+            if "amount_after_tax" not in columns_item:
+                db.session.execute(db.text("ALTER TABLE line_item ADD COLUMN amount_after_tax FLOAT DEFAULT 0.0;"))
                 db.session.commit()
 
             # Live migration check for bank_transaction table

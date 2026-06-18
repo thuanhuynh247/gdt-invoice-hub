@@ -657,7 +657,14 @@ def api_invoice_details(invoice_id: str):
         "payment_method": payment_method,
         "ai_warnings": ai_warnings,
         "ai_audited": invoice.ai_audited if invoice else False,
-        "signature_details": invoice.signature_details if invoice else None
+        "signature_details": invoice.signature_details if invoice else None,
+        "mccqt": invoice.mccqt or "" if invoice else "",
+        "msttcgp": invoice.msttcgp or "" if invoice else "",
+        "lookup_code": invoice.lookup_code or "" if invoice else "",
+        "lookup_url": invoice.lookup_url or "" if invoice else "",
+        "exchange_rate": invoice.exchange_rate if invoice else 1.0,
+        "tax_breakdown": invoice.tax_breakdown if invoice else [],
+        "fees_breakdown": invoice.fees_breakdown if invoice else []
     })
 
 @invoices_blueprint.get("/api/invoices/stats")

@@ -59,6 +59,15 @@ def test_fetch_invoice_details_success(logged_in_client):
     assert len(payload["line_items"]) == 2
     assert payload["line_items"][0]["item_name"] == "Laptop Dell Vostro 3520"
     assert payload["line_items"][0]["tax_amount"] == 120000.0
+    
+    # Assert enriched VBA parity fields are present in response payload
+    assert "mccqt" in payload
+    assert "msttcgp" in payload
+    assert "lookup_code" in payload
+    assert "lookup_url" in payload
+    assert "exchange_rate" in payload
+    assert "tax_breakdown" in payload
+    assert "fees_breakdown" in payload
 
 
 def test_fetch_invoice_details_not_found(logged_in_client):

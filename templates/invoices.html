@@ -1850,6 +1850,11 @@
                 <div class="meta-row"><span class="meta-label">Mô Tả / Ký Hiệu:</span> <span class="meta-val text-secondary" id="detDesc">-</span></div>
                 <div class="meta-row"><span class="meta-label">Hình Thức TT:</span> <span class="meta-val fw-semibold" id="detPaymentMethod">-</span></div>
                 <div class="meta-row"><span class="meta-label">Trạng Thái:</span> <span class="meta-val" id="detStatus">-</span></div>
+                <div class="meta-row" id="detMccqtRow" style="display: none;"><span class="meta-label">Mã CQT (GDT):</span> <span class="meta-val fw-semibold" id="detMccqt">-</span></div>
+                <div class="meta-row" id="detMsttcgpRow" style="display: none;"><span class="meta-label">MST Tổ chức GP:</span> <span class="meta-val" id="detMsttcgp">-</span></div>
+                <div class="meta-row" id="detLookupCodeRow" style="display: none;"><span class="meta-label">Mã Tra cứu:</span> <span class="meta-val text-monospace" id="detLookupCode">-</span></div>
+                <div class="meta-row" id="detLookupUrlRow" style="display: none;"><span class="meta-label">Cổng Tra cứu:</span> <span class="meta-val" id="detLookupUrl">-</span></div>
+                <div class="meta-row" id="detExchangeRateRow" style="display: none;"><span class="meta-label">Tỷ giá quy đổi:</span> <span class="meta-val fw-semibold" id="detExchangeRate">-</span></div>
             </div>
 
             <!-- Smart Audit Panel inside Drawer -->
@@ -1934,6 +1939,19 @@
                         </tr>
                     </tbody>
                 </table>
+            </div>
+
+            <!-- VAT & Fees Breakdown Section -->
+            <div id="detTaxFeesBreakdownBox" class="mb-4" style="display: none;">
+                <h6 class="fw-bold mb-2 text-secondary-accent">BẢNG KÊ THUẾ SUẤT & PHÍ KHÁC</h6>
+                <div class="p-3 rounded border border-secondary border-opacity-25" style="background-color: rgba(255, 255, 255, 0.02); font-size: 0.85rem;">
+                    <div id="detTaxBreakdownContainer" class="mb-2">
+                        <!-- Dynamic VAT breakdown table will be injected here -->
+                    </div>
+                    <div id="detFeesBreakdownContainer">
+                        <!-- Dynamic Fees breakdown list will be injected here -->
+                    </div>
+                </div>
             </div>
         </div>
 

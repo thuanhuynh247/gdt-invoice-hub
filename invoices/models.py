@@ -142,6 +142,15 @@ class Invoice(db.Model):
     merkle_root = db.Column(db.String(64), nullable=True)
     merkle_index = db.Column(db.Integer, nullable=True)
 
+    # VBA parity / deep parser fields
+    mccqt = db.Column(db.String(100), nullable=True)
+    msttcgp = db.Column(db.String(20), nullable=True)
+    lookup_code = db.Column(db.String(100), nullable=True)
+    lookup_url = db.Column(db.Text, nullable=True)
+    exchange_rate = db.Column(db.Float, nullable=False, default=1.0)
+    tax_breakdown_json = db.Column(db.Text, nullable=True)
+    fees_breakdown_json = db.Column(db.Text, nullable=True)
+
 
 
     # Relationship with cascade delete
@@ -188,6 +197,32 @@ class Invoice(db.Model):
             self.signature_details_json = None
         else:
             self.signature_details_json = json.dumps(val, ensure_ascii=False)
+
+    @property
+    def tax_breakdown(self) -> list[dict]:
+        if not self.tax_breakdown_json:
+            return []
+        try:
+            return json.loads(self.tax_breakdown_json)
+        except Exception:
+            return []
+
+    @tax_breakdown.setter
+    def tax_breakdown(self, val: list[dict]) -> None:
+        self.tax_breakdown_json = json.dumps(val, ensure_ascii=False)
+
+    @property
+    def fees_breakdown(self) -> list[dict]:
+        if not self.fees_breakdown_json:
+            return []
+        try:
+            return json.loads(self.fees_breakdown_json)
+        except Exception:
+            return []
+
+    @fees_breakdown.setter
+    def fees_breakdown(self, val: list[dict]) -> None:
+        self.fees_breakdown_json = json.dumps(val, ensure_ascii=False)
 
     @property
     def is_valid(self) -> bool:
@@ -237,6 +272,13 @@ class Invoice(db.Model):
             "erp_synced": self.erp_synced,
             "erp_sync_date": self.erp_sync_date or "",
             "erp_sync_error": self.erp_sync_error or "",
+            "mccqt": self.mccqt or "",
+            "msttcgp": self.msttcgp or "",
+            "lookup_code": self.lookup_code or "",
+            "lookup_url": self.lookup_url or "",
+            "exchange_rate": self.exchange_rate,
+            "tax_breakdown": self.tax_breakdown,
+            "fees_breakdown": self.fees_breakdown,
         }
 
 
@@ -261,6 +303,9 @@ class LineItem(db.Model):
     tax_rate = db.Column(db.String(20), nullable=False, default="0%")
     tax_amount = db.Column(db.Float, nullable=False, default=0.0)
     expense_category = db.Column(db.String(100), nullable=True)
+    discount_rate = db.Column(db.Float, nullable=False, default=0.0)
+    discount_amount = db.Column(db.Float, nullable=False, default=0.0)
+    amount_after_tax = db.Column(db.Float, nullable=False, default=0.0)
 
     def to_dict(self) -> dict:
         return {
@@ -273,6 +318,9 @@ class LineItem(db.Model):
             "tax_rate": self.tax_rate,
             "tax_amount": self.tax_amount,
             "expense_category": self.expense_category or "Chưa phân loại",
+            "discount_rate": self.discount_rate,
+            "discount_amount": self.discount_amount,
+            "amount_after_tax": self.amount_after_tax,
         }
 
 

@@ -1181,8 +1181,15 @@ def import_xml_invoice(xml_bytes: bytes, filename: str, duplicate_strategy: str 
         cancellation_reason=parsed_invoice.get("cancellation_reason"),
         imported_at=datetime.now().isoformat(),
         import_status="XSD_VALIDATION_FAILED" if not schema_valid else ("overwritten" if existing_record else "imported"),
-        taxpayer_mst=taxpayer_mst
+        taxpayer_mst=taxpayer_mst,
+        mccqt=parsed_invoice.get("mccqt"),
+        msttcgp=parsed_invoice.get("msttcgp"),
+        lookup_code=parsed_invoice.get("lookup_code"),
+        lookup_url=parsed_invoice.get("lookup_url"),
+        exchange_rate=parsed_invoice.get("exchange_rate", 1.0)
     )
+    invoice_record.tax_breakdown = parsed_invoice.get("tax_breakdown", [])
+    invoice_record.fees_breakdown = parsed_invoice.get("fees_breakdown", [])
     invoice_record.signature_details = sig_details
     invoice_record.warnings = warnings
     db.session.add(invoice_record)
@@ -1196,7 +1203,10 @@ def import_xml_invoice(xml_bytes: bytes, filename: str, duplicate_strategy: str 
             unit_price=item_data.get("unit_price", 0.0),
             amount_before_tax=item_data.get("amount_before_tax", 0.0),
             tax_rate=item_data.get("tax_rate", "0%"),
-            tax_amount=item_data.get("tax_amount", 0.0)
+            tax_amount=item_data.get("tax_amount", 0.0),
+            discount_rate=item_data.get("discount_rate", 0.0),
+            discount_amount=item_data.get("discount_amount", 0.0),
+            amount_after_tax=item_data.get("amount_after_tax", 0.0)
         )
         db.session.add(item)
 

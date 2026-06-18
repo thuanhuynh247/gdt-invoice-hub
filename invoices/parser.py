@@ -98,6 +98,121 @@ def parse_xml_line_items(xml_bytes: bytes) -> list[dict]:
         return []
 
 
+PROVIDER_LOOKUP_MAP = {
+    "0100100417-007": "https://bill.payoo.vn/tra-tien-thanh-toan-hoa-don-dien-evn?AspxAutoDetectCookieSupport=1",
+    "0100109106": "https://vinvoice.viettel.vn/utilities/invoice-search",
+    "0100684378": "https://portaltool-miennam.vnpt-invoice.com.vn/",
+    "0100686209": "http://tracuuhoadon.mobifoneinvoice.vn/trang-chu",
+    "0100687474": "https://hoadondientu-ptp.vn/tra-cuu/",
+    "0100727825": "https://einvoice.fast.com.vn/",
+    "0101162173": "https://asiainvoice.vn/tra-cuu",
+    "0101243150": "https://www.meinvoice.vn/tra-cuu/",
+    "0101289966": "https://tracuu.e-hoadon.cloud/",
+    "0101300842": "https://einvoice.vn/tra-cuu",
+    "0101352495": "https://tracuu.v50.vninvoice.vn/",
+    "0101360697": "https://van.ehoadon.vn/Lookup?InvoiceGUID=",
+    "0101659906": "https://tracuu.kaike.vn/-/",
+    "0102182292": "https://einvoice.vnpay.vn/",
+    "0102454468": "https://tax24.com.vn/thuedientu/xac-minh-hoa-don",
+    "0102519041": "https://ihoadon.vn/kiem-tra/?lang=vn",
+    "102519041": "https://ihoadon.vn/kiem-tra/?lang=vn",
+    "0103018807": "https://abcsys.vn/Invoice/Search",
+    "0103019524": "https://einvoice.aits.vn/",
+    "0103770970": "https://www.bitware.vn/tracuuhoadon/",
+    "0103930279": "https://hoadon78_logigo.nacencomm.vn/",
+    "0104128565": "https://hoadon.ftg.vn/",
+    "0104359717": "https://tracuuhoadon.kiotviet.vn/",
+    "0104614692": "https://hoadontvan.com/TraCuu",
+    "0104908371": "https://hoadondientu.acman.vn/tra-cuu/hoa-don.html",
+    "0105232093": "https://tracuu.cyberbill.vn/",
+    "0105844836": "https://tracuu.vinvoice.vn/",
+    "0105937449": "https://newinvoice.com.vn/tra-cuu/",
+    "0105958921": "https://tracuu.cloudinvoice.vn/",
+    "0105987432": "https://{seller_mst}hd.easyinvoice.com.vn",
+    "0106026495": "https://tracuuhoadon.minvoice.com.vn/single/invoice",
+    "0106026495-001": "https://tracuuhoadon.minvoice.com.vn/single/invoice",
+    "0106249501": "https://tracuuhoadon.minvoice.com.vn/single/invoice",
+    "0106361479": "https://tracuu.ahoadon.com/",
+    "0106713804": "https://tracuuhddt78.hilo.com.vn/",
+    "0106820789": "https://tracuu.hoadondientuvn.info/",
+    "0106858609": "https://tracuuhoadon.vetc.com.vn/?s",
+    "0106870211": "https://tracuu.vietinvoice.vn/",
+    "0107500414": "https://tracuuhoadon.vetc.com.vn/",
+    "0108516079": "http://hddt.3asoft.vn/",
+    "0108971656": "https://tracuu.myinvoice.vn/",
+    "0109266456": "https://giaothongso.com.vn/tra-cuu-hoa-don-mtc/",
+    "0109282176": "https://tracuu.vininvoice.vn/",
+    "0200638946": "https://oinvoice.vn/tracuu/",
+    "0200784873": "https://hoadonbachkhoa.pmbk.vn/tra-cuu-hoa-don",
+    "0201802839": "https://tracuu.homecasta.vn/",
+    "0202029650": "https://hdbk.pmbk.vn/tra-cuu-hoa-don",
+    "0301448733": "https://accnet.vn/hoa-don-dien-tu",
+    "0301452923": "https://tracuu.lienson.vn/",
+    "0302431595": "https://tracuu.hoadon30s.vn",
+    "0302712571": "https://matbao.in/tra-cuu-hoa-don/",
+    "0302999571": "https://eip.lcssoft.com.vn/desktop/",
+    "0303430876": "http://trahoadon.vn/SearchOne",
+    "0303609305": "https://ihoadondientu.com/Tra-cuu",
+    "0305795054": "https://hoadon.pvoil.vn/Invoice/search",
+    "0306784030": "https://ehoadon.online/einvoice/lookup",
+    "0309478306": "https://tracuu.xuathoadon.vn/",
+    "0309612872": "https://tracuuhd.smartsign.com.vn/",
+    "0310151739": "https://news.yoinvoice.vn/search-invoice",
+    "0310768095": "http://hoadondientu.link/tracuutt78",
+    "0310926922": "https://invoice.ehcm.vn/",
+    "0311928954": "https://tracuuhoadon.vietinfo.tech/",
+    "0311942758": "https://tracuuonline78.ngogiaphat.vn/Search",
+    "0312270160": "https://ameinvoice.vn/tra-cuu-hoa-don-dien-tu/",
+    "0312303803": "https://tracuu.wininvoice.vn/",
+    "0312942260": "https://ihoadondientu.net/Tracuu.aspx",
+    "0312961577": "http://tracuuhoadon.benthanhinvoice.vn/",
+    "0313844107": "http://voice.hoadondientu.net.vn/tra-cuu",
+    "0313906508": "https://nguyenminhvat.vn/hddt/sinv/sinv00101",
+    "0313950909": "https://koffi.vn/outbound/lookup-invoice",
+    "0313963672": "https://tracuuhoadon.kkvat.com.vn/",
+    "0314185087": "https://hoadon.onlinevina.com.vn/invoice",
+    "0314209362": "https://hoadondientuvat.com/Tracuu.aspx",
+    "0314743623": "https://ehoadondientu.com/Tra-cuu",
+    "0315151651": "https://ei.pvssolution.com/",
+    "0315191291": "https://hoadonsovn.evat.vn/",
+    "0315298333": "https://tctinvoice.com/",
+    "0315467091": "https://www.acconline.vn/vn/tra-cuu-hoa-don.htm",
+    "0315638251": "https://htinvoice.com.vn/TraCuu",
+    "0316642395": "https://phuongnam.evat.vn/",
+    "0400462489": "https://e-invoicetuanchau.com/Tra-cuu",
+    "0401486901": "https://tracuu.vin-hoadon.com/tracuuhoadon/tracuuxacthuc/tracuuhd",
+    "0110269067": "https://gsm-einvoice.hilo.com.vn/",
+    "0110269067-002": "https://gsm-einvoice.hilo.com.vn/",
+}
+
+def resolve_lookup_url(msttcgp: str, seller_mst: str, mccqt: str, invoice_number: str) -> str:
+    """Resolve lookup portal verification link from provider tax code and invoice metadata."""
+    if not msttcgp:
+        return ""
+    
+    msttcgp_clean = msttcgp.strip()
+    seller_mst_clean = seller_mst.strip()
+    mccqt_clean = mccqt.strip() if mccqt else ""
+
+    # VNPT Special Case
+    if msttcgp_clean == "0100684378":
+        if mccqt_clean:
+            return f"https://{seller_mst_clean}-tt78.vnpt-invoice.com.vn/?strFkey={mccqt_clean}"
+        return "https://portaltool-miennam.vnpt-invoice.com.vn/"
+    
+    # BKAV Special Case
+    if msttcgp_clean == "0101360697":
+        return f"https://van.ehoadon.vn/Lookup?InvoiceGUID={invoice_number}"
+
+    # Softdreams / EasyInvoice Special Case
+    if msttcgp_clean == "0105987432":
+        return f"https://{seller_mst_clean}hd.easyinvoice.com.vn"
+
+    # Match in mapping table
+    base_url = PROVIDER_LOOKUP_MAP.get(msttcgp_clean, "")
+    return base_url
+
+
 def parse_complete_xml(xml_bytes: bytes) -> dict:
     """Parse all detailed fields and line items from a GDT standard XML invoice."""
 
@@ -134,6 +249,16 @@ def parse_complete_xml(xml_bytes: bytes) -> dict:
 
         currency = root.findtext(".//DVTTe") or root.findtext(".//dvtte") or "VND"
         payment_method = root.findtext(".//HTTToan") or root.findtext(".//htttoan") or ""
+
+        # GDT and Provider info
+        mccqt = (root.findtext(".//MCCQT") or root.findtext(".//mccqt") or "").strip()
+        msttcgp = (root.findtext(".//MSTTCGP") or root.findtext(".//msttcgp") or "").strip()
+        
+        exchange_rate_raw = root.findtext(".//TGia") or root.findtext(".//tgia") or "1.0"
+        try:
+            exchange_rate = float(exchange_rate_raw.replace(",", ""))
+        except ValueError:
+            exchange_rate = 1.0
 
         # Seller
         seller_node = root.find(".//NBan")
@@ -189,16 +314,32 @@ def parse_complete_xml(xml_bytes: bytes) -> dict:
             tax_rate = hhdvu.findtext("TSuat") or "10%"
             item_tax_amount_text = hhdvu.findtext("TThue") or "0"
 
+            # Discount values
+            discount_rate_text = hhdvu.findtext("TLCKhau") or hhdvu.findtext("tlckhau") or "0"
+            discount_amount_text = hhdvu.findtext("STCKhau") or hhdvu.findtext("stckhau") or "0"
+            amount_after_tax_text = hhdvu.findtext("ThTcthue") or hhdvu.findtext("thtcthue") or "0"
+
             try:
                 quantity = float(quantity_text.replace(",", ""))
                 unit_price = float(price_text.replace(",", ""))
                 item_amount_before_tax = float(amount_text.replace(",", ""))
                 item_tax_amount = float(item_tax_amount_text.replace(",", ""))
+                
+                discount_rate = float(discount_rate_text.replace(",", ""))
+                discount_amount = float(discount_amount_text.replace(",", ""))
+                amount_after_tax = float(amount_after_tax_text.replace(",", ""))
             except ValueError:
                 quantity = 0.0
                 unit_price = 0.0
                 item_amount_before_tax = 0.0
                 item_tax_amount = 0.0
+                discount_rate = 0.0
+                discount_amount = 0.0
+                amount_after_tax = 0.0
+
+            # Fallback calculation if amount after tax is missing/zero
+            if amount_after_tax == 0.0:
+                amount_after_tax = item_amount_before_tax - discount_amount + item_tax_amount
 
             items.append({
                 "item_name": item_name.strip(),
@@ -207,7 +348,10 @@ def parse_complete_xml(xml_bytes: bytes) -> dict:
                 "unit_price": unit_price,
                 "amount_before_tax": item_amount_before_tax,
                 "tax_rate": tax_rate.strip(),
-                "tax_amount": item_tax_amount
+                "tax_amount": item_tax_amount,
+                "discount_rate": discount_rate,
+                "discount_amount": discount_amount,
+                "amount_after_tax": amount_after_tax
             })
 
         # fallbacks
@@ -241,6 +385,82 @@ def parse_complete_xml(xml_bytes: bytes) -> dict:
             except Exception:
                 pass
 
+        # Extract Lookup Code from TTKhac/TTChung/TTKhac
+        lookup_code = ""
+        lookup_keys_whitelist = {
+            "tendviquly", "mã số bí mật", "masobimat", "reservationcode", "fkey", 
+            "keysearch", "matc", "transactionid", "searchkey", "mã hóa đơn", "mahoadon",
+            "matracuu", "mtcuu", "quanly_sobaomat", "client_id", "mã tra cứu", "mã tra cứu hóa đơn"
+        }
+        for tt_khac in root.findall(".//TTKhac"):
+            # Try finding direct TTruong and DLieu children (flat format)
+            ttruong_flat = tt_khac.find("TTruong")
+            dlieu_flat = tt_khac.find("DLieu")
+            if ttruong_flat is not None and dlieu_flat is not None:
+                t_val = (ttruong_flat.text or "").strip().lower()
+                if t_val in lookup_keys_whitelist:
+                    lookup_code = (dlieu_flat.text or "").strip()
+                    break
+            
+            # Try finding nested DLieuBsung/etc. containers
+            for child in tt_khac:
+                ttruong_elem = child.find("TTruong")
+                dlieu_elem = child.find("DLieu")
+                if ttruong_elem is not None and dlieu_elem is not None:
+                    ttruong_val = (ttruong_elem.text or "").strip().lower()
+                    if ttruong_val in lookup_keys_whitelist:
+                        lookup_code = (dlieu_elem.text or "").strip()
+                        break
+            if lookup_code:
+                break
+
+        # Generate lookup link
+        lookup_url = resolve_lookup_url(msttcgp, seller_mst, mccqt, number)
+
+        # Tax Breakdown (THTTLTSuat)
+        tax_breakdown = []
+        thttltsuat = root.find(".//THTTLTSuat")
+        if thttltsuat is None:
+            thttltsuat = root.find(".//thttltsuat")
+        if thttltsuat is not None:
+            for ltsuat in thttltsuat.findall(".//LTSuat") or thttltsuat.findall(".//ltsuat"):
+                tsuat = ltsuat.findtext("TSuat") or ltsuat.findtext("tsuat") or ""
+                thtien_txt = ltsuat.findtext("ThTien") or ltsuat.findtext("thtien") or "0"
+                tthue_txt = ltsuat.findtext("TThue") or ltsuat.findtext("tthue") or "0"
+                gttsuat_txt = ltsuat.findtext("GTTSuat") or ltsuat.findtext("gttsuat") or "0"
+                try:
+                    thtien = float(thtien_txt.replace(",", ""))
+                    tthue = float(tthue_txt.replace(",", ""))
+                    gttsuat = float(gttsuat_txt.replace(",", ""))
+                except ValueError:
+                    thtien = 0.0
+                    tthue = 0.0
+                    gttsuat = 0.0
+                tax_breakdown.append({
+                    "tsuat": tsuat.strip(),
+                    "thtien": thtien,
+                    "tthue": tthue,
+                    "gttsuat": gttsuat
+                })
+
+        # Fees/Surcharges Breakdown (THTTLPhi)
+        fees_breakdown = []
+        thttlphi = root.find(".//THTTLPhi")
+        if thttlphi is None:
+            thttlphi = root.find(".//thttlphi")
+        if thttlphi is not None:
+            for ltphi in thttlphi.findall(".//LTPhi") or thttlphi.findall(".//ltphi"):
+                tlphi = ltphi.findtext("TLPhi") or ltphi.findtext("tlphi") or ""
+                tphi_txt = ltphi.findtext("TPhi") or ltphi.findtext("tphi") or "0"
+                try:
+                    tphi = float(tphi_txt.replace(",", ""))
+                except ValueError:
+                    tphi = 0.0
+                fees_breakdown.append({
+                    "tlphi": tlphi.strip(),
+                    "tphi": tphi
+                })
+
         return {
             "invoice_type": title.strip(),
             "template_code": template.strip(),
@@ -261,7 +481,14 @@ def parse_complete_xml(xml_bytes: bytes) -> dict:
             "items": items,
             "has_signature": has_signature,
             "signing_date": signing_date,
-            "payment_method": payment_method.strip()
+            "payment_method": payment_method.strip(),
+            "mccqt": mccqt,
+            "msttcgp": msttcgp,
+            "exchange_rate": exchange_rate,
+            "lookup_code": lookup_code,
+            "lookup_url": lookup_url,
+            "tax_breakdown": tax_breakdown,
+            "fees_breakdown": fees_breakdown
         }
     except Exception as error:
         raise ValueError(f"Loi cu phap tep XML: {str(error)}")

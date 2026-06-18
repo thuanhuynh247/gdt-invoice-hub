@@ -5,11 +5,11 @@
 
 ### 📊 1. THÔNG TIN HỆ THỐNG & ĐIỀU HÀNH (Operating System & telemetry)
 - **Tên Agent chịu trách nhiệm**: `Antigravity`
-- **Thời gian nghiệm thu (UAT Time)**: `2026-06-17 10:57:12`
+- **Thời gian nghiệm thu (UAT Time)**: `2026-06-18 08:10:28`
 - **Trạng thái cổng kết nối (Unified Gate)**: `✅ PASSED (Hoàn thành kiểm toán toàn diện)`
-- **Thời gian chạy thử nghiệm (Quality Gate Duration)**: `9 giây`
-- **Phiên bản mã nguồn (Git Commit)**: `70ad027596be3bd918a739f08c7e06972a37e6ea (dirty)`
-- **Ước tính tài nguyên tiêu thụ (Token Usage Estimate)**: `34,600 tokens`
+- **Thời gian chạy thử nghiệm (Quality Gate Duration)**: `11 giây`
+- **Phiên bản mã nguồn (Git Commit)**: `38041a18af9d4c474a2360a9ab0803d0f339eaed (dirty)`
+- **Ước tính tài nguyên tiêu thụ (Token Usage Estimate)**: `41,800 tokens`
 - **Độ rủi ro kiểm thử (Risk Lane)**: `HIGH_RISK`
 
 ---
@@ -32,17 +32,20 @@
 
 ### 📋 4. CHI TIẾT TÁC VỤ ĐÃ THỰC THI (Execution Trace Detail)
 - **Hành động đã làm (Actions Taken)**:
-  - `Updated VBA macros in TaiHoaDonDienTu_v6.2.xlsm using win32com`
-  - `replaced em-dashes in templates`
-  - `and converted bg-light to bg-premium-light.`
+  - `Updated core.py`
+  - `invoices.html`
+  - `main.js`
+  - `and test_stats.py to serialize and render the enriched invoice fields.`
 - **Tệp tin đã đọc (Files Read)**:
-  - `templates/base.html`
-  - `templates/v48_compliance_hub.html`
-  - `vba_modules/modSmartInvoiceLogin.bas`
-  - `vba_modules/frmDangNhap.bas`
+  - `invoices/models.py`
+  - `invoices/routes/core.py`
+  - `templates/invoices.html`
+  - `static/js/main.js`
 - **Tệp tin đã thay đổi (Files Changed)**:
-  - `static/css/style.css`
-  - `templates/*.html`
+  - `invoices/routes/core.py`
+  - `templates/invoices.html`
+  - `static/js/main.js`
+  - `tests/test_stats.py`
 
 - **Ghi chú bổ sung (Notes)**: `Không có ghi chú thêm.`
 
