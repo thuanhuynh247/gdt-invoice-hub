@@ -59,6 +59,19 @@ def main():
         components.Import(bas_http)
         print("Successfully imported modHTTPRequest.")
         
+        # 1c. Update/Import modGhiExcel (Standard Module)
+        bas_excel = r"D:\LearnAnyThing\Hoa Don VBA\vba_modules\modGhiExcel.bas"
+        try:
+            comp_excel = components("modGhiExcel")
+            components.Remove(comp_excel)
+            print("Removed existing modGhiExcel component.")
+        except Exception:
+            pass
+            
+        print(f"Importing standard module: {bas_excel}")
+        components.Import(bas_excel)
+        print("Successfully imported modGhiExcel.")
+        
         # 2. Update frmDangNhap code (UserForm)
         # Instead of importing (which would fail or create a standard module), we update its CodeModule directly.
         try:

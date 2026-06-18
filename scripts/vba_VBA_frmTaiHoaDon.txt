@@ -430,7 +430,43 @@ Sub taiHoaDon_Total(Optional rowTotalstart As Long = 3, Optional rowDetailStart 
 
     Dim arrHDChiTiet_tmp(1000, 5)
 
+    ' === Initialize Duplicate Check Dictionary ===
+    Dim dicExisting As Object
+    Set dicExisting = CreateObject("Scripting.Dictionary")
     
+    Dim targetWS As Worksheet
+    If Me.optMua = True Then
+        Set targetWS = ThisWorkbook.Sheets("TongHopHD_Mua")
+        loaiHD = 1
+    Else
+        Set targetWS = ThisWorkbook.Sheets("TongHopHD_Ban")
+        loaiHD = 2
+    End If
+    
+    Dim lastRowWS As Long
+    lastRowWS = targetWS.Cells(targetWS.Rows.count, "C").End(xlUp).row
+    If lastRowWS >= 3 Then
+        Dim rIdx As Long
+        Dim tmpKey As String
+        For rIdx = 3 To lastRowWS
+            Dim khm As String, khh As String, shd As String, mst As String
+            khm = Trim(CStr(targetWS.Cells(rIdx, 3).Value)) ' khmshdon
+            khh = Trim(CStr(targetWS.Cells(rIdx, 4).Value)) ' khhdon
+            shd = Trim(CStr(targetWS.Cells(rIdx, 5).Value)) ' shdon
+            If loaiHD = 1 Then
+                mst = Trim(CStr(targetWS.Cells(rIdx, 10).Value)) ' nbmst (Seller MST)
+            Else
+                mst = Trim(CStr(targetWS.Cells(rIdx, 16).Value)) ' nmmst (Buyer MST)
+            End If
+            
+            If Len(shd) > 0 Then
+                tmpKey = khm & "|" & khh & "|" & shd & "|" & mst
+                If Not dicExisting.Exists(tmpKey) Then
+                    dicExisting(tmpKey) = True
+                End If
+            End If
+        Next rIdx
+    End If
 
     'Tao bang tra cac dieu kien tim kiem
 
@@ -444,9 +480,11 @@ Sub taiHoaDon_Total(Optional rowTotalstart As Long = 3, Optional rowDetailStart 
 
     '------------------------------------
 
-    
-
-    stt = 1
+    If rowTotalstart > 3 And lastRowWS >= 3 Then
+        stt = Val(targetWS.Cells(lastRowWS, 1).Value) + 1
+    Else
+        stt = 1
+    End If
 
     'row = 3: row_ct = 3
 
@@ -567,7 +605,7 @@ nextPage:
 
         
 
-        ghiExcel_TongHop res, row, loaiHD, stt
+        ghiExcel_TongHop res, row, loaiHD, stt, dicExisting
 
         
 
@@ -575,19 +613,24 @@ nextPage:
 
         For Each item In js("datas")
 
-            arrHDChiTiet_tmp(n, 0) = item("nbmst") & ""
-
-            arrHDChiTiet_tmp(n, 1) = item("khhdon")
-
-            arrHDChiTiet_tmp(n, 2) = item("shdon")
-
-            arrHDChiTiet_tmp(n, 3) = item("khmshdon")
-
-            arrHDChiTiet_tmp(n, 4) = 1  'query
-
-            arrHDChiTiet_tmp(n, 5) = ISODATE(item("tdlap"))
-
-            n = n + 1
+            Dim itemKey As String
+            Dim itemMST As String
+            If loaiHD = 1 Then
+                itemMST = item("nbmst") & ""
+            Else
+                itemMST = item("nmmst") & ""
+            End If
+            itemKey = (item("khmshdon") & "") & "|" & (item("khhdon") & "") & "|" & (item("shdon") & "") & "|" & itemMST
+            
+            If Not dicExisting.Exists(itemKey) Then
+                arrHDChiTiet_tmp(n, 0) = item("nbmst") & ""
+                arrHDChiTiet_tmp(n, 1) = item("khhdon")
+                arrHDChiTiet_tmp(n, 2) = item("shdon")
+                arrHDChiTiet_tmp(n, 3) = item("khmshdon")
+                arrHDChiTiet_tmp(n, 4) = 1  'query
+                arrHDChiTiet_tmp(n, 5) = ISODATE(item("tdlap"))
+                n = n + 1
+            End If
 
         Next
 
@@ -656,7 +699,7 @@ nextPage_sco:
 
         
 
-        ghiExcel_TongHop res, row, loaiHD, stt
+        ghiExcel_TongHop res, row, loaiHD, stt, dicExisting
 
         
 
@@ -664,19 +707,24 @@ nextPage_sco:
 
         For Each item In js("datas")
 
-            arrHDChiTiet_tmp(n, 0) = item("nbmst") & ""
-
-            arrHDChiTiet_tmp(n, 1) = item("khhdon")
-
-            arrHDChiTiet_tmp(n, 2) = item("shdon")
-
-            arrHDChiTiet_tmp(n, 3) = item("khmshdon")
-
-            arrHDChiTiet_tmp(n, 4) = 2  'sco-query
-
-            arrHDChiTiet_tmp(n, 5) = ISODATE(item("tdlap"))
-
-            n = n + 1
+            Dim itemKeySco As String
+            Dim itemMSTSco As String
+            If loaiHD = 1 Then
+                itemMSTSco = item("nbmst") & ""
+            Else
+                itemMSTSco = item("nmmst") & ""
+            End If
+            itemKeySco = (item("khmshdon") & "") & "|" & (item("khhdon") & "") & "|" & (item("shdon") & "") & "|" & itemMSTSco
+            
+            If Not dicExisting.Exists(itemKeySco) Then
+                arrHDChiTiet_tmp(n, 0) = item("nbmst") & ""
+                arrHDChiTiet_tmp(n, 1) = item("khhdon")
+                arrHDChiTiet_tmp(n, 2) = item("shdon")
+                arrHDChiTiet_tmp(n, 3) = item("khmshdon")
+                arrHDChiTiet_tmp(n, 4) = 2  'sco-query
+                arrHDChiTiet_tmp(n, 5) = ISODATE(item("tdlap"))
+                n = n + 1
+            End If
 
         Next
 
