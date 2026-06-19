@@ -162,13 +162,13 @@ class LogisticsCostAllocatorService:
     @staticmethod
     def allocate_logistics_cost(logistics_invoice_id: str, purchase_invoice_ids: list, method: str = "value_ratio") -> dict:
         """Allocates logistics cost across targeted purchase invoices."""
-        log_inv = Invoice.query.get(logistics_invoice_id)
+        log_inv = db.session.get(Invoice, logistics_invoice_id)
         if not log_inv:
             return {"status": "error", "error": "Logistics invoice not found"}
 
         total_alloc_amount = log_inv.total_amount
         
-        purchases = [Invoice.query.get(pid) for pid in purchase_invoice_ids if Invoice.query.get(pid)]
+        purchases = [db.session.get(Invoice, pid) for pid in purchase_invoice_ids if db.session.get(Invoice, pid)]
         if not purchases:
             return {"status": "error", "error": "No valid purchase invoices target"}
 

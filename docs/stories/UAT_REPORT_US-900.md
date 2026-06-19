@@ -5,17 +5,17 @@
 
 ### 📊 1. THÔNG TIN HỆ THỐNG & ĐIỀU HÀNH (Operating System & telemetry)
 - **Tên Agent chịu trách nhiệm**: `Antigravity`
-- **Thời gian nghiệm thu (UAT Time)**: `2026-06-18 13:59:06`
+- **Thời gian nghiệm thu (UAT Time)**: `2026-06-19 07:56:26`
 - **Trạng thái cổng kết nối (Unified Gate)**: `✅ PASSED (Hoàn thành kiểm toán toàn diện)`
-- **Thời gian chạy thử nghiệm (Quality Gate Duration)**: `12 giây`
-- **Phiên bản mã nguồn (Git Commit)**: `ab51728b82596d0ef20aab19cd2ffb548cb45002 (dirty)`
-- **Ước tính tài nguyên tiêu thụ (Token Usage Estimate)**: `31,600 tokens`
+- **Thời gian chạy thử nghiệm (Quality Gate Duration)**: `10 giây`
+- **Phiên bản mã nguồn (Git Commit)**: `3ef64dce10b54b649587131a207ffe3a347a7613 (dirty)`
+- **Ước tính tài nguyên tiêu thụ (Token Usage Estimate)**: `68,800 tokens`
 - **Độ rủi ro kiểm thử (Risk Lane)**: `NORMAL`
 
 ---
 
 ### 🛡️ 2. SOCRATIC RISK EVALUATION & SAFETY CHECKS
-- **Các cờ rủi ro được quét tự động (Risk Flags)**: `audit`
+- **Các cờ rủi ro được quét tự động (Risk Flags)**: `auth, data_model`
 - **Checklist an toàn tương ứng**:
   - [x] Đã xác thực toàn bộ unit/integration tests trên máy cục bộ
   - [x] Đã cập nhật ma trận kiểm thử tại `docs/TEST_MATRIX.md`
@@ -31,14 +31,38 @@
 
 ### 📋 4. CHI TIẾT TÁC VỤ ĐÃ THỰC THI (Execution Trace Detail)
 - **Hành động đã làm (Actions Taken)**:
-  - `Ran UI accessibility audits`
-  - `modified dashboard.html to follow guidelines`
-  - `re-audited and validated test suite.`
+  - `Replaced Model.query.get(id) with db.session.get(Model`
+  - `id) and datetime.utcnow() with datetime.now(timezone.utc) across core routes`
+  - `service files`
+  - `and tests.`
 - **Tệp tin đã đọc (Files Read)**:
-  - `templates/dashboard.html`
-  - `scripts/audit_ui_ux.py`
+  - `invoices/routes/core.py`
+  - `invoices/bank_reconcile_service.py`
+  - `invoices/ecommerce_service.py`
+  - `invoices/refund_service.py`
+  - `invoices/scheduler.py`
+  - `invoices/v25_compliance_service.py`
+  - `invoices/v38_service.py`
+  - `invoices/v41_service.py`
+  - `scripts/seed_uat_data.py`
+  - `tests/test_bank_reconcile.py`
+  - `tests/test_einvoice_issuer.py`
+  - `tests/test_v25_portal_sync.py`
+  - `tests/test_v41_features.py`
 - **Tệp tin đã thay đổi (Files Changed)**:
-  - `templates/dashboard.html`
+  - `invoices/routes/core.py`
+  - `invoices/bank_reconcile_service.py`
+  - `invoices/ecommerce_service.py`
+  - `invoices/refund_service.py`
+  - `invoices/scheduler.py`
+  - `invoices/v25_compliance_service.py`
+  - `invoices/v38_service.py`
+  - `invoices/v41_service.py`
+  - `scripts/seed_uat_data.py`
+  - `tests/test_bank_reconcile.py`
+  - `tests/test_einvoice_issuer.py`
+  - `tests/test_v25_portal_sync.py`
+  - `tests/test_v41_features.py`
 
 - **Ghi chú bổ sung (Notes)**: `Không có ghi chú thêm.`
 

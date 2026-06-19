@@ -89,7 +89,7 @@ def test_customs_invoice_matcher(client):
     assert matches[0]["value_difference"] == 0.0
     
     # Verify declaration status updated
-    updated_decl = ExportCustomsDeclaration.query.get(decl.id)
+    updated_decl = db.session.get(ExportCustomsDeclaration, decl.id)
     assert updated_decl.status == "Reconciled"
 
 

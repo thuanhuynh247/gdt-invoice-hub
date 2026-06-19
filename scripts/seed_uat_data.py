@@ -29,7 +29,7 @@ def seed_data():
         CustomsDeclaration.query.filter_by(taxpayer_mst=target_mst).delete(synchronize_session=False)
         
         # Ensure target taxpayer profile exists
-        profile = TaxpayerProfile.query.get(target_mst)
+        profile = db.session.get(TaxpayerProfile, target_mst)
         if not profile:
             profile = TaxpayerProfile(
                 mst=target_mst,

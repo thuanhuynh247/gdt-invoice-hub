@@ -5,7 +5,7 @@ Version 41.0.0 Services: Export Customs Declaration Parser, Reconciliation Match
 from __future__ import annotations
 
 import xml.etree.ElementTree as ET
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import and_
 from extensions import db
 from invoices.models import Invoice, Partner, ExportCustomsDeclaration, ExportDeclarationInvoiceMatch, VatRefundApplication
@@ -29,13 +29,13 @@ class ExportVatRefundService:
             
             # Locate fields, with fallbacks for testing XMLs
             num_elem = root.find(".//declaration_num") or root.find(".//so_to_khai")
-            declaration_num = num_elem.text if num_elem is not None else f"CD-{int(datetime.utcnow().timestamp())}"
+            declaration_num = num_elem.text if num_elem is not None else f"CD-{int(datetime.now(timezone.utc).timestamp())}"
             
             reg_elem = root.find(".//registration_date") or root.find(".//ngay_dang_ky")
-            registration_date = reg_elem.text if reg_elem is not None else datetime.utcnow().strftime("%Y-%m-%d")
+            registration_date = reg_elem.text if reg_elem is not None else datetime.now(timezone.utc).strftime("%Y-%m-%d")
             
             clear_elem = root.find(".//clearance_date") or root.find(".//ngay_thong_quan")
-            clearance_date = clear_elem.text if clear_elem is not None else datetime.utcnow().strftime("%Y-%m-%d")
+            clearance_date = clear_elem.text if clear_elem is not None else datetime.now(timezone.utc).strftime("%Y-%m-%d")
             
             val_usd_elem = root.find(".//export_value_usd") or root.find(".//tri_gia_usd")
             export_value_usd = float(val_usd_elem.text) if val_usd_elem is not None else 10000.0
@@ -226,7 +226,7 @@ class ExportVatRefundService:
             allocated_export_vat=limits["max_refund_by_revenue"],
             refund_requested_amount=requested_amount,
             status="Submitted",
-            created_at=datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+            created_at=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
         )
         db.session.add(app)
         db.session.commit()

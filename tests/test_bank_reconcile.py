@@ -221,7 +221,7 @@ def test_api_manual_reconciliation_override(logged_in_client, app):
     assert data["details"]["invoice_number"] == "1002"
 
     with app.app_context():
-        updated_tx = BankTransaction.query.get("TX-MOCK-05")
+        updated_tx = db.session.get(BankTransaction, "TX-MOCK-05")
         assert updated_tx.status == "matched"
         assert updated_tx.matched_invoice_id == "SALE-1002"
         assert updated_tx.confidence_score == 1.0

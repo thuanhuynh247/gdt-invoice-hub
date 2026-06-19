@@ -30,7 +30,7 @@ def sync_gdt_verification_status(invoice_ids: list[str]) -> dict:
     status_counts = {"approved": 0, "rejected": 0, "pending": 0}
     
     for inv_id in invoice_ids:
-        inv = Invoice.query.get(inv_id)
+        inv = db.session.get(Invoice, inv_id)
         if not inv:
             continue
             

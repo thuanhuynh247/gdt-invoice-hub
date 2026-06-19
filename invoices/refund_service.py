@@ -16,7 +16,7 @@ class VATRefundEligibilityEngine:
 
     def get_eligibility(self, taxpayer_mst: str, input_invoice_ids: List[str] = None, customs_declarations: List[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Calculates VAT refund eligibility and returns a detailed audit report."""
-        profile = TaxpayerProfile.query.get(taxpayer_mst)
+        profile = db.session.get(TaxpayerProfile, taxpayer_mst)
         if not profile:
             return {
                 "error": f"Không tìm thấy MST người nộp thuế: {taxpayer_mst}",
@@ -416,7 +416,7 @@ Người lập báo cáo: Hệ thống Trí tuệ Nhân tạo meInvoice AI Compl
 def generate_form_01_dnht_xml(taxpayer_mst: str, eligible_invoice_ids: List[str], bank_account: str = "", bank_name: str = "", reason_type: str = "") -> str:
     """Generates GDT-compliant Form 01/ĐNHT XML for tax refund request."""
     from invoices.models import TaxpayerProfile, Invoice
-    profile = TaxpayerProfile.query.get(taxpayer_mst)
+    profile = db.session.get(TaxpayerProfile, taxpayer_mst)
     company_name = profile.company_name if profile else "DOANH NGHIEP"
     
     invoices = Invoice.query.filter(Invoice.id.in_(eligible_invoice_ids)).all()

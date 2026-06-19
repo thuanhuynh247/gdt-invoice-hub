@@ -101,7 +101,7 @@ def test_issue_invoice_flow(client, app):
 
     # 4. Verify Local Storage and Signature state
     with app.app_context():
-        inv_record = Invoice.query.get(inv_id)
+        inv_record = db.session.get(Invoice, inv_id)
         assert inv_record is not None
         assert inv_record.invoice_status == "Gốc"
         assert inv_record.import_status == "imported"

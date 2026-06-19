@@ -43,7 +43,7 @@ def test_gdt_portal_sync_agent_success(app):
 
         # Check updated values in db
         db.session.expire_all()
-        updated_inv = Invoice.query.get(inv.id)
+        updated_inv = db.session.get(Invoice, inv.id)
         assert updated_inv.invoice_status == "approved"
         assert "GDT Approval Code: GDT-" in updated_inv.notes
 
@@ -83,6 +83,6 @@ def test_gdt_portal_sync_agent_rejected(app):
         assert report["status_counts"]["rejected"] == 1
 
         db.session.expire_all()
-        updated_inv = Invoice.query.get(inv.id)
+        updated_inv = db.session.get(Invoice, inv.id)
         assert updated_inv.invoice_status == "rejected"
         assert "GDT Sync Refusal:" in updated_inv.notes

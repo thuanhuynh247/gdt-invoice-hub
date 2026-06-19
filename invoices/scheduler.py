@@ -10,7 +10,7 @@ import os
 import json
 import threading
 import time
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta, date, timezone
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -725,7 +725,7 @@ class SchedulerThread(threading.Thread):
                                 def dispatch_hook(url=webhook_url, secret=webhook_secret, data=event_data):
                                     payload = {
                                         "event": "invoice.imported",
-                                        "timestamp": datetime.utcnow().isoformat() + "Z",
+                                        "timestamp": datetime.now(timezone.utc).replace(tzinfo=None).isoformat() + "Z",
                                         "data": data
                                     }
                                     payload_bytes = json.dumps(payload, ensure_ascii=False).encode("utf-8")

@@ -132,7 +132,7 @@ def sync_ecommerce_orders(orders: list[dict], taxpayer_mst: str, platform: str) 
             sale_id = f"ECO-SALE-{platform.upper()}-{taxpayer_mst}-{o_date}"
             
             # Check if invoice already exists
-            existing_sale = Invoice.query.get(sale_id)
+            existing_sale = db.session.get(Invoice, sale_id)
             if existing_sale:
                 db.session.delete(existing_sale)
                 
@@ -178,7 +178,7 @@ def sync_ecommerce_orders(orders: list[dict], taxpayer_mst: str, platform: str) 
         if total_fees > 0:
             purchase_id = f"ECO-FEE-{platform.upper()}-{taxpayer_mst}-{o_date}"
             
-            existing_purchase = Invoice.query.get(purchase_id)
+            existing_purchase = db.session.get(Invoice, purchase_id)
             if existing_purchase:
                 db.session.delete(existing_purchase)
                 

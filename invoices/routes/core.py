@@ -19,7 +19,7 @@ from auth.decorators import roles_required
 import os
 import uuid
 import threading
-from datetime import datetime
+from datetime import datetime, timezone
 from flask import send_file
 import io
 from invoices.routes.shared import invoices_blueprint, DOWNLOAD_TASKS, DOWNLOAD_TASKS_LOCK
@@ -3841,7 +3841,7 @@ def api_v1_compliance_scores():
         return jsonify({"error": "Missing taxpayer MST"}), 400
         
     from invoices.models import TaxpayerProfile, Invoice
-    profile = TaxpayerProfile.query.get(mst)
+    profile = db.session.get(TaxpayerProfile, mst)
     if not profile:
         return jsonify({"error": f"Taxpayer profile not found for MST: {mst}"}), 404
         
@@ -3917,7 +3917,7 @@ def api_v1_webhooks_dispatch_test():
         return jsonify({"error": "Missing subscription_id"}), 400
         
     from invoices.models import WebhookSubscription
-    sub = WebhookSubscription.query.get(sub_id)
+    sub = db.session.get(WebhookSubscription, sub_id)
     if not sub:
         return jsonify({"error": f"Webhook subscription not found for id: {sub_id}"}), 404
         
@@ -3968,7 +3968,7 @@ def api_draft_defense_letter():
     mst = body.get("taxpayer_mst") or session.get("active_taxpayer_mst") or "0109998887"
     
     from invoices.models import TaxpayerProfile
-    profile = TaxpayerProfile.query.get(mst)
+    profile = db.session.get(TaxpayerProfile, mst)
     company_name = profile.company_name if profile else "DOANH NGHIEP"
     
     now = datetime.now()
@@ -4110,7 +4110,7 @@ def api_bank_reconcile_transactions():
     for tx in transactions:
         tx_dict = tx.to_dict()
         if tx.matched_invoice_id:
-            inv = Invoice.query.get(tx.matched_invoice_id)
+            inv = db.session.get(Invoice, tx.matched_invoice_id)
             if inv:
                 tx_dict["invoice_number"] = inv.number
                 tx_dict["partner_name"] = inv.buyer_name if tx.amount > 0 else inv.seller_name
@@ -4156,8 +4156,8 @@ def api_bank_reconcile_manual():
         return jsonify({"error": "Thiếu mã giao dịch hoặc mã hóa đơn khớp."}), 400
 
     from invoices.models import BankTransaction, Invoice
-    tx = BankTransaction.query.get(transaction_id)
-    inv = Invoice.query.get(invoice_id)
+    tx = db.session.get(BankTransaction, transaction_id)
+    inv = db.session.get(Invoice, invoice_id)
 
     if not tx or not inv:
         return jsonify({"error": "Không tìm thấy giao dịch ngân hàng hoặc hóa đơn tương ứng."}), 404
@@ -4349,7 +4349,7 @@ def api_issue_sign():
         return jsonify({"error": "Thiếu mã hóa đơn cần ký."}), 400
 
     from invoices.models import Invoice, LineItem
-    inv = Invoice.query.get(invoice_id)
+    inv = db.session.get(Invoice, invoice_id)
     if not inv:
         return jsonify({"error": "Không tìm thấy hóa đơn tương ứng."}), 404
 
@@ -6660,7 +6660,7 @@ def api_tenant_consolidated():
         # 1. Resolve Group
         group = None
         if group_id:
-            group = TenantGroup.query.get(group_id)
+            group = db.session.get(TenantGroup, group_id)
         else:
             group = TenantGroup.query.filter_by(admin_username=username).first()
             if not group and username == "admin":
@@ -7728,7 +7728,7 @@ def api_compliance_generate_correction_xml():
         return jsonify({"error": "Thiếu original_invoice_id hoặc type_change."}), 400
 
     from invoices.models import Invoice
-    orig_inv = Invoice.query.get(original_invoice_id)
+    orig_inv = db.session.get(Invoice, original_invoice_id)
     if not orig_inv:
         return jsonify({"error": f"Không tìm thấy hóa đơn gốc {original_invoice_id}."}), 404
 
@@ -9098,7 +9098,7 @@ def api_create_group_fund():
             group_id=group_id,
             name=name.strip(),
             currency=currency,
-            created_at=datetime.utcnow().isoformat() + "Z"
+            created_at=datetime.now(timezone.utc).replace(tzinfo=None).isoformat() + "Z"
         )
         db.session.add(new_fund)
         db.session.commit()
@@ -9193,7 +9193,7 @@ def api_log_deposit():
     if amount <= 0:
         return jsonify({"error": "Số tiền nộp phải lớn hơn 0."}), 400
 
-    fund = GroupFund.query.get(fund_id)
+    fund = db.session.get(GroupFund, fund_id)
     if not fund:
         return jsonify({"error": "Quỹ không tồn tại."}), 404
 
@@ -9204,7 +9204,7 @@ def api_log_deposit():
             payer=payer.strip(),
             amount=amount,
             date=date.strip(),
-            created_at=datetime.utcnow().isoformat() + "Z"
+            created_at=datetime.now(timezone.utc).replace(tzinfo=None).isoformat() + "Z"
         )
         db.session.add(tx)
         db.session.commit()
@@ -9247,7 +9247,7 @@ def api_log_expense():
     if amount <= 0:
         return jsonify({"error": "Số tiền chi phải lớn hơn 0."}), 400
 
-    fund = GroupFund.query.get(fund_id)
+    fund = db.session.get(GroupFund, fund_id)
     if not fund:
         return jsonify({"error": "Quỹ không tồn tại."}), 404
 
@@ -9258,7 +9258,7 @@ def api_log_expense():
             description=description.strip(),
             amount=amount,
             date=date.strip(),
-            created_at=datetime.utcnow().isoformat() + "Z"
+            created_at=datetime.now(timezone.utc).replace(tzinfo=None).isoformat() + "Z"
         )
         db.session.add(tx)
         db.session.commit()
@@ -9284,7 +9284,7 @@ def api_get_transactions():
     if not fund_id:
         return jsonify({"error": "Thiếu fund_id."}), 400
 
-    fund = GroupFund.query.get(fund_id)
+    fund = db.session.get(GroupFund, fund_id)
     if not fund:
         return jsonify({"error": "Quỹ không tồn tại."}), 404
 

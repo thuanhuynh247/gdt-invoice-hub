@@ -416,7 +416,7 @@ def execute_auto_reconciliation(taxpayer_mst: str) -> dict:
             matches_completed += 1
             
             # Fetch invoice details for return metadata
-            inv = Invoice.query.get(matched_id)
+            inv = db.session.get(Invoice, matched_id)
             results.append({
                 "transaction_id": tx.id,
                 "description": tx.description,
