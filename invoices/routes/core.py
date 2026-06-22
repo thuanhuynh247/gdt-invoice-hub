@@ -201,6 +201,11 @@ def api_compliance_concept_map():
         {"id": "v68", "label": "Biodiversity Hub (v68)", "group": "environmental", "risk": "low", "url": "/v68-compliance-hub", "status": "active"},
         {"id": "v69", "label": "Oil Spill Hub (v69)", "group": "environmental", "risk": "high", "url": "/v69-compliance-hub", "status": "active"},
         {"id": "v70", "label": "ODS Quota Hub (v70)", "group": "environmental", "risk": "medium", "url": "/v70-compliance-hub", "status": "active"},
+        {"id": "v71", "label": "E-Waste EPR Hub (v71)", "group": "environmental", "risk": "medium", "url": "/v71-compliance-hub", "status": "active"},
+        {"id": "v72", "label": "Wastewater Surcharge Hub (v72)", "group": "environmental", "risk": "medium", "url": "/v72-compliance-hub", "status": "active"},
+        {"id": "v73", "label": "Hazardous Waste Hub (v73)", "group": "environmental", "risk": "high", "url": "/v73-compliance-hub", "status": "active"},
+        {"id": "v74", "label": "Noise & Vibration Hub (v74)", "group": "environmental", "risk": "medium", "url": "/v74-compliance-hub", "status": "active"},
+        {"id": "v75", "label": "Plastics Levy Hub (v75)", "group": "environmental", "risk": "high", "url": "/v75-compliance-hub", "status": "active"},
     ]
     
     links = [
@@ -219,6 +224,11 @@ def api_compliance_concept_map():
         {"source": "v53", "target": "v68", "type": "subset", "label": "Biodiversity Conservation"},
         {"source": "v53", "target": "v69", "type": "subset", "label": "Oil Spill Response"},
         {"source": "v53", "target": "v70", "type": "subset", "label": "ODS Quotas Control"},
+        {"source": "v53", "target": "v71", "type": "subset", "label": "E-Waste EPR Regulation"},
+        {"source": "v53", "target": "v72", "type": "subset", "label": "Wastewater Surcharge"},
+        {"source": "v53", "target": "v73", "type": "subset", "label": "Hazardous Waste Control"},
+        {"source": "v53", "target": "v74", "type": "subset", "label": "Noise & Vibration Limits"},
+        {"source": "v53", "target": "v75", "type": "subset", "label": "Single-Use Plastics Levy"},
     ]
 
     violations = {n["id"]: 0 for n in nodes}
@@ -226,6 +236,11 @@ def api_compliance_concept_map():
     has_coal = False
     has_plastic = False
     has_ods = False
+    has_ewaste = False
+    has_wastewater = False
+    has_hazardous = False
+    has_noise = False
+    has_plastic_bag = False
 
     try:
         from invoices.models import Invoice
@@ -253,8 +268,17 @@ def api_compliance_concept_map():
                     has_coal = True
                 if any(k in name_lower for k in ["túi ni-lông", "túi nhựa", "plastic bag"]):
                     has_plastic = True
+                    has_plastic_bag = True
                 if any(k in name_lower for k in ["ods", "hcfc", "cfc", "methyl bromide", "tầng ô-dôn"]):
                     has_ods = True
+                if any(k in name_lower for k in ["laptop", "tivi", "điện thoại", "máy tính", "tủ lạnh", "pin", "battery", "e-waste", "electronic", "thiết bị điện tử"]):
+                    has_ewaste = True
+                if any(k in name_lower for k in ["nước thải", "xả thải", "wastewater", "sewage", "surcharge", "cod", "tss"]):
+                    has_wastewater = True
+                if any(k in name_lower for k in ["chất thải nguy hại", "hóa chất nguy hiểm", "rác thải y tế", "hazardous waste", "toxic", "mercury", "lead", "cadmium"]):
+                    has_hazardous = True
+                if any(k in name_lower for k in ["tiếng ồn", "độ rung", "còi", "động cơ phản lực", "noise", "vibration"]):
+                    has_noise = True
     except Exception:
         pass
 
@@ -284,6 +308,46 @@ def api_compliance_concept_map():
             "label": "AI: ODS Quotas Link",
             "reason": "Phát hiện hóa chất suy giảm tầng ô-dôn (ODS). Đề xuất liên kết hạn ngạch Nghị định 06/2022/NĐ-CP."
         })
+    if has_ewaste:
+        suggested_links.append({
+            "source": "v53",
+            "target": "v71",
+            "type": "recommended",
+            "label": "AI: E-Waste EPR Link",
+            "reason": "Phát hiện thiết bị điện tử trong hóa đơn. Đề xuất kiểm tra nghĩa vụ EPR tái chế."
+        })
+    if has_wastewater:
+        suggested_links.append({
+            "source": "v53",
+            "target": "v72",
+            "type": "recommended",
+            "label": "AI: Wastewater Surcharge Link",
+            "reason": "Phát hiện dịch vụ xả thải hoặc xử lý nước. Đề xuất đối chiếu phí bảo vệ môi trường đối với nước thải."
+        })
+    if has_hazardous:
+        suggested_links.append({
+            "source": "v53",
+            "target": "v73",
+            "type": "recommended",
+            "label": "AI: Hazardous Waste Link",
+            "reason": "Phát hiện hóa chất nguy hại hoặc chất thải y tế. Đề xuất lập hồ sơ quản lý CTNH."
+        })
+    if has_noise:
+        suggested_links.append({
+            "source": "v53",
+            "target": "v74",
+            "type": "recommended",
+            "label": "AI: Noise & Vibration Link",
+            "reason": "Phát hiện thiết bị cơ khí gây ồn hoặc rung lớn. Đề xuất đo đạc và kiểm soát giới hạn tiếng ồn."
+        })
+    if has_plastic_bag:
+        suggested_links.append({
+            "source": "v53",
+            "target": "v75",
+            "type": "recommended",
+            "label": "AI: Single-Use Plastics Levy Link",
+            "reason": "Phát hiện túi ni-lông hoặc bao bì nhựa dùng một lần. Đề xuất tính toán thuế/phí nhựa tự hủy sinh học."
+        })
 
     return jsonify({
         "nodes": nodes,
@@ -307,6 +371,11 @@ def api_compliance_concept_map_expand(version_id):
         "coal_logs_count": 0,
         "plastic_bag_logs_count": 0,
         "chemical_logs_count": 0,
+        "ewaste_logs_count": 0,
+        "wastewater_logs_count": 0,
+        "hazardous_logs_count": 0,
+        "noise_logs_count": 0,
+        "plastics_logs_count": 0,
         "total_violations": 0
     }
     
@@ -338,6 +407,31 @@ def api_compliance_concept_map_expand(version_id):
             if cursor.fetchone():
                 cursor.execute("SELECT COUNT(*) FROM ep_tax_chemical_logs")
                 db_stats["chemical_logs_count"] = cursor.fetchone()[0]
+
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='ewaste_epr_logs'")
+            if cursor.fetchone():
+                cursor.execute("SELECT COUNT(*) FROM ewaste_epr_logs")
+                db_stats["ewaste_logs_count"] = cursor.fetchone()[0]
+
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='wastewater_surcharge_logs'")
+            if cursor.fetchone():
+                cursor.execute("SELECT COUNT(*) FROM wastewater_surcharge_logs")
+                db_stats["wastewater_logs_count"] = cursor.fetchone()[0]
+
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='hazardous_waste_logs'")
+            if cursor.fetchone():
+                cursor.execute("SELECT COUNT(*) FROM hazardous_waste_logs")
+                db_stats["hazardous_logs_count"] = cursor.fetchone()[0]
+
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='noise_vibration_logs'")
+            if cursor.fetchone():
+                cursor.execute("SELECT COUNT(*) FROM noise_vibration_logs")
+                db_stats["noise_logs_count"] = cursor.fetchone()[0]
+
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='plastics_levy_logs'")
+            if cursor.fetchone():
+                cursor.execute("SELECT COUNT(*) FROM plastics_levy_logs")
+                db_stats["plastics_logs_count"] = cursor.fetchone()[0]
                 
             conn.close()
     except Exception:
@@ -356,7 +450,8 @@ def api_compliance_concept_map_expand(version_id):
     valid_nodes = {
         "v26", "v27", "v28", "v29", "v30", "v31", "v44", "v45", "v46", "v47", "v48", "v49",
         "v50", "v51", "v52", "v53", "v54", "v55", "v56", "v57", "v58", "v59", "v60", "v61",
-        "v62", "v63", "v64", "v65", "v66", "v67", "v68", "v69", "v70"
+        "v62", "v63", "v64", "v65", "v66", "v67", "v68", "v69", "v70", "v71", "v72", "v73",
+        "v74", "v75"
     }
     
     if v_clean not in valid_nodes:
@@ -426,6 +521,161 @@ def api_compliance_concept_map_expand(version_id):
             {
                 "title": "7. Ứng Dụng & Lộ Trình Học Tập (Application & Learning Path)",
                 "content": "### Kế Hoạch Triển Khai\n*   **Tháng 1**: Khai báo và cấu hình định mức hạn ngạch ODS được cấp vào Profile của Doanh nghiệp trên GDT Hub.\n*   **Tháng 2**: Kích hoạt bộ lọc cảnh báo tự động trên phân hệ Hải quan / Mua vào.\n*   **Tháng 3**: Kết xuất báo cáo sử dụng chất ODS định kỳ gửi Cục Biến đổi khí hậu.\n\n### Tài liệu tham khảo chính\n*   *Nghị định số 06/2022/NĐ-CP quy định chi tiết giảm nhẹ phát thải khí nhà kính và bảo vệ tầng ô-dôn*\n*   *Thông tư số 01/2022/TT-BTNMT quy định chi tiết thi hành Luật Bảo vệ môi trường về ứng phó với biến đổi khí hậu*"
+            }
+        ]
+    elif v_clean == "v71":
+        pages = [
+            {
+                "title": "1. Định Hướng (Orientation)",
+                "content": "### Mục tiêu chính (True Purpose)\nTự động hóa tính toán phí tái chế và xử lý chất thải điện tử (E-Waste EPR) theo trách nhiệm mở rộng của nhà sản xuất (Extended Producer Responsibility) được quy định tại Nghị định số 08/2022/NĐ-CP.\n\n### Câu hỏi trọng tâm (Focus Question)\n*Làm thế nào để nhận diện sản phẩm thuộc danh mục bắt buộc EPR trên hóa đơn và áp dụng đúng thuế suất hoặc các điều kiện miễn trừ xuất khẩu/quy mô nhỏ?*\n\n### Lời hứa của bản đồ (Map Promise)\nBản đồ này cung cấp đầy đủ danh mục biểu phí tuyệt đối đối với laptop, tivi, điện thoại, pin và tấm pin năng lượng mặt trời, kèm theo bộ quy tắc tự động hóa loại trừ các lô hàng xuất khẩu hoặc doanh nghiệp có quy mô doanh thu/nhập khẩu dưới ngưỡng chịu phí."
+            },
+            {
+                "title": "2. Mô Hình Lõi (Core Model)",
+                "content": f"### Thực Thể & Thuộc Tính EPR v71\n*   **E-Waste Record**: Lưu giữ thông tin phân loại sản phẩm, số lượng, trạng thái xuất khẩu và các giá trị tài chính năm trước.\n*   **EPR Fee Calculation**:\n    - Phí EPR = Số lượng × Mức phí tuyệt đối trên một đơn vị sản phẩm hoặc đơn vị trọng lượng.\n    - Mức phí chi tiết: Máy tính xách tay (20.000đ/chiếc), Tivi/Màn hình (30.000đ/chiếc), Điện thoại di động (5.000đ/chiếc), Pin các loại (50.000đ/kg), Tấm quang điện (15.000đ/kg).\n    - Kiểm tra điều kiện miễn trừ EPR: Được miễn nếu là hàng trực tiếp xuất khẩu hoặc doanh nghiệp có doanh thu năm trước < 30 tỷ VND hoặc trị giá nhập khẩu năm trước < 3 tỷ VND."
+            },
+            {
+                "title": "3. Phân Vùng Phạm Vi (Scope Rings)",
+                "content": "### Các Phân Lớp Phạm Vi v71\n*   **Vùng Lõi (Core)**: Tính toán chính xác phí EPR thô, xác thực các lý do miễn trừ hợp lệ (export, doanh thu năm trước, kim ngạch nhập khẩu).\n*   **Vùng Cận Biên (Adjacent)**: Liên kết với tờ khai quyết toán CIT năm trước để lấy thông tin doanh thu thực tế, và đối soát với tờ khai hải quan hàng nhập khẩu.\n*   **Vùng Biên Giới (Frontier)**: Sử dụng AI để tự động phân tích và gắn nhãn sản phẩm điện tử trên hóa đơn mua bán tự do không chứa mã HS.\n*   **Ngoài Phạm Vi (Out-of-Scope)**: Ký hợp đồng trực tiếp với đơn vị thu gom tái chế thực địa hoặc kiểm tra chất lượng tái chế."
+            },
+            {
+                "title": "4. Ngữ Pháp Liên Kết (Relation Grammar)",
+                "content": "### Quy Tắc Liên Kết EPR\n*   **Định nghĩa (Definition)**: EPR v71 là quy định bắt buộc nhà sản xuất, nhập khẩu các sản phẩm điện, điện tử phải thực hiện nghĩa vụ thu hồi và tái chế sản phẩm thải bỏ.\n*   **Ràng buộc (Constraint)**: Nghĩa vụ đóng phí EPR nộp vào Quỹ Bảo vệ môi trường Việt Nam **chỉ** phát sinh khi doanh nghiệp không tự tổ chức tái chế hoặc lượng tái chế thực tế không đạt tỷ lệ bắt buộc."
+            },
+            {
+                "title": "5. Cơ Chế Vận Hành (Mechanism & Dynamics)",
+                "content": "### Sơ Đồ Quy Trình Xác Định Phí EPR\n\n```mermaid\ngraph TD\n    A[Nhận hóa đơn điện tử thiết bị] --> B{Sản phẩm có thuộc diện EPR?}\n    B -->|Không| C[Bỏ qua]\n    B -->|Có| D{Có chứng từ xuất khẩu trực tiếp?}\n    D -->|Có| E[Gắn nhãn miễn phí: export_exemption]\n    D -->|Không| F{Doanh thu năm trước < 30B VND hoặc Nhập khẩu < 3B VND?}\n    F -->|Có| G[Gắn nhãn miễn phí: small_scale_exemption]\n    F -->|Không| H[Tính phí theo mức tuyệt đối quy định]\n```"
+            },
+            {
+                "title": "6. Giới Hạn & Lỗi Thường Gặp (Boundaries & Failure Cases)",
+                "content": f"### Dữ Liệu Thực Tế Hệ Thống v71\n\n*   MST Đang Xem: **{mst}**\n*   Số bản ghi e-waste đã xử lý: **{db_stats['ewaste_logs_count']}**\n*   Tổng số cảnh báo lỗi/vi phạm phát hiện: **{db_stats['total_violations']}**\n\n### Các Tình Huống Sai Sót Thường Gặp\n1. **Khai báo miễn trừ sai năm**: Sử dụng doanh thu của năm hiện tại thay vì năm trước liền kề để làm căn cứ miễn trừ quy mô nhỏ.\n2. **Áp sai danh mục**: Nhầm lẫn giữa pin lithium sơ cấp (EPR 50.000đ/kg) với ắc quy chì công nghiệp (thuộc nhóm EPR khác)."
+            },
+            {
+                "title": "7. Ứng Dụng & Lộ Trình Học Tập (Application & Learning Path)",
+                "content": "### Lộ Trình Triển Khai\n*   **Bước 1**: Khai báo các thông tin tài chính cơ sở (doanh thu năm trước, kim ngạch nhập khẩu) trong hồ sơ doanh nghiệp.\n*   **Bước 2**: Bật tính năng quét cảnh báo sớm EPR đối với hóa đơn mua sắm trang thiết bị văn phòng đầu vào.\n\n### Tài Liệu Nghiên Cứu Đề Xuất\n1. *Nghị định số 08/2022/NĐ-CP hướng dẫn Luật Bảo vệ môi trường 2020*\n2. *Thông tư số 02/2022/TT-BTNMT quy định chi tiết thi hành một số điều của Luật Bảo vệ môi trường*"
+            }
+        ]
+    elif v_clean == "v72":
+        pages = [
+            {
+                "title": "1. Định Hướng (Orientation)",
+                "content": "### Mục tiêu chính (True Purpose)\nTự động hóa tính toán phí bảo vệ môi trường đối với nước thải công nghiệp và nước thải sinh hoạt theo Nghị định số 53/2020/NĐ-CP.\n\n### Câu hỏi trọng tâm (Focus Question)\n*Làm thế nào để tự động hóa khâu phân loại phí cố định và phí biến đổi (hàm lượng COD, TSS, Pb, Hg, Cd) dựa trên lưu lượng nước thải thực tế và thông tin miễn trừ?*\n\n### Lời hứa của bản đồ (Map Promise)\nCung cấp công thức tính toán chi tiết, mức phí tuyệt đối và các ngưỡng miễn phí đối với nước làm mát hoặc nước tuần hoàn khép kín, giúp doanh nghiệp lập dự phòng chi phí môi trường chính xác."
+            },
+            {
+                "title": "2. Mô Hình Lõi (Core Model)",
+                "content": "### Phương Pháp Tính Phí Nước Thải v72\n*   **Lưu lượng trung bình hàng ngày**: `Lưu lượng quý / 90 ngày`.\n*   **Trường hợp 1**: Lưu lượng < 20 $m^3$/ngày đêm: Áp dụng phí cố định flat rate **375.000 VND / quý** (tương đương 125.000 VND/tháng).\n*   **Trường hợp 2**: Lưu lượng >= 20 $m^3$/ngày đêm: Phí biến đổi nộp thêm tính theo tải lượng chất ô nhiễm:\n    - COD: 2.000 VND / kg chất gây ô nhiễm.\n    - TSS: 4.000 VND / kg chất gây ô nhiễm.\n    - Lead (Chì - Pb): 1.000.000 VND / kg chất gây ô nhiễm.\n    - Mercury (Thủy ngân - Hg): 20.000.000 VND / kg chất gây ô nhiễm.\n    - Cadmium (Cd): 10.000.000 VND / kg chất gây ô nhiễm.\n*   **Miễn trừ**: Áp dụng cho nước làm mát không tiếp xúc trực tiếp quy trình sản xuất hoặc nước xả lũ."
+            },
+            {
+                "title": "3. Phân Vùng Phạm Vi (Scope Rings)",
+                "content": "### Phạm Vi Ứng Dụng Phí Nước Thải v72\n*   **Vùng Lõi (Core)**: Tính toán phí cố định/biến đổi, xác định tải lượng chất gây ô nhiễm trên cơ sở lưu lượng thực tế.\n*   **Vùng Cận Biên (Adjacent)**: Liên kết với chỉ số đồng hồ lưu lượng nước tiêu thụ và hóa đơn dịch vụ xả thải của ban quản lý khu công nghiệp.\n*   **Vùng Biên Giới (Frontier)**: Dự báo tải lượng COD/TSS dựa trên kế hoạch sản xuất để điều chỉnh lượng hóa chất xử lý nước thải tương ứng.\n*   **Ngoài Phạm Vi (Out-of-Scope)**: Vận hành hệ thống lọc nước sinh học hoặc xây dựng đường ống thoát nước."
+            },
+            {
+                "title": "4. Ngữ Pháp Liên Kết (Relation Grammar)",
+                "content": "### Ràng Buộc & Cơ Chế\n*   **Định nghĩa (Definition)**: Phí nước thải công nghiệp v72 là khoản thu ngân sách bắt buộc đối với cơ sở có hoạt động xả nước thải vào nguồn tiếp nhận.\n*   **Ràng buộc (Constraint)**: Nước thải sinh hoạt được miễn thu phí nếu cơ sở sử dụng nước sạch tự nhiên và đã nộp phí nước thải sinh hoạt qua hóa đơn nước sạch hàng tháng."
+            },
+            {
+                "title": "5. Cơ Chế Vận Hành (Mechanism & Dynamics)",
+                "content": "### Quy Trình Phân Tích & Tính Phí\n\n```mermaid\ngraph TD\n    A[Nhận số liệu lưu lượng & quan trắc] --> B{Nước làm mát tuần hoàn khép kín?}\n    B -->|Có| C[Miễn trừ phí - is_exempt]\n    B -->|Không| D{Lưu lượng trung bình < 20 m3/ngày?}\n    D -->|Có| E[Áp phí cố định 375.000 VND/quý]\n    D -->|Không| F[Tính tải lượng ô nhiễm COD, TSS, Pb, Hg, Cd]\n    F --> G[Cộng tổng phí biến đổi với phí cố định]\n```"
+            },
+            {
+                "title": "6. Giới Hạn & Lỗi Thường Gặp (Boundaries & Failure Cases)",
+                "content": f"### Dữ Liệu Thực Tế Hệ Thống v72\n\n*   MST Đang Xem: **{mst}**\n*   Số bản ghi xả nước thải đã xử lý: **{db_stats['wastewater_logs_count']}**\n*   Tổng số cảnh báo lỗi/vi phạm phát hiện: **{db_stats['total_violations']}**\n\n### Các Tình Huống Sai Sót Thường Gặp\n1. **Thiếu số liệu kim loại nặng**: Bỏ qua việc khai báo và kiểm định nồng độ Pb, Hg, Cd khi cơ quan quản lý thực hiện lấy mẫu đột xuất.\n2. **Khai báo lưu lượng ước tính sai lệch**: Sử dụng lưu lượng bình quan lý thuyết thay vì lưu lượng thực đo từ đồng hồ đo kiểm định."
+            },
+            {
+                "title": "7. Ứng Dụng & Lộ Trình Học Tập (Application & Learning Path)",
+                "content": "### Lộ Trình Áp Dụng Thực Tế\n*   **Tháng 1**: Kết nối hệ thống quan trắc nước thải tự động (nếu có) với phân hệ dữ liệu GDT Hub.\n*   **Tháng 2**: Thiết lập cảnh báo sớm khi chỉ số COD vượt ngưỡng giới hạn cho phép trước khi cơ quan ban ngành kiểm tra.\n\n### Tài Liệu Nghiên Cứu Đề Xuất\n1. *Nghị định số 53/2020/NĐ-CP quy định về phí bảo vệ môi trường đối với nước thải*\n2. *Thông tư hướng dẫn kê khai và quyết toán phí nước thải*"
+            }
+        ]
+    elif v_clean == "v73":
+        pages = [
+            {
+                "title": "1. Định Hướng (Orientation)",
+                "content": "### Mục tiêu chính (True Purpose)\nQuản lý tuân thủ đăng ký chủ nguồn thải, lưu trữ và chi phí xử lý chất thải nguy hại (Hazardous Waste) theo quy chuẩn Thông tư số 02/2022/TT-BTNMT.\n\n### Câu hỏi trọng tâm (Focus Question)\n*Làm thế nào để tự động tính toán phí xử lý chất thải nguy hại phát sinh và áp dụng chính sách miễn phí cấp phép cho các cơ sở nghiên cứu hoặc quy mô phát sinh cực nhỏ?*\n\n### Lời hứa của bản đồ (Map Promise)\nCung cấp bảng giá tham chiếu tiêu hủy rác nguy hại, lệ phí cấp phép hoạt động, và cơ chế tự động đối so chiếu chứng từ chuyển giao CTNH với hóa đơn đầu vào của nhà thầu xử lý chuyên nghiệp."
+            },
+            {
+                "title": "2. Mô Hình Lõi (Core Model)",
+                "content": "### Cơ Chế Tính Phí CTNH v73\n*   **Phí tiêu hủy (Disposal Fee)**: Tính bằng khối lượng chất thải × Đơn giá xử lý theo danh mục độc hại:\n    - Nhóm A (Độc hại thông thường - e.g., dầu thải, giẻ lau dính dầu): 2.000 VND / kg.\n    - Nhóm B (Độc hại đặc biệt - e.g., bóng đèn huỳnh quang thải, hóa chất thí nghiệm): 5.000 VND / kg.\n*   **Lệ phí giấy phép (License Fee)**: Lệ phí thẩm định cấp phép môi trường cơ sở phát sinh CTNH định kỳ: 5.000.000 VND.\n*   **Miễn lệ phí giấy phép**: Lệ phí cấp phép được set về 0 nếu tổng khối lượng chất thải nguy hại phát sinh hàng năm < 600 kg hoặc thuộc loại hình cơ sở nghiên cứu khoa học, phòng thí nghiệm học thuật (academic research lab)."
+            },
+            {
+                "title": "3. Phân Vùng Phạm Vi (Scope Rings)",
+                "content": "### Các Phân Lớp Phạm Vi v73\n*   **Vùng Lõi (Core)**: Tính toán phí tiêu hủy rác nguy hại theo kg, xác định các trường hợp được miễn phí thẩm định cấp phép.\n*   **Vùng Cận Biên (Adjacent)**: Đối so chéo mã chất thải nguy hại giữa Sổ đăng ký chủ nguồn thải với hóa đơn VAT đầu vào từ các nhà cung cấp dịch vụ xử lý rác.\n*   **Vùng Biên Giới (Frontier)**: Sử dụng mô hình NLP để quét mô tả hóa đơn, phát hiện sớm các chất thải chưa được khai báo vào danh mục CTNH của doanh nghiệp.\n*   **Ngoài Phạm Vi (Out-of-Scope)**: Thiết kế phòng lưu trữ rác an toàn hoặc xử lý sự cố tràn đổ hóa chất."
+            },
+            {
+                "title": "4. Ngữ Pháp Liên Kết (Relation Grammar)",
+                "content": "### Quy Tắc Ràng Buộc CTNH\n*   **Định nghĩa (Definition)**: Chất thải nguy hại v73 là chất thải chứa các yếu tố độc hại vượt ngưỡng quy chuẩn kỹ thuật cho phép.\n*   **Ràng buộc (Constraint)**: Việc bàn giao chất thải nguy hại cho bên thứ ba vận chuyển và xử lý **phải** đi kèm chứng từ chất thải nguy hại (manifest) được đăng ký trên hệ thống thông tin môi trường."
+            },
+            {
+                "title": "5. Cơ Chế Vận Hành (Mechanism & Dynamics)",
+                "content": "### Luồng Vận Hành Hệ Thống CTNH\n\n```mermaid\ngraph TD\n    A[Ghi nhận khối lượng CTNH phát sinh] --> B{Cơ sở là phòng thí nghiệm học thuật?}\n    B -->|Có| C[Miễn lệ phí cấp phép - license_fee = 0]\n    B -->|Không| D{Tổng khối lượng năm < 600 kg?}\n    D -->|Có| C\n    D -->|Không| E[Áp lệ phí cấp phép 5.000.000 VND]\n    E --> F[Tính phí tiêu hủy dựa trên khối lượng kg và nhóm độc hại]\n```"
+            },
+            {
+                "title": "6. Giới Hạn & Lỗi Thường Gặp (Boundaries & Failure Cases)",
+                "content": f"### Dữ Liệu Thực Tế Hệ Thống v73\n\n*   MST Đang Xem: **{mst}**\n*   Số bản ghi chất thải nguy hại đã xử lý: **{db_stats['hazardous_logs_count']}**\n*   Tổng số cảnh báo lỗi/vi phạm phát hiện: **{db_stats['total_violations']}**\n\n### Các Tình Huống Sai Sót Thường Gặp\n1. **Lưu kho quá hạn**: Giữ chất thải nguy hại tại cơ sở quá 12 tháng mà không đăng ký gia hạn với Sở Tài nguyên và Môi trường.\n2. **Ký hợp đồng với đơn vị không đủ năng lực**: Thuê nhà thầu xử lý rác sinh hoạt thông thường để tiêu hủy hóa chất dung môi nguy hại."
+            },
+            {
+                "title": "7. Ứng Dụng & Lộ Trình Học Tập (Application & Learning Path)",
+                "content": "### Kế Hoạch Áp Dụng\n*   **Bước 1**: Đăng ký và phân loại toàn bộ mã CTNH theo đúng quy chuẩn môi trường trên GDT Hub.\n*   **Bước 2**: Thực hiện quét và đối soát tự động chứng từ chất thải nguy hại điện tử với hóa đơn dịch vụ hàng tháng.\n\n### Tài Liệu Nghiên Cứu Đề Xuất\n1. *Thông tư số 02/2022/TT-BTNMT hướng dẫn Luật Bảo vệ môi trường*\n2. *Danh mục chất thải nguy hại ban hành kèm theo Thông tư*"
+            }
+        ]
+    elif v_clean == "v74":
+        pages = [
+            {
+                "title": "1. Định Hướng (Orientation)",
+                "content": "### Mục tiêu chính (True Purpose)\nGiám sát và tự động tính toán phụ thu ô nhiễm tiếng ồn và độ rung phát sinh từ hoạt động sản xuất kinh doanh theo QCVN 26:2010/BTNMT và QCVN 27:2010/BTNMT.\n\n### Câu hỏi trọng tâm (Focus Question)\n*Làm thế nào để tính khoản phụ thu vượt tiêu chuẩn tiếng ồn và độ rung dựa trên thời điểm đo (ngày/đêm) và xem xét các điều kiện miễn trừ lễ hội truyền thống?*\n\n### Lời hứa của bản đồ (Map Promise)\nCung cấp thuật toán tính toán phụ thu tự động theo dBA và $m/s^2$ chênh lệch, hỗ trợ lập báo cáo tuân thủ môi trường âm thanh định kỳ cho ban giám đốc."
+            },
+            {
+                "title": "2. Mô Hình Lõi (Core Model)",
+                "content": "### Quy Tắc Tính Phụ Thu Tiếng Ồn & Độ Rung v74\n*   **Giới hạn ban ngày (6h - 21h)**: Tiếng ồn tối đa 70 dBA, độ rung tối đa 0.055 $m/s^2$.\n*   **Giới hạn ban đêm (21h - 6h)**: Tiếng ồn tối đa 55 dBA, độ rung tối đa 0.055 $m/s^2$.\n*   **Cách tính phụ thu vượt ngưỡng**:\n    - Phụ thu tiếng ồn = `(Độ ồn thực đo - Giới hạn) * 100.000 VND` trên mỗi dBA vượt chuẩn.\n    - Phụ thu độ rung = `(Độ rung thực đo - Giới hạn) / 0.01 * 5.000.000 VND` trên mỗi đơn vị 0.01 $m/s^2$ vượt chuẩn.\n    - Nếu đo vào ca đêm: Nhân hệ số **1.5 lần** tổng phụ thu thô.\n    - Miễn trừ phụ thu (final_fee = 0): Nếu hoạt động xả ồn xảy ra trong các ngày lễ hội truyền thống hoặc sự kiện công cộng quốc gia đã đăng ký."
+            },
+            {
+                "title": "3. Phân Vùng Phạm Vi (Scope Rings)",
+                "content": "### Phân Lớp Phạm Vi v74\n*   **Vùng Lõi (Core)**: Tính toán chính xác khoản phụ thu chênh lệch độ ồn/độ rung theo ca làm việc, hỗ trợ ghi nhận miễn trừ lễ hội.\n*   **Vùng Cận Biên (Adjacent)**: Liên kết với dữ liệu thời gian thực từ cảm biến IoT đặt tại hàng rào ranh giới nhà máy.\n*   **Vùng Biên Giới (Frontier)**: Tự động dự báo rủi ro tiếng ồn dựa trên lịch vận hành máy móc công suất lớn để chuyển dịch ca làm việc tránh giờ cao điểm đêm.\n*   **Ngoài Phạm Vi (Out-of-Scope)**: Xử lý tiếng ồn sinh hoạt của cá nhân hoặc tranh chấp dân sự ngoài cơ sở."
+            },
+            {
+                "title": "4. Ngữ Pháp Liên Kết (Relation Grammar)",
+                "content": "### Các Ràng Buộc Tiếng Ồn & Độ Rung\n*   **Định nghĩa (Definition)**: Phụ thu tiếng ồn và độ rung v74 là công cụ tài chính cưỡng chế nhằm hạn chế ô nhiễm tiếng ồn tại khu dân cư hỗn hợp.\n*   **Ràng buộc (Constraint)**: Báo cáo đo đạc tiếng ồn **phải** được lập bởi đơn vị quan trắc có chứng nhận VIMCERTS phù hợp."
+            },
+            {
+                "title": "5. Cơ Chế Vận Hành (Mechanism & Dynamics)",
+                "content": "### Sơ Đồ Logic Tính Phụ Thu Tiếng Ồn\n\n```mermaid\ngraph TD\n    A[Nhận số liệu đo tiếng ồn & độ rung] --> B{Sự kiện xảy ra vào lễ hội truyền thống?}\n    B -->|Có| C[Miễn trừ phụ thu - is_exempt = True]\n    B -->|Không| D{Có thông số vượt giới hạn tiêu chuẩn?}\n    D -->|Không| E[Phụ thu = 0]\n    D -->|Có| F{Thời gian đo thuộc ca đêm 21h-6h?}\n    F -->|Có| G[Phụ thu = Tổng phụ thu vượt mức * Hệ số ca đêm 1.5]\n    F -->|Không| H[Phụ thu = Tổng phụ thu vượt mức tiêu chuẩn]\n```"
+            },
+            {
+                "title": "6. Giới Hạn & Lỗi Thường Gặp (Boundaries & Failure Cases)",
+                "content": f"### Dữ Liệu Thực Tế Hệ Thống v74\n\n*   MST Đang Xem: **{mst}**\n*   Số bản ghi đo đạc tiếng ồn & rung đã xử lý: **{db_stats['noise_logs_count']}**\n*   Tổng số cảnh báo lỗi/vi phạm phát hiện: **{db_stats['total_violations']}**\n\n### Các Tình Huống Sai Sót Thường Gặp\n1. **Khai báo sai ca đo**: Khai báo các đo đạc lúc 22h đêm thành ca ngày để tránh hệ số nhân ca đêm 1.5.\n2. **Đặt máy đo sai vị trí**: Đo tiếng ồn sát cạnh nguồn âm phát ra (trong nhà xưởng) thay vì ranh giới ngoài cơ sở sản xuất."
+            },
+            {
+                "title": "7. Ứng Dụng & Lộ Trình Học Tập (Application & Learning Path)",
+                "content": "### Lộ Trình Triển Khai\n*   **Bước 1**: Thiết lập bản đồ ranh giới âm thanh cơ sở sản xuất và cấu hình các ngưỡng giới hạn theo QCVN tương ứng.\n*   **Bước 2**: Thực hiện nhập kết quả đo đạc định kỳ vào phân hệ GDT Hub hàng quý để kiểm tra mức độ tuân thủ.\n\n### Quy chuẩn tham chiếu\n*   **QCVN 26:2010/BTNMT** - Quy chuẩn kỹ thuật quốc gia về tiếng ồn.\n*   **QCVN 27:2010/BTNMT** - Quy chuẩn kỹ thuật quốc gia về độ rung."
+            }
+        ]
+    elif v_clean == "v75":
+        pages = [
+            {
+                "title": "1. Định Hướng (Orientation)",
+                "content": "### Mục tiêu chính (True Purpose)\nQuản lý và tính toán thuế Bảo vệ Môi trường đối với túi ni-lông khó phân hủy sinh học và đồ nhựa dùng một lần theo Luật Thuế Bảo vệ Môi trường.\n\n### Câu hỏi trọng tâm (Focus Question)\n*Làm thế nào để phân loại chính xác hóa đơn mua bán bao bì nhựa và áp thuế suất tuyệt đối 50.000 VND/kg, đồng thời tự động loại trừ các loại bao bì đóng gói sẵn hoặc nhựa tự phân hủy sinh học?*\n\n### Lời hứa của bản đồ (Map Promise)\nGiúp kế toán trưởng tự động hóa hoàn toàn khâu đối soát hóa đơn mua vào bao bì nhựa, gắn nhãn miễn trừ thuế hợp lệ và dự phòng rủi ro truy thu thuế BVMT từ cơ quan thuế."
+            },
+            {
+                "title": "2. Mô Hình Lõi (Core Model)",
+                "content": "### Cơ Chế Tính Thuế Nhựa v75\n*   **Thuế tuyệt đối**: Áp dụng mức **50.000 VND / kg** đối với túi ni-lông khó phân hủy sinh học.\n*   **Công thức tính toán**: `Thuế phải nộp = Khối lượng túi nhựa (kg) * 50.000 VND`.\n*   **Miễn trừ thuế hoàn toàn (final_fee = 0)** nếu:\n    - Túi nhựa có chứng chỉ tự phân hủy sinh học hợp chuẩn được cấp bởi Bộ Tài nguyên và Môi trường (biodegradable_certified = True).\n    - Bao bì nhựa đi kèm hàng hóa dùng trực tiếp để đóng gói sản phẩm thương mại (exempt_packaging = True)."
+            },
+            {
+                "title": "3. Phân Vùng Phạm Vi (Scope Rings)",
+                "content": "### Phạm Vi Quản Lý Thuế Nhựa v75\n*   **Vùng Lõi (Core)**: Tính toán thuế tuyệt đối 50.000 VND/kg, đối soát chứng chỉ tự phân hủy sinh học và mục đích đóng gói bao bì sẵn.\n*   **Vùng Cận Biên (Adjacent)**: Liên kết với phân hệ quản lý kho hàng hóa để đối soát lượng bao bì nhập vào so với số lượng sản phẩm xuất xưởng.\n*   **Vùng Biên Giới (Frontier)**: Sử dụng AI để tự động phát hiện các sản phẩm nhựa dùng một lần (hộp xốp, cốc nhựa) trên hóa đơn để cảnh báo chuyển đổi sang vật liệu sinh học sớm.\n*   **Ngoài Phạm Vi (Out-of-Scope)**: Kiểm tra chất lượng kỹ thuật phân hủy sinh học thực tế tại phòng lab."
+            },
+            {
+                "title": "4. Ngữ Pháp Liên Kết (Relation Grammar)",
+                "content": "### Các Ràng Buộc Thuế Nhựa\n*   **Định nghĩa (Definition)**: Thuế nhựa v75 là thuế bảo vệ môi trường tuyệt đối đánh vào sản phẩm túi ni-lông nhằm hạn chế phát thải nhựa khó phân hủy ra môi trường.\n*   **Ràng buộc (Constraint)**: Túi ni-lông được miễn thuế **chỉ khi** doanh nghiệp xuất trình được Chứng nhận túi ni-lông thân thiện với môi trường còn hiệu lực của Bộ TNMT tại thời điểm phát sinh giao dịch."
+            },
+            {
+                "title": "5. Cơ Chế Vận Hành (Mechanism & Dynamics)",
+                "content": "### Quy Trình Vận Hành Đối Soát Bao Bì Nhựa\n\n```mermaid\ngraph TD\n    A[Nhận hóa đơn mua bao bì nhựa] --> B{Bao bì có chứng chỉ phân hủy sinh học?}\n    B -->|Có| C[Gắn nhãn miễn thuế: biodegradable_exempt]\n    B -->|Không| D{Bao bì dùng để đóng gói sẵn sản phẩm trực tiếp?}\n    D -->|Có| E[Gắn nhãn miễn thuế: packaging_exempt]\n    D -->|Không| F[Áp thuế bảo vệ môi trường tuyệt đối 50.000 VND/kg]\n```"
+            },
+            {
+                "title": "6. Giới Hạn & Lỗi Thường Gặp (Boundaries & Failure Cases)",
+                "content": f"### Dữ Liệu Thực Tế Hệ Thống v75\n\n*   MST Đang Xem: **{mst}**\n*   Số bản ghi túi nhựa/bao bì đã xử lý: **{db_stats['plastics_logs_count']}**\n*   Tổng số cảnh báo lỗi/vi phạm phát hiện: **{db_stats['total_violations']}**\n\n### Các Tình Huống Sai Sót Thường Gặp\n1. **Chứng chỉ nhà cung cấp hết hạn**: Sử dụng chứng nhận túi thân thiện môi trường của nhà cung cấp đã quá hạn hiệu lực, dẫn đến bị truy thu thuế.\n2. **Sử dụng sai công năng**: Đăng ký bao bì đóng gói sẵn sản phẩm nhưng thực tế lại phát cho nhân viên làm túi đựng tài liệu văn phòng thông thường."
+            },
+            {
+                "title": "7. Ứng Dụng & Lộ Trình Học Tập (Application & Learning Path)",
+                "content": "### Lộ Trình Triển Khai\n*   **Bước 1**: Rà soát danh mục nhà cung cấp bao bì nhựa và thu thập các chứng chỉ thân thiện môi trường hợp lệ.\n*   **Bước 2**: Cài đặt bộ quy tắc tự động loại trừ thuế BVMT đối với các hóa đơn bao bì nhựa dùng trực tiếp cho khâu đóng gói sản phẩm xuất xưởng.\n\n### Luật tham chiếu\n*   **Nghị quyết số 579/2018/UBTVQH14 về biểu thuế bảo vệ môi trường**.\n*   **Luật Thuế bảo vệ môi trường số 57/2010/QH12**."
             }
         ]
     elif v_clean == "v26":

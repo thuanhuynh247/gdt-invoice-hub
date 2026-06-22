@@ -101,6 +101,11 @@ class V74ComplianceService:
 
         notes = " ".join(notes_list)
 
+        breakdown = {
+            "noise_surcharge": noise_surcharge * shift_multiplier,
+            "vibration_surcharge": vibration_surcharge * shift_multiplier
+        }
+
         cur.execute("""
             INSERT INTO noise_vibration_logs
                 (noise_db, vibration_m_s2, shift, public_infrastructure, emergency_relief, traditional_festival, noise_surcharge, vibration_surcharge, gross_fee, final_fee, is_exempt, notes)
@@ -122,6 +127,7 @@ class V74ComplianceService:
             "gross_fee": gross_fee,
             "final_fee": final_fee,
             "is_exempt": is_exempt,
+            "breakdown": breakdown,
             "notes": notes
         }
 

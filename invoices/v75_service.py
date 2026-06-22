@@ -88,6 +88,12 @@ class V75ComplianceService:
 
         notes = " ".join(notes_list)
 
+        breakdown = {
+            "microbeads_cosmetics": rates["microbeads_cosmetics"] * quantity_kg,
+            "plastic_bags": rates["plastic_bags"] * quantity_kg,
+            "plastic_packaging": rates["plastic_packaging"] * quantity_kg,
+        }
+
         cur.execute("""
             INSERT INTO plastics_levy_logs
                 (plastic_category, quantity_kg, biodegradable_certified, medical_containment, charge_rate, gross_fee, final_fee, is_exempt, notes)
@@ -106,6 +112,7 @@ class V75ComplianceService:
             "gross_fee": gross_fee,
             "final_fee": final_fee,
             "is_exempt": is_exempt,
+            "breakdown": breakdown,
             "notes": notes
         }
 

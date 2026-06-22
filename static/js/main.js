@@ -5434,7 +5434,7 @@ function updateModelOptions() {
     modelSelect.innerHTML = models.map(m => `<option value="${m.value}">${m.label}</option>`).join('');
 }
 
-async function loadHarnessSummary() {
+async function loadTabHarnessSummary() {
     try {
         const response = await fetch('/api/harness/summary');
         if (!response.ok) throw new Error("Failed to load harness summary");
@@ -5624,6 +5624,12 @@ function clearConsoleLog() {
 let agentEventSource = null;
 
 function setupAgentHarnessEvents() {
+    // If we are on the standalone harness page, do not bind these events
+    // because harness.html has its own event handlers.
+    if (window.location.pathname === '/harness') {
+        return;
+    }
+
     // Form Run Agent
     const runForm = document.getElementById('agentRunForm');
     if (runForm) {
@@ -5718,7 +5724,7 @@ function setupAgentHarnessEvents() {
                     consoleLog.appendChild(endLine);
                     consoleLog.scrollTop = consoleLog.scrollHeight;
                 }
-                loadHarnessSummary();
+                loadTabHarnessSummary();
             };
         });
     }
@@ -5752,7 +5758,7 @@ function setupAgentHarnessEvents() {
                 renderAlert("Thêm Story thành công!", "success");
                 addStoryForm.reset();
                 modal.hide();
-                loadHarnessSummary();
+                loadTabHarnessSummary();
             } catch (err) {
                 renderAlert(`Lỗi thêm Story: ${err.message}`, "danger");
             }
@@ -5798,7 +5804,7 @@ function setupAgentHarnessEvents() {
                 renderAlert("Cập nhật Story thành công!", "success");
                 updateStoryForm.reset();
                 modal.hide();
-                loadHarnessSummary();
+                loadTabHarnessSummary();
             } catch (err) {
                 renderAlert(`Lỗi cập nhật Story: ${err.message}`, "danger");
             }
@@ -5835,7 +5841,7 @@ function setupAgentHarnessEvents() {
                 renderAlert("Thêm Quyết định thành công!", "success");
                 addDecisionForm.reset();
                 modal.hide();
-                loadHarnessSummary();
+                loadTabHarnessSummary();
             } catch (err) {
                 renderAlert(`Lỗi thêm Quyết định: ${err.message}`, "danger");
             }
@@ -5873,7 +5879,7 @@ function setupAgentHarnessEvents() {
                 renderAlert("Thêm đề xuất Backlog thành công!", "success");
                 addBacklogForm.reset();
                 modal.hide();
-                loadHarnessSummary();
+                loadTabHarnessSummary();
             } catch (err) {
                 renderAlert(`Lỗi đề xuất Backlog: ${err.message}`, "danger");
             }
@@ -5884,7 +5890,7 @@ function setupAgentHarnessEvents() {
     const harnessTabEl = document.getElementById('agent-harness-tab');
     if (harnessTabEl) {
         harnessTabEl.addEventListener('shown.bs.tab', () => {
-            loadHarnessSummary();
+            loadTabHarnessSummary();
         });
     }
 

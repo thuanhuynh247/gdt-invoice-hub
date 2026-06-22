@@ -99,6 +99,20 @@ class TenantRoutingSession(FlaskSQLAlchemySession):
                                     conn.execute(text("ALTER TABLE invoice ADD COLUMN merkle_root VARCHAR(64) NULL;"))
                                 if "merkle_index" not in cols:
                                     conn.execute(text("ALTER TABLE invoice ADD COLUMN merkle_index INTEGER NULL;"))
+                                if "mccqt" not in cols:
+                                    conn.execute(text("ALTER TABLE invoice ADD COLUMN mccqt VARCHAR(100) NULL;"))
+                                if "msttcgp" not in cols:
+                                    conn.execute(text("ALTER TABLE invoice ADD COLUMN msttcgp VARCHAR(20) NULL;"))
+                                if "lookup_code" not in cols:
+                                    conn.execute(text("ALTER TABLE invoice ADD COLUMN lookup_code VARCHAR(100) NULL;"))
+                                if "lookup_url" not in cols:
+                                    conn.execute(text("ALTER TABLE invoice ADD COLUMN lookup_url TEXT NULL;"))
+                                if "exchange_rate" not in cols:
+                                    conn.execute(text("ALTER TABLE invoice ADD COLUMN exchange_rate FLOAT DEFAULT 1.0;"))
+                                if "tax_breakdown_json" not in cols:
+                                    conn.execute(text("ALTER TABLE invoice ADD COLUMN tax_breakdown_json TEXT NULL;"))
+                                if "fees_breakdown_json" not in cols:
+                                    conn.execute(text("ALTER TABLE invoice ADD COLUMN fees_breakdown_json TEXT NULL;"))
                                     
                             # 4. Line Item table checks
                             res_item = conn.execute(text("PRAGMA table_info(line_item);")).fetchall()
@@ -106,6 +120,12 @@ class TenantRoutingSession(FlaskSQLAlchemySession):
                                 cols = [r[1] for r in res_item]
                                 if "expense_category" not in cols:
                                     conn.execute(text("ALTER TABLE line_item ADD COLUMN expense_category VARCHAR(100) NULL;"))
+                                if "discount_rate" not in cols:
+                                    conn.execute(text("ALTER TABLE line_item ADD COLUMN discount_rate FLOAT DEFAULT 0.0;"))
+                                if "discount_amount" not in cols:
+                                    conn.execute(text("ALTER TABLE line_item ADD COLUMN discount_amount FLOAT DEFAULT 0.0;"))
+                                if "amount_after_tax" not in cols:
+                                    conn.execute(text("ALTER TABLE line_item ADD COLUMN amount_after_tax FLOAT DEFAULT 0.0;"))
                                     
                             # 5. Bank Transaction table checks
                             res_bank = conn.execute(text("PRAGMA table_info(bank_transaction);")).fetchall()

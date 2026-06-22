@@ -71,6 +71,7 @@ class V72ComplianceService:
             # Small generator flat fee
             gross_fee = 375000.0
             fee_type = "flat_rate"
+            breakdown = {}
             notes_list.append(f"Flat rate applied for low-discharge facility (average {daily_avg_volume:.2f} m3/day < 20 m3/day).")
         else:
             # Pollutant load calculations: load_kg = volume_m3 * concentration_mg_l / 1000
@@ -88,6 +89,13 @@ class V72ComplianceService:
 
             gross_fee = cod_fee + tss_fee + pb_fee + hg_fee + cd_fee
             fee_type = "pollutant_load"
+            breakdown = {
+                "cod": {"load_kg": round(cod_load, 4), "fee": round(cod_fee, 2)},
+                "tss": {"load_kg": round(tss_load, 4), "fee": round(tss_fee, 2)},
+                "pb": {"load_kg": round(pb_load, 4), "fee": round(pb_fee, 2)},
+                "hg": {"load_kg": round(hg_load, 4), "fee": round(hg_fee, 2)},
+                "cd": {"load_kg": round(cd_load, 4), "fee": round(cd_fee, 2)},
+            }
             notes_list.append(f"Load fees: COD ({cod_fee:,.0f} VND), TSS ({tss_fee:,.0f} VND), Heavy Metals ({pb_fee + hg_fee + cd_fee:,.0f} VND).")
 
         if is_exempt:
@@ -110,6 +118,7 @@ class V72ComplianceService:
 
         return {
             "volume_m3": volume_m3,
+            "daily_avg_volume": round(daily_avg_volume, 2),
             "cod_mg_l": cod_mg_l,
             "tss_mg_l": tss_mg_l,
             "pb_mg_l": pb_mg_l,
@@ -117,6 +126,8 @@ class V72ComplianceService:
             "cd_mg_l": cd_mg_l,
             "cooling_water": cooling_water,
             "municipal_treatment_inflow": municipal_treatment_inflow,
+            "fee_type": fee_type,
+            "breakdown": breakdown,
             "gross_fee": gross_fee,
             "final_fee": final_fee,
             "is_exempt": is_exempt,

@@ -99,6 +99,11 @@ class V73ComplianceService:
 
         notes = " ".join(notes_list)
 
+        breakdown = {
+            "license_fee": license_fee,
+            "disposal_fee": disposal_fee
+        }
+
         cur.execute("""
             INSERT INTO hazardous_waste_logs
                 (waste_category, weight_kg, apply_license, annual_weight_kg, is_research_lab, license_fee, disposal_fee, final_fee, is_exempt, notes)
@@ -118,6 +123,7 @@ class V73ComplianceService:
             "disposal_fee": disposal_fee,
             "final_fee": final_fee,
             "is_exempt": is_exempt,
+            "breakdown": breakdown,
             "notes": notes
         }
 

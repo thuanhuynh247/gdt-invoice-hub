@@ -75,9 +75,16 @@
                     </div>
                     <div class="mt-4 p-3 bg-premium-light rounded border">
                         <h6 class="fw-bold mb-2 text-success"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Calculation Result</h6>
+                        <div class="d-flex justify-content-between small mb-1"><span>Fee Type:</span><span id="res-fee-type" class="badge bg-secondary">-</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Daily Avg Volume:</span><span id="res-daily-avg" class="fw-bold text-dark">-</span></div>
                         <div class="d-flex justify-content-between small mb-1"><span>Gross Surcharge:</span><span id="res-gross" class="fw-bold text-dark">-</span></div>
                         <div class="d-flex justify-content-between small mb-1"><span>Final Surcharge:</span><span id="res-final" class="fw-bold text-success fs-6">-</span></div>
                         <div class="d-flex justify-content-between small mb-1"><span>Exemption Status:</span><span id="res-exempt-badge" class="fw-bold">-</span></div>
+                        <!-- Pollutant Breakdown Chart -->
+                        <div id="breakdown-chart" class="border-top pt-2 mt-2" style="display:none;">
+                            <h6 class="fw-bold small mb-2 text-dark"><i class="bi bi-bar-chart-fill text-success me-1" aria-hidden="true"></i>Pollutant Fee Breakdown</h6>
+                            <div id="breakdown-bars" class="d-flex flex-column gap-1"></div>
+                        </div>
                         <div class="small text-muted border-top pt-2 mt-2"><strong>Notes:</strong> <span id="res-notes">Awaiting…</span></div>
                     </div>
                 </div>
@@ -224,12 +231,56 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("res-gross").textContent = fVND(r.gross_fee);
         document.getElementById("res-final").textContent = fVND(r.final_fee);
         
+        // Fee type badge
+        const ftEl = document.getElementById("res-fee-type");
+        if (r.fee_type === "pollutant_load") {
+            ftEl.className = "badge bg-warning text-dark";
+            ftEl.textContent = "Pollutant Load";
+        } else {
+            ftEl.className = "badge bg-info text-dark";
+            ftEl.textContent = "Flat Rate";
+        }
+        
+        // Daily avg volume
+        document.getElementById("res-daily-avg").textContent = (r.daily_avg_volume || 0).toFixed(2) + " m³/day";
+        
         if (r.is_exempt) {
             document.getElementById("res-exempt-badge").innerHTML = '<span class="badge bg-success">Exempt</span>';
         } else {
             document.getElementById("res-exempt-badge").innerHTML = '<span class="badge bg-danger">Payable</span>';
         }
         document.getElementById("res-notes").textContent = r.notes || "None";
+        
+        // Breakdown chart
+        const chartEl = document.getElementById("breakdown-chart");
+        const barsEl = document.getElementById("breakdown-bars");
+        if (r.breakdown && Object.keys(r.breakdown).length > 0) {
+            chartEl.style.display = "block";
+            barsEl.innerHTML = "";
+            const colors = {cod:"#198754",tss:"#0d6efd",pb:"#fd7e14",hg:"#dc3545",cd:"#6f42c1"};
+            const labels = {cod:"COD",tss:"TSS",pb:"Lead (Pb)",hg:"Mercury (Hg)",cd:"Cadmium (Cd)"};
+            const total = r.gross_fee || 1;
+            Object.entries(r.breakdown).forEach(([k, v]) => {
+                if (v.fee <= 0) return;
+                const pct = Math.max((v.fee / total) * 100, 2);
+                const row = document.createElement("div");
+                row.className = "d-flex align-items-center gap-2 small";
+                row.innerHTML = `<span style="min-width:90px" class="text-muted">${labels[k]||k}</span>
+                    <div class="flex-grow-1 bg-light rounded" style="height:18px;overflow:hidden">
+                        <div style="width:0;height:100%;background:${colors[k]||'#6c757d'};border-radius:4px;transition:width .6s ease" data-target="${pct}%"></div>
+                    </div>
+                    <span class="text-dark fw-bold" style="min-width:110px;text-align:right">${fVND(v.fee)}</span>`;
+                barsEl.appendChild(row);
+            });
+            // Animate bars
+            requestAnimationFrame(() => {
+                barsEl.querySelectorAll("[data-target]").forEach(bar => {
+                    bar.style.width = bar.dataset.target;
+                });
+            });
+        } else {
+            chartEl.style.display = "none";
+        }
     };
     
     const rB = d => {

@@ -26,8 +26,10 @@ class DeliveryNoteService:
             # e.g., <soPhieu>, <ngayLap>, <mstNguoiVanChuyen>, etc.
             so_phieu = root.find('.//soPhieu')
             ngay_lap = root.find('.//ngayLap')
-            mst_nguoi_gui = root.find('.//mstNguoiGui') or root.find('.//mstNguoiBan')
-            mst_nguoi_nhan = root.find('.//mstNguoiNhan') or root.find('.//mstNguoiMua')
+            _mg = root.find('.//mstNguoiGui')
+            mst_nguoi_gui = _mg if _mg is not None else root.find('.//mstNguoiBan')
+            _mn = root.find('.//mstNguoiNhan')
+            mst_nguoi_nhan = _mn if _mn is not None else root.find('.//mstNguoiMua')
             hd_van_chuyen = root.find('.//hdVanChuyen')
             tong_tien = root.find('.//tongTien')
 

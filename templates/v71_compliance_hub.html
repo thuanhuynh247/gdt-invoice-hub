@@ -71,6 +71,11 @@
                         <div class="d-flex justify-content-between small mb-1"><span>Gross Fee:</span><span id="res-gross" class="fw-bold text-dark">-</span></div>
                         <div class="d-flex justify-content-between small mb-1"><span>Final Fee:</span><span id="res-final" class="fw-bold text-success fs-6">-</span></div>
                         <div class="d-flex justify-content-between small mb-1"><span>Exemption Status:</span><span id="res-exempt-badge" class="fw-bold">-</span></div>
+                        <!-- EPR Category Breakdown Chart -->
+                        <div id="breakdown-chart" class="border-top pt-2 mt-2" style="display:none;">
+                            <h6 class="fw-bold small mb-2 text-success"><i class="bi bi-bar-chart-fill text-success me-1" aria-hidden="true"></i>E-Waste Surcharge Comparison</h6>
+                            <div id="breakdown-bars" class="d-flex flex-column gap-1"></div>
+                        </div>
                         <div class="small text-muted border-top pt-2 mt-2"><strong>Notes:</strong> <span id="res-notes">Awaiting…</span></div>
                     </div>
                 </div>
@@ -220,6 +225,53 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("res-exempt-badge").innerHTML = '<span class="badge bg-danger">Payable</span>';
         }
         document.getElementById("res-notes").textContent = r.notes || "None";
+
+        // Breakdown chart
+        const chartEl = document.getElementById("breakdown-chart");
+        const barsEl = document.getElementById("breakdown-bars");
+        if (r.breakdown && Object.keys(r.breakdown).length > 0) {
+            chartEl.style.display = "block";
+            barsEl.innerHTML = "";
+            const colors = {
+                laptop: "#198754",
+                tv_monitor: "#0d6efd",
+                phone: "#fd7e14",
+                battery: "#dc3545",
+                solar_panel: "#6f42c1"
+            };
+            const labels = {
+                laptop: "Laptop",
+                tv_monitor: "TV/Monitor",
+                phone: "Mobile Phone",
+                battery: "Battery",
+                solar_panel: "Solar Panel"
+            };
+            const maxVal = Math.max(...Object.values(r.breakdown));
+            Object.entries(r.breakdown).forEach(([k, v]) => {
+                const pct = maxVal > 0 ? Math.max((v / maxVal) * 100, 2) : 2;
+                const isSelected = (k === r.product_category);
+                const bgStyle = isSelected ? colors[k] : '#6c757d';
+                const opacityStyle = isSelected ? 'opacity: 1;' : 'opacity: 0.55;';
+                const textWeight = isSelected ? 'fw-bold text-dark' : 'text-muted';
+                
+                const row = document.createElement("div");
+                row.className = "d-flex align-items-center gap-2 small";
+                row.innerHTML = `<span style="min-width:100px" class="${textWeight}">${labels[k]||k}</span>
+                    <div class="flex-grow-1 bg-light rounded" style="height:18px;overflow:hidden">
+                        <div style="width:0;height:100%;background:${bgStyle};${opacityStyle}border-radius:4px;transition:width .6s ease" data-target="${pct}%"></div>
+                    </div>
+                    <span class="${textWeight}" style="min-width:110px;text-align:right">${fVND(v)}</span>`;
+                barsEl.appendChild(row);
+            });
+            // Animate bars
+            requestAnimationFrame(() => {
+                barsEl.querySelectorAll("[data-target]").forEach(bar => {
+                    bar.style.width = bar.dataset.target;
+                });
+            });
+        } else {
+            chartEl.style.display = "none";
+        }
     };
     
     const rB = d => {

@@ -104,6 +104,14 @@ class V71ComplianceService:
 
         notes = " ".join(notes_list)
 
+        breakdown = {
+            "laptop": rates["laptop"] * quantity,
+            "tv_monitor": rates["tv_monitor"] * quantity,
+            "phone": rates["phone"] * quantity,
+            "battery": rates["battery"] * quantity,
+            "solar_panel": rates["solar_panel"] * quantity,
+        }
+
         cur.execute("""
             INSERT INTO ewaste_epr_logs
                 (product_category, quantity, is_export, preceding_year_revenue, preceding_year_import_value, charge_rate, gross_fee, final_fee, is_exempt, exemption_type, notes)
@@ -124,6 +132,7 @@ class V71ComplianceService:
             "final_fee": final_fee,
             "is_exempt": is_exempt,
             "exemption_type": exemption_type,
+            "breakdown": breakdown,
             "notes": notes
         }
 

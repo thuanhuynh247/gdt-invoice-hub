@@ -495,10 +495,12 @@ def simulate_treasury_forecast(
     invoices: list[dict],
     starting_cash: float,
     delay_days: int = 0,
-    cit_discount: float = 0.0
+    cit_discount: float = 0.0,
+    today: datetime.date | None = None
 ) -> dict:
     """Project daily cash balance and VAT/CIT tax liabilities over a 60-day window."""
-    today = datetime.date.today()
+    if today is None:
+        today = datetime.date.today()
     timeline = []
     
     # Store dynamic daily events

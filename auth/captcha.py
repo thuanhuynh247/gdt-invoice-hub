@@ -73,17 +73,35 @@ def pop_prefetched_captcha() -> dict | None:
     return None
 
 
+def _interruptible_sleep(seconds: float) -> bool:
+    """Sleep for `seconds` but wake up immediately if stop is requested.
+    Returns True if stopped, False otherwise.
+    """
+    global PREFETCH_WORKER_STOP
+    slept = 0.0
+    step = 0.1
+    while not PREFETCH_WORKER_STOP and slept < seconds:
+        time.sleep(step)
+        slept += step
+    return PREFETCH_WORKER_STOP
+
+
 def _captcha_prefetch_worker(app):
     """Background daemon loop that solves captchas and keeps the queue populated."""
     global PREFETCH_WORKER_STOP, CAPTCHA_QUEUE
-    time.sleep(1)  # Initial grace delay
+    
+    # Initial grace delay that is also interruptible
+    if _interruptible_sleep(1.0):
+        return
+        
     backoff_delay = 1.0
 
     while not PREFETCH_WORKER_STOP:
         try:
             with app.app_context():
                 if not app.config.get("AUTO_SOLVE_CAPTCHA"):
-                    time.sleep(5)
+                    if _interruptible_sleep(5.0):
+                        break
                     continue
 
                 # Prune and check size under lock
@@ -120,7 +138,8 @@ def _captcha_prefetch_worker(app):
                     backoff_delay = 1.0
 
             # Check every second to respond fast when items are consumed
-            time.sleep(1)
+            if _interruptible_sleep(1.0):
+                break
         except Exception as e:
             try:
                 with app.app_context():
@@ -131,9 +150,11 @@ def _captcha_prefetch_worker(app):
                     )
             except Exception:
                 pass
-            time.sleep(backoff_delay)
+            if _interruptible_sleep(backoff_delay):
+                break
             # Increase backoff exponentially up to 60s
             backoff_delay = min(backoff_delay * 2, 60.0)
+
 
 
 def start_captcha_prefetch_worker(app):

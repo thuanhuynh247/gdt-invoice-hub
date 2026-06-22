@@ -199,7 +199,8 @@ def test_treasury_forecast_sandbox_simulation():
         invoices=invoices,
         starting_cash=100000000.0,
         delay_days=10, # Collection moves from 2026-06-10 to 2026-06-20
-        cit_discount=0.20 # 20% discount on corporate tax
+        cit_discount=0.20, # 20% discount on corporate tax
+        today=datetime.strptime("2026-06-01", "%Y-%m-%d").date()
     )
 
     assert forecast["starting_cash"] == 100000000.0
