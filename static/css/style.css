@@ -1825,18 +1825,7 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
     border-image: linear-gradient(90deg, var(--lime-accent), var(--primary-accent), var(--color-deep-teal)) 1 !important;
 }
 
-/* Skeleton loading animation utility */
-.skeleton-loading {
-    background: linear-gradient(90deg, var(--border-card) 25%, var(--primary-accent-soft) 50%, var(--border-card) 75%);
-    background-size: 200% 100%;
-    animation: skeletonShimmer 1.5s ease-in-out infinite;
-    border-radius: 8px;
-}
 
-@keyframes skeletonShimmer {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
-}
 
 /* Card stagger entrance */
 .glass-card, .stat-card, .hero-panel {
@@ -2039,99 +2028,6 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
     color: var(--color-ink-black);
 }
 
-/* ===== Premium Dropdown Glassmorphism ===== */
-.dropdown-menu-premium {
-    background: var(--bg-card) !important;
-    border: 1px solid var(--border-card) !important;
-    border-radius: 16px !important;
-    box-shadow: var(--shadow-xl) !important;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    padding: 0.5rem !important;
-    min-width: 260px;
-    animation: dropdownSlideIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes dropdownSlideIn {
-    from {
-        opacity: 0;
-        transform: translateY(-8px) scale(0.96);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
-.dropdown-menu-premium .dropdown-item {
-    border-radius: 10px !important;
-    padding: 0.55rem 0.9rem !important;
-    font-size: 0.88rem;
-    font-weight: 500;
-    color: var(--text-primary) !important;
-    transition: background-color 0.15s ease, color 0.15s ease;
-}
-
-.dropdown-menu-premium .dropdown-item:hover,
-.dropdown-menu-premium .dropdown-item:focus {
-    background-color: var(--primary-accent-soft) !important;
-    color: var(--text-primary) !important;
-}
-
-.dropdown-menu-premium .dropdown-item.active {
-    background-color: var(--lime-accent) !important;
-    color: var(--color-forest-green) !important;
-    font-weight: 700;
-}
-
-[data-theme="dark"] .dropdown-menu-premium .dropdown-item.active {
-    color: var(--color-ink-black) !important;
-}
-
-.dropdown-menu-premium .dropdown-header {
-    font-size: 0.7rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--text-tertiary) !important;
-    padding: 0.5rem 0.9rem 0.3rem;
-}
-
-.dropdown-menu-premium .dropdown-divider {
-    border-color: var(--border-card) !important;
-    margin: 0.3rem 0.5rem;
-}
-
-/* ===== Text Gradient Utility ===== */
-.text-gradient {
-    background: linear-gradient(135deg, var(--primary-accent), var(--color-deep-teal));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-[data-theme="dark"] .text-gradient {
-    background: linear-gradient(135deg, var(--lime-accent), #60d394);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-/* ===== Dark Custom Background for Panels ===== */
-.bg-dark-custom {
-    background-color: var(--color-ink-black) !important;
-}
-
-.text-snow {
-    color: #f0f0f0 !important;
-}
-
-/* ===== Enhanced Footer ===== */
-.footer {
-    background: var(--bg-card);
-    border-top: 1px solid var(--border-card);
-}
-
 /* ===== Page Loading Spinner Overlay ===== */
 .page-loading-overlay {
     position: fixed;
@@ -2157,5 +2053,50 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
 /* ===== Premium Light Background Utility ===== */
 .bg-premium-light {
     background-color: var(--stat-card-tax-bg) !important;
+}
+
+/* ===== Soft Background Utilities (Dashboard KPI Icons) ===== */
+.bg-primary-soft {
+    background-color: var(--primary-accent-soft) !important;
+}
+.text-primary {
+    color: var(--primary-accent) !important;
+}
+.bg-success-soft {
+    background-color: rgba(16, 185, 129, 0.1) !important;
+}
+.bg-info-soft {
+    background-color: var(--stat-card-active-bg) !important;
+}
+.bg-warning-soft {
+    background-color: rgba(245, 158, 11, 0.1) !important;
+}
+.bg-danger-soft {
+    background-color: rgba(239, 68, 68, 0.1) !important;
+}
+.bg-premium-light-subtle {
+    background-color: var(--primary-accent-soft) !important;
+}
+[data-theme="dark"] .bg-premium-light-subtle {
+    background-color: rgba(159, 232, 112, 0.06) !important;
+}
+
+/* ===== Scrollable Long Dropdown (30+ items in Nâng cao menu) ===== */
+.dropdown-menu-premium.dropdown-menu-scrollable,
+.dropdown-menu-premium {
+    max-height: 70vh;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--custom-scroll) transparent;
+}
+.dropdown-menu-premium::-webkit-scrollbar {
+    width: 6px;
+}
+.dropdown-menu-premium::-webkit-scrollbar-track {
+    background: transparent;
+}
+.dropdown-menu-premium::-webkit-scrollbar-thumb {
+    background: var(--custom-scroll);
+    border-radius: 3px;
 }
 
