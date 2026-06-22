@@ -30,6 +30,7 @@ MOCK_INVOICES = [
         "issuer": "Cong ty A",
         "description": "Hoa don dau vao thang 5",
         "is_cancelled": False,
+        "msttcgp": "0101243150",
         "line_items": [
             {
                 "item_name": "Laptop Dell Vostro 3520",
@@ -59,6 +60,7 @@ MOCK_INVOICES = [
         "is_cancelled": True,
         "cancellation_date": "2026-05-12",
         "cancellation_reason": "Sai thong tin nguoi mua",
+        "msttcgp": "0100684378",
         "line_items": [
             {
                 "item_name": "Ban lam viec go soi",
@@ -86,6 +88,7 @@ MOCK_INVOICES = [
         "issuer": "Cong ty C",
         "description": "Dich vu logistics",
         "is_cancelled": False,
+        "msttcgp": "0101360697",
         "line_items": [
             {
                 "item_name": "Phi dich vu logistics thang 5",
@@ -346,6 +349,7 @@ def _normalize_live_invoice(raw_invoice: dict) -> dict:
         "is_cancelled": "huy" in status.lower() or "cancel" in status.lower(),
         "cancellation_date": None,
         "cancellation_reason": raw_invoice.get("lydo") or raw_invoice.get("reason"),
+        "msttcgp": str(raw_invoice.get("msttcgp") or ""),
         "raw": raw_invoice,
     }
 

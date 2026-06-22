@@ -38,6 +38,50 @@ function getSkeletonRows(columnCount, rowCount = 5) {
     return rowsHtml;
 }
 
+// --- Provider Registry (Dynamic, loaded from /api/providers) ---
+window._providerRegistryCache = null;
+window._providerRegistryLoading = false;
+
+// Pre-load provider registry on page load
+(function initProviderRegistry() {
+    if (window._providerRegistryLoading || window._providerRegistryCache) return;
+    window._providerRegistryLoading = true;
+    fetch("/api/providers")
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+            if (data && data.providers) {
+                const map = {};
+                data.providers.forEach(p => { map[p.mst] = p; });
+                window._providerRegistryCache = map;
+            }
+        })
+        .catch(() => {})
+        .finally(() => { window._providerRegistryLoading = false; });
+})();
+
+/**
+ * Build a provider badge HTML from a provider MST code.
+ * Uses the cached registry for 80+ providers, falling back to a generic badge.
+ */
+window._buildProviderBadge = function(providerMst) {
+    if (!providerMst) {
+        return '<span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-10">-</span>';
+    }
+
+    const registry = window._providerRegistryCache || {};
+    const info = registry[providerMst];
+
+    if (info) {
+        const bg = info.bg || "secondary";
+        const icon = info.icon || "receipt";
+        const label = info.short || info.name || "Khác";
+        const color = info.color || "#94a3b8";
+        return `<span class="badge bg-${bg} bg-opacity-10 border border-${bg} border-opacity-10" style="color: ${color} !important;" title="${info.name} (${providerMst})"><i class="bi bi-${icon}"></i> ${label}</span>`;
+    }
+
+    return `<span class="badge bg-dark bg-opacity-10 text-white border border-secondary border-opacity-20" title="${providerMst}"><i class="bi bi-receipt"></i> Khác</span>`;
+};
+
 // 1. Alert Banner Helper
 function renderAlert(message, type = "info") {
     const region = document.getElementById("appAlertRegion");
@@ -239,12 +283,17 @@ function buildInvoiceRow(invoice) {
         ? '<span class="badge bg-danger-subtle text-danger">Đã Hủy</span>' 
         : '<span class="badge bg-success-subtle text-success">Hợp Lệ</span>';
 
+    const providerMst = invoice.msttcgp || (invoice.raw && invoice.raw.msttcgp) || "";
+    const providerBadge = window._buildProviderBadge(providerMst);
+
+
     return `
         <tr class="${rowClass}" data-id="${invoice.id}">
             <td class="fw-bold text-primary">${invoice.id}</td>
             <td>${invoice.date}</td>
             <td class="text-end fw-semibold">${amount} ₫</td>
             <td>${statusBadge}</td>
+            <td>${providerBadge}</td>
             <td class="fw-medium">${invoice.issuer}</td>
             <td>${invoice.description || "-"}</td>
             <td class="text-center">
@@ -580,7 +629,13 @@ async function showInvoiceDetails(invoiceId) {
         const detMsttcgp = document.getElementById("detMsttcgp");
         if (detMsttcgpRow && detMsttcgp) {
             if (details.msttcgp) {
-                detMsttcgp.textContent = details.msttcgp;
+                const registry = window._providerRegistryCache || {};
+                const provInfo = registry[details.msttcgp];
+                if (provInfo) {
+                    detMsttcgp.innerHTML = `${window._buildProviderBadge(details.msttcgp)} <span class="ms-2 text-secondary small">${details.msttcgp}</span>`;
+                } else {
+                    detMsttcgp.textContent = details.msttcgp;
+                }
                 detMsttcgpRow.style.display = "";
             } else {
                 detMsttcgpRow.style.display = "none";
@@ -1268,28 +1323,45 @@ async function handleInvoiceSearch(event) {
     const to = document.getElementById("dateTo").value;
     const cancelledOnly = document.getElementById("cancelledOnly").checked;
     const direction = document.getElementById("invoiceDirection").value;
+    const provider = document.getElementById("providerFilter")?.value || "ALL";
 
     const body = document.getElementById("invoiceTableBody");
     if (body) {
-        body.innerHTML = getSkeletonRows(7, 5);
+        body.innerHTML = getSkeletonRows(8, 5);
     }
 
     try {
         const data = await apiCall(`/api/invoices?from=${from}&to=${to}&cancelled_only=${cancelledOnly}&direction=${direction}`);
         const count = document.getElementById("resultsCount");
 
-        if (count) {
-            count.textContent = `Tổng cộng: ${data.total_count} hóa đơn`;
+        let filtered = data.invoices;
+        if (provider !== "ALL") {
+            if (provider === "OTHER") {
+                const knownProviders = Object.keys(window._providerRegistryCache || {});
+                filtered = data.invoices.filter(inv => {
+                    const mst = inv.msttcgp || (inv.raw && inv.raw.msttcgp) || "";
+                    return mst && !knownProviders.includes(mst);
+                });
+            } else {
+                filtered = data.invoices.filter(inv => {
+                    const mst = inv.msttcgp || (inv.raw && inv.raw.msttcgp) || "";
+                    return mst === provider;
+                });
+            }
         }
-        if (!data.invoices.length) {
+
+        if (count) {
+            count.textContent = `Tổng cộng: ${filtered.length} hóa đơn`;
+        }
+        if (!filtered.length) {
             if (body) {
-                body.innerHTML = '<tr><td colspan="7" class="text-center text-secondary py-5"><div class="empty-state"><span class="empty-icon"><i class="bi bi-folder2-open"></i></span><p class="mb-0">Không tìm thấy hóa đơn nào trong khoảng thời gian này.</p></div></td></tr>';
+                body.innerHTML = '<tr><td colspan="8" class="text-center text-secondary py-5"><div class="empty-state"><span class="empty-icon"><i class="bi bi-folder2-open"></i></span><p class="mb-0">Không tìm thấy hóa đơn nào khớp với bộ lọc.</p></div></td></tr>';
             }
             return;
         }
 
         if (body) {
-            body.innerHTML = data.invoices.map(buildInvoiceRow).join("");
+            body.innerHTML = filtered.map(buildInvoiceRow).join("");
         }
 
         // Double-click row handler binding

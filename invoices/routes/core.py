@@ -9553,3 +9553,46 @@ def group_fund_page():
     if not session.get("logged_in"):
         return redirect(url_for("auth.login_page"))
     return render_template("fund.html")
+
+
+# ==================== Provider Registry API ====================
+
+@invoices_blueprint.get("/api/providers")
+def api_providers_list():
+    """Return the full provider registry for frontend consumption."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    from invoices.provider_registry import get_all_providers
+    providers = get_all_providers()
+    return jsonify({"providers": providers, "count": len(providers)})
+
+
+@invoices_blueprint.get("/api/providers/stats")
+def api_providers_stats():
+    """Return provider distribution statistics from local invoices."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    try:
+        from invoices.models import Invoice
+        from invoices.provider_registry import get_provider_stats_from_invoices
+
+        taxpayer_mst = session.get("active_taxpayer_mst", "")
+
+        query = Invoice.query
+        if taxpayer_mst:
+            query = query.filter_by(taxpayer_mst=taxpayer_mst)
+
+        invoices = query.all()
+        stats = get_provider_stats_from_invoices(invoices)
+
+        return jsonify({
+            "stats": stats,
+            "total_invoices": len(invoices),
+            "total_providers": len(stats),
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

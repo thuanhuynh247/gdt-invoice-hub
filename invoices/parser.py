@@ -47,7 +47,9 @@ def normalize_invoice(raw_invoice: dict) -> dict:
         "cancellation_date": raw_invoice.get("cancellation_date"),
         "cancellation_reason": raw_invoice.get("cancellation_reason"),
         "line_items": raw_invoice.get("line_items", []),
+        "msttcgp": raw_invoice.get("msttcgp", ""),
     }
+
 
 
 def parse_xml_line_items(xml_bytes: bytes) -> list[dict]:

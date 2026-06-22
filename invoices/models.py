@@ -274,12 +274,24 @@ class Invoice(db.Model):
             "erp_sync_error": self.erp_sync_error or "",
             "mccqt": self.mccqt or "",
             "msttcgp": self.msttcgp or "",
+            "provider_name": self._resolve_provider_name(),
             "lookup_code": self.lookup_code or "",
             "lookup_url": self.lookup_url or "",
             "exchange_rate": self.exchange_rate,
             "tax_breakdown": self.tax_breakdown,
             "fees_breakdown": self.fees_breakdown,
         }
+
+    def _resolve_provider_name(self) -> str:
+        """Resolve the display name for the provider from the registry."""
+        if not self.msttcgp:
+            return ""
+        try:
+            from invoices.provider_registry import get_provider_info
+            info = get_provider_info(self.msttcgp)
+            return info.get("name", "")
+        except Exception:
+            return ""
 
 
 

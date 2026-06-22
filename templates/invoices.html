@@ -182,15 +182,23 @@
                         <option value="sold">Bán Ra</option>
                     </select>
                 </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-medium" for="providerFilter">Nhà Cung Cấp GP</label>
+                    <select class="form-select custom-select w-100" id="providerFilter">
+                        <option value="ALL" selected>Tất cả</option>
+                        <!-- Populated dynamically from /api/providers -->
+                        <option value="OTHER">Nhà cung cấp khác</option>
+                    </select>
+                </div>
                 <div class="col-md-2 pb-2">
                     <div class="form-check form-switch custom-switch">
                         <input class="form-check-input" type="checkbox" id="cancelledOnly" autocomplete="off">
                         <label class="form-check-label fw-medium" for="cancelledOnly">Chỉ hóa đơn hủy</label>
                     </div>
                 </div>
-                <div class="col-md-4 d-flex gap-2 justify-content-md-end justify-content-stretch">
-                    <button type="submit" class="btn btn-primary-accent btn-search flex-grow-1 flex-md-grow-0">Tìm Kiếm</button>
-                    <button type="button" class="btn btn-outline-excel flex-grow-1 flex-md-grow-0" id="exportExcelButton">
+                <div class="col-md-2 d-flex gap-2 justify-content-md-end justify-content-stretch">
+                    <button type="submit" class="btn btn-primary-accent btn-search flex-grow-1 w-100">Tìm Kiếm</button>
+                    <button type="button" class="btn btn-outline-excel flex-grow-1 w-100" id="exportExcelButton">
                         <span>Xuất Excel</span>
                     </button>
                 </div>
@@ -215,6 +223,7 @@
                             <th>Ngày Lập</th>
                             <th class="text-end">Số Tiền (₫)</th>
                             <th>Trạng Thái</th>
+                            <th>Nhà CC Giải Pháp</th>
                             <th>Đơn Vị Phát Hành</th>
                             <th>Mô Tả / Ký Hiệu</th>
                             <th class="text-center">Hành Động</th>
@@ -222,7 +231,7 @@
                     </thead>
                     <tbody id="invoiceTableBody">
                         <tr>
-                            <td colspan="7" class="text-center text-secondary py-5">
+                            <td colspan="8" class="text-center text-secondary py-5">
                                 <div class="empty-state">
                                     <span class="empty-icon"><i class="bi bi-folder2-open" aria-hidden="true"></i></span>
                                     <p class="mb-0">Chưa có dữ liệu. Vui lòng chọn ngày và bấm nút Tìm Kiếm.</p>
@@ -3283,5 +3292,152 @@
 
 <!-- Real-Time Notification Toast Container -->
 <div id="realtimeSyncToastContainer" class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100;"></div>
+
+<!-- Provider Distribution Panel (collapsible) -->
+<div class="glass-card p-4 mt-4" id="providerStatsPanel" style="display: none;">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h5 fw-bold mb-0 d-flex align-items-center gap-2">
+            <i class="bi bi-building-fill text-info"></i>
+            Phân bổ theo Nhà Cung Cấp Giải Pháp
+        </h2>
+        <button class="btn btn-sm btn-outline-secondary" id="btnRefreshProviderStats" title="Làm mới">
+            <i class="bi bi-arrow-clockwise"></i>
+        </button>
+    </div>
+    <div class="row g-3" id="providerStatsGrid">
+        <div class="col-12 text-center text-secondary py-3">
+            <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+            Đang tải dữ liệu nhà cung cấp...
+        </div>
+    </div>
+</div>
+
+<script>
+// Dynamic Provider Filter Dropdown Population
+(function populateProviderDropdown() {
+    const select = document.getElementById("providerFilter");
+    if (!select) return;
+    
+    function doPopulate() {
+        const registry = window._providerRegistryCache;
+        if (!registry) {
+            // Retry in 500ms if registry not loaded yet
+            setTimeout(doPopulate, 500);
+            return;
+        }
+        
+        const otherOption = select.querySelector('option[value="OTHER"]');
+        
+        // Sort providers by short name for easy browsing
+        const sorted = Object.entries(registry).sort((a, b) => {
+            const nameA = (a[1].short || a[1].name || "").toLowerCase();
+            const nameB = (b[1].short || b[1].name || "").toLowerCase();
+            return nameA.localeCompare(nameB);
+        });
+        
+        // De-duplicate by short name (some providers have multiple MSTs)
+        const seen = new Set();
+        for (const [mst, info] of sorted) {
+            const label = `${info.short || info.name} (${mst})`;
+            if (seen.has(info.short)) continue;
+            seen.add(info.short);
+            
+            const opt = document.createElement("option");
+            opt.value = mst;
+            opt.textContent = label;
+            select.insertBefore(opt, otherOption);
+        }
+    }
+    
+    // Wait for registry to load
+    setTimeout(doPopulate, 300);
+})();
+
+// Provider Distribution Stats Panel
+(function initProviderStats() {
+    const panel = document.getElementById("providerStatsPanel");
+    const grid = document.getElementById("providerStatsGrid");
+    const btn = document.getElementById("btnRefreshProviderStats");
+    if (!panel || !grid) return;
+
+    async function loadProviderStats() {
+        try {
+            panel.style.display = "block";
+            grid.innerHTML = '<div class="col-12 text-center text-secondary py-3"><div class="spinner-border spinner-border-sm me-2" role="status"></div> Đang tải...</div>';
+            
+            const resp = await fetch("/api/providers/stats");
+            if (!resp.ok) {
+                grid.innerHTML = '<div class="col-12 text-center text-secondary py-3"><i class="bi bi-exclamation-triangle me-2"></i>Không thể tải dữ liệu nhà cung cấp.</div>';
+                return;
+            }
+            
+            const data = await resp.json();
+            if (!data.stats || data.stats.length === 0) {
+                grid.innerHTML = '<div class="col-12 text-center text-secondary py-3"><i class="bi bi-folder2-open me-2"></i>Chưa có dữ liệu hóa đơn.</div>';
+                return;
+            }
+            
+            let html = '';
+            const maxCount = Math.max(...data.stats.map(s => s.count));
+            
+            for (const stat of data.stats) {
+                const pct = maxCount > 0 ? Math.round((stat.count / maxCount) * 100) : 0;
+                const amountStr = Number(stat.total_amount || 0).toLocaleString("vi-VN");
+                const label = stat.short || stat.name || "Không rõ";
+                const icon = stat.icon || "receipt";
+                const color = stat.color || "#94a3b8";
+                const bg = stat.bg || "secondary";
+                const mstDisplay = stat.mst || "N/A";
+                
+                html += `
+                <div class="col-md-6 col-xl-4">
+                    <div class="d-flex align-items-center gap-3 p-3 rounded-3" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);">
+                        <div class="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0" 
+                             style="width: 42px; height: 42px; background: rgba(${hexToRgb(color)}, 0.15); color: ${color};">
+                            <i class="bi bi-${icon}" style="font-size: 1.1rem;"></i>
+                        </div>
+                        <div class="flex-grow-1 min-w-0">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="fw-semibold small text-truncate" title="${stat.name} (${mstDisplay})" style="color: ${color};">${label}</span>
+                                <span class="badge bg-${bg} bg-opacity-15 small" style="color: ${color};">${stat.count} HĐ</span>
+                            </div>
+                            <div class="progress" style="height: 4px; background: rgba(255,255,255,0.05);">
+                                <div class="progress-bar" role="progressbar" style="width: ${pct}%; background: ${color}; transition: width 0.6s ease;"></div>
+                            </div>
+                            <div class="text-secondary mt-1" style="font-size: 0.7rem;">${amountStr} ₫</div>
+                        </div>
+                    </div>
+                </div>`;
+            }
+            
+            html += `
+            <div class="col-12 mt-2">
+                <div class="text-secondary small text-end">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Tổng: <strong>${data.total_invoices}</strong> hóa đơn từ <strong>${data.total_providers}</strong> nhà cung cấp
+                </div>
+            </div>`;
+            
+            grid.innerHTML = html;
+        } catch (err) {
+            console.error("Provider stats error:", err);
+            grid.innerHTML = '<div class="col-12 text-center text-danger py-3"><i class="bi bi-exclamation-circle me-2"></i>Lỗi tải dữ liệu.</div>';
+        }
+    }
+    
+    // Helper: hex color to rgb components
+    function hexToRgb(hex) {
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : "148, 163, 184";
+    }
+    
+    if (btn) {
+        btn.addEventListener("click", loadProviderStats);
+    }
+    
+    // Auto-load after a short delay
+    setTimeout(loadProviderStats, 1500);
+})();
+</script>
 
 {% endblock %}

@@ -52,3 +52,14 @@ def test_download_invoice_xml(logged_in_client):
     assert response.status_code == 200
     assert response.mimetype == "application/xml"
     assert "attachment;" in response.headers["Content-Disposition"]
+
+
+def test_invoice_msttcgp_included(logged_in_client):
+    """Check that the msttcgp field is present in the invoice list."""
+
+    response = logged_in_client.get("/api/invoices?from=2026-05-01&to=2026-05-20")
+    payload = response.get_json()
+    assert response.status_code == 200
+    assert "msttcgp" in payload["invoices"][0]
+    assert payload["invoices"][0]["msttcgp"] == "0101243150"
+
