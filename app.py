@@ -163,6 +163,16 @@ def create_app() -> Flask:
                 if "decree_132_relationship" not in columns_partner:
                     db.session.execute(db.text("ALTER TABLE partner ADD COLUMN decree_132_relationship VARCHAR(10) NULL;"))
                     db.session.commit()
+
+            # Ensure optimal database indexes exist for multitenant dashboard and ledger performance (US-124)
+            db.session.execute(db.text("CREATE INDEX IF NOT EXISTS idx_invoice_taxpayer_mst ON invoice(taxpayer_mst);"))
+            db.session.execute(db.text("CREATE INDEX IF NOT EXISTS idx_invoice_taxpayer_imported ON invoice(taxpayer_mst, imported_at DESC);"))
+            db.session.execute(db.text("CREATE INDEX IF NOT EXISTS idx_invoice_taxpayer_t_score ON invoice(taxpayer_mst, t_score);"))
+            db.session.execute(db.text("CREATE INDEX IF NOT EXISTS idx_invoice_seller_symbol_num ON invoice(seller_mst, symbol, number);"))
+            db.session.execute(db.text("CREATE INDEX IF NOT EXISTS idx_invoice_date ON invoice(date);"))
+            db.session.execute(db.text("CREATE INDEX IF NOT EXISTS idx_line_item_invoice_id ON line_item(invoice_id);"))
+            db.session.execute(db.text("CREATE INDEX IF NOT EXISTS idx_ai_audit_invoice_id ON ai_audit_result(invoice_id);"))
+            db.session.commit()
         except Exception as e:
             app.logger.warning(f"Database migration check failed: {e}")
             db.session.rollback()

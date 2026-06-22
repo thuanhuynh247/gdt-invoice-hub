@@ -43,24 +43,57 @@ def dashboard_page():
     from invoices.models import Invoice
     from extensions import db
     from sqlalchemy import func
+    from invoices.stats_cache import get_cached_stats, set_cached_stats
     
-    mst = session.get("taxpayer_mst") or "0102030405"
+    mst = session.get("active_taxpayer_mst") or session.get("taxpayer_mst") or session.get("tax_code") or "0102030405"
     
-    # Simple aggregations
-    total_invoices = Invoice.query.filter_by(taxpayer_mst=mst).count()
-    total_amount = db.session.query(func.sum(Invoice.total_amount)).filter_by(taxpayer_mst=mst).scalar() or 0.0
-    audited_count = Invoice.query.filter_by(taxpayer_mst=mst, ai_audited=True).count()
-    
-    # Calculate average T-Score
-    avg_t_score = db.session.query(func.avg(Invoice.t_score)).filter_by(taxpayer_mst=mst).scalar() or 100.0
-    avg_t_score = round(avg_t_score, 1)
-    
-    # Risk status count
-    high_risk_count = Invoice.query.filter(Invoice.taxpayer_mst == mst, Invoice.t_score < 70).count()
-    medium_risk_count = Invoice.query.filter(Invoice.taxpayer_mst == mst, Invoice.t_score >= 70, Invoice.t_score < 90).count()
-    safe_count = Invoice.query.filter(Invoice.taxpayer_mst == mst, Invoice.t_score >= 90).count()
-    
-    # Recent invoice activities
+    cached_result = get_cached_stats(mst, "dashboard", "dashboard", "dashboard")
+    if cached_result is not None:
+        total_invoices = cached_result["total_invoices"]
+        total_amount = cached_result["total_amount"]
+        audited_count = cached_result["audited_count"]
+        avg_t_score = cached_result["avg_t_score"]
+        high_risk_count = cached_result["risk_distribution"]["high"]
+        medium_risk_count = cached_result["risk_distribution"]["medium"]
+        safe_count = cached_result["risk_distribution"]["safe"]
+    else:
+        # Simple aggregations
+        total_invoices = Invoice.query.filter_by(taxpayer_mst=mst).count()
+        total_amount = db.session.query(func.sum(Invoice.total_amount)).filter_by(taxpayer_mst=mst).scalar() or 0.0
+        audited_count = Invoice.query.filter_by(taxpayer_mst=mst, ai_audited=True).count()
+        
+        # Calculate average T-Score
+        avg_t_score = db.session.query(func.avg(Invoice.t_score)).filter_by(taxpayer_mst=mst).scalar() or 100.0
+        avg_t_score = round(avg_t_score, 1)
+        
+        # Risk status count
+        high_risk_count = Invoice.query.filter(Invoice.taxpayer_mst == mst, Invoice.t_score < 70).count()
+        medium_risk_count = Invoice.query.filter(Invoice.taxpayer_mst == mst, Invoice.t_score >= 70, Invoice.t_score < 90).count()
+        safe_count = Invoice.query.filter(Invoice.taxpayer_mst == mst, Invoice.t_score >= 90).count()
+        
+        # Also fetch the monthly amounts for the chart
+        monthly_stats = db.session.query(
+            func.substr(Invoice.date, 1, 7).label("month"),
+            func.sum(Invoice.total_amount).label("amount")
+        ).filter_by(taxpayer_mst=mst).group_by("month").order_by("month").all()
+        monthly_data = [{"month": row.month, "amount": row.amount} for row in monthly_stats]
+        
+        cached_result = {
+            "status": "success",
+            "total_invoices": total_invoices,
+            "total_amount": total_amount,
+            "audited_count": audited_count,
+            "avg_t_score": avg_t_score,
+            "risk_distribution": {
+                "high": high_risk_count,
+                "medium": medium_risk_count,
+                "safe": safe_count
+            },
+            "monthly_trends": monthly_data
+        }
+        set_cached_stats(mst, "dashboard", "dashboard", "dashboard", cached_result)
+        
+    # Recent invoice activities (always dynamic or query directly for accuracy)
     recent_invoices = Invoice.query.filter_by(taxpayer_mst=mst).order_by(Invoice.imported_at.desc()).limit(5).all()
     recent_invoices_list = [inv.to_dict() for inv in recent_invoices]
     
@@ -86,9 +119,14 @@ def api_dashboard_stats():
     from invoices.models import Invoice
     from extensions import db
     from sqlalchemy import func
+    from invoices.stats_cache import get_cached_stats, set_cached_stats
     
-    mst = session.get("taxpayer_mst") or "0102030405"
+    mst = session.get("active_taxpayer_mst") or session.get("taxpayer_mst") or session.get("tax_code") or "0102030405"
     
+    cached_result = get_cached_stats(mst, "dashboard", "dashboard", "dashboard")
+    if cached_result is not None:
+        return jsonify(cached_result)
+        
     total_invoices = Invoice.query.filter_by(taxpayer_mst=mst).count()
     total_amount = db.session.query(func.sum(Invoice.total_amount)).filter_by(taxpayer_mst=mst).scalar() or 0.0
     audited_count = Invoice.query.filter_by(taxpayer_mst=mst, ai_audited=True).count()
@@ -108,7 +146,7 @@ def api_dashboard_stats():
     
     monthly_data = [{"month": row.month, "amount": row.amount} for row in monthly_stats]
     
-    return jsonify({
+    response_payload = {
         "status": "success",
         "total_invoices": total_invoices,
         "total_amount": total_amount,
@@ -120,7 +158,10 @@ def api_dashboard_stats():
             "safe": safe_count
         },
         "monthly_trends": monthly_data
-    })
+    }
+    
+    set_cached_stats(mst, "dashboard", "dashboard", "dashboard", response_payload)
+    return jsonify(response_payload)
 
 @invoices_blueprint.get("/invoices")
 def invoices_page():
