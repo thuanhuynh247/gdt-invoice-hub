@@ -25,7 +25,7 @@
     <div class="row g-4">
         <!-- Pillar 1: Fuel EP Tax Calculator -->
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
+            <div class="glass-card h-100">
                 <div class="card-header bg-transparent border-0 pt-4 pb-0">
                     <h5 class="fw-bold mb-1"><i class="bi bi-fuel-pump-fill text-danger me-2" aria-hidden="true"></i>Fuel EP Tax Calculator</h5>
                     <p class="text-muted small mb-0">Calculate absolute EP tax for petrol (2,000 VND/l), diesel (1,000 VND/l), and kerosene (600 VND/l). Transit/re-export fuels are 100% exempt.</p>
@@ -85,7 +85,7 @@
 
         <!-- Pillar 2: Coal EP Tax Calculator -->
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
+            <div class="glass-card h-100">
                 <div class="card-header bg-transparent border-0 pt-4 pb-0">
                     <h5 class="fw-bold mb-1"><i class="bi bi-minecart-loaded text-warning me-2" aria-hidden="true"></i>Coal EP Tax Calculator</h5>
                     <p class="text-muted small mb-0">Calculate coal EP tax by type: Lignite/Sub-bituminous (20,000 VND/t), Anthracite (30,000 VND/t), Other (15,000 VND/t). Electricity generation & export exempt.</p>
@@ -147,7 +147,7 @@
 
         <!-- Pillar 3: Plastic Bag EP Tax Calculator -->
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
+            <div class="glass-card h-100">
                 <div class="card-header bg-transparent border-0 pt-4 pb-0">
                     <h5 class="fw-bold mb-1"><i class="bi bi-bag-x-fill text-info me-2" aria-hidden="true"></i>Plastic Bag EP Tax Auditor</h5>
                     <p class="text-muted small mb-0">Non-biodegradable plastic bags taxed at 50,000 VND/kg. Certified biodegradable bags receive 100% green transition exemption.</p>
@@ -203,7 +203,7 @@
 
         <!-- Pillar 4: Chemical EP Tax Calculator -->
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
+            <div class="glass-card h-100">
                 <div class="card-header bg-transparent border-0 pt-4 pb-0">
                     <h5 class="fw-bold mb-1"><i class="bi bi-radioactive text-primary me-2" aria-hidden="true"></i>HCFC Chemical EP Tax Calculator</h5>
                     <p class="text-muted small mb-0">HCFC (Hydrochlorofluorocarbon) chemicals taxed at 5,000 VND/kg to discourage ozone-depleting substances per Montreal Protocol obligations.</p>
@@ -249,7 +249,7 @@
 
         <!-- Swarm Advisory Debate Panel -->
         <div class="col-lg-12">
-            <div class="card shadow-sm border-light">
+            <div class="glass-card">
                 <div class="card-header bg-dark text-white py-3 d-flex align-items-center justify-content-between">
                     <h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-success me-2" aria-hidden="true"></i>Multi-Agent Advisory Board Debate</h5>
                     <span class="badge bg-secondary border border-secondary">Green Transition Consensus</span>
@@ -401,6 +401,103 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Initial load
     loadData();
+
+    // Card entrance animations using IntersectionObserver
+    const cards = document.querySelectorAll('.glass-card');
+    cards.forEach(c => { c.style.opacity = '0'; c.style.transform = 'translateY(20px)'; });
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry, idx) => {
+            if (entry.isIntersecting) {
+                setTimeout(() => {
+                    entry.target.style.transition = 'opacity 0.5s ease, transform 0.5s cubic-bezier(0.16,1,0.3,1)';
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }, idx * 80);
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.05 });
+    cards.forEach(c => observer.observe(c));
 });
 </script>
+
+<style>
+/* Range Inputs / Sliders */
+input[type="range"].form-range {
+    -webkit-appearance: none;
+    width: 100%;
+    background: transparent;
+}
+input[type="range"].form-range:focus {
+    outline: none;
+}
+input[type="range"].form-range::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 6px;
+    cursor: pointer;
+    background: var(--primary-accent-soft) !important;
+    border-radius: 9999px;
+    border: none;
+}
+input[type="range"].form-range::-webkit-slider-thumb {
+    height: 18px;
+    width: 18px;
+    border-radius: 50%;
+    background: var(--primary-accent) !important;
+    cursor: pointer;
+    -webkit-appearance: none;
+    margin-top: -6px;
+    transition: transform 0.1s ease, background-color 0.1s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+input[type="range"].form-range::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+    background: var(--lime-accent) !important;
+}
+/* Firefox */
+input[type="range"].form-range::-moz-range-track {
+    width: 100%;
+    height: 6px;
+    cursor: pointer;
+    background: var(--primary-accent-soft) !important;
+    border-radius: 9999px;
+}
+input[type="range"].form-range::-moz-range-thumb {
+    height: 18px;
+    width: 18px;
+    border-radius: 50%;
+    background: var(--primary-accent) !important;
+    cursor: pointer;
+    border: none;
+    transition: transform 0.1s ease, background-color 0.1s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+input[type="range"].form-range::-moz-range-thumb:hover {
+    transform: scale(1.15);
+    background: var(--lime-accent) !important;
+}
+
+/* Tabs */
+.nav-tabs {
+    border-bottom: 2px solid var(--border-card) !important;
+}
+.nav-tabs .nav-link {
+    border: none !important;
+    background: transparent !important;
+    padding: 0.8rem 1.5rem !important;
+    font-size: 0.95rem !important;
+    color: var(--text-secondary) !important;
+    border-bottom: 3px solid transparent !important;
+    transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.nav-tabs .nav-link:hover {
+    color: var(--primary-accent) !important;
+    border-bottom: 3px solid var(--primary-accent-soft) !important;
+}
+.nav-tabs .nav-link.active {
+    color: var(--primary-accent) !important;
+    border-bottom: 3px solid var(--primary-accent) !important;
+    font-weight: 700 !important;
+}
+</style>
 {% endblock %}
