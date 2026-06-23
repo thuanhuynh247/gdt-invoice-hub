@@ -149,18 +149,18 @@
             <div class="d-flex justify-content-between align-items-center bg-dark bg-opacity-75 border-bottom border-secondary border-opacity-25 px-3 py-2 z-3">
                 <div class="d-flex gap-2">
                     <button class="btn btn-xs btn-outline-info active btn-pill" id="btnTabRadar" onclick="switchRightTab('radar')">
-                        <i class="bi bi-radar me-1"></i>Bản Đồ Radar (Radar Map)
+                        <i class="bi bi-radar me-1" aria-hidden="true"></i>Bản Đồ Radar (Radar Map)
                     </button>
                     <button class="btn btn-xs btn-outline-info btn-pill" id="btnTabSimulator" onclick="switchRightTab('simulator')">
-                        <i class="bi bi-cpu-fill me-1"></i>Mô Phỏng Động Lực (Systems Sim)
+                        <i class="bi bi-cpu-fill me-1" aria-hidden="true"></i>Mô Phỏng Động Lực (Systems Sim)
                     </button>
                     <button class="btn btn-xs btn-outline-info btn-pill" id="btnTabLego" onclick="switchRightTab('lego')">
-                        <i class="bi bi-bricks me-1"></i>Snapping Lego Blocks
+                        <i class="bi bi-bricks me-1" aria-hidden="true"></i>Snapping Lego Blocks
                     </button>
                 </div>
                 <div class="d-flex gap-2 align-items-center">
-                    <span class="badge bg-dark border border-secondary text-light font-monospace small" id="rightTabHud"><i class="bi bi-radar me-1"></i>Radar Layout</span>
-                    <button class="btn btn-xs btn-outline-secondary" id="btnRightResetView" onclick="resetZoom()"><i class="bi bi-arrows-fullscreen"></i> Reset</button>
+                    <span class="badge bg-dark border border-secondary text-light font-monospace small" id="rightTabHud"><i class="bi bi-radar me-1" aria-hidden="true"></i>Radar Layout</span>
+                    <button class="btn btn-xs btn-outline-secondary" id="btnRightResetView" onclick="resetZoom()"><i class="bi bi-arrows-fullscreen" aria-hidden="true"></i> Reset</button>
                 </div>
             </div>
 
@@ -228,14 +228,14 @@
 
             <!-- Tab Content 2: System Dynamics Simulator -->
             <div id="contentTabSimulator" class="p-4 flex-grow-1 overflow-y-auto" style="display: none; background-color: #0c0f0e;">
-                <h5 class="fw-bold text-gradient-primary mb-2 font-outfit"><i class="bi bi-cpu-fill me-2"></i>Bảng điều khiển Động lực học Hệ thống (Systems Simulator)</h5>
+                <h5 class="fw-bold text-gradient-primary mb-2 font-outfit"><i class="bi bi-cpu-fill me-2" aria-hidden="true"></i>Bảng điều khiển Động lực học Hệ thống (Systems Simulator)</h5>
                 <p class="text-secondary small mb-3">Mô phỏng 12 tháng về sự tích lũy rủi ro thuế (Tax Risk Stock) và điểm số tuân thủ (Compliance Stock) dưới tác động của các vòng lặp phản hồi.</p>
                 
                 <div class="row g-3">
                     <!-- Controllers (Left) -->
                     <div class="col-md-5">
                         <div class="bg-dark bg-opacity-50 p-3 rounded border border-secondary border-opacity-10 d-flex flex-column gap-3">
-                            <h6 class="text-info fw-bold mb-1 small uppercase tracking-wider"><i class="bi bi-sliders me-1"></i>Tham Số Vận Hành</h6>
+                            <h6 class="text-info fw-bold mb-1 small uppercase tracking-wider"><i class="bi bi-sliders me-1" aria-hidden="true"></i>Tham Số Vận Hành</h6>
                             
                             <div>
                                 <div class="d-flex justify-content-between align-items-center mb-1">
@@ -265,7 +265,7 @@
                             </div>
                             
                             <button class="btn btn-sm btn-primary-accent w-100 mt-2 btn-pill" onclick="runSystemDynamicsSimulation()">
-                                <i class="bi bi-play-circle-fill me-1"></i> Bắt đầu Mô phỏng 12 Tháng
+                                <i class="bi bi-play-circle-fill me-1" aria-hidden="true"></i> Bắt đầu Mô phỏng 12 Tháng
                             </button>
                         </div>
                     </div>
@@ -273,7 +273,7 @@
                     <!-- Diagram & Plot (Right) -->
                     <div class="col-md-7">
                         <div class="bg-dark bg-opacity-25 rounded border border-secondary border-opacity-10 p-3 h-100 d-flex flex-column gap-3">
-                            <h6 class="text-info fw-bold mb-0 small uppercase tracking-wider"><i class="bi bi-diagram-2 me-1"></i>Sơ đồ Stocks & Flows và Biểu đồ Kết quả</h6>
+                            <h6 class="text-info fw-bold mb-0 small uppercase tracking-wider"><i class="bi bi-diagram-2 me-1" aria-hidden="true"></i>Sơ đồ Stocks & Flows và Biểu đồ Kết quả</h6>
                             
                             <!-- Small Diagram Box -->
                             <div style="height: 120px; background-color: #080a09; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05); overflow: hidden;" class="position-relative">
@@ -318,14 +318,14 @@
 
             <!-- Tab Content 3: Lego Snap Rule Builder -->
             <div id="contentTabLego" class="p-4 flex-grow-1 overflow-y-auto" style="display: none; background-color: #0c0f0e;">
-                <h5 class="fw-bold text-gradient-primary mb-2 font-outfit"><i class="bi bi-bricks me-2"></i>Lego Architecture Assembly Console</h5>
+                <h5 class="fw-bold text-gradient-primary mb-2 font-outfit"><i class="bi bi-bricks me-2" aria-hidden="true"></i>Lego Architecture Assembly Console</h5>
                 <p class="text-secondary small mb-3">Thực hành triết lý LEGO bằng cách tự thiết kế và liên kết (snap) các khối luật thuế với nhau. Tạo ra các luật kết nối và phản hồi tùy chỉnh cho doanh nghiệp.</p>
                 
                 <div class="row g-3">
                     <!-- Link Creator Form -->
                     <div class="col-md-6">
                         <div class="bg-dark bg-opacity-50 p-3 rounded border border-secondary border-opacity-10 d-flex flex-column gap-3">
-                            <h6 class="text-info fw-bold mb-1 small uppercase tracking-wider"><i class="bi bi-plus-circle me-1"></i>Snap Link Mới</h6>
+                            <h6 class="text-info fw-bold mb-1 small uppercase tracking-wider"><i class="bi bi-plus-circle me-1" aria-hidden="true"></i>Snap Link Mới</h6>
                             
                             <div class="row g-2">
                                 <div class="col-6">
@@ -350,11 +350,11 @@
 
                             <div>
                                 <label for="inputLinkLabel" class="form-label small text-secondary">Nhãn liên kết</label>
-                                <input type="text" id="inputLinkLabel" class="form-control custom-input" placeholder="e.g. VAT Audit Offset, CIT feedback...">
+                                <input type="text" id="inputLinkLabel" class="form-control custom-input" placeholder="e.g. VAT Audit Offset, CIT feedback…" autocomplete="off">
                             </div>
                             
                             <button class="btn btn-sm btn-primary-accent w-100 mt-2 btn-pill" onclick="snapLegoLink()">
-                                <i class="bi bi-bricks me-1"></i>Snap LEGO Block Link
+                                <i class="bi bi-bricks me-1" aria-hidden="true"></i>Snap LEGO Block Link
                             </button>
                         </div>
                     </div>
@@ -362,7 +362,7 @@
                     <!-- Managed Custom Links List -->
                     <div class="col-md-6">
                         <div class="bg-dark bg-opacity-25 rounded border border-secondary border-opacity-10 p-3 h-100 d-flex flex-column">
-                            <h6 class="text-info fw-bold mb-2 small uppercase tracking-wider"><i class="bi bi-list-check me-1"></i>Các Khối Liên Kết LEGO</h6>
+                            <h6 class="text-info fw-bold mb-2 small uppercase tracking-wider"><i class="bi bi-list-check me-1" aria-hidden="true"></i>Các Khối Liên Kết LEGO</h6>
                             <div class="flex-grow-1 overflow-y-auto" id="legoLinksList" style="max-height: 220px;">
                                 <div class="text-center text-secondary py-5 small">Chưa có liên kết tùy chỉnh nào được ghép.</div>
                             </div>
