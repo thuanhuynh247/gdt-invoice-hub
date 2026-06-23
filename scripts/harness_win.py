@@ -713,53 +713,348 @@ def cmd_serve(port=8080):
     
     class DashboardHandler(http.server.SimpleHTTPRequestHandler):
         def do_POST(self):
-            if self.path == '/api/sql':
-                content_length = int(self.headers.get('Content-Length', 0))
-                post_data = self.rfile.read(content_length)
-                try:
-                    data = json.loads(post_data.decode('utf-8'))
+            parsed = urlparse(self.path)
+            content_length = int(self.headers.get('Content-Length', 0))
+            post_data = self.rfile.read(content_length)
+            
+            try:
+                data = json.loads(post_data.decode('utf-8')) if post_data else {}
+            except Exception as e:
+                data = {}
+
+            def send_json(response, status=200):
+                self.send_response(status)
+                self.send_header('Content-type', 'application/json; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(json.dumps(response).encode('utf-8'))
+
+            try:
+                if parsed.path == '/api/sql':
                     query = data.get('query', '')
-                    
                     conn = get_db()
                     cursor = conn.cursor()
                     cursor.execute(query)
-                    
                     if query.strip().lower().startswith('select') or query.strip().lower().startswith('pragma'):
                         rows = cursor.fetchall()
                         headers = [desc[0] for desc in cursor.description] if cursor.description else []
                         conn.close()
-                        response = {
+                        send_json({
                             "success": True,
                             "type": "select",
                             "headers": headers,
                             "rows": rows
-                        }
+                        })
                     else:
                         conn.commit()
                         rowcount = cursor.rowcount
                         conn.close()
-                        response = {
+                        send_json({
                             "success": True,
                             "type": "mutation",
                             "rowcount": rowcount
-                        }
+                        })
+                        
+                elif parsed.path == '/api/risk/evaluate':
+                    text = data.get('text', '')
+                    res = evaluate_risk_logic(text)
+                    send_json({"success": True, **res})
+
+                elif parsed.path == '/api/intake/add':
+                    input_type = data.get('input_type', '')
+                    summary = data.get('summary', '')
+                    risk_lane = data.get('risk_lane', '')
+                    risk_flags = data.get('risk_flags', '')
+                    affected_docs = data.get('affected_docs', '')
+                    story_id = data.get('story_id', '')
+                    notes = data.get('notes', '')
                     
-                    self.send_response(200)
-                    self.send_header('Content-type', 'application/json; charset=utf-8')
-                    self.end_headers()
-                    self.wfile.write(json.dumps(response).encode('utf-8'))
-                except Exception as e:
-                    self.send_response(200)
-                    self.send_header('Content-type', 'application/json; charset=utf-8')
-                    self.end_headers()
-                    self.wfile.write(json.dumps({"success": False, "error": str(e)}).encode('utf-8'))
-            else:
-                self.send_error(404, 'Not Found')
+                    conn = get_db()
+                    cursor = conn.cursor()
+                    cursor.execute(
+                        '''INSERT INTO intake (input_type, summary, risk_lane, risk_flags, affected_docs, story_id, notes) 
+                           VALUES (?, ?, ?, ?, ?, ?, ?)''',
+                        (input_type, summary, risk_lane, risk_flags, affected_docs, story_id, notes)
+                    )
+                    conn.commit()
+                    new_id = cursor.lastrowid
+                    conn.close()
+                    send_json({"success": True, "id": new_id})
+
+                elif parsed.path == '/api/story/add':
+                    story_id = data.get('id', '')
+                    title = data.get('title', '')
+                    risk_lane = data.get('risk_lane', 'normal')
+                    status = data.get('status', 'proposed')
+                    contract_doc = data.get('contract_doc', '')
+                    unit_proof = data.get('unit_proof', '')
+                    integration_proof = data.get('integration_proof', '')
+                    e2e_proof = data.get('e2e_proof', '')
+                    platform_proof = data.get('platform_proof', '')
+                    notes = data.get('notes', '')
+                    
+                    conn = get_db()
+                    cursor = conn.cursor()
+                    cursor.execute(
+                        '''INSERT INTO story (id, title, risk_lane, status, contract_doc, unit_proof, integration_proof, e2e_proof, platform_proof, notes) 
+                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                        (story_id, title, risk_lane, status, contract_doc, unit_proof, integration_proof, e2e_proof, platform_proof, notes)
+                    )
+                    conn.commit()
+                    conn.close()
+                    send_json({"success": True})
+
+                elif parsed.path == '/api/story/update':
+                    story_id = data.get('id', '')
+                    title = data.get('title', '')
+                    status = data.get('status', '')
+                    risk_lane = data.get('risk_lane', '')
+                    evidence = data.get('evidence', '')
+                    contract_doc = data.get('contract_doc', '')
+                    unit_proof = data.get('unit_proof', '')
+                    integration_proof = data.get('integration_proof', '')
+                    e2e_proof = data.get('e2e_proof', '')
+                    platform_proof = data.get('platform_proof', '')
+                    notes = data.get('notes', '')
+                    
+                    conn = get_db()
+                    cursor = conn.cursor()
+                    cursor.execute(
+                        '''UPDATE story 
+                           SET title=?, status=?, risk_lane=?, evidence=?, contract_doc=?, unit_proof=?, integration_proof=?, e2e_proof=?, platform_proof=?, notes=? 
+                           WHERE id=?''',
+                        (title, status, risk_lane, evidence, contract_doc, unit_proof, integration_proof, e2e_proof, platform_proof, notes, story_id)
+                    )
+                    conn.commit()
+                    conn.close()
+                    send_json({"success": True})
+
+                elif parsed.path == '/api/decision/add':
+                    decision_id = data.get('id', '')
+                    title = data.get('title', '')
+                    status = data.get('status', 'proposed')
+                    notes = data.get('notes', '')
+                    doc_path = data.get('doc_path', '')
+                    verify_command = data.get('verify_command', '')
+                    
+                    conn = get_db()
+                    cursor = conn.cursor()
+                    cursor.execute(
+                        '''INSERT INTO decision (id, title, status, notes, doc_path, verify_command) 
+                           VALUES (?, ?, ?, ?, ?, ?)''',
+                        (decision_id, title, status, notes, doc_path, verify_command)
+                    )
+                    conn.commit()
+                    conn.close()
+                    send_json({"success": True})
+
+                elif parsed.path == '/api/decision/update':
+                    decision_id = data.get('id', '')
+                    title = data.get('title', '')
+                    status = data.get('status', '')
+                    notes = data.get('notes', '')
+                    doc_path = data.get('doc_path', '')
+                    verify_command = data.get('verify_command', '')
+                    
+                    conn = get_db()
+                    cursor = conn.cursor()
+                    cursor.execute(
+                        '''UPDATE decision 
+                           SET title=?, status=?, notes=?, doc_path=?, verify_command=? 
+                           WHERE id=?''',
+                        (title, status, notes, doc_path, verify_command, decision_id)
+                    )
+                    conn.commit()
+                    conn.close()
+                    send_json({"success": True})
+
+                elif parsed.path == '/api/decision/verify':
+                    decision_id = data.get('id', '')
+                    
+                    conn = get_db()
+                    cursor = conn.cursor()
+                    cursor.execute("SELECT verify_command FROM decision WHERE id=?", (decision_id,))
+                    row = cursor.fetchone()
+                    if not row or not row[0]:
+                        conn.close()
+                        send_json({"success": False, "error": "No verify command configured for this decision."})
+                        return
+                    
+                    cmd = row[0]
+                    import subprocess
+                    from datetime import datetime
+                    
+                    try:
+                        proc = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, timeout=30)
+                        outcome = 'pass' if proc.returncode == 0 else 'fail'
+                        output = proc.stdout
+                    except subprocess.TimeoutExpired as te:
+                        outcome = 'fail'
+                        output = f"Timeout expired: {te.stdout or ''}"
+                    except Exception as ex:
+                        outcome = 'fail'
+                        output = str(ex)
+                        
+                    cursor.execute(
+                        "UPDATE decision SET last_verified_at=?, last_verified_result=? WHERE id=?",
+                        (datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'), outcome, decision_id)
+                    )
+                    conn.commit()
+                    conn.close()
+                    
+                    send_json({"success": True, "outcome": outcome, "console_output": output})
+
+                elif parsed.path == '/api/backlog/add':
+                    title = data.get('title', '')
+                    status = data.get('status', 'open')
+                    suggested_improvement = data.get('suggested_improvement', '')
+                    current_pain = data.get('current_pain', '')
+                    discovered_while = data.get('discovered_while', '')
+                    risk = data.get('risk', 'normal')
+                    notes = data.get('notes', '')
+                    
+                    conn = get_db()
+                    cursor = conn.cursor()
+                    cursor.execute(
+                        '''INSERT INTO backlog (title, status, suggested_improvement, current_pain, discovered_while, risk, notes) 
+                           VALUES (?, ?, ?, ?, ?, ?, ?)''',
+                        (title, status, suggested_improvement, current_pain, discovered_while, risk, notes)
+                    )
+                    conn.commit()
+                    conn.close()
+                    send_json({"success": True})
+
+                elif parsed.path == '/api/backlog/close':
+                    backlog_id = data.get('id', '')
+                    actual_outcome = data.get('actual_outcome', '')
+                    notes = data.get('notes', '')
+                    
+                    conn = get_db()
+                    cursor = conn.cursor()
+                    cursor.execute(
+                        '''UPDATE backlog 
+                           SET status='closed', actual_outcome=?, notes=? 
+                           WHERE id=?''',
+                        (actual_outcome, notes, backlog_id)
+                    )
+                    conn.commit()
+                    conn.close()
+                    send_json({"success": True})
+
+                elif parsed.path == '/api/reservations/reserve':
+                    agent = data.get('agent', '')
+                    bead = data.get('bead', '')
+                    paths = data.get('paths', [])
+                    ttl = data.get('ttl', None)
+                    note = data.get('note', '')
+                    
+                    cmd = ['node', '.codex/khuym_reservations.mjs', 'reserve', '--json']
+                    if agent:
+                        cmd.extend(['--agent', agent])
+                    if bead:
+                        cmd.extend(['--bead', bead])
+                    for p in paths:
+                        cmd.extend(['--path', p])
+                    if ttl is not None:
+                        cmd.extend(['--ttl', str(ttl)])
+                    if note:
+                        cmd.extend(['--note', note])
+                        
+                    import subprocess
+                    proc = subprocess.run(cmd, capture_output=True, text=True)
+                    if proc.returncode == 0:
+                        try:
+                            res_json = json.loads(proc.stdout)
+                            send_json({"success": True, **res_json})
+                        except Exception as e:
+                            send_json({"success": False, "error": f"Failed to parse node output: {proc.stdout}"})
+                    else:
+                        send_json({"success": False, "error": proc.stderr or proc.stdout})
+
+                elif parsed.path == '/api/reservations/release':
+                    id_val = data.get('id', '')
+                    agent = data.get('agent', '')
+                    bead = data.get('bead', '')
+                    paths = data.get('paths', [])
+                    
+                    cmd = ['node', '.codex/khuym_reservations.mjs', 'release', '--json']
+                    if id_val:
+                        cmd.extend(['--id', id_val])
+                    if agent:
+                        cmd.extend(['--agent', agent])
+                    if bead:
+                        cmd.extend(['--bead', bead])
+                    for p in paths:
+                        cmd.extend(['--path', p])
+                        
+                    import subprocess
+                    proc = subprocess.run(cmd, capture_output=True, text=True)
+                    if proc.returncode == 0:
+                        try:
+                            res_json = json.loads(proc.stdout)
+                            send_json({"success": True, **res_json})
+                        except Exception as e:
+                            send_json({"success": False, "error": f"Failed to parse node output: {proc.stdout}"})
+                    else:
+                        send_json({"success": False, "error": proc.stderr or proc.stdout})
+
+                elif parsed.path == '/api/validate/run':
+                    validate_script = os.path.join("scripts", "validate.bat")
+                    if not os.path.exists(validate_script):
+                        send_json({"success": False, "error": "scripts/validate.bat not found"})
+                    else:
+                        env = os.environ.copy()
+                        env["DISABLE_COVERAGE"] = "1"
+                        import subprocess
+                        try:
+                            proc = subprocess.run(
+                                [validate_script], 
+                                shell=True, 
+                                stdout=subprocess.PIPE, 
+                                stderr=subprocess.STDOUT, 
+                                text=True, 
+                                env=env,
+                                timeout=120
+                            )
+                            send_json({
+                                "success": True, 
+                                "returncode": proc.returncode, 
+                                "output": proc.stdout
+                            })
+                        except subprocess.TimeoutExpired as te:
+                            send_json({
+                                "success": False, 
+                                "error": "Timeout expired", 
+                                "output": te.stdout or "Test validation timed out after 120 seconds."
+                            })
+                        except Exception as e:
+                            send_json({"success": False, "error": str(e)})
+
+                else:
+                    self.send_error(404, 'Not Found')
+            except Exception as e:
+                send_json({"success": False, "error": str(e)})
 
         def do_GET(self):
             parsed = urlparse(self.path)
             
-            if parsed.path == '/api/data':
+            if parsed.path == '/api/reservations':
+                import subprocess
+                cmd = ['node', '.codex/khuym_reservations.mjs', 'list', '--json']
+                proc = subprocess.run(cmd, capture_output=True, text=True)
+                if proc.returncode == 0:
+                    try:
+                        res_json = json.loads(proc.stdout)
+                        self.send_response(200)
+                        self.send_header('Content-type', 'application/json; charset=utf-8')
+                        self.end_headers()
+                        self.wfile.write(json.dumps({"success": True, "data": res_json}).encode('utf-8'))
+                    except Exception as e:
+                        self.send_error(500, f"Error parsing reservation output: {e}")
+                else:
+                    self.send_error(500, f"Error listing reservations: {proc.stderr or proc.stdout}")
+                return
+
+            elif parsed.path == '/api/data':
                 self.send_response(200)
                 self.send_header('Content-type', 'application/json; charset=utf-8')
                 self.end_headers()
@@ -778,7 +1073,7 @@ def cmd_serve(port=8080):
                 # Stories
                 stories = []
                 try:
-                    cursor.execute('SELECT id, title, status, risk_lane, COALESCE(evidence, ""), COALESCE(contract_doc, "") FROM story ORDER BY id')
+                    cursor.execute('SELECT id, title, status, risk_lane, COALESCE(evidence, ""), COALESCE(contract_doc, ""), COALESCE(unit_proof, ""), COALESCE(integration_proof, ""), COALESCE(e2e_proof, ""), COALESCE(platform_proof, ""), COALESCE(notes, "") FROM story ORDER BY id')
                     for row in cursor.fetchall():
                         stories.append({
                             "id": row[0],
@@ -786,7 +1081,12 @@ def cmd_serve(port=8080):
                             "status": row[2],
                             "risk_lane": row[3],
                             "evidence": row[4],
-                            "contract_doc": row[5]
+                            "contract_doc": row[5],
+                            "unit_proof": row[6],
+                            "integration_proof": row[7],
+                            "e2e_proof": row[8],
+                            "platform_proof": row[9],
+                            "notes": row[10]
                         })
                 except Exception:
                     pass
@@ -794,14 +1094,17 @@ def cmd_serve(port=8080):
                 # Decisions
                 decisions = []
                 try:
-                    cursor.execute('SELECT id, title, status, COALESCE(notes, ""), COALESCE(doc_path, "") FROM decision ORDER BY id')
+                    cursor.execute('SELECT id, title, status, COALESCE(notes, ""), COALESCE(doc_path, ""), COALESCE(verify_command, ""), COALESCE(last_verified_at, ""), COALESCE(last_verified_result, "") FROM decision ORDER BY id')
                     for row in cursor.fetchall():
                         decisions.append({
                             "id": row[0],
                             "title": row[1],
                             "status": row[2],
                             "notes": row[3],
-                            "doc_path": row[4]
+                            "doc_path": row[4],
+                            "verify_command": row[5],
+                            "last_verified_at": row[6],
+                            "last_verified_result": row[7]
                         })
                 except Exception:
                     pass
@@ -827,7 +1130,7 @@ def cmd_serve(port=8080):
                 # Backlog
                 backlogs = []
                 try:
-                    cursor.execute('SELECT id, title, status, COALESCE(suggested_improvement, ""), COALESCE(current_pain, ""), COALESCE(discovered_while, "") FROM backlog ORDER BY id')
+                    cursor.execute('SELECT id, title, status, COALESCE(suggested_improvement, ""), COALESCE(current_pain, ""), COALESCE(discovered_while, ""), COALESCE(risk, ""), COALESCE(notes, ""), COALESCE(actual_outcome, "") FROM backlog ORDER BY id')
                     for row in cursor.fetchall():
                         backlogs.append({
                             "id": row[0],
@@ -835,7 +1138,29 @@ def cmd_serve(port=8080):
                             "status": row[2],
                             "suggestion": row[3],
                             "pain": row[4],
-                            "discovered_while": row[5]
+                            "discovered_while": row[5],
+                            "risk": row[6],
+                            "notes": row[7],
+                            "actual_outcome": row[8]
+                        })
+                except Exception:
+                    pass
+
+                # Intakes
+                intakes = []
+                try:
+                    cursor.execute('SELECT id, created_at, input_type, risk_lane, summary, COALESCE(risk_flags, ""), COALESCE(affected_docs, ""), COALESCE(story_id, ""), COALESCE(notes, "") FROM intake ORDER BY id DESC LIMIT 50')
+                    for row in cursor.fetchall():
+                        intakes.append({
+                            "id": row[0],
+                            "created_at": row[1],
+                            "input_type": row[2],
+                            "risk_lane": row[3],
+                            "summary": row[4],
+                            "risk_flags": row[5],
+                            "affected_docs": row[6],
+                            "story_id": row[7],
+                            "notes": row[8]
                         })
                 except Exception:
                     pass
@@ -847,7 +1172,8 @@ def cmd_serve(port=8080):
                     "stories": stories,
                     "decisions": decisions,
                     "traces": traces,
-                    "backlogs": backlogs
+                    "backlogs": backlogs,
+                    "intakes": intakes
                 }
                 self.wfile.write(json.dumps(data).encode('utf-8'))
                 
@@ -1142,22 +1468,22 @@ def cmd_serve(port=8080):
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Harness Advanced Dashboard v3.2</title>
+    <title>Harness Advanced Dashboard v3.3</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-primary: #090d16;
-            --bg-secondary: rgba(17, 24, 39, 0.7);
+            --bg-primary: #080c14;
+            --bg-secondary: rgba(15, 23, 42, 0.65);
             --border-glow: rgba(99, 102, 241, 0.2);
             --border-subtle: rgba(255, 255, 255, 0.08);
             --text-primary: #f8fafc;
             --text-secondary: #94a3b8;
             --primary: #6366f1;
-            --primary-glow: rgba(99, 102, 241, 0.5);
+            --primary-glow: rgba(99, 102, 241, 0.4);
             --success: #10b981;
             --warning: #f59e0b;
             --danger: #ef4444;
-            --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+            --card-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.6);
         }
         
         * {
@@ -1172,8 +1498,8 @@ def cmd_serve(port=8080):
             color: var(--text-primary);
             min-height: 100vh;
             overflow-x: hidden;
-            background-image: radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.07) 0%, transparent 40%),
-                              radial-gradient(circle at 90% 80%, rgba(168, 85, 247, 0.07) 0%, transparent 40%);
+            background-image: radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.08) 0%, transparent 40%),
+                              radial-gradient(circle at 90% 80%, rgba(168, 85, 247, 0.08) 0%, transparent 40%);
         }
         
         .app-container {
@@ -1250,7 +1576,7 @@ def cmd_serve(port=8080):
         
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 20px;
             margin-bottom: 40px;
         }
@@ -1291,7 +1617,7 @@ def cmd_serve(port=8080):
         }
         
         .stat-card h3 {
-            font-size: 14px;
+            font-size: 13px;
             text-transform: uppercase;
             letter-spacing: 0.05em;
             color: var(--text-secondary);
@@ -1300,7 +1626,7 @@ def cmd_serve(port=8080):
         }
         
         .stat-card .value {
-            font-size: 36px;
+            font-size: 32px;
             font-weight: 700;
             color: #fff;
         }
@@ -1459,6 +1785,7 @@ def cmd_serve(port=8080):
         .badge-completed { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.25); }
         .badge-implemented { background: rgba(6, 182, 212, 0.15); color: #22d3ee; border: 1px solid rgba(6, 182, 212, 0.25); }
         .badge-open { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.25); }
+        .badge-closed { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.25); }
         .badge-new { background: rgba(148, 163, 184, 0.15); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.25); }
         .badge-proposed { background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.25); }
         
@@ -1599,6 +1926,39 @@ def cmd_serve(port=8080):
             pointer-events: auto;
         }
 
+        .drawer input, .drawer textarea, .drawer select {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-subtle);
+            color: #fff;
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 13px;
+            outline: none;
+            width: 100%;
+            transition: all 0.3s ease;
+            margin-bottom: 12px;
+        }
+        
+        .drawer input:focus, .drawer textarea:focus, .drawer select:focus {
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .drawer label {
+            display: block;
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .drawer-btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 15px;
+        }
+
         /* SQL Console Tab Styles */
         .console-grid {
             display: grid;
@@ -1685,6 +2045,16 @@ def cmd_serve(port=8080):
             background: rgba(255, 255, 255, 0.1);
             border-color: var(--primary);
         }
+        
+        .alert-box {
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        .alert-success { background: rgba(16, 185, 129, 0.1); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.2); }
+        .alert-error { background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.2); }
     </style>
 </head>
 <body>
@@ -1694,7 +2064,7 @@ def cmd_serve(port=8080):
                 <div class="logo-glow"></div>
                 <div>
                     <h1>Harness Core</h1>
-                    <span class="version-badge">Agent Dashboard v3.2</span>
+                    <span class="version-badge">Agent Dashboard v3.3</span>
                 </div>
             </div>
             <button class="btn-refresh" onclick="reloadData()">
@@ -1703,6 +2073,10 @@ def cmd_serve(port=8080):
         </header>
         
         <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Intakes</h3>
+                <div class="value" id="stat-intakes">-</div>
+            </div>
             <div class="stat-card">
                 <h3>Stories</h3>
                 <div class="value" id="stat-stories">-</div>
@@ -1722,23 +2096,32 @@ def cmd_serve(port=8080):
         </div>
         
         <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('stories')">Stories Matrix</button>
-            <button class="tab-btn" onclick="switchTab('decisions')">Architecture Decisions</button>
-            <button class="tab-btn" onclick="switchTab('backlogs')">Task Backlog</button>
-            <button class="tab-btn" onclick="switchTab('traces')">Execution Traces</button>
-            <button class="tab-btn" onclick="switchTab('graph')">Interactive Risk Graph</button>
-            <button class="tab-btn" onclick="switchTab('codegraph')">CodeGraph Explorer</button>
-            <button class="tab-btn" onclick="switchTab('console')">SQL Sandbox Console</button>
+            <button class="tab-btn active" data-tab="intakes" onclick="switchTab('intakes')">Intakes & Risk</button>
+            <button class="tab-btn" data-tab="stories" onclick="switchTab('stories')">Stories Matrix</button>
+            <button class="tab-btn" data-tab="decisions" onclick="switchTab('decisions')">Architecture Decisions</button>
+            <button class="tab-btn" data-tab="backlogs" onclick="switchTab('backlogs')">Task Backlog</button>
+            <button class="tab-btn" data-tab="traces" onclick="switchTab('traces')">Execution Traces</button>
+            <button class="tab-btn" data-tab="graph" onclick="switchTab('graph')">Interactive Risk Graph</button>
+            <button class="tab-btn" data-tab="codegraph" onclick="switchTab('codegraph')">CodeGraph Explorer</button>
+            <button class="tab-btn" data-tab="console" onclick="switchTab('console')">SQL Sandbox Console</button>
+            <button class="tab-btn" data-tab="reservations" onclick="switchTab('reservations')">File Reservations</button>
+            <button class="tab-btn" data-tab="validation" onclick="switchTab('validation')">Validation Suite</button>
         </div>
         
         <div class="controls-row" id="controls-panel">
             <div class="search-wrapper">
                 <input type="text" id="search-bar" class="search-input" placeholder="Search entries..." oninput="filterData()">
             </div>
-            <div id="filter-wrapper">
-                <select id="status-filter" class="filter-select" onchange="filterData()">
-                    <option value="all">All Statuses</option>
-                </select>
+            <div style="display:flex; gap:10px; align-items:center;">
+                <div id="filter-wrapper">
+                    <select id="status-filter" class="filter-select" onchange="filterData()">
+                        <option value="all">All Statuses / Lanes</option>
+                    </select>
+                </div>
+                
+                <button id="add-btn-stories" class="btn-refresh" style="background:var(--primary); color:white; border:none; display:none;" onclick="openAddDrawer('story')">➕ Add Story</button>
+                <button id="add-btn-decisions" class="btn-refresh" style="background:var(--primary); color:white; border:none; display:none;" onclick="openAddDrawer('decision')">➕ Add Decision</button>
+                <button id="add-btn-backlogs" class="btn-refresh" style="background:var(--primary); color:white; border:none; display:none;" onclick="openAddDrawer('backlog')">➕ Add Backlog</button>
             </div>
         </div>
         
@@ -1756,25 +2139,24 @@ def cmd_serve(port=8080):
             <button class="drawer-close" onclick="closeDrawer()">&times;</button>
         </div>
         
-        <div class="drawer-section" id="drawer-meta"></div>
+        <div id="drawer-alert" class="alert-box"></div>
         
-        <div class="drawer-section" id="drawer-description">
-            <h4>Description</h4>
-            <p style="line-height: 1.6; font-size: 15px;" id="drawer-desc-content"></p>
+        <div id="drawer-body">
+            <!-- Rendered dynamically -->
         </div>
-        
-        <div class="drawer-section" id="drawer-detail-list"></div>
     </div>
     
     <script>
-        let appData = { stats: {}, stories: [], decisions: [], traces: [], backlogs: [] };
-        let activeTab = 'stories';
+        let appData = { stats: {}, stories: [], decisions: [], traces: [], backlogs: [], intakes: [] };
+        let activeTab = 'intakes';
+        let currentEvalResult = null;
         
         async function reloadData() {
             try {
                 const response = await fetch('/api/data');
                 appData = await response.json();
                 
+                document.getElementById('stat-intakes').textContent = appData.stats.intake || 0;
                 document.getElementById('stat-stories').textContent = appData.stats.story || 0;
                 document.getElementById('stat-decisions').textContent = appData.stats.decision || 0;
                 document.getElementById('stat-backlogs').textContent = appData.stats.backlog || 0;
@@ -1787,28 +2169,45 @@ def cmd_serve(port=8080):
         function switchTab(tabName) {
             activeTab = tabName;
             document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.textContent.toLowerCase().includes(tabName.substring(0, 4)));
+                btn.classList.toggle('active', btn.getAttribute('data-tab') === tabName);
             });
             
             const controls = document.getElementById('controls-panel');
-            if (tabName === 'graph' || tabName === 'console' || tabName === 'codegraph') {
+            
+            const btnStories = document.getElementById('add-btn-stories');
+            const btnDecisions = document.getElementById('add-btn-decisions');
+            const btnBacklogs = document.getElementById('add-btn-backlogs');
+            
+            if (tabName === 'graph' || tabName === 'console' || tabName === 'codegraph' || tabName === 'reservations' || tabName === 'validation') {
                 controls.style.display = 'none';
             } else {
                 controls.style.display = 'flex';
                 setupFilters();
+                
+                btnStories.style.display = tabName === 'stories' ? 'block' : 'none';
+                btnDecisions.style.display = tabName === 'decisions' ? 'block' : 'none';
+                btnBacklogs.style.display = tabName === 'backlogs' ? 'block' : 'none';
             }
             renderActiveTab();
         }
         
         function setupFilters() {
             const select = document.getElementById('status-filter');
-            select.innerHTML = '<option value="all">All Statuses</option>';
-            let statuses = new Set();
-            if (activeTab === 'stories') appData.stories.forEach(s => statuses.add(s.status));
-            else if (activeTab === 'decisions') appData.decisions.forEach(d => statuses.add(d.status));
-            else if (activeTab === 'backlogs') appData.backlogs.forEach(b => statuses.add(b.status));
-            else if (activeTab === 'traces') appData.traces.forEach(t => statuses.add(t.outcome));
-            statuses.forEach(s => { if(s) { const opt = document.createElement('option'); opt.value = s; opt.textContent = s; select.appendChild(opt); } });
+            select.innerHTML = '<option value="all">All Statuses / Lanes</option>';
+            let items = new Set();
+            if (activeTab === 'stories') appData.stories.forEach(s => items.add(s.status));
+            else if (activeTab === 'decisions') appData.decisions.forEach(d => items.add(d.status));
+            else if (activeTab === 'backlogs') appData.backlogs.forEach(b => items.add(b.status));
+            else if (activeTab === 'traces') appData.traces.forEach(t => items.add(t.outcome));
+            else if (activeTab === 'intakes') appData.intakes.forEach(i => items.add(i.risk_lane));
+            items.forEach(s => {
+                if(s) {
+                    const opt = document.createElement('option');
+                    opt.value = s;
+                    opt.textContent = s.toUpperCase().replace('_', ' ');
+                    select.appendChild(opt);
+                }
+            });
         }
         
         function filterData() { renderActiveTab(); }
@@ -1818,33 +2217,150 @@ def cmd_serve(port=8080):
             const statusFilter = document.getElementById('status-filter').value;
             const container = document.getElementById('main-panel');
             
-            if (activeTab === 'stories') {
-                let filtered = appData.stories.filter(s => (s.id.toLowerCase().includes(query) || s.title.toLowerCase().includes(query)) && (statusFilter === 'all' || s.status === statusFilter));
-                let html = `<table><thead><tr><th>ID</th><th>Title</th><th>Lane</th><th>Status</th></tr></thead><tbody>`;
-                filtered.forEach(s => {
-                    html += `<tr onclick="openStoryDrawer('${s.id}')"><td>${s.id}</td><td>${escapeHtml(s.title)}</td><td><span class="badge badge-${s.risk_lane}">${s.risk_lane}</span></td><td><span class="badge badge-${s.status}">${s.status}</span></td></tr>`;
+            if (activeTab === 'intakes') {
+                let filtered = appData.intakes.filter(i => (i.summary.toLowerCase().includes(query) || i.input_type.toLowerCase().includes(query)) && (statusFilter === 'all' || i.risk_lane === statusFilter));
+                let html = `
+                <div style="display: grid; grid-template-columns: 400px 1fr; gap: 30px; min-height: 600px;">
+                    <!-- Spec Risk Form -->
+                    <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 25px; display: flex; flex-direction: column; gap: 15px; height: fit-content;">
+                        <h3 style="font-size: 16px; color: #a5b4fc; font-weight: 600;">Spec Risk Estimator</h3>
+                        <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.4;">Paste your user story or technical spec here to estimate its risk lane and find triggers.</p>
+                        
+                        <div>
+                            <textarea id="risk-spec-input" class="sql-textarea" style="height: 100px; padding: 10px; border: 1px solid var(--border-subtle); border-radius: 6px; background: rgba(0,0,0,0.2);" placeholder="E.g. We need to implement a new login flow using JWT tokens, modify the user database schema, and notify an external GDT api..."></textarea>
+                        </div>
+                        <button class="btn-run" style="width:100%;" onclick="estimateSpecRisk()">⚡ Evaluate Spec</button>
+                        
+                        <div id="risk-eval-results" style="display:none; border-top:1px solid var(--border-subtle); padding-top:15px; margin-top:5px; flex-direction:column; gap:12px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <span style="font-size:13px; font-weight:500;">Suggested Lane:</span>
+                                <span id="eval-lane-badge" class="badge">NORMAL</span>
+                            </div>
+                            <div>
+                                <span style="font-size:13px; font-weight:500; display:block; margin-bottom:5px;">Triggered Checklist Items:</span>
+                                <div id="eval-flags-list" style="display:flex; flex-wrap:wrap; gap:5px;"></div>
+                            </div>
+                            
+                            <div style="border-top: 1px dashed var(--border-subtle); padding-top:12px; margin-top:5px; display:flex; flex-direction:column; gap:10px;">
+                                <h4 style="font-size:13px; color:#a5b4fc;">Record as New Intake</h4>
+                                <div>
+                                    <label style="display:block; font-size:11px; color:var(--text-secondary); margin-bottom:3px;">Intake Input Type</label>
+                                    <select id="intake-add-type" style="padding: 8px 12px; font-size:12px; background: #0f172a; border: 1px solid var(--border-subtle); color:#fff; border-radius:6px; width:100%;">
+                                        <option value="new_spec">New Spec</option>
+                                        <option value="spec_slice">Spec Slice</option>
+                                        <option value="change_request">Change Request</option>
+                                        <option value="new_initiative">New Initiative</option>
+                                        <option value="maintenance">Maintenance</option>
+                                        <option value="harness_improvement">Harness Improvement</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="display:block; font-size:11px; color:var(--text-secondary); margin-bottom:3px;">Affected Documents</label>
+                                    <input type="text" id="intake-add-docs" style="padding: 8px 12px; font-size:12px; background:rgba(255,255,255,0.03); border:1px solid var(--border-subtle); color:#fff; border-radius:6px; width:100%;" placeholder="docs/specs/auth.md">
+                                </div>
+                                <div>
+                                    <label style="display:block; font-size:11px; color:var(--text-secondary); margin-bottom:3px;">Story ID mapping (optional)</label>
+                                    <input type="text" id="intake-add-story" style="padding: 8px 12px; font-size:12px; background:rgba(255,255,255,0.03); border:1px solid var(--border-subtle); color:#fff; border-radius:6px; width:100%;" placeholder="ST-101">
+                                </div>
+                                <div>
+                                    <label style="display:block; font-size:11px; color:var(--text-secondary); margin-bottom:3px;">Notes (optional)</label>
+                                    <textarea id="intake-add-notes" class="sql-textarea" style="height: 50px; font-size:12px; padding: 6px; border: 1px solid var(--border-subtle); border-radius: 6px; background: rgba(0,0,0,0.2);" placeholder="Context notes..."></textarea>
+                                </div>
+                                <button class="btn-run" style="background:#10b981; width:100%;" onclick="submitCreatedIntake()">➕ Record Intake</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Intake Grid -->
+                    <div style="overflow-x: auto;">
+                        <table style="width:100%;">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Created At</th>
+                                    <th>Type</th>
+                                    <th>Lane</th>
+                                    <th>Summary</th>
+                                </tr>
+                            </thead>
+                            <tbody>`;
+                
+                filtered.forEach(i => {
+                    html += `
+                                <tr onclick="openIntakeDrawer(${i.id})">
+                                    <td>#${i.id}</td>
+                                    <td style="font-size:12px; color:var(--text-secondary); white-space:nowrap;">${escapeHtml(i.created_at)}</td>
+                                    <td><span class="badge badge-tiny">${i.input_type}</span></td>
+                                    <td><span class="badge badge-${i.risk_lane}">${i.risk_lane}</span></td>
+                                    <td style="max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(i.summary)}</td>
+                                </tr>`;
                 });
+                
+                if (filtered.length === 0) {
+                    html += `<tr><td colspan="5" style="text-align:center; color:var(--text-secondary); padding:40px;">No intakes recorded matching query.</td></tr>`;
+                }
+                
+                container.innerHTML = html + `
+                            </tbody>
+                        </table>
+                    </div>
+                </div>`;
+            } else if (activeTab === 'stories') {
+                let filtered = appData.stories.filter(s => (s.id.toLowerCase().includes(query) || s.title.toLowerCase().includes(query)) && (statusFilter === 'all' || s.status === statusFilter));
+                let html = `<table><thead><tr><th>ID</th><th>Title</th><th>Lane</th><th>Status</th><th>Proofs</th></tr></thead><tbody>`;
+                filtered.forEach(s => {
+                    let proofs = [];
+                    if(s.unit_proof) proofs.push('Unit');
+                    if(s.integration_proof) proofs.push('Intg');
+                    if(s.e2e_proof) proofs.push('E2E');
+                    if(s.platform_proof) proofs.push('Pltf');
+                    let proofsStr = proofs.length ? proofs.map(p => `<span class="badge badge-passed" style="font-size:9px; padding:1px 5px; margin-right:2px;">${p}</span>`).join('') : '<span style="font-size:11px; color:var(--text-secondary);">None</span>';
+                    
+                    html += `<tr onclick="openStoryDrawer('${s.id}')"><td>${s.id}</td><td>${escapeHtml(s.title)}</td><td><span class="badge badge-${s.risk_lane}">${s.risk_lane}</span></td><td><span class="badge badge-${s.status}">${s.status}</span></td><td>${proofsStr}</td></tr>`;
+                });
+                if (filtered.length === 0) {
+                    html += `<tr><td colspan="5" style="text-align:center; color:var(--text-secondary); padding:40px;">No stories found matching query.</td></tr>`;
+                }
                 container.innerHTML = html + '</tbody></table>';
             } else if (activeTab === 'decisions') {
                 let filtered = appData.decisions.filter(d => (d.id.toLowerCase().includes(query) || d.title.toLowerCase().includes(query)) && (statusFilter === 'all' || d.status === statusFilter));
-                let html = `<table><thead><tr><th>ID</th><th>Title</th><th>Status</th></tr></thead><tbody>`;
+                let html = `<table><thead><tr><th>ID</th><th>Title</th><th>Status</th><th>Verification</th></tr></thead><tbody>`;
                 filtered.forEach(d => {
-                    html += `<tr onclick="openDecisionDrawer('${d.id}')"><td>${d.id}</td><td>${escapeHtml(d.title)}</td><td><span class="badge badge-${d.status}">${d.status}</span></td></tr>`;
+                    let verifyStatus = '<span style="font-size:11px; color:var(--text-secondary);">Not set</span>';
+                    if (d.verify_command) {
+                        if (d.last_verified_result === 'pass') {
+                            verifyStatus = `<span class="badge badge-passed" style="font-size:9px; padding:1px 5px;">PASSED</span>`;
+                        } else if (d.last_verified_result === 'fail') {
+                            verifyStatus = `<span class="badge badge-failed" style="font-size:9px; padding:1px 5px;">FAILED</span>`;
+                        } else {
+                            verifyStatus = `<span class="badge badge-warn" style="font-size:9px; padding:1px 5px;">PENDING</span>`;
+                        }
+                    }
+                    html += `<tr onclick="openDecisionDrawer('${d.id}')"><td>${d.id}</td><td>${escapeHtml(d.title)}</td><td><span class="badge badge-${d.status}">${d.status}</span></td><td>${verifyStatus}</td></tr>`;
                 });
+                if (filtered.length === 0) {
+                    html += `<tr><td colspan="4" style="text-align:center; color:var(--text-secondary); padding:40px;">No decisions found matching query.</td></tr>`;
+                }
                 container.innerHTML = html + '</tbody></table>';
             } else if (activeTab === 'backlogs') {
                 let filtered = appData.backlogs.filter(b => (b.title.toLowerCase().includes(query) || b.pain.toLowerCase().includes(query)) && (statusFilter === 'all' || b.status === statusFilter));
-                let html = `<table><thead><tr><th>ID</th><th>Title</th><th>Status</th></tr></thead><tbody>`;
+                let html = `<table><thead><tr><th>ID</th><th>Title</th><th>Risk</th><th>Status</th></tr></thead><tbody>`;
                 filtered.forEach(b => {
-                    html += `<tr onclick="openBacklogDrawer('${b.id}')"><td>#${b.id}</td><td>${escapeHtml(b.title)}</td><td><span class="badge badge-${b.status}">${b.status}</span></td></tr>`;
+                    html += `<tr onclick="openBacklogDrawer('${b.id}')"><td>#${b.id}</td><td>${escapeHtml(b.title)}</td><td><span class="badge badge-${b.risk || 'normal'}">${b.risk || 'normal'}</span></td><td><span class="badge badge-${b.status}">${b.status}</span></td></tr>`;
                 });
+                if (filtered.length === 0) {
+                    html += `<tr><td colspan="4" style="text-align:center; color:var(--text-secondary); padding:40px;">No backlog items found matching query.</td></tr>`;
+                }
                 container.innerHTML = html + '</tbody></table>';
             } else if (activeTab === 'traces') {
                 let filtered = appData.traces.filter(t => (t.task_summary.toLowerCase().includes(query) || t.agent.toLowerCase().includes(query)) && (statusFilter === 'all' || t.outcome === statusFilter));
-                let html = `<table><thead><tr><th>ID</th><th>Summary</th><th>Outcome</th></tr></thead><tbody>`;
+                let html = `<table><thead><tr><th>ID</th><th>Created At</th><th>Summary</th><th>Agent</th><th>Outcome</th></tr></thead><tbody>`;
                 filtered.forEach(t => {
-                    html += `<tr onclick="openTraceDrawer('${t.id}')"><td>#${t.id}</td><td>${escapeHtml(t.task_summary)}</td><td><span class="badge badge-${t.outcome}">${t.outcome}</span></td></tr>`;
+                    html += `<tr onclick="openTraceDrawer('${t.id}')"><td>#${t.id}</td><td style="font-size:12px; color:var(--text-secondary); white-space:nowrap;">${escapeHtml(t.created_at)}</td><td>${escapeHtml(t.task_summary)}</td><td><code style="color:#a5b4fc; font-size:12px;">${escapeHtml(t.agent)}</code></td><td><span class="badge badge-${t.outcome === 'completed' ? 'success' : t.outcome === 'blocked' ? 'warn' : 'failed'}">${t.outcome}</span></td></tr>`;
                 });
+                if (filtered.length === 0) {
+                    html += `<tr><td colspan="5" style="text-align:center; color:var(--text-secondary); padding:40px;">No traces found matching query.</td></tr>`;
+                }
                 container.innerHTML = html + '</tbody></table>';
             } else if (activeTab === 'graph') {
                 renderRiskGraph(container);
@@ -1852,7 +2368,301 @@ def cmd_serve(port=8080):
                 renderConsole(container);
             } else if (activeTab === 'codegraph') {
                 renderCodeGraph(container);
+            } else if (activeTab === 'reservations') {
+                container.innerHTML = `
+                <div style="display: grid; grid-template-columns: 400px 1fr; gap: 30px; min-height: 600px;">
+                    <!-- Create Reservation Form -->
+                    <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 25px; display: flex; flex-direction: column; gap: 15px; height: fit-content;">
+                        <h3 style="font-size: 16px; color: #a5b4fc; font-weight: 600;">Reserve File Paths</h3>
+                        <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.4;">Acquire exclusive locks on files or globs to prevent other agents from editing them concurrently.</p>
+                        
+                        <div>
+                            <label style="display:block; font-size:11px; color:var(--text-secondary); margin-bottom:3px;">Agent Name</label>
+                            <input type="text" id="res-agent" value="Antigravity" style="padding: 8px 12px; font-size:12px; background:rgba(255,255,255,0.03); border:1px solid var(--border-subtle); color:#fff; border-radius:6px; width:100%;">
+                        </div>
+                        <div>
+                            <label style="display:block; font-size:11px; color:var(--text-secondary); margin-bottom:3px;">Task / Bead ID</label>
+                            <input type="text" id="res-bead" style="padding: 8px 12px; font-size:12px; background:rgba(255,255,255,0.03); border:1px solid var(--border-subtle); color:#fff; border-radius:6px; width:100%;" placeholder="e.g. ST-101">
+                        </div>
+                        <div>
+                            <label style="display:block; font-size:11px; color:var(--text-secondary); margin-bottom:3px;">File Paths / Globs (one per line)</label>
+                            <textarea id="res-paths" style="height: 80px; padding: 10px; border: 1px solid var(--border-subtle); border-radius: 6px; background: rgba(0,0,0,0.2); font-family: monospace; font-size:12px; width:100%; color:#fff; outline:none;" placeholder="e.g.&#10;src/components/Auth.js&#10;src/utils/*.js"></textarea>
+                        </div>
+                        <div>
+                            <label style="display:block; font-size:11px; color:var(--text-secondary); margin-bottom:3px;">TTL (Seconds)</label>
+                            <input type="number" id="res-ttl" value="3600" style="padding: 8px 12px; font-size:12px; background:rgba(255,255,255,0.03); border:1px solid var(--border-subtle); color:#fff; border-radius:6px; width:100%;">
+                        </div>
+                        <div>
+                            <label style="display:block; font-size:11px; color:var(--text-secondary); margin-bottom:3px;">Reason / Notes</label>
+                            <textarea id="res-note" style="height: 50px; padding: 10px; border: 1px solid var(--border-subtle); border-radius: 6px; background: rgba(0,0,0,0.2); font-size:12px; width:100%; color:#fff; outline:none;" placeholder="e.g. Editing auth forms"></textarea>
+                        </div>
+                        <button class="btn-run" style="width:100%; background: var(--primary);" onclick="createReservation()">⚡ Acquire Lock</button>
+                    </div>
+                    
+                    <!-- Reservations Grid -->
+                    <div id="reservations-list-container" style="overflow-x: auto;">
+                        <!-- Rendered by loadReservations() -->
+                    </div>
+                </div>`;
+                loadReservations();
+            } else if (activeTab === 'validation') {
+                container.innerHTML = `
+                <div style="display: flex; flex-direction: column; gap: 20px; min-height: 600px;">
+                    <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 25px; display: flex; flex-direction: column; gap: 15px;">
+                        <h3 style="font-size: 16px; color: #a5b4fc; font-weight: 600;">Validation Test Suite</h3>
+                        <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.4;">
+                            Execute the automated quality gate validation suite (runs <code>scripts/validate.bat</code> in non-interactive mode). 
+                            This verifies all stories, databases, files, and rules constraints.
+                        </p>
+                        <div>
+                            <button class="btn-run" style="background:#10b981; color:white; border:none; padding:10px 20px; border-radius:6px; font-weight:600; cursor:pointer;" onclick="runValidationSuite()">⚡ Execute Validation Suite</button>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-panel" style="flex: 1; display: flex; flex-direction: column; padding: 20px;">
+                        <h4 style="font-size: 13px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px;">Console Output</h4>
+                        <div id="validation-console" style="flex: 1; background: #030712; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 15px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #10b981; min-height: 400px; max-height: 600px; overflow-y: auto; white-space: pre-wrap;">Console idle... Click run to execute.</div>
+                    </div>
+                </div>`;
             }
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        function showNotification(message, isError = false) {
+            const toast = document.createElement('div');
+            toast.style.position = 'fixed';
+            toast.style.bottom = '20px';
+            toast.style.right = '20px';
+            toast.style.background = isError ? 'rgba(239, 68, 68, 0.95)' : 'rgba(16, 185, 129, 0.95)';
+            toast.style.color = '#fff';
+            toast.style.padding = '12px 24px';
+            toast.style.borderRadius = '8px';
+            toast.style.boxShadow = '0 10px 25px rgba(0,0,0,0.5)';
+            toast.style.zIndex = '9999';
+            toast.style.fontFamily = 'inherit';
+            toast.style.fontSize = '14px';
+            toast.style.fontWeight = '500';
+            toast.style.backdropFilter = 'blur(10px)';
+            toast.style.border = '1px solid rgba(255,255,255,0.1)';
+            toast.style.transition = 'all 0.3s ease';
+            toast.textContent = message;
+            
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(10px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        async function loadReservations() {
+            const container = document.getElementById('reservations-list-container');
+            if (container) {
+                container.innerHTML = '<div style="color: var(--text-secondary);">Loading reservations...</div>';
+            }
+            try {
+                const response = await fetch('/api/reservations');
+                const result = await response.json();
+                if (result.success && container) {
+                    const data = result.data;
+                    const list = data.reservations || [];
+                    let html = `
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Status</th>
+                                    <th>Agent</th>
+                                    <th>Bead ID</th>
+                                    <th>Paths</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>`;
+                    
+                    list.forEach(r => {
+                        const pathsBadges = r.paths.map(p => `<code style="background: rgba(255, 255, 255, 0.05); padding: 2px 4px; border-radius: 4px; font-size: 12px; margin-right: 4px;">${escapeHtml(p)}</code>`).join(' ');
+                        const statusBadge = `<span class="badge badge-${r.status === 'active' ? 'implemented' : 'closed'}">${r.status}</span>`;
+                        html += `
+                            <tr>
+                                <td style="font-family: monospace; font-size: 12px;">${escapeHtml(r.id.substring(0, 8))}...</td>
+                                <td>${statusBadge}</td>
+                                <td><code style="color: #a5b4fc;">${escapeHtml(r.agent)}</code></td>
+                                <td>${escapeHtml(r.bead_id || '-')}</td>
+                                <td>${pathsBadges}</td>
+                                <td>
+                                    ${r.status === 'active' ? `<button class="btn-refresh" style="font-size:11px; padding: 4px 8px;" onclick="releaseReservation('${r.id}')">🔓 Release</button>` : '-'}
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    
+                    if (list.length === 0) {
+                        html += `<tr><td colspan="6" style="text-align:center; color:var(--text-secondary); padding:40px;">No reservations found.</td></tr>`;
+                    }
+                    
+                    container.innerHTML = html + `</tbody></table>`;
+                } else if (container) {
+                    container.innerHTML = `<div class="error-callout">Error: ${result.error}</div>`;
+                }
+            } catch (err) {
+                if (container) {
+                    container.innerHTML = `<div class="error-callout">Error: ${err.message}</div>`;
+                }
+            }
+        }
+
+        async function createReservation() {
+            const agent = document.getElementById('res-agent').value;
+            const bead = document.getElementById('res-bead').value;
+            const pathsInput = document.getElementById('res-paths').value;
+            const ttl = document.getElementById('res-ttl').value;
+            const note = document.getElementById('res-note').value;
+            
+            if (!agent || !pathsInput) {
+                showNotification("Agent Name and Paths are required!", true);
+                return;
+            }
+            
+            const paths = pathsInput.split('\\n').map(p => p.trim()).filter(p => p.length > 0);
+            
+            try {
+                const response = await fetch('/api/reservations/reserve', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ agent, bead, paths, ttl: ttl ? parseInt(ttl) : null, note })
+                });
+                const res = await response.json();
+                if (res.success) {
+                    showNotification("Reservation acquired successfully!");
+                    loadReservations();
+                    document.getElementById('res-paths').value = '';
+                    document.getElementById('res-note').value = '';
+                } else {
+                    showNotification("Error: " + (res.error || "Conflict detected"), true);
+                }
+            } catch (e) {
+                showNotification(e.message, true);
+            }
+        }
+
+        async function releaseReservation(id) {
+            try {
+                const response = await fetch('/api/reservations/release', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id })
+                });
+                const res = await response.json();
+                if (res.success) {
+                    showNotification("Reservation released successfully!");
+                    loadReservations();
+                } else {
+                    showNotification("Error: " + res.error, true);
+                }
+            } catch (e) {
+                showNotification(e.message, true);
+            }
+        }
+
+        async function runValidationSuite() {
+            const consoleBox = document.getElementById('validation-console');
+            consoleBox.innerHTML = 'Executing validation suite (scripts/validate.bat)... Please wait.\\n\\n';
+            consoleBox.style.color = '#38bdf8';
+            
+            try {
+                const response = await fetch('/api/validate/run', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const res = await response.json();
+                if (res.success) {
+                    consoleBox.style.color = res.returncode === 0 ? '#34d399' : '#f87171';
+                    consoleBox.innerHTML = `Exit Code: ${res.returncode}\n\n${escapeHtml(res.output)}`;
+                    if (res.returncode === 0) {
+                        showNotification("Validation suite passed!");
+                    } else {
+                        showNotification("Validation suite failed!", true);
+                    }
+                } else {
+                    consoleBox.style.color = '#f87171';
+                    consoleBox.innerHTML = `Error: ${escapeHtml(res.error)}\n\n${escapeHtml(res.output || '')}`;
+                    showNotification("Validation error: " + res.error, true);
+                }
+            } catch (e) {
+                consoleBox.style.color = '#f87171';
+                consoleBox.innerHTML = `HTTP Error: ${escapeHtml(e.message)}`;
+                showNotification("HTTP Error: " + e.message, true);
+            }
+        }
+        
+        async function estimateSpecRisk() {
+            const specText = document.getElementById('risk-spec-input').value;
+            if (!specText.trim()) return;
+            
+            try {
+                const response = await fetch('/api/risk/evaluate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: specText })
+                });
+                const res = await response.json();
+                if (res.success) {
+                    currentEvalResult = res;
+                    const resultsPanel = document.getElementById('risk-eval-results');
+                    resultsPanel.style.display = 'flex';
+                    
+                    const badge = document.getElementById('eval-lane-badge');
+                    badge.textContent = res.suggested_lane.toUpperCase();
+                    badge.className = `badge badge-${res.suggested_lane}`;
+                    
+                    const flagsDiv = document.getElementById('eval-flags-list');
+                    flagsDiv.innerHTML = '';
+                    if (res.flags_found.length === 0) {
+                        flagsDiv.innerHTML = '<span style="font-size:11px; color:var(--text-secondary);">No flags triggered.</span>';
+                    } else {
+                        res.flags_found.forEach(flg => {
+                            flagsDiv.innerHTML += `<span class="badge badge-tiny">${flg}</span>`;
+                        });
+                    }
+                }
+            } catch (err) { console.error(err); }
+        }
+        
+        async function submitCreatedIntake() {
+            if (!currentEvalResult) return;
+            const specText = document.getElementById('risk-spec-input').value;
+            const inputType = document.getElementById('intake-add-type').value;
+            const docs = document.getElementById('intake-add-docs').value;
+            const story = document.getElementById('intake-add-story').value;
+            const notes = document.getElementById('intake-add-notes').value;
+            
+            try {
+                const response = await fetch('/api/intake/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        input_type: inputType,
+                        summary: specText.substring(0, 150) + (specText.length > 150 ? '...' : ''),
+                        risk_lane: currentEvalResult.suggested_lane,
+                        risk_flags: JSON.stringify(currentEvalResult.flags_found),
+                        affected_docs: docs,
+                        story_id: story,
+                        notes: notes
+                    })
+                });
+                const res = await response.json();
+                if (res.success) {
+                    document.getElementById('risk-spec-input').value = '';
+                    document.getElementById('risk-eval-results').style.display = 'none';
+                    currentEvalResult = null;
+                    reloadData();
+                }
+            } catch (err) { console.error(err); }
         }
         
         function renderRiskGraph(container) {
@@ -2150,8 +2960,24 @@ def cmd_serve(port=8080):
             }
         }
         
-        function openDrawer() { document.getElementById('drawer').classList.add('open'); document.getElementById('drawer-overlay').classList.add('open'); }
-        function closeDrawer() { document.getElementById('drawer').classList.remove('open'); document.getElementById('drawer-overlay').classList.remove('open'); }
+        function openDrawer() {
+            document.getElementById('drawer-alert').style.display = 'none';
+            document.getElementById('drawer').classList.add('open');
+            document.getElementById('drawer-overlay').classList.add('open');
+        }
+        
+        function closeDrawer() {
+            document.getElementById('drawer').classList.remove('open');
+            document.getElementById('drawer-overlay').classList.remove('open');
+        }
+        
+        function showNotification(msg, isError=false) {
+            const alert = document.getElementById('drawer-alert');
+            alert.textContent = msg;
+            alert.className = isError ? 'alert-box alert-error' : 'alert-box alert-success';
+            alert.style.display = 'block';
+            setTimeout(() => { alert.style.display = 'none'; }, 5000);
+        }
         
         async function fetchAndRenderFile(filePath, container) {
             const res = await fetch(`/api/file?path=${encodeURIComponent(filePath)}`);
@@ -2163,36 +2989,674 @@ def cmd_serve(port=8080):
             return md.replace(/^# (.*$)/gim, '<h1>$1</h1>').replace(/\\*\\*(.*?)\\*\\*/g, '<strong>$1</strong>');
         }
         
+        // ── DRAWER CONTENT RENDERERS ──────────────────────────────────────
+        
+        function openIntakeDrawer(id) {
+            const intake = appData.intakes.find(i => i.id === id);
+            if (!intake) return;
+            
+            document.getElementById('drawer-title').textContent = `Intake #${intake.id}`;
+            document.getElementById('drawer-subtitle').textContent = `Created at: ${intake.created_at}`;
+            
+            let flags = [];
+            try { flags = JSON.parse(intake.risk_flags); } catch(e) {}
+            let flagsStr = flags.map(flg => `<span class="badge badge-tiny" style="margin-right:4px;">${flg}</span>`).join('');
+            
+            document.getElementById('drawer-body').innerHTML = `
+                <div class="drawer-section">
+                    <h4>Risk Assessment</h4>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                        <span>Suggested Lane:</span>
+                        <span class="badge badge-${intake.risk_lane}">${intake.risk_lane}</span>
+                    </div>
+                    <div>
+                        <span style="font-size:12px; color:var(--text-secondary); display:block; margin-bottom:5px;">Triggered Checklist Flags:</span>
+                        <div>${flagsStr || 'None'}</div>
+                    </div>
+                </div>
+                
+                <div class="drawer-section">
+                    <h4>Spec Summary</h4>
+                    <p style="line-height:1.6; font-size:14px; font-family:'JetBrains Mono', monospace; background:rgba(0,0,0,0.2); padding:12px; border-radius:6px;">${escapeHtml(intake.summary)}</p>
+                </div>
+                
+                <div class="drawer-section">
+                    <h4>Impacted Documents</h4>
+                    <p style="font-size:14px;">${escapeHtml(intake.affected_docs || 'None')}</p>
+                </div>
+                
+                <div class="drawer-section">
+                    <h4>Details & Context</h4>
+                    <label>Mapping to Story ID</label>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="intake-story-map" value="${escapeHtml(intake.story_id)}" style="margin-bottom:0;" placeholder="ST-101">
+                        <button class="btn-run" style="background:#10b981; padding:8px 15px; font-size:12px;" onclick="updateIntakeStoryMap(${intake.id})">Link</button>
+                    </div>
+                    <label style="margin-top:15px;">Notes</label>
+                    <textarea id="intake-notes" style="height:60px;">${escapeHtml(intake.notes || '')}</textarea>
+                    <button class="btn-run" style="width:100%; margin-top:10px;" onclick="updateIntakeNotes(${intake.id})">Update Notes</button>
+                </div>
+            `;
+            openDrawer();
+        }
+        
+        async function updateIntakeStoryMap(id) {
+            const storyId = document.getElementById('intake-story-map').value;
+            const res = await fetch('/api/sql', {
+                method: 'POST',
+                body: JSON.stringify({ query: `UPDATE intake SET story_id='${storyId.replace(/'/g, "''")}' WHERE id=${id}` })
+            });
+            const data = await res.json();
+            if (data.success) { showNotification("Intake story mapping updated!"); reloadData(); }
+            else { showNotification("Failed: " + data.error, true); }
+        }
+        
+        async function updateIntakeNotes(id) {
+            const notes = document.getElementById('intake-notes').value;
+            const res = await fetch('/api/sql', {
+                method: 'POST',
+                body: JSON.stringify({ query: `UPDATE intake SET notes='${notes.replace(/'/g, "''")}' WHERE id=${id}` })
+            });
+            const data = await res.json();
+            if (data.success) { showNotification("Intake notes updated!"); reloadData(); }
+            else { showNotification("Failed: " + data.error, true); }
+        }
+
         function openStoryDrawer(id) {
             const story = appData.stories.find(s => s.id === id);
+            if (!story) return;
+            
             document.getElementById('drawer-title').textContent = story.id;
-            document.getElementById('drawer-meta').innerHTML = `<span class="badge badge-${story.status}">${story.status}</span>`;
-            document.getElementById('drawer-desc-content').textContent = story.title;
-            document.getElementById('drawer-detail-list').innerHTML = story.contract_doc ? `<button class="doc-view-btn" onclick="fetchAndRenderFile('${escapeHtml(story.contract_doc)}', document.getElementById('markdown-doc-renderer'))">📄 View Doc</button><div id="markdown-doc-renderer"></div>` : '';
+            document.getElementById('drawer-subtitle').textContent = `Status: ${story.status}`;
+            
+            let filesHtml = story.contract_doc ? `<button class="doc-view-btn" onclick="fetchAndRenderFile('${escapeHtml(story.contract_doc)}', document.getElementById('story-markdown-renderer'))">📄 Read Spec File</button>` : '<span style="color:var(--text-secondary); font-size:13px;">No contract document linked.</span>';
+            
+            document.getElementById('drawer-body').innerHTML = `
+                <div class="drawer-section">
+                    <h4>Story Specifications</h4>
+                    <p style="font-size:15px; font-weight:500; line-height:1.4; margin-bottom:12px;">${escapeHtml(story.title)}</p>
+                    <div style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:10px;">
+                        <span class="badge badge-${story.risk_lane}">${story.risk_lane}</span>
+                        <span class="badge badge-${story.status}">${story.status}</span>
+                    </div>
+                </div>
+                
+                <div class="drawer-section">
+                    <h4>Verification Proofs</h4>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;">
+                        <div><span style="font-size:11px; color:var(--text-secondary);">Unit Proof:</span><br><span style="font-size:12px; font-family:monospace; word-break:break-all;">${escapeHtml(story.unit_proof || 'None')}</span></div>
+                        <div><span style="font-size:11px; color:var(--text-secondary);">Integration Proof:</span><br><span style="font-size:12px; font-family:monospace; word-break:break-all;">${escapeHtml(story.integration_proof || 'None')}</span></div>
+                        <div><span style="font-size:11px; color:var(--text-secondary);">E2E Proof:</span><br><span style="font-size:12px; font-family:monospace; word-break:break-all;">${escapeHtml(story.e2e_proof || 'None')}</span></div>
+                        <div><span style="font-size:11px; color:var(--text-secondary);">Platform Proof:</span><br><span style="font-size:12px; font-family:monospace; word-break:break-all;">${escapeHtml(story.platform_proof || 'None')}</span></div>
+                    </div>
+                </div>
+                
+                <div class="drawer-section">
+                    <h4>Contract Document & Evidence</h4>
+                    <div style="margin-bottom:10px;">${filesHtml}</div>
+                    <div id="story-markdown-renderer" style="max-height:200px; overflow-y:auto; font-size:13px; border-radius:6px; background:rgba(0,0,0,0.15); padding:10px;"></div>
+                    <label style="margin-top:12px;">Evidence Log</label>
+                    <pre style="max-height:100px;">${escapeHtml(story.evidence || 'No evidence recorded.')}</pre>
+                </div>
+                
+                <div class="drawer-section">
+                    <button class="btn-run" style="width:100%; margin-bottom:10px;" onclick="renderStoryEditForm('${story.id}')">✏️ Edit Story Details</button>
+                </div>
+            `;
             openDrawer();
         }
         
+        function renderStoryEditForm(id) {
+            const story = appData.stories.find(s => s.id === id);
+            document.getElementById('drawer-title').textContent = `Edit Story ${story.id}`;
+            
+            document.getElementById('drawer-body').innerHTML = `
+                <div class="drawer-section">
+                    <label>Title / Specification</label>
+                    <input type="text" id="edit-story-title" value="${escapeHtml(story.title)}">
+                    
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+                        <div>
+                            <label>Risk Lane</label>
+                            <select id="edit-story-lane">
+                                <option value="tiny" ${story.risk_lane === 'tiny' ? 'selected' : ''}>Tiny</option>
+                                <option value="normal" ${story.risk_lane === 'normal' ? 'selected' : ''}>Normal</option>
+                                <option value="high_risk" ${story.risk_lane === 'high_risk' ? 'selected' : ''}>High Risk</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Status</label>
+                            <select id="edit-story-status">
+                                <option value="proposed" ${story.status === 'proposed' ? 'selected' : ''}>Proposed</option>
+                                <option value="implemented" ${story.status === 'implemented' ? 'selected' : ''}>Implemented</option>
+                                <option value="reviewed" ${story.status === 'reviewed' ? 'selected' : ''}>Reviewed</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <label>Contract Doc Path</label>
+                    <input type="text" id="edit-story-contract" value="${escapeHtml(story.contract_doc || '')}">
+                    
+                    <label>Unit Test Proof Path</label>
+                    <input type="text" id="edit-story-unit" value="${escapeHtml(story.unit_proof || '')}">
+                    
+                    <label>Integration Test Proof Path</label>
+                    <input type="text" id="edit-story-integration" value="${escapeHtml(story.integration_proof || '')}">
+                    
+                    <label>E2E Test Proof Path</label>
+                    <input type="text" id="edit-story-e2e" value="${escapeHtml(story.e2e_proof || '')}">
+                    
+                    <label>Platform / Sandbox Proof Path</label>
+                    <input type="text" id="edit-story-platform" value="${escapeHtml(story.platform_proof || '')}">
+                    
+                    <label>Evidence Log Output</label>
+                    <textarea id="edit-story-evidence" style="height:65px;">${escapeHtml(story.evidence || '')}</textarea>
+                    
+                    <label>Notes</label>
+                    <textarea id="edit-story-notes" style="height:65px;">${escapeHtml(story.notes || '')}</textarea>
+                    
+                    <div class="drawer-btn-group">
+                        <button class="btn-run" style="background:#10b981; flex:1;" onclick="submitStoryUpdate('${story.id}')">Save Changes</button>
+                        <button class="btn-run" style="background:rgba(255,255,255,0.05); border:1px solid var(--border-subtle); color:#fff;" onclick="openStoryDrawer('${story.id}')">Cancel</button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        async function submitStoryUpdate(id) {
+            const payload = {
+                id: id,
+                title: document.getElementById('edit-story-title').value,
+                risk_lane: document.getElementById('edit-story-lane').value,
+                status: document.getElementById('edit-story-status').value,
+                contract_doc: document.getElementById('edit-story-contract').value,
+                unit_proof: document.getElementById('edit-story-unit').value,
+                integration_proof: document.getElementById('edit-story-integration').value,
+                e2e_proof: document.getElementById('edit-story-e2e').value,
+                platform_proof: document.getElementById('edit-story-platform').value,
+                evidence: document.getElementById('edit-story-evidence').value,
+                notes: document.getElementById('edit-story-notes').value
+            };
+            
+            try {
+                const response = await fetch('/api/story/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const res = await response.json();
+                if(res.success) { showNotification("Story updated successfully!"); reloadData(); openStoryDrawer(id); }
+                else { showNotification("Error: " + res.error, true); }
+            } catch(e) { showNotification(e.message, true); }
+        }
+
         function openDecisionDrawer(id) {
             const dec = appData.decisions.find(d => d.id === id);
-            document.getElementById('drawer-title').textContent = dec.title;
-            document.getElementById('drawer-detail-list').innerHTML = dec.doc_path ? `<button class="doc-view-btn" onclick="fetchAndRenderFile('${escapeHtml(dec.doc_path)}', document.getElementById('markdown-adr-renderer'))">📄 Load ADR</button><div id="markdown-adr-renderer"></div>` : '';
+            if (!dec) return;
+            
+            document.getElementById('drawer-title').textContent = dec.id;
+            document.getElementById('drawer-subtitle').textContent = `Decision: ${dec.title}`;
+            
+            let verifyStr = '';
+            if (dec.verify_command) {
+                let badgeClass = dec.last_verified_result === 'pass' ? 'badge-passed' : dec.last_verified_result === 'fail' ? 'badge-failed' : 'badge-warn';
+                verifyStr = `
+                    <div style="background:rgba(0,0,0,0.25); border:1px solid var(--border-subtle); border-radius:8px; padding:15px; margin-top:10px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                            <span style="font-size:13px; font-weight:500;">Verification status:</span>
+                            <span class="badge ${badgeClass}">${dec.last_verified_result || 'PENDING'}</span>
+                        </div>
+                        <code style="display:block; font-size:12px; color:#38bdf8; background:rgba(0,0,0,0.4); padding:8px; border-radius:4px; margin-bottom:10px;">${escapeHtml(dec.verify_command)}</code>
+                        <button class="btn-run" style="width:100%;" id="btn-run-verify" onclick="triggerDecisionVerification('${dec.id}')">⚡ Execute Verify Command</button>
+                        <div id="verify-console-output" style="margin-top:12px; display:none;">
+                            <label>Console Output</label>
+                            <pre style="max-height:200px; font-size:11px; padding:8px; overflow:auto;"></pre>
+                        </div>
+                    </div>
+                `;
+            } else {
+                verifyStr = '<span style="color:var(--text-secondary); font-size:13px;">No verification command configured.</span>';
+            }
+            
+            let filesHtml = dec.doc_path ? `<button class="doc-view-btn" onclick="fetchAndRenderFile('${escapeHtml(dec.doc_path)}', document.getElementById('adr-markdown-renderer'))">📄 Read ADR Markdown</button>` : '<span style="color:var(--text-secondary); font-size:13px;">No ADR document path mapped.</span>';
+            
+            document.getElementById('drawer-body').innerHTML = `
+                <div class="drawer-section">
+                    <h4>Metadata</h4>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                        <span>Status:</span>
+                        <span class="badge badge-${dec.status}">${dec.status}</span>
+                    </div>
+                    <label>Notes</label>
+                    <p style="font-size:14px; line-height:1.5; color:var(--text-secondary);">${escapeHtml(dec.notes || 'None')}</p>
+                </div>
+                
+                <div class="drawer-section">
+                    <h4>Decision Record Documents</h4>
+                    <div style="margin-bottom:10px;">${filesHtml}</div>
+                    <div id="adr-markdown-renderer" style="max-height:200px; overflow-y:auto; font-size:13px; border-radius:6px; background:rgba(0,0,0,0.15); padding:10px;"></div>
+                </div>
+                
+                <div class="drawer-section">
+                    <h4>Automation Verification</h4>
+                    ${verifyStr}
+                </div>
+                
+                <div class="drawer-section">
+                    <button class="btn-run" style="width:100%; margin-bottom:10px;" onclick="renderDecisionEditForm('${dec.id}')">✏️ Edit Decision Config</button>
+                </div>
+            `;
             openDrawer();
         }
         
+        async function triggerDecisionVerification(id) {
+            const btn = document.getElementById('btn-run-verify');
+            const consolePanel = document.getElementById('verify-console-output');
+            const pre = consolePanel.querySelector('pre');
+            
+            btn.disabled = true;
+            btn.textContent = 'Executing...';
+            consolePanel.style.display = 'block';
+            pre.textContent = 'Running test execution command in sandbox...';
+            
+            try {
+                const response = await fetch('/api/decision/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id })
+                });
+                const res = await response.json();
+                if(res.success) {
+                    pre.textContent = res.console_output;
+                    showNotification("Decision verified: " + res.outcome.toUpperCase());
+                    reloadData();
+                } else {
+                    pre.textContent = "Error: " + res.error;
+                    showNotification("Verification failed", true);
+                }
+            } catch(e) { pre.textContent = e.message; }
+            btn.disabled = false;
+            btn.textContent = '⚡ Execute Verify Command';
+        }
+        
+        function renderDecisionEditForm(id) {
+            const dec = appData.decisions.find(d => d.id === id);
+            document.getElementById('drawer-title').textContent = `Edit Decision ${dec.id}`;
+            
+            document.getElementById('drawer-body').innerHTML = `
+                <div class="drawer-section">
+                    <label>Title / Objective</label>
+                    <input type="text" id="edit-dec-title" value="${escapeHtml(dec.title)}">
+                    
+                    <label>Status</label>
+                    <select id="edit-dec-status">
+                        <option value="proposed" ${dec.status === 'proposed' ? 'selected' : ''}>Proposed</option>
+                        <option value="accepted" ${dec.status === 'accepted' ? 'selected' : ''}>Accepted</option>
+                        <option value="rejected" ${dec.status === 'rejected' ? 'selected' : ''}>Rejected</option>
+                        <option value="superseded" ${dec.status === 'superseded' ? 'selected' : ''}>Superseded</option>
+                    </select>
+                    
+                    <label>Document Path (ADR markdown)</label>
+                    <input type="text" id="edit-dec-doc" value="${escapeHtml(dec.doc_path || '')}">
+                    
+                    <label>Verification Command</label>
+                    <input type="text" id="edit-dec-cmd" value="${escapeHtml(dec.verify_command || '')}" placeholder="E.g. pytest tests/test_auth.py">
+                    
+                    <label>Notes</label>
+                    <textarea id="edit-dec-notes" style="height:80px;">${escapeHtml(dec.notes || '')}</textarea>
+                    
+                    <div class="drawer-btn-group">
+                        <button class="btn-run" style="background:#10b981; flex:1;" onclick="submitDecisionUpdate('${dec.id}')">Save Config</button>
+                        <button class="btn-run" style="background:rgba(255,255,255,0.05); border:1px solid var(--border-subtle); color:#fff;" onclick="openDecisionDrawer('${dec.id}')">Cancel</button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        async function submitDecisionUpdate(id) {
+            const payload = {
+                id,
+                title: document.getElementById('edit-dec-title').value,
+                status: document.getElementById('edit-dec-status').value,
+                doc_path: document.getElementById('edit-dec-doc').value,
+                verify_command: document.getElementById('edit-dec-cmd').value,
+                notes: document.getElementById('edit-dec-notes').value
+            };
+            try {
+                const response = await fetch('/api/decision/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const res = await response.json();
+                if(res.success) { showNotification("Decision updated!"); reloadData(); openDecisionDrawer(id); }
+                else { showNotification("Error: " + res.error, true); }
+            } catch(e) { showNotification(e.message, true); }
+        }
+
         function openBacklogDrawer(id) {
             const b = appData.backlogs.find(x => x.id == id);
-            document.getElementById('drawer-title').textContent = b.title;
+            if (!b) return;
+            
+            document.getElementById('drawer-title').textContent = `Backlog #${b.id}`;
+            document.getElementById('drawer-subtitle').textContent = b.title;
+            
+            let actionPanel = '';
+            if (b.status === 'open') {
+                actionPanel = `
+                    <div class="drawer-section" style="background:rgba(239, 68, 68, 0.03); border:1px solid rgba(239, 68, 68, 0.1); border-radius:8px; padding:15px; margin-top:10px;">
+                        <h4 style="color:#f87171;">Close Backlog Item</h4>
+                        <label>Actual Outcome / Solution</label>
+                        <textarea id="backlog-close-outcome" style="height:60px;" placeholder="Describe how the improvement was implemented..."></textarea>
+                        <label>Additional Notes</label>
+                        <textarea id="backlog-close-notes" style="height:50px;" placeholder="Refactor lessons..."></textarea>
+                        <button class="btn-run" style="background:#ef4444; width:100%; margin-top:8px;" onclick="closeBacklogItem(${b.id})">❌ Close Task</button>
+                    </div>
+                `;
+            } else {
+                actionPanel = `
+                    <div class="drawer-section">
+                        <h4>Resolution Details</h4>
+                        <label>Actual Outcome</label>
+                        <p style="font-size:14px; font-style:italic; line-height:1.5; color:var(--success);">${escapeHtml(b.actual_outcome || 'No outcome documented.')}</p>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('drawer-body').innerHTML = `
+                <div class="drawer-section">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                        <span class="badge badge-${b.risk}">${b.risk} risk</span>
+                        <span class="badge badge-${b.status}">${b.status}</span>
+                    </div>
+                    <label>Current Friction Pain</label>
+                    <p style="font-size:14px; line-height:1.5; margin-bottom:12px;">${escapeHtml(b.pain || 'None')}</p>
+                    
+                    <label>Suggested Solution</label>
+                    <p style="font-size:14px; line-height:1.5; margin-bottom:12px;">${escapeHtml(b.suggestion || 'None')}</p>
+                    
+                    <label>Discovered While</label>
+                    <p style="font-size:13px; font-family:monospace; color:var(--text-secondary);">${escapeHtml(b.discovered_while || 'Not specified')}</p>
+                </div>
+                
+                <div class="drawer-section">
+                    <label>Notes</label>
+                    <p style="font-size:13px; color:var(--text-secondary); line-height:1.5;">${escapeHtml(b.notes || 'None')}</p>
+                </div>
+                
+                ${actionPanel}
+            `;
             openDrawer();
         }
         
+        async function closeBacklogItem(id) {
+            const outcome = document.getElementById('backlog-close-outcome').value;
+            const notes = document.getElementById('backlog-close-notes').value;
+            
+            try {
+                const response = await fetch('/api/backlog/close', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, actual_outcome: outcome, notes })
+                });
+                const res = await response.json();
+                if(res.success) { showNotification("Backlog closed successfully!"); reloadData(); closeDrawer(); }
+                else { showNotification("Failed: " + res.error, true); }
+            } catch(e) { showNotification(e.message, true); }
+        }
+
         function openTraceDrawer(id) {
             const t = appData.traces.find(x => x.id == id);
+            if (!t) return;
+            
             document.getElementById('drawer-title').textContent = `Trace #${t.id}`;
-            document.getElementById('drawer-desc-content').textContent = t.task_summary;
+            document.getElementById('drawer-subtitle').innerHTML = `Executed: ${t.created_at}`;
+            
+            let filesReadHtml = '';
+            try {
+                const arr = JSON.parse(t.files_read);
+                if (arr && arr.length) {
+                    filesReadHtml = arr.map(f => `<code style="display:block; font-size:11px; margin-bottom:3px; word-break:break-all;">${escapeHtml(f)}</code>`).join('');
+                }
+            } catch (e) { filesReadHtml = t.files_read || 'None'; }
+            
+            let filesChangedHtml = '';
+            try {
+                const arr = JSON.parse(t.files_changed);
+                if (arr && arr.length) {
+                    filesChangedHtml = arr.map(f => `<code style="display:block; font-size:11px; margin-bottom:3px; word-break:break-all;">${escapeHtml(f)}</code>`).join('');
+                }
+            } catch (e) { filesChangedHtml = t.files_changed || 'None'; }
+            
+            document.getElementById('drawer-body').innerHTML = `
+                <div class="drawer-section">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                        <span>Agent ID:</span>
+                        <code style="color:#a5b4fc; font-size:13px;">${escapeHtml(t.agent)}</code>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span>Outcome Status:</span>
+                        <span class="badge badge-${t.outcome === 'completed' ? 'success' : t.outcome === 'blocked' ? 'warn' : 'failed'}">${t.outcome}</span>
+                    </div>
+                </div>
+                
+                <div class="drawer-section">
+                    <h4>Task Summary</h4>
+                    <p style="font-size:14px; line-height:1.5;">${escapeHtml(t.task_summary)}</p>
+                </div>
+                
+                <div class="drawer-section">
+                    <h4>Developer / Agent Friction</h4>
+                    <p style="font-size:14px; line-height:1.5; color:#f87171;">${escapeHtml(t.friction || 'None')}</p>
+                </div>
+                
+                <div class="drawer-section" style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+                    <div>
+                        <h4>Files Analyzed</h4>
+                        <div style="max-height:150px; overflow-y:auto;">${filesReadHtml || 'None'}</div>
+                    </div>
+                    <div>
+                        <h4>Files Modified</h4>
+                        <div style="max-height:150px; overflow-y:auto;">${filesChangedHtml || 'None'}</div>
+                    </div>
+                </div>
+            `;
             openDrawer();
         }
         
-        function escapeHtml(str) { return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+        // ── CREATION FORMS ────────────────────────────────────────────────
+        
+        function openAddDrawer(type) {
+            document.getElementById('drawer-title').textContent = `Add New ${type.toUpperCase()}`;
+            document.getElementById('drawer-subtitle').textContent = 'Create a new harness configuration entity';
+            
+            if (type === 'story') {
+                document.getElementById('drawer-body').innerHTML = `
+                    <div class="drawer-section">
+                        <label>Story ID (e.g., ST-101)</label>
+                        <input type="text" id="add-story-id" placeholder="ST-101">
+                        
+                        <label>Title / Objective</label>
+                        <input type="text" id="add-story-title" placeholder="Implement security audit endpoint">
+                        
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+                            <div>
+                                <label>Risk Lane</label>
+                                <select id="add-story-lane">
+                                    <option value="tiny">Tiny</option>
+                                    <option value="normal" selected>Normal</option>
+                                    <option value="high_risk">High Risk</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label>Status</label>
+                                <select id="add-story-status">
+                                    <option value="proposed" selected>Proposed</option>
+                                    <option value="implemented">Implemented</option>
+                                    <option value="reviewed">Reviewed</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <label>Contract Document File (optional)</label>
+                        <input type="text" id="add-story-contract" placeholder="docs/specs/auth.md">
+                        
+                        <label>Unit Proof (optional)</label>
+                        <input type="text" id="add-story-unit" placeholder="pytest tests/unit/ -v">
+                        
+                        <label>Integration Proof (optional)</label>
+                        <input type="text" id="add-story-integration" placeholder="pytest tests/integration/ -v">
+                        
+                        <label>E2E Proof (optional)</label>
+                        <input type="text" id="add-story-e2e" placeholder="playwright test">
+                        
+                        <label>Platform/Registry Proof (optional)</label>
+                        <input type="text" id="add-story-platform" placeholder="docker run --rm test-suite">
+                        
+                        <label>Notes</label>
+                        <textarea id="add-story-notes" style="height:60px;"></textarea>
+                        
+                        <button class="btn-run" style="width:100%; background:#10b981; margin-top:15px;" onclick="submitStoryCreate()">➕ Create Story</button>
+                    </div>
+                `;
+            } else if (type === 'decision') {
+                document.getElementById('drawer-body').innerHTML = `
+                    <div class="drawer-section">
+                        <label>Decision ID (e.g., ADR-001)</label>
+                        <input type="text" id="add-dec-id" placeholder="ADR-001">
+                        
+                        <label>Title / Subject</label>
+                        <input type="text" id="add-dec-title" placeholder="Use SQLite for isolated test sessions">
+                        
+                        <label>Status</label>
+                        <select id="add-dec-status">
+                            <option value="proposed" selected>Proposed</option>
+                            <option value="accepted">Accepted</option>
+                            <option value="rejected">Rejected</option>
+                            <option value="superseded">Superseded</option>
+                        </select>
+                        
+                        <label>ADR Markdown Path</label>
+                        <input type="text" id="add-dec-doc" placeholder="docs/adr/001-sqlite-isolation.md">
+                        
+                        <label>Verify Command</label>
+                        <input type="text" id="add-dec-cmd" placeholder="pytest tests/test_isolation.py">
+                        
+                        <label>Notes</label>
+                        <textarea id="add-dec-notes" style="height:60px;"></textarea>
+                        
+                        <button class="btn-run" style="width:100%; background:#10b981; margin-top:15px;" onclick="submitDecisionCreate()">➕ Create ADR</button>
+                    </div>
+                `;
+            } else if (type === 'backlog') {
+                document.getElementById('drawer-body').innerHTML = `
+                    <div class="drawer-section">
+                        <label>Title / Improvement Area</label>
+                        <input type="text" id="add-back-title" placeholder="Speed up schema initialization">
+                        
+                        <label>Suggested Solution</label>
+                        <textarea id="add-back-suggestion" style="height:55px;" placeholder="Use an in-memory SQL schema dump..."></textarea>
+                        
+                        <label>Current Friction Pain</label>
+                        <textarea id="add-back-pain" style="height:55px;" placeholder="Loading DDL migrations on every pytest run takes 4 seconds..."></textarea>
+                        
+                        <label>Discovered While (task context)</label>
+                        <input type="text" id="add-back-discovered" placeholder="Story ST-101">
+                        
+                        <label>Risk Assessment</label>
+                        <select id="add-back-risk">
+                            <option value="tiny">Tiny</option>
+                            <option value="normal" selected>Normal</option>
+                            <option value="high_risk">High Risk</option>
+                        </select>
+                        
+                        <label>Notes</label>
+                        <textarea id="add-back-notes" style="height:60px;"></textarea>
+                        
+                        <button class="btn-run" style="width:100%; background:#10b981; margin-top:15px;" onclick="submitBacklogCreate()">➕ Create Backlog Item</button>
+                    </div>
+                `;
+            }
+            openDrawer();
+        }
+        
+        async function submitStoryCreate() {
+            const payload = {
+                id: document.getElementById('add-story-id').value,
+                title: document.getElementById('add-story-title').value,
+                risk_lane: document.getElementById('add-story-lane').value,
+                status: document.getElementById('add-story-status').value,
+                contract_doc: document.getElementById('add-story-contract').value,
+                unit_proof: document.getElementById('add-story-unit').value,
+                integration_proof: document.getElementById('add-story-integration').value,
+                e2e_proof: document.getElementById('add-story-e2e').value,
+                platform_proof: document.getElementById('add-story-platform').value,
+                notes: document.getElementById('add-story-notes').value
+            };
+            if(!payload.id || !payload.title) { showNotification("ID and Title are required!", true); return; }
+            
+            try {
+                const response = await fetch('/api/story/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const res = await response.json();
+                if(res.success) { showNotification("Story created successfully!"); reloadData(); closeDrawer(); }
+                else { showNotification("Error: " + res.error, true); }
+            } catch(e) { showNotification(e.message, true); }
+        }
+        
+        async function submitDecisionCreate() {
+            const payload = {
+                id: document.getElementById('add-dec-id').value,
+                title: document.getElementById('add-dec-title').value,
+                status: document.getElementById('add-dec-status').value,
+                doc_path: document.getElementById('add-dec-doc').value,
+                verify_command: document.getElementById('add-dec-cmd').value,
+                notes: document.getElementById('add-dec-notes').value
+            };
+            if(!payload.id || !payload.title) { showNotification("ID and Title are required!", true); return; }
+            
+            try {
+                const response = await fetch('/api/decision/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const res = await response.json();
+                if(res.success) { showNotification("Decision recorded!"); reloadData(); closeDrawer(); }
+                else { showNotification("Error: " + res.error, true); }
+            } catch(e) { showNotification(e.message, true); }
+        }
+        
+        async function submitBacklogCreate() {
+            const payload = {
+                title: document.getElementById('add-back-title').value,
+                suggested_improvement: document.getElementById('add-back-suggestion').value,
+                current_pain: document.getElementById('add-back-pain').value,
+                discovered_while: document.getElementById('add-back-discovered').value,
+                risk: document.getElementById('add-back-risk').value,
+                notes: document.getElementById('add-back-notes').value
+            };
+            if(!payload.title) { showNotification("Title is required!", true); return; }
+            
+            try {
+                const response = await fetch('/api/backlog/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const res = await response.json();
+                if(res.success) { showNotification("Backlog item recorded!"); reloadData(); closeDrawer(); }
+                else { showNotification("Error: " + res.error, true); }
+            } catch(e) { showNotification(e.message, true); }
+        }
+
+        function escapeHtml(str) {
+            if(!str) return '';
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
         window.addEventListener('DOMContentLoaded', reloadData);
     </script>
 </body>
@@ -2249,7 +3713,7 @@ def cmd_context(story_id):
     conn.close()
 
 # ── evaluate-risk ──────────────────────────────────────────────────
-def cmd_evaluate_risk(text):
+def evaluate_risk_logic(text):
     text_lower = text.lower()
     
     checklist = {
@@ -2281,12 +3745,15 @@ def cmd_evaluate_risk(text):
     else:
         lane = "tiny"
         
-    res = {
+    return {
         "suggested_lane": lane,
         "flags_found": flags_found,
         "has_hard_gate": has_hard_gate,
         "flag_count": num_flags
     }
+
+def cmd_evaluate_risk(text):
+    res = evaluate_risk_logic(text)
     print(json.dumps(res, indent=2))
 
 # ── validate ───────────────────────────────────────────────────────

@@ -707,8 +707,8 @@ class SchedulerThread(threading.Thread):
                             event_data = {
                                 "event": "invoice_downloaded",
                                 "id": db_invoice.id,
-                                "number": db_invoice.invoice_number,
-                                "date": db_invoice.invoice_date.isoformat(),
+                                "number": db_invoice.number,
+                                "date": db_invoice.date,
                                 "seller_name": db_invoice.seller_name,
                                 "total_amount": float(db_invoice.total_amount),
                                 "t_score": db_invoice.t_score,

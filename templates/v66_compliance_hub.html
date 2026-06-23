@@ -1,188 +1,120 @@
 {% extends "base.html" %}
+
+{% from "components/_hub_header.html" import hub_header %}
+{% from "components/_glass_card.html" import glass_card %}
+{% from "components/_calc_input.html" import text_input, number_input, select_input, switch_input, calc_button %}
+{% from "components/_result_panel.html" import result_panel, result_field %}
+{% from "components/_baseline_card.html" import baseline_card %}
+{% from "components/_debate_panel.html" import debate_panel %}
+{% from "components/_data_table.html" import data_table %}
+{% from "components/_entry_animations.html" import entry_animations %}
+{% from "components/_premium_controls.html" import premium_controls_css %}
+
 {% block title %}Greenhouse Gas (GHG) Emissions & Carbon Credits - EPFGHG Hub (v66){% endblock %}
+
 {% block content %}
 <div class="container py-4">
-    <!-- Header -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
-        <div>
-            <span class="badge bg-success text-white mb-2">Version 66.0.0 Spec Compliance</span>
-            <h1 class="h2 fw-bold text-gradient mb-1 text-success">GHG Emissions & Carbon Credits Hub</h1>
-            <p class="text-muted mb-0">Manage GHG emissions compliance under Decree 06/2022/NĐ-CP & IPCC AR5 standard.</p>
-        </div>
-        <div class="d-flex gap-2 mt-3 mt-md-0">
-            <button id="btn-refresh-v66" class="btn btn-success text-white d-flex align-items-center gap-2">
-                <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Load Data
-            </button>
-            <span class="badge bg-success-subtle text-success border border-success d-flex align-items-center px-3">
-                <i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Decree 06/2022
-            </span>
-        </div>
-    </div>
 
-    <!-- Main Panels -->
+    {# ── Đầu trang Hub ── #}
+    {{ hub_header('66.0.0',
+        'GHG Emissions & Carbon Credits Hub',
+        'Manage GHG emissions compliance under Decree 06/2022/NĐ-CP & IPCC AR5 standard.',
+        'btn-refresh-v66', 'Load Data', 'Decree 06/2022') }}
+
     <div class="row g-4">
-        <!-- Interactive Calculator -->
+
+        {# ── Máy tính GHG ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1 text-success"><i class="bi bi-calculator text-success me-2" aria-hidden="true"></i>Interactive GHG Calculator</h5>
-                    <p class="text-muted small mb-0">Input greenhouse gases (CO2, CH4, N2O) and credits offset to run the audit.</p>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-12">
-                            <label for="input-emission-desc" class="form-label small mb-1">Emission Facility / Batch:</label>
-                            <input type="text" id="input-emission-desc" class="form-control form-control-sm" value="Nhà máy nhiệt điện Vũng Áng 1 - Tổ máy số 2" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-facility-cat" class="form-label small mb-1">Facility Category:</label>
-                            <select id="input-facility-cat" class="form-select form-select-sm">
-                                <option value="energy">Energy & Utility Sector (150k VND / tCO2e)</option>
-                                <option value="industrial_processes">Industrial Processes & Cement (120k VND / tCO2e)</option>
-                                <option value="agriculture">Agriculture & Forestry (80k VND / tCO2e)</option>
-                                <option value="waste">Waste Management (100k VND / tCO2e)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-exemption-cat" class="form-label small mb-1">Exemption Category:</label>
-                            <select id="input-exemption-cat" class="form-select form-select-sm">
-                                <option value="none">No Exemption (Chịu phí đầy đủ)</option>
-                                <option value="small_emitter">Small Emitter (&lt; 3,000 tCO2e/year)</option>
-                                <option value="clean_energy">Clean & Renewable Power Generation</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="input-co2" class="form-label small mb-1">CO2 (Tonnes):</label>
-                            <input type="number" step="0.01" id="input-co2" class="form-control form-control-sm" value="2800.0" autocomplete="off">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="input-ch4" class="form-label small mb-1">CH4 (Tonnes):</label>
-                            <input type="number" step="0.01" id="input-ch4" class="form-control form-control-sm" value="8.5" autocomplete="off">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="input-n2o" class="form-label small mb-1">N2O (Tonnes):</label>
-                            <input type="number" step="0.01" id="input-n2o" class="form-control form-control-sm" value="2.1" autocomplete="off">
-                        </div>
-                        <div class="col-12">
-                            <label for="input-credits" class="form-label small mb-1">Carbon Credits Offset (CERs/VERs - Tonnes of CO2e):</label>
-                            <input type="number" step="0.1" id="input-credits" class="form-control form-control-sm" value="250.0" autocomplete="off">
-                            <div class="form-text small text-muted">Decree 06/2022/NĐ-CP caps offset contribution at 10% of total emissions.</div>
-                        </div>
-                        
-                        <div class="col-12 text-end">
-                            <button id="btn-calc-ghg" class="btn btn-success btn-sm text-white fw-bold">
-                                <i class="bi bi-play-fill me-1" aria-hidden="true"></i> Run Compliance Audit
-                            </button>
-                        </div>
+            {% call glass_card('Interactive GHG Calculator', 'bi bi-calculator', 'text-success',
+                'Input greenhouse gases (CO2, CH4, N2O) and credits offset to run the audit.') %}
+                <div class="row g-3">
+                    {{ text_input('input-emission-desc', 'Emission Facility / Batch:', 'Nhà máy nhiệt điện Vũng Áng 1 - Tổ máy số 2', col='col-12') }}
+                    {{ select_input('input-facility-cat', 'Facility Category:', [
+                        {'value':'energy','label':'Energy & Utility Sector (150k VND / tCO2e)'},
+                        {'value':'industrial_processes','label':'Industrial Processes & Cement (120k VND / tCO2e)'},
+                        {'value':'agriculture','label':'Agriculture & Forestry (80k VND / tCO2e)'},
+                        {'value':'waste','label':'Waste Management (100k VND / tCO2e)'}
+                    ], col='col-md-6') }}
+                    {{ select_input('input-exemption-cat', 'Exemption Category:', [
+                        {'value':'none','label':'No Exemption (Chịu phí đầy đủ)'},
+                        {'value':'small_emitter','label':'Small Emitter (< 3,000 tCO2e/year)'},
+                        {'value':'clean_energy','label':'Clean & Renewable Power Generation'}
+                    ], col='col-md-6') }}
+                    {{ number_input('input-co2', 'CO2 (Tonnes):', 2800.0, step='0.01', col='col-md-4') }}
+                    {{ number_input('input-ch4', 'CH4 (Tonnes):', 8.5, step='0.01', col='col-md-4') }}
+                    {{ number_input('input-n2o', 'N2O (Tonnes):', 2.1, step='0.01', col='col-md-4') }}
+                    {{ number_input('input-credits', 'Carbon Credits Offset (CERs/VERs - Tonnes of CO2e):', 250.0, step='0.1', col='col-12') }}
+                    <div class="col-12 mt-0">
+                        <div class="form-text small text-muted">Decree 06/2022/NĐ-CP caps offset contribution at 10% of total emissions.</div>
                     </div>
-                    <div class="mt-4 p-3 bg-premium-light rounded border">
-                        <h6 class="fw-bold mb-2 text-success"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Calculation Result</h6>
-                        <div class="d-flex justify-content-between small mb-1"><span>Total CO2e (IPCC GWP):</span><span id="res-co2e" class="fw-bold text-dark">-</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Carbon Credits Applied:</span><span id="res-credits" class="fw-bold text-dark">-</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Effective CO2e Chargeable:</span><span id="res-chargeable" class="fw-bold text-dark">-</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Effective Fee Payable:</span><span id="res-effective-fee" class="fw-bold text-success fs-6">-</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Exemption Status:</span><span id="res-exempt-badge" class="fw-bold">-</span></div>
-                        <div class="small text-muted border-top pt-2 mt-2"><strong>Exemption Reason:</strong> <span id="res-exemption-reason">Awaiting…</span></div>
-                    </div>
+                    
+                    {{ calc_button('btn-calc-ghg', 'Run Compliance Audit', 'btn-success', col='col-12 text-end') }}
                 </div>
-            </div>
+                {% call result_panel('Calculation Result', 'text-success', 'res-exemption-reason') %}
+                    {{ result_field('Total CO2e (IPCC GWP):', 'res-co2e') }}
+                    {{ result_field('Carbon Credits Applied:', 'res-credits') }}
+                    {{ result_field('Effective CO2e Chargeable:', 'res-chargeable') }}
+                    {{ result_field('Effective Fee Payable:', 'res-effective-fee', 'text-success') }}
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span>Exemption Status:</span>
+                        <span id="res-exempt-badge" class="fw-bold">-</span>
+                    </div>
+                {% endcall %}
+            {% endcall %}
         </div>
 
-        <!-- Baseline Verification -->
+        {# ── Baselines tuân thủ GHG ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>GHG Compliance Baselines</h5>
+            {% call glass_card('GHG Compliance Baselines', 'bi bi-shield-check', 'text-success',
+                'Pre-computed target ledgers verifying greenhouse gas emission liabilities under Decree 06/2022.') %}
+                <div class="d-flex flex-column gap-3">
+                    {{ baseline_card('Nhà máy nhiệt điện Phả Lại', 'Energy Sector', 'bg-danger text-white',
+                        'CO2: 4500t, CH4: 12t, N2O: 3.5t. Standard rate: 150,000 VND / tCO2e.',
+                        'CO2e: <strong id="base1-co2e">-</strong>'|safe,
+                        'Fee', 'base1-eff') }}
+
+                    {{ baseline_card('Nhà máy xi măng Hà Tiên (Offset)', 'Industrial Offset', 'bg-warning text-dark',
+                        'CO2: 5000t, CH4: 5t, N2O: 1t. Credits: 350t (Limited to 10% cap).',
+                        'Credits Used: <strong id="base2-credits">-</strong>'|safe,
+                        'Fee', 'base2-eff') }}
+
+                    {{ baseline_card('Cơ sở may mặc nhỏ (Exempt)', 'Exempt', 'bg-success text-white',
+                        'CO2: 200t, CH4: 0.5t, N2O: 0.1t. Under 3,000 tCO2e threshold.',
+                        'CO2e: <strong id="base3-co2e">-</strong>'|safe,
+                        'Reason', 'base3-reason') }}
                 </div>
-                <div class="card-body d-flex flex-column gap-3">
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="fw-bold small text-dark">Nhà máy nhiệt điện Phả Lại</span>
-                            <span class="badge bg-danger">Energy Sector</span>
-                        </div>
-                        <p class="small text-muted mb-2">CO2: 4500t, CH4: 12t, N2O: 3.5t. Standard rate: 150,000 VND / tCO2e.</p>
-                        <div class="d-flex justify-content-between small">
-                            <span>CO2e: <strong id="base1-co2e">-</strong></span>
-                            <span>Fee: <strong id="base1-eff" class="text-success">-</strong></span>
-                        </div>
-                    </div>
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="fw-bold small text-dark">Nhà máy xi măng Hà Tiên (Offset)</span>
-                            <span class="badge bg-warning text-dark">Industrial Offset</span>
-                        </div>
-                        <p class="small text-muted mb-2">CO2: 5000t, CH4: 5t, N2O: 1t. Credits: 350t (Limited to 10% cap).</p>
-                        <div class="d-flex justify-content-between small">
-                            <span>Credits Used: <strong id="base2-credits">-</strong></span>
-                            <span>Fee: <strong id="base2-eff" class="text-success">-</strong></span>
-                        </div>
-                    </div>
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="fw-bold small text-dark">Cơ sở may mặc nhỏ (Exempt)</span>
-                            <span class="badge bg-success">Exempt</span>
-                        </div>
-                        <p class="small text-muted mb-2">CO2: 200t, CH4: 0.5t, N2O: 0.1t. Under 3,000 tCO2e threshold.</p>
-                        <div class="d-flex justify-content-between small">
-                            <span>CO2e: <strong id="base3-co2e">-</strong></span>
-                            <span>Reason: <strong id="base3-reason" class="text-success">-</strong></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {% endcall %}
         </div>
 
-        <!-- Consensus Debate -->
+        {# ── Bảng tranh luận đa tác tử ── #}
         <div class="col-lg-12">
-            <div class="card shadow-sm border-light">
-                <div class="card-header bg-dark text-white py-3 d-flex align-items-center justify-content-between">
-                    <h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-success me-2" aria-hidden="true"></i>Multi-Agent Climate Policy Advisory Debate</h5>
-                    <span class="badge bg-secondary">Decree 06/2022/NĐ-CP Consensus</span>
-                </div>
-                <div class="card-body">
-                    <div id="debate-container-v66" class="mb-3 d-flex flex-column gap-3"></div>
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus:</h6>
-                        <p id="consensus-text-v66" class="text-muted small mb-0">Awaiting…</p>
-                    </div>
-                </div>
-            </div>
+            {{ debate_panel('debate-container-v66', 'consensus-text-v66',
+                'Multi-Agent Climate Policy Advisory Debate', 'Decree 06/2022/NĐ-CP Consensus') }}
         </div>
 
-        <!-- History Audit Log -->
+        {# ── Bảng lịch sử tuân thủ GHG ── #}
         <div class="col-lg-12">
-            <div class="card shadow-sm border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-2">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-clock-history text-muted me-2" aria-hidden="true"></i>GHG Emissions Compliance Audit Log</h5>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover table-striped mb-0 small">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Facility / Batch</th>
-                                    <th>Sector</th>
-                                    <th>CO2e (tonnes)</th>
-                                    <th>Credits Offset</th>
-                                    <th>Net CO2e</th>
-                                    <th>Base Rate</th>
-                                    <th>Total Fee</th>
-                                    <th>Payable</th>
-                                    <th>Status</th>
-                                    <th>Timestamp</th>
-                                </tr>
-                            </thead>
-                            <tbody id="history-table-v66">
-                                <tr><td colspan="11" class="text-center text-muted py-4">No logs available.</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+            {% call data_table('GHG Emissions Compliance Audit Log', 'bi bi-clock-history', 'history-table-v66', 'No logs available.', 11) %}
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Facility / Batch</th>
+                        <th>Sector</th>
+                        <th>CO2e (tonnes)</th>
+                        <th>Credits Offset</th>
+                        <th>Net CO2e</th>
+                        <th>Base Rate</th>
+                        <th>Total Fee</th>
+                        <th>Payable</th>
+                        <th>Status</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+            {% endcall %}
         </div>
-    </div>
-</div>
+
+    </div>{# /row #}
+</div>{# /container #}
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
@@ -299,4 +231,7 @@ document.addEventListener("DOMContentLoaded", () => {
     load();
 });
 </script>
+
+{{ entry_animations() }}
+{{ premium_controls_css() }}
 {% endblock %}

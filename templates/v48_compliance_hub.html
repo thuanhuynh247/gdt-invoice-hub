@@ -1,202 +1,132 @@
 {% extends "base.html" %}
 
+{% from "components/_hub_header.html" import hub_header %}
+{% from "components/_glass_card.html" import glass_card %}
+{% from "components/_calc_input.html" import select_input, number_input, switch_input, calc_button, range_slider, text_input, date_input %}
+{% from "components/_result_panel.html" import result_panel, result_field %}
+{% from "components/_baseline_card.html" import baseline_card %}
+{% from "components/_debate_panel.html" import debate_panel %}
+{% from "components/_data_table.html" import data_table %}
+
 {% block title %}VAT Law 149/2025 Amendments - Revenue Threshold & Agri-Product Engine (v48){% endblock %}
 
 {% block content %}
 <div class="container py-4">
-    <!-- Header Area -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
-        <div>
-            <span class="badge bg-info mb-2">Version 48.0.0 Spec Compliance</span>
-            <h1 class="h2 fw-bold text-gradient mb-1">VAT Amendments Compliance Hub</h1>
-            <p class="text-muted mb-0">Revenue Threshold Reclassifier (200M→500M), Agricultural Product Exemption Updater, and Waste/Scrap Rate Engine per Luật 149/2025/QH15.</p>
-        </div>
-        <div class="d-flex gap-2 mt-3 mt-md-0">
-            <button id="btn-refresh-v48" class="btn btn-info text-white d-flex align-items-center gap-2">
-                <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Load Compliance Data
-            </button>
-            <span class="badge bg-info-subtle text-info border border-info d-flex align-items-center px-3">
-                <i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Law 149/2025/QH15
-            </span>
-        </div>
-    </div>
+    {# ── Đầu trang Hub ── #}
+    {{ hub_header('48.0.0',
+        'VAT Amendments Compliance Hub',
+        'Revenue Threshold Reclassifier (200M→500M), Agricultural Product Exemption Updater, and Waste/Scrap Rate Engine per Luật 149/2025/QH15.',
+        'btn-refresh-v48', 'Load Compliance Data', 'Law 149/2025/QH15') }}
 
-    <!-- Bento Grid Layout -->
+    {# ── Bento Grid Layout ── #}
     <div class="row g-4">
-        <!-- Pillar 1: Revenue Threshold Checker -->
+        {# ── Đánh giá ngưỡng doanh thu cá nhân kinh doanh ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-graph-up-arrow text-info me-2" aria-hidden="true"></i>Revenue Threshold Reclassifier</h5>
-                    <p class="text-muted small mb-0">Check if a household/individual business is reclassified under the new 500M VND/year threshold (up from 200M).</p>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="input-biz-name" class="form-label small mb-1">Business Name:</label>
-                            <input type="text" id="input-biz-name" class="form-control form-control-sm" value="Quán Phở Bình" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-annual-rev" class="form-label small mb-1">Annual Revenue (VND):</label>
-                            <input type="number" id="input-annual-rev" class="form-control form-control-sm" value="350000000" autocomplete="off">
-                        </div>
-                        <div class="col-12 text-end">
-                            <button id="btn-check-threshold" class="btn btn-info btn-sm text-white">
-                                <i class="bi bi-bar-chart-steps me-1" aria-hidden="true"></i> Evaluate Threshold
-                            </button>
-                        </div>
+            {% call glass_card('Revenue Threshold Reclassifier', 'bi bi-graph-up-arrow', 'text-info',
+                description='Check if a household/individual business is reclassified under the new 500M VND/year threshold (up from 200M).') %}
+                <div class="row g-3">
+                    {{ text_input('input-biz-name', 'Business Name:', 'Quán Phở Bình', col='col-md-6') }}
+                    {{ number_input('input-annual-rev', 'Annual Revenue (VND):', 350000000, col='col-md-6') }}
+                    <div class="col-12 text-end">
+                        <button id="btn-check-threshold" class="btn btn-info btn-sm text-white fw-bold">
+                            <i class="bi bi-bar-chart-steps me-1" aria-hidden="true"></i> Evaluate Threshold
+                        </button>
                     </div>
+                </div>
 
-                    <div class="mt-4 p-3 bg-premium-light rounded border">
-                        <h6 class="fw-bold mb-2 text-info"><i class="bi bi-arrow-left-right me-2" aria-hidden="true"></i>Threshold Comparison</h6>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>Old Status (200M):</span>
-                            <span id="res-old-status" class="badge bg-secondary">-</span>
-                        </div>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>New Status (500M):</span>
-                            <span id="res-new-status" class="badge bg-secondary">-</span>
-                        </div>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>Status Changed:</span>
-                            <span id="res-status-changed" class="badge bg-secondary">-</span>
-                        </div>
-                        <div class="small text-muted border-top pt-2">
-                            <strong>PIT Impact:</strong> <span id="res-pit-impact">Awaiting evaluation…</span>
-                        </div>
+                {% call result_panel('Threshold Comparison', 'text-info', note_id='res-pit-impact') %}
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span>Old Status (200M):</span>
+                        <span id="res-old-status" class="badge bg-secondary">-</span>
                     </div>
-                </div>
-            </div>
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span>New Status (500M):</span>
+                        <span id="res-new-status" class="badge bg-secondary">-</span>
+                    </div>
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span>Status Changed:</span>
+                        <span id="res-status-changed" class="badge bg-secondary">-</span>
+                    </div>
+                {% endcall %}
+            {% endcall %}
         </div>
 
-        <!-- Pillar 2a: Agricultural Product Classifier -->
+        {# ── Phân loại nông sản ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-tree-fill text-success me-2" aria-hidden="true"></i>Agricultural Product VAT Classifier</h5>
-                    <p class="text-muted small mb-0">Check if unprocessed agricultural products between enterprises/cooperatives qualify for new "no declaration" treatment with preserved input credits.</p>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-12">
-                            <label for="input-agri-desc" class="form-label small mb-1">Product Description:</label>
-                            <input type="text" id="input-agri-desc" class="form-control form-control-sm" value="Lúa gạo chưa chế biến" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="select-seller-type" class="form-label small mb-1">Seller Type:</label>
-                            <select id="select-seller-type" class="form-select form-select-sm">
-                                <option value="doanh nghiệp" selected>Doanh nghiệp (Enterprise)</option>
-                                <option value="hợp tác xã">Hợp tác xã (Cooperative)</option>
-                                <option value="cá nhân">Cá nhân (Individual)</option>
-                                <option value="hộ kinh doanh">Hộ kinh doanh (Household)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="select-buyer-type" class="form-label small mb-1">Buyer Type:</label>
-                            <select id="select-buyer-type" class="form-select form-select-sm">
-                                <option value="hợp tác xã" selected>Hợp tác xã (Cooperative)</option>
-                                <option value="doanh nghiệp">Doanh nghiệp (Enterprise)</option>
-                                <option value="cá nhân">Cá nhân (Individual)</option>
-                                <option value="hộ kinh doanh">Hộ kinh doanh (Household)</option>
-                            </select>
-                        </div>
-                        <div class="col-12 text-end">
-                            <button id="btn-classify-agri" class="btn btn-success btn-sm">
-                                <i class="bi bi-search me-1" aria-hidden="true"></i> Classify Product
-                            </button>
-                        </div>
+            {% call glass_card('Agricultural Product VAT Classifier', 'bi bi-tree-fill', 'text-success',
+                description='Check if unprocessed agricultural products between enterprises/cooperatives qualify for new "no declaration" treatment with preserved input credits.') %}
+                <div class="row g-3">
+                    {{ text_input('input-agri-desc', 'Product Description:', 'Lúa gạo chưa chế biến', col='col-12') }}
+                    
+                    {{ select_input('select-seller-type', 'Seller Type:', [
+                        {'value': 'doanh nghiệp', 'label': 'Doanh nghiệp (Enterprise)'},
+                        {'value': 'hợp tác xã', 'label': 'Hợp tác xã (Cooperative)'},
+                        {'value': 'cá nhân', 'label': 'Cá nhân (Individual)'},
+                        {'value': 'hộ kinh doanh', 'label': 'Hộ kinh doanh (Household)'}
+                    ], col='col-md-6') }}
+                    
+                    {{ select_input('select-buyer-type', 'Buyer Type:', [
+                        {'value': 'hợp tác xã', 'label': 'Hợp tác xã (Cooperative)'},
+                        {'value': 'doanh nghiệp', 'label': 'Doanh nghiệp (Enterprise)'},
+                        {'value': 'cá nhân', 'label': 'Cá nhân (Individual)'},
+                        {'value': 'hộ kinh doanh', 'label': 'Hộ kinh doanh (Household)'}
+                    ], col='col-md-6') }}
+                    
+                    <div class="col-12 text-end">
+                        <button id="btn-classify-agri" class="btn btn-success btn-sm text-white fw-bold">
+                            <i class="bi bi-search me-1" aria-hidden="true"></i> Classify Product
+                        </button>
                     </div>
+                </div>
 
-                    <div class="mt-4 p-3 bg-premium-light rounded border">
-                        <h6 class="fw-bold mb-2 text-success"><i class="bi bi-patch-check me-2" aria-hidden="true"></i>Classification Result</h6>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>Old Treatment:</span>
-                            <span id="res-agri-old" class="badge bg-secondary">-</span>
-                        </div>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>New Treatment:</span>
-                            <span id="res-agri-new" class="badge bg-secondary">-</span>
-                        </div>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>Input Credit Deductible:</span>
-                            <span id="res-agri-credit" class="badge bg-secondary">-</span>
-                        </div>
+                {% call result_panel('Classification Result', 'text-success') %}
+                    {{ result_field('Old Treatment:', 'res-agri-old') }}
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span>New Treatment:</span>
+                        <span id="res-agri-new" class="badge bg-secondary">-</span>
                     </div>
-                </div>
-            </div>
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span>Input Credit Deductible:</span>
+                        <span id="res-agri-credit" class="badge bg-secondary">-</span>
+                    </div>
+                {% endcall %}
+            {% endcall %}
         </div>
 
-        <!-- Pillar 2b: Waste/Scrap Rate Engine -->
+        {# ── Tính thuế suất phế liệu ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-recycle text-warning me-2" aria-hidden="true"></i>Waste/Scrap VAT Rate Engine</h5>
-                    <p class="text-muted small mb-0">Compare old vs. new VAT rate treatment for waste, by-products, and scrap per Article 9.5 amendment.</p>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="input-waste-desc" class="form-label small mb-1">Waste/Scrap Item:</label>
-                            <input type="text" id="input-waste-desc" class="form-control form-control-sm" value="Vỏ bào gỗ phế liệu" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-source-product" class="form-label small mb-1">Source Product:</label>
-                            <input type="text" id="input-source-product" class="form-control form-control-sm" value="Nội thất gỗ cao cấp" autocomplete="off">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="input-waste-rate" class="form-label small mb-1">Waste Rate (%):</label>
-                            <input type="number" id="input-waste-rate" class="form-control form-control-sm" value="5" step="0.5" autocomplete="off">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="input-source-rate" class="form-label small mb-1">Source Rate (%):</label>
-                            <input type="number" id="input-source-rate" class="form-control form-control-sm" value="10" step="0.5" autocomplete="off">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="input-waste-amount" class="form-label small mb-1">Amount (VND):</label>
-                            <input type="number" id="input-waste-amount" class="form-control form-control-sm" value="100000000" autocomplete="off">
-                        </div>
-                        <div class="col-12 text-end">
-                            <button id="btn-compute-waste" class="btn btn-warning btn-sm text-dark">
-                                <i class="bi bi-calculator me-1" aria-hidden="true"></i> Compute Rate
-                            </button>
-                        </div>
+            {% call glass_card('Waste/Scrap VAT Rate Engine', 'bi bi-recycle', 'text-warning',
+                description='Compare old vs. new VAT rate treatment for waste, by-products, and scrap per Article 9.5 amendment.') %}
+                <div class="row g-3">
+                    {{ text_input('input-waste-desc', 'Waste/Scrap Item:', 'Vỏ bào gỗ phế liệu', col='col-md-6') }}
+                    {{ text_input('input-source-product', 'Source Product:', 'Nội thất gỗ cao cấp', col='col-md-6') }}
+                    
+                    {{ number_input('input-waste-rate', 'Waste Rate (%):', 5, step='0.5', col='col-md-4') }}
+                    {{ number_input('input-source-rate', 'Source Rate (%):', 10, step='0.5', col='col-md-4') }}
+                    {{ number_input('input-waste-amount', 'Amount (VND):', 100000000, col='col-md-4') }}
+                    
+                    <div class="col-12 text-end">
+                        <button id="btn-compute-waste" class="btn btn-warning btn-sm text-dark fw-bold">
+                            <i class="bi bi-calculator me-1" aria-hidden="true"></i> Compute Rate
+                        </button>
                     </div>
+                </div>
 
-                    <div class="mt-4 p-3 bg-premium-light rounded border">
-                        <h6 class="fw-bold mb-2 text-warning"><i class="bi bi-arrow-repeat me-2" aria-hidden="true"></i>Rate Comparison</h6>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>Old VAT (source rate):</span>
-                            <span id="res-waste-old-vat" class="fw-bold">-</span>
-                        </div>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>New VAT (waste rate):</span>
-                            <span id="res-waste-new-vat" class="fw-bold text-success">-</span>
-                        </div>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>Rate Changed:</span>
-                            <span id="res-waste-changed" class="badge bg-secondary">-</span>
-                        </div>
+                {% call result_panel('Rate Comparison', 'text-warning') %}
+                    {{ result_field('Old VAT (source rate):', 'res-waste-old-vat') }}
+                    {{ result_field('New VAT (waste rate):', 'res-waste-new-vat', 'text-success fw-bold') }}
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span>Rate Changed:</span>
+                        <span id="res-waste-changed" class="badge bg-secondary">-</span>
                     </div>
-                </div>
-            </div>
+                {% endcall %}
+            {% endcall %}
         </div>
 
-        <!-- Swarm Advisory Debate Panel -->
+        {# ── Tranh luận Hội đồng tư vấn ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
-                <div class="card-header bg-obsidian text-snow py-3 d-flex align-items-center justify-content-between">
-                    <h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-info me-2" aria-hidden="true"></i>Multi-Agent Advisory Board Debate</h5>
-                    <span class="badge bg-secondary border border-secondary">Consensus Simulator</span>
-                </div>
-                <div class="card-body">
-                    <div id="debate-container-v48" class="mb-3 d-flex flex-column gap-3">
-                    </div>
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus Summary Statement:</h6>
-                        <p id="consensus-text-v48" class="text-muted small mb-0">Awaiting simulation data execution…</p>
-                    </div>
-                </div>
-            </div>
+            {{ debate_panel('debate-container-v48', 'consensus-text-v48',
+                'Multi-Agent Advisory Board Debate', 'Consensus Simulator') }}
         </div>
     </div>
 </div>

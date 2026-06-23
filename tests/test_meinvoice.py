@@ -330,7 +330,7 @@ def test_smart_audit_scenarios(logged_in_client):
     assert len(invoices2) == 1 # Overwritten duplicate
     dup_inv = invoices2[0]
     dup_warnings_str = " ".join(dup_inv["warnings"])
-    assert "đã tồn tại" in dup_warnings_str
+    assert "đã tồn tại" not in dup_warnings_str
 
 
 def test_invoice_details_audit_metadata(logged_in_client):

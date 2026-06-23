@@ -1,176 +1,112 @@
 {% extends "base.html" %}
+
+{% from "components/_hub_header.html" import hub_header %}
+{% from "components/_glass_card.html" import glass_card %}
+{% from "components/_calc_input.html" import text_input, number_input, select_input, switch_input, calc_button %}
+{% from "components/_result_panel.html" import result_panel, result_field %}
+{% from "components/_baseline_card.html" import baseline_card %}
+{% from "components/_debate_panel.html" import debate_panel %}
+{% from "components/_data_table.html" import data_table %}
+{% from "components/_entry_animations.html" import entry_animations %}
+{% from "components/_premium_controls.html" import premium_controls_css %}
+
 {% block title %}Scrap Import Environmental Deposit - EPFSD Hub (v67){% endblock %}
+
 {% block content %}
 <div class="container py-4">
-    <!-- Header -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
-        <div>
-            <span class="badge bg-success text-white mb-2">Version 67.0.0 Spec Compliance</span>
-            <h1 class="h2 fw-bold text-gradient mb-1 text-success">Scrap Import Deposit Hub</h1>
-            <p class="text-muted mb-0">Manage environmental deposits for scrap imports under Decree 08/2022/NĐ-CP.</p>
-        </div>
-        <div class="d-flex gap-2 mt-3 mt-md-0">
-            <button id="btn-refresh-v67" class="btn btn-success text-white d-flex align-items-center gap-2">
-                <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Load Data
-            </button>
-            <span class="badge bg-success-subtle text-success border border-success d-flex align-items-center px-3">
-                <i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Decree 08/2022
-            </span>
-        </div>
-    </div>
 
-    <!-- Main Panels -->
+    {# ── Đầu trang Hub ── #}
+    {{ hub_header('67.0.0',
+        'Scrap Import Deposit Hub',
+        'Manage environmental deposits for scrap imports under Decree 08/2022/NĐ-CP.',
+        'btn-refresh-v67', 'Load Data', 'Decree 08/2022') }}
+
     <div class="row g-4">
-        <!-- Interactive Calculator -->
+
+        {# ── Máy tính Ký Quỹ ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1 text-success"><i class="bi bi-calculator text-success me-2" aria-hidden="true"></i>Interactive Deposit Calculator</h5>
-                    <p class="text-muted small mb-0">Select scrap category, volume, cargo valuation, and run the deposit calculation.</p>
+            {% call glass_card('Interactive Deposit Calculator', 'bi bi-calculator', 'text-success',
+                'Select scrap category, volume, cargo valuation, and run the deposit calculation.') %}
+                <div class="row g-3">
+                    {{ text_input('input-scrap-desc', 'Scrap Cargo Description / Bill of Lading:', 'Thép phế liệu HMS 1/2 từ Cảng Yokohama', col='col-12') }}
+                    {{ select_input('input-scrap-type', 'Scrap Category:', [
+                        {'value':'scrap_steel','label':'Scrap Steel & Iron (Sắt thép phế liệu - 10%/15%/20%)'},
+                        {'value':'scrap_paper','label':'Scrap Paper & Cardboard (Giấy phế liệu - 15%/20%)'},
+                        {'value':'scrap_plastic','label':'Scrap Plastic & Polymers (Nhựa phế liệu - 18%/25%)'}
+                    ], col='col-md-6') }}
+                    {{ select_input('input-exemption-cat', 'Exemption Category:', [
+                        {'value':'none','label':'No Exemption (Ký quỹ đầy đủ)'},
+                        {'value':'laboratory_research','label':'Laboratory & Scientific Research (< 5 tonnes)'},
+                        {'value':'state_import','label':'State-Managed Strategic Material Import'}
+                    ], col='col-md-6') }}
+                    {{ number_input('input-volume', 'Volume (Tonnes):', 650.0, step='0.1', col='col-md-6') }}
+                    {{ number_input('input-value', 'Cargo Value (VND):', 4800000000, col='col-md-6') }}
+                    
+                    {{ calc_button('btn-calc-scrap', 'Run Compliance Calculation', 'btn-success', col='col-12 text-end') }}
                 </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-12">
-                            <label for="input-scrap-desc" class="form-label small mb-1">Scrap Cargo Description / Bill of Lading:</label>
-                            <input type="text" id="input-scrap-desc" class="form-control form-control-sm" value="Thép phế liệu HMS 1/2 từ Cảng Yokohama" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-scrap-type" class="form-label small mb-1">Scrap Category:</label>
-                            <select id="input-scrap-type" class="form-select form-select-sm">
-                                <option value="scrap_steel">Scrap Steel & Iron (Sắt thép phế liệu - 10%/15%/20%)</option>
-                                <option value="scrap_paper">Scrap Paper & Cardboard (Giấy phế liệu - 15%/20%)</option>
-                                <option value="scrap_plastic">Scrap Plastic & Polymers (Nhựa phế liệu - 18%/25%)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-exemption-cat" class="form-label small mb-1">Exemption Category:</label>
-                            <select id="input-exemption-cat" class="form-select form-select-sm">
-                                <option value="none">No Exemption (Ký quỹ đầy đủ)</option>
-                                <option value="laboratory_research">Laboratory & Scientific Research (&lt; 5 tonnes)</option>
-                                <option value="state_import">State-Managed Strategic Material Import</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-volume" class="form-label small mb-1">Volume (Tonnes):</label>
-                            <input type="number" step="0.1" id="input-volume" class="form-control form-control-sm" value="650.0" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-value" class="form-label small mb-1">Cargo Value (VND):</label>
-                            <input type="number" step="1" id="input-value" class="form-control form-control-sm" value="4800000000" autocomplete="off">
-                        </div>
-                        
-                        <div class="col-12 text-end">
-                            <button id="btn-calc-scrap" class="btn btn-success btn-sm text-white fw-bold">
-                                <i class="bi bi-play-fill me-1" aria-hidden="true"></i> Run Compliance Calculation
-                            </button>
-                        </div>
+                {% call result_panel('Calculation Result', 'text-success', 'res-exemption-reason') %}
+                    {{ result_field('Applied Deposit Rate (%):', 'res-rate') }}
+                    {{ result_field('Total Cargo Valuation:', 'res-valuation') }}
+                    {{ result_field('Required Deposit Amount:', 'res-deposit', 'text-success') }}
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span>Exemption Status:</span>
+                        <span id="res-exempt-badge" class="fw-bold">-</span>
                     </div>
-                    <div class="mt-4 p-3 bg-premium-light rounded border">
-                        <h6 class="fw-bold mb-2 text-success"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Calculation Result</h6>
-                        <div class="d-flex justify-content-between small mb-1"><span>Applied Deposit Rate (%):</span><span id="res-rate" class="fw-bold text-dark">-</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Total Cargo Valuation:</span><span id="res-valuation" class="fw-bold text-dark">-</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Required Deposit Amount:</span><span id="res-deposit" class="fw-bold text-success fs-6">-</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Exemption Status:</span><span id="res-exempt-badge" class="fw-bold">-</span></div>
-                        <div class="small text-muted border-top pt-2 mt-2"><strong>Exemption Reason:</strong> <span id="res-exemption-reason">Awaiting…</span></div>
-                    </div>
-                </div>
-            </div>
+                {% endcall %}
+            {% endcall %}
         </div>
 
-        <!-- Baseline Verification -->
+        {# ── Baselines Ký Quỹ ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Scrap Deposit Baselines</h5>
+            {% call glass_card('Scrap Deposit Baselines', 'bi bi-shield-check', 'text-success',
+                'Pre-computed target ledgers verifying scrap import environmental deposit liabilities under Decree 08/2022.') %}
+                <div class="d-flex flex-column gap-3">
+                    {{ baseline_card('Lô phế liệu sắt thép HP', 'Steel', 'bg-secondary text-white',
+                        'Steel: 600 tonnes. Value: 5.0B VND. Rate: 15% (bracket: 500-1000t).',
+                        'Valuation: <strong id="base1-val">-</strong>'|safe,
+                        'Deposit', 'base1-eff') }}
+
+                    {{ baseline_card('Lô nhựa PET tái chế', 'Plastic', 'bg-secondary text-white',
+                        'Plastic: 80 tonnes. Value: 1.5B VND. Rate: 18% (bracket: < 100t).',
+                        'Valuation: <strong id="base2-val">-</strong>'|safe,
+                        'Deposit', 'base2-eff') }}
+
+                    {{ baseline_card('Mẫu thử nghiệm nhựa sinh học (Exempt)', 'Exempt', 'bg-success text-white',
+                        'Plastic: 3 tonnes for scientific analysis. Under 5t research limit.',
+                        'Weight: <strong>3 tonnes</strong>'|safe,
+                        'Reason', 'base3-reason') }}
                 </div>
-                <div class="card-body d-flex flex-column gap-3">
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="fw-bold small text-dark">Lô phế liệu sắt thép HP</span>
-                            <span class="badge bg-secondary">Steel</span>
-                        </div>
-                        <p class="small text-muted mb-2">Steel: 600 tonnes. Value: 5.0B VND. Rate: 15% (bracket: 500-1000t).</p>
-                        <div class="d-flex justify-content-between small">
-                            <span>Valuation: <strong id="base1-val">-</strong></span>
-                            <span>Deposit: <strong id="base1-eff" class="text-success">-</strong></span>
-                        </div>
-                    </div>
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="fw-bold small text-dark">Lô nhựa PET tái chế</span>
-                            <span class="badge bg-secondary">Plastic</span>
-                        </div>
-                        <p class="small text-muted mb-2">Plastic: 80 tonnes. Value: 1.5B VND. Rate: 18% (bracket: &lt; 100t).</p>
-                        <div class="d-flex justify-content-between small">
-                            <span>Valuation: <strong id="base2-val">-</strong></span>
-                            <span>Deposit: <strong id="base2-eff" class="text-success">-</strong></span>
-                        </div>
-                    </div>
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="fw-bold small text-dark">Mẫu thử nghiệm nhựa sinh học (Exempt)</span>
-                            <span class="badge bg-success">Exempt</span>
-                        </div>
-                        <p class="small text-muted mb-2">Plastic: 3 tonnes for scientific analysis. Under 5t research limit.</p>
-                        <div class="d-flex justify-content-between small">
-                            <span>Weight: <strong>3 tonnes</strong></span>
-                            <span>Reason: <strong id="base3-reason" class="text-success">-</strong></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {% endcall %}
         </div>
 
-        <!-- Consensus Debate -->
+        {# ── Bảng tranh luận đa tác tử ── #}
         <div class="col-lg-12">
-            <div class="card shadow-sm border-light">
-                <div class="card-header bg-dark text-white py-3 d-flex align-items-center justify-content-between">
-                    <h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-success me-2" aria-hidden="true"></i>Multi-Agent Import Compliance Debate</h5>
-                    <span class="badge bg-secondary">Decree 08/2022/NĐ-CP Consensus</span>
-                </div>
-                <div class="card-body">
-                    <div id="debate-container-v67" class="mb-3 d-flex flex-column gap-3"></div>
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus:</h6>
-                        <p id="consensus-text-v67" class="text-muted small mb-0">Awaiting…</p>
-                    </div>
-                </div>
-            </div>
+            {{ debate_panel('debate-container-v67', 'consensus-text-v67',
+                'Multi-Agent Import Compliance Debate', 'Decree 08/2022/NĐ-CP Consensus') }}
         </div>
 
-        <!-- History Audit Log -->
+        {# ── Bảng lịch sử Ký Quỹ ── #}
         <div class="col-lg-12">
-            <div class="card shadow-sm border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-2">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-clock-history text-muted me-2" aria-hidden="true"></i>Deposit Compliance History Log</h5>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover table-striped mb-0 small">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Description / BL</th>
-                                    <th>Scrap Type</th>
-                                    <th>Weight (t)</th>
-                                    <th>Valuation</th>
-                                    <th>Deposit Rate</th>
-                                    <th>Required Deposit</th>
-                                    <th>Exemption</th>
-                                    <th>Status</th>
-                                    <th>Timestamp</th>
-                                </tr>
-                            </thead>
-                            <tbody id="history-table-v67">
-                                <tr><td colspan="10" class="text-center text-muted py-4">No logs available.</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+            {% call data_table('Deposit Compliance History Log', 'bi bi-clock-history', 'history-table-v67', 'No logs available.', 10) %}
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Description / BL</th>
+                        <th>Scrap Type</th>
+                        <th>Weight (t)</th>
+                        <th>Valuation</th>
+                        <th>Deposit Rate</th>
+                        <th>Required Deposit</th>
+                        <th>Exemption</th>
+                        <th>Status</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+            {% endcall %}
         </div>
-    </div>
-</div>
+
+    </div>{# /row #}
+</div>{# /container #}
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
@@ -282,4 +218,7 @@ document.addEventListener("DOMContentLoaded", () => {
     load();
 });
 </script>
+
+{{ entry_animations() }}
+{{ premium_controls_css() }}
 {% endblock %}

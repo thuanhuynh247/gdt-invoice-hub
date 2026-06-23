@@ -1,124 +1,128 @@
 {% extends "base.html" %}
+
+{% from "components/_hub_header.html" import hub_header %}
+{% from "components/_glass_card.html" import glass_card %}
+{% from "components/_calc_input.html" import text_input, number_input, select_input, switch_input, calc_button %}
+{% from "components/_result_panel.html" import result_panel, result_field %}
+{% from "components/_baseline_card.html" import baseline_card %}
+{% from "components/_debate_panel.html" import debate_panel %}
+{% from "components/_data_table.html" import data_table %}
+{% from "components/_entry_animations.html" import entry_animations %}
+{% from "components/_premium_controls.html" import premium_controls_css %}
+
 {% block title %}Agricultural Land Use Tax Law 1993 - ALUT Hub (v60){% endblock %}
+
 {% block content %}
 <div class="container py-4">
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
-        <div>
-            <span class="badge bg-success text-white mb-2">Version 60.0.0 Spec Compliance</span>
-            <h1 class="h2 fw-bold text-gradient mb-1 text-success">Agricultural Land Use Tax Hub</h1>
-            <p class="text-muted mb-0">Manage ALUT (Thuế sử dụng đất nông nghiệp) under Law on ALUT 1993 & Resolution 117/2020/QH14.</p>
-        </div>
-        <div class="d-flex gap-2 mt-3 mt-md-0">
-            <button id="btn-refresh-v60" class="btn btn-success text-white d-flex align-items-center gap-2"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Load Data</button>
-            <span class="badge bg-success-subtle text-success border border-success d-flex align-items-center px-3"><i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Law 1993 / Res 117</span>
-        </div>
-    </div>
+
+    {# ── Đầu trang Hub ── #}
+    {{ hub_header('60.0.0',
+        'Agricultural Land Use Tax Hub',
+        'Manage ALUT (Thuế sử dụng đất nông nghiệp) under Law on ALUT 1993 & Resolution 117/2020/QH14.',
+        'btn-refresh-v60', 'Load Data', 'Law 1993 / Res 117') }}
+
     <div class="row g-4">
+
+        {# ── Máy tính ALUT ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1 text-success"><i class="bi bi-calculator text-success me-2" aria-hidden="true"></i>Interactive ALUT Calculator</h5>
-                    <p class="text-muted small mb-0">Select crop type, land grade, area, and producer type to calculate ALUT and apply exemptions.</p>
+            {% call glass_card('Interactive ALUT Calculator', 'bi bi-calculator', 'text-success',
+                'Select crop type, land grade, area, and producer type to calculate ALUT and apply exemptions.') %}
+                <div class="row g-3">
+                    {{ text_input('input-land-desc', 'Land Description:', 'Cánh đồng lúa Hải Hậu', col='col-md-6') }}
+                    {{ select_input('input-producer-type', 'Producer Type:', [
+                        {'value': 'household', 'label': 'Household/Farmer (Hộ gia đình/Cá nhân)'},
+                        {'value': 'cooperative', 'label': 'Agricultural Cooperative (HTX Nông nghiệp)'},
+                        {'value': 'research', 'label': 'Research/Educational Farm (Nghiên cứu/Thực nghiệm)'},
+                        {'value': 'state_org', 'label': 'State Enterprise/Org (Doanh nghiệp nhà nước)'},
+                        {'value': 'general_org', 'label': 'General Company (Doanh nghiệp thương mại)'}
+                    ], col='col-md-6') }}
+                    {{ select_input('input-crop-type', 'Crop Type:', [
+                        {'value': 'annual', 'label': 'Annual Crops (Đất trồng cây hàng năm)'},
+                        {'value': 'perennial', 'label': 'Perennial Crops (Đất trồng cây lâu năm)'}
+                    ], col='col-md-4') }}
+                    {{ select_input('input-land-grade', 'Land Grade (Hạng đất):', [
+                        {'value': '1', 'label': 'Grade 1 (Hạng 1)'},
+                        {'value': '2', 'label': 'Grade 2 (Hạng 2)'},
+                        {'value': '3', 'label': 'Grade 3 (Hạng 3)'},
+                        {'value': '4', 'label': 'Grade 4 (Hạng 4)'},
+                        {'value': '5', 'label': 'Grade 5 (Hạng 5)'},
+                        {'value': '6', 'label': 'Grade 6 (Hạng 6 - Annual Only)'}
+                    ], col='col-md-4') }}
+                    {{ number_input('input-area-ha', 'Area (ha):', 5.0, step='0.01', col='col-md-4') }}
+                    {{ number_input('input-rice-price', 'Rice Price (VND/kg):', 8000, col='col-md-6') }}
+                    {{ calc_button('btn-calc-alut', 'Run Calculation', 'btn-success', col='col-md-6 text-end d-flex align-items-end justify-content-end') }}
                 </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="input-land-desc" class="form-label small mb-1">Land Description:</label>
-                            <input type="text" id="input-land-desc" class="form-control form-control-sm" value="Cánh đồng lúa Hải Hậu" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-producer-type" class="form-label small mb-1">Producer Type:</label>
-                            <select id="input-producer-type" class="form-select form-select-sm">
-                                <option value="household">Household/Farmer (Hộ gia đình/Cá nhân)</option>
-                                <option value="cooperative">Agricultural Cooperative (HTX Nông nghiệp)</option>
-                                <option value="research">Research/Educational Farm (Nghiên cứu/Thực nghiệm)</option>
-                                <option value="state_org">State Enterprise/Org (Doanh nghiệp nhà nước)</option>
-                                <option value="general_org">General Company (Doanh nghiệp thương mại)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="input-crop-type" class="form-label small mb-1">Crop Type:</label>
-                            <select id="input-crop-type" class="form-select form-select-sm">
-                                <option value="annual">Annual Crops (Đất trồng cây hàng năm)</option>
-                                <option value="perennial">Perennial Crops (Đất trồng cây lâu năm)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="input-land-grade" class="form-label small mb-1">Land Grade (Hạng đất):</label>
-                            <select id="input-land-grade" class="form-select form-select-sm">
-                                <option value="1">Grade 1 (Hạng 1)</option>
-                                <option value="2">Grade 2 (Hạng 2)</option>
-                                <option value="3">Grade 3 (Hạng 3)</option>
-                                <option value="4">Grade 4 (Hạng 4)</option>
-                                <option value="5">Grade 5 (Hạng 5)</option>
-                                <option value="6">Grade 6 (Hạng 6 - Annual Only)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="input-area-ha" class="form-label small mb-1">Area (ha):</label>
-                            <input type="number" step="0.01" id="input-area-ha" class="form-control form-control-sm" value="5.0" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-rice-price" class="form-label small mb-1">Rice Price (VND/kg):</label>
-                            <input type="number" id="input-rice-price" class="form-control form-control-sm" value="8000" autocomplete="off">
-                        </div>
-                        <div class="col-md-6 text-end d-flex align-items-end justify-content-end">
-                            <button id="btn-calc-alut" class="btn btn-success btn-sm text-white fw-bold"><i class="bi bi-play-fill me-1" aria-hidden="true"></i> Run Calculation</button>
-                        </div>
+                {% call result_panel('Calculation Result', 'text-success', 'res-exemption-reason') %}
+                    {{ result_field('Rate per Ha:', 'res-rate-rice') }}
+                    {{ result_field('Total Rice Tax:', 'res-tax-rice') }}
+                    {{ result_field('Standard Tax Amount:', 'res-tax-vnd') }}
+                    {{ result_field('Effective Tax Billing:', 'res-effective-vnd', 'text-success') }}
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span>Exemption Status:</span>
+                        <span id="res-exempt-badge" class="fw-bold">-</span>
                     </div>
-                    <div class="mt-4 p-3 bg-premium-light rounded border">
-                        <h6 class="fw-bold mb-2 text-success"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Calculation Result</h6>
-                        <div class="d-flex justify-content-between small mb-1"><span>Rate per Ha:</span><span id="res-rate-rice" class="fw-bold text-dark">-</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Total Rice Tax:</span><span id="res-tax-rice" class="fw-bold text-dark">-</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Standard Tax Amount:</span><span id="res-tax-vnd" class="fw-bold text-dark">-</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Effective Tax Billing:</span><span id="res-effective-vnd" class="fw-bold text-success fs-6">-</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Exemption Status:</span><span id="res-exempt-badge" class="fw-bold">-</span></div>
-                        <div class="small text-muted border-top pt-2 mt-2"><strong>Exemption Reason:</strong> <span id="res-exemption-reason">Awaiting…</span></div>
-                    </div>
-                </div>
-            </div>
+                {% endcall %}
+            {% endcall %}
         </div>
+
+        {# ── Baselines tuân thủ ALUT ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0"><h5 class="fw-bold mb-1"><i class="bi bi-shield-check text-info me-2" aria-hidden="true"></i>ALUT Baseline Verification</h5></div>
-                <div class="card-body d-flex flex-column gap-3">
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Household Farmer (100% Exempt)</span><span class="badge bg-success">Resolution 117</span></div>
-                        <p class="small text-muted mb-2">Paddy land Grade 1, 5.0 ha. Fully waived.</p>
-                        <div class="d-flex justify-content-between small"><span>Standard Tax: <strong id="base1-std">-</strong></span><span>Effective Tax: <strong id="base1-eff" class="text-success">-</strong></span></div>
-                    </div>
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Agricultural Cooperative (100% Exempt)</span><span class="badge bg-success">Resolution 117</span></div>
-                        <p class="small text-muted mb-2">Tea plantation Grade 2, 12.0 ha. Fully waived.</p>
-                        <div class="d-flex justify-content-between small"><span>Standard Tax: <strong id="base2-std">-</strong></span><span>Effective Tax: <strong id="base2-eff" class="text-success">-</strong></span></div>
-                    </div>
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">State Rubber Farm (50% Reduced)</span><span class="badge bg-warning text-dark">50% Waiver</span></div>
-                        <p class="small text-muted mb-2">Perennial trees Grade 1, 50.0 ha. Subject to half tax.</p>
-                        <div class="d-flex justify-content-between small"><span>Standard Tax: <strong id="base3-std">-</strong></span><span>Effective Tax: <strong id="base3-eff" class="text-warning">-</strong></span></div>
-                    </div>
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Commercial Producer (No Waiver)</span><span class="badge bg-danger">Taxable</span></div>
-                        <p class="small text-muted mb-2">Annual crop Grade 3, 10.0 ha. Standard rate applies.</p>
-                        <div class="d-flex justify-content-between small"><span>Standard Tax: <strong id="base4-std">-</strong></span><span>Effective Tax: <strong id="base4-eff" class="text-danger">-</strong></span></div>
-                    </div>
+            {% call glass_card('ALUT Baseline Verification', 'bi bi-shield-check', 'text-success',
+                'Pre-computed target ledgers verifying calculations under core agricultural structures.') %}
+                <div class="d-flex flex-column gap-3">
+                    {{ baseline_card('Household Farmer (100% Exempt)', 'Resolution 117', 'bg-success text-white',
+                        'Paddy land Grade 1, 5.0 ha. Fully waived.',
+                        'Standard Tax: <strong id="base1-std">-</strong>'|safe,
+                        'Effective Tax', 'base1-eff') }}
+
+                    {{ baseline_card('Agricultural Cooperative (100% Exempt)', 'Resolution 117', 'bg-success text-white',
+                        'Tea plantation Grade 2, 12.0 ha. Fully waived.',
+                        'Standard Tax: <strong id="base2-std">-</strong>'|safe,
+                        'Effective Tax', 'base2-eff') }}
+
+                    {{ baseline_card('State Rubber Farm (50% Reduced)', '50% Waiver', 'bg-warning text-dark',
+                        'Perennial trees Grade 1, 50.0 ha. Subject to half tax.',
+                        'Standard Tax: <strong id="base3-std">-</strong>'|safe,
+                        'Effective Tax', 'base3-eff') }}
+
+                    {{ baseline_card('Commercial Producer (No Waiver)', 'Taxable', 'bg-danger text-white',
+                        'Annual crop Grade 3, 10.0 ha. Standard rate applies.',
+                        'Standard Tax: <strong id="base4-std">-</strong>'|safe,
+                        'Effective Tax', 'base4-eff') }}
                 </div>
-            </div>
+            {% endcall %}
         </div>
+
+        {# ── Bảng tranh luận đa tác tử ── #}
         <div class="col-lg-12">
-            <div class="card shadow-sm border-light">
-                <div class="card-header bg-dark text-white py-3 d-flex align-items-center justify-content-between"><h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-success me-2" aria-hidden="true"></i>Multi-Agent ALUT Advisory Debate</h5><span class="badge bg-secondary">Agricultural Policy Consensus</span></div>
-                <div class="card-body"><div id="debate-container-v60" class="mb-3 d-flex flex-column gap-3"></div><div class="p-3 bg-premium-light rounded border border-light-subtle"><h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus:</h6><p id="consensus-text-v60" class="text-muted small mb-0">Awaiting…</p></div></div>
-            </div>
+            {{ debate_panel('debate-container-v60', 'consensus-text-v60',
+                'Multi-Agent ALUT Advisory Debate', 'Agricultural Policy Consensus') }}
         </div>
+
+        {# ── Bảng lịch sử tuân thủ ALUT ── #}
         <div class="col-lg-12">
-            <div class="card shadow-sm border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-2"><h5 class="fw-bold mb-1"><i class="bi bi-clock-history text-muted me-2" aria-hidden="true"></i>Historical Audit Log</h5></div>
-                <div class="card-body p-0"><div class="table-responsive"><table class="table table-hover table-striped mb-0 small"><thead class="table-dark"><tr><th>ID</th><th>Description</th><th>Crop Type</th><th>Grade</th><th>Area</th><th>Standard Rice Rate</th><th>Standard Tax</th><th>Effective Tax</th><th>Status</th><th>Exemption Reason</th><th>Time</th></tr></thead><tbody id="history-table-v60"><tr><td colspan="11" class="text-center text-muted py-4">No logs.</td></tr></tbody></table></div></div>
-            </div>
+            {% call data_table('Historical Audit Log', 'bi bi-clock-history', 'history-table-v60', 'No logs.', 11) %}
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Description</th>
+                        <th>Crop Type</th>
+                        <th>Grade</th>
+                        <th>Area</th>
+                        <th>Standard Rice Rate</th>
+                        <th>Standard Tax</th>
+                        <th>Effective Tax</th>
+                        <th>Status</th>
+                        <th>Exemption Reason</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+            {% endcall %}
         </div>
-    </div>
-</div>
+
+    </div>{# /row #}
+</div>{# /container #}
+
 <script>
 document.addEventListener("DOMContentLoaded",()=>{
     const fVND = n => new Intl.NumberFormat("vi-VN").format(n) + " VND";
@@ -241,4 +245,7 @@ document.addEventListener("DOMContentLoaded",()=>{
     load();
 });
 </script>
+
+{{ entry_animations() }}
+{{ premium_controls_css() }}
 {% endblock %}

@@ -1,187 +1,126 @@
+{# ═══════════════════════════════════════════════════════════════════
+   TRANG LẮP RÁP LEGO: v71 — E-Waste EPR Recycling Hub
+   ────────────────────────────────────────────────────────────────
+   Nghị định 08/2022/NĐ-CP: Tính phí tái chế rác thải điện tử
+   theo trách nhiệm mở rộng của nhà sản xuất (EPR).
+   
+   CẤU TRÚC LEGO:
+   ├── hub_header         → Đầu trang
+   ├── glass_card          → Máy tính EPR (inputs + result + chart)
+   ├── glass_card          → Baselines tuân thủ (baseline_card x3)
+   ├── debate_panel        → Tranh luận đa tác tử
+   ├── data_table          → Bảng lịch sử EPR
+   ├── entry_animations    → Hiệu ứng xuất hiện
+   └── premium_controls    → CSS dùng chung
+   ═══════════════════════════════════════════════════════════════════ #}
 {% extends "base.html" %}
+
+{% from "components/_hub_header.html" import hub_header %}
+{% from "components/_glass_card.html" import glass_card %}
+{% from "components/_calc_input.html" import select_input, number_input, switch_input, calc_button %}
+{% from "components/_result_panel.html" import result_panel, result_field %}
+{% from "components/_baseline_card.html" import baseline_card %}
+{% from "components/_debate_panel.html" import debate_panel %}
+{% from "components/_data_table.html" import data_table %}
+{% from "components/_entry_animations.html" import entry_animations %}
+{% from "components/_premium_controls.html" import premium_controls_css %}
+
 {% block title %}E-Waste EPR Recycling Hub (v71){% endblock %}
+
 {% block content %}
 <div class="container py-4">
-    <!-- Header -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
-        <div>
-            <span class="badge bg-success text-white mb-2">Version 71.0.0 Spec Compliance</span>
-            <h1 class="h2 fw-bold text-gradient mb-1 text-success">E-Waste EPR Recycling Hub</h1>
-            <p class="text-muted mb-0">Manage manufacturer/importer recycling fees and exemptions under Decree 08/2022/NĐ-CP.</p>
-        </div>
-        <div class="d-flex gap-2 mt-3 mt-md-0">
-            <button id="btn-refresh-v71" class="btn btn-success text-white d-flex align-items-center gap-2">
-                <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Load Data
-            </button>
-            <span class="badge bg-success-subtle text-success border border-success d-flex align-items-center px-3">
-                <i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Decree 08/2022
-            </span>
-        </div>
-    </div>
 
-    <!-- Main Panels -->
+    {# ── Đầu trang Hub ── #}
+    {{ hub_header('71.0.0',
+        'E-Waste EPR Recycling Hub',
+        'Manage manufacturer/importer recycling fees and exemptions under Decree 08/2022/NĐ-CP.',
+        'btn-refresh-v71', 'Load Data', 'Decree 08/2022') }}
+
     <div class="row g-4">
-        <!-- Interactive Calculator -->
+
+        {# ── Máy tính EPR ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1 text-success"><i class="bi bi-calculator text-success me-2" aria-hidden="true"></i>EPR Calculator</h5>
-                    <p class="text-muted small mb-0">Calculate recycling fees by entering category, quantity, and scale thresholds.</p>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="input-category" class="form-label small mb-1">Product Category:</label>
-                            <select id="input-category" class="form-select form-select-sm">
-                                <option value="laptop">Laptop (Rate: 20k VND/unit)</option>
-                                <option value="tv_monitor">TV/Monitor (Rate: 30k VND/unit)</option>
-                                <option value="phone">Mobile Phone (Rate: 5k VND/unit)</option>
-                                <option value="battery">Industrial Battery (Rate: 50k VND/kg)</option>
-                                <option value="solar_panel">Solar Panel (Rate: 15k VND/kg)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-quantity" class="form-label small mb-1">Quantity (Units or kg):</label>
-                            <input type="number" step="1" id="input-quantity" class="form-control form-control-sm" value="500" autocomplete="off">
-                        </div>
-                        <div class="col-md-12">
-                            <div class="form-check form-switch pt-2">
-                                <input class="form-check-input" type="checkbox" id="input-export" role="switch">
-                                <label class="form-check-label small" for="input-export">Designated for Direct Export (100% Waiver)</label>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-revenue" class="form-label small mb-1">Preceding Year Revenue (VND):</label>
-                            <input type="number" id="input-revenue" class="form-control form-control-sm" value="45000000000" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-import-val" class="form-label small mb-1">Preceding Year Import Value (VND):</label>
-                            <input type="number" id="input-import-val" class="form-control form-control-sm" value="5000000000" autocomplete="off">
-                        </div>
-                        
-                        <div class="col-12 text-end">
-                            <button id="btn-calc-epr" class="btn btn-success btn-sm text-white fw-bold">
-                                <i class="bi bi-play-fill me-1" aria-hidden="true"></i> Calculate EPR Fee
-                            </button>
+            {% call glass_card('EPR Calculator', 'bi bi-calculator', 'text-success',
+                'Calculate recycling fees by entering category, quantity, and scale thresholds.') %}
+                <div class="row g-3">
+                    {{ select_input('input-category', 'Product Category:', [
+                        {'value':'laptop','label':'Laptop (Rate: 20k VND/unit)'},
+                        {'value':'tv_monitor','label':'TV/Monitor (Rate: 30k VND/unit)'},
+                        {'value':'phone','label':'Mobile Phone (Rate: 5k VND/unit)'},
+                        {'value':'battery','label':'Industrial Battery (Rate: 50k VND/kg)'},
+                        {'value':'solar_panel','label':'Solar Panel (Rate: 15k VND/kg)'}
+                    ]) }}
+                    {{ number_input('input-quantity', 'Quantity (Units or kg):', 500) }}
+                    <div class="col-md-12">
+                        <div class="form-check form-switch pt-2">
+                            <input class="form-check-input" type="checkbox" id="input-export" role="switch">
+                            <label class="form-check-label small" for="input-export">Designated for Direct Export (100% Waiver)</label>
                         </div>
                     </div>
-                    <div class="mt-4 p-3 bg-premium-light rounded border">
-                        <h6 class="fw-bold mb-2 text-success"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Calculation Result</h6>
-                        <div class="d-flex justify-content-between small mb-1"><span>Charge Rate:</span><span id="res-rate" class="fw-bold text-dark">-</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Gross Fee:</span><span id="res-gross" class="fw-bold text-dark">-</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Final Fee:</span><span id="res-final" class="fw-bold text-success fs-6">-</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Exemption Status:</span><span id="res-exempt-badge" class="fw-bold">-</span></div>
-                        <!-- EPR Category Breakdown Chart -->
-                        <div id="breakdown-chart" class="border-top pt-2 mt-2" style="display:none;">
-                            <h6 class="fw-bold small mb-2 text-success"><i class="bi bi-bar-chart-fill text-success me-1" aria-hidden="true"></i>E-Waste Surcharge Comparison</h6>
-                            <div id="breakdown-bars" class="d-flex flex-column gap-1"></div>
-                        </div>
-                        <div class="small text-muted border-top pt-2 mt-2"><strong>Notes:</strong> <span id="res-notes">Awaiting…</span></div>
-                    </div>
+                    {{ number_input('input-revenue', 'Preceding Year Revenue (VND):', 45000000000) }}
+                    {{ number_input('input-import-val', 'Preceding Year Import Value (VND):', 5000000000) }}
+                    {{ calc_button('btn-calc-epr', 'Calculate EPR Fee') }}
                 </div>
-            </div>
+                {% call result_panel('Calculation Result', 'text-success', 'res-notes') %}
+                    {{ result_field('Charge Rate:', 'res-rate') }}
+                    {{ result_field('Gross Fee:', 'res-gross') }}
+                    {{ result_field('Final Fee:', 'res-final', 'text-success fs-6') }}
+                    {{ result_field('Exemption Status:', 'res-exempt-badge') }}
+                {% endcall %}
+                {# Biểu đồ so sánh phí EPR theo loại #}
+                <div id="breakdown-chart" class="border-top pt-2 mt-2" style="display:none;">
+                    <h6 class="fw-bold small mb-2 text-success"><i class="bi bi-bar-chart-fill text-success me-1" aria-hidden="true"></i>E-Waste Surcharge Comparison</h6>
+                    <div id="breakdown-bars" class="d-flex flex-column gap-1"></div>
+                </div>
+            {% endcall %}
         </div>
 
-        <!-- Baseline Verification -->
+        {# ── Baselines tuân thủ EPR ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>EPR Compliance Baselines</h5>
+            {% call glass_card('EPR Compliance Baselines', 'bi bi-shield-check', 'text-success') %}
+                <div class="d-flex flex-column gap-3">
+                    {{ baseline_card('Laptops standard batch', '500 units', 'bg-success',
+                        'Rate: 20k VND/unit. Standard charge applies.',
+                        'Exempt: No', 'Fee', 'base1-eff') }}
+                    {{ baseline_card('Batteries batch', '1,200 kg', 'bg-success',
+                        'Rate: 50k VND/kg. Standard charge applies.',
+                        'Exempt: No', 'Fee', 'base2-eff') }}
+                    {{ baseline_card('Exported Solar Panels (Exempt)', 'Export Exempt', 'bg-danger',
+                        'Solar panel: 1,500 units. Exemption: Designated for Export.',
+                        'Exempt: Yes', 'Notes', 'base3-notes') }}
                 </div>
-                <div class="card-body d-flex flex-column gap-3">
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="fw-bold small text-dark">Laptops standard batch</span>
-                            <span class="badge bg-success">500 units</span>
-                        </div>
-                        <p class="small text-muted mb-2">Rate: 20k VND/unit. Standard charge applies.</p>
-                        <div class="d-flex justify-content-between small">
-                            <span>Exempt: No</span>
-                            <span>Fee: <strong id="base1-eff" class="text-success">-</strong></span>
-                        </div>
-                    </div>
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="fw-bold small text-dark">Batteries batch</span>
-                            <span class="badge bg-success">1,200 kg</span>
-                        </div>
-                        <p class="small text-muted mb-2">Rate: 50k VND/kg. Standard charge applies.</p>
-                        <div class="d-flex justify-content-between small">
-                            <span>Exempt: No</span>
-                            <span>Fee: <strong id="base2-eff" class="text-success">-</strong></span>
-                        </div>
-                    </div>
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="fw-bold small text-dark">Exported Solar Panels (Exempt)</span>
-                            <span class="badge bg-danger">Export Exempt</span>
-                        </div>
-                        <p class="small text-muted mb-2">Solar panel: 1,500 units. Exemption: Designated for Export.</p>
-                        <div class="d-flex justify-content-between small">
-                            <span>Exempt: Yes</span>
-                            <span>Notes: <strong id="base3-notes" class="text-success">-</strong></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {% endcall %}
         </div>
 
-        <!-- Consensus Debate -->
+        {# ── Bảng tranh luận đa tác tử ── #}
         <div class="col-lg-12">
-            <div class="card shadow-sm border-light">
-                <div class="card-header bg-dark text-white py-3 d-flex align-items-center justify-content-between">
-                    <h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-success me-2" aria-hidden="true"></i>Multi-Agent E-Waste Regulation Debate</h5>
-                    <span class="badge bg-secondary">Decree 08/2022/NĐ-CP Consensus</span>
-                </div>
-                <div class="card-body">
-                    <div id="debate-container-v71" class="mb-3 d-flex flex-column gap-3"></div>
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus:</h6>
-                        <p id="consensus-text-v71" class="text-muted small mb-0">Awaiting…</p>
-                    </div>
-                </div>
-            </div>
+            {{ debate_panel('debate-container-v71', 'consensus-text-v71',
+                'Multi-Agent E-Waste Regulation Debate', 'Decree 08/2022/NĐ-CP Consensus') }}
         </div>
 
-        <!-- History Audit Log -->
+        {# ── Bảng lịch sử tuân thủ EPR ── #}
         <div class="col-lg-12">
-            <div class="card shadow-sm border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-2">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-clock-history text-muted me-2" aria-hidden="true"></i>EPR Compliance History Log</h5>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover table-striped mb-0 small">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Category</th>
-                                    <th>Quantity</th>
-                                    <th>Export</th>
-                                    <th>Rev Threshold</th>
-                                    <th>Imp Threshold</th>
-                                    <th>Rate</th>
-                                    <th>Gross Fee</th>
-                                    <th>Final Fee</th>
-                                    <th>Status</th>
-                                    <th>Timestamp</th>
-                                </tr>
-                            </thead>
-                            <tbody id="history-table-v71">
-                                <tr><td colspan="11" class="text-center text-muted py-4">No logs available.</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+            {% call data_table('EPR Compliance History Log', 'bi bi-clock-history', 'history-table-v71', 'No logs available.', 11) %}
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th><th>Category</th><th>Quantity</th><th>Export</th>
+                    <th>Rev Threshold</th><th>Imp Threshold</th><th>Rate</th>
+                    <th>Gross Fee</th><th>Final Fee</th><th>Status</th><th>Timestamp</th>
+                </tr>
+            </thead>
+            {% endcall %}
         </div>
-    </div>
-</div>
 
+    </div>{# /row #}
+</div>{# /container #}
+
+{# ════════════════════════════════════════════════════════════════
+   LOGIC NGHIỆP VỤ RIÊNG TRANG — Giữ nguyên 100% JS gốc
+   ════════════════════════════════════════════════════════════════ #}
 <script>
 document.addEventListener("DOMContentLoaded", () => {
     const fVND = n => new Intl.NumberFormat("vi-VN").format(Math.round(n)) + " VND";
-    
+
     const load = () => {
         fetch('/api/v71/compliance-data').then(r=>r.json()).then(d=>{
             if(d.status==="success"){
@@ -191,7 +130,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }).catch(e=>console.error(e));
     };
-    
+
     const calc = () => {
         const p = {
             product_category: document.getElementById("input-category").value,
@@ -213,12 +152,11 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }).catch(e=>console.error(e));
     };
-    
+
     const rR = r => {
         document.getElementById("res-rate").textContent = fVND(r.charge_rate);
         document.getElementById("res-gross").textContent = fVND(r.gross_fee);
         document.getElementById("res-final").textContent = fVND(r.final_fee);
-        
         if (r.is_exempt) {
             document.getElementById("res-exempt-badge").innerHTML = '<span class="badge bg-success">Exempt</span>';
         } else {
@@ -226,26 +164,14 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         document.getElementById("res-notes").textContent = r.notes || "None";
 
-        // Breakdown chart
+        /* Biểu đồ so sánh */
         const chartEl = document.getElementById("breakdown-chart");
         const barsEl = document.getElementById("breakdown-bars");
         if (r.breakdown && Object.keys(r.breakdown).length > 0) {
             chartEl.style.display = "block";
             barsEl.innerHTML = "";
-            const colors = {
-                laptop: "#198754",
-                tv_monitor: "#0d6efd",
-                phone: "#fd7e14",
-                battery: "#dc3545",
-                solar_panel: "#6f42c1"
-            };
-            const labels = {
-                laptop: "Laptop",
-                tv_monitor: "TV/Monitor",
-                phone: "Mobile Phone",
-                battery: "Battery",
-                solar_panel: "Solar Panel"
-            };
+            const colors = { laptop: "#198754", tv_monitor: "#0d6efd", phone: "#fd7e14", battery: "#dc3545", solar_panel: "#6f42c1" };
+            const labels = { laptop: "Laptop", tv_monitor: "TV/Monitor", phone: "Mobile Phone", battery: "Battery", solar_panel: "Solar Panel" };
             const maxVal = Math.max(...Object.values(r.breakdown));
             Object.entries(r.breakdown).forEach(([k, v]) => {
                 const pct = maxVal > 0 ? Math.max((v / maxVal) * 100, 2) : 2;
@@ -253,7 +179,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 const bgStyle = isSelected ? colors[k] : '#6c757d';
                 const opacityStyle = isSelected ? 'opacity: 1;' : 'opacity: 0.55;';
                 const textWeight = isSelected ? 'fw-bold text-dark' : 'text-muted';
-                
                 const row = document.createElement("div");
                 row.className = "d-flex align-items-center gap-2 small";
                 row.innerHTML = `<span style="min-width:100px" class="${textWeight}">${labels[k]||k}</span>
@@ -263,23 +188,20 @@ document.addEventListener("DOMContentLoaded", () => {
                     <span class="${textWeight}" style="min-width:110px;text-align:right">${fVND(v)}</span>`;
                 barsEl.appendChild(row);
             });
-            // Animate bars
             requestAnimationFrame(() => {
-                barsEl.querySelectorAll("[data-target]").forEach(bar => {
-                    bar.style.width = bar.dataset.target;
-                });
+                barsEl.querySelectorAll("[data-target]").forEach(bar => { bar.style.width = bar.dataset.target; });
             });
         } else {
             chartEl.style.display = "none";
         }
     };
-    
+
     const rB = d => {
         document.getElementById("base1-eff").textContent = fVND(d.laptop_standard.final_fee);
         document.getElementById("base2-eff").textContent = fVND(d.battery_standard.final_fee);
         document.getElementById("base3-notes").textContent = d.export_exempt.notes;
     };
-    
+
     const rD = (debate, summary) => {
         const c = document.getElementById("debate-container-v71");
         c.innerHTML = "";
@@ -296,7 +218,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         document.getElementById("consensus-text-v71").textContent = summary;
     };
-    
+
     const rH = h => {
         const tb = document.getElementById("history-table-v71");
         if (!h || !h.length) {
@@ -323,10 +245,13 @@ document.addEventListener("DOMContentLoaded", () => {
             tb.appendChild(tr);
         });
     };
-    
+
     document.getElementById("btn-calc-epr").addEventListener("click", calc);
     document.getElementById("btn-refresh-v71").addEventListener("click", load);
     load();
 });
 </script>
+
+{{ entry_animations() }}
+{{ premium_controls_css() }}
 {% endblock %}

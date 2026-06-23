@@ -74,6 +74,31 @@
                     <span class="text-secondary small"><i class="bi bi-hourglass-split me-1 spinner-border spinner-border-sm border-0" aria-hidden="true"></i>Đang quét giao dịch hóa đơn…</span>
                 </div>
             </div>
+
+            <!-- Emergent Complexity & Systemic Metrics -->
+            <div class="pt-3 border-top border-secondary border-opacity-10 mt-3">
+                <label class="form-label small text-secondary d-block">Độ Phức Tạp Nổi Lên & Chỉ Số Mạng Lưới</label>
+                <div class="bg-dark bg-opacity-50 p-2 rounded border border-secondary border-opacity-10">
+                    <div class="row g-2 text-center">
+                        <div class="col-4">
+                            <div class="text-secondary" style="font-size: 0.65rem;">Gạch Lego (Links)</div>
+                            <div class="fw-bold text-light" id="metricLinksCount">0</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="text-secondary" style="font-size: 0.65rem;">Hệ Số Kết Nối</div>
+                            <div class="fw-bold text-info" id="metricAvgDegree">0.0</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="text-secondary" style="font-size: 0.65rem;">Vòng Phản Hồi</div>
+                            <div class="fw-bold text-warning" id="metricCyclesCount">0</div>
+                        </div>
+                    </div>
+                    <div class="mt-2 pt-2 border-top border-secondary border-opacity-10 d-flex justify-content-between align-items-center">
+                        <span class="text-secondary" style="font-size: 0.65rem;">Chỉ Số Tổn Thương Hệ Thống (Fragility):</span>
+                        <span class="badge bg-danger-glow font-monospace" id="metricFragility">0.0</span>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Node Details Bento Box -->
@@ -115,70 +140,237 @@
         </div>
     </div>
 
-    <!-- Concept Map Visualization Area -->
+    <!-- Concept Map & Systems Dynamics & Lego Area -->
     <div class="col-xl-8 col-lg-7">
-        <div class="glass-card p-0 overflow-hidden position-relative border-accent" style="height: 650px;">
-            <!-- Canvas HUD -->
-            <div class="position-absolute top-0 start-0 p-3 z-3 d-flex gap-2 align-items-center bg-dark bg-opacity-75 rounded-bottom-end border-bottom border-end border-secondary border-opacity-25">
-                <span class="badge bg-dark border border-secondary text-light font-monospace small"><i class="bi bi-radar me-1" aria-hidden="true"></i>Radar Radar Layout</span>
-                <span class="text-secondary small">|</span>
-                <button class="btn btn-xs btn-outline-secondary" onclick="resetZoom()"><i class="bi bi-arrows-fullscreen me-1" aria-hidden="true"></i> Reset View</button>
+        <!-- Interactive Right Console Card -->
+        <div class="glass-card p-0 overflow-hidden border-accent" style="height: 680px; display: flex; flex-direction: column;">
+            
+            <!-- Tab Selector Bar -->
+            <div class="d-flex justify-content-between align-items-center bg-dark bg-opacity-75 border-bottom border-secondary border-opacity-25 px-3 py-2 z-3">
+                <div class="d-flex gap-2">
+                    <button class="btn btn-xs btn-outline-info active btn-pill" id="btnTabRadar" onclick="switchRightTab('radar')">
+                        <i class="bi bi-radar me-1"></i>Bản Đồ Radar (Radar Map)
+                    </button>
+                    <button class="btn btn-xs btn-outline-info btn-pill" id="btnTabSimulator" onclick="switchRightTab('simulator')">
+                        <i class="bi bi-cpu-fill me-1"></i>Mô Phỏng Động Lực (Systems Sim)
+                    </button>
+                    <button class="btn btn-xs btn-outline-info btn-pill" id="btnTabLego" onclick="switchRightTab('lego')">
+                        <i class="bi bi-bricks me-1"></i>Snapping Lego Blocks
+                    </button>
+                </div>
+                <div class="d-flex gap-2 align-items-center">
+                    <span class="badge bg-dark border border-secondary text-light font-monospace small" id="rightTabHud"><i class="bi bi-radar me-1"></i>Radar Layout</span>
+                    <button class="btn btn-xs btn-outline-secondary" id="btnRightResetView" onclick="resetZoom()"><i class="bi bi-arrows-fullscreen"></i> Reset</button>
+                </div>
+            </div>
+
+            <!-- Tab Content 1: Radar Map Graph -->
+            <div id="contentTabRadar" class="position-relative flex-grow-1" style="display: block; min-height: 0;">
+                <!-- Legend HUD inside Graph -->
+                <div class="position-absolute bottom-0 end-0 p-3 z-3 bg-dark bg-opacity-75 rounded-top-start border-top border-start border-secondary border-opacity-25">
+                    <div class="d-flex align-items-center gap-3 small text-secondary">
+                        <div><span class="badge bg-danger-glow me-1"></span>Rủi ro Cao</div>
+                        <div><span class="badge bg-warning-glow me-1"></span>Rủi ro Vừa</div>
+                        <div><span class="badge bg-info-glow me-1"></span>Rủi ro Thấp</div>
+                    </div>
+                </div>
+
+                <!-- Loading Spinner -->
+                <div id="graphLoader" class="position-absolute top-50 start-50 translate-middle z-3 text-center">
+                    <div class="spinner-border text-primary-accent mb-2" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="text-secondary small">Vẽ bản đồ khái niệm tuân thủ...</p>
+                </div>
+
+                <!-- SVG Graph Container -->
+                <svg id="conceptMapSvg" width="100%" height="100%" class="cursor-grab" style="background-color: #0c0f0e;">
+                    <defs>
+                        <!-- Link arrows -->
+                        <marker id="arrow-dependency" viewBox="0 0 10 10" refX="28" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#0d6efd" />
+                        </marker>
+                        <marker id="arrow-subset" viewBox="0 0 10 10" refX="28" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#198754" />
+                        </marker>
+                        <marker id="arrow-recommended" viewBox="0 0 10 10" refX="28" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#e83e8c" />
+                        </marker>
+                        <marker id="arrow-feedback-loop" viewBox="0 0 10 10" refX="28" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#ffc107" />
+                        </marker>
+                        <!-- Glowing filters -->
+                        <filter id="glow-high" x="-50%" y="-50%" width="200%" height="200%">
+                            <feGaussianBlur stdDeviation="8" result="blur" />
+                            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                        </filter>
+                    </defs>
+                    <!-- Zoomable Content Group -->
+                    <g id="viewportGroup">
+                        <!-- Target Rings (Concentric background circles) -->
+                        <circle cx="500" cy="325" r="80" class="radar-ring" />
+                        <circle cx="500" cy="325" r="180" class="radar-ring" />
+                        <circle cx="500" cy="325" r="280" class="radar-ring" />
+                        <circle cx="500" cy="325" r="380" class="radar-ring" />
+                        
+                        <!-- Inner Ring labels -->
+                        <text x="500" y="235" class="radar-ring-label">Core Engine</text>
+                        <text x="500" y="135" class="radar-ring-label">Direct VAT Hubs</text>
+                        <text x="500" y="35" class="radar-ring-label">Special Tax Regulations</text>
+
+                        <!-- Edges / Links -->
+                        <g id="linksGroup"></g>
+                        <!-- Nodes -->
+                        <g id="nodesGroup"></g>
+                    </g>
+                </svg>
+            </div>
+
+            <!-- Tab Content 2: System Dynamics Simulator -->
+            <div id="contentTabSimulator" class="p-4 flex-grow-1 overflow-y-auto" style="display: none; background-color: #0c0f0e;">
+                <h5 class="fw-bold text-gradient-primary mb-2 font-outfit"><i class="bi bi-cpu-fill me-2"></i>Bảng điều khiển Động lực học Hệ thống (Systems Simulator)</h5>
+                <p class="text-secondary small mb-3">Mô phỏng 12 tháng về sự tích lũy rủi ro thuế (Tax Risk Stock) và điểm số tuân thủ (Compliance Stock) dưới tác động của các vòng lặp phản hồi.</p>
+                
+                <div class="row g-3">
+                    <!-- Controllers (Left) -->
+                    <div class="col-md-5">
+                        <div class="bg-dark bg-opacity-50 p-3 rounded border border-secondary border-opacity-10 d-flex flex-column gap-3">
+                            <h6 class="text-info fw-bold mb-1 small uppercase tracking-wider"><i class="bi bi-sliders me-1"></i>Tham Số Vận Hành</h6>
+                            
+                            <div>
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <label for="sliderAuditIntensity" class="small text-light" style="font-size: 0.75rem;">Tần suất kiểm toán (Audit)</label>
+                                    <span class="badge bg-secondary font-monospace" id="valAuditIntensity">40%</span>
+                                </div>
+                                <input type="range" class="form-range" id="sliderAuditIntensity" min="0" max="100" value="40" oninput="updateSimParams()">
+                                <div class="text-secondary" style="font-size: 0.65rem;">Càng cao càng tiêu giảm rủi ro nhanh (Balancing Loop B1).</div>
+                            </div>
+                            
+                            <div>
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <label for="sliderAutomationLevel" class="small text-light" style="font-size: 0.75rem;">Mức tự động hóa (Automation)</label>
+                                    <span class="badge bg-secondary font-monospace" id="valAutomationLevel">1.0x</span>
+                                </div>
+                                <input type="range" class="form-range" id="sliderAutomationLevel" min="10" max="200" value="100" oninput="updateSimParams()">
+                                <div class="text-secondary" style="font-size: 0.65rem;">Giảm tỷ lệ phát sinh lỗi hóa đơn & tăng điểm uy tín.</div>
+                            </div>
+
+                            <div>
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <label for="sliderInvoiceGrowth" class="small text-light" style="font-size: 0.75rem;">Khối lượng hóa đơn (Volume)</label>
+                                    <span class="badge bg-secondary font-monospace" id="valInvoiceGrowth">100%</span>
+                                </div>
+                                <input type="range" class="form-range" id="sliderInvoiceGrowth" min="10" max="200" value="100" oninput="updateSimParams()">
+                                <div class="text-secondary" style="font-size: 0.65rem;">Tỷ lệ thuận với số lượng rủi ro chảy vào hệ thống (Inflow).</div>
+                            </div>
+                            
+                            <button class="btn btn-sm btn-primary-accent w-100 mt-2 btn-pill" onclick="runSystemDynamicsSimulation()">
+                                <i class="bi bi-play-circle-fill me-1"></i> Bắt đầu Mô phỏng 12 Tháng
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Diagram & Plot (Right) -->
+                    <div class="col-md-7">
+                        <div class="bg-dark bg-opacity-25 rounded border border-secondary border-opacity-10 p-3 h-100 d-flex flex-column gap-3">
+                            <h6 class="text-info fw-bold mb-0 small uppercase tracking-wider"><i class="bi bi-diagram-2 me-1"></i>Sơ đồ Stocks & Flows và Biểu đồ Kết quả</h6>
+                            
+                            <!-- Small Diagram Box -->
+                            <div style="height: 120px; background-color: #080a09; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05); overflow: hidden;" class="position-relative">
+                                <svg width="100%" height="100%" id="simStockFlowSvg">
+                                    <!-- Inflow Pipe -->
+                                    <rect x="10" y="55" width="90" height="10" fill="rgba(220, 53, 69, 0.25)" stroke="rgba(220, 53, 69, 0.4)" stroke-width="1" />
+                                    <!-- Stock Box 1 (Tax Risk) -->
+                                    <rect x="100" y="30" width="80" height="60" fill="none" stroke="#dc3545" stroke-width="2" />
+                                    <text x="140" y="65" text-anchor="middle" fill="#dc3545" font-size="9" font-weight="bold">RỦI RO THUẾ</text>
+                                    
+                                    <!-- Flow Valve 1 -->
+                                    <circle cx="55" cy="60" r="10" fill="#dc3545" />
+                                    <text x="55" y="64" text-anchor="middle" fill="#fff" font-size="9" font-weight="bold">In</text>
+                                    
+                                    <!-- Outflow Pipe -->
+                                    <rect x="180" y="55" width="80" height="10" fill="rgba(13, 202, 240, 0.25)" stroke="rgba(13, 202, 240, 0.4)" stroke-width="1" />
+                                    <!-- Outflow Valve -->
+                                    <circle cx="220" cy="60" r="10" fill="#0dcaf0" />
+                                    <text x="220" y="64" text-anchor="middle" fill="#000" font-size="9" font-weight="bold">Out</text>
+                                    
+                                    <!-- Stock Box 2 (Compliance) -->
+                                    <rect x="260" y="30" width="80" height="60" fill="none" stroke="#198754" stroke-width="2" />
+                                    <text x="300" y="65" text-anchor="middle" fill="#198754" font-size="9" font-weight="bold">TUÂN THỦ</text>
+                                    
+                                    <!-- Flow particles -->
+                                    <g id="flowParticlesGroup"></g>
+                                </svg>
+                            </div>
+                            
+                            <!-- Graph Area -->
+                            <div class="flex-grow-1 position-relative" style="min-height: 180px;">
+                                <canvas id="simChartCanvas" width="380" height="180" style="width: 100%; height: 100%; display: block; background-color: #060807; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);"></canvas>
+                                <div class="position-absolute top-0 end-0 p-2 d-flex gap-3 small text-secondary" style="font-size: 0.7rem;">
+                                    <div><span class="badge bg-danger me-1" style="height: 10px; width: 10px;"></span>Rủi ro tích lũy</div>
+                                    <div><span class="badge bg-success me-1" style="height: 10px; width: 10px;"></span>Uy tín Tuân thủ</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Content 3: Lego Snap Rule Builder -->
+            <div id="contentTabLego" class="p-4 flex-grow-1 overflow-y-auto" style="display: none; background-color: #0c0f0e;">
+                <h5 class="fw-bold text-gradient-primary mb-2 font-outfit"><i class="bi bi-bricks me-2"></i>Lego Architecture Assembly Console</h5>
+                <p class="text-secondary small mb-3">Thực hành triết lý LEGO bằng cách tự thiết kế và liên kết (snap) các khối luật thuế với nhau. Tạo ra các luật kết nối và phản hồi tùy chỉnh cho doanh nghiệp.</p>
+                
+                <div class="row g-3">
+                    <!-- Link Creator Form -->
+                    <div class="col-md-6">
+                        <div class="bg-dark bg-opacity-50 p-3 rounded border border-secondary border-opacity-10 d-flex flex-column gap-3">
+                            <h6 class="text-info fw-bold mb-1 small uppercase tracking-wider"><i class="bi bi-plus-circle me-1"></i>Snap Link Mới</h6>
+                            
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <label for="selectSourceNode" class="form-label small text-secondary">Node nguồn (Stud)</label>
+                                    <select id="selectSourceNode" class="form-select bg-dark border-secondary text-light small"></select>
+                                </div>
+                                <div class="col-6">
+                                    <label for="selectTargetNode" class="form-label small text-secondary">Node đích (Tube)</label>
+                                    <select id="selectTargetNode" class="form-select bg-dark border-secondary text-light small"></select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label for="selectLinkType" class="form-label small text-secondary">Loại kết nối (Stud Type)</label>
+                                <select id="selectLinkType" class="form-select bg-dark border-secondary text-light small">
+                                    <option value="dependency">Dependency (Quy hệ phụ thuộc)</option>
+                                    <option value="subset">Subset (Nhóm quy định con)</option>
+                                    <option value="recommended">Recommended (AI Đề xuất)</option>
+                                    <option value="feedback-loop">Feedback Loop (Vòng phản hồi)</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label for="inputLinkLabel" class="form-label small text-secondary">Nhãn liên kết</label>
+                                <input type="text" id="inputLinkLabel" class="form-control custom-input" placeholder="e.g. VAT Audit Offset, CIT feedback...">
+                            </div>
+                            
+                            <button class="btn btn-sm btn-primary-accent w-100 mt-2 btn-pill" onclick="snapLegoLink()">
+                                <i class="bi bi-bricks me-1"></i>Snap LEGO Block Link
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Managed Custom Links List -->
+                    <div class="col-md-6">
+                        <div class="bg-dark bg-opacity-25 rounded border border-secondary border-opacity-10 p-3 h-100 d-flex flex-column">
+                            <h6 class="text-info fw-bold mb-2 small uppercase tracking-wider"><i class="bi bi-list-check me-1"></i>Các Khối Liên Kết LEGO</h6>
+                            <div class="flex-grow-1 overflow-y-auto" id="legoLinksList" style="max-height: 220px;">
+                                <div class="text-center text-secondary py-5 small">Chưa có liên kết tùy chỉnh nào được ghép.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             
-            <div class="position-absolute bottom-0 end-0 p-3 z-3 bg-dark bg-opacity-75 rounded-top-start border-top border-start border-secondary border-opacity-25">
-                <div class="d-flex align-items-center gap-3 small text-secondary">
-                    <div><span class="badge bg-danger-glow me-1"></span>Rủi ro Cao</div>
-                    <div><span class="badge bg-warning-glow me-1"></span>Rủi ro Vừa</div>
-                    <div><span class="badge bg-info-glow me-1"></span>Rủi ro Thấp</div>
-                </div>
-            </div>
-
-            <!-- Loading Spinner -->
-            <div id="graphLoader" class="position-absolute top-50 start-50 translate-middle z-3 text-center">
-                <div class="spinner-border text-primary-accent mb-2" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-                <p class="text-secondary small">Vẽ bản đồ khái niệm tuân thủ...</p>
-            </div>
-
-            <!-- SVG Graph Container -->
-            <svg id="conceptMapSvg" width="100%" height="100%" class="cursor-grab" style="background-color: #0c0f0e;">
-                <defs>
-                    <!-- Link arrows -->
-                    <marker id="arrow-dependency" viewBox="0 0 10 10" refX="28" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#0d6efd" />
-                    </marker>
-                    <marker id="arrow-subset" viewBox="0 0 10 10" refX="28" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#198754" />
-                    </marker>
-                    <marker id="arrow-recommended" viewBox="0 0 10 10" refX="28" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#e83e8c" />
-                    </marker>
-                    <!-- Glowing filters -->
-                    <filter id="glow-high" x="-50%" y="-50%" width="200%" height="200%">
-                        <feGaussianBlur stdDeviation="8" result="blur" />
-                        <feComposite in="SourceGraphic" in2="blur" operator="over" />
-                    </filter>
-                </defs>
-                <!-- Zoomable Content Group -->
-                <g id="viewportGroup">
-                    <!-- Target Rings (Concentric background circles) -->
-                    <circle cx="500" cy="325" r="80" class="radar-ring" />
-                    <circle cx="500" cy="325" r="180" class="radar-ring" />
-                    <circle cx="500" cy="325" r="280" class="radar-ring" />
-                    <circle cx="500" cy="325" r="380" class="radar-ring" />
-                    
-                    <!-- Inner Ring labels -->
-                    <text x="500" y="235" class="radar-ring-label">Core Engine</text>
-                    <text x="500" y="135" class="radar-ring-label">Direct VAT Hubs</text>
-                    <text x="500" y="35" class="radar-ring-label">Special Tax Regulations</text>
-
-                    <!-- Edges / Links -->
-                    <g id="linksGroup"></g>
-                    <!-- Nodes -->
-                    <g id="nodesGroup"></g>
-                </g>
-            </svg>
         </div>
     </div>
 </div>
@@ -288,6 +480,12 @@
     stroke-dasharray: 4,4;
     stroke-width: 2px;
 }
+.map-link.feedback-loop {
+    stroke: #ffc107;
+    stroke-dasharray: 6,4;
+    stroke-width: 2.5px;
+    animation: dash 25s linear infinite;
+}
 .map-link.transitive-flow {
     stroke: #ffc107 !important;
     stroke-width: 3px !important;
@@ -323,12 +521,18 @@
 let nodesData = [];
 let linksData = [];
 let suggestedLinksData = [];
+let legoLinks = []; // Store user snaps
 let zoomScale = 1;
 let zoomTx = 0;
 let zoomTy = 0;
 let isDragging = false;
 let startX, startY;
 let selectedNodeId = null;
+
+// Simulator state variables
+let simAuditIntensity = 0.4;
+let simAutomationLevel = 1.0;
+let simInvoiceVolume = 1.0;
 
 document.addEventListener("DOMContentLoaded", () => {
     loadConceptMapData();
@@ -351,6 +555,11 @@ function loadConceptMapData() {
             document.getElementById("graphLoader").style.display = "none";
             renderGraph();
             renderAiRecommendations();
+            
+            // Initialize Lego and Systems Dynamics
+            populateLegoDropdowns();
+            updateSystemicMetrics();
+            runSystemDynamicsSimulation();
         })
         .catch(err => {
             console.error("Error loading concept map metadata:", err);
@@ -1076,6 +1285,339 @@ function resetRiskSimulation() {
     document.getElementById("noNodeSelected").style.display = "block";
     document.getElementById("nodeSelectedContent").style.display = "none";
 }
+
+// Right column tabs switcher
+function switchRightTab(tabName) {
+    document.getElementById("contentTabRadar").style.display = tabName === 'radar' ? 'block' : 'none';
+    document.getElementById("contentTabSimulator").style.display = tabName === 'simulator' ? 'block' : 'none';
+    document.getElementById("contentTabLego").style.display = tabName === 'lego' ? 'block' : 'none';
+    
+    document.getElementById("btnTabRadar").classList.toggle("active", tabName === 'radar');
+    document.getElementById("btnTabSimulator").classList.toggle("active", tabName === 'simulator');
+    document.getElementById("btnTabLego").classList.toggle("active", tabName === 'lego');
+    
+    const hud = document.getElementById("rightTabHud");
+    if (tabName === 'radar') {
+        hud.innerHTML = '<i class="bi bi-radar me-1"></i>Radar Layout';
+    } else if (tabName === 'simulator') {
+        hud.innerHTML = '<i class="bi bi-cpu-fill me-1"></i>System Dynamics';
+        runSystemDynamicsSimulation();
+    } else {
+        hud.innerHTML = '<i class="bi bi-bricks me-1"></i>LEGO Architect';
+    }
+}
+
+// Live parameter updates
+function updateSimParams() {
+    simAuditIntensity = parseFloat(document.getElementById("sliderAuditIntensity").value) / 100;
+    simAutomationLevel = parseFloat(document.getElementById("sliderAutomationLevel").value) / 100;
+    simInvoiceVolume = parseFloat(document.getElementById("sliderInvoiceGrowth").value) / 100;
+    
+    document.getElementById("valAuditIntensity").innerText = Math.round(simAuditIntensity * 100) + "%";
+    document.getElementById("valAutomationLevel").innerText = simAutomationLevel.toFixed(1) + "x";
+    document.getElementById("valInvoiceGrowth").innerText = Math.round(simInvoiceVolume * 100) + "%";
+    
+    runSystemDynamicsSimulation();
+}
+
+// Stocks and flows simulation model (Euler method)
+function runSystemDynamicsSimulation() {
+    const canvas = document.getElementById("simChartCanvas");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    
+    // Euler simulation parameters
+    let taxRisk = 150.0;
+    let compliance = 75.0;
+    
+    const taxRiskHistory = [taxRisk];
+    const complianceHistory = [compliance];
+    
+    for (let m = 1; m <= 12; m++) {
+        // Inflow of risk is transaction volume modulated by automation
+        const inflow = 50 * simInvoiceVolume * (1.5 - Math.min(1.2, simAutomationLevel * 0.5));
+        // Outflow is audit intensity
+        const outflow = taxRisk * simAuditIntensity * 0.6;
+        taxRisk = Math.max(0, taxRisk + (inflow - outflow));
+        
+        // Compliance increases when risk is low, and decreases when risk is high
+        const compInflow = Math.max(0, (200 - taxRisk) * simAutomationLevel * 0.15);
+        const compOutflow = compliance * 0.12;
+        compliance = Math.max(10, Math.min(100, compliance + (compInflow - compOutflow)));
+        
+        taxRiskHistory.push(taxRisk);
+        complianceHistory.push(compliance);
+    }
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    const width = canvas.width;
+    const height = canvas.height;
+    const padding = 25;
+    const plotWidth = width - padding * 2;
+    const plotHeight = height - padding * 2;
+    
+    // Draw background grid
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) {
+        const y = padding + (plotHeight / 4) * i;
+        ctx.beginPath();
+        ctx.moveTo(padding, y);
+        ctx.lineTo(width - padding, y);
+        ctx.stroke();
+    }
+    for (let i = 0; i <= 12; i++) {
+        const x = padding + (plotWidth / 12) * i;
+        ctx.beginPath();
+        ctx.moveTo(x, padding);
+        ctx.lineTo(x, height - padding);
+        ctx.stroke();
+    }
+    
+    // Draw axes labels (months)
+    ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+    ctx.font = "9px monospace";
+    ctx.textAlign = "center";
+    for (let i = 0; i <= 12; i += 2) {
+        const x = padding + (plotWidth / 12) * i;
+        ctx.fillText("M" + i, x, height - padding + 15);
+    }
+    
+    // Max values for scale
+    const maxVal = 300;
+    
+    // Helper to get coordinates
+    const getX = (index) => padding + (plotWidth / 12) * index;
+    const getY = (val) => padding + plotHeight - (Math.min(maxVal, val) / maxVal) * plotHeight;
+    
+    // Plot Tax Risk Line (Red)
+    ctx.shadowColor = "rgba(220, 53, 69, 0.4)";
+    ctx.shadowBlur = 8;
+    ctx.strokeStyle = "#dc3545";
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(getX(0), getY(taxRiskHistory[0]));
+    for (let i = 1; i <= 12; i++) {
+        ctx.lineTo(getX(i), getY(taxRiskHistory[i]));
+    }
+    ctx.stroke();
+    
+    // Plot Compliance Line (Green)
+    ctx.shadowColor = "rgba(25, 135, 84, 0.4)";
+    ctx.shadowBlur = 8;
+    ctx.strokeStyle = "#198754";
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(getX(0), getY(complianceHistory[0]));
+    for (let i = 1; i <= 12; i++) {
+        ctx.lineTo(getX(i), getY(complianceHistory[i]));
+    }
+    ctx.stroke();
+    
+    // Reset shadow
+    ctx.shadowBlur = 0;
+    
+    // Animating flow particles inside SVG
+    animateFlowParticles();
+}
+
+function animateFlowParticles() {
+    const group = document.getElementById("flowParticlesGroup");
+    if (!group) return;
+    group.innerHTML = "";
+    
+    for (let i = 0; i < 4; i++) {
+        const circleIn = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circleIn.setAttribute("cy", "60");
+        circleIn.setAttribute("r", "3");
+        circleIn.setAttribute("fill", "#dc3545");
+        
+        const anim = document.createElementNS("http://www.w3.org/2000/svg", "animate");
+        anim.setAttribute("attributeName", "cx");
+        anim.setAttribute("from", "10");
+        anim.setAttribute("to", "100");
+        anim.setAttribute("dur", (1.5 / Math.max(0.5, simInvoiceVolume)) + "s");
+        anim.setAttribute("begin", (i * 0.4) + "s");
+        anim.setAttribute("repeatCount", "indefinite");
+        
+        circleIn.appendChild(anim);
+        group.appendChild(circleIn);
+        
+        const circleOut = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circleOut.setAttribute("cy", "60");
+        circleOut.setAttribute("r", "3");
+        circleOut.setAttribute("fill", "#0dcaf0");
+        
+        const animOut = document.createElementNS("http://www.w3.org/2000/svg", "animate");
+        animOut.setAttribute("attributeName", "cx");
+        animOut.setAttribute("from", "180");
+        animOut.setAttribute("to", "260");
+        animOut.setAttribute("dur", (2 / Math.max(0.1, simAuditIntensity)) + "s");
+        animOut.setAttribute("begin", (i * 0.5) + "s");
+        animOut.setAttribute("repeatCount", "indefinite");
+        
+        circleOut.appendChild(animOut);
+        group.appendChild(circleOut);
+    }
+}
+
+// Populate Lego dropdown selection list
+function populateLegoDropdowns() {
+    const sourceSelect = document.getElementById("selectSourceNode");
+    const targetSelect = document.getElementById("selectTargetNode");
+    
+    if (!sourceSelect || !targetSelect) return;
+    
+    sourceSelect.innerHTML = "";
+    targetSelect.innerHTML = "";
+    
+    nodesData.forEach(node => {
+        const opt1 = document.createElement("option");
+        opt1.value = node.id;
+        opt1.textContent = `${node.label} (${node.id.toUpperCase()})`;
+        sourceSelect.appendChild(opt1);
+        
+        const opt2 = document.createElement("option");
+        opt2.value = node.id;
+        opt2.textContent = `${node.label} (${node.id.toUpperCase()})`;
+        targetSelect.appendChild(opt2);
+    });
+}
+
+// Snap LEGO block link
+function snapLegoLink() {
+    const source = document.getElementById("selectSourceNode").value;
+    const target = document.getElementById("selectTargetNode").value;
+    const type = document.getElementById("selectLinkType").value;
+    const label = document.getElementById("inputLinkLabel").value.trim() || "LEGO Connection";
+    
+    if (source === target) {
+        alert("Không thể tự kết nối một khối LEGO với chính nó!");
+        return;
+    }
+    
+    const exists = linksData.some(l => l.source === source && l.target === target);
+    if (exists) {
+        alert("Khối liên kết LEGO này đã tồn tại!");
+        return;
+    }
+    
+    const newLink = { source, target, type, label };
+    linksData.push(newLink);
+    legoLinks.push(newLink);
+    
+    renderGraph();
+    updateSystemicMetrics();
+    renderLegoList();
+}
+
+// Delete lego link
+function deleteLegoLink(index) {
+    const link = legoLinks[index];
+    if (!link) return;
+    
+    // Remove from legoLinks
+    legoLinks.splice(index, 1);
+    
+    // Remove from linksData
+    const linksIndex = linksData.findIndex(l => l.source === link.source && l.target === link.target && l.type === link.type);
+    if (linksIndex !== -1) {
+        linksData.splice(linksIndex, 1);
+    }
+    
+    renderGraph();
+    updateSystemicMetrics();
+    renderLegoList();
+}
+
+// Render lego links list
+function renderLegoList() {
+    const container = document.getElementById("legoLinksList");
+    if (!container) return;
+    
+    if (legoLinks.length === 0) {
+        container.innerHTML = '<div class="text-center text-secondary py-5 small">Chưa có liên kết tùy chỉnh nào được ghép.</div>';
+        return;
+    }
+    
+    container.innerHTML = "";
+    legoLinks.forEach((link, idx) => {
+        const div = document.createElement("div");
+        div.className = "d-flex justify-content-between align-items-center bg-dark bg-opacity-50 p-2 rounded border border-secondary border-opacity-10 small mb-2";
+        div.innerHTML = `
+            <div>
+                <span class="text-info fw-bold">${link.label}</span>
+                <div class="text-secondary" style="font-size: 0.65rem;">${link.source.toUpperCase()} &rarr; ${link.target.toUpperCase()} (${link.type})</div>
+            </div>
+            <button class="btn btn-xs btn-outline-danger" onclick="deleteLegoLink(${idx})"><i class="bi bi-trash"></i></button>
+        `;
+        container.appendChild(div);
+    });
+}
+
+// System complexity analyzer
+function updateSystemicMetrics() {
+    const nodesCount = nodesData.length;
+    const linksCount = linksData.length;
+    
+    document.getElementById("metricLinksCount").innerText = linksCount;
+    
+    const avgDegree = nodesCount > 0 ? (linksCount / nodesCount).toFixed(1) : "0.0";
+    document.getElementById("metricAvgDegree").innerText = avgDegree;
+    
+    const cyclesCount = detectCycles();
+    document.getElementById("metricCyclesCount").innerText = cyclesCount;
+    
+    // System fragility score is based on sum of violations times average degree
+    const totalViolations = nodesData.reduce((sum, node) => sum + (node.violations_count || 0), 0);
+    const fragility = (parseFloat(avgDegree) * (totalViolations + 1)).toFixed(1);
+    document.getElementById("metricFragility").innerText = fragility;
+}
+
+// DFS cycle detector
+function detectCycles() {
+    const adj = {};
+    nodesData.forEach(n => adj[n.id] = []);
+    linksData.forEach(l => {
+        if (adj[l.source]) {
+            adj[l.source].push(l.target);
+        }
+    });
+    
+    let cycleCount = 0;
+    const visited = {};
+    const recStack = {};
+    
+    function dfs(v) {
+        visited[v] = true;
+        recStack[v] = true;
+        
+        const neighbors = adj[v] || [];
+        for (let i = 0; i < neighbors.length; i++) {
+            const u = neighbors[i];
+            if (!visited[u]) {
+                if (dfs(u)) return true;
+            } else if (recStack[u]) {
+                cycleCount++;
+            }
+        }
+        
+        recStack[v] = false;
+        return false;
+    }
+    
+    nodesData.forEach(node => {
+        if (!visited[node.id]) {
+            dfs(node.id);
+        }
+    });
+    
+    return cycleCount;
+}
+window.resetZoom = resetZoom; // make global for hud
+
 </script>
 
 <!-- Premium Glassmorphic Modal for 7-Page Field Guide -->

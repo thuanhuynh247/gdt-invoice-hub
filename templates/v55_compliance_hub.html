@@ -1,224 +1,124 @@
 {% extends "base.html" %}
 
+{% from "components/_hub_header.html" import hub_header %}
+{% from "components/_glass_card.html" import glass_card %}
+{% from "components/_calc_input.html" import text_input, number_input, select_input, switch_input, calc_button %}
+{% from "components/_result_panel.html" import result_panel, result_field %}
+{% from "components/_baseline_card.html" import baseline_card %}
+{% from "components/_debate_panel.html" import debate_panel %}
+{% from "components/_data_table.html" import data_table %}
+{% from "components/_entry_animations.html" import entry_animations %}
+{% from "components/_premium_controls.html" import premium_controls_css %}
+
 {% block title %}IET Law 107/2016 - Import-Export Tax Hub (v55){% endblock %}
 
 {% block content %}
 <div class="container py-4">
-    <!-- Header Area -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
-        <div>
-            <span class="badge bg-warning text-dark mb-2">Version 55.0.0 Spec Compliance</span>
-            <h1 class="h2 fw-bold text-gradient mb-1">Import-Export Tax Compliance Hub</h1>
-            <p class="text-muted mb-0">Calculate border duties and audit exemptions for processing contracts, temporary imports, and low-value gift thresholds under Luật Thuế XNK 107/2016/QH13.</p>
-        </div>
-        <div class="d-flex gap-2 mt-3 mt-md-0">
-            <button id="btn-refresh-v55" class="btn btn-warning text-dark d-flex align-items-center gap-2">
-                <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Load Compliance Data
-            </button>
-            <span class="badge bg-warning-subtle text-warning border border-warning d-flex align-items-center px-3">
-                <i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Law 107/2016/QH13
-            </span>
-        </div>
-    </div>
 
-    <!-- Main Grid Layout -->
+    {# ── Đầu trang Hub ── #}
+    {{ hub_header('55.0.0',
+        'Import-Export Tax Compliance Hub',
+        'Calculate border duties and audit exemptions for processing contracts, temporary imports, and low-value gift thresholds under Luật Thuế XNK 107/2016/QH13.',
+        'btn-refresh-v55', 'Load Compliance Data', 'Law 107/2016/QH13') }}
+
+    {# ── Bento Grid Layout ── #}
     <div class="row g-4">
-        <!-- Pillar 1: Calculator Panel -->
+
+        {# ── Pillar 1: Calculator Panel ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-calculator text-warning me-2" aria-hidden="true"></i>Interactive Duty Calculator</h5>
-                    <p class="text-muted small mb-0">Compute ad-valorem duties dynamically. Select tariff classification and declare transaction purposes to test exemption qualifiers.</p>
+            {% call glass_card('Interactive Duty Calculator', 'bi bi-calculator', 'text-warning',
+                'Compute ad-valorem duties dynamically. Select tariff classification and declare transaction purposes to test exemption qualifiers.') %}
+                <div class="row g-3">
+                    {{ text_input('input-cargo-name', 'Cargo Name:', 'Industrial Machinery', col='col-md-6') }}
+                    {{ select_input('input-cargo-type', 'Transaction Type:', [
+                        {'value': 'import', 'label': 'Import (Nhập khẩu)'},
+                        {'value': 'export', 'label': 'Export (Xuất khẩu)'}
+                    ], col='col-md-6') }}
+                    {{ select_input('input-tariff-type', 'Tariff Classification:', [
+                        {'value': 'preferential', 'label': 'Preferential MFN (10%)'},
+                        {'value': 'ordinary', 'label': 'Ordinary/Standard (15%)'},
+                        {'value': 'special', 'label': 'Special FTA (5%)'}
+                    ], col='col-md-6') }}
+                    {{ select_input('input-goods-purpose', 'Declared Purpose:', [
+                        {'value': 'commercial', 'label': 'Commercial (Taxable)'},
+                        {'value': 'processing contract', 'label': 'Processing Contract (Exempt)'},
+                        {'value': 'temporary import', 'label': 'Temporary Import (Exempt)'},
+                        {'value': 'gift', 'label': 'Gift/Sample (Value Threshold)'}
+                    ], col='col-md-6') }}
+                    {{ number_input('input-quantity', 'Quantity:', 10, col='col-md-6') }}
+                    {{ number_input('input-unit-price', 'Unit Price (VND):', 10000000, col='col-md-6') }}
+                    {{ calc_button('btn-calculate-iet', 'Run Calculation', 'btn-warning text-dark') }}
                 </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="input-cargo-name" class="form-label small mb-1">Cargo Name:</label>
-                            <input type="text" id="input-cargo-name" class="form-control form-control-sm" value="Industrial Machinery" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-cargo-type" class="form-label small mb-1">Transaction Type:</label>
-                            <select id="input-cargo-type" class="form-select form-select-sm">
-                                <option value="import">Import (Nhập khẩu)</option>
-                                <option value="export">Export (Xuất khẩu)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-tariff-type" class="form-label small mb-1">Tariff Classification:</label>
-                            <select id="input-tariff-type" class="form-select form-select-sm">
-                                <option value="preferential">Preferential MFN (10%)</option>
-                                <option value="ordinary">Ordinary/Standard (15%)</option>
-                                <option value="special">Special FTA (5%)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-goods-purpose" class="form-label small mb-1">Declared Purpose:</label>
-                            <select id="input-goods-purpose" class="form-select form-select-sm">
-                                <option value="commercial">Commercial (Taxable)</option>
-                                <option value="processing contract">Processing Contract (Exempt)</option>
-                                <option value="temporary import">Temporary Import (Exempt)</option>
-                                <option value="gift">Gift/Sample (Value Threshold)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-quantity" class="form-label small mb-1">Quantity:</label>
-                            <input type="number" id="input-quantity" class="form-control form-control-sm" value="10" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-unit-price" class="form-label small mb-1">Unit Price (VND):</label>
-                            <input type="number" id="input-unit-price" class="form-control form-control-sm" value="10000000" autocomplete="off">
-                        </div>
-                        <div class="col-12 text-end">
-                            <button id="btn-calculate-iet" class="btn btn-warning btn-sm text-dark fw-bold">
-                                <i class="bi bi-play-fill me-1" aria-hidden="true"></i> Run Calculation
-                            </button>
-                        </div>
-                    </div>
 
-                    <div class="mt-4 p-3 bg-premium-light rounded border">
-                        <h6 class="fw-bold mb-2 text-warning"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Calculation Result</h6>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>Standard Duty Rate:</span>
-                            <span id="res-standard-rate" class="fw-bold text-dark">-</span>
-                        </div>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>Effective Rate:</span>
-                            <span id="res-effective-rate" class="fw-bold text-dark">-</span>
-                        </div>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>Calculated Duty:</span>
-                            <span id="res-duty-amount" class="fw-bold text-warning fs-6">-</span>
-                        </div>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>Exempt:</span>
-                            <span id="res-is-exempt" class="fw-bold">-</span>
-                        </div>
-                        <div class="small text-muted border-top pt-2 mt-2">
-                            <strong>Audit Note:</strong> <span id="res-notes">Awaiting declaration entry…</span>
-                        </div>
+                {% call result_panel('Calculation Result', 'text-warning', 'res-notes') %}
+                    {{ result_field('Standard Duty Rate:', 'res-standard-rate') }}
+                    {{ result_field('Effective Rate:', 'res-effective-rate') }}
+                    {{ result_field('Calculated Duty:', 'res-duty-amount', 'text-warning') }}
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span>Exempt:</span>
+                        <span id="res-is-exempt" class="fw-bold">-</span>
                     </div>
-                </div>
-            </div>
+                {% endcall %}
+            {% endcall %}
         </div>
 
-        <!-- Pillar 2: Pre-defined Compliance Audits -->
+        {# ── Pillar 2: Pre-defined Compliance Audits ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Compliance Baseline Verification</h5>
-                    <p class="text-muted small mb-0">Pre-computed target ledgers verifying calculations under core business purposes.</p>
+            {% call glass_card('Compliance Baseline Verification', 'bi bi-shield-check', 'text-success',
+                'Pre-computed target ledgers verifying calculations under core business purposes.') %}
+                <div class="d-flex flex-column gap-3">
+                    {{ baseline_card('Preferential Import MFN (10%)', 'Commercial', 'bg-secondary',
+                        'Industrial Machinery import calculation ledger.',
+                        'Taxable Value: <strong id="base1-val">-</strong>'|safe,
+                        'Duty', 'base1-duty') }}
+
+                    {{ baseline_card('Processing Exemption (100%)', 'Exempt', 'bg-success text-white',
+                        'Polyester Yarn imported for processing contracts.',
+                        'Taxable Value: <strong id="base2-val">-</strong>'|safe,
+                        'Reason', 'base2-reason') }}
+
+                    {{ baseline_card('Export Minerals (10%)', 'Resource Rate', 'bg-danger text-white',
+                        'Raw Copper Ore export duty ledger.',
+                        'Taxable Value: <strong id="base3-val">-</strong>'|safe,
+                        'Duty', 'base3-duty') }}
+
+                    {{ baseline_card('Low-Value Courier Gift Exemption', 'Exempt', 'bg-success text-white',
+                        'Gift sample machinery spare part valued <= 2,000,000 VND.',
+                        'Gift Value: <strong id="base4-val">-</strong>'|safe,
+                        'Reason', 'base4-reason') }}
                 </div>
-                <div class="card-body d-flex flex-column gap-3">
-                    <!-- baseline 1 -->
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="fw-bold small text-dark">Preferential Import MFN (10%)</span>
-                            <span class="badge bg-secondary">Commercial</span>
-                        </div>
-                        <p class="small text-muted mb-2">Industrial Machinery import calculation ledger.</p>
-                        <div class="d-flex justify-content-between small">
-                            <span>Taxable Value: <strong id="base1-val">-</strong></span>
-                            <span>Duty: <strong id="base1-duty" class="text-warning">-</strong></span>
-                        </div>
-                    </div>
-
-                    <!-- baseline 2 -->
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="fw-bold small text-dark">Processing Exemption (100%)</span>
-                            <span class="badge bg-success text-white">Exempt</span>
-                        </div>
-                        <p class="small text-muted mb-2">Polyester Yarn imported for processing contracts.</p>
-                        <div class="d-flex justify-content-between small">
-                            <span>Taxable Value: <strong id="base2-val">-</strong></span>
-                            <span>Reason: <strong id="base2-reason" class="text-success">-</strong></span>
-                        </div>
-                    </div>
-
-                    <!-- baseline 3 -->
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="fw-bold small text-dark">Export Minerals (10%)</span>
-                            <span class="badge bg-danger text-white">Resource Rate</span>
-                        </div>
-                        <p class="small text-muted mb-2">Raw Copper Ore export duty ledger.</p>
-                        <div class="d-flex justify-content-between small">
-                            <span>Taxable Value: <strong id="base3-val">-</strong></span>
-                            <span>Duty: <strong id="base3-duty" class="text-danger">-</strong></span>
-                        </div>
-                    </div>
-
-                    <!-- baseline 4 -->
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="fw-bold small text-dark">Low-Value Courier Gift Exemption</span>
-                            <span class="badge bg-success text-white">Exempt</span>
-                        </div>
-                        <p class="small text-muted mb-2">Gift sample machinery spare part valued &lt;= 2,000,000 VND.</p>
-                        <div class="d-flex justify-content-between small">
-                            <span>Gift Value: <strong id="base4-val">-</strong></span>
-                            <span>Reason: <strong id="base4-reason" class="text-success">-</strong></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {% endcall %}
         </div>
 
-        <!-- Pillar 3: Swarm Advisory Debate Panel -->
+        {# ── Pillar 3: Swarm Advisory Debate Panel ── #}
         <div class="col-lg-12">
-            <div class="card shadow-sm border-light">
-                <div class="card-header bg-dark text-white py-3 d-flex align-items-center justify-content-between">
-                    <h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-warning me-2" aria-hidden="true"></i>Multi-Agent Border Compliance Debate</h5>
-                    <span class="badge bg-secondary">Customs Valuation Consensus</span>
-                </div>
-                <div class="card-body">
-                    <div id="debate-container-v55" class="mb-3 d-flex flex-column gap-3">
-                        <!-- Loaded dynamically -->
-                    </div>
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus Summary Statement:</h6>
-                        <p id="consensus-text-v55" class="text-muted small mb-0">Awaiting simulation data execution…</p>
-                    </div>
-                </div>
-            </div>
+            {{ debate_panel('debate-container-v55', 'consensus-text-v55',
+                'Multi-Agent Border Compliance Debate', 'Customs Valuation Consensus') }}
         </div>
 
-        <!-- Pillar 4: Historical Audit Records -->
+        {# ── Pillar 4: Historical Audit Records ── #}
         <div class="col-lg-12">
-            <div class="card shadow-sm border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-2">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-clock-history text-muted me-2" aria-hidden="true"></i>Historical Audit Log</h5>
-                    <p class="text-muted small mb-0">Chronological transaction logs recorded for this tenant database.</p>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover table-striped mb-0 small">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Cargo Name</th>
-                                    <th>Type</th>
-                                    <th>Valuation</th>
-                                    <th>Tariff</th>
-                                    <th>Purpose</th>
-                                    <th>Effective Rate</th>
-                                    <th>Duty Amount</th>
-                                    <th>Status</th>
-                                    <th>Timestamp</th>
-                                </tr>
-                            </thead>
-                            <tbody id="history-table-v55">
-                                <tr>
-                                    <td colspan="10" class="text-center text-muted py-4">No audit logs found. Run calculator to write records.</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+            {% call data_table('Historical Audit Log', 'bi bi-clock-history', 'history-table-v55',
+                'No audit logs found. Run calculator to write records.', 10) %}
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Cargo Name</th>
+                        <th>Type</th>
+                        <th>Valuation</th>
+                        <th>Tariff</th>
+                        <th>Purpose</th>
+                        <th>Effective Rate</th>
+                        <th>Duty Amount</th>
+                        <th>Status</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+            {% endcall %}
         </div>
-    </div>
-</div>
+
+    </div>{# /row #}
+</div>{# /container #}
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
@@ -349,4 +249,7 @@ document.addEventListener("DOMContentLoaded", () => {
     loadData();
 });
 </script>
+
+{{ entry_animations() }}
+{{ premium_controls_css() }}
 {% endblock %}

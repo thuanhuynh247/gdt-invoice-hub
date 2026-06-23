@@ -1,232 +1,127 @@
+{# ═══════════════════════════════════════════════════════════════════
+   TRANG LẮP RÁP LEGO: v44 — Decree 123 & Circular 67 Compliance
+   ────────────────────────────────────────────────────────────────
+   Nghị định 123/2020/NĐ-CP: Đối soát VAT điều chỉnh/giảm trừ.
+   Thông tư 67: Quỹ KH-CN 5 năm, clawback CIT, trần phúc lợi.
+   
+   CẤU TRÚC LEGO:
+   ├── hub_header         → Đầu trang
+   ├── glass_card          → Bộ điều khiển mô phỏng (6 slider)
+   ├── data_table          → Sổ cái đối soát VAT Decree 123
+   ├── glass_card          → Bảng dự phóng Quỹ KH-CN 5 năm
+   ├── glass_card          → Kiểm toán clawback + trần phúc lợi
+   ├── debate_panel        → Tranh luận đa tác tử
+   ├── entry_animations    → Hiệu ứng
+   └── premium_controls    → CSS slider/tab
+   ═══════════════════════════════════════════════════════════════════ #}
 {% extends "base.html" %}
+
+{% from "components/_hub_header.html" import hub_header %}
+{% from "components/_glass_card.html" import glass_card %}
+{% from "components/_calc_input.html" import range_slider %}
+{% from "components/_data_table.html" import data_table %}
+{% from "components/_metric_kpi.html" import metric_kpi, stat_row %}
+{% from "components/_debate_panel.html" import debate_panel %}
+{% from "components/_entry_animations.html" import entry_animations %}
+{% from "components/_premium_controls.html" import premium_controls_css %}
 
 {% block title %}Decree 123 VAT & Circular 67 Sci-Tech Fund Optimizer (v44){% endblock %}
 
 {% block content %}
 <div class="container py-4">
-    <!-- Header Area -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
-        <div>
-            <span class="badge bg-success mb-2">Version 44.0.0 Spec Compliance</span>
-            <h1 class="h2 fw-bold text-gradient mb-1">Decree 123 & Circular 67 Compliance Hub</h1>
-            <p class="text-muted mb-0">Reconcile VAT adjustment/discount logs under Decree 123, simulate 5-year Sci-Tech Fund clawbacks, and audit CIT welfare caps.</p>
-        </div>
-        <div class="d-flex gap-2 mt-3 mt-md-0">
-            <button id="btn-recalculate" class="btn btn-success d-flex align-items-center gap-2">
-                <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Recalculate Compliance
-            </button>
-            <span id="sync-status" class="badge bg-success-subtle text-success border border-success d-flex align-items-center px-3">
-                <i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Connected to Tenant DB
-            </span>
-        </div>
-    </div>
 
-    <!-- Interactive Simulator Block -->
-    <div class="card shadow-sm mb-4 border-light bg-premium-light-subtle">
-        <div class="card-header bg-transparent border-0 pt-4">
-            <h5 class="fw-bold mb-1"><i class="bi bi-sliders text-success me-2" aria-hidden="true"></i>Interactive Compliance Simulation Controls</h5>
-            <p class="text-muted small mb-0">Drag sliders to test CIT allocation percentages, R&D spending rates, and welfare fund expenses to evaluate clawback interest rates.</p>
-        </div>
-        <div class="card-body">
-            <div class="row g-4">
-                <div class="col-md-4">
-                    <label for="slider-taxable-income" class="form-label d-flex justify-content-between">
-                        <span>Taxable Income:</span>
-                        <strong id="val-taxable-income">1,000,000,000 VND</strong>
-                    </label>
-                    <input type="range" class="form-range" id="slider-taxable-income" min="100000000" max="5000000000" step="50000000" value="1000000000">
-                </div>
-                <div class="col-md-4">
-                    <label for="slider-allocation-percent" class="form-label d-flex justify-content-between">
-                        <span>Fund Allocation Percent (Circular 67 cap 10%):</span>
-                        <strong id="val-allocation-percent">10%</strong>
-                    </label>
-                    <input type="range" class="form-range" id="slider-allocation-percent" min="1" max="15" step="0.5" value="10">
-                </div>
-                <div class="col-md-4">
-                    <label for="slider-rd-spend" class="form-label d-flex justify-content-between">
-                        <span>Annual R&D Spend:</span>
-                        <strong id="val-rd-spend">150,000,000 VND</strong>
-                    </label>
-                    <input type="range" class="form-range" id="slider-rd-spend" min="10000000" max="500000000" step="10000000" value="150000000">
-                </div>
-                <div class="col-md-4">
-                    <label for="slider-qualified-ratio" class="form-label d-flex justify-content-between">
-                        <span>Qualified R&D Spend Ratio:</span>
-                        <strong id="val-qualified-ratio">80%</strong>
-                    </label>
-                    <input type="range" class="form-range" id="slider-qualified-ratio" min="0.1" max="1.0" step="0.05" value="0.8">
-                </div>
-                <div class="col-md-4">
-                    <label for="slider-welfare-expenses" class="form-label d-flex justify-content-between">
-                        <span>Actual Welfare Expenses:</span>
-                        <strong id="val-welfare-expenses">20,000,000 VND</strong>
-                    </label>
-                    <input type="range" class="form-range" id="slider-welfare-expenses" min="5000000" max="100000000" step="1000000" value="20000000">
-                </div>
-                <div class="col-md-4">
-                    <label for="slider-average-salary" class="form-label d-flex justify-content-between">
-                        <span>Average Monthly Salary:</span>
-                        <strong id="val-average-salary">15,000,000 VND</strong>
-                    </label>
-                    <input type="range" class="form-range" id="slider-average-salary" min="5000000" max="50000000" step="50000" value="15000000">
-                </div>
-            </div>
-        </div>
-    </div>
+    {# ── Đầu trang Hub ── #}
+    {{ hub_header('44.0.0',
+        'Decree 123 & Circular 67 Compliance Hub',
+        'Reconcile VAT adjustment/discount logs under Decree 123, simulate 5-year Sci-Tech Fund clawbacks, and audit CIT welfare caps.',
+        'btn-recalculate', 'Recalculate Compliance', 'Decree 123/2020/NĐ-CP') }}
 
-    <!-- Bento Grid Layout -->
+    {# ── Bộ điều khiển mô phỏng tương tác ── #}
+    {% call glass_card('Interactive Compliance Simulation Controls', 'bi bi-sliders', 'text-success',
+        'Drag sliders to test CIT allocation percentages, R&D spending rates, and welfare fund expenses to evaluate clawback interest rates.',
+        extra_class='mb-4') %}
+        <div class="row g-4">
+            {{ range_slider('slider-taxable-income', 'Taxable Income:', 100000000, 5000000000, 50000000, 1000000000, 'val-taxable-income') }}
+            {{ range_slider('slider-allocation-percent', 'Fund Allocation Percent (Circular 67 cap 10%):', 1, 15, '0.5', 10, 'val-allocation-percent') }}
+            {{ range_slider('slider-rd-spend', 'Annual R&D Spend:', 10000000, 500000000, 10000000, 150000000, 'val-rd-spend') }}
+            {{ range_slider('slider-qualified-ratio', 'Qualified R&D Spend Ratio:', '0.1', '1.0', '0.05', '0.8', 'val-qualified-ratio') }}
+            {{ range_slider('slider-welfare-expenses', 'Actual Welfare Expenses:', 5000000, 100000000, 1000000, 20000000, 'val-welfare-expenses') }}
+            {{ range_slider('slider-average-salary', 'Average Monthly Salary:', 5000000, 50000000, 50000, 15000000, 'val-average-salary') }}
+        </div>
+    {% endcall %}
+
     <div class="row g-4 mb-4">
-        <!-- Widget 1: Decree 123 Reconciled Adjustments Ledger -->
+
+        {# ── Sổ cái đối soát VAT Decree 123 ── #}
         <div class="col-lg-12">
-            <div class="card shadow-sm h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="card-title fw-bold mb-0 text-success">
-                            <i class="bi bi-patch-check-fill me-2" aria-hidden="true"></i>Decree 123 VAT Adjustment Reconciliation Ledger
-                        </h5>
-                        <span class="badge bg-success-subtle text-success">Decree 123/2020/NĐ-CP</span>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table table-hover table-striped align-middle small mb-0">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>Adjusting Symbol/No.</th>
-                                    <th>Original Symbol/No.</th>
-                                    <th>Adjustment Type</th>
-                                    <th class="text-end">Amount Change</th>
-                                    <th class="text-end">VAT Change</th>
-                                    <th class="text-center">Tax Rate</th>
-                                    <th class="text-center">Status</th>
-                                    <th>Auditor / Mismatch Reason</th>
-                                </tr>
-                            </thead>
-                            <tbody id="adjustment-table-body">
-                                <tr><td colspan="8" class="text-center py-4 text-muted">Loading Adjustments Ledger…</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+            {% call data_table('Decree 123 VAT Adjustment Reconciliation Ledger', 'bi bi-patch-check-fill', 'adjustment-table-body', 'Loading Adjustments Ledger…', 8) %}
+            <thead class="table-dark">
+                <tr>
+                    <th>Adjusting Symbol/No.</th>
+                    <th>Original Symbol/No.</th>
+                    <th>Adjustment Type</th>
+                    <th class="text-end">Amount Change</th>
+                    <th class="text-end">VAT Change</th>
+                    <th class="text-center">Tax Rate</th>
+                    <th class="text-center">Status</th>
+                    <th>Auditor / Mismatch Reason</th>
+                </tr>
+            </thead>
+            {% endcall %}
         </div>
 
-        <!-- Widget 2: Circular 67 Science & Tech Fund Projections -->
+        {# ── Bảng dự phóng Quỹ KH-CN Circular 67 ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="card-title fw-bold mb-0 text-primary">
-                            <i class="bi bi-graph-up-arrow me-2" aria-hidden="true"></i>Circular 67 R&D Fund 5-Year Projections
-                        </h5>
-                        <span class="badge bg-primary-subtle text-primary">CIT Deductions</span>
-                    </div>
-                    <div class="row g-2 mb-3">
-                        <div class="col-6">
-                            <div class="p-2 border rounded bg-premium-light text-center">
-                                <div class="text-muted small">Max Allowable Cap (10%):</div>
-                                <strong id="val-cap-limit" class="text-dark">0 VND</strong>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="p-2 border rounded bg-premium-light text-center">
-                                <div class="text-muted small">Allocated Amount:</div>
-                                <strong id="val-allocated-amount" class="text-success">0 VND</strong>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle small mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Year</th>
-                                    <th class="text-end">Starting Balance</th>
-                                    <th class="text-end">Qualified Spend</th>
-                                    <th class="text-end">Remaining</th>
-                                </tr>
-                            </thead>
-                            <tbody id="projection-table-body">
-                                <!-- Projections filled via JS -->
-                            </tbody>
-                        </table>
-                    </div>
+            {% call glass_card('Circular 67 R&D Fund 5-Year Projections', 'bi bi-graph-up-arrow', 'text-primary',
+                badge_text='CIT Deductions', badge_class='bg-primary-subtle text-primary') %}
+                <div class="row g-2 mb-3">
+                    {{ metric_kpi('Max Allowable Cap (10%):', 'val-cap-limit') }}
+                    {{ metric_kpi('Allocated Amount:', 'val-allocated-amount', '0 VND', 'text-success') }}
                 </div>
-            </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle small mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Year</th>
+                                <th class="text-end">Starting Balance</th>
+                                <th class="text-end">Qualified Spend</th>
+                                <th class="text-end">Remaining</th>
+                            </tr>
+                        </thead>
+                        <tbody id="projection-table-body"></tbody>
+                    </table>
+                </div>
+            {% endcall %}
         </div>
 
-        <!-- Widget 3: Clawback Penalties and Welfare Ceiling Audit -->
+        {# ── Kiểm toán Clawback & Trần Phúc lợi ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="card-title fw-bold mb-0 text-danger">
-                            <i class="bi bi-exclamation-triangle-fill me-2" aria-hidden="true"></i>Fund Clawbacks & Welfare Cap Auditing
-                        </h5>
-                        <span class="badge bg-danger-subtle text-danger">Audit Risk Assessment</span>
-                    </div>
-                    
-                    <div class="list-group list-group-flush mb-3">
-                        <div class="list-group-item d-flex justify-content-between align-items-center py-3">
-                            <div>
-                                <h6 class="fw-bold mb-0">Unspent Fund Balance (After 5 Years):</h6>
-                                <p class="text-muted small mb-0">Amount unspent from initial allocation.</p>
-                            </div>
-                            <span id="val-unspent" class="fs-6 fw-bold text-dark">0 VND</span>
-                        </div>
-                        <div class="list-group-item d-flex justify-content-between align-items-center py-3">
-                            <div>
-                                <h6 class="fw-bold mb-0">CIT Clawback Penalty (20%):</h6>
-                                <p class="text-muted small mb-0">CIT collected on unspent amounts.</p>
-                            </div>
-                            <span id="val-clawback" class="fs-6 fw-bold text-danger">0 VND</span>
-                        </div>
-                        <div class="list-group-item d-flex justify-content-between align-items-center py-3">
-                            <div>
-                                <h6 class="fw-bold mb-0">Late Payment Interest (0.03% daily):</h6>
-                                <p class="text-muted small mb-0">Calculated over 5 years (1825 days).</p>
-                            </div>
-                            <span id="val-interest" class="fs-6 fw-bold text-danger">0 VND</span>
-                        </div>
-                        <div class="list-group-item d-flex justify-content-between align-items-center py-3">
-                            <div>
-                                <h6 class="fw-bold mb-0">Welfare Ceiling Limit (1 month avg salary):</h6>
-                                <p class="text-muted small mb-0">CIT-deductible ceiling cap.</p>
-                            </div>
-                            <span id="val-welfare-cap" class="fs-6 fw-bold text-dark">0 VND</span>
-                        </div>
-                        <div class="list-group-item d-flex justify-content-between align-items-center py-3">
-                            <div>
-                                <h6 class="fw-bold mb-0">Non-deductible Welfare Mismatch:</h6>
-                                <p class="text-muted small mb-0">Subject to CIT correction.</p>
-                            </div>
-                            <span id="val-welfare-mismatch" class="fs-6 fw-bold text-danger">0 VND</span>
-                        </div>
-                    </div>
+            {% call glass_card('Fund Clawbacks & Welfare Cap Auditing', 'bi bi-exclamation-triangle-fill', 'text-danger',
+                badge_text='Audit Risk Assessment', badge_class='bg-danger-subtle text-danger') %}
+                <div class="list-group list-group-flush mb-3">
+                    {{ stat_row('Unspent Fund Balance (After 5 Years):', 'Amount unspent from initial allocation.', 'val-unspent') }}
+                    {{ stat_row('CIT Clawback Penalty (20%):', 'CIT collected on unspent amounts.', 'val-clawback', 'text-danger') }}
+                    {{ stat_row('Late Payment Interest (0.03% daily):', 'Calculated over 5 years (1825 days).', 'val-interest', 'text-danger') }}
+                    {{ stat_row('Welfare Ceiling Limit (1 month avg salary):', 'CIT-deductible ceiling cap.', 'val-welfare-cap') }}
+                    {{ stat_row('Non-deductible Welfare Mismatch:', 'Subject to CIT correction.', 'val-welfare-mismatch', 'text-danger') }}
                 </div>
-            </div>
+            {% endcall %}
         </div>
-    </div>
 
-    <!-- Swarm Advisory Debate Panel -->
-    <div class="card shadow-sm border-light">
-        <div class="card-header bg-obsidian text-snow py-3 d-flex align-items-center justify-content-between">
-            <h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-success me-2" aria-hidden="true"></i>Multi-Agent Advisory Board Debate</h5>
-            <span class="badge bg-secondary-subtle text-secondary border border-secondary">Consensus Simulator</span>
-        </div>
-        <div class="card-body">
-            <div id="debate-container" class="mb-3 d-flex flex-column gap-3">
-                <!-- Debate Messages will render here -->
-            </div>
-            <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus Summary Statement:</h6>
-                <p id="consensus-text" class="text-muted small mb-0">Awaiting simulation data execution…</p>
-            </div>
-        </div>
-    </div>
-</div>
+    </div>{# /row #}
 
+    {# ── Bảng tranh luận đa tác tử ── #}
+    {{ debate_panel('debate-container', 'consensus-text',
+        'Multi-Agent Advisory Board Debate', 'Consensus Simulator') }}
+
+</div>{# /container #}
+
+{# ════════════════════════════════════════════════════════════════
+   LOGIC NGHIỆP VỤ RIÊNG TRANG — Giữ nguyên 100% JS gốc
+   ════════════════════════════════════════════════════════════════ #}
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-    // Selectors
+    /* Selectors */
     const sliderTaxableIncome = document.getElementById("slider-taxable-income");
     const sliderAllocationPercent = document.getElementById("slider-allocation-percent");
     const sliderRdSpend = document.getElementById("slider-rd-spend");
@@ -277,7 +172,6 @@ document.addEventListener("DOMContentLoaded", () => {
             welfare_expenses: parseFloat(sliderWelfareExpenses.value),
             average_monthly_salary: parseFloat(sliderAverageSalary.value)
         };
-
         fetch('/api/v44/sci-tech-fund/simulate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -292,28 +186,23 @@ document.addEventListener("DOMContentLoaded", () => {
         .catch(err => console.error("Error updating simulation:", err));
     };
 
-    // Attachment of listeners to sliders
+    /* Gắn sự kiện slider */
     [sliderTaxableIncome, sliderAllocationPercent, sliderRdSpend, sliderQualifiedRatio, sliderWelfareExpenses, sliderAverageSalary].forEach(slider => {
         slider.addEventListener("input", updateLabelDisplays);
         slider.addEventListener("change", runSimulation);
     });
 
-    document.getElementById("btn-recalculate").addEventListener("click", () => {
-        loadData();
-    });
+    document.getElementById("btn-recalculate").addEventListener("click", () => { loadData(); });
 
     const renderAdjustments = (items) => {
         const tbody = document.getElementById("adjustment-table-body");
         tbody.innerHTML = "";
-        
         items.forEach(item => {
             const tr = document.createElement("tr");
-            
             let badgeClass = "bg-secondary";
             if (item.status === "Linked") badgeClass = "bg-success";
             if (item.status === "Mismatch") badgeClass = "bg-danger";
             if (item.status === "Unlinked") badgeClass = "bg-warning text-dark";
-            
             tr.innerHTML = `
                 <td><strong>${item.adjustment_invoice_symbol} / ${item.adjustment_invoice_number}</strong></td>
                 <td>${item.original_invoice_symbol} / ${item.original_invoice_number}</td>
@@ -329,7 +218,6 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const renderSimulation = (sim) => {
-        // Render caps and unspent stats
         document.getElementById("val-cap-limit").textContent = formatVND(sim.max_allowable_allocation);
         document.getElementById("val-allocated-amount").textContent = formatVND(sim.allocated_amount);
         document.getElementById("val-unspent").textContent = formatVND(sim.unspent_amount);
@@ -338,7 +226,6 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("val-welfare-cap").textContent = formatVND(sim.welfare_limit_cap);
         document.getElementById("val-welfare-mismatch").textContent = formatVND(sim.welfare_mismatch_non_deductible);
 
-        // Projections table
         const tbody = document.getElementById("projection-table-body");
         tbody.innerHTML = "";
         sim.yearly_projection.forEach(row => {
@@ -356,13 +243,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const renderDebate = (debate, summary) => {
         const container = document.getElementById("debate-container");
         container.innerHTML = "";
-        
         const badgeColors = {
             "Local Tax Inspector": "bg-danger",
             "CIT Auditor": "bg-primary",
             "CFO Advisor": "bg-success"
         };
-        
         debate.forEach(msg => {
             const badgeColor = badgeColors[msg.speaker] || "bg-secondary";
             const div = document.createElement("div");
@@ -373,13 +258,15 @@ document.addEventListener("DOMContentLoaded", () => {
             `;
             container.appendChild(div);
         });
-
         document.getElementById("consensus-text").textContent = summary;
     };
 
-    // Initial Bootstrap
+    /* Khởi chạy */
     updateLabelDisplays();
     loadData();
 });
 </script>
+
+{{ entry_animations() }}
+{{ premium_controls_css() }}
 {% endblock %}

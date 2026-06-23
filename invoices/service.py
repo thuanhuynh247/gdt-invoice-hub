@@ -208,6 +208,17 @@ def download_invoice_xml(invoice_id: str) -> bytes:
         with open(local_xml_path, "rb") as f:
             return f.read()
 
+    # Search for other names containing invoice_id (e.g. GDT_REALTIME_..._{invoice_id}.xml)
+    if os.path.exists(XML_DIR):
+        for fname in os.listdir(XML_DIR):
+            if invoice_id in fname and fname.endswith(".xml"):
+                alt_path = os.path.join(XML_DIR, fname)
+                try:
+                    with open(alt_path, "rb") as f:
+                        return f.read()
+                except Exception:
+                    pass
+
     # If mock mode is enabled, generate mock XML
     if current_app.config.get("GDT_USE_MOCK", False):
         invoice = get_invoice_by_id(invoice_id)
@@ -1114,7 +1125,7 @@ def import_xml_invoice(xml_bytes: bytes, filename: str, duplicate_strategy: str 
         f.write(xml_bytes)
 
     # Run audits (passing list of other invoices as dictionaries)
-    other_invoices = [item.to_dict() for item in Invoice.query.all()]
+    other_invoices = [item.to_dict() for item in Invoice.query.filter(Invoice.id != invoice_id).all()]
     warnings = _run_smart_audits(parsed_invoice, other_invoices)
 
     if not schema_valid:

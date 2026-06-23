@@ -1,235 +1,129 @@
 {% extends "base.html" %}
 
+{% from "components/_hub_header.html" import hub_header %}
+{% from "components/_glass_card.html" import glass_card %}
+{% from "components/_calc_input.html" import select_input, number_input, switch_input, calc_button, range_slider, text_input, date_input %}
+{% from "components/_result_panel.html" import result_panel, result_field %}
+{% from "components/_baseline_card.html" import baseline_card %}
+{% from "components/_debate_panel.html" import debate_panel %}
+
 {% block title %}CIT Law 67/2025 Amendments - SME Rates, RE Offsets & Green Exemptions Hub (v49){% endblock %}
 
 {% block content %}
 <div class="container py-4">
-    <!-- Header Area -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
-        <div>
-            <span class="badge bg-info mb-2">Version 49.0.0 Spec Compliance</span>
-            <h1 class="h2 fw-bold text-gradient mb-1">CIT Amendments Compliance Hub</h1>
-            <p class="text-muted mb-0">SME Progressive Tax Classifiers, Real Estate Transfer Loss Offsets, Digital Platform CIT Audits, and Green Exemption Trackers per Luật 67/2025/QH15.</p>
-        </div>
-        <div class="d-flex gap-2 mt-3 mt-md-0">
-            <button id="btn-refresh-v49" class="btn btn-info text-white d-flex align-items-center gap-2">
-                <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Load Compliance Data
-            </button>
-            <span class="badge bg-info-subtle text-info border border-info d-flex align-items-center px-3">
-                <i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Law 67/2025/QH15
-            </span>
-        </div>
-    </div>
+    {# ── Đầu trang Hub ── #}
+    {{ hub_header('49.0.0',
+        'CIT Amendments Compliance Hub',
+        'SME Progressive Tax Classifiers, Real Estate Transfer Loss Offsets, Digital Platform CIT Audits, and Green Exemption Trackers per Luật 67/2025/QH15.',
+        'btn-refresh-v49', 'Load Compliance Data', 'Law 67/2025/QH15') }}
 
-    <!-- Bento Grid Layout -->
+    {# ── Bento Grid Layout ── #}
     <div class="row g-4">
-        <!-- Pillar 1a: SME CIT Rate Classifier -->
+        {# ── Pillar 1a: SME CIT Rate Classifier ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-percent text-info me-2" aria-hidden="true"></i>SME CIT Rate Classifier</h5>
-                    <p class="text-muted small mb-0">Determine CIT rate based on annual revenue: 15% under 3B VND, 17% up to 50B VND, or 20% standard rate.</p>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="input-sme-name" class="form-label small mb-1">Business Name:</label>
-                            <input type="text" id="input-sme-name" class="form-control form-control-sm" value="Cong Ty SME A" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-sme-rev" class="form-label small mb-1">Annual Revenue (VND):</label>
-                            <input type="number" id="input-sme-rev" class="form-control form-control-sm" value="2500000000" autocomplete="off">
-                        </div>
-                        <div class="col-12">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" id="check-sme-tp">
-                                <label class="form-check-input-label small" for="check-sme-tp">Has Transfer Pricing Relationships (Disqualifies SME rate)</label>
-                            </div>
-                        </div>
-                        <div class="col-12 text-end">
-                            <button id="btn-classify-sme" class="btn btn-info btn-sm text-white">
-                                <i class="bi bi-patch-question me-1" aria-hidden="true"></i> Classify CIT Rate
-                            </button>
-                        </div>
+            {% call glass_card('SME CIT Rate Classifier', 'bi bi-percent', 'text-info',
+                description='Determine CIT rate based on annual revenue: 15% under 3B VND, 17% up to 50B VND, or 20% standard rate.') %}
+                <div class="row g-3">
+                    {{ text_input('input-sme-name', 'Business Name:', 'Công Ty SME A', col='col-md-6') }}
+                    {{ number_input('input-sme-rev', 'Annual Revenue (VND):', 2500000000, col='col-md-6') }}
+                    <div class="col-12">
+                        {{ switch_input('check-sme-tp', 'Has Transfer Pricing Relationships (Disqualifies SME rate)') }}
                     </div>
+                    <div class="col-12 text-end">
+                        <button id="btn-classify-sme" class="btn btn-info btn-sm text-white fw-bold">
+                            <i class="bi bi-patch-question me-1" aria-hidden="true"></i> Classify CIT Rate
+                        </button>
+                    </div>
+                </div>
 
-                    <div class="mt-4 p-3 bg-premium-light rounded border">
-                        <h6 class="fw-bold mb-2 text-info"><i class="bi bi-info-circle me-2" aria-hidden="true"></i>Classification Result</h6>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>CIT Rate Applied:</span>
-                            <span id="res-sme-rate" class="fw-bold text-primary">-</span>
-                        </div>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>SME Exemption Eligible:</span>
-                            <span id="res-sme-eligible" class="badge bg-secondary">-</span>
-                        </div>
-                        <div class="small text-muted border-top pt-2 mt-2">
-                            <strong>Note:</strong> <span id="res-sme-note">Awaiting evaluation…</span>
-                        </div>
+                {% call result_panel('Classification Result', 'text-info', note_id='res-sme-note') %}
+                    {{ result_field('CIT Rate Applied:', 'res-sme-rate', 'fw-bold text-primary') }}
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span>SME Exemption Eligible:</span>
+                        <span id="res-sme-eligible" class="badge bg-secondary">-</span>
                     </div>
-                </div>
-            </div>
+                {% endcall %}
+            {% endcall %}
         </div>
 
-        <!-- Pillar 1b: Real Estate Loss Offset Engine -->
+        {# ── Pillar 1b: Real Estate Loss Offset Engine ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-calculator-fill text-success me-2" aria-hidden="true"></i>RE Loss Offset Engine</h5>
-                    <p class="text-muted small mb-0">Offset real estate transfer losses directly against main production business income under amended rules.</p>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label for="input-offset-year" class="form-label small mb-1">Tax Year:</label>
-                            <input type="number" id="input-offset-year" class="form-control form-control-sm" value="2025" autocomplete="off">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="input-main-income" class="form-label small mb-1">Main Income (VND):</label>
-                            <input type="number" id="input-main-income" class="form-control form-control-sm" value="1000000000" autocomplete="off">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="input-re-loss" class="form-label small mb-1">RE Loss (VND):</label>
-                            <input type="number" id="input-re-loss" class="form-control form-control-sm" value="200000000" autocomplete="off">
-                        </div>
-                        <div class="col-12 text-end">
-                            <button id="btn-offset-re" class="btn btn-success btn-sm">
-                                <i class="bi bi-arrow-left-right me-1" aria-hidden="true"></i> Apply Offset
-                            </button>
-                        </div>
+            {% call glass_card('RE Loss Offset Engine', 'bi bi-calculator-fill', 'text-success',
+                description='Offset real estate transfer losses directly against main production business income under amended rules.') %}
+                <div class="row g-3">
+                    {{ number_input('input-offset-year', 'Tax Year:', 2025, col='col-md-4') }}
+                    {{ number_input('input-main-income', 'Main Income (VND):', 1000000000, col='col-md-4') }}
+                    {{ number_input('input-re-loss', 'RE Loss (VND):', 200000000, col='col-md-4') }}
+                    <div class="col-12 text-end">
+                        <button id="btn-offset-re" class="btn btn-success btn-sm text-white fw-bold">
+                            <i class="bi bi-arrow-left-right me-1" aria-hidden="true"></i> Apply Offset
+                        </button>
                     </div>
+                </div>
 
-                    <div class="mt-4 p-3 bg-premium-light rounded border">
-                        <h6 class="fw-bold mb-2 text-success"><i class="bi bi-wallet2 me-2" aria-hidden="true"></i>Offset Calculations</h6>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>Offset Applied:</span>
-                            <span id="res-offset-applied" class="fw-bold text-success">-</span>
-                        </div>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>Final Taxable Income:</span>
-                            <span id="res-offset-final" class="fw-bold text-primary">-</span>
-                        </div>
-                        <div class="small text-muted border-top pt-2 mt-2">
-                            <strong>Note:</strong> <span id="res-offset-note">Awaiting evaluation…</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                {% call result_panel('Offset Calculations', 'text-success', note_id='res-offset-note') %}
+                    {{ result_field('Offset Applied:', 'res-offset-applied', 'fw-bold text-success') }}
+                    {{ result_field('Final Taxable Income:', 'res-offset-final', 'fw-bold text-primary') }}
+                {% endcall %}
+            {% endcall %}
         </div>
 
-        <!-- Pillar 2a: Digital Platform CIT Auditor -->
+        {# ── Pillar 2a: Digital Platform CIT Auditor ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-globe text-warning me-2" aria-hidden="true"></i>Digital Platform CIT Auditor</h5>
-                    <p class="text-muted small mb-0">Evaluate CIT withholding requirements (5% services, 1% goods) for foreign digital entities without permanent establishment.</p>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="input-vendor-name" class="form-label small mb-1">Foreign Vendor Name:</label>
-                            <input type="text" id="input-vendor-name" class="form-control form-control-sm" value="Google Ireland" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-trans-amount" class="form-label small mb-1">Transaction Value (VND):</label>
-                            <input type="number" id="input-trans-amount" class="form-control form-control-sm" value="500000000" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="select-component" class="form-label small mb-1">Component Type:</label>
-                            <select id="select-component" class="form-select form-select-sm">
-                                <option value="service" selected>Service Component (5% CIT)</option>
-                                <option value="trade">Trade/Goods Component (1% CIT)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 d-flex align-items-end">
-                            <div class="form-check form-switch mb-2">
-                                <input class="form-check-input" type="checkbox" id="check-is-foreign" checked>
-                                <label class="form-check-input-label small" for="check-is-foreign">Is Foreign Provider?</label>
-                            </div>
-                        </div>
-                        <div class="col-12 text-end">
-                            <button id="btn-audit-digital" class="btn btn-warning btn-sm text-dark">
-                                <i class="bi bi-shield-lock me-1" aria-hidden="true"></i> Audit Withholding
-                            </button>
-                        </div>
+            {% call glass_card('Digital Platform CIT Auditor', 'bi bi-globe', 'text-warning',
+                description='Evaluate CIT withholding requirements (5% services, 1% goods) for foreign digital entities without permanent establishment.') %}
+                <div class="row g-3">
+                    {{ text_input('input-vendor-name', 'Foreign Vendor Name:', 'Google Ireland', col='col-md-6') }}
+                    {{ number_input('input-trans-amount', 'Transaction Value (VND):', 500000000, col='col-md-6') }}
+                    {{ select_input('select-component', 'Component Type:', [
+                        {'value': 'service', 'label': 'Service Component (5% CIT)'},
+                        {'value': 'trade', 'label': 'Trade/Goods Component (1% CIT)'}
+                    ], col='col-md-6') }}
+                    <div class="col-md-6 d-flex align-items-end">
+                        {{ switch_input('check-is-foreign', 'Is Foreign Provider?', checked=true) }}
                     </div>
+                    <div class="col-12 text-end">
+                        <button id="btn-audit-digital" class="btn btn-warning btn-sm text-dark fw-bold">
+                            <i class="bi bi-shield-lock me-1" aria-hidden="true"></i> Audit Withholding
+                        </button>
+                    </div>
+                </div>
 
-                    <div class="mt-4 p-3 bg-premium-light rounded border">
-                        <h6 class="fw-bold mb-2 text-warning"><i class="bi bi-safe me-2" aria-hidden="true"></i>Audit Ledger</h6>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>Withholding Rate:</span>
-                            <span id="res-withholding-rate" class="fw-bold">-</span>
-                        </div>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>Withholding Tax Liability:</span>
-                            <span id="res-withholding-tax" class="fw-bold text-danger">-</span>
-                        </div>
-                        <div class="small text-muted border-top pt-2 mt-2">
-                            <strong>Note:</strong> <span id="res-digital-note">Awaiting evaluation…</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                {% call result_panel('Audit Ledger', 'text-warning', note_id='res-digital-note') %}
+                    {{ result_field('Withholding Rate:', 'res-withholding-rate', 'fw-bold') }}
+                    {{ result_field('Withholding Tax Liability:', 'res-withholding-tax', 'fw-bold text-danger') }}
+                {% endcall %}
+            {% endcall %}
         </div>
 
-        <!-- Pillar 2b: Green Exemption Scanner -->
+        {# ── Pillar 2b: Green Exemption Scanner ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-leaf text-success me-2" aria-hidden="true"></i>Green Exemption Scanner</h5>
-                    <p class="text-muted small mb-0">Identify and scan CIT exemptions for carbon credit transfers and green bond interest payments.</p>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-8">
-                            <label for="input-item-desc" class="form-label small mb-1">Item Description / Contract Label:</label>
-                            <input type="text" id="input-item-desc" class="form-control form-control-sm" value="Interest from green bonds issued 2025" autocomplete="off">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="input-item-amount" class="form-label small mb-1">Income Amount (VND):</label>
-                            <input type="number" id="input-item-amount" class="form-control form-control-sm" value="50000000" autocomplete="off">
-                        </div>
-                        <div class="col-12 text-end">
-                            <button id="btn-scan-green" class="btn btn-success btn-sm">
-                                <i class="bi bi-lightning me-1" aria-hidden="true"></i> Scan Transaction
-                            </button>
-                        </div>
+            {% call glass_card('Green Exemption Scanner', 'bi bi-leaf', 'text-success',
+                description='Identify and scan CIT exemptions for carbon credit transfers and green bond interest payments.') %}
+                <div class="row g-3">
+                    {{ text_input('input-item-desc', 'Item Description:', 'Interest from green bonds issued 2025', col='col-md-8') }}
+                    {{ number_input('input-item-amount', 'Income Amount (VND):', 50000000, col='col-md-4') }}
+                    <div class="col-12 text-end">
+                        <button id="btn-scan-green" class="btn btn-success btn-sm text-white fw-bold">
+                            <i class="bi bi-lightning me-1" aria-hidden="true"></i> Scan Transaction
+                        </button>
                     </div>
+                </div>
 
-                    <div class="mt-4 p-3 bg-premium-light rounded border">
-                        <h6 class="fw-bold mb-2 text-success"><i class="bi bi-check2-all me-2" aria-hidden="true"></i>Exemption Verdict</h6>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>Exemption Type:</span>
-                            <span id="res-green-type" class="fw-bold text-success">-</span>
-                        </div>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>Is CIT Exempt:</span>
-                            <span id="res-green-exempt" class="badge bg-secondary">-</span>
-                        </div>
-                        <div class="small text-muted border-top pt-2 mt-2">
-                            <strong>Note:</strong> <span id="res-green-note">Awaiting evaluation…</span>
-                        </div>
+                {% call result_panel('Exemption Verdict', 'text-success', note_id='res-green-note') %}
+                    {{ result_field('Exemption Type:', 'res-green-type', 'fw-bold text-success') }}
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span>Is CIT Exempt:</span>
+                        <span id="res-green-exempt" class="badge bg-secondary">-</span>
                     </div>
-                </div>
-            </div>
+                {% endcall %}
+            {% endcall %}
         </div>
 
-        <!-- Swarm Advisory Debate Panel -->
-        <div class="col-lg-12">
-            <div class="card shadow-sm border-light">
-                <div class="card-header bg-dark text-white py-3 d-flex align-items-center justify-content-between">
-                    <h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-info me-2" aria-hidden="true"></i>Multi-Agent Advisory Board Debate</h5>
-                    <span class="badge bg-secondary border border-secondary">Consensus Simulator</span>
-                </div>
-                <div class="card-body">
-                    <div id="debate-container-v49" class="mb-3 d-flex flex-column gap-3">
-                    </div>
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus Summary Statement:</h6>
-                        <p id="consensus-text-v49" class="text-muted small mb-0">Awaiting simulation data execution…</p>
-                    </div>
-                </div>
-            </div>
+        {# ── Swarm Advisory Debate Panel ── #}
+        <div class="col-12">
+            {{ debate_panel('debate-container-v49', 'consensus-text-v49',
+                'Multi-Agent Advisory Board Debate', 'Consensus Simulator') }}
         </div>
     </div>
 </div>

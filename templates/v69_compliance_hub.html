@@ -1,185 +1,119 @@
 {% extends "base.html" %}
+
+{% from "components/_hub_header.html" import hub_header %}
+{% from "components/_glass_card.html" import glass_card %}
+{% from "components/_calc_input.html" import text_input, number_input, select_input, switch_input, calc_button %}
+{% from "components/_result_panel.html" import result_panel, result_field %}
+{% from "components/_baseline_card.html" import baseline_card %}
+{% from "components/_debate_panel.html" import debate_panel %}
+{% from "components/_data_table.html" import data_table %}
+{% from "components/_entry_animations.html" import entry_animations %}
+{% from "components/_premium_controls.html" import premium_controls_css %}
+
 {% block title %}Oil Spill Response & Risk Fee - EPFOS Hub (v69){% endblock %}
+
 {% block content %}
 <div class="container py-4">
-    <!-- Header -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
-        <div>
-            <span class="badge bg-success text-white mb-2">Version 69.0.0 Spec Compliance</span>
-            <h1 class="h2 fw-bold text-gradient mb-1 text-success">Oil Spill Response & Risk Fee Hub</h1>
-            <p class="text-muted mb-0">Assess spill hazards, safety mitigation, and calculate risk fees under Decision 12/2021/QĐ-TTg.</p>
-        </div>
-        <div class="d-flex gap-2 mt-3 mt-md-0">
-            <button id="btn-refresh-v69" class="btn btn-success text-white d-flex align-items-center gap-2">
-                <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Load Data
-            </button>
-            <span class="badge bg-success-subtle text-success border border-success d-flex align-items-center px-3">
-                <i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Decision 12/2021
-            </span>
-        </div>
-    </div>
 
-    <!-- Main Panels -->
+    {# ── Đầu trang Hub ── #}
+    {{ hub_header('69.0.0',
+        'Oil Spill Response & Risk Fee Hub',
+        'Assess spill hazards, safety mitigation, and calculate risk fees under Decision 12/2021/QĐ-TTg.',
+        'btn-refresh-v69', 'Load Data', 'Decision 12/2021') }}
+
     <div class="row g-4">
-        <!-- Interactive Calculator -->
+
+        {# ── Máy tính Phí Sự Cố Dầu ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1 text-success"><i class="bi bi-calculator text-success me-2" aria-hidden="true"></i>Interactive Oil Spill Fee Calculator</h5>
-                    <p class="text-muted small mb-0">Compute quarterly liabilities based on petroleum capacity, facility types, and safety structures.</p>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-12">
-                            <label for="input-facility-name" class="form-label small mb-1">Petroleum Facility / Vessel Fleet Name:</label>
-                            <input type="text" id="input-facility-name" class="form-control form-control-sm" value="Kho xăng dầu đầu mối Cát Lái" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-facility-type" class="form-label small mb-1">Facility Classification:</label>
-                            <select id="input-facility-type" class="form-select form-select-sm">
-                                <option value="refinery">Petrochemical Refinery (Nhà máy lọc dầu - 50M VND base)</option>
-                                <option value="storage_terminal">Storage Terminal (Kho chứa trung chuyển - 30M VND base)</option>
-                                <option value="transport_fleet">Marine Transport Fleet (Đội tàu dầu - 20M VND base)</option>
-                                <option value="fuel_station">Retail Fuel Station (Cửa hàng xăng dầu - 2M VND base)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-exemption-cat" class="form-label small mb-1">Exemption Category:</label>
-                            <select id="input-exemption-cat" class="form-select form-select-sm">
-                                <option value="none">No Exemption (Chịu phí đầy đủ)</option>
-                                <option value="military_petroleum">Military & Strategic Defense Reserves</option>
-                                <option value="disaster_relief">Disaster Relief Emergency Reservoirs</option>
-                                <option value="remote_agricultural_station">Remote Agricultural Cooperatives (&lt; 20m3)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-12">
-                            <label for="input-capacity" class="form-label small mb-1">Petroleum Storage/Transport Capacity (m³):</label>
-                            <input type="number" step="1" id="input-capacity" class="form-control form-control-sm" value="25000" autocomplete="off">
-                            <div class="form-text small text-muted">A capacity charge surcharge of 500 VND/m³ applies to the entire capacity.</div>
-                        </div>
-                        <div class="col-12">
-                            <div class="form-check mt-1">
-                                <input class="form-check-input" type="checkbox" id="input-double-hull" checked>
-                                <label class="form-check-input-label small fw-bold text-dark" for="input-double-hull">
-                                    Double-Hull Vessels or Double-Walled Storage Tanks (30% discount on final fee liability)
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <div class="col-12 text-end">
-                            <button id="btn-calc-spill" class="btn btn-success btn-sm text-white fw-bold">
-                                <i class="bi bi-play-fill me-1" aria-hidden="true"></i> Run Spill Risk Assessment
-                            </button>
-                        </div>
+            {% call glass_card('Interactive Oil Spill Fee Calculator', 'bi bi-calculator', 'text-success',
+                'Compute quarterly liabilities based on petroleum capacity, facility types, and safety structures.') %}
+                <div class="row g-3">
+                    {{ text_input('input-facility-name', 'Petroleum Facility / Vessel Fleet Name:', 'Kho xăng dầu đầu mối Cát Lái', col='col-12') }}
+                    {{ select_input('input-facility-type', 'Facility Classification:', [
+                        {'value':'refinery','label':'Petrochemical Refinery (Nhà máy lọc dầu - 50M VND base)'},
+                        {'value':'storage_terminal','label':'Storage Terminal (Kho chứa trung chuyển - 30M VND base)'},
+                        {'value':'transport_fleet','label':'Marine Transport Fleet (Đội tàu dầu - 20M VND base)'},
+                        {'value':'fuel_station','label':'Retail Fuel Station (Cửa hàng xăng dầu - 2M VND base)'}
+                    ], col='col-md-6') }}
+                    {{ select_input('input-exemption-cat', 'Exemption Category:', [
+                        {'value':'none','label':'No Exemption (Chịu phí đầy đủ)'},
+                        {'value':'military_petroleum','label':'Military & Strategic Defense Reserves'},
+                        {'value':'disaster_relief','label':'Disaster Relief Emergency Reservoirs'},
+                        {'value':'remote_agricultural_station','label':'Remote Agricultural Cooperatives (< 20m3)'}
+                    ], col='col-md-6') }}
+                    {{ number_input('input-capacity', 'Petroleum Storage/Transport Capacity (m³):', 25000, col='col-12') }}
+                    <div class="col-12 mt-0">
+                        <div class="form-text small text-muted">A capacity charge surcharge of 500 VND/m³ applies to the entire capacity.</div>
                     </div>
-                    <div class="mt-4 p-3 bg-premium-light rounded border">
-                        <h6 class="fw-bold mb-2 text-success"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Assessment Result</h6>
-                        <div class="d-flex justify-content-between small mb-1"><span>Quarterly Base Fee:</span><span id="res-base" class="fw-bold text-dark">-</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Capacity Surcharge:</span><span id="res-surcharge" class="fw-bold text-dark">-</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Mitigation Discount Coefficient:</span><span id="res-discount" class="fw-bold text-dark">-</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Effective Quarterly Fee:</span><span id="res-effective-fee" class="fw-bold text-success fs-6">-</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Exemption Status:</span><span id="res-exempt-badge" class="fw-bold">-</span></div>
-                        <div class="small text-muted border-top pt-2 mt-2"><strong>Exemption Reason:</strong> <span id="res-exemption-reason">Awaiting…</span></div>
-                    </div>
+                    {{ switch_input('input-double-hull', 'Double-Hull Vessels or Double-Walled Storage Tanks (30% discount)', checked=true, col='col-12') }}
+                    
+                    {{ calc_button('btn-calc-spill', 'Run Spill Risk Assessment', 'btn-success', col='col-12 text-end') }}
                 </div>
-            </div>
+                {% call result_panel('Assessment Result', 'text-success', 'res-exemption-reason') %}
+                    {{ result_field('Quarterly Base Fee:', 'res-base') }}
+                    {{ result_field('Capacity Surcharge:', 'res-surcharge') }}
+                    {{ result_field('Mitigation Discount Coefficient:', 'res-discount') }}
+                    {{ result_field('Effective Quarterly Fee:', 'res-effective-fee', 'text-success') }}
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span>Exemption Status:</span>
+                        <span id="res-exempt-badge" class="fw-bold">-</span>
+                    </div>
+                {% endcall %}
+            {% endcall %}
         </div>
 
-        <!-- Baseline Verification -->
+        {# ── Baselines Phí Sự Cố Dầu ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Spill Fee Baselines</h5>
+            {% call glass_card('Spill Fee Baselines', 'bi bi-shield-check', 'text-success',
+                'Pre-computed target ledgers verifying oil spill response liabilities under Decision 12/2021/QĐ-TTg.') %}
+                <div class="d-flex flex-column gap-3">
+                    {{ baseline_card('Kho cảng xăng dầu Nhà Bè', 'Terminal', 'bg-danger text-white',
+                        'Terminal: 25,000 m³. Base: 30M. Surcharge: 12.5M. Double-hull: No.',
+                        'Surcharge Rate: 500 VND/m³',
+                        'Fee', 'base1-eff') }}
+
+                    {{ baseline_card('Đội tàu dầu Petrolimex V', 'Transport Fleet', 'bg-warning text-dark',
+                        'Fleet: 15,000 m³. Base: 20M. Surcharge: 7.5M. Double-hull: Yes (30% off).',
+                        'Surcharge: 7.5M VND',
+                        'Fee', 'base2-eff') }}
+
+                    {{ baseline_card('Kho xăng dầu quân đội K52 (Exempt)', 'Exempt', 'bg-success text-white',
+                        'Capacity: 8,000 m³. Exemption: Military Petroleum Reserves.',
+                        'Base: 30M VND',
+                        'Reason', 'base3-reason') }}
                 </div>
-                <div class="card-body d-flex flex-column gap-3">
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="fw-bold small text-dark">Kho cảng xăng dầu Nhà Bè</span>
-                            <span class="badge bg-danger">Terminal</span>
-                        </div>
-                        <p class="small text-muted mb-2">Terminal: 25,000 m³. Base: 30M. Surcharge: 12.5M. Double-hull: No.</p>
-                        <div class="d-flex justify-content-between small">
-                            <span>Surcharge Rate: 500 VND/m³</span>
-                            <span>Fee: <strong id="base1-eff" class="text-success">-</strong></span>
-                        </div>
-                    </div>
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="fw-bold small text-dark">Đội tàu dầu Petrolimex V</span>
-                            <span class="badge bg-warning text-dark">Transport Fleet</span>
-                        </div>
-                        <p class="small text-muted mb-2">Fleet: 15,000 m³. Base: 20M. Surcharge: 7.5M. Double-hull: Yes (30% off).</p>
-                        <div class="d-flex justify-content-between small">
-                            <span>Surcharge: 7.5M VND</span>
-                            <span>Fee: <strong id="base2-eff" class="text-success">-</strong></span>
-                        </div>
-                    </div>
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="fw-bold small text-dark">Kho xăng dầu quân đội K52 (Exempt)</span>
-                            <span class="badge bg-success">Exempt</span>
-                        </div>
-                        <p class="small text-muted mb-2">Capacity: 8,000 m³. Exemption: Military Petroleum Reserves.</p>
-                        <div class="d-flex justify-content-between small">
-                            <span>Base: 30M VND</span>
-                            <span>Reason: <strong id="base3-reason" class="text-success">-</strong></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {% endcall %}
         </div>
 
-        <!-- Consensus Debate -->
+        {# ── Bảng tranh luận đa tác tử ── #}
         <div class="col-lg-12">
-            <div class="card shadow-sm border-light">
-                <div class="card-header bg-dark text-white py-3 d-flex align-items-center justify-content-between">
-                    <h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-success me-2" aria-hidden="true"></i>Multi-Agent Maritime Safety Debate</h5>
-                    <span class="badge bg-secondary">Decision 12/2021/QĐ-TTg Consensus</span>
-                </div>
-                <div class="card-body">
-                    <div id="debate-container-v69" class="mb-3 d-flex flex-column gap-3"></div>
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus:</h6>
-                        <p id="consensus-text-v69" class="text-muted small mb-0">Awaiting…</p>
-                    </div>
-                </div>
-            </div>
+            {{ debate_panel('debate-container-v69', 'consensus-text-v69',
+                'Multi-Agent Maritime Safety Debate', 'Decision 12/2021/QĐ-TTg Consensus') }}
         </div>
 
-        <!-- History Audit Log -->
+        {# ── Bảng lịch sử Phí Sự Cố Dầu ── #}
         <div class="col-lg-12">
-            <div class="card shadow-sm border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-2">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-clock-history text-muted me-2" aria-hidden="true"></i>Spill Fee Environmental History Log</h5>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover table-striped mb-0 small">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Facility Name</th>
-                                    <th>Classification</th>
-                                    <th>Capacity (m³)</th>
-                                    <th>Double Hull</th>
-                                    <th>Exemption</th>
-                                    <th>Base Fee</th>
-                                    <th>Surcharge</th>
-                                    <th>Net Payable</th>
-                                    <th>Status</th>
-                                    <th>Timestamp</th>
-                                </tr>
-                            </thead>
-                            <tbody id="history-table-v69">
-                                <tr><td colspan="11" class="text-center text-muted py-4">No logs available.</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+            {% call data_table('Spill Fee Environmental History Log', 'bi bi-clock-history', 'history-table-v69', 'No logs available.', 11) %}
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Facility Name</th>
+                        <th>Classification</th>
+                        <th>Capacity (m³)</th>
+                        <th>Double Hull</th>
+                        <th>Exemption</th>
+                        <th>Base Fee</th>
+                        <th>Surcharge</th>
+                        <th>Net Payable</th>
+                        <th>Status</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+            {% endcall %}
         </div>
-    </div>
-</div>
+
+    </div>{# /row #}
+</div>{# /container #}
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
@@ -289,4 +223,7 @@ document.addEventListener("DOMContentLoaded", () => {
     load();
 });
 </script>
+
+{{ entry_animations() }}
+{{ premium_controls_css() }}
 {% endblock %}

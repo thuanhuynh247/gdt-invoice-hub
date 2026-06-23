@@ -1,178 +1,114 @@
 {% extends "base.html" %}
+
+{% from "components/_hub_header.html" import hub_header %}
+{% from "components/_glass_card.html" import glass_card %}
+{% from "components/_calc_input.html" import select_input, number_input, switch_input, calc_button, range_slider, text_input, date_input %}
+{% from "components/_result_panel.html" import result_panel, result_field %}
+{% from "components/_baseline_card.html" import baseline_card %}
+{% from "components/_debate_panel.html" import debate_panel %}
+{% from "components/_data_table.html" import data_table %}
+{% from "components/_entry_animations.html" import entry_animations %}
+{% from "components/_premium_controls.html" import premium_controls_css %}
+
 {% block title %}Hazardous Waste Hub (v73){% endblock %}
+
 {% block content %}
 <div class="container py-4">
-    <!-- Header -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
-        <div>
-            <span class="badge bg-success text-white mb-2">Version 73.0.0 Spec Compliance</span>
-            <h1 class="h2 fw-bold text-gradient mb-1 text-success">Hazardous Waste Compliance Hub</h1>
-            <p class="text-muted mb-0">Evaluate licensing charges and disposal fees under Decree 08/2022/NĐ-CP.</p>
-        </div>
-        <div class="d-flex gap-2 mt-3 mt-md-0">
-            <button id="btn-refresh-v73" class="btn btn-success text-white d-flex align-items-center gap-2">
-                <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Load Data
-            </button>
-            <span class="badge bg-success-subtle text-success border border-success d-flex align-items-center px-3">
-                <i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Decree 08/2022
-            </span>
-        </div>
-    </div>
+    {# ── Đầu trang Hub ── #}
+    {{ hub_header('73.0.0',
+        'Hazardous Waste Compliance Hub',
+        'Evaluate licensing charges and disposal fees under Decree 08/2022/NĐ-CP.',
+        'btn-refresh-v73', 'Load Data', 'Decree 08/2022') }}
 
-    <!-- Main Panels -->
+    {# ── Các bảng điều khiển chính ── #}
     <div class="row g-4">
-        <!-- Interactive Calculator -->
+        {# ── Máy tính chi phí chất thải nguy hại ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1 text-success"><i class="bi bi-calculator text-success me-2" aria-hidden="true"></i>Hazardous Waste Fee Calculator</h5>
-                    <p class="text-muted small mb-0">Determine base licensing and category weight-based disposal costs.</p>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="input-category" class="form-label small mb-1">Waste Category:</label>
-                            <select id="input-category" class="form-select form-select-sm">
-                                <option value="category_a">Category A - Standard (Rate: 2,000 VND/kg)</option>
-                                <option value="category_b">Category B - Hazardous/Clinical (Rate: 5,000 VND/kg)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-weight" class="form-label small mb-1">Disposal Batch Weight (kg):</label>
-                            <input type="number" step="0.1" id="input-weight" class="form-control form-control-sm" value="450" autocomplete="off">
-                        </div>
-                        <div class="col-md-12">
-                            <div class="form-check form-switch pt-2">
-                                <input class="form-check-input" type="checkbox" id="input-license" role="switch" checked>
-                                <label class="form-check-label small" for="input-license">Apply for Disposal/Licensing Permit (Base fee: 5,000,000 VND)</label>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-annual-weight" class="form-label small mb-1">Annual Generated Weight (kg):</label>
-                            <input type="number" step="0.1" id="input-annual-weight" class="form-control form-control-sm" value="1200" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-check form-switch pt-4">
-                                <input class="form-check-input" type="checkbox" id="input-research" role="switch">
-                                <label class="form-check-label small" for="input-research">Certified Academic Research Lab</label>
-                            </div>
-                        </div>
-                        
-                        <div class="col-12 text-end">
-                            <button id="btn-calc-waste" class="btn btn-success btn-sm text-white fw-bold">
-                                <i class="bi bi-play-fill me-1" aria-hidden="true"></i> Calculate Waste Fee
-                            </button>
-                        </div>
-                    </div>
-                    <div class="mt-4 p-3 bg-premium-light rounded border">
-                        <h6 class="fw-bold mb-2 text-success"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Calculation Result</h6>
-                        <div class="d-flex justify-content-between small mb-1"><span>Licensing Fee:</span><span id="res-license" class="fw-bold text-dark">-</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Disposal Fee:</span><span id="res-disposal" class="fw-bold text-dark">-</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Total Fee:</span><span id="res-final" class="fw-bold text-success fs-6">-</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Exemption Status:</span><span id="res-exempt-badge" class="fw-bold">-</span></div>
-                        <!-- Hazardous Waste Breakdown Chart -->
-                        <div id="breakdown-chart" class="border-top pt-2 mt-2" style="display:none;">
-                            <h6 class="fw-bold small mb-2 text-success"><i class="bi bi-bar-chart-fill text-success me-1" aria-hidden="true"></i>Fee Structure Breakdown</h6>
-                            <div id="breakdown-bars" class="d-flex flex-column gap-1"></div>
-                        </div>
-                        <div class="small text-muted border-top pt-2 mt-2"><strong>Notes:</strong> <span id="res-notes">Awaiting…</span></div>
+            {% call glass_card('Hazardous Waste Fee Calculator', 'bi bi-calculator', 'text-success',
+                description='Determine base licensing and category weight-based disposal costs.') %}
+                <div class="row g-3">
+                    {{ select_input('input-category', 'Waste Category:', [
+                        {'value': 'category_a', 'label': 'Category A - Standard (Rate: 2,000 VND/kg)'},
+                        {'value': 'category_b', 'label': 'Category B - Hazardous/Clinical (Rate: 5,000 VND/kg)'}
+                    ], col='col-md-6') }}
+                    {{ number_input('input-weight', 'Disposal Batch Weight (kg):', 450, step='0.1', col='col-md-6') }}
+                    
+                    {{ switch_input('input-license', 'Apply for Disposal/Licensing Permit (Base fee: 5,000,000 VND)', checked=true, col='col-12') }}
+                    
+                    {{ number_input('input-annual-weight', 'Annual Generated Weight (kg):', 1200, step='0.1', col='col-md-6') }}
+                    {{ switch_input('input-research', 'Certified Academic Research Lab', col='col-md-6') }}
+                    
+                    <div class="col-12 text-end">
+                        <button id="btn-calc-waste" class="btn btn-success btn-sm text-white fw-bold">
+                            <i class="bi bi-play-fill me-1" aria-hidden="true"></i> Calculate Waste Fee
+                        </button>
                     </div>
                 </div>
-            </div>
+
+                {% call result_panel('Calculation Result', 'text-success', note_id='res-notes') %}
+                    {{ result_field('Licensing Fee:', 'res-license') }}
+                    {{ result_field('Disposal Fee:', 'res-disposal') }}
+                    {{ result_field('Total Fee:', 'res-final', 'text-success fs-6') }}
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span>Exemption Status:</span>
+                        <span id="res-exempt-badge" class="fw-bold">-</span>
+                    </div>
+                    
+                    {# Hazardous Waste Breakdown Chart #}
+                    <div id="breakdown-chart" class="border-top pt-2 mt-2" style="display:none;">
+                        <h6 class="fw-bold small mb-2 text-success">
+                            <i class="bi bi-bar-chart-fill text-success me-1" aria-hidden="true"></i>Fee Structure Breakdown
+                        </h6>
+                        <div id="breakdown-bars" class="d-flex flex-column gap-1"></div>
+                    </div>
+                {% endcall %}
+            {% endcall %}
         </div>
 
-        <!-- Baseline Verification -->
+        {# ── Cơ sở kiểm tra (Baselines) ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Hazardous Waste Baselines</h5>
+            {% call glass_card('Hazardous Waste Baselines', 'bi bi-shield-check', 'text-success') %}
+                <div class="d-flex flex-column gap-3">
+                    {{ baseline_card('Category A (Standard waste batch)', 'Category A', 'bg-success',
+                        'Weight: 450 kg. License application included. Rate: 2,000 VND/kg.',
+                        'Exempt: No', 'Fee', 'base1-eff') }}
+                    
+                    {{ baseline_card('Category B (Heavy metal/clinical)', 'Category B', 'bg-success',
+                        'Weight: 200 kg. License application included. Rate: 5,000 VND/kg.',
+                        'Exempt: No', 'Fee', 'base2-eff') }}
+                    
+                    {{ baseline_card('Research Lab Infectious Sample Batch', 'Lab Exempt', 'bg-danger',
+                        'Weight: 100 kg. Exemption: Certified research laboratory waiver.',
+                        'Exempt: Yes', 'Fee', 'base3-eff') }}
                 </div>
-                <div class="card-body d-flex flex-column gap-3">
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="fw-bold small text-dark">Category A (Standard waste batch)</span>
-                            <span class="badge bg-success">Category A</span>
-                        </div>
-                        <p class="small text-muted mb-2">Weight: 450 kg. License application included. Rate: 2,000 VND/kg.</p>
-                        <div class="d-flex justify-content-between small">
-                            <span>Exempt: No</span>
-                            <span>Fee: <strong id="base1-eff" class="text-success">-</strong></span>
-                        </div>
-                    </div>
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="fw-bold small text-dark">Category B (Heavy metal/clinical)</span>
-                            <span class="badge bg-success">Category B</span>
-                        </div>
-                        <p class="small text-muted mb-2">Weight: 200 kg. License application included. Rate: 5,000 VND/kg.</p>
-                        <div class="d-flex justify-content-between small">
-                            <span>Exempt: No</span>
-                            <span>Fee: <strong id="base2-eff" class="text-success">-</strong></span>
-                        </div>
-                    </div>
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="fw-bold small text-dark">Research Lab Infectious Sample Batch</span>
-                            <span class="badge bg-danger">Lab Exempt</span>
-                        </div>
-                        <p class="small text-muted mb-2">Weight: 100 kg. Exemption: Certified research laboratory waiver.</p>
-                        <div class="d-flex justify-content-between small">
-                            <span>Exempt: Yes</span>
-                            <span>Fee: <strong id="base3-eff" class="text-success">-</strong></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {% endcall %}
         </div>
 
-        <!-- Consensus Debate -->
+        {# ── Tranh luận Hội đồng tư vấn ── #}
         <div class="col-lg-12">
-            <div class="card shadow-sm border-light">
-                <div class="card-header bg-dark text-white py-3 d-flex align-items-center justify-content-between">
-                    <h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-success me-2" aria-hidden="true"></i>Multi-Agent Toxic Waste Management Debate</h5>
-                    <span class="badge bg-secondary">Decree 08/2022/NĐ-CP Consensus</span>
-                </div>
-                <div class="card-body">
-                    <div id="debate-container-v73" class="mb-3 d-flex flex-column gap-3"></div>
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus:</h6>
-                        <p id="consensus-text-v73" class="text-muted small mb-0">Awaiting…</p>
-                    </div>
-                </div>
-            </div>
+            {{ debate_panel('debate-container-v73', 'consensus-text-v73',
+                'Multi-Agent Toxic Waste Management Debate', 'Decree 08/2022/NĐ-CP Consensus') }}
         </div>
 
-        <!-- History Audit Log -->
+        {# ── Nhật ký lịch sử tuân thủ ── #}
         <div class="col-lg-12">
-            <div class="card shadow-sm border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-2">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-clock-history text-muted me-2" aria-hidden="true"></i>Hazardous Waste History Log</h5>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover table-striped mb-0 small">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Waste Category</th>
-                                    <th>Weight (kg)</th>
-                                    <th>Permit Applied</th>
-                                    <th>Annual Weight (kg)</th>
-                                    <th>Research Lab</th>
-                                    <th>Licensing Fee</th>
-                                    <th>Disposal Fee</th>
-                                    <th>Total Surcharge</th>
-                                    <th>Status</th>
-                                    <th>Timestamp</th>
-                                </tr>
-                            </thead>
-                            <tbody id="history-table-v73">
-                                <tr><td colspan="11" class="text-center text-muted py-4">No logs available.</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+            {% call data_table('Hazardous Waste History Log', 'bi bi-clock-history', 'history-table-v73', 'No logs available.', 11) %}
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Waste Category</th>
+                        <th>Weight (kg)</th>
+                        <th>Permit Applied</th>
+                        <th>Annual Weight (kg)</th>
+                        <th>Research Lab</th>
+                        <th>Licensing Fee</th>
+                        <th>Disposal Fee</th>
+                        <th>Total Surcharge</th>
+                        <th>Status</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+            {% endcall %}
         </div>
     </div>
 </div>
@@ -318,4 +254,7 @@ document.addEventListener("DOMContentLoaded", () => {
     load();
 });
 </script>
+
+{{ entry_animations() }}
+{{ premium_controls_css() }}
 {% endblock %}

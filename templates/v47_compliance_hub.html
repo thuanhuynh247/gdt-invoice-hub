@@ -1,187 +1,108 @@
 {% extends "base.html" %}
 
+{% from "components/_hub_header.html" import hub_header %}
+{% from "components/_glass_card.html" import glass_card %}
+{% from "components/_calc_input.html" import select_input, number_input, switch_input, calc_button, range_slider, text_input, date_input %}
+{% from "components/_result_panel.html" import result_panel, result_field %}
+{% from "components/_baseline_card.html" import baseline_card %}
+{% from "components/_debate_panel.html" import debate_panel %}
+{% from "components/_data_table.html" import data_table %}
+
 {% block title %}VAT Law 48/2024 - Rate Classifier & Input Credit Engine (v47){% endblock %}
 
 {% block content %}
 <div class="container py-4">
-    <!-- Header Area -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
-        <div>
-            <span class="badge bg-primary mb-2">Version 47.0.0 Spec Compliance</span>
-            <h1 class="h2 fw-bold text-gradient mb-1">VAT Rate Classifier & Input Credit Hub</h1>
-            <p class="text-muted mb-0">Classify goods/services by VAT rate tier (0%, 5%, 10%) per Luật 48/2024/QH15, validate input credit eligibility, and estimate VAT refunds.</p>
-        </div>
-        <div class="d-flex gap-2 mt-3 mt-md-0">
-            <button id="btn-refresh-v47" class="btn btn-primary d-flex align-items-center gap-2">
-                <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Load Compliance Data
-            </button>
-            <span class="badge bg-primary-subtle text-primary border border-primary d-flex align-items-center px-3">
-                <i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Law 48/2024/QH15
-            </span>
-        </div>
-    </div>
+    {# ── Đầu trang Hub ── #}
+    {{ hub_header('47.0.0',
+        'VAT Rate Classifier & Input Credit Hub',
+        'Classify goods/services by VAT rate tier (0%, 5%, 10%) per Luật 48/2024/QH15, validate input credit eligibility, and estimate VAT refunds.',
+        'btn-refresh-v47', 'Load Compliance Data', 'Law 48/2024/QH15') }}
 
-    <!-- Bento Grid Layout -->
+    {# ── Bento Grid Layout ── #}
     <div class="row g-4">
-        <!-- Pillar 1: VAT Rate Classifier -->
+        {# ── Phân loại thuế suất VAT ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-tags-fill text-primary me-2" aria-hidden="true"></i>VAT Rate Classifier (Articles 5 & 9)</h5>
-                    <p class="text-muted small mb-0">Enter a goods/service description to classify into the correct VAT rate tier.</p>
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label for="input-item-desc" class="form-label small mb-1">Item/Service Description:</label>
-                        <input type="text" id="input-item-desc" class="form-control" value="Thiết bị y tế chẩn đoán hình ảnh" autocomplete="off" placeholder="e.g. Hàng xuất khẩu, Sách giáo khoa, Dịch vụ tư vấn…">
-                    </div>
-                    <div class="text-end">
-                        <button id="btn-classify-rate" class="btn btn-primary btn-sm">
+            {% call glass_card('VAT Rate Classifier (Articles 5 & 9)', 'bi bi-tags-fill', 'text-primary',
+                description='Enter a goods/service description to classify into the correct VAT rate tier.') %}
+                <div class="row g-3">
+                    {{ text_input('input-item-desc', 'Item/Service Description:', 'Thiết bị y tế chẩn đoán hình ảnh', col='col-12') }}
+                    <div class="col-12 text-end">
+                        <button id="btn-classify-rate" class="btn btn-primary btn-sm text-white fw-bold">
                             <i class="bi bi-search me-1" aria-hidden="true"></i> Classify Rate
                         </button>
                     </div>
-
-                    <div class="mt-4 p-3 bg-premium-light rounded border">
-                        <h6 class="fw-bold mb-2 text-primary"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Classification Result</h6>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>VAT Rate:</span>
-                            <span id="res-rate" class="badge bg-primary">-</span>
-                        </div>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>Legal Reference:</span>
-                            <span id="res-article" class="text-muted">-</span>
-                        </div>
-                        <div class="small text-muted border-top pt-2">
-                            <strong>Notes:</strong> <span id="res-rate-notes">Awaiting classification…</span>
-                        </div>
-                    </div>
                 </div>
-            </div>
+
+                {% call result_panel('Classification Result', 'text-primary', note_id='res-rate-notes') %}
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span>VAT Rate:</span>
+                        <span id="res-rate" class="badge bg-primary">-</span>
+                    </div>
+                    {{ result_field('Legal Reference:', 'res-article') }}
+                {% endcall %}
+            {% endcall %}
         </div>
 
-        <!-- Pillar 2: Input Credit Eligibility -->
+        {# ── Kiểm tra điều kiện khấu trừ thuế đầu vào ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Input Credit Validator (Article 14)</h5>
-                    <p class="text-muted small mb-0">Validate whether an input invoice qualifies for VAT credit deduction.</p>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="input-credit-inv" class="form-label small mb-1">Invoice Number:</label>
-                            <input type="text" id="input-credit-inv" class="form-control form-control-sm" value="INV-2026-001" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-credit-amount" class="form-label small mb-1">Invoice Amount (VND):</label>
-                            <input type="number" id="input-credit-amount" class="form-control form-control-sm" value="50000000" autocomplete="off">
-                        </div>
-                        <div class="col-12">
-                            <div class="form-check form-switch mb-1">
-                                <input class="form-check-input" type="checkbox" id="chk-vat-invoice" checked>
-                                <label class="form-check-label small" for="chk-vat-invoice">Has valid VAT invoice (Hóa đơn GTGT)</label>
-                            </div>
-                            <div class="form-check form-switch mb-1">
-                                <input class="form-check-input" type="checkbox" id="chk-bank-payment" checked>
-                                <label class="form-check-label small" for="chk-bank-payment">Has non-cash payment proof (Chứng từ thanh toán)</label>
-                            </div>
-                            <div class="form-check form-switch mb-1">
-                                <input class="form-check-input" type="checkbox" id="chk-seller-declared" checked>
-                                <label class="form-check-label small" for="chk-seller-declared">Seller has filed VAT declaration</label>
-                            </div>
-                        </div>
-                        <div class="col-12 text-end">
-                            <button id="btn-check-credit" class="btn btn-success btn-sm">
-                                <i class="bi bi-check2-square me-1" aria-hidden="true"></i> Check Eligibility
-                            </button>
-                        </div>
+            {% call glass_card('Input Credit Validator (Article 14)', 'bi bi-shield-check', 'text-success',
+                description='Validate whether an input invoice qualifies for VAT credit deduction.') %}
+                <div class="row g-3">
+                    {{ text_input('input-credit-inv', 'Invoice Number:', 'INV-2026-001', col='col-md-6') }}
+                    {{ number_input('input-credit-amount', 'Invoice Amount (VND):', 50000000, col='col-md-6') }}
+                    
+                    {{ switch_input('chk-vat-invoice', 'Has valid VAT invoice (Hóa đơn GTGT)', checked=true, col='col-12') }}
+                    {{ switch_input('chk-bank-payment', 'Has non-cash payment proof (Chứng từ thanh toán)', checked=true, col='col-12') }}
+                    {{ switch_input('chk-seller-declared', 'Seller has filed VAT declaration', checked=true, col='col-12') }}
+                    
+                    <div class="col-12 text-end">
+                        <button id="btn-check-credit" class="btn btn-success btn-sm text-white fw-bold">
+                            <i class="bi bi-check2-square me-1" aria-hidden="true"></i> Check Eligibility
+                        </button>
                     </div>
+                </div>
 
-                    <div class="mt-4 p-3 bg-premium-light rounded border">
-                        <h6 class="fw-bold mb-2 text-success"><i class="bi bi-patch-check me-2" aria-hidden="true"></i>Credit Eligibility Result</h6>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>Eligible for Input Credit:</span>
-                            <span id="res-credit-eligible" class="badge bg-secondary">-</span>
-                        </div>
-                        <div id="res-credit-reasons" class="small text-muted border-top pt-2">
-                            Awaiting eligibility check…
-                        </div>
+                {% call result_panel('Credit Eligibility Result', 'text-success', note_id='res-credit-reasons') %}
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span>Eligible for Input Credit:</span>
+                        <span id="res-credit-eligible" class="badge bg-secondary">-</span>
                     </div>
-                </div>
-            </div>
+                {% endcall %}
+            {% endcall %}
         </div>
 
-        <!-- Pillar 2b: VAT Refund Estimator -->
+        {# ── Ước tính Hoàn thuế VAT ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-cash-stack text-warning me-2" aria-hidden="true"></i>VAT Refund Estimator (Article 15)</h5>
-                    <p class="text-muted small mb-0">Estimate VAT refund eligibility based on the 300M VND threshold and 10% export cap.</p>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="input-output-vat" class="form-label small mb-1">Total Output VAT (VND):</label>
-                            <input type="number" id="input-output-vat" class="form-control form-control-sm" value="100000000" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-input-vat" class="form-label small mb-1">Total Input VAT (VND):</label>
-                            <input type="number" id="input-input-vat" class="form-control form-control-sm" value="500000000" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-export-rev" class="form-label small mb-1">Export Revenue (VND):</label>
-                            <input type="number" id="input-export-rev" class="form-control form-control-sm" value="5000000000" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-period" class="form-label small mb-1">Period:</label>
-                            <input type="text" id="input-period" class="form-control form-control-sm" value="Q1-2026" autocomplete="off">
-                        </div>
-                        <div class="col-12 text-end">
-                            <button id="btn-estimate-refund" class="btn btn-warning btn-sm text-dark">
-                                <i class="bi bi-calculator me-1" aria-hidden="true"></i> Estimate Refund
-                            </button>
-                        </div>
+            {% call glass_card('VAT Refund Estimator (Article 15)', 'bi bi-cash-stack', 'text-warning',
+                description='Estimate VAT refund eligibility based on the 300M VND threshold and 10% export cap.') %}
+                <div class="row g-3">
+                    {{ number_input('input-output-vat', 'Total Output VAT (VND):', 100000000, col='col-md-6') }}
+                    {{ number_input('input-input-vat', 'Total Input VAT (VND):', 500000000, col='col-md-6') }}
+                    {{ number_input('input-export-rev', 'Export Revenue (VND):', 5000000000, col='col-md-6') }}
+                    {{ text_input('input-period', 'Period:', 'Q1-2026', col='col-md-6') }}
+                    
+                    <div class="col-12 text-end">
+                        <button id="btn-estimate-refund" class="btn btn-warning btn-sm text-dark fw-bold">
+                            <i class="bi bi-calculator me-1" aria-hidden="true"></i> Estimate Refund
+                        </button>
                     </div>
+                </div>
 
-                    <div class="mt-4 p-3 bg-premium-light rounded border">
-                        <h6 class="fw-bold mb-2 text-warning"><i class="bi bi-piggy-bank me-2" aria-hidden="true"></i>Refund Estimate</h6>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>Uncredited Balance:</span>
-                            <span id="res-uncredited" class="fw-bold">-</span>
-                        </div>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>Eligible for Refund:</span>
-                            <span id="res-refund-eligible" class="badge bg-secondary">-</span>
-                        </div>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>Estimated Refund:</span>
-                            <span id="res-refund-amount" class="fw-bold text-success">-</span>
-                        </div>
-                        <div class="small text-muted border-top pt-2">
-                            <span id="res-refund-notes">Awaiting estimation…</span>
-                        </div>
+                {% call result_panel('Refund Estimate', 'text-warning', note_id='res-refund-notes') %}
+                    {{ result_field('Uncredited Balance:', 'res-uncredited') }}
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span>Eligible for Refund:</span>
+                        <span id="res-refund-eligible" class="badge bg-secondary">-</span>
                     </div>
-                </div>
-            </div>
+                    {{ result_field('Estimated Refund:', 'res-refund-amount', 'text-success fw-bold') }}
+                {% endcall %}
+            {% endcall %}
         </div>
 
-        <!-- Swarm Advisory Debate Panel -->
+        {# ── Tranh luận Hội đồng tư vấn ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
-                <div class="card-header bg-obsidian text-snow py-3 d-flex align-items-center justify-content-between">
-                    <h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-primary me-2" aria-hidden="true"></i>Multi-Agent Advisory Board Debate</h5>
-                    <span class="badge bg-secondary border border-secondary">Consensus Simulator</span>
-                </div>
-                <div class="card-body">
-                    <div id="debate-container-v47" class="mb-3 d-flex flex-column gap-3">
-                        <!-- Debate Messages -->
-                    </div>
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus Summary Statement:</h6>
-                        <p id="consensus-text-v47" class="text-muted small mb-0">Awaiting simulation data execution…</p>
-                    </div>
-                </div>
-            </div>
+            {{ debate_panel('debate-container-v47', 'consensus-text-v47',
+                'Multi-Agent Advisory Board Debate', 'Consensus Simulator') }}
         </div>
     </div>
 </div>

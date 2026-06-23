@@ -357,7 +357,8 @@ class ResilientSyncQueue:
                 
                 # Check audits
                 from invoices.service import _run_smart_audits
-                normalized_inv["warnings"] = _run_smart_audits(normalized_inv, local_db)
+                other_db = [item for item in local_db if item.get("id") != invoice_id]
+                normalized_inv["warnings"] = _run_smart_audits(normalized_inv, other_db)
                 
                 normalized_list.append(normalized_inv)
                 total_imported += 1

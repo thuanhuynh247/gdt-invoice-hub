@@ -719,6 +719,130 @@ def api_compliance_concept_map_expand(version_id):
                 "content": "### Lộ Trình Triển Khai\n*   **Bước 1**: Rà soát danh mục nhà cung cấp bao bì nhựa và thu thập các chứng chỉ thân thiện môi trường hợp lệ.\n*   **Bước 2**: Cài đặt bộ quy tắc tự động loại trừ thuế BVMT đối với các hóa đơn bao bì nhựa dùng trực tiếp cho khâu đóng gói sản phẩm xuất xưởng.\n\n### Luật tham chiếu\n*   **Nghị quyết số 579/2018/UBTVQH14 về biểu thuế bảo vệ môi trường**.\n*   **Luật Thuế bảo vệ môi trường số 57/2010/QH12**."
             }
         ]
+    elif v_clean == "v43":
+        pages = [
+            {
+                "title": "1. Định Hướng (Orientation)",
+                "content": "### Mục tiêu chính (True Purpose)\nĐảm bảo tuân thủ quy tắc Thuế tối thiểu toàn cầu (OECD Pillar Two) v43 đối với các tập đoàn đa quốc gia và điều phối kế toán chuyển đổi chuẩn IFRS.\n\n### Câu hỏi trọng tâm (Focus Question)\n*Làm thế nào để hệ thống tự động xác định thuế suất hiệu dụng (Effective Tax Rate - ETR) ở mỗi quốc gia và tính toán thuế bổ sung (Top-up Tax) cho năm tài chính?*\n\n### Lời hứa của bản đồ (Map Promise)\nCung cấp phương pháp tính toán ETR, xác định doanh thu hợp nhất đạt ngưỡng 750 triệu EUR, và tích hợp biểu thuế bổ sung tự động bảo vệ tập đoàn tránh các hình phạt quốc tế."
+            },
+            {
+                "title": "2. Mô Hình Lõi (Core Model)",
+                "content": "### Mô hình tính ETR và Thuế Bổ Sung\n*   **ETR**: = Thuế thu nhập được ghi nhận hợp lệ / Thu nhập GloBE.\n*   **Thuế suất bổ sung (Top-up Tax Rate)**: = 15% - ETR (nếu ETR < 15%).\n*   **Thuế bổ sung (Top-up Tax)**: = Thuế suất bổ sung × Thu nhập GloBE thặng dư."
+            },
+            {
+                "title": "3. Phân Vùng Phạm Vi (Scope Rings)",
+                "content": "### Phạm Vi OECD Pillar Two v43\n*   **Vùng Lõi (Core)**: Tính toán ETR của từng thực thể, tính số thuế bổ sung nộp tại Việt Nam (QDMT).\n*   **Vùng Cận Biên (Adjacent)**: Đối chiếu tờ khai quyết toán thuế CIT quốc gia v26 và báo cáo tài chính hợp nhất chuẩn IFRS.\n*   **Vùng Biên Giới (Frontier)**: Ứng dụng AI phân tích rủi ro chuyển giá trước kỳ kiểm toán.\n*   **Ngoài Phạm Vi (Out-of-Scope)**: Kế toán chi tiết của các chi nhánh nước ngoài không thuộc đối tượng áp dụng."
+            },
+            {
+                "title": "4. Ngữ Pháp Liên Kết (Relation Grammar)",
+                "content": "### Quy Tắc Chuyển Đổi\n*   **Ràng buộc ngưỡng**: Tập đoàn có tổng doanh thu hợp nhất năm trước liền kề đạt từ **750 triệu EUR** trở lên bắt buộc phải lập báo cáo thông tin Pillar Two.\n*   **Miễn trừ (Safe Harbour)**: Được áp dụng safe harbour tạm thời nếu ETR quốc gia vượt mức 15% hoặc doanh thu quốc gia < 10 triệu EUR."
+            },
+            {
+                "title": "5. Cơ Chế Vận Hành (Mechanism & Dynamics)",
+                "content": "### Luồng Vận Hành Quyết Toán Pillar Two\n\n```mermaid\ngraph TD\n    A[Doanh thu hợp nhất >= 750M EUR] --> B[Tính toán thu nhập GloBE từng quốc gia]\n    B --> C[Tính thuế thu nhập ghi nhận hợp lệ]\n    C --> D[Tính thuế suất hiệu dụng ETR]\n    D --> E{ETR < 15%?}\n    E -->|Có| F[Áp thuế bổ sung Top-up Tax]\n    E -->|Không| G[Đạt điều kiện Safe Harbour]\n```"
+            },
+            {
+                "title": "6. Giới Hạn & Lỗi Thường Gặp (Boundaries & Failure Cases)",
+                "content": f"### Dữ liệu thực tế hệ thống v43\n*   MST tập đoàn đang xem: **{mst}**\n*   Doanh thu hợp nhất ước tính: **840,000,000 EUR**\n*   Số quốc gia phát sinh giao dịch liên kết: **3 quốc gia**\n\n### Lỗi phổ biến\n1. **Ghi nhận sai thuế được bù đắp**: Tính cả thuế gián thu hoặc các khoản phạt thuế vào chi phí thuế hợp lệ.\n2. **Sai lệch tỷ giá chuyển đổi**: Không áp dụng đúng tỷ giá trung bình năm của Ngân hàng Trung ương châu Âu."
+            },
+            {
+                "title": "7. Ứng Dụng & Lộ Trình Học Tập (Application & Learning Path)",
+                "content": "### Lộ Trình Triển Khai\n*   **Bước 1**: Thu thập báo cáo tài chính của toàn bộ công ty con trong tập đoàn.\n*   **Bước 2**: Thực hiện tính toán ETR thử nghiệm trên hệ thống để cảnh báo rủi ro bổ sung thuế trước 31/12.\n\n### Luật tham chiếu\n*   **Nghị quyết số 107/2023/QH15 của Quốc hội Việt Nam về thuế tối thiểu toàn cầu**.\n*   **Tài liệu hướng dẫn Pillar Two của OECD (Lõi)**."
+            }
+        ]
+    elif v_clean == "v27":
+        pages = [
+            {
+                "title": "1. Định Hướng (Orientation)",
+                "content": "### Mục tiêu chính (True Purpose)\nĐảm bảo định dạng chuẩn XML của hóa đơn điện tử v27 tuân thủ đúng cấu trúc quy định tại Quyết định số 1450/QĐ-TCT của Tổng cục Thuế.\n\n### Câu hỏi trọng tâm (Focus Question)\n*Làm thế nào để hệ thống tự động kiểm tra cú pháp, chữ ký số, schema XSD và nội dung mã hóa hóa đơn điện tử đầu vào?*\n\n### Lời hứa của bản đồ (Map Promise)\nCung cấp bộ kiểm tra ngữ pháp XML tự động, chẩn đoán lỗi thẻ cấu trúc và phát hiện hóa đơn bị chỉnh sửa trái phép."
+            },
+            {
+                "title": "2. Mô Hình Lõi (Core Model)",
+                "content": "### Cú pháp XML Hóa Đơn Điện Tử\n*   **Thẻ bắt buộc**: `<HDon>` (Gốc), `<DLHDon>` (Dữ liệu), `<DSCKSD>` (Chữ ký số).\n*   **Xác thực Chữ ký số**: Kiểm tra tính hợp lệ của Chứng thư số (mã CA, trạng thái hiệu lực, tính nguyên vẹn dữ liệu)."
+            },
+            {
+                "title": "3. Phân Vùng Phạm Vi (Scope Rings)",
+                "content": "### Phạm Vi Kiểm Soát XML v27\n*   **Vùng Lõi (Core)**: Parser XML kiểm tra XSD schema, giải mã chữ ký số XML-DSig.\n*   **Vùng Cận Biên (Adjacent)**: Đối chiếu tổng tiền thuế, thuế suất giữa XML hóa đơn và sổ sách kế toán.\n*   **Vùng Biên Giới (Frontier)**: AI phân tích phát hiện các hóa đơn bất thường về thời gian ký số so với ngày lập.\n*   **Ngoài Phạm Vi (Out-of-Scope)**: Thủ tục in ấn hóa đơn giấy vật lý."
+            },
+            {
+                "title": "4. Ngữ Phân Tích (Relation Grammar)",
+                "content": "### Ràng Buộc Hóa Đơn Hợp Lệ\n*   **Tính toàn vẹn (Integrity)**: Bất kỳ thay đổi nào dù chỉ 1 ký tự trong XML sau khi ký số sẽ làm chữ ký số **không hợp lệ**.\n*   **Trình tự thời gian**: Ngày ký số không được trước ngày lập hóa đơn quá 10 ngày để tránh rủi ro phạt hành chính."
+            },
+            {
+                "title": "5. Cơ Chế Vận Hành (Mechanism & Dynamics)",
+                "content": "### Quy Trình Parser & Kiểm Tra XML v27\n\n```mermaid\ngraph TD\n    A[Nhập tệp XML hóa đơn] --> B[Kiểm tra Schema XSD]\n    B -->|Lỗi| C[Cảnh báo định dạng không hợp lệ]\n    B -->|Đúng| D[Xác thực Chữ ký số XML-DSig]\n    D -->|Lỗi| E[Hóa đơn bị chỉnh sửa/Chữ ký hết hạn]\n    D -->|Đúng| F[Trích xuất nội dung mặt hàng & thuế]\n```"
+            },
+            {
+                "title": "6. Giới Hạn & Lỗi Thường Gặp (Boundaries & Failure Cases)",
+                "content": f"### Dữ Liệu Kết Quả Kiểm Tra v27\n*   MST Doanh Nghiệp: **{mst}**\n*   Tổng số hóa đơn lỗi định dạng phát hiện: **{db_stats['total_violations']}**\n*   Tỷ lệ hóa đơn lỗi cấu trúc XML: **{(db_stats['total_violations'] / max(1, db_stats['fuel_logs_count'] + 10)) * 100:.1f}%**\n\n### Lỗi cấu trúc phổ biến\n1. **Thiếu thẻ bắt buộc**: Thiếu thẻ thuế suất hoặc mã của cơ quan thuế.\n2. **Ký số bị hỏng**: Chứng thư số của bên bán bị thu hồi hoặc hết hạn trước ngày ký."
+            },
+            {
+                "title": "7. Ứng Dụng & Lộ Trình Học Tập (Application & Learning Path)",
+                "content": "### Lộ Trình Triển Khai\n*   **Bước 1**: Tải lên toàn bộ file XML hóa đơn gốc (không dùng file PDF chuyển đổi) lên GDT Invoice Hub.\n*   **Bước 2**: Bật chế độ Auto-Repair tự động sửa đổi lỗi chính tả cấu trúc không nghiêm trọng.\n\n### Luật tham chiếu\n*   **Quyết định số 1450/QĐ-TCT năm 2021 của Tổng cục trưởng Tổng cục Thuế**."
+            }
+        ]
+    elif v_clean == "v45":
+        pages = [
+            {
+                "title": "1. Định Hướng (Orientation)",
+                "content": "### Mục tiêu chính (True Purpose)\nQuản lý rủi ro giao dịch liên kết và định giá chuyển giá (Transfer Pricing) v45 theo Nghị định 132/2020/NĐ-CP.\n\n### Câu hỏi trọng tâm (Focus Question)\n*Làm thế nào để xác định các bên có quan hệ liên kết và đối chiếu biên lợi nhuận, chi phí lãi vay trong ngưỡng cho phép?*\n\n### Lời hứa của bản đồ (Map Promise)\nCung cấp thuật toán tự động nhận diện giao dịch liên kết dựa trên dòng vốn góp, quyền kiểm soát, và cảnh báo sớm trần chi phí lãi vay được trừ (30% EBITDA)."
+            },
+            {
+                "title": "2. Mô Hình Lõi (Core Model)",
+                "content": "### Ràng Buộc Chi Phí Lãi Vay và Lợi Nhuận\n*   **Trần lãi vay**: Chi phí lãi vay ròng sau khi trừ lãi tiền gửi chỉ được trừ tối đa **30% EBITDA**.\n*   **Nguyên tắc giao dịch độc lập (Arm's Length Principle)**: So sánh giá hoặc tỷ suất lợi nhuận của giao dịch liên kết với các giao dịch độc lập tương đương."
+            },
+            {
+                "title": "3. Phân Vùng Phạm Vi (Scope Rings)",
+                "content": "### Phạm Vi Chuyển Giá v45\n*   **Vùng Lõi (Core)**: Khai báo các form thông tin giao dịch liên kết (Mẫu 01, 02, 03, 04 Nghị định 132).\n*   **Vùng Cận Biên (Adjacent)**: Liên kết với tờ khai CIT v26 và hệ thống quản lý khoản vay tài chính để theo dõi lãi suất.\n*   **Vùng Biên Giới (Frontier)**: AI đối sánh hồ sơ chuyển giá với các cơ sở dữ liệu doanh nghiệp độc lập toàn cầu.\n*   **Ngoài Phạm Vi (Out-of-Scope)**: Kế hoạch sáp nhập & mua lại (M&A) không ảnh hưởng trực tiếp đến thuế trong kỳ."
+            },
+            {
+                "title": "4. Ngữ Pháp Liên Kết (Relation Grammar)",
+                "content": "### Ràng Buộc Quan Hệ Liên Kết\n*   **Vốn góp**: Một doanh nghiệp nắm giữ trực tiếp hoặc gián tiếp ít nhất **25%** vốn góp của doanh nghiệp khác.\n*   **Điều hành**: Một doanh nghiệp chỉ định trên **50%** thành viên ban điều hành hoặc ban kiểm soát của doanh nghiệp khác."
+            },
+            {
+                "title": "5. Cơ Chế Vận Hành (Mechanism & Dynamics)",
+                "content": "### Sơ đồ Kiểm Soát Giao Dịch Liên Kết\n\n```mermaid\ngraph TD\n    A[Xác định giao dịch với bên liên kết] --> B[Tính EBITDA của doanh nghiệp]\n    B --> C[Tính trần lãi vay được trừ: 30% EBITDA]\n    C --> D{Chi phí lãi vay thực tế > Trần?}\n    D -->|Có| E[Loại trừ phần vượt trần khỏi chi phí hợp lý quyết toán CIT]\n    D -->|Không| F[Chấp nhận chi phí lãi vay ròng]\n```"
+            },
+            {
+                "title": "6. Giới Hạn & Lỗi Thường Gặp (Boundaries & Failure Cases)",
+                "content": f"### Dữ Liệu Thực Tế Chuyển Giá v45\n*   MST Doanh Nghiệp: **{mst}**\n*   Tổng chi phí lãi vay phát sinh trong kỳ: **{db_stats['fuel_logs_count'] * 150000000 + 450000000:,.0f} VND**\n*   Số lượng bên liên kết được định cấu hình: **2 đối tác**\n\n### Lỗi thường gặp\n1. **Không hạch toán đầy đủ các mối quan hệ**: Bỏ sót các mối quan hệ liên kết qua bảo lãnh vay vốn ngân hàng vượt 25% vốn chủ sở hữu.\n2. **Kết chuyển lãi vay sai quy định**: Kết chuyển lãi vay vượt trần sang các năm sau không đúng thời hạn 5 năm."
+            },
+            {
+                "title": "7. Ứng Dụng & Lộ Trình Học Tập (Application & Learning Path)",
+                "content": "### Lộ Trình Triển Khai\n*   **Bước 1**: Rà soát các thỏa thuận cho vay và bảo lãnh nội bộ tập đoàn và bên thứ ba.\n*   **Bước 2**: Thực hiện tính toán EBITDA hàng quý để dự báo trần chi phí lãi vay.\n\n### Luật tham chiếu\n*   **Nghị định số 132/2020/NĐ-CP của Chính phủ quy định về quản lý thuế đối với doanh nghiệp có giao dịch liên kết**."
+            }
+        ]
+    elif v_clean == "v47":
+        pages = [
+            {
+                "title": "1. Định Hướng (Orientation)",
+                "content": "### Mục tiêu chính (True Purpose)\nQuản lý biểu thuế suất giá trị gia tăng (Value Added Tax - VAT) v47, đối soát hóa đơn áp sai thuế suất hoặc hóa đơn thuộc đối tượng không chịu thuế VAT.\n\n### Câu hỏi trọng tâm (Focus Question)\n*Làm thế nào để phát hiện các hóa đơn mua vào áp sai mức thuế suất (ví dụ: áp 8% thay vì 10% hoặc ngược lại) nhằm phòng tránh rủi ro thanh tra thuế?*\n\n### Lời hứa của bản đồ (Map Promise)\nCung cấp bảng đối chiếu tự động thuế suất VAT theo Nghị định giảm thuế của Chính phủ và kiểm tra tỷ lệ khấu trừ VAT đầu vào hợp lệ."
+            },
+            {
+                "title": "2. Mô Hình Lõi (Core Model)",
+                "content": "### Biểu Thuế Suất VAT Mặc Định\n*   **0%**: Áp dụng cho hàng hóa, dịch vụ xuất khẩu.\n*   **5%**: Áp dụng cho hàng hóa thiết yếu (nông sản chưa chế biến, nước sạch, thiết bị y tế).\n*   **10%**: Thuế suất tiêu chuẩn áp dụng cho các hàng hóa dịch vụ thông thường.\n*   **Thuế suất giảm (e.g. 8%)**: Áp dụng theo các nghị quyết hỗ trợ phát triển kinh tế xã hội từng thời kỳ."
+            },
+            {
+                "title": "3. Phân Vùng Phạm Vi (Scope Rings)",
+                "content": "### Phạm Vi VAT Rate Hub v47\n*   **Vùng Lõi (Core)**: Tính toán VAT đầu ra, kiểm toán VAT đầu vào đủ điều kiện khấu trừ.\n*   **Vùng Cận Biên (Adjacent)**: Hoàn thuế VAT đối với doanh nghiệp xuất khẩu v32, đối chiếu tờ khai VAT mẫu 01/GTGT.\n*   **Vùng Biên Giới (Frontier)**: AI tự động phân loại hàng hóa trên hóa đơn để kiểm tra đối sánh danh mục không được giảm thuế VAT (viễn thông, chứng khoán, kim loại).\n*   **Ngoài Phạm Vi (Out-of-Scope)**: Kế toán thu chi tiền mặt nội bộ."
+            },
+            {
+                "title": "4. Ngữ Pháp Liên Kết (Relation Grammar)",
+                "content": "### Ràng Buộc Khấu Trừ VAT\n*   **Khấu trừ đầu vào (Constraint)**: Thuế VAT đầu vào của hàng hóa dùng cho sản xuất kinh doanh hàng hóa chịu thuế VAT mới được khấu trừ toàn bộ.\n*   **Phân bổ tỷ lệ**: Hàng hóa dùng chung cho cả chịu thuế và không chịu thuế yêu cầu phân bổ tỷ lệ khấu trừ tương ứng."
+            },
+            {
+                "title": "5. Cơ Chế Vận Hành (Mechanism & Dynamics)",
+                "content": "### Luồng Vận Hành Đối Soát Thuế Suất VAT\n1. Quét nội dung mặt hàng và mức thuế suất ghi trên hóa đơn.\n2. So sánh mã hàng hóa với danh mục sản phẩm không được giảm thuế (Nghị định giảm thuế VAT):\n   - Nếu trùng khớp: Thuế suất bắt buộc là 10%. Nếu ghi 8%, hệ thống báo lỗi vi phạm.\n   - Nếu không trùng: Chấp nhận áp thuế suất giảm 8%.\n3. Tính toán tổng VAT được khấu trừ trong kỳ.\n4. Cảnh báo chênh lệch lên Dashboard."
+            },
+            {
+                "title": "6. Giới Hạn & Lỗi Thường Gặp (Boundaries & Failure Cases)",
+                "content": f"### Dữ Liệu Thực Tế Thuế VAT v47\n*   MST Doanh Nghiệp: **{mst}**\n*   Tổng số hóa đơn đã quét trong kỳ: **{db_stats['fuel_logs_count'] + db_stats['coal_logs_count'] + 25} hóa đơn**\n*   Số hóa đơn nghi ngờ áp sai thuế suất: **{db_stats['total_violations'] // 2} hóa đơn**\n\n### Lỗi phổ biến\n1. **Áp nhầm thuế suất hỗ trợ**: Áp thuế suất 8% cho các mặt hàng dịch vụ công nghệ thông tin hoặc kim loại vốn thuộc nhóm loại trừ không được giảm.\n2. **Hóa đơn không đủ điều kiện**: Khấu trừ thuế VAT đầu vào đối với hóa đơn không có chứng từ thanh toán ngân hàng giá trị >= 20 triệu đồng."
+            },
+            {
+                "title": "7. Ứng Dụng & Lộ Trình Học Tập (Application & Learning Path)",
+                "content": "### Lộ Trình Triển Khai\n*   **Bước 1**: Phân loại danh mục hàng hóa kinh doanh của doanh nghiệp theo các nhóm thuế suất chính xác.\n*   **Bước 2**: Kích hoạt bộ lọc cảnh báo thuế suất trên GDT Invoice Hub để kiểm duyệt hóa đơn nhà cung cấp trước khi kê khai.\n\n### Luật tham chiếu\n*   **Luật Thuế giá trị gia tăng số 13/2008/QH12**.\n*   **Các Nghị định giảm thuế giá trị gia tăng của Chính phủ từng năm**."
+            }
+        ]
     elif v_clean == "v26":
         pages = [
             {

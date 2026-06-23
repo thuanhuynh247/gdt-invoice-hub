@@ -1,186 +1,117 @@
 {% extends "base.html" %}
+
+{% from "components/_hub_header.html" import hub_header %}
+{% from "components/_glass_card.html" import glass_card %}
+{% from "components/_calc_input.html" import select_input, number_input, switch_input, calc_button, range_slider, text_input, date_input %}
+{% from "components/_result_panel.html" import result_panel, result_field %}
+{% from "components/_baseline_card.html" import baseline_card %}
+{% from "components/_debate_panel.html" import debate_panel %}
+{% from "components/_data_table.html" import data_table %}
+{% from "components/_entry_animations.html" import entry_animations %}
+{% from "components/_premium_controls.html" import premium_controls_css %}
+
 {% block title %}Noise & Vibration Surcharge Hub (v74){% endblock %}
+
 {% block content %}
 <div class="container py-4">
-    <!-- Header -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
-        <div>
-            <span class="badge bg-success text-white mb-2">Version 74.0.0 Spec Compliance</span>
-            <h1 class="h2 fw-bold text-gradient mb-1 text-success">Noise & Vibration Surcharge Hub</h1>
-            <p class="text-muted mb-0">Evaluate decibel exceedance levels, vibration thresholds, shift multipliers, and public works exemptions.</p>
-        </div>
-        <div class="d-flex gap-2 mt-3 mt-md-0">
-            <button id="btn-refresh-v74" class="btn btn-success text-white d-flex align-items-center gap-2">
-                <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Load Data
-            </button>
-            <span class="badge bg-success-subtle text-success border border-success d-flex align-items-center px-3">
-                <i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Law on EP 2020
-            </span>
-        </div>
-    </div>
+    {# ── Đầu trang Hub ── #}
+    {{ hub_header('74.0.0',
+        'Noise & Vibration Surcharge Hub',
+        'Evaluate decibel exceedance levels, vibration thresholds, shift multipliers, and public works exemptions.',
+        'btn-refresh-v74', 'Load Data', 'Law on EP 2020') }}
 
-    <!-- Main Panels -->
+    {# ── Các bảng điều khiển chính ── #}
     <div class="row g-4">
-        <!-- Interactive Calculator -->
+        {# ── Máy tính phụ thu tiếng ồn/rung ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1 text-success"><i class="bi bi-calculator text-success me-2" aria-hidden="true"></i>Noise/Vibration Surcharge Calculator</h5>
-                    <p class="text-muted small mb-0">Evaluate excess sound pressure and displacement limits and calculate levies.</p>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="input-noise" class="form-label small mb-1">Measured Noise Level (dBA):</label>
-                            <input type="number" step="0.1" id="input-noise" class="form-control form-control-sm" value="75" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-vibration" class="form-label small mb-1">Measured Vibration (m/s²):</label>
-                            <input type="number" step="0.001" id="input-vibration" class="form-control form-control-sm" value="0.065" autocomplete="off">
-                        </div>
-                        <div class="col-md-12">
-                            <label for="input-shift" class="form-label small mb-1">Monitoring Time Shift:</label>
-                            <select id="input-shift" class="form-select form-select-sm">
-                                <option value="day">Day Shift (06:00 - 21:00) - Limits: 70 dBA / 0.055 m/s²</option>
-                                <option value="night">Night Shift (21:00 - 06:00) - Limits: 55 dBA / 0.055 m/s² (1.5x Multiplier)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-check form-switch pt-2">
-                                <input class="form-check-input" type="checkbox" id="input-infrastructure" role="switch">
-                                <label class="form-check-label small" for="input-infrastructure">Public Infrastructure</label>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-check form-switch pt-2">
-                                <input class="form-check-input" type="checkbox" id="input-emergency" role="switch">
-                                <label class="form-check-label small" for="input-emergency">Emergency Relief</label>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-check form-switch pt-2">
-                                <input class="form-check-input" type="checkbox" id="input-festival" role="switch">
-                                <label class="form-check-label small" for="input-festival">Traditional Festival</label>
-                            </div>
-                        </div>
-                        
-                        <div class="col-12 text-end">
-                            <button id="btn-calc-surcharge" class="btn btn-success btn-sm text-white fw-bold">
-                                <i class="bi bi-play-fill me-1" aria-hidden="true"></i> Calculate Surcharge
-                            </button>
-                        </div>
-                    </div>
-                    <div class="mt-4 p-3 bg-premium-light rounded border">
-                        <h6 class="fw-bold mb-2 text-success"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Calculation Result</h6>
-                        <div class="d-flex justify-content-between small mb-1"><span>Noise Surcharge:</span><span id="res-noise" class="fw-bold text-dark">-</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Vibration Surcharge:</span><span id="res-vibration" class="fw-bold text-dark">-</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Gross Surcharge:</span><span id="res-gross" class="fw-bold text-dark">-</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Final Surcharge:</span><span id="res-final" class="fw-bold text-success fs-6">-</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Exemption Status:</span><span id="res-exempt-badge" class="fw-bold">-</span></div>
-                        <!-- Noise vs Vibration Breakdown Chart -->
-                        <div id="breakdown-chart" class="border-top pt-2 mt-2" style="display:none;">
-                            <h6 class="fw-bold small mb-2 text-success"><i class="bi bi-bar-chart-fill text-success me-1" aria-hidden="true"></i>Surcharge Breakdown</h6>
-                            <div id="breakdown-bars" class="d-flex flex-column gap-1"></div>
-                        </div>
-                        <div class="small text-muted border-top pt-2 mt-2"><strong>Notes:</strong> <span id="res-notes">Awaiting…</span></div>
+            {% call glass_card('Noise/Vibration Surcharge Calculator', 'bi bi-calculator', 'text-success',
+                description='Evaluate excess sound pressure and displacement limits and calculate levies.') %}
+                <div class="row g-3">
+                    {{ number_input('input-noise', 'Measured Noise Level (dBA):', 75, step='0.1', col='col-md-6') }}
+                    {{ number_input('input-vibration', 'Measured Vibration (m/s²):', 0.065, step='0.001', col='col-md-6') }}
+                    
+                    {{ select_input('input-shift', 'Monitoring Time Shift:', [
+                        {'value': 'day', 'label': 'Day Shift (06:00 - 21:00) - Limits: 70 dBA / 0.055 m/s²'},
+                        {'value': 'night', 'label': 'Night Shift (21:00 - 06:00) - Limits: 55 dBA / 0.055 m/s² (1.5x Multiplier)'}
+                    ], col='col-12') }}
+                    
+                    {{ switch_input('input-infrastructure', 'Public Infrastructure', col='col-md-4') }}
+                    {{ switch_input('input-emergency', 'Emergency Relief', col='col-md-4') }}
+                    {{ switch_input('input-festival', 'Traditional Festival', col='col-md-4') }}
+                    
+                    <div class="col-12 text-end">
+                        <button id="btn-calc-surcharge" class="btn btn-success btn-sm text-white fw-bold">
+                            <i class="bi bi-play-fill me-1" aria-hidden="true"></i> Calculate Surcharge
+                        </button>
                     </div>
                 </div>
-            </div>
+
+                {% call result_panel('Calculation Result', 'text-success', note_id='res-notes') %}
+                    {{ result_field('Noise Surcharge:', 'res-noise') }}
+                    {{ result_field('Vibration Surcharge:', 'res-vibration') }}
+                    {{ result_field('Gross Surcharge:', 'res-gross') }}
+                    {{ result_field('Final Surcharge:', 'res-final', 'text-success fs-6') }}
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span>Exemption Status:</span>
+                        <span id="res-exempt-badge" class="fw-bold">-</span>
+                    </div>
+                    
+                    {# Noise vs Vibration Breakdown Chart #}
+                    <div id="breakdown-chart" class="border-top pt-2 mt-2" style="display:none;">
+                        <h6 class="fw-bold small mb-2 text-success">
+                            <i class="bi bi-bar-chart-fill text-success me-1" aria-hidden="true"></i>Surcharge Breakdown
+                        </h6>
+                        <div id="breakdown-bars" class="d-flex flex-column gap-1"></div>
+                    </div>
+                {% endcall %}
+            {% endcall %}
         </div>
 
-        <!-- Baseline Verification -->
+        {# ── Cơ sở kiểm tra (Baselines) ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Noise & Vibration Baselines</h5>
+            {% call glass_card('Noise & Vibration Baselines', 'bi bi-shield-check', 'text-success') %}
+                <div class="d-flex flex-column gap-3">
+                    {{ baseline_card('Day Shift Construction Hub', 'Day Shift', 'bg-success',
+                        'Noise: 75.0 dBA. Vibration: 0.065 m/s². Surcharges apply.',
+                        'Exempt: No', 'Fee', 'base1-eff') }}
+                    
+                    {{ baseline_card('Night Shift Transport Hub', 'Night Shift', 'bg-success',
+                        'Noise: 58.0 dBA. Vibration: 0.045 m/s². 1.5x night multiplier applies.',
+                        'Exempt: No', 'Fee', 'base2-eff') }}
+                    
+                    {{ baseline_card('Traditional Festival Loudspeaker Event', 'Festival Exempt', 'bg-danger',
+                        'Noise: 85.0 dBA. Vibration: 0.090 m/s². Exemption: traditional cultural festival.',
+                        'Exempt: Yes', 'Notes', 'base3-notes') }}
                 </div>
-                <div class="card-body d-flex flex-column gap-3">
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="fw-bold small text-dark">Day Shift Construction Hub</span>
-                            <span class="badge bg-success">Day Shift</span>
-                        </div>
-                        <p class="small text-muted mb-2">Noise: 75.0 dBA. Vibration: 0.065 m/s². Surcharges apply.</p>
-                        <div class="d-flex justify-content-between small">
-                            <span>Exempt: No</span>
-                            <span>Fee: <strong id="base1-eff" class="text-success">-</strong></span>
-                        </div>
-                    </div>
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="fw-bold small text-dark">Night Shift Transport Hub</span>
-                            <span class="badge bg-success">Night Shift</span>
-                        </div>
-                        <p class="small text-muted mb-2">Noise: 58.0 dBA. Vibration: 0.045 m/s². 1.5x night multiplier applies.</p>
-                        <div class="d-flex justify-content-between small">
-                            <span>Exempt: No</span>
-                            <span>Fee: <strong id="base2-eff" class="text-success">-</strong></span>
-                        </div>
-                    </div>
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="fw-bold small text-dark">Traditional Festival Loudspeaker Event</span>
-                            <span class="badge bg-danger">Festival Exempt</span>
-                        </div>
-                        <p class="small text-muted mb-2">Noise: 85.0 dBA. Vibration: 0.090 m/s². Exemption: traditional cultural festival.</p>
-                        <div class="d-flex justify-content-between small">
-                            <span>Exempt: Yes</span>
-                            <span>Notes: <strong id="base3-notes" class="text-success">-</strong></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {% endcall %}
         </div>
 
-        <!-- Consensus Debate -->
+        {# ── Tranh luận Hội đồng tư vấn ── #}
         <div class="col-lg-12">
-            <div class="card shadow-sm border-light">
-                <div class="card-header bg-dark text-white py-3 d-flex align-items-center justify-content-between">
-                    <h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-success me-2" aria-hidden="true"></i>Multi-Agent Acoustic & Vibration Impact Debate</h5>
-                    <span class="badge bg-secondary">Law on EP 2020 Consensus</span>
-                </div>
-                <div class="card-body">
-                    <div id="debate-container-v74" class="mb-3 d-flex flex-column gap-3"></div>
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus:</h6>
-                        <p id="consensus-text-v74" class="text-muted small mb-0">Awaiting…</p>
-                    </div>
-                </div>
-            </div>
+            {{ debate_panel('debate-container-v74', 'consensus-text-v74',
+                'Multi-Agent Acoustic & Vibration Impact Debate', 'Law on EP 2020 Consensus') }}
         </div>
 
-        <!-- History Audit Log -->
+        {# ── Nhật ký lịch sử tuân thủ ── #}
         <div class="col-lg-12">
-            <div class="card shadow-sm border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-2">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-clock-history text-muted me-2" aria-hidden="true"></i>Acoustic & Vibration Compliance History Log</h5>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover table-striped mb-0 small">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Noise Level (dBA)</th>
-                                    <th>Vibration (m/s²)</th>
-                                    <th>Shift</th>
-                                    <th>Public Infra</th>
-                                    <th>Emergency</th>
-                                    <th>Festival</th>
-                                    <th>Noise Fee</th>
-                                    <th>Vibration Fee</th>
-                                    <th>Total Fee</th>
-                                    <th>Status</th>
-                                    <th>Timestamp</th>
-                                </tr>
-                            </thead>
-                            <tbody id="history-table-v74">
-                                <tr><td colspan="12" class="text-center text-muted py-4">No logs available.</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+            {% call data_table('Acoustic & Vibration Compliance History Log', 'bi bi-clock-history', 'history-table-v74', 'No logs available.', 12) %}
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Noise Level (dBA)</th>
+                        <th>Vibration (m/s²)</th>
+                        <th>Shift</th>
+                        <th>Public Infra</th>
+                        <th>Emergency</th>
+                        <th>Festival</th>
+                        <th>Noise Fee</th>
+                        <th>Vibe Fee</th>
+                        <th>Total Fee</th>
+                        <th>Status</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+            {% endcall %}
         </div>
     </div>
 </div>
@@ -201,9 +132,9 @@ document.addEventListener("DOMContentLoaded", () => {
     
     const calc = () => {
         const p = {
-            noise_db: parseFloat(document.getElementById("input-noise").value || 0),
-            vibration_m_s2: parseFloat(document.getElementById("input-vibration").value || 0),
-            shift: document.getElementById("input-shift").value,
+            noise_level_dba: parseFloat(document.getElementById("input-noise").value || 0),
+            vibration_level_m_s2: parseFloat(document.getElementById("input-vibration").value || 0),
+            time_shift: document.getElementById("input-shift").value,
             public_infrastructure: document.getElementById("input-infrastructure").checked,
             emergency_relief: document.getElementById("input-emergency").checked,
             traditional_festival: document.getElementById("input-festival").checked
@@ -246,8 +177,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 vibration_surcharge: "#fd7e14"
             };
             const labels = {
-                noise_surcharge: "Noise Exceedance",
-                vibration_surcharge: "Vibration Exceedance"
+                noise_surcharge: "Noise excess",
+                vibration_surcharge: "Vibration excess"
             };
             const total = (r.breakdown.noise_surcharge + r.breakdown.vibration_surcharge) || 1;
             Object.entries(r.breakdown).forEach(([k, v]) => {
@@ -274,8 +205,8 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     
     const rB = d => {
-        document.getElementById("base1-eff").textContent = fVND(d.day_surcharge.final_fee);
-        document.getElementById("base2-eff").textContent = fVND(d.night_surcharge.final_fee);
+        document.getElementById("base1-eff").textContent = fVND(d.day_shift_sample.final_fee);
+        document.getElementById("base2-eff").textContent = fVND(d.night_shift_sample.final_fee);
         document.getElementById("base3-notes").textContent = d.festival_exempt.notes;
     };
     
@@ -283,9 +214,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const c = document.getElementById("debate-container-v74");
         c.innerHTML = "";
         const cl = {
-            "Acoustic Monitoring Officer": "bg-success text-white",
-            "Shift Supervisor": "bg-warning text-dark",
-            "Civil Project Lead": "bg-info text-dark"
+            "Acoustic Auditor": "bg-success text-white",
+            "Project Logistics Planner": "bg-warning text-dark",
+            "Traditional Festival Director": "bg-info text-dark"
         };
         debate.forEach(m => {
             const div = document.createElement("div");
@@ -308,9 +239,9 @@ document.addEventListener("DOMContentLoaded", () => {
             let statusBadge = l.is_exempt ? '<span class="badge bg-success">Exempt</span>' : '<span class="badge bg-danger">Payable</span>';
             tr.innerHTML = `
                 <td>${l.id}</td>
-                <td>${l.noise_db.toFixed(1)}</td>
-                <td>${l.vibration_m_s2.toFixed(4)}</td>
-                <td><span class="badge bg-secondary">${l.shift.toUpperCase()}</span></td>
+                <td>${l.noise_level_dba.toFixed(1)} dBA</td>
+                <td>${l.vibration_level_m_s2.toFixed(3)} m/s²</td>
+                <td><span class="badge bg-secondary">${l.time_shift.toUpperCase()}</span></td>
                 <td>${l.public_infrastructure ? 'Yes' : 'No'}</td>
                 <td>${l.emergency_relief ? 'Yes' : 'No'}</td>
                 <td>${l.traditional_festival ? 'Yes' : 'No'}</td>
@@ -329,4 +260,7 @@ document.addEventListener("DOMContentLoaded", () => {
     load();
 });
 </script>
+
+{{ entry_animations() }}
+{{ premium_controls_css() }}
 {% endblock %}

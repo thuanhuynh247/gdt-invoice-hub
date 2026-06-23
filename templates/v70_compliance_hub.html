@@ -1,177 +1,116 @@
 {% extends "base.html" %}
+
+{% from "components/_hub_header.html" import hub_header %}
+{% from "components/_glass_card.html" import glass_card %}
+{% from "components/_calc_input.html" import text_input, number_input, select_input, switch_input, calc_button %}
+{% from "components/_result_panel.html" import result_panel, result_field %}
+{% from "components/_baseline_card.html" import baseline_card %}
+{% from "components/_debate_panel.html" import debate_panel %}
+{% from "components/_data_table.html" import data_table %}
+{% from "components/_entry_animations.html" import entry_animations %}
+{% from "components/_premium_controls.html" import premium_controls_css %}
+
 {% block title %}Ozone-Depleting Substances (ODS) Quotas & Fees - EPFODS Hub (v70){% endblock %}
+
 {% block content %}
 <div class="container py-4">
-    <!-- Header -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
-        <div>
-            <span class="badge bg-success text-white mb-2">Version 70.0.0 Spec Compliance</span>
-            <h1 class="h2 fw-bold text-gradient mb-1 text-success">ODS Quotas & Licensing Fees Hub</h1>
-            <p class="text-muted mb-0">Monitor ODP equivalents and calculate ODS import/manufacturing fees under Decree 06/2022/NĐ-CP.</p>
-        </div>
-        <div class="d-flex gap-2 mt-3 mt-md-0">
-            <button id="btn-refresh-v70" class="btn btn-success text-white d-flex align-items-center gap-2">
-                <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Load Data
-            </button>
-            <span class="badge bg-success-subtle text-success border border-success d-flex align-items-center px-3">
-                <i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Decree 06/2022
-            </span>
-        </div>
-    </div>
 
-    <!-- Main Panels -->
+    {# ── Đầu trang Hub ── #}
+    {{ hub_header('70.0.0',
+        'ODS Quotas & Licensing Fees Hub',
+        'Monitor ODP equivalents and calculate ODS import/manufacturing fees under Decree 06/2022/NĐ-CP.',
+        'btn-refresh-v70', 'Load Data', 'Decree 06/2022') }}
+
     <div class="row g-4">
-        <!-- Interactive Calculator -->
+
+        {# ── Máy tính ODS ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1 text-success"><i class="bi bi-calculator text-success me-2" aria-hidden="true"></i>Interactive ODS Fee Calculator</h5>
-                    <p class="text-muted small mb-0">Determine ODP scaling and calculate regulatory fees by entering weight and chemical group.</p>
+            {% call glass_card('Interactive ODS Fee Calculator', 'bi bi-calculator', 'text-success',
+                'Determine ODP scaling and calculate regulatory fees by entering weight and chemical group.') %}
+                <div class="row g-3">
+                    {{ text_input('input-substance-name', 'Substance Commercial / IUPAC Name:', 'Chất làm lạnh R-22 (Difluorochloromethane)', col='col-12') }}
+                    {{ select_input('input-substance-group', 'Controlled ODS Group:', [
+                        {'value':'cfc','label':'Chlorofluorocarbons (CFC) - ODP: 1.0 (Rate: 150k VND/kg)'},
+                        {'value':'hcfc','label':'Hydrochlorofluorocarbons (HCFC) - ODP: 0.055 (Rate: 30k VND/kg)'},
+                        {'value':'hfc','label':'Hydrofluorocarbons (HFC) - ODP: 0.002 (Rate: 15k VND/kg)'},
+                        {'value':'halon','label':'Halons - ODP: 10.0 (Rate: 2.5M VND/kg)'},
+                        {'value':'methyl_bromide','label':'Methyl Bromide - ODP: 0.6 (Rate: 100k VND/kg)'}
+                    ], col='col-md-6') }}
+                    {{ select_input('input-exemption-cat', 'Exemption Category:', [
+                        {'value':'none','label':'No Exemption (Chịu phí đầy đủ)'},
+                        {'value':'medical_use','label':'Essential Medical Use (Inhalers, etc.)'},
+                        {'value':'research_study','label':'Scientific / Laboratory Research & Reference Standards'},
+                        {'value':'low_volume_waiver','label':'Low-Volume Waiver (< 50 kg/year)'}
+                    ], col='col-md-6') }}
+                    {{ number_input('input-weight', 'Controlled Substance Mass (kg):', 1200.0, step='0.1', col='col-12') }}
+                    
+                    {{ calc_button('btn-calc-ods', 'Calculate ODS Import Fee', 'btn-success', col='col-12 text-end') }}
                 </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-12">
-                            <label for="input-substance-name" class="form-label small mb-1">Substance Commercial / IUPAC Name:</label>
-                            <input type="text" id="input-substance-name" class="form-control form-control-sm" value="Chất làm lạnh R-22 (Difluorochloromethane)" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-substance-group" class="form-label small mb-1">Controlled ODS Group:</label>
-                            <select id="input-substance-group" class="form-select form-select-sm">
-                                <option value="cfc">Chlorofluorocarbons (CFC) - ODP: 1.0 (Rate: 150k VND/kg)</option>
-                                <option value="hcfc">Hydrochlorofluorocarbons (HCFC) - ODP: 0.055 (Rate: 30k VND/kg)</option>
-                                <option value="hfc">Hydrofluorocarbons (HFC) - ODP: 0.002 (Rate: 15k VND/kg)</option>
-                                <option value="halon">Halons - ODP: 10.0 (Rate: 2.5M VND/kg)</option>
-                                <option value="methyl_bromide">Methyl Bromide - ODP: 0.6 (Rate: 100k VND/kg)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-exemption-cat" class="form-label small mb-1">Exemption Category:</label>
-                            <select id="input-exemption-cat" class="form-select form-select-sm">
-                                <option value="none">No Exemption (Chịu phí đầy đủ)</option>
-                                <option value="medical_use">Essential Medical Use (Inhalers, etc.)</option>
-                                <option value="research_study">Scientific / Laboratory Research & Reference Standards</option>
-                                <option value="low_volume_waiver">Low-Volume Waiver (&lt; 50 kg/year)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-12">
-                            <label for="input-weight" class="form-label small mb-1">Controlled Substance Mass (kg):</label>
-                            <input type="number" step="0.1" id="input-weight" class="form-control form-control-sm" value="1200.0" autocomplete="off">
-                        </div>
-                        
-                        <div class="col-12 text-end">
-                            <button id="btn-calc-ods" class="btn btn-success btn-sm text-white fw-bold">
-                                <i class="bi bi-play-fill me-1" aria-hidden="true"></i> Calculate ODS Import Fee
-                            </button>
-                        </div>
+                {% call result_panel('Calculation Result', 'text-success', 'res-exemption-reason') %}
+                    {{ result_field('Substance ODP Factor:', 'res-odp-factor') }}
+                    {{ result_field('Total ODP-Equivalent Mass:', 'res-odp-equivalent') }}
+                    {{ result_field('Base Rate per kg:', 'res-base') }}
+                    {{ result_field('Effective Licensing Fee:', 'res-effective-fee', 'text-success') }}
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span>Exemption Status:</span>
+                        <span id="res-exempt-badge" class="fw-bold">-</span>
                     </div>
-                    <div class="mt-4 p-3 bg-premium-light rounded border">
-                        <h6 class="fw-bold mb-2 text-success"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Calculation Result</h6>
-                        <div class="d-flex justify-content-between small mb-1"><span>Substance ODP Factor:</span><span id="res-odp-factor" class="fw-bold text-dark">-</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Total ODP-Equivalent Mass:</span><span id="res-odp-equivalent" class="fw-bold text-dark">-</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Base Rate per kg:</span><span id="res-base" class="fw-bold text-dark">-</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Effective Licensing Fee:</span><span id="res-effective-fee" class="fw-bold text-success fs-6">-</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Exemption Status:</span><span id="res-exempt-badge" class="fw-bold">-</span></div>
-                        <div class="small text-muted border-top pt-2 mt-2"><strong>Exemption Reason:</strong> <span id="res-exemption-reason">Awaiting…</span></div>
-                    </div>
-                </div>
-            </div>
+                {% endcall %}
+            {% endcall %}
         </div>
 
-        <!-- Baseline Verification -->
+        {# ── Baselines ODS ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>ODS Licensing Baselines</h5>
+            {% call glass_card('ODS Licensing Baselines', 'bi bi-shield-check', 'text-success',
+                'Pre-computed target ledgers verifying ozone-depleting substance import liabilities under Decree 06/2022.') %}
+                <div class="d-flex flex-column gap-3">
+                    {{ baseline_card('Freon R-12', 'CFC Group', 'bg-danger text-white',
+                        'CFC: 800 kg. ODP equivalent: 800 kg. Rate: 150k VND/kg.',
+                        'ODP Factor: 1.0',
+                        'Fee', 'base1-eff') }}
+
+                    {{ baseline_card('Refrigerant R-22', 'HCFC Group', 'bg-warning text-dark',
+                        'HCFC: 1,200 kg. ODP equivalent: 66 kg. Rate: 30k VND/kg.',
+                        'ODP Factor: 0.055',
+                        'Fee', 'base2-eff') }}
+
+                    {{ baseline_card('Propellant CFC-11 Medical (Exempt)', 'Exempt', 'bg-success text-white',
+                        'CFC: 150 kg for metered-dose inhalers. Exemption: Medical.',
+                        'ODP equivalent: 150 kg',
+                        'Reason', 'base3-reason') }}
                 </div>
-                <div class="card-body d-flex flex-column gap-3">
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="fw-bold small text-dark">Freon R-12</span>
-                            <span class="badge bg-danger">CFC Group</span>
-                        </div>
-                        <p class="small text-muted mb-2">CFC: 800 kg. ODP equivalent: 800 kg. Rate: 150k VND/kg.</p>
-                        <div class="d-flex justify-content-between small">
-                            <span>ODP Factor: 1.0</span>
-                            <span>Fee: <strong id="base1-eff" class="text-success">-</strong></span>
-                        </div>
-                    </div>
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="fw-bold small text-dark">Refrigerant R-22</span>
-                            <span class="badge bg-warning text-dark">HCFC Group</span>
-                        </div>
-                        <p class="small text-muted mb-2">HCFC: 1,200 kg. ODP equivalent: 66 kg. Rate: 30k VND/kg.</p>
-                        <div class="d-flex justify-content-between small">
-                            <span>ODP Factor: 0.055</span>
-                            <span>Fee: <strong id="base2-eff" class="text-success">-</strong></span>
-                        </div>
-                    </div>
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="fw-bold small text-dark">Propellant CFC-11 Medical (Exempt)</span>
-                            <span class="badge bg-success">Exempt</span>
-                        </div>
-                        <p class="small text-muted mb-2">CFC: 150 kg for metered-dose inhalers. Exemption: Medical.</p>
-                        <div class="d-flex justify-content-between small">
-                            <span>ODP equivalent: 150 kg</span>
-                            <span>Reason: <strong id="base3-reason" class="text-success">-</strong></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {% endcall %}
         </div>
 
-        <!-- Consensus Debate -->
+        {# ── Bảng tranh luận đa tác tử ── #}
         <div class="col-lg-12">
-            <div class="card shadow-sm border-light">
-                <div class="card-header bg-dark text-white py-3 d-flex align-items-center justify-content-between">
-                    <h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-success me-2" aria-hidden="true"></i>Multi-Agent Atmospheric Protection Debate</h5>
-                    <span class="badge bg-secondary">Decree 06/2022/NĐ-CP Consensus</span>
-                </div>
-                <div class="card-body">
-                    <div id="debate-container-v70" class="mb-3 d-flex flex-column gap-3"></div>
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus:</h6>
-                        <p id="consensus-text-v70" class="text-muted small mb-0">Awaiting…</p>
-                    </div>
-                </div>
-            </div>
+            {{ debate_panel('debate-container-v70', 'consensus-text-v70',
+                'Multi-Agent Atmospheric Protection Debate', 'Decree 06/2022/NĐ-CP Consensus') }}
         </div>
 
-        <!-- History Audit Log -->
+        {# ── Bảng lịch sử ODS ── #}
         <div class="col-lg-12">
-            <div class="card shadow-sm border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-2">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-clock-history text-muted me-2" aria-hidden="true"></i>ODS Compliance History Log</h5>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover table-striped mb-0 small">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Chemical Name</th>
-                                    <th>ODS Group</th>
-                                    <th>Weight (kg)</th>
-                                    <th>ODP Factor</th>
-                                    <th>ODP Eq (kg)</th>
-                                    <th>Base Rate</th>
-                                    <th>Exemption</th>
-                                    <th>Licensing Fee</th>
-                                    <th>Status</th>
-                                    <th>Timestamp</th>
-                                </tr>
-                            </thead>
-                            <tbody id="history-table-v70">
-                                <tr><td colspan="11" class="text-center text-muted py-4">No logs available.</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+            {% call data_table('ODS Compliance History Log', 'bi bi-clock-history', 'history-table-v70', 'No logs available.', 11) %}
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Chemical Name</th>
+                        <th>ODS Group</th>
+                        <th>Weight (kg)</th>
+                        <th>ODP Factor</th>
+                        <th>ODP Eq (kg)</th>
+                        <th>Base Rate</th>
+                        <th>Exemption</th>
+                        <th>Licensing Fee</th>
+                        <th>Status</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+            {% endcall %}
         </div>
-    </div>
-</div>
+
+    </div>{# /row #}
+</div>{# /container #}
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
@@ -280,4 +219,7 @@ document.addEventListener("DOMContentLoaded", () => {
     load();
 });
 </script>
+
+{{ entry_animations() }}
+{{ premium_controls_css() }}
 {% endblock %}

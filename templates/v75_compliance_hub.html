@@ -1,174 +1,112 @@
 {% extends "base.html" %}
+
+{% from "components/_hub_header.html" import hub_header %}
+{% from "components/_glass_card.html" import glass_card %}
+{% from "components/_calc_input.html" import select_input, number_input, switch_input, calc_button, range_slider, text_input, date_input %}
+{% from "components/_result_panel.html" import result_panel, result_field %}
+{% from "components/_baseline_card.html" import baseline_card %}
+{% from "components/_debate_panel.html" import debate_panel %}
+{% from "components/_data_table.html" import data_table %}
+{% from "components/_entry_animations.html" import entry_animations %}
+{% from "components/_premium_controls.html" import premium_controls_css %}
+
 {% block title %}Plastics Levy & Ocean Pollution Hub (v75){% endblock %}
+
 {% block content %}
 <div class="container py-4">
-    <!-- Header -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
-        <div>
-            <span class="badge bg-success text-white mb-2">Version 75.0.0 Spec Compliance</span>
-            <h1 class="h2 fw-bold text-gradient mb-1 text-success">Single-Use Plastics Levy Hub</h1>
-            <p class="text-muted mb-0">Evaluate ocean pollution levies on single-use plastics, cosmetics microbeads, and biodegradable packaging under Decree 08/2022/NĐ-CP.</p>
-        </div>
-        <div class="d-flex gap-2 mt-3 mt-md-0">
-            <button id="btn-refresh-v75" class="btn btn-success text-white d-flex align-items-center gap-2">
-                <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Load Data
-            </button>
-            <span class="badge bg-success-subtle text-success border border-success d-flex align-items-center px-3">
-                <i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Decree 08/2022
-            </span>
-        </div>
-    </div>
+    {# ── Đầu trang Hub ── #}
+    {{ hub_header('75.0.0',
+        'Single-Use Plastics Levy Hub',
+        'Evaluate ocean pollution levies on single-use plastics, cosmetics microbeads, and biodegradable packaging under Decree 08/2022/NĐ-CP.',
+        'btn-refresh-v75', 'Load Data', 'Decree 08/2022') }}
 
-    <!-- Main Panels -->
+    {# ── Các bảng điều khiển chính ── #}
     <div class="row g-4">
-        <!-- Interactive Calculator -->
+        {# ── Máy tính phụ thu chất thải nhựa ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1 text-success"><i class="bi bi-calculator text-success me-2" aria-hidden="true"></i>Plastics Levy Calculator</h5>
-                    <p class="text-muted small mb-0">Calculate statutory levies and evaluate certified green exemptions.</p>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="input-category" class="form-label small mb-1">Plastic Category:</label>
-                            <select id="input-category" class="form-select form-select-sm">
-                                <option value="microbeads_cosmetics">Microbeads in Cosmetics (Rate: 150,000 VND/kg)</option>
-                                <option value="plastic_bags">Single-Use Plastic Bags (Rate: 50,000 VND/kg)</option>
-                                <option value="plastic_packaging">Single-Use Packaging/Cups/Straws (Rate: 30,000 VND/kg)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-weight" class="form-label small mb-1">Total Net Weight (kg):</label>
-                            <input type="number" step="0.1" id="input-weight" class="form-control form-control-sm" value="250" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-check form-switch pt-2">
-                                <input class="form-check-input" type="checkbox" id="input-biodegradable" role="switch">
-                                <label class="form-check-label small" for="input-biodegradable">Certified Biodegradable Material (Exempt)</label>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-check form-switch pt-2">
-                                <input class="form-check-input" type="checkbox" id="input-medical" role="switch">
-                                <label class="form-check-label small" for="input-medical">Medical Containment Packaging (Exempt)</label>
-                            </div>
-                        </div>
-                        
-                        <div class="col-12 text-end">
-                            <button id="btn-calc-levy" class="btn btn-success btn-sm text-white fw-bold">
-                                <i class="bi bi-play-fill me-1" aria-hidden="true"></i> Calculate Plastics Levy
-                            </button>
-                        </div>
-                    </div>
-                    <div class="mt-4 p-3 bg-premium-light rounded border">
-                        <h6 class="fw-bold mb-2 text-success"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Calculation Result</h6>
-                        <div class="d-flex justify-content-between small mb-1"><span>Base Rate per kg:</span><span id="res-rate" class="fw-bold text-dark">-</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Gross Levy:</span><span id="res-gross" class="fw-bold text-dark">-</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Final Levy Liability:</span><span id="res-final" class="fw-bold text-success fs-6">-</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Exemption Status:</span><span id="res-exempt-badge" class="fw-bold">-</span></div>
-                        <!-- Plastics Levy Category Breakdown Chart -->
-                        <div id="breakdown-chart" class="border-top pt-2 mt-2" style="display:none;">
-                            <h6 class="fw-bold small mb-2 text-success"><i class="bi bi-bar-chart-fill text-success me-1" aria-hidden="true"></i>Plastics Surcharge Comparison</h6>
-                            <div id="breakdown-bars" class="d-flex flex-column gap-1"></div>
-                        </div>
-                        <div class="small text-muted border-top pt-2 mt-2"><strong>Notes:</strong> <span id="res-notes">Awaiting…</span></div>
+            {% call glass_card('Plastics Levy Calculator', 'bi bi-calculator', 'text-success',
+                description='Calculate statutory levies and evaluate certified green exemptions.') %}
+                <div class="row g-3">
+                    {{ select_input('input-category', 'Plastic Category:', [
+                        {'value': 'microbeads_cosmetics', 'label': 'Microbeads in Cosmetics (Rate: 150,000 VND/kg)'},
+                        {'value': 'plastic_bags', 'label': 'Single-Use Plastic Bags (Rate: 50,000 VND/kg)'},
+                        {'value': 'plastic_packaging', 'label': 'Single-Use Packaging/Cups/Straws (Rate: 30,000 VND/kg)'}
+                    ], col='col-md-6') }}
+                    {{ number_input('input-weight', 'Total Net Weight (kg):', 250, step='0.1', col='col-md-6') }}
+                    
+                    {{ switch_input('input-biodegradable', 'Certified Biodegradable Material (Exempt)', col='col-md-6') }}
+                    {{ switch_input('input-medical', 'Medical Containment Packaging (Exempt)', col='col-md-6') }}
+                    
+                    <div class="col-12 text-end">
+                        <button id="btn-calc-levy" class="btn btn-success btn-sm text-white fw-bold">
+                            <i class="bi bi-play-fill me-1" aria-hidden="true"></i> Calculate Plastics Levy
+                        </button>
                     </div>
                 </div>
-            </div>
+
+                {% call result_panel('Calculation Result', 'text-success', note_id='res-notes') %}
+                    {{ result_field('Base Rate per kg:', 'res-rate') }}
+                    {{ result_field('Gross Levy:', 'res-gross') }}
+                    {{ result_field('Final Levy Liability:', 'res-final', 'text-success fs-6') }}
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span>Exemption Status:</span>
+                        <span id="res-exempt-badge" class="fw-bold">-</span>
+                    </div>
+                    
+                    {# Plastics Levy Category Breakdown Chart #}
+                    <div id="breakdown-chart" class="border-top pt-2 mt-2" style="display:none;">
+                        <h6 class="fw-bold small mb-2 text-success">
+                            <i class="bi bi-bar-chart-fill text-success me-1" aria-hidden="true"></i>Plastics Surcharge Comparison
+                        </h6>
+                        <div id="breakdown-bars" class="d-flex flex-column gap-1"></div>
+                    </div>
+                {% endcall %}
+            {% endcall %}
         </div>
 
-        <!-- Baseline Verification -->
+        {# ── Cơ sở kiểm tra (Baselines) ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Ocean Pollution Levy Baselines</h5>
+            {% call glass_card('Ocean Pollution Levy Baselines', 'bi bi-shield-check', 'text-success') %}
+                <div class="d-flex flex-column gap-3">
+                    {{ baseline_card('Microbeads in cosmetic creams batch', '15 kg', 'bg-success',
+                        'Rate: 150,000 VND/kg. Standard charge applies.',
+                        'Exempt: No', 'Fee', 'base1-eff') }}
+                    
+                    {{ baseline_card('Single-use plastic bags batch', '250 kg', 'bg-success',
+                        'Rate: 50,000 VND/kg. Standard charge applies.',
+                        'Exempt: No', 'Fee', 'base2-eff') }}
+                    
+                    {{ baseline_card('Eco-certified biodegradable cups batch', 'Bio-Exempt', 'bg-danger',
+                        'Weight: 500 kg. Exemption: Certified biodegradable materials waiver.',
+                        'Exempt: Yes', 'Notes', 'base3-notes') }}
                 </div>
-                <div class="card-body d-flex flex-column gap-3">
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="fw-bold small text-dark">Microbeads in cosmetic creams batch</span>
-                            <span class="badge bg-success">15 kg</span>
-                        </div>
-                        <p class="small text-muted mb-2">Rate: 150,000 VND/kg. Standard charge applies.</p>
-                        <div class="d-flex justify-content-between small">
-                            <span>Exempt: No</span>
-                            <span>Fee: <strong id="base1-eff" class="text-success">-</strong></span>
-                        </div>
-                    </div>
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="fw-bold small text-dark">Single-use plastic bags batch</span>
-                            <span class="badge bg-success">250 kg</span>
-                        </div>
-                        <p class="small text-muted mb-2">Rate: 50,000 VND/kg. Standard charge applies.</p>
-                        <div class="d-flex justify-content-between small">
-                            <span>Exempt: No</span>
-                            <span>Fee: <strong id="base2-eff" class="text-success">-</strong></span>
-                        </div>
-                    </div>
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="fw-bold small text-dark">Eco-certified biodegradable cups batch</span>
-                            <span class="badge bg-danger">Bio-Exempt</span>
-                        </div>
-                        <p class="small text-muted mb-2">Weight: 500 kg. Exemption: Certified biodegradable materials waiver.</p>
-                        <div class="d-flex justify-content-between small">
-                            <span>Exempt: Yes</span>
-                            <span>Notes: <strong id="base3-notes" class="text-success">-</strong></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {% endcall %}
         </div>
 
-        <!-- Consensus Debate -->
+        {# ── Tranh luận Hội đồng tư vấn ── #}
         <div class="col-lg-12">
-            <div class="card shadow-sm border-light">
-                <div class="card-header bg-dark text-white py-3 d-flex align-items-center justify-content-between">
-                    <h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-success me-2" aria-hidden="true"></i>Multi-Agent Plastics & Ocean Protection Debate</h5>
-                    <span class="badge bg-secondary">Decree 08/2022/NĐ-CP Consensus</span>
-                </div>
-                <div class="card-body">
-                    <div id="debate-container-v75" class="mb-3 d-flex flex-column gap-3"></div>
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus:</h6>
-                        <p id="consensus-text-v75" class="text-muted small mb-0">Awaiting…</p>
-                    </div>
-                </div>
-            </div>
+            {{ debate_panel('debate-container-v75', 'consensus-text-v75',
+                'Multi-Agent Plastics & Ocean Protection Debate', 'Decree 08/2022/NĐ-CP Consensus') }}
         </div>
 
-        <!-- History Audit Log -->
+        {# ── Nhật ký lịch sử tuân thủ ── #}
         <div class="col-lg-12">
-            <div class="card shadow-sm border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-2">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-clock-history text-muted me-2" aria-hidden="true"></i>Plastics Levy History Log</h5>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover table-striped mb-0 small">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Plastic Category</th>
-                                    <th>Quantity (kg)</th>
-                                    <th>Bio-Certified</th>
-                                    <th>Medical Containment</th>
-                                    <th>Base Rate</th>
-                                    <th>Gross Surcharge</th>
-                                    <th>Total Surcharge</th>
-                                    <th>Status</th>
-                                    <th>Timestamp</th>
-                                </tr>
-                            </thead>
-                            <tbody id="history-table-v75">
-                                <tr><td colspan="10" class="text-center text-muted py-4">No logs available.</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+            {% call data_table('Plastics Levy History Log', 'bi bi-clock-history', 'history-table-v75', 'No logs available.', 10) %}
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Plastic Category</th>
+                        <th>Quantity (kg)</th>
+                        <th>Bio-Certified</th>
+                        <th>Medical Containment</th>
+                        <th>Base Rate</th>
+                        <th>Gross Surcharge</th>
+                        <th>Total Surcharge</th>
+                        <th>Status</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+            {% endcall %}
         </div>
     </div>
 </div>
@@ -318,4 +256,7 @@ document.addEventListener("DOMContentLoaded", () => {
     load();
 });
 </script>
+
+{{ entry_animations() }}
+{{ premium_controls_css() }}
 {% endblock %}

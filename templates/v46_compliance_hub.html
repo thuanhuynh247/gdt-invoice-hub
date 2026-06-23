@@ -1,158 +1,88 @@
 {% extends "base.html" %}
 
+{% from "components/_hub_header.html" import hub_header %}
+{% from "components/_glass_card.html" import glass_card %}
+{% from "components/_calc_input.html" import select_input, number_input, switch_input, calc_button, range_slider, text_input, date_input %}
+{% from "components/_result_panel.html" import result_panel, result_field %}
+{% from "components/_debate_panel.html" import debate_panel %}
+
 {% block title %}Decree 123 E-Invoice Incidents & Circular 78 Conversion Auditor (v46){% endblock %}
 
 {% block content %}
 <div class="container py-4">
-    <!-- Header Area -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
-        <div>
-            <span class="badge bg-success mb-2">Version 46.0.0 Spec Compliance</span>
-            <h1 class="h2 fw-bold text-gradient mb-1">E-Invoice Error & Conversion Compliance Hub</h1>
-            <p class="text-muted mb-0">Track Form 04/SS-HĐĐT statuses under Decree 123 and audit paper copies vs electronic XML records under Circular 78.</p>
-        </div>
-        <div class="d-flex gap-2 mt-3 mt-md-0">
-            <button id="btn-recalculate" class="btn btn-success d-flex align-items-center gap-2">
-                <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Refresh Log Queues
-            </button>
-            <span id="sync-status" class="badge bg-success-subtle text-success border border-success d-flex align-items-center px-3">
-                <i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Connected to GDT Portal
-            </span>
-        </div>
-    </div>
+    {# ── Đầu trang Hub ── #}
+    {{ hub_header('46.0.0',
+        'E-Invoice Error & Conversion Compliance Hub',
+        'Track Form 04/SS-HĐĐT statuses under Decree 123 and audit paper copies vs electronic XML records under Circular 78.',
+        'btn-recalculate', 'Refresh Log Queues', 'Decree 123 & Circular 78') }}
 
-    <!-- Bento Grid Layout -->
     <div class="row g-4">
-        <!-- Pillar 1: Form 04/SS Ingestion & Status Tracker -->
+        {# ── Pillar 1: Form 04/SS Ingestion & Status Tracker ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-envelope-exclamation text-danger me-2" aria-hidden="true"></i>Form 04/SS-HĐĐT Error Notices</h5>
-                    <p class="text-muted small mb-0">Record error correction reports filed with the GDT and audit late submission timelines.</p>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="input-ss-symbol" class="form-label small mb-1">Invoice Symbol:</label>
-                            <input type="text" id="input-ss-symbol" class="form-control form-control-sm" value="1C26TAA" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-ss-number" class="form-label small mb-1">Invoice Number:</label>
-                            <input type="text" id="input-ss-number" class="form-control form-control-sm" value="0000015" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-ss-invdate" class="form-label small mb-1">Invoice Date:</label>
-                            <input type="date" id="input-ss-invdate" class="form-control form-control-sm" value="2026-06-11" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-ss-filedate" class="form-label small mb-1">Filing Date to GDT:</label>
-                            <input type="date" id="input-ss-filedate" class="form-control form-control-sm" value="2026-07-25" autocomplete="off">
-                        </div>
-                        <div class="col-12">
-                            <label for="select-ss-status" class="form-label small mb-1">GDT Response status:</label>
-                            <select id="select-ss-status" class="form-select form-select-sm">
-                                <option value="1" selected>1 = GDT Chấp nhận (Accepted)</option>
-                                <option value="2">2 = GDT Từ chối (Rejected)</option>
-                                <option value="0">0 = Chờ xử lý (Pending GDT)</option>
-                            </select>
-                        </div>
-                        <div class="col-12 text-end">
-                            <button id="btn-submit-ss" class="btn btn-danger btn-sm">
-                                <i class="bi bi-send-fill me-1" aria-hidden="true"></i> Submit 04/SS Notice
-                            </button>
-                        </div>
+            {% call glass_card('Form 04/SS-HĐĐT Error Notices', 'bi bi-envelope-exclamation', 'text-danger',
+                description='Record error correction reports filed with the GDT and audit late submission timelines.') %}
+                <div class="row g-3">
+                    {{ text_input('input-ss-symbol', 'Invoice Symbol:', '1C26TAA') }}
+                    {{ text_input('input-ss-number', 'Invoice Number:', '0000015') }}
+                    {{ date_input('input-ss-invdate', 'Invoice Date:', '2026-06-11') }}
+                    {{ date_input('input-ss-filedate', 'Filing Date to GDT:', '2026-07-25') }}
+                    {{ select_input('select-ss-status', 'GDT Response status:', [
+                        {'value': '1', 'label': '1 = GDT Chấp nhận (Accepted)'},
+                        {'value': '2', 'label': '2 = GDT Từ chối (Rejected)'},
+                        {'value': '0', 'label': '0 = Chờ xử lý (Pending GDT)'}
+                    ], col='col-12') }}
+                    <div class="col-12 text-end">
+                        <button id="btn-submit-ss" class="btn btn-danger btn-sm text-white fw-bold">
+                            <i class="bi bi-send-fill me-1" aria-hidden="true"></i> Submit 04/SS Notice
+                        </button>
                     </div>
+                </div>
 
-                    <div class="mt-4 p-3 bg-premium-light rounded border">
-                        <h6 class="fw-bold mb-2 text-danger"><i class="bi bi-clock-history me-2" aria-hidden="true"></i>Filing Audit Results</h6>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>Filing Status:</span>
-                            <span id="res-ss-status" class="badge bg-success">Accepted</span>
-                        </div>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>Delay Days:</span>
-                            <span id="res-ss-delay">0 days</span>
-                        </div>
-                        <div class="small text-muted border-top pt-2">
-                            <strong>Deadline Assessment:</strong> <span id="res-ss-warning" class="text-danger">None</span>
-                        </div>
+                {% call result_panel('Filing Audit Results', 'text-danger') %}
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span>Filing Status:</span>
+                        <span id="res-ss-status" class="badge bg-success">Accepted</span>
                     </div>
-                </div>
-            </div>
+                    {{ result_field('Delay Days:', 'res-ss-delay') }}
+                    <div class="small text-muted border-top pt-2">
+                        <strong>Deadline Assessment:</strong> <span id="res-ss-warning" class="text-danger">None</span>
+                    </div>
+                {% endcall %}
+            {% endcall %}
         </div>
 
-        <!-- Pillar 2: Conversion Duplicate Claim Auditor -->
+        {# ── Pillar 2: Conversion Duplicate Claim Auditor ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-printer text-primary me-2" aria-hidden="true"></i>Circular 78 Paper Conversions</h5>
-                    <p class="text-muted small mb-0">Reconcile paper prints, audit conversion count limits, and check duplicate CIT expense deduction risk.</p>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="input-conv-symbol" class="form-label small mb-1">Invoice Symbol:</label>
-                            <input type="text" id="input-conv-symbol" class="form-control form-control-sm" value="1C26TAA" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-conv-number" class="form-label small mb-1">Invoice Number:</label>
-                            <input type="text" id="input-conv-number" class="form-control form-control-sm" value="0000015" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-conv-amount" class="form-label small mb-1">Invoice Total Amount:</label>
-                            <input type="number" id="input-conv-amount" class="form-control form-control-sm" value="100000000" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-conv-date" class="form-label small mb-1">Print Date:</label>
-                            <input type="date" id="input-conv-date" class="form-control form-control-sm" value="2026-06-12" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="slider-conv-count" class="form-label d-flex justify-content-between small mb-1">
-                                <span>Print Count:</span>
-                                <strong id="val-conv-count">2</strong>
-                            </label>
-                            <input type="range" class="form-range" id="slider-conv-count" min="1" max="5" step="1" value="2">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-conv-user" class="form-label small mb-1">Converted By:</label>
-                            <input type="text" id="input-conv-user" class="form-control form-control-sm" value="Admin Office" autocomplete="off">
-                        </div>
-                        <div class="col-12 text-end">
-                            <button id="btn-reconcile-conv" class="btn btn-primary btn-sm">
-                                <i class="bi bi-shield-shaded me-1" aria-hidden="true"></i> Audit Conversion prints
-                            </button>
-                        </div>
+            {% call glass_card('Circular 78 Paper Conversions', 'bi bi-printer', 'text-primary',
+                description='Reconcile paper prints, audit conversion count limits, and check duplicate CIT expense deduction risk.') %}
+                <div class="row g-3">
+                    {{ text_input('input-conv-symbol', 'Invoice Symbol:', '1C26TAA') }}
+                    {{ text_input('input-conv-number', 'Invoice Number:', '0000015') }}
+                    {{ number_input('input-conv-amount', 'Invoice Total Amount:', 100000000, col='col-md-6') }}
+                    {{ date_input('input-conv-date', 'Print Date:', '2026-06-12') }}
+                    {{ range_slider('slider-conv-count', 'Print Count:', 1, 5, 1, 2, 'val-conv-count', col='col-md-6') }}
+                    {{ text_input('input-conv-user', 'Converted By:', 'Admin Office', col='col-md-6') }}
+                    <div class="col-12 text-end">
+                        <button id="btn-reconcile-conv" class="btn btn-primary btn-sm text-white fw-bold">
+                            <i class="bi bi-shield-shaded me-1" aria-hidden="true"></i> Audit Conversion prints
+                        </button>
                     </div>
+                </div>
 
-                    <div class="mt-4 p-3 bg-premium-light rounded border">
-                        <h6 class="fw-bold mb-2 text-primary"><i class="bi bi-shield-exclamation me-2" aria-hidden="true"></i>Conversion Risk Warnings</h6>
-                        <div id="conv-alerts-container">
-                            <div class="alert alert-warning py-2 px-3 small mb-1">
-                                <i class="bi bi-exclamation-triangle-fill me-1" aria-hidden="true"></i> MULTIPLE_CONVERSION_PRINTS_ALERT
-                            </div>
+                {% call result_panel('Conversion Risk Warnings', 'text-primary') %}
+                    <div id="conv-alerts-container">
+                        <div class="alert alert-warning py-2 px-3 small mb-1">
+                            <i class="bi bi-exclamation-triangle-fill me-1" aria-hidden="true"></i> MULTIPLE_CONVERSION_PRINTS_ALERT
                         </div>
                     </div>
-                </div>
-            </div>
+                {% endcall %}
+            {% endcall %}
         </div>
 
-        <!-- Swarm Advisory Debate Panel -->
-        <div class="col-12 mt-4">
-            <div class="card shadow-sm border-light">
-                <div class="card-header bg-obsidian text-snow py-3 d-flex align-items-center justify-content-between">
-                    <h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-success me-2" aria-hidden="true"></i>Multi-Agent Advisory Board Debate</h5>
-                    <span class="badge bg-secondary border border-secondary">Consensus Simulator</span>
-                </div>
-                <div class="card-body">
-                    <div id="debate-container" class="mb-3 d-flex flex-column gap-3">
-                        <!-- Debate Messages -->
-                    </div>
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus Summary Statement:</h6>
-                        <p id="consensus-text" class="text-muted small mb-0">Awaiting simulation data execution…</p>
-                    </div>
-                </div>
-            </div>
+        {# ── Swarm Advisory Board Debate ── #}
+        <div class="col-lg-12">
+            {{ debate_panel('debate-container', 'consensus-text',
+                'Multi-Agent Advisory Board Debate', 'Consensus Simulator') }}
         </div>
     </div>
 </div>

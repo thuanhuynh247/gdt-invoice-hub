@@ -1,110 +1,119 @@
 {% extends "base.html" %}
+
+{% from "components/_hub_header.html" import hub_header %}
+{% from "components/_glass_card.html" import glass_card %}
+{% from "components/_calc_input.html" import text_input, number_input, select_input, switch_input, calc_button %}
+{% from "components/_result_panel.html" import result_panel, result_field %}
+{% from "components/_baseline_card.html" import baseline_card %}
+{% from "components/_debate_panel.html" import debate_panel %}
+{% from "components/_data_table.html" import data_table %}
+{% from "components/_entry_animations.html" import entry_animations %}
+{% from "components/_premium_controls.html" import premium_controls_css %}
+
 {% block title %}Solid Waste Fee Decree 164/2016 - EPFSW Hub (v64){% endblock %}
+
 {% block content %}
 <div class="container py-4">
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
-        <div>
-            <span class="badge bg-success text-white mb-2">Version 64.0.0 Spec Compliance</span>
-            <h1 class="h2 fw-bold text-gradient mb-1 text-success">Environment Protection Fee for Solid Waste Hub</h1>
-            <p class="text-muted mb-0">Manage EPFSW (Phí bảo vệ môi trường đối với chất thải rắn) under Decree 164/2016/NĐ-CP.</p>
-        </div>
-        <div class="d-flex gap-2 mt-3 mt-md-0">
-            <button id="btn-refresh-v64" class="btn btn-success text-white d-flex align-items-center gap-2"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Load Data</button>
-            <span class="badge bg-success-subtle text-success border border-success d-flex align-items-center px-3"><i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Decree 164/2016</span>
-        </div>
-    </div>
+
+    {# ── Đầu trang Hub ── #}
+    {{ hub_header('64.0.0',
+        'Environment Protection Fee for Solid Waste Hub',
+        'Manage EPFSW (Phí bảo vệ môi trường đối với chất thải rắn) under Decree 164/2016/NĐ-CP.',
+        'btn-refresh-v64', 'Load Data', 'Decree 164/2016') }}
+
     <div class="row g-4">
+
+        {# ── Máy tính EPFSW ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1 text-success"><i class="bi bi-calculator text-success me-2" aria-hidden="true"></i>Interactive EPFSW Calculator</h5>
-                    <p class="text-muted small mb-0">Select solid waste category, disposal details, and volume to run the compliance auditor.</p>
+            {% call glass_card('Interactive EPFSW Calculator', 'bi bi-calculator', 'text-success',
+                'Select solid waste category, disposal details, and volume to run the compliance auditor.') %}
+                <div class="row g-3">
+                    {{ text_input('input-waste-desc', 'Waste Description / Batch:', 'Xỉ thải lò cao từ luyện gang thép Hòa Phát', col='col-md-6') }}
+                    {{ select_input('input-waste-type', 'Waste Category:', [
+                        {'value':'hazardous_waste','label':'Hazardous Solid Waste (Chất thải nguy hại - 100k VND/tonne)'},
+                        {'value':'ordinary_waste_industry','label':'Ordinary Industrial Waste (Rác công nghiệp thông thường - 40k VND/tonne)'},
+                        {'value':'ordinary_waste_construction','label':'Ordinary Construction Waste (Xà bần, rác xây dựng - 30k VND/tonne)'},
+                        {'value':'ordinary_waste_others','label':'Ordinary Other Waste (Các loại chất thải rắn khác - 20k VND/tonne)'}
+                    ], col='col-md-6') }}
+                    {{ number_input('input-volume', 'Waste Weight (Tonnes):', 25.5, step='0.1', col='col-md-6') }}
+                    {{ select_input('input-exemption', 'Exemption Category:', [
+                        {'value':'none','label':'No Exemption (Chịu phí đầy đủ)'},
+                        {'value':'self_recycled','label':'On-Site Recycling (Tự tái chế, sử dụng lại)'},
+                        {'value':'agricultural_byproduct','label':'Agricultural Composting (Phế phẩm nông nghiệp nuôi trồng)'},
+                        {'value':'domestic_rural','label':'Domestic Rural Waste (Sinh hoạt nông thôn)'}
+                    ], col='col-md-6') }}
+                    
+                    {{ calc_button('btn-calc-epfsw', 'Run Calculation', 'btn-success', col='col-12 text-end') }}
                 </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="input-waste-desc" class="form-label small mb-1">Waste Description / Batch:</label>
-                            <input type="text" id="input-waste-desc" class="form-control form-control-sm" value="Xỉ thải lò cao từ luyện gang thép Hòa Phát" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-waste-type" class="form-label small mb-1">Waste Category:</label>
-                            <select id="input-waste-type" class="form-select form-select-sm">
-                                <option value="hazardous_waste">Hazardous Solid Waste (Chất thải nguy hại - 100k VND/tonne)</option>
-                                <option value="ordinary_waste_industry">Ordinary Industrial Waste (Rác công nghiệp thông thường - 40k VND/tonne)</option>
-                                <option value="ordinary_waste_construction">Ordinary Construction Waste (Xà bần, rác xây dựng - 30k VND/tonne)</option>
-                                <option value="ordinary_waste_others">Ordinary Other Waste (Các loại chất thải rắn khác - 20k VND/tonne)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-volume" class="form-label small mb-1">Waste Weight (Tonnes):</label>
-                            <input type="number" step="0.1" id="input-volume" class="form-control form-control-sm" value="25.5" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-exemption" class="form-label small mb-1">Exemption Category:</label>
-                            <select id="input-exemption" class="form-select form-select-sm">
-                                <option value="none">No Exemption (Chịu phí đầy đủ)</option>
-                                <option value="self_recycled">On-Site Recycling (Tự tái chế, sử dụng lại)</option>
-                                <option value="agricultural_byproduct">Agricultural Composting (Phế phẩm nông nghiệp nuôi trồng)</option>
-                                <option value="domestic_rural">Domestic Rural Waste (Sinh hoạt nông thôn)</option>
-                            </select>
-                        </div>
-                        
-                        <div class="col-12 text-end">
-                            <button id="btn-calc-epfsw" class="btn btn-success btn-sm text-white fw-bold"><i class="bi bi-play-fill me-1" aria-hidden="true"></i> Run Calculation</button>
-                        </div>
+                {% call result_panel('Calculation Result', 'text-success', 'res-exemption-reason') %}
+                    {{ result_field('Base Standard Rate:', 'res-base-rate') }}
+                    {{ result_field('Total Standard Fee:', 'res-total-fee') }}
+                    {{ result_field('Effective Fee Payable:', 'res-effective-fee', 'text-success') }}
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span>Exemption Status:</span>
+                        <span id="res-exempt-badge" class="fw-bold">-</span>
                     </div>
-                    <div class="mt-4 p-3 bg-premium-light rounded border">
-                        <h6 class="fw-bold mb-2 text-success"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Calculation Result</h6>
-                        <div class="d-flex justify-content-between small mb-1"><span>Base Standard Rate:</span><span id="res-base-rate" class="fw-bold text-dark">-</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Total Standard Fee:</span><span id="res-total-fee" class="fw-bold text-dark">-</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Effective Fee Payable:</span><span id="res-effective-fee" class="fw-bold text-success fs-6">-</span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Exemption Status:</span><span id="res-exempt-badge" class="fw-bold">-</span></div>
-                        <div class="small text-muted border-top pt-2 mt-2"><strong>Exemption Reason:</strong> <span id="res-exemption-reason">Awaiting…</span></div>
-                    </div>
-                </div>
-            </div>
+                {% endcall %}
+            {% endcall %}
         </div>
+
+        {# ── Baselines tuân thủ EPFSW ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0"><h5 class="fw-bold mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>EPFSW Baseline Verification</h5></div>
-                <div class="card-body d-flex flex-column gap-3">
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Hazardous Waste Disposal</span><span class="badge bg-danger">Hazardous</span></div>
-                        <p class="small text-muted mb-2">15 tonnes of toxic battery slag disposed. Standard rate: 100,000 VND / tonne.</p>
-                        <div class="d-flex justify-content-between small"><span>Total Fee: <strong id="base1-tot">-</strong></span><span>Effective: <strong id="base1-eff" class="text-success">-</strong></span></div>
-                    </div>
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Industrial Waste (No exemption)</span><span class="badge bg-secondary">Industrial</span></div>
-                        <p class="small text-muted mb-2">120 tonnes of steel mill dust. Standard rate: 40,000 VND / tonne.</p>
-                        <div class="d-flex justify-content-between small"><span>Total Fee: <strong id="base2-tot">-</strong></span><span>Effective: <strong id="base2-eff" class="text-success">-</strong></span></div>
-                    </div>
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">On-Site Coal Ash Self-Recycling (100% Exempt)</span><span class="badge bg-success">Exempt</span></div>
-                        <p class="small text-muted mb-2">80 tonnes coal ash recycled to make building bricks. Exempted.</p>
-                        <div class="d-flex justify-content-between small"><span>Total Fee: <strong id="base3-tot">-</strong></span><span>Reason: <strong id="base3-reason" class="text-success">-</strong></span></div>
-                    </div>
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <div class="d-flex justify-content-between align-items-center mb-1"><span class="fw-bold small text-dark">Straw and Husk Composting (100% Exempt)</span><span class="badge bg-success">Exempt</span></div>
-                        <p class="small text-muted mb-2">45 tonnes straw composted for organic fertilizer production.</p>
-                        <div class="d-flex justify-content-between small"><span>Total Fee: <strong id="base4-tot">-</strong></span><span>Reason: <strong id="base4-reason" class="text-success">-</strong></span></div>
-                    </div>
+            {% call glass_card('EPFSW Baseline Verification', 'bi bi-shield-check', 'text-success',
+                'Pre-computed target ledgers verifying solid waste charges under regulatory rules.') %}
+                <div class="d-flex flex-column gap-3">
+                    {{ baseline_card('Hazardous Waste Disposal', 'Hazardous', 'bg-danger text-white',
+                        '15 tonnes of toxic battery slag disposed. Standard rate: 100,000 VND / tonne.',
+                        'Total Fee: <strong id="base1-tot">-</strong>'|safe,
+                        'Effective', 'base1-eff') }}
+
+                    {{ baseline_card('Industrial Waste (No exemption)', 'Industrial', 'bg-secondary text-white',
+                        '120 tonnes of steel mill dust. Standard rate: 40,000 VND / tonne.',
+                        'Total Fee: <strong id="base2-tot">-</strong>'|safe,
+                        'Effective', 'base2-eff') }}
+
+                    {{ baseline_card('On-Site Coal Ash Self-Recycling (100% Exempt)', 'Exempt', 'bg-success text-white',
+                        '80 tonnes coal ash recycled to make building bricks. Exempted.',
+                        'Total Fee: <strong id="base3-tot">-</strong>'|safe,
+                        'Reason', 'base3-reason') }}
+
+                    {{ baseline_card('Straw and Husk Composting (100% Exempt)', 'Exempt', 'bg-success text-white',
+                        '45 tonnes straw composted for organic fertilizer production.',
+                        'Total Fee: <strong id="base4-tot">-</strong>'|safe,
+                        'Reason', 'base4-reason') }}
                 </div>
-            </div>
+            {% endcall %}
         </div>
+
+        {# ── Bảng tranh luận đa tác tử ── #}
         <div class="col-lg-12">
-            <div class="card shadow-sm border-light">
-                <div class="card-header bg-dark text-white py-3 d-flex align-items-center justify-content-between"><h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-success me-2" aria-hidden="true"></i>Multi-Agent Solid Waste Advisory Debate</h5><span class="badge bg-secondary">Environmental Consensus</span></div>
-                <div class="card-body"><div id="debate-container-v64" class="mb-3 d-flex flex-column gap-3"></div><div class="p-3 bg-premium-light rounded border border-light-subtle"><h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus:</h6><p id="consensus-text-v64" class="text-muted small mb-0">Awaiting…</p></div></div>
-            </div>
+            {{ debate_panel('debate-container-v64', 'consensus-text-v64',
+                'Multi-Agent Solid Waste Advisory Debate', 'Environmental Consensus') }}
         </div>
+
+        {# ── Bảng lịch sử tuân thủ EPFSW ── #}
         <div class="col-lg-12">
-            <div class="card shadow-sm border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-2"><h5 class="fw-bold mb-1"><i class="bi bi-clock-history text-muted me-2" aria-hidden="true"></i>Historical Audit Log</h5></div>
-                <div class="card-body p-0"><div class="table-responsive"><table class="table table-hover table-striped mb-0 small"><thead class="table-dark"><tr><th>ID</th><th>Description</th><th>Waste Type</th><th>Weight</th><th>Exemption</th><th>Base Rate</th><th>Total Fee</th><th>Effective Fee</th><th>Status</th><th>Time</th></tr></thead><tbody id="history-table-v64"><tr><td colspan="10" class="text-center text-muted py-4">No logs.</td></tr></tbody></table></div></div>
-            </div>
+            {% call data_table('Historical Audit Log', 'bi bi-clock-history', 'history-table-v64', 'No logs.', 10) %}
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Description</th>
+                        <th>Waste Type</th>
+                        <th>Weight</th>
+                        <th>Exemption</th>
+                        <th>Base Rate</th>
+                        <th>Total Fee</th>
+                        <th>Effective Fee</th>
+                        <th>Status</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+            {% endcall %}
         </div>
-    </div>
-</div>
+
+    </div>{# /row #}
+</div>{# /container #}
+
 <script>
 document.addEventListener("DOMContentLoaded",()=>{
     const fVND = n => new Intl.NumberFormat("vi-VN").format(n) + " VND";
@@ -218,4 +227,7 @@ document.addEventListener("DOMContentLoaded",()=>{
     load();
 });
 </script>
+
+{{ entry_animations() }}
+{{ premium_controls_css() }}
 {% endblock %}

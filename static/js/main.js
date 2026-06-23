@@ -2143,6 +2143,78 @@ document.addEventListener("DOMContentLoaded", () => {
     initAiChatbot();
 });
 
+let realtimeEventSource = null;
+
+function initRealtimeSyncSSE() {
+    if (realtimeEventSource) {
+        realtimeEventSource.close();
+    }
+    
+    console.log("Initializing Real-Time Sync SSE Stream...");
+    realtimeEventSource = new EventSource("/api/invoices/realtime/stream");
+    
+    realtimeEventSource.onmessage = (event) => {
+        try {
+            const data = JSON.parse(event.data);
+            if (data.event === "invoice_downloaded") {
+                console.log("Real-time invoice downloaded event:", data);
+                // Show notification to user
+                const invoiceNum = data.number || "N/A";
+                const sellerName = data.seller_name || "N/A";
+                const amount = Number(data.total_amount || 0).toLocaleString("vi-VN") + " ₫";
+                const rating = data.t_rating || "N/A";
+                
+                renderAlert(`[Đồng bộ realtime] Tải thành công HĐ số ${invoiceNum} từ "${sellerName}" | Số tiền: ${amount} | T-Rating: ${rating}`, "success");
+                
+                // Refresh local invoices list & dashboard if the loadLocalInvoices function exists
+                if (typeof loadLocalInvoices === "function") {
+                    loadLocalInvoices();
+                }
+            } else if (data.event === "connected") {
+                console.log("Real-time SSE stream connected.");
+            }
+        } catch (err) {
+            console.error("Failed to parse SSE event data:", err);
+        }
+    };
+    
+    realtimeEventSource.onerror = (err) => {
+        console.error("Real-time SSE stream connection error, will automatically reconnect:", err);
+    };
+}
+
+async function handleTriggerRealtimeSync() {
+    const btn = document.getElementById("btnTriggerRealtimeSync");
+    if (!btn) return;
+    
+    const originalHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang đồng bộ...`;
+    
+    renderAlert("Đang kích hoạt đồng bộ hóa hóa đơn thời gian thực...", "info");
+    
+    try {
+        const response = await fetch("/api/invoices/realtime/trigger", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" }
+        });
+        const data = await response.json();
+        if (response.ok && data.status === "success") {
+            renderAlert(data.message || "Đã kích hoạt đồng bộ hóa thời gian thực chạy ngầm.", "success");
+        } else {
+            renderAlert(data.error || "Không thể kích hoạt đồng bộ hóa thời gian thực.", "danger");
+        }
+    } catch (err) {
+        renderAlert(`Lỗi kết nối: ${err.message}`, "danger");
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
+        if (typeof loadLocalInvoices === "function") {
+            loadLocalInvoices();
+        }
+    }
+}
+
 
 // meInvoice Intelligence Workspace logic
 let localInvoicesList = [];

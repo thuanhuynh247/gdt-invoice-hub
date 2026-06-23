@@ -1,187 +1,97 @@
 {% extends "base.html" %}
 
+{% from "components/_hub_header.html" import hub_header %}
+{% from "components/_glass_card.html" import glass_card %}
+{% from "components/_calc_input.html" import select_input, number_input, switch_input, calc_button, range_slider %}
+{% from "components/_result_panel.html" import result_panel, result_field %}
+{% from "components/_debate_panel.html" import debate_panel %}
+{% from "components/_entry_animations.html" import entry_animations %}
+{% from "components/_premium_controls.html" import premium_controls_css %}
+
 {% block title %}Circular 80 CIT Incentives & Decree 132 TP Safe Harbors (v45){% endblock %}
 
 {% block content %}
 <div class="container py-4">
-    <!-- Header Area -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
-        <div>
-            <span class="badge bg-success mb-2">Version 45.0.0 Spec Compliance</span>
-            <h1 class="h2 fw-bold text-gradient mb-1">CIT Incentives & Transfer Pricing Hub</h1>
-            <p class="text-muted mb-0">Apportion corporate income under Circular 80, simulate tax holidays, and audit Transfer Pricing Safe Harbors under Decree 132.</p>
-        </div>
-        <div class="d-flex gap-2 mt-3 mt-md-0">
-            <button id="btn-recalculate" class="btn btn-success d-flex align-items-center gap-2">
-                <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Recalculate Compliance
-            </button>
-            <span id="sync-status" class="badge bg-success-subtle text-success border border-success d-flex align-items-center px-3">
-                <i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Isolated Tenant DB
-            </span>
-        </div>
-    </div>
+    {# ── Đầu trang Hub ── #}
+    {{ hub_header('45.0.0',
+        'CIT Incentives & Transfer Pricing Hub',
+        'Apportion corporate income under Circular 80, simulate tax holidays, and audit Transfer Pricing Safe Harbors under Decree 132.',
+        'btn-recalculate', 'Recalculate Compliance', 'Circular 80 & Decree 132') }}
 
-    <!-- Bento Grid Layout -->
     <div class="row g-4">
-        <!-- Interactive Simulator Block -->
+        {# ── Máy tính ưu đãi CIT ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-sliders text-success me-2" aria-hidden="true"></i>Circular 80 CIT Incentives Model</h5>
-                    <p class="text-muted small mb-0">Adjust income allocations, preferential tax rates, and tax holidays exemptions.</p>
+            {% call glass_card('Circular 80 CIT Incentives Model', 'bi bi-sliders', 'text-success',
+                description='Adjust income allocations, preferential tax rates, and tax holidays exemptions.') %}
+                <div class="row g-3">
+                    {{ range_slider('slider-total-taxable', 'Total Taxable Income:', 100000000, 5000000000, 50000000, 1200000000, 'val-total-taxable', col='col-12') }}
+                    {{ range_slider('slider-preferential-income', 'Preferential Income:', 0, 5000000000, 50000000, 700000000, 'val-preferential-income', col='col-12') }}
+                    
+                    {{ select_input('select-pref-rate', 'Preferential Rate:', [
+                        {'value': '0.10', 'label': '10% Preferential'},
+                        {'value': '0.15', 'label': '15% Preferential'},
+                        {'value': '0.17', 'label': '17% Preferential'},
+                        {'value': '0.20', 'label': '20% Standard'}
+                    ], col='col-md-6') }}
+                    
+                    {{ number_input('input-start-year', 'Holiday Start Year:', 2024, col='col-md-6') }}
+                    {{ number_input('input-exemption-years', 'Exemption Years (100%):', 2, step='1', col='col-md-6') }}
+                    {{ number_input('input-reduction-years', 'Reduction Years (50%):', 4, step='1', col='col-md-6') }}
                 </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-12">
-                            <label for="slider-total-taxable" class="form-label d-flex justify-content-between small mb-1">
-                                <span>Total Taxable Income:</span>
-                                <strong id="val-total-taxable">1,200,000,000 VND</strong>
-                            </label>
-                            <input type="range" class="form-range" id="slider-total-taxable" min="100000000" max="5000000000" step="50000000" value="1200000000">
-                        </div>
-                        <div class="col-12">
-                            <label for="slider-preferential-income" class="form-label d-flex justify-content-between small mb-1">
-                                <span>Preferential Income:</span>
-                                <strong id="val-preferential-income">700,000,000 VND</strong>
-                            </label>
-                            <input type="range" class="form-range" id="slider-preferential-income" min="0" max="5000000000" step="50000000" value="700000000">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="select-pref-rate" class="form-label small mb-1">Preferential Rate:</label>
-                            <select id="select-pref-rate" class="form-select form-select-sm">
-                                <option value="0.10" selected>10% Preferential</option>
-                                <option value="0.15">15% Preferential</option>
-                                <option value="0.17">17% Preferential</option>
-                                <option value="0.20">20% Standard</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-start-year" class="form-label small mb-1">Holiday Start Year:</label>
-                            <input type="number" id="input-start-year" class="form-control form-control-sm" value="2024" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-exemption-years" class="form-label small mb-1">Exemption Years (100%):</label>
-                            <input type="number" id="input-exemption-years" class="form-control form-control-sm" value="2" min="0" max="4" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-reduction-years" class="form-label small mb-1">Reduction Years (50%):</label>
-                            <input type="number" id="input-reduction-years" class="form-control form-control-sm" value="4" min="0" max="9" autocomplete="off">
-                        </div>
+                
+                {% call result_panel('CIT Optimization Result', 'text-success') %}
+                    {{ result_field('Standard Tax Liability:', 'res-standard-tax') }}
+                    {{ result_field('Preferential Tax Liability:', 'res-preferential-tax') }}
+                    {{ result_field('Total CIT Due:', 'res-total-due', 'text-danger') }}
+                    {{ result_field('Overall CIT Savings:', 'res-savings', 'text-success') }}
+                    <div class="mt-2 text-center text-muted small">
+                        Holiday status: <span id="res-holiday-status" class="badge bg-primary">Loading…</span>
                     </div>
-
-                    <div class="mt-4 p-3 bg-premium-light rounded border">
-                        <h6 class="fw-bold mb-2 text-success"><i class="bi bi-calculator me-2" aria-hidden="true"></i>CIT Optimization Result</h6>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>Standard Tax Liability:</span>
-                            <span id="res-standard-tax">0 VND</span>
-                        </div>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>Preferential Tax Liability:</span>
-                            <span id="res-preferential-tax">0 VND</span>
-                        </div>
-                        <div class="d-flex justify-content-between border-top pt-2 fw-bold mb-1">
-                            <span>Total CIT Due:</span>
-                            <span id="res-total-due" class="text-danger">0 VND</span>
-                        </div>
-                        <div class="d-flex justify-content-between text-success fw-bold small">
-                            <span>Overall CIT Savings:</span>
-                            <span id="res-savings">0 VND</span>
-                        </div>
-                        <div class="mt-2 text-center text-muted small">
-                            Holiday status: <span id="res-holiday-status" class="badge bg-primary">Loading…</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                {% endcall %}
+            {% endcall %}
         </div>
 
-        <!-- Transfer Pricing Widget -->
+        {# ── Máy tính liên kết TP (Decree 132) ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-diagram-3 text-primary me-2" aria-hidden="true"></i>Decree 132 Transfer Pricing Auditor</h5>
-                    <p class="text-muted small mb-0">Evaluate Safe Harbor conditions and log APA interquartile ranges compliance.</p>
+            {% call glass_card('Decree 132 Transfer Pricing Auditor', 'bi bi-diagram-3', 'text-primary',
+                description='Evaluate Safe Harbor conditions and log APA interquartile ranges compliance.') %}
+                <div class="row g-3">
+                    {{ range_slider('slider-revenue', 'Total Revenue:', 1000000000, 300000000000, 5000000000, 48000000000, 'val-revenue', col='col-12') }}
+                    {{ range_slider('slider-txn-value', 'Related-Party Transactions Value:', 500000000, 100000000000, 500000000, 28000000000, 'val-txn-value', col='col-12') }}
+                    
+                    {{ select_input('select-activity', 'Activity Sector Type:', [
+                        {'value': 'trading', 'label': 'Distribution/Trading (Min NPM 2.0%)'},
+                        {'value': 'manufacturing', 'label': 'Manufacturing (Min NPM 10.0%)'},
+                        {'value': 'service', 'label': 'Service (Min NPM 15.0%)'}
+                    ], col='col-md-6') }}
+                    
+                    {{ range_slider('slider-npm', 'Operating NPM:', 0, 0.30, 0.005, 0.035, 'val-npm', col='col-md-6') }}
+                    
+                    {{ number_input('input-apa-lower', 'APA Lower Bound:', 0.03, step='0.01', col='col-md-4') }}
+                    {{ number_input('input-apa-upper', 'APA Upper Bound:', 0.05, step='0.01', col='col-md-4') }}
+                    {{ number_input('input-apa-actual', 'APA Actual Margin:', 0.04, step='0.01', col='col-md-4') }}
                 </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-12">
-                            <label for="slider-revenue" class="form-label d-flex justify-content-between small mb-1">
-                                <span>Total Revenue:</span>
-                                <strong id="val-revenue">48,000,000,000 VND</strong>
-                            </label>
-                            <input type="range" class="form-range" id="slider-revenue" min="1000000000" max="300000000000" step="5000000000" value="48000000000">
-                        </div>
-                        <div class="col-12">
-                            <label for="slider-txn-value" class="form-label d-flex justify-content-between small mb-1">
-                                <span>Related-Party Transactions Value:</span>
-                                <strong id="val-txn-value">28,000,000,000 VND</strong>
-                            </label>
-                            <input type="range" class="form-range" id="slider-txn-value" min="500000000" max="100000000000" step="500000000" value="28000000000">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="select-activity" class="form-label small mb-1">Activity Sector Type:</label>
-                            <select id="select-activity" class="form-select form-select-sm">
-                                <option value="trading" selected>Distribution/Trading (Min NPM 2.0%)</option>
-                                <option value="manufacturing">Manufacturing (Min NPM 10.0%)</option>
-                                <option value="service">Service (Min NPM 15.0%)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="slider-npm" class="form-label d-flex justify-content-between small mb-1">
-                                <span>Operating NPM:</span>
-                                <strong id="val-npm">3.5%</strong>
-                            </label>
-                            <input type="range" class="form-range" id="slider-npm" min="0" max="0.30" step="0.005" value="0.035">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="input-apa-lower" class="form-label small mb-1">APA Lower Bound:</label>
-                            <input type="number" id="input-apa-lower" class="form-control form-control-sm" value="0.03" step="0.01" autocomplete="off">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="input-apa-upper" class="form-label small mb-1">APA Upper Bound:</label>
-                            <input type="number" id="input-apa-upper" class="form-control form-control-sm" value="0.05" step="0.01" autocomplete="off">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="input-apa-actual" class="form-label small mb-1">APA Actual Margin:</label>
-                            <input type="number" id="input-apa-actual" class="form-control form-control-sm" value="0.04" step="0.01" autocomplete="off">
-                        </div>
+                
+                {% call result_panel('Transfer Pricing Verdict', 'text-primary') %}
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span>Safe Harbor Status:</span>
+                        <span id="res-safe-harbor" class="badge bg-success">Eligible</span>
                     </div>
-
-                    <div class="mt-4 p-3 bg-premium-light rounded border">
-                        <h6 class="fw-bold mb-2 text-primary"><i class="bi bi-shield-check me-2" aria-hidden="true"></i>Transfer Pricing Verdict</h6>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>Safe Harbor Status:</span>
-                            <span id="res-safe-harbor" class="badge bg-success">Eligible</span>
-                        </div>
-                        <div class="d-flex justify-content-between small mb-2">
-                            <span>APA Compliance Status:</span>
-                            <span id="res-apa-status" class="badge bg-primary">Compliant</span>
-                        </div>
-                        <div class="small text-muted border-top pt-2">
-                            <strong>Audit Reason:</strong> <span id="res-sh-reason">Loading assessment reason details…</span>
-                        </div>
+                    <div class="d-flex justify-content-between small mb-2">
+                        <span>APA Compliance Status:</span>
+                        <span id="res-apa-status" class="badge bg-primary">Compliant</span>
                     </div>
-                </div>
-            </div>
+                    <div class="small text-muted border-top pt-2">
+                        <strong>Audit Reason:</strong> <span id="res-sh-reason">Loading assessment reason details…</span>
+                    </div>
+                {% endcall %}
+            {% endcall %}
         </div>
 
-        <!-- Swarm Advisory Debate Panel -->
-        <div class="col-12 mt-4">
-            <div class="card shadow-sm border-light">
-                <div class="card-header bg-obsidian text-snow py-3 d-flex align-items-center justify-content-between">
-                    <h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-success me-2" aria-hidden="true"></i>Multi-Agent Advisory Board Debate</h5>
-                    <span class="badge bg-secondary border border-secondary">Consensus Simulator</span>
-                </div>
-                <div class="card-body">
-                    <div id="debate-container" class="mb-3 d-flex flex-column gap-3">
-                        <!-- Debate Messages -->
-                    </div>
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus Summary Statement:</h6>
-                        <p id="consensus-text" class="text-muted small mb-0">Awaiting simulation data execution…</p>
-                    </div>
-                </div>
-            </div>
+        {# ── Swarm Advisory Board Debate ── #}
+        <div class="col-lg-12">
+            {{ debate_panel('debate-container', 'consensus-text',
+                'Multi-Agent Advisory Board Debate', 'Consensus Simulator') }}
         </div>
     </div>
 </div>

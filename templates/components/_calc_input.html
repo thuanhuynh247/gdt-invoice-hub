@@ -55,8 +55,8 @@
 {% endmacro %}
 
 {# --- Nút tính toán --- #}
-{% macro calc_button(id, label, btn_class='btn-success') %}
-<div class="col-12 text-end">
+{% macro calc_button(id, label, btn_class='btn-success', col='col-12 text-end') %}
+<div class="{{ col }}">
     <button id="{{ id }}" class="btn {{ btn_class }} btn-sm text-white fw-bold">
         <i class="bi bi-calculator me-1" aria-hidden="true"></i> {{ label }}
     </button>
