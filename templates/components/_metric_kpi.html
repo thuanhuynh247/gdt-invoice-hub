@@ -1,0 +1,33 @@
+{# ═══════════════════════════════════════════════════════════════════
+   LEGO COMPONENT: Metric KPI — Thẻ chỉ số KPI đơn lẻ
+   ────────────────────────────────────────────────────────────────
+   Hiển thị 1 chỉ số KPI với nhãn + giá trị trong khối bo tròn.
+   
+   Tham số:
+     label      — nhãn mô tả chỉ số
+     value_id   — id HTML cho giá trị (JS sẽ cập nhật)
+     value_text — giá trị mặc định hiển thị
+     value_class — class CSS cho giá trị, mặc định 'text-dark'
+     col        — class cột grid, mặc định 'col-6'
+   ═══════════════════════════════════════════════════════════════════ #}
+
+{% macro metric_kpi(label, value_id, value_text='0 VND', value_class='text-dark', col='col-6') %}
+<div class="{{ col }}">
+    <div class="p-2 border rounded bg-premium-light text-center">
+        <div class="text-muted small">{{ label }}</div>
+        <strong id="{{ value_id }}" class="{{ value_class }}">{{ value_text }}</strong>
+    </div>
+</div>
+{% endmacro %}
+
+{# --- Dòng thống kê trong danh sách (list-group style) ---
+   Dùng cho các panel clawback/audit với tiêu đề + mô tả + giá trị #}
+{% macro stat_row(title, description, value_id, value_class='text-dark') %}
+<div class="list-group-item d-flex justify-content-between align-items-center py-3">
+    <div>
+        <h6 class="fw-bold mb-0">{{ title }}</h6>
+        <p class="text-muted small mb-0">{{ description }}</p>
+    </div>
+    <span id="{{ value_id }}" class="fs-6 fw-bold {{ value_class }}">0 VND</span>
+</div>
+{% endmacro %}

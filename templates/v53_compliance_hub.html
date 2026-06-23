@@ -1,272 +1,141 @@
+{# ═══════════════════════════════════════════════════════════════════
+   TRANG LẮP RÁP LEGO: v53 — Thuế Bảo vệ Môi trường (EP Tax)
+   ────────────────────────────────────────────────────────────────
+   Luật 57/2010/QH12: Tính thuế BVMT cho xăng dầu, than đá,
+   túi nhựa, và hóa chất HCFC.
+   
+   CẤU TRÚC LEGO:
+   ├── hub_header        → Đầu trang (phiên bản + luật tham chiếu)
+   ├── glass_card x4     → 4 máy tính thuế BVMT
+   │   ├── select/number/text/switch inputs
+   │   ├── calc_button
+   │   └── result_panel + result_field
+   ├── debate_panel      → Tranh luận đa tác tử
+   ├── entry_animations  → Hiệu ứng xuất hiện
+   └── premium_controls  → CSS thanh trượt/tab
+   ═══════════════════════════════════════════════════════════════════ #}
 {% extends "base.html" %}
+
+{% from "components/_hub_header.html" import hub_header %}
+{% from "components/_glass_card.html" import glass_card %}
+{% from "components/_calc_input.html" import text_input, number_input, select_input, switch_input, calc_button %}
+{% from "components/_result_panel.html" import result_panel, result_field %}
+{% from "components/_debate_panel.html" import debate_panel %}
+{% from "components/_entry_animations.html" import entry_animations %}
+{% from "components/_premium_controls.html" import premium_controls_css %}
 
 {% block title %}EP Tax Law 57/2010 - Environmental Protection Tax Hub (v53){% endblock %}
 
 {% block content %}
 <div class="container py-4">
-    <!-- Header Area -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
-        <div>
-            <span class="badge bg-success mb-2">Version 53.0.0 Spec Compliance</span>
-            <h1 class="h2 fw-bold text-gradient mb-1">Environmental Protection Tax Compliance Hub</h1>
-            <p class="text-muted mb-0">Fuel, coal, plastic bag, and HCFC chemical EP tax calculations with green transition exemptions under Luật Thuế BVMT 57/2010/QH12.</p>
-        </div>
-        <div class="d-flex gap-2 mt-3 mt-md-0">
-            <button id="btn-refresh-v53" class="btn btn-success text-white d-flex align-items-center gap-2">
-                <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Load Compliance Data
-            </button>
-            <span class="badge bg-success-subtle text-success border border-success d-flex align-items-center px-3">
-                <i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Law 57/2010/QH12
-            </span>
-        </div>
-    </div>
 
-    <!-- Bento Grid Layout -->
+    {# ── Đầu trang Hub ── #}
+    {{ hub_header('53.0.0',
+        'Environmental Protection Tax Compliance Hub',
+        'Fuel, coal, plastic bag, and HCFC chemical EP tax calculations with green transition exemptions under Luật Thuế BVMT 57/2010/QH12.',
+        'btn-refresh-v53', 'Load Compliance Data', 'Law 57/2010/QH12') }}
+
     <div class="row g-4">
-        <!-- Pillar 1: Fuel EP Tax Calculator -->
-        <div class="col-lg-6">
-            <div class="glass-card h-100">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-fuel-pump-fill text-danger me-2" aria-hidden="true"></i>Fuel EP Tax Calculator</h5>
-                    <p class="text-muted small mb-0">Calculate absolute EP tax for petrol (2,000 VND/l), diesel (1,000 VND/l), and kerosene (600 VND/l). Transit/re-export fuels are 100% exempt.</p>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="input-fuel-type" class="form-label small mb-1">Fuel Type:</label>
-                            <select id="input-fuel-type" class="form-select form-select-sm">
-                                <option value="petrol">Petrol (2,000 VND/l)</option>
-                                <option value="diesel">Diesel (1,000 VND/l)</option>
-                                <option value="kerosene">Kerosene (600 VND/l)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-fuel-qty" class="form-label small mb-1">Quantity (litres):</label>
-                            <input type="number" id="input-fuel-qty" class="form-control form-control-sm" value="1000" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-fuel-price" class="form-label small mb-1">Price Before Tax (VND):</label>
-                            <input type="number" id="input-fuel-price" class="form-control form-control-sm" value="25000" autocomplete="off">
-                        </div>
-                        <div class="col-md-6 d-flex align-items-end">
-                            <div class="form-check form-switch mb-2">
-                                <input class="form-check-input" type="checkbox" id="check-fuel-transit">
-                                <label class="form-check-input-label small" for="check-fuel-transit">Transit / Re-export?</label>
-                            </div>
-                        </div>
-                        <div class="col-12 text-end">
-                            <button id="btn-calculate-fuel" class="btn btn-danger btn-sm text-white">
-                                <i class="bi bi-calculator me-1" aria-hidden="true"></i> Calculate Fuel EP Tax
-                            </button>
-                        </div>
-                    </div>
 
-                    <div class="mt-4 p-3 bg-premium-light rounded border">
-                        <h6 class="fw-bold mb-2 text-danger"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Fuel EP Tax Result</h6>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>EP Tax Rate:</span>
-                            <span id="res-fuel-rate" class="fw-bold text-dark">-</span>
-                        </div>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>EP Tax Amount:</span>
-                            <span id="res-fuel-amount" class="fw-bold text-danger">-</span>
-                        </div>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>Exempt:</span>
-                            <span id="res-fuel-exempt" class="fw-bold">-</span>
-                        </div>
-                        <div class="small text-muted border-top pt-2 mt-2">
-                            <strong>Note:</strong> <span id="res-fuel-note">Awaiting calculation…</span>
-                        </div>
-                    </div>
+        {# ── Trụ 1: Máy tính Thuế BVMT Xăng dầu ── #}
+        <div class="col-lg-6">
+            {% call glass_card('Fuel EP Tax Calculator', 'bi bi-fuel-pump-fill', 'text-danger',
+                'Calculate absolute EP tax for petrol (2,000 VND/l), diesel (1,000 VND/l), and kerosene (600 VND/l). Transit/re-export fuels are 100% exempt.') %}
+                <div class="row g-3">
+                    {{ select_input('input-fuel-type', 'Fuel Type:', [
+                        {'value':'petrol','label':'Petrol (2,000 VND/l)'},
+                        {'value':'diesel','label':'Diesel (1,000 VND/l)'},
+                        {'value':'kerosene','label':'Kerosene (600 VND/l)'}
+                    ]) }}
+                    {{ number_input('input-fuel-qty', 'Quantity (litres):', 1000) }}
+                    {{ number_input('input-fuel-price', 'Price Before Tax (VND):', 25000) }}
+                    {{ switch_input('check-fuel-transit', 'Transit / Re-export?') }}
+                    {{ calc_button('btn-calculate-fuel', 'Calculate Fuel EP Tax', 'btn-danger') }}
                 </div>
-            </div>
+                {% call result_panel('Fuel EP Tax Result', 'text-danger', 'res-fuel-note') %}
+                    {{ result_field('EP Tax Rate:', 'res-fuel-rate') }}
+                    {{ result_field('EP Tax Amount:', 'res-fuel-amount', 'text-danger') }}
+                    {{ result_field('Exempt:', 'res-fuel-exempt') }}
+                {% endcall %}
+            {% endcall %}
         </div>
 
-        <!-- Pillar 2: Coal EP Tax Calculator -->
+        {# ── Trụ 2: Máy tính Thuế BVMT Than đá ── #}
         <div class="col-lg-6">
-            <div class="glass-card h-100">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-minecart-loaded text-warning me-2" aria-hidden="true"></i>Coal EP Tax Calculator</h5>
-                    <p class="text-muted small mb-0">Calculate coal EP tax by type: Lignite/Sub-bituminous (20,000 VND/t), Anthracite (30,000 VND/t), Other (15,000 VND/t). Electricity generation & export exempt.</p>
+            {% call glass_card('Coal EP Tax Calculator', 'bi bi-minecart-loaded', 'text-warning',
+                'Calculate coal EP tax by type: Lignite/Sub-bituminous (20,000 VND/t), Anthracite (30,000 VND/t), Other (15,000 VND/t). Electricity generation & export exempt.') %}
+                <div class="row g-3">
+                    {{ select_input('input-coal-type', 'Coal Type:', [
+                        {'value':'anthracite','label':'Anthracite (30,000 VND/t)'},
+                        {'value':'lignite','label':'Lignite / Sub-bituminous (20,000 VND/t)'},
+                        {'value':'other','label':'Other Coal (15,000 VND/t)'}
+                    ]) }}
+                    {{ number_input('input-coal-qty', 'Quantity (tonnes):', 500) }}
+                    {{ number_input('input-coal-price', 'Price Before Tax (VND):', 3000000) }}
+                    {{ select_input('input-coal-usage', 'Usage:', [
+                        {'value':'other','label':'General (Taxable)'},
+                        {'value':'electricity_generation','label':'Electricity Generation (Exempt)'},
+                        {'value':'export','label':'Export by Licensed Miner (Exempt)'}
+                    ]) }}
+                    {{ calc_button('btn-calculate-coal', 'Calculate Coal EP Tax', 'btn-warning') }}
                 </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="input-coal-type" class="form-label small mb-1">Coal Type:</label>
-                            <select id="input-coal-type" class="form-select form-select-sm">
-                                <option value="anthracite">Anthracite (30,000 VND/t)</option>
-                                <option value="lignite">Lignite / Sub-bituminous (20,000 VND/t)</option>
-                                <option value="other">Other Coal (15,000 VND/t)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-coal-qty" class="form-label small mb-1">Quantity (tonnes):</label>
-                            <input type="number" id="input-coal-qty" class="form-control form-control-sm" value="500" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-coal-price" class="form-label small mb-1">Price Before Tax (VND):</label>
-                            <input type="number" id="input-coal-price" class="form-control form-control-sm" value="3000000" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-coal-usage" class="form-label small mb-1">Usage:</label>
-                            <select id="input-coal-usage" class="form-select form-select-sm">
-                                <option value="other">General (Taxable)</option>
-                                <option value="electricity_generation">Electricity Generation (Exempt)</option>
-                                <option value="export">Export by Licensed Miner (Exempt)</option>
-                            </select>
-                        </div>
-                        <div class="col-12 text-end">
-                            <button id="btn-calculate-coal" class="btn btn-warning btn-sm text-dark fw-bold">
-                                <i class="bi bi-calculator me-1" aria-hidden="true"></i> Calculate Coal EP Tax
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="mt-4 p-3 bg-premium-light rounded border">
-                        <h6 class="fw-bold mb-2 text-warning"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Coal EP Tax Result</h6>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>EP Tax Rate:</span>
-                            <span id="res-coal-rate" class="fw-bold text-dark">-</span>
-                        </div>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>EP Tax Amount:</span>
-                            <span id="res-coal-amount" class="fw-bold text-warning">-</span>
-                        </div>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>Exempt:</span>
-                            <span id="res-coal-exempt" class="fw-bold">-</span>
-                        </div>
-                        <div class="small text-muted border-top pt-2 mt-2">
-                            <strong>Note:</strong> <span id="res-coal-note">Awaiting calculation…</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                {% call result_panel('Coal EP Tax Result', 'text-warning', 'res-coal-note') %}
+                    {{ result_field('EP Tax Rate:', 'res-coal-rate') }}
+                    {{ result_field('EP Tax Amount:', 'res-coal-amount', 'text-warning') }}
+                    {{ result_field('Exempt:', 'res-coal-exempt') }}
+                {% endcall %}
+            {% endcall %}
         </div>
 
-        <!-- Pillar 3: Plastic Bag EP Tax Calculator -->
+        {# ── Trụ 3: Máy tính Thuế BVMT Túi nhựa ── #}
         <div class="col-lg-6">
-            <div class="glass-card h-100">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-bag-x-fill text-info me-2" aria-hidden="true"></i>Plastic Bag EP Tax Auditor</h5>
-                    <p class="text-muted small mb-0">Non-biodegradable plastic bags taxed at 50,000 VND/kg. Certified biodegradable bags receive 100% green transition exemption.</p>
+            {% call glass_card('Plastic Bag EP Tax Auditor', 'bi bi-bag-x-fill', 'text-info',
+                'Non-biodegradable plastic bags taxed at 50,000 VND/kg. Certified biodegradable bags receive 100% green transition exemption.') %}
+                <div class="row g-3">
+                    {{ text_input('input-bag-name', 'Bag Name:', 'Standard Plastic Bag') }}
+                    {{ number_input('input-bag-weight', 'Weight (kg):', 100, '0.01') }}
+                    {{ number_input('input-bag-price', 'Price Before Tax (VND):', 200000) }}
+                    {{ switch_input('check-bag-biodegradable', 'Certified Biodegradable?') }}
+                    {{ calc_button('btn-calculate-bag', 'Calculate Bag EP Tax', 'btn-info') }}
                 </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="input-bag-name" class="form-label small mb-1">Bag Name:</label>
-                            <input type="text" id="input-bag-name" class="form-control form-control-sm" value="Standard Plastic Bag" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-bag-weight" class="form-label small mb-1">Weight (kg):</label>
-                            <input type="number" step="0.01" id="input-bag-weight" class="form-control form-control-sm" value="100" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-bag-price" class="form-label small mb-1">Price Before Tax (VND):</label>
-                            <input type="number" id="input-bag-price" class="form-control form-control-sm" value="200000" autocomplete="off">
-                        </div>
-                        <div class="col-md-6 d-flex align-items-end">
-                            <div class="form-check form-switch mb-2">
-                                <input class="form-check-input" type="checkbox" id="check-bag-biodegradable">
-                                <label class="form-check-input-label small" for="check-bag-biodegradable">Certified Biodegradable?</label>
-                            </div>
-                        </div>
-                        <div class="col-12 text-end">
-                            <button id="btn-calculate-bag" class="btn btn-info btn-sm text-white">
-                                <i class="bi bi-calculator me-1" aria-hidden="true"></i> Calculate Bag EP Tax
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="mt-4 p-3 bg-premium-light rounded border">
-                        <h6 class="fw-bold mb-2 text-info"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Plastic Bag EP Tax Result</h6>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>EP Tax Rate:</span>
-                            <span id="res-bag-rate" class="fw-bold text-dark">-</span>
-                        </div>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>EP Tax Amount:</span>
-                            <span id="res-bag-amount" class="fw-bold text-info">-</span>
-                        </div>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>Biodegradable:</span>
-                            <span id="res-bag-biodegradable" class="fw-bold">-</span>
-                        </div>
-                        <div class="small text-muted border-top pt-2 mt-2">
-                            <strong>Note:</strong> <span id="res-bag-note">Awaiting calculation…</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                {% call result_panel('Plastic Bag EP Tax Result', 'text-info', 'res-bag-note') %}
+                    {{ result_field('EP Tax Rate:', 'res-bag-rate') }}
+                    {{ result_field('EP Tax Amount:', 'res-bag-amount', 'text-info') }}
+                    {{ result_field('Biodegradable:', 'res-bag-biodegradable') }}
+                {% endcall %}
+            {% endcall %}
         </div>
 
-        <!-- Pillar 4: Chemical EP Tax Calculator -->
+        {# ── Trụ 4: Máy tính Thuế BVMT Hóa chất HCFC ── #}
         <div class="col-lg-6">
-            <div class="glass-card h-100">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-radioactive text-primary me-2" aria-hidden="true"></i>HCFC Chemical EP Tax Calculator</h5>
-                    <p class="text-muted small mb-0">HCFC (Hydrochlorofluorocarbon) chemicals taxed at 5,000 VND/kg to discourage ozone-depleting substances per Montreal Protocol obligations.</p>
+            {% call glass_card('HCFC Chemical EP Tax Calculator', 'bi bi-radioactive', 'text-primary',
+                'HCFC (Hydrochlorofluorocarbon) chemicals taxed at 5,000 VND/kg to discourage ozone-depleting substances per Montreal Protocol obligations.') %}
+                <div class="row g-3">
+                    {{ text_input('input-chem-name', 'Chemical Name:', 'HCFC-22') }}
+                    {{ number_input('input-chem-weight', 'Weight (kg):', 50, '0.01') }}
+                    {{ number_input('input-chem-price', 'Price Before Tax (VND):', 5000000, '1', 'col-md-12') }}
+                    {{ calc_button('btn-calculate-chem', 'Calculate Chemical EP Tax', 'btn-primary') }}
                 </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="input-chem-name" class="form-label small mb-1">Chemical Name:</label>
-                            <input type="text" id="input-chem-name" class="form-control form-control-sm" value="HCFC-22" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-chem-weight" class="form-label small mb-1">Weight (kg):</label>
-                            <input type="number" step="0.01" id="input-chem-weight" class="form-control form-control-sm" value="50" autocomplete="off">
-                        </div>
-                        <div class="col-md-12">
-                            <label for="input-chem-price" class="form-label small mb-1">Price Before Tax (VND):</label>
-                            <input type="number" id="input-chem-price" class="form-control form-control-sm" value="5000000" autocomplete="off">
-                        </div>
-                        <div class="col-12 text-end">
-                            <button id="btn-calculate-chem" class="btn btn-primary btn-sm text-white">
-                                <i class="bi bi-calculator me-1" aria-hidden="true"></i> Calculate Chemical EP Tax
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="mt-4 p-3 bg-premium-light rounded border">
-                        <h6 class="fw-bold mb-2 text-primary"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Chemical EP Tax Result</h6>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>EP Tax Rate:</span>
-                            <span id="res-chem-rate" class="fw-bold text-dark">-</span>
-                        </div>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>EP Tax Amount:</span>
-                            <span id="res-chem-amount" class="fw-bold text-primary">-</span>
-                        </div>
-                        <div class="small text-muted border-top pt-2 mt-2">
-                            <strong>Note:</strong> <span id="res-chem-note">Awaiting calculation…</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                {% call result_panel('Chemical EP Tax Result', 'text-primary', 'res-chem-note') %}
+                    {{ result_field('EP Tax Rate:', 'res-chem-rate') }}
+                    {{ result_field('EP Tax Amount:', 'res-chem-amount', 'text-primary') }}
+                {% endcall %}
+            {% endcall %}
         </div>
 
-        <!-- Swarm Advisory Debate Panel -->
+        {# ── Bảng Tranh luận Đa tác tử ── #}
         <div class="col-lg-12">
-            <div class="glass-card">
-                <div class="card-header bg-dark text-white py-3 d-flex align-items-center justify-content-between">
-                    <h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-success me-2" aria-hidden="true"></i>Multi-Agent Advisory Board Debate</h5>
-                    <span class="badge bg-secondary border border-secondary">Green Transition Consensus</span>
-                </div>
-                <div class="card-body">
-                    <div id="debate-container-v53" class="mb-3 d-flex flex-column gap-3">
-                    </div>
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus Summary Statement:</h6>
-                        <p id="consensus-text-v53" class="text-muted small mb-0">Awaiting simulation data execution…</p>
-                    </div>
-                </div>
-            </div>
+            {{ debate_panel('debate-container-v53', 'consensus-text-v53',
+                'Multi-Agent Advisory Board Debate', 'Green Transition Consensus') }}
         </div>
-    </div>
-</div>
 
+    </div>{# /row #}
+</div>{# /container #}
+
+{# ════════════════════════════════════════════════════════════════
+   LOGIC NGHIỆP VỤ RIÊNG TRANG — Giữ nguyên toàn bộ JS gốc
+   Tất cả DOM ID được bảo toàn chính xác để đảm bảo tương thích
+   ════════════════════════════════════════════════════════════════ #}
 <script>
 document.addEventListener("DOMContentLoaded", () => {
     const formatVND = (n) => new Intl.NumberFormat("vi-VN").format(n) + " VND";
@@ -392,112 +261,18 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("consensus-text-v53").textContent = summary;
     };
 
-    // Attach listeners
+    /* Gắn sự kiện */
     document.getElementById("btn-calculate-fuel").addEventListener("click", calculateFuel);
     document.getElementById("btn-calculate-coal").addEventListener("click", calculateCoal);
     document.getElementById("btn-calculate-bag").addEventListener("click", calculateBag);
     document.getElementById("btn-calculate-chem").addEventListener("click", calculateChem);
     document.getElementById("btn-refresh-v53").addEventListener("click", loadData);
 
-    // Initial load
+    /* Tải dữ liệu ban đầu */
     loadData();
-
-    // Card entrance animations using IntersectionObserver
-    const cards = document.querySelectorAll('.glass-card');
-    cards.forEach(c => { c.style.opacity = '0'; c.style.transform = 'translateY(20px)'; });
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry, idx) => {
-            if (entry.isIntersecting) {
-                setTimeout(() => {
-                    entry.target.style.transition = 'opacity 0.5s ease, transform 0.5s cubic-bezier(0.16,1,0.3,1)';
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
-                }, idx * 80);
-                observer.unobserve(entry.target);
-            }
-        });
-    }, { threshold: 0.05 });
-    cards.forEach(c => observer.observe(c));
 });
 </script>
 
-<style>
-/* Range Inputs / Sliders */
-input[type="range"].form-range {
-    -webkit-appearance: none;
-    width: 100%;
-    background: transparent;
-}
-input[type="range"].form-range:focus {
-    outline: none;
-}
-input[type="range"].form-range::-webkit-slider-runnable-track {
-    width: 100%;
-    height: 6px;
-    cursor: pointer;
-    background: var(--primary-accent-soft) !important;
-    border-radius: 9999px;
-    border: none;
-}
-input[type="range"].form-range::-webkit-slider-thumb {
-    height: 18px;
-    width: 18px;
-    border-radius: 50%;
-    background: var(--primary-accent) !important;
-    cursor: pointer;
-    -webkit-appearance: none;
-    margin-top: -6px;
-    transition: transform 0.1s ease, background-color 0.1s ease;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-}
-input[type="range"].form-range::-webkit-slider-thumb:hover {
-    transform: scale(1.15);
-    background: var(--lime-accent) !important;
-}
-/* Firefox */
-input[type="range"].form-range::-moz-range-track {
-    width: 100%;
-    height: 6px;
-    cursor: pointer;
-    background: var(--primary-accent-soft) !important;
-    border-radius: 9999px;
-}
-input[type="range"].form-range::-moz-range-thumb {
-    height: 18px;
-    width: 18px;
-    border-radius: 50%;
-    background: var(--primary-accent) !important;
-    cursor: pointer;
-    border: none;
-    transition: transform 0.1s ease, background-color 0.1s ease;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-}
-input[type="range"].form-range::-moz-range-thumb:hover {
-    transform: scale(1.15);
-    background: var(--lime-accent) !important;
-}
-
-/* Tabs */
-.nav-tabs {
-    border-bottom: 2px solid var(--border-card) !important;
-}
-.nav-tabs .nav-link {
-    border: none !important;
-    background: transparent !important;
-    padding: 0.8rem 1.5rem !important;
-    font-size: 0.95rem !important;
-    color: var(--text-secondary) !important;
-    border-bottom: 3px solid transparent !important;
-    transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1) !important;
-}
-.nav-tabs .nav-link:hover {
-    color: var(--primary-accent) !important;
-    border-bottom: 3px solid var(--primary-accent-soft) !important;
-}
-.nav-tabs .nav-link.active {
-    color: var(--primary-accent) !important;
-    border-bottom: 3px solid var(--primary-accent) !important;
-    font-weight: 700 !important;
-}
-</style>
+{{ entry_animations() }}
+{{ premium_controls_css() }}
 {% endblock %}

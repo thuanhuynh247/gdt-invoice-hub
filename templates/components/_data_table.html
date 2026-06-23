@@ -1,0 +1,32 @@
+{# ═══════════════════════════════════════════════════════════════════
+   LEGO COMPONENT: Data Table — Bảng dữ liệu động
+   ────────────────────────────────────────────────────────────────
+   Bọc bảng dữ liệu trong glass-card với tiêu đề + icon.
+   Sử dụng caller() để định nghĩa phần <thead>.
+   Phần <tbody> được render động bởi JavaScript.
+   
+   Tham số:
+     title       — tiêu đề bảng
+     icon        — class icon, ví dụ 'bi bi-clock-history'
+     tbody_id    — id HTML cho <tbody> (JS sẽ điền dữ liệu)
+     default_msg — thông báo mặc định khi chưa có dữ liệu
+     col_count   — số cột (dùng cho colspan của dòng trống)
+   ═══════════════════════════════════════════════════════════════════ #}
+
+{% macro data_table(title, icon, tbody_id, default_msg='Chưa có dữ liệu.', col_count=1) %}
+<div class="glass-card">
+    <div class="card-header bg-transparent border-0 pt-4 pb-2">
+        <h5 class="fw-bold mb-1"><i class="{{ icon }} me-2 text-muted" aria-hidden="true"></i>{{ title }}</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-striped mb-0 small">
+                {{ caller() }}
+                <tbody id="{{ tbody_id }}">
+                    <tr><td colspan="{{ col_count }}" class="text-center text-muted py-4">{{ default_msg }}</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endmacro %}

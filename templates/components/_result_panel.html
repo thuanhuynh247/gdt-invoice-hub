@@ -1,0 +1,32 @@
+{# ═══════════════════════════════════════════════════════════════════
+   LEGO COMPONENT: Result Panel — Bảng hiển thị kết quả tính toán
+   ────────────────────────────────────────────────────────────────
+   Hiển thị kết quả gồm: tiêu đề + các dòng label/value + ghi chú.
+   Sử dụng caller() để chèn các dòng kết quả tùy chỉnh.
+   
+   Tham số:
+     title      — tiêu đề bảng kết quả
+     icon_color — class màu cho tiêu đề, ví dụ 'text-danger'
+     note_id    — id HTML cho phần tử ghi chú
+   ═══════════════════════════════════════════════════════════════════ #}
+
+{% macro result_panel(title, icon_color='text-success', note_id='') %}
+<div class="mt-4 p-3 bg-premium-light rounded border">
+    <h6 class="fw-bold mb-2 {{ icon_color }}"><i class="bi bi-receipt me-2" aria-hidden="true"></i>{{ title }}</h6>
+    {{ caller() }}
+    {% if note_id %}
+    <div class="small text-muted border-top pt-2 mt-2">
+        <strong>Ghi chú:</strong> <span id="{{ note_id }}">Đang chờ tính toán…</span>
+    </div>
+    {% endif %}
+</div>
+{% endmacro %}
+
+{# --- Dòng kết quả đơn lẻ (label + giá trị) ---
+   Dùng bên trong {% call result_panel(...) %} #}
+{% macro result_field(label, id, css_class='text-dark') %}
+<div class="d-flex justify-content-between small mb-1">
+    <span>{{ label }}</span>
+    <span id="{{ id }}" class="fw-bold {{ css_class }}">-</span>
+</div>
+{% endmacro %}

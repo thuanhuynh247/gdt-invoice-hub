@@ -1,120 +1,75 @@
 {% extends "base.html" %}
 
+{% from "components/_hub_header.html" import hub_header %}
+{% from "components/_glass_card.html" import glass_card %}
+{% from "components/_calc_input.html" import select_input, number_input, switch_input, calc_button, range_slider, text_input, date_input %}
+{% from "components/_result_panel.html" import result_panel, result_field %}
+{% from "components/_debate_panel.html" import debate_panel %}
+{% from "components/_baseline_card.html" import baseline_card %}
+{% from "components/_data_table.html" import data_table %}
+
 {% block title %}License Fee Decree 139/2016 - License Fee Hub (v56){% endblock %}
 
 {% block content %}
 <div class="container py-4">
-    <!-- Header Area -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
-        <div>
-            <span class="badge bg-danger mb-2">Version 56.0.0 Spec Compliance</span>
-            <h1 class="h2 fw-bold text-gradient mb-1">License Fee Compliance Hub</h1>
-            <p class="text-muted mb-0">Manage annual License Fees (Lệ phí môn bài) for organizations and households, auditing exemptions under Decree 139/2016/NĐ-CP and Decree 22/2020/NĐ-CP.</p>
-        </div>
-        <div class="d-flex gap-2 mt-3 mt-md-0">
-            <button id="btn-refresh-v56" class="btn btn-danger text-white d-flex align-items-center gap-2">
-                <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Load Compliance Data
-            </button>
-            <span class="badge bg-danger-subtle text-danger border border-danger d-flex align-items-center px-3">
-                <i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Decree 139/2016/NĐ-CP
-            </span>
-        </div>
-    </div>
+    {# ── Đầu trang Hub ── #}
+    {{ hub_header('56.0.0',
+        'License Fee Compliance Hub',
+        'Manage annual License Fees (Lệ phí môn bài) for organizations and households, auditing exemptions under Decree 139/2016/NĐ-CP and Decree 22/2020/NĐ-CP.',
+        'btn-refresh-v56', 'Load Compliance Data', 'Decree 139/2016/NĐ-CP') }}
 
-    <!-- Main Grid Layout -->
+    {# ── Main Grid Layout ── #}
     <div class="row g-4">
-        <!-- Pillar 1: Calculator Panel -->
+        {# ── Pillar 1: Calculator Panel ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-calculator text-danger me-2" aria-hidden="true"></i>Interactive Brackets Calculator</h5>
-                    <p class="text-muted small mb-0">Compute the annual license fee liability. Enter capital for companies or revenue for households, then declare establishment timelines.</p>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="input-entity-name" class="form-label small mb-1">Business Name:</label>
-                            <input type="text" id="input-entity-name" class="form-control form-control-sm" value="HQ Headquarters" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-entity-type" class="form-label small mb-1">Entity Type:</label>
-                            <select id="input-entity-type" class="form-select form-select-sm">
-                                <option value="enterprise">Enterprise (Doanh nghiệp)</option>
-                                <option value="branch">Branch/Rep Office (Chi nhánh)</option>
-                                <option value="household">Household/Individual (Hộ kinh doanh)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-charter-capital" class="form-label small mb-1">Charter Capital (VND):</label>
-                            <input type="number" id="input-charter-capital" class="form-control form-control-sm" value="15000000000" autocomplete="off">
-                            <span class="text-muted extra-small">Enterprise brackets: &gt;10B (3M), &lt;=10B (2M)</span>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-annual-revenue" class="form-label small mb-1">Annual Revenue (VND):</label>
-                            <input type="number" id="input-annual-revenue" class="form-control form-control-sm" value="0" autocomplete="off">
-                            <span class="text-muted extra-small">Household brackets: &gt;500M (1M), 300M-500M (500k), 100M-300M (300k), &lt;=100M (Exempt)</span>
-                        </div>
-                        <div class="col-md-6 d-flex align-items-center">
-                            <div class="form-check form-switch mt-2">
-                                <input class="form-check-input" type="checkbox" id="check-newly-established">
-                                <label class="form-check-label small" for="check-newly-established">Newly Established (1st Year)?</label>
-                            </div>
-                        </div>
-                        <div class="col-md-6 d-flex align-items-center">
-                            <div class="form-check form-switch mt-2">
-                                <input class="form-check-input" type="checkbox" id="check-agri-cooperative">
-                                <label class="form-check-label small" for="check-agri-cooperative">Agricultural Cooperative?</label>
-                            </div>
-                        </div>
-                        <div class="col-12 text-end">
-                            <button id="btn-calculate-lf" class="btn btn-danger btn-sm text-white fw-bold">
-                                <i class="bi bi-play-fill me-1" aria-hidden="true"></i> Run Calculation
-                            </button>
-                        </div>
+            {% call glass_card('Interactive Brackets Calculator', 'bi bi-calculator', 'text-danger',
+                description='Compute the annual license fee liability. Enter capital for companies or revenue for households, then declare establishment timelines.') %}
+                <div class="row g-3">
+                    {{ text_input('input-entity-name', 'Business Name:', 'HQ Headquarters', col='col-md-6') }}
+                    {{ select_input('input-entity-type', 'Entity Type:', [
+                        {'value': 'enterprise', 'label': 'Enterprise (Doanh nghiệp)'},
+                        {'value': 'branch', 'label': 'Branch/Rep Office (Chi nhánh)'},
+                        {'value': 'household', 'label': 'Household/Individual (Hộ kinh doanh)'}
+                    ], col='col-md-6') }}
+                    <div class="col-md-6">
+                        {{ number_input('input-charter-capital', 'Charter Capital (VND):', 15000000000) }}
+                        <span class="text-muted extra-small">Enterprise brackets: &gt;10B (3M), &lt;=10B (2M)</span>
                     </div>
+                    <div class="col-md-6">
+                        {{ number_input('input-annual-revenue', 'Annual Revenue (VND):', 0) }}
+                        <span class="text-muted extra-small">Household brackets: &gt;500M (1M), 300M-500M (500k), 100M-300M (300k), &lt;=100M (Exempt)</span>
+                    </div>
+                    <div class="col-md-6 d-flex align-items-center">
+                        {{ switch_input('check-newly-established', 'Newly Established (1st Year)?') }}
+                    </div>
+                    <div class="col-md-6 d-flex align-items-center">
+                        {{ switch_input('check-agri-cooperative', 'Agricultural Cooperative?') }}
+                    </div>
+                    <div class="col-12 text-end">
+                        <button id="btn-calculate-lf" class="btn btn-danger btn-sm text-white fw-bold">
+                            <i class="bi bi-play-fill me-1" aria-hidden="true"></i> Run Calculation
+                        </button>
+                    </div>
+                </div>
 
-                    <div class="mt-4 p-3 bg-premium-light rounded border">
-                        <h6 class="fw-bold mb-2 text-danger"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Calculation Result</h6>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>Standard Annual Fee:</span>
-                            <span id="res-standard-fee" class="fw-bold text-dark">-</span>
-                        </div>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>Effective Annual Fee:</span>
-                            <span id="res-effective-fee" class="fw-bold text-danger fs-6">-</span>
-                        </div>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>Exempt Status:</span>
-                            <span id="res-is-exempt" class="fw-bold">-</span>
-                        </div>
-                        <div class="small text-muted border-top pt-2 mt-2">
-                            <strong>Audit Note:</strong> <span id="res-notes">Awaiting declaration entry…</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                {% call result_panel('Calculation Result', 'text-danger', note_id='res-notes') %}
+                    {{ result_field('Standard Annual Fee:', 'res-standard-fee') }}
+                    {{ result_field('Effective Annual Fee:', 'res-effective-fee', 'fw-bold text-danger fs-6') }}
+                    {{ result_field('Exempt Status:', 'res-is-exempt') }}
+                {% endcall %}
+            {% endcall %}
         </div>
 
-        <!-- Pillar 2: Pre-defined Compliance Audits -->
+        {# ── Pillar 2: Pre-defined Compliance Audits ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>License Fee Baseline Verification</h5>
-                    <p class="text-muted small mb-0">Pre-computed target ledgers verifying license fees under core business purposes.</p>
-                </div>
-                <div class="card-body d-flex flex-column gap-3">
+            {% call glass_card('License Fee Baseline Verification', 'bi bi-shield-check', 'text-success',
+                description='Pre-computed ledgers verifying license fees under core business purposes.') %}
+                <div class="d-flex flex-column gap-3">
                     <!-- baseline 1 -->
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="fw-bold small text-dark">HQ Headquarters (Enterprise &gt; 10B)</span>
-                            <span class="badge bg-secondary">Bracket 1</span>
-                        </div>
-                        <p class="small text-muted mb-2">Large organization with charter capital &gt; 10,000,000,000 VND.</p>
-                        <div class="d-flex justify-content-between small">
-                            <span>Charter Capital: <strong id="base1-cap">-</strong></span>
-                            <span>Fee: <strong id="base1-fee" class="text-danger">-</strong></span>
-                        </div>
-                    </div>
+                    {{ baseline_card('HQ Headquarters (Enterprise > 10B)', 'Bracket 1', 'bg-secondary',
+                        'Large organization with charter capital > 10,000,000,000 VND.',
+                        'Charter Capital: <strong id="base1-cap">-</strong>'|safe,
+                        'Fee', 'base1-fee') }}
 
                     <!-- baseline 2 -->
                     <div class="p-3 bg-premium-light rounded border border-light-subtle">
@@ -130,86 +85,45 @@
                     </div>
 
                     <!-- baseline 3 -->
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="fw-bold small text-dark">First Year StartUp Exemption (100%)</span>
-                            <span class="badge bg-success text-white">Exempt</span>
-                        </div>
-                        <p class="small text-muted mb-2">Newly established enterprise starting business this year.</p>
-                        <div class="d-flex justify-content-between small">
-                            <span>Startup Capital: <strong id="base3-cap">-</strong></span>
-                            <span>Reason: <strong id="base3-reason" class="text-success">-</strong></span>
-                        </div>
-                    </div>
+                    {{ baseline_card('First Year StartUp Exemption (100%)', 'Exempt', 'bg-success text-white',
+                        'Newly established enterprise starting business this year.',
+                        'Startup Capital: <strong id="base3-cap">-</strong>'|safe,
+                        'Reason', 'base3-reason') }}
 
                     <!-- baseline 4 -->
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="fw-bold small text-dark">Household Store Medium Bracket</span>
-                            <span class="badge bg-secondary">Bracket 2 (Household)</span>
-                        </div>
-                        <p class="small text-muted mb-2">Household store with annual revenue of 300M to 500M VND.</p>
-                        <div class="d-flex justify-content-between small">
-                            <span>Revenue: <strong id="base4-rev">-</strong></span>
-                            <span>Fee: <strong id="base4-fee" class="text-danger">-</strong></span>
-                        </div>
-                    </div>
+                    {{ baseline_card('Household Store Medium Bracket', 'Bracket 2 (Household)', 'bg-secondary',
+                        'Household store with annual revenue of 300M to 500M VND.',
+                        'Revenue: <strong id="base4-rev">-</strong>'|safe,
+                        'Fee', 'base4-fee') }}
                 </div>
-            </div>
+            {% endcall %}
         </div>
 
-        <!-- Pillar 3: Swarm Advisory Debate Panel -->
-        <div class="col-lg-12">
-            <div class="card shadow-sm border-light">
-                <div class="card-header bg-dark text-white py-3 d-flex align-items-center justify-content-between">
-                    <h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-danger me-2" aria-hidden="true"></i>Multi-Agent Municipal Advisory Debate</h5>
-                    <span class="badge bg-secondary">Licensing Regulation Consensus</span>
-                </div>
-                <div class="card-body">
-                    <div id="debate-container-v56" class="mb-3 d-flex flex-column gap-3">
-                        <!-- Loaded dynamically -->
-                    </div>
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus Summary Statement:</h6>
-                        <p id="consensus-text-v56" class="text-muted small mb-0">Awaiting simulation data execution…</p>
-                    </div>
-                </div>
-            </div>
+        {# ── Pillar 3: Swarm Advisory Debate Panel ── #}
+        <div class="col-12">
+            {{ debate_panel('debate-container-v56', 'consensus-text-v56',
+                'Multi-Agent Municipal Advisory Debate', 'Licensing Regulation Consensus') }}
         </div>
 
-        <!-- Pillar 4: Historical Audit Records -->
-        <div class="col-lg-12">
-            <div class="card shadow-sm border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-2">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-clock-history text-muted me-2" aria-hidden="true"></i>Historical Audit Log</h5>
-                    <p class="text-muted small mb-0">Chronological license fee calculations recorded for this tenant database.</p>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover table-striped mb-0 small">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Entity Name</th>
-                                    <th>Type</th>
-                                    <th>Charter Capital</th>
-                                    <th>Annual Revenue</th>
-                                    <th>Standard Fee</th>
-                                    <th>Effective Fee</th>
-                                    <th>Status</th>
-                                    <th>Exemption Detail</th>
-                                    <th>Timestamp</th>
-                                </tr>
-                            </thead>
-                            <tbody id="history-table-v56">
-                                <tr>
-                                    <td colspan="10" class="text-center text-muted py-4">No audit logs found. Run calculator to write records.</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+        {# ── Pillar 4: Historical Audit Records ── #}
+        <div class="col-12">
+            {% call data_table('Historical Audit Log', 'bi bi-clock-history', 'history-table-v56',
+                default_msg='No audit logs found. Run calculator to write records.', col_count=10) %}
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Entity Name</th>
+                        <th>Type</th>
+                        <th>Charter Capital</th>
+                        <th>Annual Revenue</th>
+                        <th>Standard Fee</th>
+                        <th>Effective Fee</th>
+                        <th>Status</th>
+                        <th>Exemption Detail</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+            {% endcall %}
         </div>
     </div>
 </div>

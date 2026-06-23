@@ -1,0 +1,29 @@
+{# ═══════════════════════════════════════════════════════════════════
+   LEGO COMPONENT: Baseline Card — Thẻ kiểm tra cơ sở tuân thủ
+   ────────────────────────────────────────────────────────────────
+   Hiển thị một kịch bản cơ sở (baseline scenario) với:
+   tiêu đề + badge + mô tả + chi tiết trái/phải.
+   
+   Tham số:
+     title              — tên kịch bản, ví dụ 'Laptops standard batch'
+     badge_text         — nhãn badge, ví dụ '500 units'
+     badge_class        — class CSS cho badge, ví dụ 'bg-success'
+     description        — mô tả ngắn gọn
+     detail_left        — thông tin bên trái, ví dụ 'Exempt: No'
+     detail_right_label — nhãn bên phải, ví dụ 'Fee'
+     detail_right_id    — id HTML cho giá trị bên phải (JS sẽ điền)
+   ═══════════════════════════════════════════════════════════════════ #}
+
+{% macro baseline_card(title, badge_text, badge_class, description, detail_left, detail_right_label, detail_right_id) %}
+<div class="p-3 bg-premium-light rounded border border-light-subtle">
+    <div class="d-flex justify-content-between align-items-center mb-1">
+        <span class="fw-bold small text-dark">{{ title }}</span>
+        <span class="badge {{ badge_class }}">{{ badge_text }}</span>
+    </div>
+    <p class="small text-muted mb-2">{{ description }}</p>
+    <div class="d-flex justify-content-between small">
+        <span>{{ detail_left }}</span>
+        <span>{{ detail_right_label }}: <strong id="{{ detail_right_id }}" class="text-success">-</strong></span>
+    </div>
+</div>
+{% endmacro %}

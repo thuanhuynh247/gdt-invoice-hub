@@ -1,0 +1,61 @@
+{# ═══════════════════════════════════════════════════════════════════
+   LEGO COMPONENT: Premium Controls CSS — CSS chung cho slider/tabs
+   ────────────────────────────────────────────────────────────────
+   CSS dùng chung cho thanh trượt range (Webkit + Firefox) và
+   thanh tab điều hướng. Tuân theo thiết kế Wise với biến CSS token.
+   Chỉ cần gọi 1 lần trong mỗi trang sử dụng slider hoặc tab.
+   ═══════════════════════════════════════════════════════════════════ #}
+
+{% macro premium_controls_css() %}
+<style>
+/* ── Thanh trượt Range (Webkit) ── */
+input[type="range"].form-range { -webkit-appearance: none; width: 100%; background: transparent; }
+input[type="range"].form-range:focus { outline: none; }
+input[type="range"].form-range::-webkit-slider-runnable-track {
+    width: 100%; height: 6px; cursor: pointer;
+    background: var(--primary-accent-soft) !important; border-radius: 9999px; border: none;
+}
+input[type="range"].form-range::-webkit-slider-thumb {
+    height: 18px; width: 18px; border-radius: 50%;
+    background: var(--primary-accent) !important; cursor: pointer;
+    -webkit-appearance: none; margin-top: -6px;
+    transition: transform 0.1s ease, background-color 0.1s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+input[type="range"].form-range::-webkit-slider-thumb:hover {
+    transform: scale(1.15); background: var(--lime-accent) !important;
+}
+/* ── Thanh trượt Range (Firefox) ── */
+input[type="range"].form-range::-moz-range-track {
+    width: 100%; height: 6px; cursor: pointer;
+    background: var(--primary-accent-soft) !important; border-radius: 9999px;
+}
+input[type="range"].form-range::-moz-range-thumb {
+    height: 18px; width: 18px; border-radius: 50%;
+    background: var(--primary-accent) !important; cursor: pointer; border: none;
+    transition: transform 0.1s ease, background-color 0.1s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+input[type="range"].form-range::-moz-range-thumb:hover {
+    transform: scale(1.15); background: var(--lime-accent) !important;
+}
+/* ── Tab điều hướng ── */
+.nav-tabs { border-bottom: 2px solid var(--border-card) !important; }
+.nav-tabs .nav-link {
+    border: none !important; background: transparent !important;
+    padding: 0.8rem 1.5rem !important; font-size: 0.95rem !important;
+    color: var(--text-secondary) !important;
+    border-bottom: 3px solid transparent !important;
+    transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.nav-tabs .nav-link:hover {
+    color: var(--primary-accent) !important;
+    border-bottom: 3px solid var(--primary-accent-soft) !important;
+}
+.nav-tabs .nav-link.active {
+    color: var(--primary-accent) !important;
+    border-bottom: 3px solid var(--primary-accent) !important;
+    font-weight: 700 !important;
+}
+</style>
+{% endmacro %}

@@ -1,0 +1,33 @@
+{# ═══════════════════════════════════════════════════════════════════
+   LEGO COMPONENT: Entry Animations — Hiệu ứng xuất hiện thẻ
+   ────────────────────────────────────────────────────────────────
+   Sử dụng IntersectionObserver để tạo hiệu ứng fade-in + slide-up
+   tuần tự cho các thẻ glass-card khi cuộn trang.
+   
+   Tham số:
+     selector — CSS selector cho các phần tử cần animate
+                mặc định '.glass-card'
+   ═══════════════════════════════════════════════════════════════════ #}
+
+{% macro entry_animations(selector='.glass-card') %}
+<script>
+(function() {
+    /* Hiệu ứng xuất hiện tuần tự cho các thẻ Lego */
+    const cards = document.querySelectorAll('{{ selector }}');
+    cards.forEach(c => { c.style.opacity = '0'; c.style.transform = 'translateY(20px)'; });
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry, idx) => {
+            if (entry.isIntersecting) {
+                setTimeout(() => {
+                    entry.target.style.transition = 'opacity 0.5s ease, transform 0.5s cubic-bezier(0.16,1,0.3,1)';
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }, idx * 80);
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.05 });
+    cards.forEach(c => observer.observe(c));
+})();
+</script>
+{% endmacro %}

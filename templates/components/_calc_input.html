@@ -1,0 +1,77 @@
+{# ═══════════════════════════════════════════════════════════════════
+   LEGO COMPONENT: Calc Input — Các phần tử nhập liệu form
+   ────────────────────────────────────────────────────────────────
+   Tập hợp các macro nhập liệu nguyên tử: text, number, select,
+   switch toggle, nút tính toán, và thanh trượt range.
+   Mỗi macro tạo 1 phần tử form với label + input chuẩn hóa.
+   ═══════════════════════════════════════════════════════════════════ #}
+
+{# --- Ô nhập văn bản --- #}
+{% macro text_input(id, label, value='', col='col-md-6') %}
+<div class="{{ col }}">
+    <label for="{{ id }}" class="form-label small mb-1">{{ label }}</label>
+    <input type="text" id="{{ id }}" class="form-control form-control-sm" value="{{ value }}" autocomplete="off">
+</div>
+{% endmacro %}
+
+{# --- Ô nhập số --- #}
+{% macro number_input(id, label, value=0, step='1', col='col-md-6') %}
+<div class="{{ col }}">
+    <label for="{{ id }}" class="form-label small mb-1">{{ label }}</label>
+    <input type="number" step="{{ step }}" id="{{ id }}" class="form-control form-control-sm" value="{{ value }}" autocomplete="off">
+</div>
+{% endmacro %}
+
+{# --- Ô nhập ngày tháng --- #}
+{% macro date_input(id, label, value='', col='col-md-6') %}
+<div class="{{ col }}">
+    <label for="{{ id }}" class="form-label small mb-1">{{ label }}</label>
+    <input type="date" id="{{ id }}" class="form-control form-control-sm" value="{{ value }}" autocomplete="off">
+</div>
+{% endmacro %}
+
+{# --- Danh sách chọn (dropdown) ---
+   options: danh sách dict, mỗi phần tử có .value và .label
+   Ví dụ: [{'value':'petrol','label':'Xăng (2,000 VND/l)'}] #}
+{% macro select_input(id, label, options, col='col-md-6') %}
+<div class="{{ col }}">
+    <label for="{{ id }}" class="form-label small mb-1">{{ label }}</label>
+    <select id="{{ id }}" class="form-select form-select-sm">
+        {% for opt in options %}
+        <option value="{{ opt.value }}">{{ opt.label }}</option>
+        {% endfor %}
+    </select>
+</div>
+{% endmacro %}
+
+{# --- Công tắc bật/tắt (toggle switch) --- #}
+{% macro switch_input(id, label, checked=false, col='col-md-6') %}
+<div class="{{ col }} d-flex align-items-end">
+    <div class="form-check form-switch mb-2">
+        <input class="form-check-input" type="checkbox" id="{{ id }}"{% if checked %} checked{% endif %}>
+        <label class="form-check-label small" for="{{ id }}">{{ label }}</label>
+    </div>
+</div>
+{% endmacro %}
+
+{# --- Nút tính toán --- #}
+{% macro calc_button(id, label, btn_class='btn-success') %}
+<div class="col-12 text-end">
+    <button id="{{ id }}" class="btn {{ btn_class }} btn-sm text-white fw-bold">
+        <i class="bi bi-calculator me-1" aria-hidden="true"></i> {{ label }}
+    </button>
+</div>
+{% endmacro %}
+
+{# --- Thanh trượt (range slider) ---
+   display_id: id của phần tử hiển thị giá trị hiện tại #}
+{% macro range_slider(id, label, min, max, step, value, display_id, col='col-md-4') %}
+<div class="{{ col }}">
+    <label for="{{ id }}" class="form-label d-flex justify-content-between">
+        <span>{{ label }}</span>
+        <strong id="{{ display_id }}">{{ value }}</strong>
+    </label>
+    <input type="range" class="form-range" id="{{ id }}"
+           min="{{ min }}" max="{{ max }}" step="{{ step }}" value="{{ value }}">
+</div>
+{% endmacro %}

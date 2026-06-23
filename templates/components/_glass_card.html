@@ -1,0 +1,36 @@
+{# ═══════════════════════════════════════════════════════════════════
+   LEGO COMPONENT: Glass Card — Thẻ kính mờ cao cấp
+   ────────────────────────────────────────────────────────────────
+   Bọc nội dung bên trong thẻ glass-card với tiêu đề, icon,
+   và badge tùy chọn. Sử dụng caller() để nhận nội dung body.
+   
+   Tham số:
+     title       — tiêu đề thẻ
+     icon        — class icon Bootstrap, ví dụ 'bi bi-fuel-pump-fill'
+     icon_color  — class màu cho icon+title, mặc định 'text-success'
+     description — mô tả ngắn (tùy chọn)
+     badge_text  — nội dung badge (tùy chọn, để trống = ẩn)
+     badge_class — class CSS cho badge
+     extra_class — class bổ sung cho glass-card, mặc định 'h-100'
+   ═══════════════════════════════════════════════════════════════════ #}
+
+{% macro glass_card(title, icon, icon_color='text-success', description='', badge_text='', badge_class='bg-success-subtle text-success', extra_class='h-100') %}
+<div class="glass-card {{ extra_class }}">
+    <div class="card-header bg-transparent border-0 pt-4 pb-0">
+        {% if badge_text %}
+        <div class="d-flex justify-content-between align-items-center mb-1">
+            <h5 class="fw-bold mb-1 {{ icon_color }}"><i class="{{ icon }} me-2" aria-hidden="true"></i>{{ title }}</h5>
+            <span class="badge {{ badge_class }}">{{ badge_text }}</span>
+        </div>
+        {% else %}
+        <h5 class="fw-bold mb-1 {{ icon_color }}"><i class="{{ icon }} me-2" aria-hidden="true"></i>{{ title }}</h5>
+        {% endif %}
+        {% if description %}
+        <p class="text-muted small mb-0">{{ description }}</p>
+        {% endif %}
+    </div>
+    <div class="card-body">
+        {{ caller() }}
+    </div>
+</div>
+{% endmacro %}

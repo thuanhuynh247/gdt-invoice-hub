@@ -1,279 +1,142 @@
 {% extends "base.html" %}
 
+{% from "components/_hub_header.html" import hub_header %}
+{% from "components/_glass_card.html" import glass_card %}
+{% from "components/_calc_input.html" import select_input, number_input, switch_input, calc_button, range_slider, text_input, date_input %}
+{% from "components/_result_panel.html" import result_panel, result_field %}
+{% from "components/_debate_panel.html" import debate_panel %}
+
 {% block title %}NRT Law 45/2009 - Natural Resources Tax Hub (v54){% endblock %}
 
 {% block content %}
 <div class="container py-4">
-    <!-- Header Area -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
-        <div>
-            <span class="badge bg-info mb-2">Version 54.0.0 Spec Compliance</span>
-            <h1 class="h2 fw-bold text-gradient mb-1">Natural Resources Tax Compliance Hub</h1>
-            <p class="text-muted mb-0">Mineral extraction, water resources, timber, and marine product NRT calculations with agricultural and hydropower exemptions under Luật Thuế tài nguyên 45/2009/QH12.</p>
-        </div>
-        <div class="d-flex gap-2 mt-3 mt-md-0">
-            <button id="btn-refresh-v54" class="btn btn-info text-white d-flex align-items-center gap-2">
-                <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Load Compliance Data
-            </button>
-            <span class="badge bg-info-subtle text-info border border-info d-flex align-items-center px-3">
-                <i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Law 45/2009/QH12
-            </span>
-        </div>
-    </div>
+    {# ── Đầu trang Hub ── #}
+    {{ hub_header('54.0.0',
+        'Natural Resources Tax Compliance Hub',
+        'Mineral extraction, water resources, timber, and marine product NRT calculations with agricultural and hydropower exemptions under Luật Thuế tài nguyên 45/2009/QH12.',
+        'btn-refresh-v54', 'Load Compliance Data', 'Law 45/2009/QH12') }}
 
-    <!-- Bento Grid Layout -->
+    {# ── Bento Grid Layout ── #}
     <div class="row g-4">
-        <!-- Pillar 1: Mineral NRT Calculator -->
+        {# ── Pillar 1: Mineral NRT Calculator ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-gem text-danger me-2" aria-hidden="true"></i>Mineral Extraction NRT Calculator</h5>
-                    <p class="text-muted small mb-0">Calculate ad-valorem NRT for metallic ores (Iron 12%, Copper 13%, Gold 15%, Tin 20%) and non-metallic minerals (Granite 8%, Sand 7%, Marble 9%, Limestone 5%). Self-consumed resources get 30% rate reduction.</p>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="input-mineral-name" class="form-label small mb-1">Mineral Name:</label>
-                            <input type="text" id="input-mineral-name" class="form-control form-control-sm" value="Iron Ore" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-mineral-cat" class="form-label small mb-1">Category:</label>
-                            <select id="input-mineral-cat" class="form-select form-select-sm">
-                                <option value="metallic">Metallic Ore</option>
-                                <option value="non-metallic">Non-Metallic Mineral</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="input-mineral-qty" class="form-label small mb-1">Quantity (units):</label>
-                            <input type="number" id="input-mineral-qty" class="form-control form-control-sm" value="1000" autocomplete="off">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="input-mineral-price" class="form-label small mb-1">Unit Price (VND):</label>
-                            <input type="number" id="input-mineral-price" class="form-control form-control-sm" value="500000" autocomplete="off">
-                        </div>
-                        <div class="col-md-4 d-flex align-items-end">
-                            <div class="form-check form-switch mb-2">
-                                <input class="form-check-input" type="checkbox" id="check-mineral-self">
-                                <label class="form-check-input-label small" for="check-mineral-self">Self-consumed?</label>
-                            </div>
-                        </div>
-                        <div class="col-12 text-end">
-                            <button id="btn-calculate-mineral" class="btn btn-danger btn-sm text-white">
-                                <i class="bi bi-calculator me-1" aria-hidden="true"></i> Calculate Mineral NRT
-                            </button>
-                        </div>
+            {% call glass_card('Mineral Extraction NRT Calculator', 'bi bi-gem', 'text-danger',
+                description='Calculate ad-valorem NRT for metallic ores (Iron 12%, Copper 13%, Gold 15%, Tin 20%) and non-metallic minerals (Granite 8%, Sand 7%, Marble 9%, Limestone 5%). Self-consumed resources get 30% rate reduction.') %}
+                <div class="row g-3">
+                    {{ text_input('input-mineral-name', 'Mineral Name:', 'Iron Ore', col='col-md-6') }}
+                    {{ select_input('input-mineral-cat', 'Category:', [
+                        {'value': 'metallic', 'label': 'Metallic Ore'},
+                        {'value': 'non-metallic', 'label': 'Non-Metallic Mineral'}
+                    ], col='col-md-6') }}
+                    {{ number_input('input-mineral-qty', 'Quantity (units):', 1000, col='col-md-4') }}
+                    {{ number_input('input-mineral-price', 'Unit Price (VND):', 500000, col='col-md-4') }}
+                    <div class="col-md-4 d-flex align-items-end">
+                        {{ switch_input('check-mineral-self', 'Self-consumed?') }}
                     </div>
+                    <div class="col-12 text-end">
+                        <button id="btn-calculate-mineral" class="btn btn-danger btn-sm text-white fw-bold">
+                            <i class="bi bi-calculator me-1" aria-hidden="true"></i> Calculate Mineral NRT
+                        </button>
+                    </div>
+                </div>
 
-                    <div class="mt-4 p-3 bg-premium-light rounded border">
-                        <h6 class="fw-bold mb-2 text-danger"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Mineral NRT Result</h6>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>NRT Rate:</span>
-                            <span id="res-mineral-rate" class="fw-bold text-dark">-</span>
-                        </div>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>NRT Amount:</span>
-                            <span id="res-mineral-amount" class="fw-bold text-danger">-</span>
-                        </div>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>Self-consumed:</span>
-                            <span id="res-mineral-self" class="fw-bold">-</span>
-                        </div>
-                        <div class="small text-muted border-top pt-2 mt-2">
-                            <strong>Note:</strong> <span id="res-mineral-note">Awaiting calculation…</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                {% call result_panel('Mineral NRT Result', 'text-danger', note_id='res-mineral-note') %}
+                    {{ result_field('NRT Rate:', 'res-mineral-rate', 'fw-bold text-dark') }}
+                    {{ result_field('NRT Amount:', 'res-mineral-amount', 'fw-bold text-danger') }}
+                    {{ result_field('Self-consumed:', 'res-mineral-self', 'fw-bold') }}
+                {% endcall %}
+            {% endcall %}
         </div>
 
-        <!-- Pillar 2: Water Resource NRT Calculator -->
+        {# ── Pillar 2: Water Resource NRT Calculator ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-droplet-half text-primary me-2" aria-hidden="true"></i>Water Resource NRT Calculator</h5>
-                    <p class="text-muted small mb-0">Calculate NRT on surface water (2%) and groundwater (4%). Agricultural, forestry, fishery use is 100% exempt. Hydropower ≤ 2MW is exempt.</p>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="input-water-source" class="form-label small mb-1">Water Source:</label>
-                            <select id="input-water-source" class="form-select form-select-sm">
-                                <option value="surface water">Surface Water (2%)</option>
-                                <option value="groundwater">Groundwater (4%)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-water-usage" class="form-label small mb-1">Usage Purpose:</label>
-                            <select id="input-water-usage" class="form-select form-select-sm">
-                                <option value="industrial">Industrial (Taxable)</option>
-                                <option value="agriculture">Agriculture (Exempt)</option>
-                                <option value="fishery">Fishery (Exempt)</option>
-                                <option value="hydropower">Hydropower</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="input-water-volume" class="form-label small mb-1">Volume (m³):</label>
-                            <input type="number" id="input-water-volume" class="form-control form-control-sm" value="10000" autocomplete="off">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="input-water-price" class="form-label small mb-1">Unit Price (VND/m³):</label>
-                            <input type="number" id="input-water-price" class="form-control form-control-sm" value="5000" autocomplete="off">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="input-hydro-mw" class="form-label small mb-1">Hydropower Capacity (MW):</label>
-                            <input type="number" step="0.1" id="input-hydro-mw" class="form-control form-control-sm" value="0" autocomplete="off">
-                        </div>
-                        <div class="col-12 text-end">
-                            <button id="btn-calculate-water" class="btn btn-primary btn-sm text-white">
-                                <i class="bi bi-calculator me-1" aria-hidden="true"></i> Calculate Water NRT
-                            </button>
-                        </div>
+            {% call glass_card('Water Resource NRT Calculator', 'bi bi-droplet-half', 'text-primary',
+                description='Calculate NRT on surface water (2%) and groundwater (4%). Agricultural, forestry, fishery use is 100% exempt. Hydropower <= 2MW is exempt.') %}
+                <div class="row g-3">
+                    {{ select_input('input-water-source', 'Water Source:', [
+                        {'value': 'surface water', 'label': 'Surface Water (2%)'},
+                        {'value': 'groundwater', 'label': 'Groundwater (4%)'}
+                    ], col='col-md-6') }}
+                    {{ select_input('input-water-usage', 'Usage Purpose:', [
+                        {'value': 'industrial', 'label': 'Industrial (Taxable)'},
+                        {'value': 'agriculture', 'label': 'Agriculture (Exempt)'},
+                        {'value': 'fishery', 'label': 'Fishery (Exempt)'},
+                        {'value': 'hydropower', 'label': 'Hydropower'}
+                    ], col='col-md-6') }}
+                    {{ number_input('input-water-volume', 'Volume (m³):', 10000, col='col-md-4') }}
+                    {{ number_input('input-water-price', 'Unit Price (VND/m³):', 5000, col='col-md-4') }}
+                    {{ number_input('input-hydro-mw', 'Hydropower Capacity (MW):', 0, col='col-md-4') }}
+                    <div class="col-12 text-end">
+                        <button id="btn-calculate-water" class="btn btn-primary btn-sm text-white fw-bold">
+                            <i class="bi bi-calculator me-1" aria-hidden="true"></i> Calculate Water NRT
+                        </button>
                     </div>
+                </div>
 
-                    <div class="mt-4 p-3 bg-premium-light rounded border">
-                        <h6 class="fw-bold mb-2 text-primary"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Water NRT Result</h6>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>NRT Rate:</span>
-                            <span id="res-water-rate" class="fw-bold text-dark">-</span>
-                        </div>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>NRT Amount:</span>
-                            <span id="res-water-amount" class="fw-bold text-primary">-</span>
-                        </div>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>Exempt:</span>
-                            <span id="res-water-exempt" class="fw-bold">-</span>
-                        </div>
-                        <div class="small text-muted border-top pt-2 mt-2">
-                            <strong>Note:</strong> <span id="res-water-note">Awaiting calculation…</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                {% call result_panel('Water NRT Result', 'text-primary', note_id='res-water-note') %}
+                    {{ result_field('NRT Rate:', 'res-water-rate', 'fw-bold text-dark') }}
+                    {{ result_field('NRT Amount:', 'res-water-amount', 'fw-bold text-primary') }}
+                    {{ result_field('Exempt:', 'res-water-exempt', 'fw-bold') }}
+                {% endcall %}
+            {% endcall %}
         </div>
 
-        <!-- Pillar 3: Timber NRT Calculator -->
+        {# ── Pillar 3: Timber NRT Calculator ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-tree-fill text-success me-2" aria-hidden="true"></i>Timber & Forest Products NRT</h5>
-                    <p class="text-muted small mb-0">Natural forest hardwood (25%), plantation timber (3%). Volume-based calculation in cubic meters.</p>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="input-timber-name" class="form-label small mb-1">Timber Name:</label>
-                            <input type="text" id="input-timber-name" class="form-control form-control-sm" value="Hardwood Logs" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-timber-source" class="form-label small mb-1">Source:</label>
-                            <select id="input-timber-source" class="form-select form-select-sm">
-                                <option value="natural forest">Natural Forest (25%)</option>
-                                <option value="plantation">Plantation (3%)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-timber-vol" class="form-label small mb-1">Volume (m³):</label>
-                            <input type="number" step="0.1" id="input-timber-vol" class="form-control form-control-sm" value="100" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-timber-price" class="form-label small mb-1">Unit Price (VND/m³):</label>
-                            <input type="number" id="input-timber-price" class="form-control form-control-sm" value="8000000" autocomplete="off">
-                        </div>
-                        <div class="col-12 text-end">
-                            <button id="btn-calculate-timber" class="btn btn-success btn-sm text-white">
-                                <i class="bi bi-calculator me-1" aria-hidden="true"></i> Calculate Timber NRT
-                            </button>
-                        </div>
+            {% call glass_card('Timber & Forest Products NRT', 'bi bi-tree-fill', 'text-success',
+                description='Natural forest hardwood (25%), plantation timber (3%). Volume-based calculation in cubic meters.') %}
+                <div class="row g-3">
+                    {{ text_input('input-timber-name', 'Timber Name:', 'Hardwood Logs', col='col-md-6') }}
+                    {{ select_input('input-timber-source', 'Source:', [
+                        {'value': 'natural forest', 'label': 'Natural Forest (25%)'},
+                        {'value': 'plantation', 'label': 'Plantation (3%)'}
+                    ], col='col-md-6') }}
+                    {{ number_input('input-timber-vol', 'Volume (m³):', 100, step='0.1', col='col-md-6') }}
+                    {{ number_input('input-timber-price', 'Unit Price (VND/m³):', 8000000, col='col-md-6') }}
+                    <div class="col-12 text-end">
+                        <button id="btn-calculate-timber" class="btn btn-success btn-sm text-white fw-bold">
+                            <i class="bi bi-calculator me-1" aria-hidden="true"></i> Calculate Timber NRT
+                        </button>
                     </div>
+                </div>
 
-                    <div class="mt-4 p-3 bg-premium-light rounded border">
-                        <h6 class="fw-bold mb-2 text-success"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Timber NRT Result</h6>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>NRT Rate:</span>
-                            <span id="res-timber-rate" class="fw-bold text-dark">-</span>
-                        </div>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>NRT Amount:</span>
-                            <span id="res-timber-amount" class="fw-bold text-success">-</span>
-                        </div>
-                        <div class="small text-muted border-top pt-2 mt-2">
-                            <strong>Note:</strong> <span id="res-timber-note">Awaiting calculation…</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                {% call result_panel('Timber NRT Result', 'text-success', note_id='res-timber-note') %}
+                    {{ result_field('NRT Rate:', 'res-timber-rate', 'fw-bold text-dark') }}
+                    {{ result_field('NRT Amount:', 'res-timber-amount', 'fw-bold text-success') }}
+                {% endcall %}
+            {% endcall %}
         </div>
 
-        <!-- Pillar 4: Marine Products NRT Calculator -->
+        {# ── Pillar 4: Marine Products NRT Calculator ── #}
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border-light">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h5 class="fw-bold mb-1"><i class="bi bi-water text-warning me-2" aria-hidden="true"></i>Marine Products NRT Calculator</h5>
-                    <p class="text-muted small mb-0">Natural aquatic products (2%), pearls and coral (8%). Weight-based calculation in kilograms.</p>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="input-marine-name" class="form-label small mb-1">Product Name:</label>
-                            <input type="text" id="input-marine-name" class="form-control form-control-sm" value="Fresh Shrimp" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-marine-cat" class="form-label small mb-1">Category:</label>
-                            <select id="input-marine-cat" class="form-select form-select-sm">
-                                <option value="aquatic">Natural Aquatic (2%)</option>
-                                <option value="pearl">Pearls & Coral (8%)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-marine-qty" class="form-label small mb-1">Quantity (kg):</label>
-                            <input type="number" step="0.1" id="input-marine-qty" class="form-control form-control-sm" value="500" autocomplete="off">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="input-marine-price" class="form-label small mb-1">Unit Price (VND/kg):</label>
-                            <input type="number" id="input-marine-price" class="form-control form-control-sm" value="200000" autocomplete="off">
-                        </div>
-                        <div class="col-12 text-end">
-                            <button id="btn-calculate-marine" class="btn btn-warning btn-sm text-dark fw-bold">
-                                <i class="bi bi-calculator me-1" aria-hidden="true"></i> Calculate Marine NRT
-                            </button>
-                        </div>
+            {% call glass_card('Marine Products NRT Calculator', 'bi bi-water', 'text-warning',
+                description='Natural aquatic products (2%), pearls and coral (8%). Weight-based calculation in kilograms.') %}
+                <div class="row g-3">
+                    {{ text_input('input-marine-name', 'Product Name:', 'Fresh Shrimp', col='col-md-6') }}
+                    {{ select_input('input-marine-cat', 'Category:', [
+                        {'value': 'aquatic', 'label': 'Natural Aquatic (2%)'},
+                        {'value': 'pearl', 'label': 'Pearls & Coral (8%)'}
+                    ], col='col-md-6') }}
+                    {{ number_input('input-marine-qty', 'Quantity (kg):', 500, step='0.1', col='col-md-6') }}
+                    {{ number_input('input-marine-price', 'Unit Price (VND/kg):', 200000, col='col-md-6') }}
+                    <div class="col-12 text-end">
+                        <button id="btn-calculate-marine" class="btn btn-warning btn-sm text-dark fw-bold">
+                            <i class="bi bi-calculator me-1" aria-hidden="true"></i> Calculate Marine NRT
+                        </button>
                     </div>
+                </div>
 
-                    <div class="mt-4 p-3 bg-premium-light rounded border">
-                        <h6 class="fw-bold mb-2 text-warning"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Marine NRT Result</h6>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>NRT Rate:</span>
-                            <span id="res-marine-rate" class="fw-bold text-dark">-</span>
-                        </div>
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span>NRT Amount:</span>
-                            <span id="res-marine-amount" class="fw-bold text-warning">-</span>
-                        </div>
-                        <div class="small text-muted border-top pt-2 mt-2">
-                            <strong>Note:</strong> <span id="res-marine-note">Awaiting calculation…</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                {% call result_panel('Marine NRT Result', 'text-warning', note_id='res-marine-note') %}
+                    {{ result_field('NRT Rate:', 'res-marine-rate', 'fw-bold text-dark') }}
+                    {{ result_field('NRT Amount:', 'res-marine-amount', 'fw-bold text-warning') }}
+                {% endcall %}
+            {% endcall %}
         </div>
 
-        <!-- Swarm Advisory Debate Panel -->
-        <div class="col-lg-12">
-            <div class="card shadow-sm border-light">
-                <div class="card-header bg-dark text-white py-3 d-flex align-items-center justify-content-between">
-                    <h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote-fill text-info me-2" aria-hidden="true"></i>Multi-Agent Advisory Board Debate</h5>
-                    <span class="badge bg-secondary border border-secondary">Resource Extraction Consensus</span>
-                </div>
-                <div class="card-body">
-                    <div id="debate-container-v54" class="mb-3 d-flex flex-column gap-3">
-                    </div>
-                    <div class="p-3 bg-premium-light rounded border border-light-subtle">
-                        <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>Consensus Summary Statement:</h6>
-                        <p id="consensus-text-v54" class="text-muted small mb-0">Awaiting simulation data execution…</p>
-                    </div>
-                </div>
-            </div>
+        {# ── Swarm Advisory Debate Panel ── #}
+        <div class="col-12">
+            {{ debate_panel('debate-container-v54', 'consensus-text-v54',
+                'Multi-Agent Advisory Board Debate', 'Resource Extraction Consensus') }}
         </div>
     </div>
 </div>
@@ -372,7 +235,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const renderWater = (res) => {
         document.getElementById("res-water-rate").textContent = `${(res.nrt_rate * 100).toFixed(0)}%`;
-        document.getElementById("res-water-amount").textContent = formatVND(res.nrt_amount);
+        document.getElementById("res-water-amount").textContent = formatVND(res.sct_amount || res.nrt_amount || 0);
         document.getElementById("res-water-exempt").textContent = res.is_exempt ? "✅ Yes - " + res.exemption_reason : "❌ No";
         document.getElementById("res-water-note").textContent = res.notes || "-";
     };
