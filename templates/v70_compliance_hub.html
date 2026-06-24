@@ -303,6 +303,51 @@
             {% endcall %}
         </div>
 
+        {# ── Annual ODS Compliance Summary Dashboard ── #}
+        <div class="col-lg-12">
+            {% call glass_card('Annual ODS Compliance Summary', 'bi bi-graph-up-arrow', 'text-success',
+                'Real-time aggregate statistics for the current calendar year, including total shipments, fees, and waiver capacity.') %}
+                <div class="row g-3 text-center" id="annual-summary-grid">
+                    <div class="col-md-2">
+                        <div class="border rounded-3 p-3 bg-premium-light h-100">
+                            <div class="small text-muted mb-1">Total Shipments</div>
+                            <h3 class="fw-bold mb-0" id="sum-shipments">0</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="border rounded-3 p-3 bg-premium-light h-100">
+                            <div class="small text-muted mb-1">Total Weight</div>
+                            <h3 class="fw-bold mb-0" id="sum-weight">0 kg</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="border rounded-3 p-3 bg-premium-light h-100">
+                            <div class="small text-muted mb-1">ODP Equivalent</div>
+                            <h3 class="fw-bold mb-0 text-warning" id="sum-odp">0 kg</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="border rounded-3 p-3 bg-premium-light h-100">
+                            <div class="small text-muted mb-1">Total Fees</div>
+                            <h3 class="fw-bold mb-0 text-danger" id="sum-fees">0 VND</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="border rounded-3 p-3 bg-premium-light h-100">
+                            <div class="small text-muted mb-1">Exempt / Charged</div>
+                            <h3 class="fw-bold mb-0" id="sum-ratio">0 / 0</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="border rounded-3 p-3 bg-premium-light h-100">
+                            <div class="small text-muted mb-1">Waiver Remaining</div>
+                            <h3 class="fw-bold mb-0 text-success" id="sum-waiver">50.0 kg</h3>
+                        </div>
+                    </div>
+                </div>
+            {% endcall %}
+        </div>
+
         {# ── Bảng lịch sử ODS ── #}
         <div class="col-lg-12">
             <div class="d-flex justify-content-between align-items-center mb-2 px-1">
@@ -311,7 +356,7 @@
                     <i class="bi bi-file-pdf me-2"></i>Export PDF Compliance Report
                 </a>
             </div>
-            {% call data_table('ODS Compliance History Log', 'bi bi-clock-history', 'history-table-v70', 'No logs available.', 11) %}
+            {% call data_table('ODS Compliance History Log', 'bi bi-clock-history', 'history-table-v70', 'No logs available.', 12) %}
                 <thead class="table-dark">
                     <tr>
                         <th>ID</th>
@@ -325,6 +370,7 @@
                         <th>Licensing Fee</th>
                         <th>Status</th>
                         <th>Timestamp</th>
+                        <th class="text-center">Action</th>
                     </tr>
                 </thead>
             {% endcall %}
@@ -430,6 +476,24 @@ document.addEventListener("DOMContentLoaded", () => {
                 
                 rH(d.history);
                 updateCumulativeGauge(d.cumulative_annual_weight || 0.0);
+                loadAnnualSummary();
+            }
+        }).catch(e=>console.error(e));
+    };
+
+    const loadAnnualSummary = () => {
+        fetch('/api/v70/annual-summary').then(r=>r.json()).then(d=>{
+            if(d.status==="success") {
+                const s = d.summary;
+                document.getElementById("sum-shipments").textContent = s.total_shipments || 0;
+                document.getElementById("sum-weight").textContent = (s.total_weight_kg || 0).toFixed(1) + " kg";
+                document.getElementById("sum-odp").textContent = (s.total_odp_eq_kg || 0).toFixed(1) + " kg";
+                document.getElementById("sum-fees").textContent = fVND(s.total_fees_vnd || 0);
+                document.getElementById("sum-ratio").textContent = `${s.exempt_count || 0} / ${s.charged_count || 0}`;
+                const remaining = s.waiver_remaining_kg || 0;
+                const waiverEl = document.getElementById("sum-waiver");
+                waiverEl.textContent = remaining.toFixed(1) + " kg";
+                waiverEl.className = remaining <= 0 ? "fw-bold mb-0 text-danger" : remaining <= 20 ? "fw-bold mb-0 text-warning" : "fw-bold mb-0 text-success";
             }
         }).catch(e=>console.error(e));
     };
@@ -532,7 +596,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const rH = h => {
         const tb = document.getElementById("history-table-v70");
         if (!h || !h.length) {
-            tb.innerHTML = '<tr><td colspan="11" class="text-center text-muted py-4">No logs available.</td></tr>';
+            tb.innerHTML = '<tr><td colspan="12" class="text-center text-muted py-4">No logs available.</td></tr>';
             return;
         }
         tb.innerHTML = "";
@@ -554,6 +618,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td class="fw-bold text-dark">${fVND(l.effective_fee_vnd)}</td>
                 <td>${statusBadge}</td>
                 <td class="text-muted">${l.created_at}</td>
+                <td class="text-center"><button class="btn btn-sm btn-outline-danger px-2 py-0" onclick="deleteLog(${l.id})" title="Delete this entry"><i class="bi bi-trash"></i></button></td>
             `;
             tb.appendChild(tr);
         });
@@ -576,6 +641,23 @@ document.addEventListener("DOMContentLoaded", () => {
     load();
     updateInteractiveVisuals();
 });
+
+// Global delete handler (outside DOMContentLoaded to be accessible from inline onclick)
+function deleteLog(logId) {
+    if (!confirm(`Delete ODS log entry #${logId}? This action is irreversible.`)) return;
+    fetch('/api/v70/delete-log', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({log_id: logId})
+    }).then(r => r.json()).then(d => {
+        if (d.status === 'success') {
+            // Trigger full reload to refresh history, summary, and gauge
+            document.getElementById('btn-refresh-v70').click();
+        } else {
+            alert(d.error || 'Failed to delete entry.');
+        }
+    }).catch(e => console.error(e));
+}
 </script>
 
 {{ entry_animations() }}

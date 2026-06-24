@@ -3568,6 +3568,39 @@ def api_v70_export_pdf():
         download_name=f"ods_compliance_report_{mst}.pdf"
     )
 
+@invoices_blueprint.get("/api/v70/annual-summary")
+def api_v70_annual_summary():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    year = request.args.get("year", type=int)
+
+    from invoices.v70_service import V70ComplianceService
+    service = V70ComplianceService(current_app.config["BASE_DATA_DIR"])
+    summary = service.get_annual_summary(mst, year)
+    return jsonify({"status": "success", "summary": summary})
+
+@invoices_blueprint.post("/api/v70/delete-log")
+def api_v70_delete_log():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    log_id = data.get("log_id")
+    if not log_id:
+        return jsonify({"error": "log_id is required"}), 400
+
+    from invoices.v70_service import V70ComplianceService
+    service = V70ComplianceService(current_app.config["BASE_DATA_DIR"])
+    deleted = service.delete_log(mst, int(log_id))
+    if deleted:
+        return jsonify({"status": "success", "message": f"Log #{log_id} deleted."})
+    return jsonify({"error": f"Log #{log_id} not found."}), 404
+
 # --- VERSION 71 ROUTES ---
 @invoices_blueprint.get("/v71-compliance-hub")
 def v71_compliance_hub_page():

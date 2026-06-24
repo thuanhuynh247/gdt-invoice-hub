@@ -37,10 +37,17 @@ class V70ComplianceService:
                 license_charge_rate REAL NOT NULL,
                 final_fee REAL NOT NULL,
                 is_exempt BOOLEAN NOT NULL,
+                exemption_category TEXT DEFAULT 'none',
                 notes TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         """)
+        # Migrate: add exemption_category column if missing (existing tenants)
+        try:
+            cur.execute("ALTER TABLE ods_quota_logs ADD COLUMN exemption_category TEXT DEFAULT 'none'")
+            conn.commit()
+        except sqlite3.OperationalError:
+            pass  # Column already exists
         conn.commit()
         return conn
 
@@ -51,10 +58,11 @@ class V70ComplianceService:
         conn = self.get_tenant_connection(mst)
         cur = conn.cursor()
         try:
-            # Under SQLite, check if strftime('%Y', created_at) matches the year
+            # Count ALL shipments (including exempt ones) toward cumulative total
+            # to prevent waiver abuse via split shipments
             cur.execute("""
                 SELECT SUM(weight_kg) FROM ods_quota_logs
-                WHERE strftime('%Y', created_at) = ? AND is_exempt = 0
+                WHERE strftime('%Y', created_at) = ?
             """, (str(year),))
             row = cur.fetchone()
             total = row[0] if row and row[0] is not None else 0.0
@@ -104,7 +112,7 @@ class V70ComplianceService:
             is_exempt = True
             final_fee = 0.0
             notes_list.append(f"Exempt: Import of {weight_kg:.2f} kg of {substance_name} certified for laboratory/medical application under Article 24.")
-        elif exemption_category == "low_volume_waiver" or exemption_category == "small_allocation" or (weight_kg < 50.0 and exemption_category == "none"):
+        elif exemption_category == "low_volume_waiver" or exemption_category == "small_allocation" or (weight_kg < 50.0 and odp_weight_eq < 50.0 and exemption_category == "none"):
             # Check cumulative threshold! If the cumulative total for the year exceeds 50.0 kg, the low-volume exemption is denied.
             if prev_cumulative >= 50.0:
                 is_exempt = False
@@ -138,9 +146,9 @@ class V70ComplianceService:
             cur = conn.cursor()
             cur.execute("""
                 INSERT INTO ods_quota_logs
-                    (substance_name, substance_group, weight_kg, odp_factor, odp_weight_eq, license_charge_rate, final_fee, is_exempt, notes)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (substance_name, substance_group, weight_kg, odp_factor, odp_weight_eq, charge_rate, final_fee, is_exempt, notes))
+                    (substance_name, substance_group, weight_kg, odp_factor, odp_weight_eq, license_charge_rate, final_fee, is_exempt, exemption_category, notes)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (substance_name, substance_group, weight_kg, odp_factor, odp_weight_eq, charge_rate, final_fee, is_exempt, exemption_category, notes))
             conn.commit()
             conn.close()
 
@@ -178,16 +186,53 @@ class V70ComplianceService:
             d["odp_equivalent_kg"] = d["odp_weight_eq"]
             d["base_rate_per_kg"] = d["license_charge_rate"]
             d["effective_fee_vnd"] = d["final_fee"]
-            # Infer exemption category
-            notes_lower = (d.get("notes") or "").lower()
-            if "medical" in notes_lower:
-                d["exemption_category"] = "medical_use"
-            elif "laboratory" in notes_lower or "scientific" in notes_lower:
-                d["exemption_category"] = "research_study"
-            elif "low-volume" in notes_lower or "waiver" in notes_lower:
-                d["exemption_category"] = "low_volume_waiver"
-            else:
-                d["exemption_category"] = "none"
+            # Use stored exemption_category; fall back to notes inference for legacy rows
+            if not d.get("exemption_category") or d["exemption_category"] == "none":
+                notes_lower = (d.get("notes") or "").lower()
+                if "medical" in notes_lower:
+                    d["exemption_category"] = "medical_use"
+                elif "laboratory" in notes_lower or "scientific" in notes_lower:
+                    d["exemption_category"] = "research_study"
+                elif "low-volume" in notes_lower or "waiver" in notes_lower:
+                    d["exemption_category"] = "low_volume_waiver"
             d["exemption_reason"] = d.get("notes") or "None"
             res_list.append(d)
         return res_list
+
+    def delete_log(self, mst: str, log_id: int) -> bool:
+        """Delete an ODS quota log entry by ID (for audit corrections)."""
+        conn = self.get_tenant_connection(mst)
+        cur = conn.cursor()
+        cur.execute("DELETE FROM ods_quota_logs WHERE id = ?", (log_id,))
+        deleted = cur.rowcount > 0
+        conn.commit()
+        conn.close()
+        return deleted
+
+    def get_annual_summary(self, mst: str, year: int | None = None) -> Dict[str, Any]:
+        """Returns a summary of all ODS activity for the given calendar year."""
+        if year is None:
+            year = datetime.now().year
+        conn = self.get_tenant_connection(mst)
+        cur = conn.cursor()
+        try:
+            cur.execute("""
+                SELECT
+                    COUNT(*) as total_shipments,
+                    COALESCE(SUM(weight_kg), 0) as total_weight_kg,
+                    COALESCE(SUM(odp_weight_eq), 0) as total_odp_eq_kg,
+                    COALESCE(SUM(final_fee), 0) as total_fees_vnd,
+                    COALESCE(SUM(CASE WHEN is_exempt = 1 THEN 1 ELSE 0 END), 0) as exempt_count,
+                    COALESCE(SUM(CASE WHEN is_exempt = 0 THEN 1 ELSE 0 END), 0) as charged_count
+                FROM ods_quota_logs
+                WHERE strftime('%Y', created_at) = ?
+            """, (str(year),))
+            row = cur.fetchone()
+            summary = dict(row) if row else {}
+        except Exception:
+            summary = {}
+        finally:
+            conn.close()
+        summary["year"] = year
+        summary["waiver_remaining_kg"] = max(0.0, 50.0 - summary.get("total_weight_kg", 0.0))
+        return summary
