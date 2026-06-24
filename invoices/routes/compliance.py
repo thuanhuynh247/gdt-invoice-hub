@@ -3438,7 +3438,8 @@ def api_v70_calculate():
             data.get("substance_name", "Refrigerant Gas"),
             data.get("substance_group", "hcfc"),
             float(data.get("weight_kg", 0.0)),
-            data.get("exemption_category", "none")
+            data.get("exemption_category", "none"),
+            save_to_db=True
         )
         return jsonify({"status": "success", "results": res})
     except Exception as e:
@@ -3455,10 +3456,10 @@ def api_v70_compliance_data():
     from invoices.v70_service import V70ComplianceService
     service = V70ComplianceService(current_app.config["BASE_DATA_DIR"])
 
-    # Baseline calculations
-    cfc_standard = service.calculate_ods(mst, "Freon R-12", "cfc", 800.0)
-    hcfc_standard = service.calculate_ods(mst, "Refrigerant R-22", "hcfc", 1200.0)
-    medical_exempt = service.calculate_ods(mst, "Propellant CFC-11 Medical", "cfc", 150.0, exemption_category="medical_use")
+    # Baseline calculations (do not persist to DB on page load)
+    cfc_standard = service.calculate_ods(mst, "Freon R-12", "cfc", 800.0, save_to_db=False)
+    hcfc_standard = service.calculate_ods(mst, "Refrigerant R-22", "hcfc", 1200.0, save_to_db=False)
+    medical_exempt = service.calculate_ods(mst, "Propellant CFC-11 Medical", "cfc", 150.0, exemption_category="medical_use", save_to_db=False)
 
     debate_transcript = [
         {"speaker": "Ozone Layer Inspector", "text": "Decree 06/2022/NĐ-CP scales ODS quotas and fees by ODP equivalents (CFC factor 1.0, HCFC 0.055, Halon 10.0) with charges ranging from 15,000 to 2,500,000 VND/kg."},
@@ -3474,8 +3475,98 @@ def api_v70_compliance_data():
         "medical_exempt": medical_exempt,
         "debate": debate_transcript,
         "consensus_summary": consensus_summary,
+        "cumulative_annual_weight": service.get_cumulative_annual_weight(mst),
         "history": service.get_history(mst, 20)
     })
+
+@invoices_blueprint.get("/api/v70/export-pdf")
+def api_v70_export_pdf():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    from invoices.v70_service import V70ComplianceService
+    service = V70ComplianceService(current_app.config["BASE_DATA_DIR"])
+    history = service.get_history(mst, 100)
+
+    html_content = f"""
+    <html>
+    <head>
+        <style>
+            body {{ font-family: 'Arial', sans-serif; margin: 30px; color: #333; }}
+            h1 {{ color: #198754; border-bottom: 2px solid #198754; padding-bottom: 10px; }}
+            .meta {{ margin-bottom: 20px; font-size: 14px; color: #666; }}
+            table {{ width: 100%; border-collapse: collapse; margin-top: 20px; }}
+            th, td {{ border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 12px; }}
+            th {{ background-color: #f2f2f2; font-weight: bold; }}
+            tr:nth-child(even) {{ background-color: #f9f9f9; }}
+            .badge {{ padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; color: white; }}
+            .badge-exempt {{ background-color: #198754; }}
+            .badge-payable {{ background-color: #dc3545; }}
+            .footer {{ margin-top: 50px; text-align: center; font-size: 11px; color: #999; border-top: 1px solid #eee; padding-top: 10px; }}
+        </style>
+    </head>
+    <body>
+        <h1>Decree 06/2022/NĐ-CP - ODS Quota & Compliance Report</h1>
+        <div class="meta">
+            <p><strong>Taxpayer MST:</strong> {mst}</p>
+            <p><strong>Report Generated:</strong> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
+            <p><strong>Compliance Status:</strong> Active (Decree 06/2022/NĐ-CP Compliant Engine)</p>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Chemical / Substance Name</th>
+                    <th>Group</th>
+                    <th>Weight (kg)</th>
+                    <th>ODP Factor</th>
+                    <th>ODP Equivalent</th>
+                    <th>Base Rate / kg</th>
+                    <th>Licensing Fee</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+    """
+    for item in history:
+        status_badge = '<span class="badge badge-exempt">Exempt</span>' if item['is_exempt'] else '<span class="badge badge-payable">Payable</span>'
+        fee_formatted = f"{item['effective_fee_vnd']:,.0f} VND" if item['effective_fee_vnd'] > 0 else "0 VND"
+        rate_formatted = f"{item['base_rate_per_kg']:,.0f} VND"
+        html_content += f"""
+                <tr>
+                    <td>{item['id']}</td>
+                    <td><strong>{item['substance_name']}</strong></td>
+                    <td>{item['substance_group'].upper()}</td>
+                    <td>{item['weight_kg']:.2f} kg</td>
+                    <td>{item['odp_factor']:.4f}</td>
+                    <td>{item['odp_equivalent_kg']:.3f} ODP-kg</td>
+                    <td>{rate_formatted}</td>
+                    <td>{fee_formatted}</td>
+                    <td>{status_badge}</td>
+                </tr>
+        """
+    
+    html_content += """
+            </tbody>
+        </table>
+        <div class="footer">
+            <p>This document is generated by the GDT Invoice Hub Compliance Module (v70.0.0).</p>
+            <p>Calculations are scaled using Ozone Depleting Potential (ODP) factors under Decree 06/2022/NĐ-CP on atmospheric protection.</p>
+        </div>
+    </body>
+    </html>
+    """
+
+    pdf_buf = render_html_to_pdf(html_content)
+    pdf_buf.seek(0)
+    return send_file(
+        pdf_buf,
+        mimetype="application/pdf",
+        as_attachment=True,
+        download_name=f"ods_compliance_report_{mst}.pdf"
+    )
 
 # --- VERSION 71 ROUTES ---
 @invoices_blueprint.get("/v71-compliance-hub")

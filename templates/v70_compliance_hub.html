@@ -30,11 +30,11 @@
                 <div class="row g-3">
                     {{ text_input('input-substance-name', 'Substance Commercial / IUPAC Name:', 'Chất làm lạnh R-22 (Difluorochloromethane)', col='col-12') }}
                     {{ select_input('input-substance-group', 'Controlled ODS Group:', [
-                        {'value':'cfc','label':'Chlorofluorocarbons (CFC) - ODP: 1.0 (Rate: 150k VND/kg)'},
-                        {'value':'hcfc','label':'Hydrochlorofluorocarbons (HCFC) - ODP: 0.055 (Rate: 30k VND/kg)'},
-                        {'value':'hfc','label':'Hydrofluorocarbons (HFC) - ODP: 0.002 (Rate: 15k VND/kg)'},
+                        {'value':'cfc','label':'Chlorofluorocarbons (CFC) - ODP: 1.0 (Rate: 250k VND/kg)'},
+                        {'value':'hcfc','label':'Hydrochlorofluorocarbons (HCFC) - ODP: 0.055 (Rate: 15k VND/kg)'},
+                        {'value':'hfc','label':'Hydrofluorocarbons (HFC) - ODP: 0.000 (Rate: 8k VND/kg)'},
                         {'value':'halon','label':'Halons - ODP: 10.0 (Rate: 2.5M VND/kg)'},
-                        {'value':'methyl_bromide','label':'Methyl Bromide - ODP: 0.6 (Rate: 100k VND/kg)'}
+                        {'value':'methyl_bromide','label':'Methyl Bromide - ODP: 0.6 (Rate: 150k VND/kg)'}
                     ], col='col-md-6') }}
                     {{ select_input('input-exemption-cat', 'Exemption Category:', [
                         {'value':'none','label':'No Exemption (Chịu phí đầy đủ)'},
@@ -46,6 +46,13 @@
                     
                     {{ calc_button('btn-calc-ods', 'Calculate ODS Import Fee', 'btn-success', col='col-12 text-end') }}
                 </div>
+                
+                {# Warning alert for cumulative limits #}
+                <div id="calc-warning-box" class="alert alert-warning border-warning-subtle mt-3 d-none" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <span id="calc-warning-text"></span>
+                </div>
+
                 {% call result_panel('Calculation Result', 'text-success', 'res-exemption-reason') %}
                     {{ result_field('Substance ODP Factor:', 'res-odp-factor') }}
                     {{ result_field('Total ODP-Equivalent Mass:', 'res-odp-equivalent') }}
@@ -59,18 +66,19 @@
             {% endcall %}
         </div>
 
-        {# ── Baselines ODS ── #}
-        <div class="col-lg-6">
+        {# ── Baselines & Real-Time Visualizer ── #}
+        <div class="col-lg-6 d-flex flex-column gap-4">
+            {# Baselines Card #}
             {% call glass_card('ODS Licensing Baselines', 'bi bi-shield-check', 'text-success',
                 'Pre-computed target ledgers verifying ozone-depleting substance import liabilities under Decree 06/2022.') %}
                 <div class="d-flex flex-column gap-3">
                     {{ baseline_card('Freon R-12', 'CFC Group', 'bg-danger text-white',
-                        'CFC: 800 kg. ODP equivalent: 800 kg. Rate: 150k VND/kg.',
+                        'CFC: 800 kg. ODP equivalent: 800 kg. Rate: 250k VND/kg.',
                         'ODP Factor: 1.0',
                         'Fee', 'base1-eff') }}
 
                     {{ baseline_card('Refrigerant R-22', 'HCFC Group', 'bg-warning text-dark',
-                        'HCFC: 1,200 kg. ODP equivalent: 66 kg. Rate: 30k VND/kg.',
+                        'HCFC: 1,200 kg. ODP equivalent: 66 kg. Rate: 15k VND/kg.',
                         'ODP Factor: 0.055',
                         'Fee', 'base2-eff') }}
 
@@ -80,16 +88,229 @@
                         'Reason', 'base3-reason') }}
                 </div>
             {% endcall %}
+
+            {# Real-Time Visualizer Card #}
+            {% call glass_card('Real-Time ODS Impact Visualizer', 'bi bi-bar-chart-line', 'text-success',
+                'Dynamic ODP equivalent scaling and cumulative annual quota usage under Decree 06/2022.') %}
+                <div class="d-flex flex-column gap-3 align-items-center justify-content-center p-2">
+                    <!-- Real-time Environmental Footprint Indicator -->
+                    <div class="w-100 text-center mb-1">
+                        <span class="small text-muted d-block">Current Shipment Environmental Footprint</span>
+                        <h3 class="fw-bold text-success mb-1" id="visual-odp-eq">0.00 ODP-kg</h3>
+                        <span class="badge bg-light text-dark border" id="visual-substance-tag">Selected Substance</span>
+                    </div>
+
+                    <!-- SVG Bar Chart comparing ODP Factors -->
+                    <svg viewBox="0 0 400 160" width="100%" class="bg-premium-light p-2 rounded border border-light-subtle">
+                        <!-- Chart Title -->
+                        <text x="10" y="15" fill="#333" font-size="10" font-weight="bold">Ozone Depletion Potential (ODP) Scale Comparison</text>
+                        
+                        <!-- CFC Bar -->
+                        <text x="10" y="38" fill="#555" font-size="9">CFC (1.0)</text>
+                        <rect x="100" y="30" width="260" height="10" rx="2" fill="#dc3545" opacity="0.3" id="bar-cfc" style="transition: opacity 0.3s, fill 0.3s;"></rect>
+                        
+                        <!-- HCFC Bar -->
+                        <text x="10" y="63" fill="#555" font-size="9">HCFC (0.055)</text>
+                        <rect x="100" y="55" width="14.3" height="10" rx="2" fill="#ffc107" opacity="0.3" id="bar-hcfc" style="transition: opacity 0.3s, fill 0.3s;"></rect>
+                        
+                        <!-- HFC Bar -->
+                        <text x="10" y="88" fill="#555" font-size="9">HFC (0.0)</text>
+                        <rect x="100" y="80" width="2" height="10" rx="2" fill="#0dcaf0" opacity="0.3" id="bar-hfc" style="transition: opacity 0.3s, fill 0.3s;"></rect>
+                        
+                        <!-- Halon Bar -->
+                        <text x="10" y="113" fill="#555" font-size="9">Halon (10.0)</text>
+                        <rect x="100" y="105" width="280" height="10" rx="2" fill="#6f42c1" opacity="0.3" id="bar-halon" style="transition: opacity 0.3s, fill 0.3s;"></rect>
+                        <text x="385" y="113" fill="#6f42c1" font-size="8" font-weight="bold">10x</text>
+
+                        <!-- Methyl Bromide Bar -->
+                        <text x="10" y="138" fill="#555" font-size="9">MeBr (0.6)</text>
+                        <rect x="100" y="130" width="156" height="10" rx="2" fill="#fd7e14" opacity="0.3" id="bar-methyl_bromide" style="transition: opacity 0.3s, fill 0.3s;"></rect>
+
+                        <!-- Active Indicator Overlay -->
+                        <line x1="100" y1="20" x2="100" y2="150" stroke="#ccc" stroke-dasharray="2 2"></line>
+                    </svg>
+
+                    <!-- Cumulative Annual Quota Gauge -->
+                    <div class="w-100 mt-2">
+                        <div class="d-flex justify-content-between small text-muted mb-1">
+                            <span>Cumulative Annual Quota Usage:</span>
+                            <span id="gauge-label" class="fw-bold text-dark">0.0 / 50.0 kg</span>
+                        </div>
+                        <div class="progress" style="height: 12px; border-radius: 6px;">
+                            <div id="gauge-bar" class="progress-bar bg-success progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <span class="small text-muted d-block text-center mt-1" style="font-size: 10px;">
+                            <i class="bi bi-info-circle"></i> Low-volume waiver applies to cumulative annual imports under 50 kg.
+                        </span>
+                    </div>
+                </div>
+            {% endcall %}
+        </div>
+
+        {# ── Cẩm nang Hướng dẫn Tuân thủ Nghị định 06 ── #}
+        <div class="col-lg-12">
+            {% call glass_card('Decree 06/2022/NĐ-CP Compliance & Quota Guide', 'bi bi-book', 'text-success',
+                'Comprehensive regulatory checklist and legal workflows for businesses importing or manufacturing controlled substances in Vietnam.') %}
+                <div class="row g-4 p-2">
+                    <div class="col-md-4 border-end border-light-subtle">
+                        <div class="nav flex-column nav-pills me-3" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                            <button class="nav-link active text-start d-flex align-items-center gap-2 py-3" id="tab-reg-registration" data-bs-toggle="pill" data-bs-target="#panel-registration" type="button" role="tab">
+                                <i class="bi bi-pencil-square text-success"></i>
+                                <div>
+                                    <strong class="d-block">1. Quota Registration</strong>
+                                    <span class="small text-muted">Annual filing before Dec 31</span>
+                                </div>
+                            </button>
+                            <button class="nav-link text-start d-flex align-items-center gap-2 py-3" id="tab-reg-customs" data-bs-toggle="pill" data-bs-target="#panel-customs" type="button" role="tab">
+                                <i class="bi bi-file-earmark-text text-success"></i>
+                                <div>
+                                    <strong class="d-block">2. Customs Clearance</strong>
+                                    <span class="small text-muted">HS Code matching & licensing</span>
+                                </div>
+                            </button>
+                            <button class="nav-link text-start d-flex align-items-center gap-2 py-3" id="tab-reg-reporting" data-bs-toggle="pill" data-bs-target="#panel-reporting" type="button" role="tab">
+                                <i class="bi bi-calendar-check text-success"></i>
+                                <div>
+                                    <strong class="d-block">3. Annual Reporting</strong>
+                                    <span class="small text-muted">Deadline: January 15</span>
+                                </div>
+                            </button>
+                            <button class="nav-link text-start d-flex align-items-center gap-2 py-3" id="tab-reg-penalties" data-bs-toggle="pill" data-bs-target="#panel-penalties" type="button" role="tab">
+                                <i class="bi bi-exclamation-triangle text-danger"></i>
+                                <div>
+                                    <strong class="d-block text-danger">4. Violations & Penalties</strong>
+                                    <span class="small text-muted">Decree 155/2016/NĐ-CP</span>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="tab-content p-3 bg-premium-light rounded border border-light-subtle" id="v-pills-tabContent" style="min-height: 260px;">
+                            <!-- Panel 1: Registration -->
+                            <div class="tab-pane fade show active" id="panel-registration" role="tabpanel">
+                                <h5 class="text-success fw-bold"><i class="bi bi-pencil-square"></i> Step 1: ODS Quota & Use Registration</h5>
+                                <hr>
+                                <p>Under <strong>Article 24 of Decree 06/2022/NĐ-CP</strong>, all organizations importing, exporting, or manufacturing controlled substances (ODS) must register their annual demand with the <strong>Ministry of Natural Resources and Environment (MONRE)</strong>.</p>
+                                <ul class="lh-lg small">
+                                    <li><strong>Filing Deadline:</strong> Before <strong>December 31</strong> of the preceding year.</li>
+                                    <li><strong>Required Documentation:</strong>
+                                        <ul>
+                                            <li>Form 01 (Register of controlled substance demand).</li>
+                                            <li>Business license & import track record.</li>
+                                            <li>Detailed chemical recycling or disposal plan if applicable.</li>
+                                        </ul>
+                                    </li>
+                                    <li><strong>Key Tip:</strong> Scientific research institutions and medical device manufactures must attach product certifications to qualify for the 100% licensing fee exemptions.</li>
+                                </ul>
+                            </div>
+                            <!-- Panel 2: Customs -->
+                            <div class="tab-pane fade" id="panel-customs" role="tabpanel">
+                                <h5 class="text-success fw-bold"><i class="bi bi-file-earmark-text"></i> Step 2: Customs Reconciliation & HS Codes</h5>
+                                <hr>
+                                <p>Once the quota is allocated, every shipment must undergo strict HS Code verification during customs declaration to ensure total volume remains within the licensed ceiling.</p>
+                                <table class="table table-sm table-bordered mt-3 small">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>ODS Group</th>
+                                            <th>Key HS Codes</th>
+                                            <th>ODP Factor</th>
+                                            <th>Licensing Authority</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><strong>CFC</strong></td>
+                                            <td>2903.77.xx</td>
+                                            <td>1.0</td>
+                                            <td>MONRE / Ministry of Industry and Trade (MOIT)</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>HCFC</strong></td>
+                                            <td>2903.71.00, 2903.72.00</td>
+                                            <td>0.055</td>
+                                            <td>MONRE / Customs Department</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>HFC</strong></td>
+                                            <td>2903.39.90, 3824.78.00</td>
+                                            <td>0.000</td>
+                                            <td>Automatic clearance (Subject to GWP monitoring)</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Halon</strong></td>
+                                            <td>2903.76.00</td>
+                                            <td>10.0</td>
+                                            <td>Strict quota control (Fire prevention exemption only)</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- Panel 3: Reporting -->
+                            <div class="tab-pane fade" id="panel-reporting" role="tabpanel">
+                                <h5 class="text-success fw-bold"><i class="bi bi-calendar-check"></i> Step 3: Annual ODS Consumption Report</h5>
+                                <hr>
+                                <p>All licensed ODS importers and manufacturers are legally obligated to submit a comprehensive compliance and usage report detailing their actual consumption, recycling rate, and stockpile volumes.</p>
+                                <div class="alert alert-warning border-warning-subtle py-2 small">
+                                    <i class="bi bi-clock-history"></i> <strong>Hard Deadline: January 15</strong> of the following year. Late filings automatically suspend import licenses for the subsequent cycle.
+                                </div>
+                                <ul class="lh-lg mt-3 small">
+                                    <li>Reports must match exactly with the purchase invoices and customs XML logs parsed in GDT Invoice Hub.</li>
+                                    <li>Unused quotas cannot be carried over to the next year.</li>
+                                    <li>Any physical leakages or warehouse losses must be reported with official environmental inspector signatures.</li>
+                                </ul>
+                            </div>
+                            <!-- Panel 4: Penalties -->
+                            <div class="tab-pane fade" id="panel-penalties" role="tabpanel">
+                                <h5 class="text-danger fw-bold"><i class="bi bi-exclamation-triangle"></i> Administrative Violations & Penalties</h5>
+                                <hr>
+                                <p>Non-compliance with ODS regulations triggers heavy administrative penalties and immediate quota suspensions under <strong>Decree 155/2016/NĐ-CP</strong> and Decree 45/2022/NĐ-CP.</p>
+                                <div class="card border-danger-subtle bg-danger-subtle bg-opacity-10 mb-3">
+                                    <div class="card-body py-2 px-3">
+                                        <h6 class="fw-bold text-danger mb-1"><i class="bi bi-x-circle-fill"></i> Quota Overruns & Unlicensed Imports</h6>
+                                        <p class="small mb-0 text-muted">Importing controlled substances without a license or exceeding the annual quota ceiling is fined between <strong>100,000,000 VND and 250,000,000 VND</strong>, alongside mandatory re-export or destruction of the illegal shipment.</p>
+                                    </div>
+                                </div>
+                                <div class="card border-warning-subtle bg-warning-subtle bg-opacity-10">
+                                    <div class="card-body py-2 px-3">
+                                        <h6 class="fw-bold text-warning-emphasis mb-1"><i class="bi bi-exclamation-circle-fill"></i> Reporting Failures & Stockpile Mismatches</h6>
+                                        <p class="small mb-0 text-muted">Failing to report annual usage or providing inaccurate inventory records triggers fines between <strong>30,000,000 VND and 50,000,000 VND</strong>, with automatic demotion of taxpayer compliance tier in GDT risk index.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endcall %}
         </div>
 
         {# ── Bảng tranh luận đa tác tử ── #}
         <div class="col-lg-12">
-            {{ debate_panel('debate-container-v70', 'consensus-text-v70',
-                'Multi-Agent Atmospheric Protection Debate', 'Decree 06/2022/NĐ-CP Consensus') }}
+            {% call glass_card('Multi-Agent Atmospheric Protection Debate', 'bi bi-chat-quote', 'text-success',
+                'Consensus panel simulation showcasing the debate between regulatory, manufacturing, and trade specialists.') %}
+                <div class="row g-3 align-items-center mb-3">
+                    <div class="col-md-6">
+                        <label for="select-debate-focus" class="form-label small text-muted">Select Active Debate Topic:</label>
+                        <select class="form-select form-select-sm" id="select-debate-focus" style="max-width: 340px;">
+                            <option value="general">General Decree 06/2022 Overview</option>
+                            <option value="exemptions">Certified Medical & Laboratory Exemptions</option>
+                            <option value="waiver">Low-Volume Waiver (< 50 kg/year) Limits</option>
+                            <option value="enforcement">Penalties & Enforcement (Decree 155 & 45)</option>
+                        </select>
+                    </div>
+                </div>
+                {{ debate_panel('debate-container-v70', 'consensus-text-v70',
+                    'Interactive Multi-Agent Dialectic Panel', 'Decree 06/2022/NĐ-CP Consensus') }}
+            {% endcall %}
         </div>
 
         {# ── Bảng lịch sử ODS ── #}
         <div class="col-lg-12">
+            <div class="d-flex justify-content-between align-items-center mb-2 px-1">
+                <div></div>
+                <a href="/api/v70/export-pdf" class="btn btn-sm btn-outline-success px-3 shadow-sm rounded-pill" style="transition: all 0.2s ease;">
+                    <i class="bi bi-file-pdf me-2"></i>Export PDF Compliance Report
+                </a>
+            </div>
             {% call data_table('ODS Compliance History Log', 'bi bi-clock-history', 'history-table-v70', 'No logs available.', 11) %}
                 <thead class="table-dark">
                     <tr>
@@ -116,14 +337,126 @@
 document.addEventListener("DOMContentLoaded", () => {
     const fVND = n => new Intl.NumberFormat("vi-VN").format(Math.round(n)) + " VND";
     
+    // Multi-Agent Debate Transcript Database
+    const DEBATE_DATABASE = {
+        general: {
+            transcript: [
+                {speaker: "Ozone Layer Inspector", text: "Decree 06/2022/NĐ-CP scales ODS quotas and fees by ODP equivalents (CFC factor 1.0, HCFC 0.055, Halon 10.0) with charges ranging from 15,000 to 2,500,000 VND/kg."},
+                {speaker: "Pharma Production Director", text: "Importing controlled substances for certified medical applications, such as propellants in metered-dose inhalers, qualifies for 100% fee waiver under Article 24."},
+                {speaker: "Customs Licensing Specialist", text: "Low-volume imports under 50 kg per year are automatically exempt from ODS licensing charges to minimize red tape for small enterprises."}
+            ],
+            consensus: "ODS Decree 06/2022/NĐ-CP Compliance Engine: Verified ODP equivalence scaling, chemical group tariffs, medical/research exemptions, and 50 kg/year small-volume waivers."
+        },
+        exemptions: {
+            transcript: [
+                {speaker: "Ozone Layer Inspector", text: "Any exemption under Article 24 requires a prior certificate from the Ministry of Natural Resources and Environment (MONRE) confirming the specific laboratory or medical usage."},
+                {speaker: "Pharma Production Director", text: "Our production lines require pure CFC-11/CFC-12 for medical aerosols. The 100% exemption is vital to ensure affordable inhalers for respiratory patients."},
+                {speaker: "Customs Licensing Specialist", text: "Customs clearance will immediately block any exempt-claimed ODS shipment if the certificate's unique ID does not match the MONRE registry."}
+            ],
+            consensus: "Medical & Research Exemption consensus: 100% fee waivers are strictly gated by MONRE certificates and real-time customs database cross-checks."
+        },
+        waiver: {
+            transcript: [
+                {speaker: "Ozone Layer Inspector", text: "The 50 kg/year small-volume waiver is non-cumulative. If an enterprise imports multiple shipments that sum to 50 kg or more, the exemption is revoked."},
+                {speaker: "Pharma Production Director", text: "For small laboratories, a 10 kg shipment is sufficient for testing. The cumulative tracker prevents companies from exploiting the waiver via split shipments."},
+                {speaker: "Customs Licensing Specialist", text: "GDT Invoice Hub automatically calculates the running sum of all imports in the current calendar year. Once 50 kg is hit, subsequent imports are flagged for standard tariffs."}
+            ],
+            consensus: "Low-Volume Waiver consensus: Running annual totals are tracked in real-time. Shipments exceeding the cumulative 50 kg limit are automatically charged at standard rates."
+        },
+        enforcement: {
+            transcript: [
+                {speaker: "Ozone Layer Inspector", text: "Article 26 specifies that quota overruns or unlicensed imports are critical violations, triggering suspension of all import licenses for up to 24 months."},
+                {speaker: "Pharma Production Director", text: "Violations also carry severe financial penalties under Decree 155/2016/NĐ-CP, ranging from 100 million to 250 million VND per incident."},
+                {speaker: "Customs Licensing Specialist", text: "GDT Invoice Hub acts as the first line of defense, blocking customs clearance if a shipment lacks valid quota allocations or has triggered a quota warning."}
+            ],
+            consensus: "Enforcement consensus: Quota overruns trigger immediate administrative blocks and severe financial penalties, enforced through GDT automated gatekeepers."
+        }
+    };
+
+    // ODP Factors & Scaling mapping for real-time visualization
+    const ODP_FACTORS = {
+        cfc: 1.0,
+        hcfc: 0.055,
+        hfc: 0.0,
+        halon: 10.0,
+        methyl_bromide: 0.6
+    };
+
+    const SUBSTANCE_LABELS = {
+        cfc: "Chlorofluorocarbons (CFC)",
+        hcfc: "Hydrochlorofluorocarbons (HCFC)",
+        hfc: "Hydrofluorocarbons (HFC)",
+        halon: "Halons",
+        methyl_bromide: "Methyl Bromide"
+    };
+
+    // Real-Time Visualizer Update
+    const updateInteractiveVisuals = () => {
+        const group = document.getElementById("input-substance-group").value;
+        const weight = parseFloat(document.getElementById("input-weight").value || 0);
+        const factor = ODP_FACTORS[group] !== undefined ? ODP_FACTORS[group] : 0.1;
+        const odpEq = weight * factor;
+
+        // Update indicators
+        document.getElementById("visual-odp-eq").textContent = odpEq.toFixed(3) + " ODP-kg";
+        document.getElementById("visual-substance-tag").textContent = `${SUBSTANCE_LABELS[group]} | ODP: ${factor}`;
+
+        // Reset all SVG rect styles and opacities
+        const bars = ["cfc", "hcfc", "hfc", "halon", "methyl_bromide"];
+        bars.forEach(b => {
+            const el = document.getElementById(`bar-${b}`);
+            if (el) {
+                if (b === group) {
+                    el.setAttribute("opacity", "1.0");
+                    el.setAttribute("stroke", "#fff");
+                    el.setAttribute("stroke-width", "1.5");
+                    // make active bar slightly pulsating/styled
+                } else {
+                    el.setAttribute("opacity", "0.25");
+                    el.removeAttribute("stroke");
+                }
+            }
+        });
+    };
+
     const load = () => {
         fetch('/api/v70/compliance-data').then(r=>r.json()).then(d=>{
             if(d.status==="success"){
                 rB(d);
-                rD(d.debate, d.consensus_summary);
+                
+                // Set default debate focus transcript
+                const activeFocus = document.getElementById("select-debate-focus").value;
+                rD(activeFocus);
+                
                 rH(d.history);
+                updateCumulativeGauge(d.cumulative_annual_weight || 0.0);
             }
         }).catch(e=>console.error(e));
+    };
+
+    const updateCumulativeGauge = (cumulativeWeight) => {
+        const gaugeLabel = document.getElementById("gauge-label");
+        const gaugeBar = document.getElementById("gauge-bar");
+
+        gaugeLabel.textContent = `${cumulativeWeight.toFixed(2)} / 50.0 kg`;
+        
+        // Compute width percentage
+        const percentage = Math.min(100, (cumulativeWeight / 50.0) * 100);
+        gaugeBar.style.width = `${percentage}%`;
+        gaugeBar.setAttribute("aria-valuenow", percentage);
+
+        // Styling based on compliance safety threshold
+        gaugeBar.className = "progress-bar progress-bar-striped progress-bar-animated";
+        if (cumulativeWeight >= 50.0) {
+            gaugeBar.classList.add("bg-danger");
+            gaugeBar.style.boxShadow = "0 0 10px rgba(220, 53, 69, 0.5)";
+        } else if (cumulativeWeight >= 30.0) {
+            gaugeBar.classList.add("bg-warning");
+            gaugeBar.style.boxShadow = "none";
+        } else {
+            gaugeBar.classList.add("bg-success");
+            gaugeBar.style.boxShadow = "none";
+        }
     };
     
     const calc = () => {
@@ -140,6 +473,17 @@ document.addEventListener("DOMContentLoaded", () => {
         }).then(r=>r.json()).then(d=>{
             if(d.status==="success"){
                 rR(d.results);
+                
+                // Show warning message if present
+                const warningBox = document.getElementById("calc-warning-box");
+                const warningText = document.getElementById("calc-warning-text");
+                if (d.results.warning) {
+                    warningText.textContent = d.results.warning;
+                    warningBox.classList.remove("d-none");
+                } else {
+                    warningBox.classList.add("d-none");
+                }
+                
                 load();
             } else {
                 alert(d.error);
@@ -167,21 +511,22 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("base3-reason").textContent = d.medical_exempt.exemption_reason;
     };
     
-    const rD = (debate, summary) => {
+    const rD = (topic) => {
         const c = document.getElementById("debate-container-v70");
         c.innerHTML = "";
+        const data = DEBATE_DATABASE[topic] || DEBATE_DATABASE.general;
         const cl = {
             "Ozone Layer Inspector": "bg-success text-white",
             "Pharma Production Director": "bg-warning text-dark",
             "Customs Licensing Specialist": "bg-info text-dark"
         };
-        debate.forEach(m => {
+        data.transcript.forEach(m => {
             const div = document.createElement("div");
-            div.className = "d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";
+            div.className = "d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle mb-2";
             div.innerHTML = `<span class="badge ${cl[m.speaker] || "bg-secondary"} py-2 px-3" style="min-width:220px">${m.speaker}</span><div class="text-dark small">${m.text}</div>`;
             c.appendChild(div);
         });
-        document.getElementById("consensus-text-v70").textContent = summary;
+        document.getElementById("consensus-text-v70").textContent = data.consensus;
     };
     
     const rH = h => {
@@ -214,9 +559,22 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     };
     
+    // Hook event listeners
     document.getElementById("btn-calc-ods").addEventListener("click", calc);
     document.getElementById("btn-refresh-v70").addEventListener("click", load);
+    
+    // Real-time input hooks for visualizer
+    document.getElementById("input-substance-group").addEventListener("change", updateInteractiveVisuals);
+    document.getElementById("input-weight").addEventListener("input", updateInteractiveVisuals);
+
+    // Topic selector for Multi-Agent Consensus Debate
+    document.getElementById("select-debate-focus").addEventListener("change", (e) => {
+        rD(e.target.value);
+    });
+    
+    // Initial load & visualizer render
     load();
+    updateInteractiveVisuals();
 });
 </script>
 
