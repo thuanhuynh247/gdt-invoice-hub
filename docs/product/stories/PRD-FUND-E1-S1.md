@@ -2,7 +2,7 @@
 id: PRD-FUND-E1-S1
 type: story
 epic: PRD-FUND-E1
-status: approved
+status: completed
 lang: vi
 owner: TBD
 version: 0.1.0

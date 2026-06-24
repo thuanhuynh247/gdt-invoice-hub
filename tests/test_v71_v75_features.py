@@ -200,6 +200,25 @@ def test_v72_wastewater_exemptions(mock_tenant_db):
     assert res["final_fee"] == 0.0
     assert res["is_exempt"] is True
 
+def test_v72_wastewater_delete_and_summary(mock_tenant_db):
+    service = V72ComplianceService()
+    # Insert a log
+    res = service.calculate_surcharge(mock_tenant_db, 1000.0, 150.0, 80.0)
+    history = service.get_history(mock_tenant_db, limit=10)
+    assert len(history) > 0
+    log_id = history[0]["id"]
+    
+    # Check annual summary
+    summary = service.get_annual_summary(mock_tenant_db)
+    assert summary["total_shipments"] > 0
+    
+    # Delete log
+    deleted = service.delete_log(mock_tenant_db, log_id)
+    assert deleted is True
+    
+    # Verify deletion
+    history_after = service.get_history(mock_tenant_db, limit=10)
+    assert not any(h["id"] == log_id for h in history_after)
 
 # --- V73 HAZARDOUS WASTE TESTING ---
 def test_v73_hazardous_waste_disposal(mock_tenant_db):
@@ -349,3 +368,34 @@ def test_flask_endpoints_v71_v75(mock_app, mock_tenant_db):
     assert r5_calc.status_code == 200
     d5 = json.loads(r5_calc.data)
     assert d5["status"] == "success"
+
+    # Additional V72 REST API checks (annual-summary and delete-log)
+    r2_summary = client.get(f"/api/v72/annual-summary?mst={mock_tenant_db}&year=2026")
+    assert r2_summary.status_code == 200
+    d2_sum = json.loads(r2_summary.data)
+    assert d2_sum["status"] == "success"
+    assert "summary" in d2_sum
+
+    # Get history to find log_id to delete
+    r2_data = client.get(f"/api/v72/compliance-data?mst={mock_tenant_db}")
+    assert r2_data.status_code == 200
+    d2_data = json.loads(r2_data.data)
+    assert len(d2_data["history"]) > 0
+    target_id = d2_data["history"][0]["id"]
+
+    # Delete log via POST
+    r2_del = client.post("/api/v72/delete-log", json={
+        "mst": mock_tenant_db,
+        "log_id": target_id
+    })
+    assert r2_del.status_code == 200
+    d2_del = json.loads(r2_del.data)
+    assert d2_del["status"] == "success"
+
+    # Try deleting non-existent log
+    r2_del_fake = client.post("/api/v72/delete-log", json={
+        "mst": mock_tenant_db,
+        "log_id": 999999
+    })
+    assert r2_del_fake.status_code == 404
+

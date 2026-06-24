@@ -142,3 +142,64 @@ class V72ComplianceService:
         rows = cur.fetchall()
         conn.close()
         return [dict(r) for r in rows]
+
+    def delete_log(self, mst: str, log_id: int) -> bool:
+        """Delete a wastewater log entry by ID (for audit corrections)."""
+        conn = self.get_tenant_connection(mst)
+        cur = conn.cursor()
+        cur.execute("DELETE FROM wastewater_surcharge_logs WHERE id = ?", (log_id,))
+        deleted = cur.rowcount > 0
+        conn.commit()
+        conn.close()
+        return deleted
+
+    def get_annual_summary(self, mst: str, year: int | None = None) -> Dict[str, Any]:
+        """Returns a summary of all wastewater activity for the given calendar year."""
+        if year is None:
+            year = datetime.now().year
+        conn = self.get_tenant_connection(mst)
+        cur = conn.cursor()
+        
+        summary = {
+            "year": year,
+            "total_shipments": 0,
+            "total_volume": 0.0,
+            "total_gross_fee": 0.0,
+            "total_final_fee": 0.0,
+            "total_exempt_fee": 0.0,
+            "exempt_count": 0,
+            "charged_count": 0,
+        }
+        
+        try:
+            cur.execute("""
+                SELECT volume_m3, gross_fee, final_fee, is_exempt
+                FROM wastewater_surcharge_logs
+                WHERE strftime('%Y', created_at) = ?
+            """, (str(year),))
+            rows = cur.fetchall()
+            
+            for row in rows:
+                r_vol = row["volume_m3"]
+                r_gross = row["gross_fee"]
+                r_final = row["final_fee"]
+                r_exempt = bool(row["is_exempt"])
+                
+                summary["total_shipments"] += 1
+                summary["total_volume"] += r_vol
+                summary["total_gross_fee"] += r_gross
+                summary["total_final_fee"] += r_final
+                
+                if r_exempt:
+                    summary["exempt_count"] += 1
+                else:
+                    summary["charged_count"] += 1
+                    
+            summary["total_exempt_fee"] = max(0.0, summary["total_gross_fee"] - summary["total_final_fee"])
+        except Exception:
+            pass
+        finally:
+            conn.close()
+            
+        return summary
+

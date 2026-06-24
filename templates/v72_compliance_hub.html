@@ -93,9 +93,54 @@
                 'Multi-Agent Wastewater Policy Debate', 'Decree 53/2020/NĐ-CP Consensus') }}
         </div>
 
+        {# ── Annual Wastewater Compliance Summary Dashboard ── #}
+        <div class="col-lg-12">
+            {% call glass_card('Annual Wastewater Compliance Summary', 'bi bi-graph-up-arrow', 'text-success',
+                'Real-time aggregate Wastewater compliance statistics for the current calendar year.') %}
+                <div class="row g-3 text-center" id="annual-summary-grid">
+                    <div class="col-md-2">
+                        <div class="border rounded-3 p-3 bg-premium-light h-100">
+                            <div class="small text-muted mb-1">Total Discharges</div>
+                            <h3 class="fw-bold mb-0 text-success" id="sum-shipments">0</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="border rounded-3 p-3 bg-premium-light h-100">
+                            <div class="small text-muted mb-1">Total Volume</div>
+                            <h3 class="fw-bold mb-0 text-primary" id="sum-volume">0 m³</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="border rounded-3 p-3 bg-premium-light h-100">
+                            <div class="small text-muted mb-1">Gross Surcharge</div>
+                            <h3 class="fw-bold mb-0 text-warning" id="sum-gross-fee">0 VND</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="border rounded-3 p-3 bg-premium-light h-100">
+                            <div class="small text-muted mb-1">Final Surcharge</div>
+                            <h3 class="fw-bold mb-0 text-danger" id="sum-final-fee">0 VND</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="border rounded-3 p-3 bg-premium-light h-100">
+                            <div class="small text-muted mb-1">Exempted Amount</div>
+                            <h3 class="fw-bold mb-0 text-info" id="sum-exempt-fee">0 VND</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="border rounded-3 p-3 bg-premium-light h-100">
+                            <div class="small text-muted mb-1">Exempt / Charged</div>
+                            <h3 class="fw-bold mb-0 text-secondary" id="sum-ratio">0 / 0</h3>
+                        </div>
+                    </div>
+                </div>
+            {% endcall %}
+        </div>
+
         {# ── Nhật ký lịch sử tuân thủ ── #}
         <div class="col-lg-12">
-            {% call data_table('Wastewater Compliance History Log', 'bi bi-clock-history', 'history-table-v72', 'No logs available.', 12) %}
+            {% call data_table('Wastewater Compliance History Log', 'bi bi-clock-history', 'history-table-v72', 'No logs available.', 13) %}
                 <thead class="table-dark">
                     <tr>
                         <th>ID</th>
@@ -110,6 +155,7 @@
                         <th>Gross Fee</th>
                         <th>Final Fee</th>
                         <th>Timestamp</th>
+                        <th class="text-center">Action</th>
                     </tr>
                 </thead>
             {% endcall %}
@@ -127,6 +173,21 @@ document.addEventListener("DOMContentLoaded", () => {
                 rB(d);
                 rD(d.debate, d.consensus_summary);
                 rH(d.history);
+                loadAnnualSummary();
+            }
+        }).catch(e=>console.error(e));
+    };
+
+    const loadAnnualSummary = () => {
+        fetch('/api/v72/annual-summary').then(r=>r.json()).then(d=>{
+            if(d.status==="success") {
+                const s = d.summary;
+                document.getElementById("sum-shipments").textContent = s.total_shipments || 0;
+                document.getElementById("sum-volume").textContent = (s.total_volume || 0).toLocaleString() + " m³";
+                document.getElementById("sum-gross-fee").textContent = fVND(s.total_gross_fee || 0);
+                document.getElementById("sum-final-fee").textContent = fVND(s.total_final_fee || 0);
+                document.getElementById("sum-exempt-fee").textContent = fVND(s.total_exempt_fee || 0);
+                document.getElementById("sum-ratio").textContent = `${s.exempt_count || 0} / ${s.charged_count || 0}`;
             }
         }).catch(e=>console.error(e));
     };
@@ -238,7 +299,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const rH = h => {
         const tb = document.getElementById("history-table-v72");
         if (!h || !h.length) {
-            tb.innerHTML = '<tr><td colspan="12" class="text-center text-muted py-4">No logs available.</td></tr>';
+            tb.innerHTML = '<tr><td colspan="13" class="text-center text-muted py-4">No logs available.</td></tr>';
             return;
         }
         tb.innerHTML = "";
@@ -257,6 +318,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td>${fVND(l.gross_fee)}</td>
                 <td class="fw-bold text-dark">${fVND(l.final_fee)}</td>
                 <td class="text-muted">${l.created_at}</td>
+                <td class="text-center"><button class="btn btn-sm btn-outline-danger px-2 py-0" onclick="deleteLog(${l.id})" title="Delete this entry"><i class="bi bi-trash"></i></button></td>
             `;
             tb.appendChild(tr);
         });
@@ -266,6 +328,22 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("btn-refresh-v72").addEventListener("click", load);
     load();
 });
+
+// Global delete handler
+function deleteLog(logId) {
+    if (!confirm(`Delete Wastewater log entry #${logId}? This action is irreversible.`)) return;
+    fetch('/api/v72/delete-log', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({log_id: logId})
+    }).then(r => r.json()).then(d => {
+        if (d.status === 'success') {
+            document.getElementById('btn-refresh-v72').click();
+        } else {
+            alert(d.error || 'Failed to delete entry.');
+        }
+    }).catch(e => console.error(e));
+}
 </script>
 
 {{ entry_animations() }}
