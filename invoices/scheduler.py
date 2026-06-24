@@ -70,7 +70,12 @@ DEFAULT_SETTINGS = {
     "webhook_secret": "",
     "auto_dunning_enabled": False,
     "signature_filter_enabled": True,
-    "blacklist_filter_enabled": True
+    "blacklist_filter_enabled": True,
+    "ai_headroom_enabled": True,
+    "ai_headroom_compress_user_messages": True,
+    "ai_headroom_target_ratio": 0.5,
+    "ai_headroom_protect_recent": 0,
+    "ai_headroom_align_cache": True
 }
 
 
@@ -108,6 +113,11 @@ def load_scheduler_settings() -> dict:
                 elif isinstance(settings[cfg.key], int):
                     try:
                         settings[cfg.key] = int(val)
+                    except ValueError:
+                        pass
+                elif isinstance(settings[cfg.key], float):
+                    try:
+                        settings[cfg.key] = float(val)
                     except ValueError:
                         pass
                 else:

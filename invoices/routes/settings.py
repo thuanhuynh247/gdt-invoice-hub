@@ -121,6 +121,11 @@ def api_post_settings():
         "ai_api_key": payload.get("ai_api_key", ""),
         "ai_model_name": payload.get("ai_model_name", "gemma-4").strip(),
         "ai_system_prompt": payload.get("ai_system_prompt", "").strip(),
+        "ai_headroom_enabled": bool(payload.get("ai_headroom_enabled", True)),
+        "ai_headroom_compress_user_messages": bool(payload.get("ai_headroom_compress_user_messages", True)),
+        "ai_headroom_target_ratio": float(payload.get("ai_headroom_target_ratio", 0.5)),
+        "ai_headroom_protect_recent": int(payload.get("ai_headroom_protect_recent", 0)),
+        "ai_headroom_align_cache": bool(payload.get("ai_headroom_align_cache", True)),
         "telegram_enabled": bool(payload.get("telegram_enabled", False)),
         "telegram_bot_token": payload.get("telegram_bot_token", ""),
         "telegram_chat_id": payload.get("telegram_chat_id", "").strip(),
@@ -294,3 +299,127 @@ def api_get_settings_logs():
 
     from invoices.scheduler import get_scheduler_logs
     return jsonify(get_scheduler_logs())
+
+
+@invoices_blueprint.get("/v76-headroom-hub")
+@roles_required("admin", "auditor")
+def headroom_hub():
+    """Render the Headroom AI Context Hub and Playground."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+    return render_template("v76_headroom_hub.html")
+
+
+@invoices_blueprint.get("/api/headroom/stats")
+@roles_required("admin", "auditor")
+def api_headroom_stats():
+    """Retrieve Headroom AI compression telemetry stats."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    from invoices.models import HeadroomTelemetry
+    
+    try:
+        telemetries = HeadroomTelemetry.query.order_by(HeadroomTelemetry.id.desc()).all()
+    except Exception as e:
+        return jsonify({"error": f"Failed to query telemetry: {str(e)}"}), 500
+
+    total_calls = len(telemetries)
+    total_before = sum(t.tokens_before for t in telemetries)
+    total_after = sum(t.tokens_after for t in telemetries)
+    total_saved = sum(t.tokens_saved for t in telemetries)
+    
+    avg_ratio = 0.0
+    if total_before > 0:
+        avg_ratio = total_saved / total_before
+
+    # Estimated savings: $0.000015 USD per token (approx $15 per 1M tokens)
+    estimated_cost_saved_usd = total_saved * 0.000015
+    
+    # Recent 15 events
+    recent_events = [t.to_dict() for t in telemetries[:15]]
+
+    # Check if headroom is installed and can be imported
+    headroom_installed = False
+    headroom_version = "Unknown"
+    try:
+        import headroom
+        headroom_installed = True
+        headroom_version = headroom.__version__
+    except ImportError:
+        pass
+
+    return jsonify({
+        "headroom_installed": headroom_installed,
+        "headroom_version": headroom_version,
+        "total_calls": total_calls,
+        "total_tokens_before": total_before,
+        "total_tokens_after": total_after,
+        "total_tokens_saved": total_saved,
+        "average_compression_ratio": avg_ratio,
+        "estimated_cost_saved_usd": estimated_cost_saved_usd,
+        "recent_events": recent_events
+    })
+
+
+@invoices_blueprint.post("/api/headroom/playground")
+@roles_required("admin", "auditor")
+def api_headroom_playground():
+    """Live compression playground for testing Headroom AI parameters."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    payload = request.get_json(silent=True) or {}
+    system_prompt = payload.get("system_prompt", "").strip()
+    user_content = payload.get("user_content", "").strip()
+    
+    if not system_prompt and not user_content:
+        return jsonify({"error": "Vui lòng nhập System Prompt hoặc User Content."}), 400
+
+    # Retrieve parameters from payload or defaults
+    model_name = payload.get("model_name", "gemma-4")
+    compress_user = bool(payload.get("compress_user_messages", True))
+    target_ratio = float(payload.get("target_ratio", 0.5))
+    protect_recent = int(payload.get("protect_recent", 0))
+
+    try:
+        import headroom
+        
+        messages = []
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+        if user_content:
+            messages.append({"role": "user", "content": user_content})
+
+        result = headroom.compress(
+            messages=messages,
+            model=model_name,
+            compress_user_messages=compress_user,
+            target_ratio=target_ratio,
+            protect_recent=protect_recent
+        )
+
+        compressed_system = ""
+        compressed_user = ""
+        for msg in result.messages:
+            if msg.get("role") == "system":
+                compressed_system = msg.get("content", "")
+            elif msg.get("role") == "user":
+                compressed_user = msg.get("content", "")
+
+        return jsonify({
+            "status": "success",
+            "tokens_before": result.tokens_before,
+            "tokens_after": result.tokens_after,
+            "tokens_saved": result.tokens_saved,
+            "compression_ratio": result.compression_ratio,
+            "transforms_applied": result.transforms_applied,
+            "compressed_system_prompt": compressed_system,
+            "compressed_user_content": compressed_user
+        })
+    except Exception as e:
+        return jsonify({"error": f"Lỗi nén Headroom AI: {str(e)}"}), 500
+

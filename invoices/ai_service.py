@@ -297,6 +297,85 @@ def start_dynamic_pdf_ingestion_thread(app):
     t.start()
 
 
+def compress_and_log(caller: str, settings: dict, system_prompt: str, user_content: str) -> tuple[str, str]:
+    """Compress context using Headroom AI if enabled, and save telemetry.
+    Returns: (compressed_system_prompt, compressed_user_content)
+    """
+    if not settings.get("ai_headroom_enabled", True):
+        return system_prompt, user_content
+
+    try:
+        import headroom
+        
+        # Prepare messages
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_content}
+        ]
+        
+        # Extract config options
+        model_name = settings.get("ai_model_name", "gemma-4")
+        compress_user = settings.get("ai_headroom_compress_user_messages", True)
+        target_ratio = settings.get("ai_headroom_target_ratio", 0.5)
+        protect_recent = settings.get("ai_headroom_protect_recent", 0)
+        
+        # Call headroom compress
+        result = headroom.compress(
+            messages=messages,
+            model=model_name,
+            compress_user_messages=compress_user,
+            target_ratio=target_ratio,
+            protect_recent=protect_recent
+        )
+        
+        # Extract compressed system and user messages
+        compressed_system = system_prompt
+        compressed_user = user_content
+        
+        for msg in result.messages:
+            if msg.get("role") == "system":
+                compressed_system = msg.get("content", "")
+            elif msg.get("role") == "user":
+                compressed_user = msg.get("content", "")
+                
+        # Save telemetry
+        tokens_before = result.tokens_before
+        tokens_after = result.tokens_after
+        tokens_saved = result.tokens_saved
+        ratio = result.compression_ratio
+        transforms = result.transforms_applied
+        
+        # Database write
+        from datetime import datetime
+        import json
+        from extensions import db
+        from invoices.models import HeadroomTelemetry
+        
+        try:
+            telemetry = HeadroomTelemetry(
+                timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                caller=caller,
+                model_name=model_name,
+                tokens_before=tokens_before,
+                tokens_after=tokens_after,
+                tokens_saved=tokens_saved,
+                compression_ratio=ratio,
+                transforms_applied=json.dumps(transforms)
+            )
+            db.session.add(telemetry)
+            db.session.commit()
+            logger.info(f"Headroom AI [{caller}] saved {tokens_saved} tokens ({ratio:.1%} compression).")
+        except Exception as db_err:
+            db.session.rollback()
+            logger.error(f"Failed to save Headroom telemetry: {db_err}")
+            
+        return compressed_system, compressed_user
+        
+    except Exception as e:
+        logger.error(f"Headroom AI compression failed in {caller}: {e}")
+        return system_prompt, user_content
+
+
 class AIComplianceAuditor:
     """Audits invoice line items for VAT deductibility and price anomalies using LLMs."""
 
@@ -700,6 +779,7 @@ class AIComplianceAuditor:
         return proposals
 
     def _call_llm(self, settings: dict, system_prompt: str, user_content: str, response_format_json: bool = False) -> str:
+        system_prompt, user_content = compress_and_log("AIComplianceAuditor", settings, system_prompt, user_content)
         provider = settings.get("ai_provider", "ollama").lower()
         model_name = settings.get("ai_model_name", "gemma-4")
         api_key_cipher = settings.get("ai_api_key", "")
@@ -1041,6 +1121,7 @@ class AIChatAgent:
     """Intelligent conversational agent powered by local LLMs (Gemma-4) for invoice querying."""
 
     def _call_llm(self, settings: dict, system_prompt: str, user_content: str, response_format_json: bool = False) -> str:
+        system_prompt, user_content = compress_and_log("AIChatAgent", settings, system_prompt, user_content)
         provider = settings.get("ai_provider", "ollama").lower()
         model_name = settings.get("ai_model_name", "gemma-4")
         api_key_cipher = settings.get("ai_api_key", "")

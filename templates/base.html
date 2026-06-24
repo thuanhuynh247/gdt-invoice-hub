@@ -160,6 +160,7 @@
                         </a>
                         <ul class="dropdown-menu dropdown-menu-premium">
                             <li><a class="dropdown-item {% if request.path == '/harness' %}active{% endif %}" href="{{ url_for('invoices.harness_page') }}"><i class="bi bi-cpu-fill me-2" aria-hidden="true"></i>Harness Agent</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/v76-headroom-hub' %}active{% endif %}" href="/v76-headroom-hub"><i class="bi bi-cpu-fill text-success me-2" aria-hidden="true"></i>Headroom AI Hub</a></li>
                             {% if session.get('user_role') in ['admin', 'auditor'] %}
                             <li><hr class="dropdown-divider"></li>
                             <li><h6 class="dropdown-header"><i class="bi bi-shield-lock me-1" aria-hidden="true"></i> Quản trị</h6></li>

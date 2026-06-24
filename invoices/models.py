@@ -1283,6 +1283,39 @@ class FundTransaction(db.Model):
         }
 
 
+class HeadroomTelemetry(db.Model):
+    """Auditable log of Headroom AI prompt compression telemetry."""
+    __tablename__ = "headroom_telemetry"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    timestamp = db.Column(db.String(50), nullable=False)
+    caller = db.Column(db.String(100), nullable=False)  # 'AIComplianceAuditor', 'AIChatAgent', etc.
+    model_name = db.Column(db.String(100), nullable=False)
+    tokens_before = db.Column(db.Integer, nullable=False)
+    tokens_after = db.Column(db.Integer, nullable=False)
+    tokens_saved = db.Column(db.Integer, nullable=False)
+    compression_ratio = db.Column(db.Float, nullable=False)
+    transforms_applied = db.Column(db.Text, nullable=True)  # JSON list of applied transforms
+
+    def to_dict(self) -> dict:
+        try:
+            transforms = json.loads(self.transforms_applied) if self.transforms_applied else []
+        except Exception:
+            transforms = []
+        return {
+            "id": self.id,
+            "timestamp": self.timestamp,
+            "caller": self.caller,
+            "model_name": self.model_name,
+            "tokens_before": self.tokens_before,
+            "tokens_after": self.tokens_after,
+            "tokens_saved": self.tokens_saved,
+            "compression_ratio": self.compression_ratio,
+            "transforms": transforms
+        }
+
+
+
 
 
 
