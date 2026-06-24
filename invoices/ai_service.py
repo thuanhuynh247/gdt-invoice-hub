@@ -494,73 +494,10 @@ class AIComplianceAuditor:
             "Nếu tất cả mặt hàng và điều kiện giao dịch đều hoàn toàn hợp lệ, không có rủi ro nào, hãy trả về danh sách trống: {\"anomalies\": []}."
         )
 
-        provider = settings.get("ai_provider", "ollama").lower()
-        model_name = settings.get("ai_model_name", "gemma-4")
-        api_key_cipher = settings.get("ai_api_key", "")
-        api_key = decrypt_password(api_key_cipher) if api_key_cipher else ""
-
-        response_text = ""
         try:
-            if provider == "ollama":
-                endpoint = settings.get("ai_ollama_endpoint", "http://localhost:11434").rstrip("/")
-                url = f"{endpoint}/api/chat"
-                payload = {
-                    "model": model_name,
-                    "messages": [
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": user_content}
-                    ],
-                    "stream": False,
-                    "options": {"temperature": 0.1},
-                    "format": "json"
-                }
-                resp = requests.post(url, json=payload, timeout=20)
-                resp.raise_for_status()
-                response_text = resp.json().get("message", {}).get("content", "")
-
-            elif provider == "gemini":
-                m_name = model_name if model_name else "gemini-1.5-flash"
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/{m_name}:generateContent?key={api_key}"
-                payload = {
-                    "contents": [
-                        {
-                            "parts": [
-                                {"text": f"{system_prompt}\n\n{user_content}"}
-                            ]
-                        }
-                    ],
-                    "generationConfig": {
-                        "responseMimeType": "application/json",
-                        "temperature": 0.1
-                    }
-                }
-                resp = requests.post(url, json=payload, timeout=20)
-                resp.raise_for_status()
-                response_text = resp.json().get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
-
-            elif provider == "openai":
-                m_name = model_name if model_name else "gpt-4o-mini"
-                url = "https://api.openai.com/v1/chat/completions"
-                headers = {"Authorization": f"Bearer {api_key}"}
-                payload = {
-                    "model": m_name,
-                    "messages": [
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": user_content}
-                    ],
-                    "response_format": {"type": "json_object"},
-                    "temperature": 0.1
-                }
-                resp = requests.post(url, json=payload, headers=headers, timeout=20)
-                resp.raise_for_status()
-                response_text = resp.json().get("choices", [{}])[0].get("message", {}).get("content", "")
-
-            else:
-                logger.error(f"Unknown AI provider configured: {provider}")
-                return []
-
+            response_text = self._call_llm(settings, system_prompt, user_content, response_format_json=True)
         except Exception as e:
-            logger.error(f"LLM API request failed ({provider}): {e}")
+            logger.error(f"LLM API request failed: {e}")
             return []
 
         # Parse response JSON and save warnings
@@ -1482,63 +1419,12 @@ class AIChatAgent:
             "Nếu người dùng hỏi thông tin không có trong danh sách hoặc không liên quan đến hóa đơn thuế/kế toán doanh nghiệp, hãy phản hồi lịch sự rằng bạn chỉ hỗ trợ kiểm soát hóa đơn và tư vấn thuế doanh nghiệp."
         )
 
-        llm_messages = [{"role": "system", "content": system_prompt}]
-        for msg in history[-10:]:
-            llm_messages.append({"role": msg.role, "content": msg.content})
-        llm_messages.append({"role": "user", "content": user_message})
-
+        user_content = f"Lịch sử hội thoại:\n{history_context}\nCâu hỏi hiện tại: {user_message}"
         try:
-            provider = settings.get("ai_provider", "ollama").lower()
-            model_name = settings.get("ai_model_name", "gemma-4")
-            api_key_cipher = settings.get("ai_api_key", "")
-            api_key = decrypt_password(api_key_cipher) if api_key_cipher else ""
-
-            if provider == "ollama":
-                endpoint = settings.get("ai_ollama_endpoint", "http://localhost:11434").rstrip("/")
-                url = f"{endpoint}/api/chat"
-                payload = {
-                    "model": model_name,
-                    "messages": llm_messages,
-                    "stream": False,
-                    "options": {"temperature": 0.2}
-                }
-                resp = requests.post(url, json=payload, timeout=30)
-                resp.raise_for_status()
-                return resp.json().get("message", {}).get("content", "")
-
-            elif provider == "gemini":
-                m_name = model_name if model_name else "gemini-1.5-flash"
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/{m_name}:generateContent?key={api_key}"
-                prompt_parts = [system_prompt, "\n\nLịch sử hội thoại:"]
-                for msg in llm_messages[1:]:
-                    role_label = "Kế toán" if msg["role"] == "user" else "Trợ lý AI"
-                    prompt_parts.append(f"{role_label}: {msg['content']}")
-                prompt_parts.append("Trợ lý AI:")
-                payload = {
-                    "contents": [{"parts": [{"text": "\n".join(prompt_parts)}]}],
-                    "generationConfig": {"temperature": 0.2}
-                }
-                resp = requests.post(url, json=payload, timeout=30)
-                resp.raise_for_status()
-                return resp.json().get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
-
-            elif provider == "openai":
-                m_name = model_name if model_name else "gpt-4o-mini"
-                url = "https://api.openai.com/v1/chat/completions"
-                headers = {"Authorization": f"Bearer {api_key}"}
-                payload = {
-                    "model": m_name,
-                    "messages": llm_messages,
-                    "temperature": 0.2
-                }
-                resp = requests.post(url, json=payload, headers=headers, timeout=30)
-                resp.raise_for_status()
-                return resp.json().get("choices", [{}])[0].get("message", {}).get("content", "")
-            else:
-                return f"Cấu hình nhà cung cấp AI không hợp lệ: {provider}"
+            return self._call_llm(settings, system_prompt, user_content, response_format_json=False)
         except Exception as e:
-            logger.error(f"Chat assistant LLM fallback failed ({provider}): {e}")
-            return f"Không thể kết nối tới mô hình AI ({provider}): {str(e)}."
+            logger.error(f"Chat assistant LLM fallback failed: {e}")
+            return f"Không thể kết nối tới mô hình AI: {str(e)}."
 
 
 class AIExpenseClassifier:
@@ -1603,6 +1489,73 @@ class AIExpenseClassifier:
                 
         return "Chi phí khác & Vật tư dùng chung"
 
+    def _call_llm(self, settings: dict, system_prompt: str, user_content: str, response_format_json: bool = False) -> str:
+        system_prompt, user_content = compress_and_log("AIExpenseClassifier", settings, system_prompt, user_content)
+        provider = settings.get("ai_provider", "ollama").lower()
+        model_name = settings.get("ai_model_name", "gemma-4")
+        api_key_cipher = settings.get("ai_api_key", "")
+        api_key = decrypt_password(api_key_cipher) if api_key_cipher else ""
+
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_content}
+        ]
+
+        try:
+            if provider == "ollama":
+                endpoint = settings.get("ai_ollama_endpoint", "http://localhost:11434").rstrip("/")
+                url = f"{endpoint}/api/chat"
+                payload = {
+                    "model": model_name,
+                    "messages": messages,
+                    "stream": False,
+                    "options": {"temperature": 0.05}
+                }
+                if response_format_json:
+                    payload["format"] = "json"
+                resp = requests.post(url, json=payload, timeout=30)
+                resp.raise_for_status()
+                return resp.json().get("message", {}).get("content", "").strip()
+
+            elif provider == "gemini":
+                m_name = model_name if model_name else "gemini-1.5-flash"
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/{m_name}:generateContent?key={api_key}"
+                prompt_text = f"System Instruction:\n{system_prompt}\n\nUser Input:\n{user_content}"
+                payload = {
+                    "contents": [{
+                        "parts": [{"text": prompt_text}]
+                    }],
+                    "generationConfig": {
+                        "temperature": 0.05
+                    }
+                }
+                if response_format_json:
+                    payload["generationConfig"]["responseMimeType"] = "application/json"
+                    
+                resp = requests.post(url, json=payload, timeout=30)
+                resp.raise_for_status()
+                return resp.json().get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "").strip()
+
+            elif provider == "openai":
+                m_name = model_name if model_name else "gpt-4o-mini"
+                url = "https://api.openai.com/v1/chat/completions"
+                headers = {"Authorization": f"Bearer {api_key}"}
+                payload = {
+                    "model": m_name,
+                    "messages": messages,
+                    "temperature": 0.05
+                }
+                if response_format_json:
+                    payload["response_format"] = {"type": "json_object"}
+                resp = requests.post(url, json=payload, headers=headers, timeout=30)
+                resp.raise_for_status()
+                return resp.json().get("choices", [{}])[0].get("message", {}).get("content", "").strip()
+            else:
+                return f"Unsupported AI provider: {provider}"
+        except Exception as e:
+            logger.error(f"LLM call failed ({provider}): {e}")
+            raise e
+
     def classify_line_items(self, line_items: list[LineItem]) -> dict[int, str]:
         """Classify multiple LineItems using LLM or local keyword fallback."""
         if not line_items:
@@ -1614,11 +1567,6 @@ class AIExpenseClassifier:
         if not settings.get("ai_enabled"):
             logger.info("AI classification is disabled. Using keyword fallback.")
             return {item.id: self.classify_item_fallback(item.item_name) for item in line_items}
-
-        provider = settings.get("ai_provider", "ollama").lower()
-        model_name = settings.get("ai_model_name", "gemma-4")
-        api_key_cipher = settings.get("ai_api_key", "")
-        api_key = decrypt_password(api_key_cipher) if api_key_cipher else ""
 
         # Prepare payload for LLM
         prompt_items = [{"id": item.id, "name": item.item_name} for item in line_items]
@@ -1640,62 +1588,8 @@ class AIExpenseClassifier:
 
         user_content = f"Danh sách mặt hàng cần phân loại:\n{json.dumps(prompt_items, ensure_ascii=False, indent=2)}"
 
-        response_text = ""
         try:
-            if provider == "ollama":
-                endpoint = settings.get("ai_ollama_endpoint", "http://localhost:11434").rstrip("/")
-                url = f"{endpoint}/api/chat"
-                payload = {
-                    "model": model_name,
-                    "messages": [
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": user_content}
-                    ],
-                    "stream": False,
-                    "options": {"temperature": 0.05},
-                    "format": "json"
-                }
-                resp = requests.post(url, json=payload, timeout=20)
-                resp.raise_for_status()
-                response_text = resp.json().get("message", {}).get("content", "")
-
-            elif provider == "gemini":
-                m_name = model_name if model_name else "gemini-1.5-flash"
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/{m_name}:generateContent?key={api_key}"
-                payload = {
-                    "contents": [
-                        {
-                            "parts": [
-                                {"text": f"{system_prompt}\n\n{user_content}"}
-                            ]
-                        }
-                    ],
-                    "generationConfig": {
-                        "responseMimeType": "application/json",
-                        "temperature": 0.05
-                    }
-                }
-                resp = requests.post(url, json=payload, timeout=20)
-                resp.raise_for_status()
-                response_text = resp.json().get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
-
-            elif provider == "openai":
-                m_name = model_name if model_name else "gpt-4o-mini"
-                url = "https://api.openai.com/v1/chat/completions"
-                headers = {"Authorization": f"Bearer {api_key}"}
-                payload = {
-                    "model": m_name,
-                    "messages": [
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": user_content}
-                    ],
-                    "response_format": {"type": "json_object"},
-                    "temperature": 0.05
-                }
-                resp = requests.post(url, json=payload, headers=headers, timeout=20)
-                resp.raise_for_status()
-                response_text = resp.json().get("choices", [{}])[0].get("message", {}).get("content", "")
-
+            response_text = self._call_llm(settings, system_prompt, user_content, response_format_json=True)
         except Exception as e:
             logger.warning(f"LLM classification failed: {e}. Falling back to keywords.")
             return {item.id: self.classify_item_fallback(item.item_name) for item in line_items}
