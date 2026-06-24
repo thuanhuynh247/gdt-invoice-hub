@@ -234,6 +234,14 @@ Kế hoạch này theo sát tài liệu **Next-Gen Roadmap** và cấu trúc l�
 - [x] **Task 130 (US-760)**: Interactive V71-V75 Compliance Hub UIs & APIs.
 - [x] **Task 131 (US-761)**: End-to-End V71-V75 Verification Test Suites.
 
+### 🚀 Giai Đoạn 31: Headroom AI Context Optimization & Telemetry Hub (v76.0.0 Roadmap)
+- [x] **Task 132 (US-HEADROOM-INTEGRATION)**: Core Headroom AI Context Compression integration & fallback mechanism for AI Audit and RAG chat.
+- [x] **Task 133 (US-HEADROOM-DB-MODEL)**: SQLite telemetry schema & model tracking tokens saved, compression ratios, and elapsed time.
+- [x] **Task 134 (US-HEADROOM-UI-HUB)**: Premium Wise-themed Live Context Hub dashboard with real-time analytics and dynamic config sliders.
+- [x] **Task 135 (US-HEADROOM-API-ROUTES)**: Live playground API & telemetry JSON aggregator routes.
+- [x] **Task 136 (US-HEADROOM-TEST-SUITE)**: Pytest suite `tests/test_v76_headroom.py` and Harness Quality Gate validation.
+
+
 
 
 
