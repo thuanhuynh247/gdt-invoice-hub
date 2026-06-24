@@ -13,7 +13,7 @@ from datetime import datetime
 DB_PATH = os.environ.get("HARNESS_DB", "harness.db")
 
 def get_db():
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=10.0)
     def decode_smart(x):
         try:
             return x.decode('utf-8')
@@ -23,6 +23,8 @@ def get_db():
             except Exception:
                 return x.decode('utf-8', errors='replace')
     conn.text_factory = decode_smart
+    conn.execute("PRAGMA foreign_keys = ON;")
+    conn.execute("PRAGMA journal_mode = WAL;")
     return conn
 
 def get_codegraph_db():
@@ -30,7 +32,7 @@ def get_codegraph_db():
     db_path = os.path.join(repo_root, ".codegraph", "codegraph.db")
     if not os.path.exists(db_path):
         return None
-    conn = sqlite3.connect(db_path)
+    conn = sqlite3.connect(db_path, timeout=10.0)
     def smart_decode(binary_str):
         try:
             return binary_str.decode('utf-8')
@@ -732,27 +734,28 @@ def cmd_serve(port=8080):
                 if parsed.path == '/api/sql':
                     query = data.get('query', '')
                     conn = get_db()
-                    cursor = conn.cursor()
-                    cursor.execute(query)
-                    if query.strip().lower().startswith('select') or query.strip().lower().startswith('pragma'):
-                        rows = cursor.fetchall()
-                        headers = [desc[0] for desc in cursor.description] if cursor.description else []
+                    try:
+                        cursor = conn.cursor()
+                        cursor.execute(query)
+                        if query.strip().lower().startswith('select') or query.strip().lower().startswith('pragma'):
+                            rows = cursor.fetchall()
+                            headers = [desc[0] for desc in cursor.description] if cursor.description else []
+                            send_json({
+                                "success": True,
+                                "type": "select",
+                                "headers": headers,
+                                "rows": rows
+                            })
+                        else:
+                            conn.commit()
+                            rowcount = cursor.rowcount
+                            send_json({
+                                "success": True,
+                                "type": "mutation",
+                                "rowcount": rowcount
+                            })
+                    finally:
                         conn.close()
-                        send_json({
-                            "success": True,
-                            "type": "select",
-                            "headers": headers,
-                            "rows": rows
-                        })
-                    else:
-                        conn.commit()
-                        rowcount = cursor.rowcount
-                        conn.close()
-                        send_json({
-                            "success": True,
-                            "type": "mutation",
-                            "rowcount": rowcount
-                        })
                         
                 elif parsed.path == '/api/risk/evaluate':
                     text = data.get('text', '')
@@ -769,16 +772,18 @@ def cmd_serve(port=8080):
                     notes = data.get('notes', '')
                     
                     conn = get_db()
-                    cursor = conn.cursor()
-                    cursor.execute(
-                        '''INSERT INTO intake (input_type, summary, risk_lane, risk_flags, affected_docs, story_id, notes) 
-                           VALUES (?, ?, ?, ?, ?, ?, ?)''',
-                        (input_type, summary, risk_lane, risk_flags, affected_docs, story_id, notes)
-                    )
-                    conn.commit()
-                    new_id = cursor.lastrowid
-                    conn.close()
-                    send_json({"success": True, "id": new_id})
+                    try:
+                        cursor = conn.cursor()
+                        cursor.execute(
+                            '''INSERT INTO intake (input_type, summary, risk_lane, risk_flags, affected_docs, story_id, notes) 
+                               VALUES (?, ?, ?, ?, ?, ?, ?)''',
+                            (input_type, summary, risk_lane, risk_flags, affected_docs, story_id, notes)
+                        )
+                        conn.commit()
+                        new_id = cursor.lastrowid
+                        send_json({"success": True, "id": new_id})
+                    finally:
+                        conn.close()
 
                 elif parsed.path == '/api/story/add':
                     story_id = data.get('id', '')
@@ -793,15 +798,17 @@ def cmd_serve(port=8080):
                     notes = data.get('notes', '')
                     
                     conn = get_db()
-                    cursor = conn.cursor()
-                    cursor.execute(
-                        '''INSERT INTO story (id, title, risk_lane, status, contract_doc, unit_proof, integration_proof, e2e_proof, platform_proof, notes) 
-                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
-                        (story_id, title, risk_lane, status, contract_doc, unit_proof, integration_proof, e2e_proof, platform_proof, notes)
-                    )
-                    conn.commit()
-                    conn.close()
-                    send_json({"success": True})
+                    try:
+                        cursor = conn.cursor()
+                        cursor.execute(
+                            '''INSERT INTO story (id, title, risk_lane, status, contract_doc, unit_proof, integration_proof, e2e_proof, platform_proof, notes) 
+                               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                            (story_id, title, risk_lane, status, contract_doc, unit_proof, integration_proof, e2e_proof, platform_proof, notes)
+                        )
+                        conn.commit()
+                        send_json({"success": True})
+                    finally:
+                        conn.close()
 
                 elif parsed.path == '/api/story/update':
                     story_id = data.get('id', '')
@@ -817,16 +824,18 @@ def cmd_serve(port=8080):
                     notes = data.get('notes', '')
                     
                     conn = get_db()
-                    cursor = conn.cursor()
-                    cursor.execute(
-                        '''UPDATE story 
-                           SET title=?, status=?, risk_lane=?, evidence=?, contract_doc=?, unit_proof=?, integration_proof=?, e2e_proof=?, platform_proof=?, notes=? 
-                           WHERE id=?''',
-                        (title, status, risk_lane, evidence, contract_doc, unit_proof, integration_proof, e2e_proof, platform_proof, notes, story_id)
-                    )
-                    conn.commit()
-                    conn.close()
-                    send_json({"success": True})
+                    try:
+                        cursor = conn.cursor()
+                        cursor.execute(
+                            '''UPDATE story 
+                               SET title=?, status=?, risk_lane=?, evidence=?, contract_doc=?, unit_proof=?, integration_proof=?, e2e_proof=?, platform_proof=?, notes=? 
+                               WHERE id=?''',
+                            (title, status, risk_lane, evidence, contract_doc, unit_proof, integration_proof, e2e_proof, platform_proof, notes, story_id)
+                        )
+                        conn.commit()
+                        send_json({"success": True})
+                    finally:
+                        conn.close()
 
                 elif parsed.path == '/api/decision/add':
                     decision_id = data.get('id', '')
@@ -837,15 +846,17 @@ def cmd_serve(port=8080):
                     verify_command = data.get('verify_command', '')
                     
                     conn = get_db()
-                    cursor = conn.cursor()
-                    cursor.execute(
-                        '''INSERT INTO decision (id, title, status, notes, doc_path, verify_command) 
-                           VALUES (?, ?, ?, ?, ?, ?)''',
-                        (decision_id, title, status, notes, doc_path, verify_command)
-                    )
-                    conn.commit()
-                    conn.close()
-                    send_json({"success": True})
+                    try:
+                        cursor = conn.cursor()
+                        cursor.execute(
+                            '''INSERT INTO decision (id, title, status, notes, doc_path, verify_command) 
+                               VALUES (?, ?, ?, ?, ?, ?)''',
+                            (decision_id, title, status, notes, doc_path, verify_command)
+                        )
+                        conn.commit()
+                        send_json({"success": True})
+                    finally:
+                        conn.close()
 
                 elif parsed.path == '/api/decision/update':
                     decision_id = data.get('id', '')
@@ -856,52 +867,54 @@ def cmd_serve(port=8080):
                     verify_command = data.get('verify_command', '')
                     
                     conn = get_db()
-                    cursor = conn.cursor()
-                    cursor.execute(
-                        '''UPDATE decision 
-                           SET title=?, status=?, notes=?, doc_path=?, verify_command=? 
-                           WHERE id=?''',
-                        (title, status, notes, doc_path, verify_command, decision_id)
-                    )
-                    conn.commit()
-                    conn.close()
-                    send_json({"success": True})
+                    try:
+                        cursor = conn.cursor()
+                        cursor.execute(
+                            '''UPDATE decision 
+                               SET title=?, status=?, notes=?, doc_path=?, verify_command=? 
+                               WHERE id=?''',
+                            (title, status, notes, doc_path, verify_command, decision_id)
+                        )
+                        conn.commit()
+                        send_json({"success": True})
+                    finally:
+                        conn.close()
 
                 elif parsed.path == '/api/decision/verify':
                     decision_id = data.get('id', '')
                     
                     conn = get_db()
-                    cursor = conn.cursor()
-                    cursor.execute("SELECT verify_command FROM decision WHERE id=?", (decision_id,))
-                    row = cursor.fetchone()
-                    if not row or not row[0]:
-                        conn.close()
-                        send_json({"success": False, "error": "No verify command configured for this decision."})
-                        return
-                    
-                    cmd = row[0]
-                    import subprocess
-                    from datetime import datetime
-                    
                     try:
-                        proc = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, timeout=30)
-                        outcome = 'pass' if proc.returncode == 0 else 'fail'
-                        output = proc.stdout
-                    except subprocess.TimeoutExpired as te:
-                        outcome = 'fail'
-                        output = f"Timeout expired: {te.stdout or ''}"
-                    except Exception as ex:
-                        outcome = 'fail'
-                        output = str(ex)
+                        cursor = conn.cursor()
+                        cursor.execute("SELECT verify_command FROM decision WHERE id=?", (decision_id,))
+                        row = cursor.fetchone()
+                        if not row or not row[0]:
+                            send_json({"success": False, "error": "No verify command configured for this decision."})
+                            return
                         
-                    cursor.execute(
-                        "UPDATE decision SET last_verified_at=?, last_verified_result=? WHERE id=?",
-                        (datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'), outcome, decision_id)
-                    )
-                    conn.commit()
-                    conn.close()
-                    
-                    send_json({"success": True, "outcome": outcome, "console_output": output})
+                        cmd = row[0]
+                        import subprocess
+                        from datetime import datetime
+                        
+                        try:
+                            proc = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, timeout=30)
+                            outcome = 'pass' if proc.returncode == 0 else 'fail'
+                            output = proc.stdout
+                        except subprocess.TimeoutExpired as te:
+                            outcome = 'fail'
+                            output = f"Timeout expired: {te.stdout or ''}"
+                        except Exception as ex:
+                            outcome = 'fail'
+                            output = str(ex)
+                            
+                        cursor.execute(
+                            "UPDATE decision SET last_verified_at=?, last_verified_result=? WHERE id=?",
+                            (datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'), outcome, decision_id)
+                        )
+                        conn.commit()
+                        send_json({"success": True, "outcome": outcome, "console_output": output})
+                    finally:
+                        conn.close()
 
                 elif parsed.path == '/api/backlog/add':
                     title = data.get('title', '')
@@ -913,15 +926,17 @@ def cmd_serve(port=8080):
                     notes = data.get('notes', '')
                     
                     conn = get_db()
-                    cursor = conn.cursor()
-                    cursor.execute(
-                        '''INSERT INTO backlog (title, status, suggested_improvement, current_pain, discovered_while, risk, notes) 
-                           VALUES (?, ?, ?, ?, ?, ?, ?)''',
-                        (title, status, suggested_improvement, current_pain, discovered_while, risk, notes)
-                    )
-                    conn.commit()
-                    conn.close()
-                    send_json({"success": True})
+                    try:
+                        cursor = conn.cursor()
+                        cursor.execute(
+                            '''INSERT INTO backlog (title, status, suggested_improvement, current_pain, discovered_while, risk, notes) 
+                               VALUES (?, ?, ?, ?, ?, ?, ?)''',
+                            (title, status, suggested_improvement, current_pain, discovered_while, risk, notes)
+                        )
+                        conn.commit()
+                        send_json({"success": True})
+                    finally:
+                        conn.close()
 
                 elif parsed.path == '/api/backlog/close':
                     backlog_id = data.get('id', '')
@@ -929,16 +944,18 @@ def cmd_serve(port=8080):
                     notes = data.get('notes', '')
                     
                     conn = get_db()
-                    cursor = conn.cursor()
-                    cursor.execute(
-                        '''UPDATE backlog 
-                           SET status='closed', actual_outcome=?, notes=? 
-                           WHERE id=?''',
-                        (actual_outcome, notes, backlog_id)
-                    )
-                    conn.commit()
-                    conn.close()
-                    send_json({"success": True})
+                    try:
+                        cursor = conn.cursor()
+                        cursor.execute(
+                            '''UPDATE backlog 
+                               SET status='closed', actual_outcome=?, notes=? 
+                               WHERE id=?''',
+                            (actual_outcome, notes, backlog_id)
+                        )
+                        conn.commit()
+                        send_json({"success": True})
+                    finally:
+                        conn.close()
 
                 elif parsed.path == '/api/reservations/reserve':
                     agent = data.get('agent', '')
@@ -1060,122 +1077,123 @@ def cmd_serve(port=8080):
                 self.end_headers()
                 
                 conn = get_db()
-                cursor = conn.cursor()
-                
-                stats = {}
-                for table in ['intake', 'story', 'decision', 'backlog', 'trace']:
+                try:
+                    cursor = conn.cursor()
+                    
+                    stats = {}
+                    for table in ['intake', 'story', 'decision', 'backlog', 'trace']:
+                        try:
+                            cursor.execute(f'SELECT COUNT(*) FROM {table}')
+                            stats[table] = cursor.fetchone()[0]
+                        except Exception:
+                            stats[table] = 0
+                    
+                    # Stories
+                    stories = []
                     try:
-                        cursor.execute(f'SELECT COUNT(*) FROM {table}')
-                        stats[table] = cursor.fetchone()[0]
+                        cursor.execute('SELECT id, title, status, risk_lane, COALESCE(evidence, ""), COALESCE(contract_doc, ""), COALESCE(unit_proof, ""), COALESCE(integration_proof, ""), COALESCE(e2e_proof, ""), COALESCE(platform_proof, ""), COALESCE(notes, "") FROM story ORDER BY id')
+                        for row in cursor.fetchall():
+                            stories.append({
+                                "id": row[0],
+                                "title": row[1],
+                                "status": row[2],
+                                "risk_lane": row[3],
+                                "evidence": row[4],
+                                "contract_doc": row[5],
+                                "unit_proof": row[6],
+                                "integration_proof": row[7],
+                                "e2e_proof": row[8],
+                                "platform_proof": row[9],
+                                "notes": row[10]
+                            })
                     except Exception:
-                        stats[table] = 0
-                
-                # Stories
-                stories = []
-                try:
-                    cursor.execute('SELECT id, title, status, risk_lane, COALESCE(evidence, ""), COALESCE(contract_doc, ""), COALESCE(unit_proof, ""), COALESCE(integration_proof, ""), COALESCE(e2e_proof, ""), COALESCE(platform_proof, ""), COALESCE(notes, "") FROM story ORDER BY id')
-                    for row in cursor.fetchall():
-                        stories.append({
-                            "id": row[0],
-                            "title": row[1],
-                            "status": row[2],
-                            "risk_lane": row[3],
-                            "evidence": row[4],
-                            "contract_doc": row[5],
-                            "unit_proof": row[6],
-                            "integration_proof": row[7],
-                            "e2e_proof": row[8],
-                            "platform_proof": row[9],
-                            "notes": row[10]
-                        })
-                except Exception:
-                    pass
-                
-                # Decisions
-                decisions = []
-                try:
-                    cursor.execute('SELECT id, title, status, COALESCE(notes, ""), COALESCE(doc_path, ""), COALESCE(verify_command, ""), COALESCE(last_verified_at, ""), COALESCE(last_verified_result, "") FROM decision ORDER BY id')
-                    for row in cursor.fetchall():
-                        decisions.append({
-                            "id": row[0],
-                            "title": row[1],
-                            "status": row[2],
-                            "notes": row[3],
-                            "doc_path": row[4],
-                            "verify_command": row[5],
-                            "last_verified_at": row[6],
-                            "last_verified_result": row[7]
-                        })
-                except Exception:
-                    pass
-                
-                # Traces
-                traces = []
-                try:
-                    cursor.execute('SELECT id, created_at, outcome, task_summary, COALESCE(harness_friction, ""), agent, COALESCE(files_read, ""), COALESCE(files_changed, "") FROM trace ORDER BY id DESC LIMIT 30')
-                    for row in cursor.fetchall():
-                        traces.append({
-                            "id": row[0],
-                            "created_at": row[1],
-                            "outcome": row[2],
-                            "task_summary": row[3],
-                            "friction": row[4],
-                            "agent": row[5],
-                            "files_read": row[6],
-                            "files_changed": row[7]
-                        })
-                except Exception:
-                    pass
-                
-                # Backlog
-                backlogs = []
-                try:
-                    cursor.execute('SELECT id, title, status, COALESCE(suggested_improvement, ""), COALESCE(current_pain, ""), COALESCE(discovered_while, ""), COALESCE(risk, ""), COALESCE(notes, ""), COALESCE(actual_outcome, "") FROM backlog ORDER BY id')
-                    for row in cursor.fetchall():
-                        backlogs.append({
-                            "id": row[0],
-                            "title": row[1],
-                            "status": row[2],
-                            "suggestion": row[3],
-                            "pain": row[4],
-                            "discovered_while": row[5],
-                            "risk": row[6],
-                            "notes": row[7],
-                            "actual_outcome": row[8]
-                        })
-                except Exception:
-                    pass
+                        pass
+                    
+                    # Decisions
+                    decisions = []
+                    try:
+                        cursor.execute('SELECT id, title, status, COALESCE(notes, ""), COALESCE(doc_path, ""), COALESCE(verify_command, ""), COALESCE(last_verified_at, ""), COALESCE(last_verified_result, "") FROM decision ORDER BY id')
+                        for row in cursor.fetchall():
+                            decisions.append({
+                                "id": row[0],
+                                "title": row[1],
+                                "status": row[2],
+                                "notes": row[3],
+                                "doc_path": row[4],
+                                "verify_command": row[5],
+                                "last_verified_at": row[6],
+                                "last_verified_result": row[7]
+                            })
+                    except Exception:
+                        pass
+                    
+                    # Traces
+                    traces = []
+                    try:
+                        cursor.execute('SELECT id, created_at, outcome, task_summary, COALESCE(harness_friction, ""), agent, COALESCE(files_read, ""), COALESCE(files_changed, "") FROM trace ORDER BY id DESC LIMIT 30')
+                        for row in cursor.fetchall():
+                            traces.append({
+                                "id": row[0],
+                                "created_at": row[1],
+                                "outcome": row[2],
+                                "task_summary": row[3],
+                                "friction": row[4],
+                                "agent": row[5],
+                                "files_read": row[6],
+                                "files_changed": row[7]
+                            })
+                    except Exception:
+                        pass
+                    
+                    # Backlog
+                    backlogs = []
+                    try:
+                        cursor.execute('SELECT id, title, status, COALESCE(suggested_improvement, ""), COALESCE(current_pain, ""), COALESCE(discovered_while, ""), COALESCE(risk, ""), COALESCE(notes, ""), COALESCE(actual_outcome, "") FROM backlog ORDER BY id')
+                        for row in cursor.fetchall():
+                            backlogs.append({
+                                "id": row[0],
+                                "title": row[1],
+                                "status": row[2],
+                                "suggestion": row[3],
+                                "pain": row[4],
+                                "discovered_while": row[5],
+                                "risk": row[6],
+                                "notes": row[7],
+                                "actual_outcome": row[8]
+                            })
+                    except Exception:
+                        pass
 
-                # Intakes
-                intakes = []
-                try:
-                    cursor.execute('SELECT id, created_at, input_type, risk_lane, summary, COALESCE(risk_flags, ""), COALESCE(affected_docs, ""), COALESCE(story_id, ""), COALESCE(notes, "") FROM intake ORDER BY id DESC LIMIT 50')
-                    for row in cursor.fetchall():
-                        intakes.append({
-                            "id": row[0],
-                            "created_at": row[1],
-                            "input_type": row[2],
-                            "risk_lane": row[3],
-                            "summary": row[4],
-                            "risk_flags": row[5],
-                            "affected_docs": row[6],
-                            "story_id": row[7],
-                            "notes": row[8]
-                        })
-                except Exception:
-                    pass
-                
-                conn.close()
-                
-                data = {
-                    "stats": stats,
-                    "stories": stories,
-                    "decisions": decisions,
-                    "traces": traces,
-                    "backlogs": backlogs,
-                    "intakes": intakes
-                }
-                self.wfile.write(json.dumps(data).encode('utf-8'))
+                    # Intakes
+                    intakes = []
+                    try:
+                        cursor.execute('SELECT id, created_at, input_type, risk_lane, summary, COALESCE(risk_flags, ""), COALESCE(affected_docs, ""), COALESCE(story_id, ""), COALESCE(notes, "") FROM intake ORDER BY id DESC LIMIT 50')
+                        for row in cursor.fetchall():
+                            intakes.append({
+                                "id": row[0],
+                                "created_at": row[1],
+                                "input_type": row[2],
+                                "risk_lane": row[3],
+                                "summary": row[4],
+                                "risk_flags": row[5],
+                                "affected_docs": row[6],
+                                "story_id": row[7],
+                                "notes": row[8]
+                            })
+                    except Exception:
+                        pass
+                    
+                    data = {
+                        "stats": stats,
+                        "stories": stories,
+                        "decisions": decisions,
+                        "traces": traces,
+                        "backlogs": backlogs,
+                        "intakes": intakes
+                    }
+                    self.wfile.write(json.dumps(data).encode('utf-8'))
+                finally:
+                    conn.close()
                 
             elif parsed.path == '/api/file':
                 query_components = parse_qs(parsed.query)
@@ -1235,7 +1253,6 @@ def cmd_serve(port=8080):
                             "signature": row[6] or '',
                             "docstring": row[7] or ''
                         })
-                    conn.close()
                     
                     self.send_response(200)
                     self.send_header('Content-type', 'application/json; charset=utf-8')
@@ -1246,6 +1263,8 @@ def cmd_serve(port=8080):
                     self.send_header('Content-type', 'application/json; charset=utf-8')
                     self.end_headers()
                     self.wfile.write(json.dumps({"success": False, "error": str(e)}).encode('utf-8'))
+                finally:
+                    conn.close()
                 return
                 
             elif parsed.path == '/api/codegraph/relations':
@@ -1319,8 +1338,6 @@ def cmd_serve(port=8080):
                             "call_col": row[6]
                         })
                         
-                    conn.close()
-                    
                     self.send_response(200)
                     self.send_header('Content-type', 'application/json; charset=utf-8')
                     self.end_headers()
@@ -1335,6 +1352,8 @@ def cmd_serve(port=8080):
                     self.send_header('Content-type', 'application/json; charset=utf-8')
                     self.end_headers()
                     self.wfile.write(json.dumps({"success": False, "error": str(e)}).encode('utf-8'))
+                finally:
+                    conn.close()
                 return
                 
             elif parsed.path == '/api/codegraph/impact':
@@ -1408,8 +1427,6 @@ def cmd_serve(port=8080):
                             
                     find_downstream_recursive(node_id, 1)
                     
-                    conn.close()
-                    
                     self.send_response(200)
                     self.send_header('Content-type', 'application/json; charset=utf-8')
                     self.end_headers()
@@ -1423,6 +1440,8 @@ def cmd_serve(port=8080):
                     self.send_header('Content-type', 'application/json; charset=utf-8')
                     self.end_headers()
                     self.wfile.write(json.dumps({"success": False, "error": str(e)}).encode('utf-8'))
+                finally:
+                    conn.close()
                 return
                 
             elif parsed.path == '/api/codegraph/files':
@@ -1445,7 +1464,6 @@ def cmd_serve(port=8080):
                             "node_count": row[2],
                             "language": row[3]
                         })
-                    conn.close()
                     
                     self.send_response(200)
                     self.send_header('Content-type', 'application/json; charset=utf-8')
@@ -1456,6 +1474,8 @@ def cmd_serve(port=8080):
                     self.send_header('Content-type', 'application/json; charset=utf-8')
                     self.end_headers()
                     self.wfile.write(json.dumps({"success": False, "error": str(e)}).encode('utf-8'))
+                finally:
+                    conn.close()
                 return
 
             elif parsed.path == '/':
@@ -1945,7 +1965,7 @@ def cmd_serve(port=8080):
             background: rgba(255, 255, 255, 0.05);
         }
         
-        .drawer label {
+        .drawer label, .drawer-label-heading {
             display: block;
             font-size: 12px;
             color: var(--text-secondary);
@@ -2110,11 +2130,11 @@ def cmd_serve(port=8080):
         
         <div class="controls-row" id="controls-panel">
             <div class="search-wrapper">
-                <input type="text" id="search-bar" class="search-input" placeholder="Search entries..." oninput="filterData()">
+                <input type="text" id="search-bar" class="search-input" placeholder="Search entries..." oninput="filterData()" aria-label="Search entries">
             </div>
             <div style="display:flex; gap:10px; align-items:center;">
                 <div id="filter-wrapper">
-                    <select id="status-filter" class="filter-select" onchange="filterData()">
+                    <select id="status-filter" class="filter-select" onchange="filterData()" aria-label="Filter entries by status">
                         <option value="all">All Statuses / Lanes</option>
                     </select>
                 </div>
@@ -2227,6 +2247,7 @@ def cmd_serve(port=8080):
                         <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.4;">Paste your user story or technical spec here to estimate its risk lane and find triggers.</p>
                         
                         <div>
+                            <label for="risk-spec-input" style="display:block; font-size:12px; color:var(--text-secondary); margin-bottom:5px; font-weight:500;">User Story or Technical Specification</label>
                             <textarea id="risk-spec-input" class="sql-textarea" style="height: 100px; padding: 10px; border: 1px solid var(--border-subtle); border-radius: 6px; background: rgba(0,0,0,0.2);" placeholder="E.g. We need to implement a new login flow using JWT tokens, modify the user database schema, and notify an external GDT api..."></textarea>
                         </div>
                         <button class="btn-run" style="width:100%;" onclick="estimateSpecRisk()">⚡ Evaluate Spec</button>
@@ -2244,7 +2265,7 @@ def cmd_serve(port=8080):
                             <div style="border-top: 1px dashed var(--border-subtle); padding-top:12px; margin-top:5px; display:flex; flex-direction:column; gap:10px;">
                                 <h4 style="font-size:13px; color:#a5b4fc;">Record as New Intake</h4>
                                 <div>
-                                    <label style="display:block; font-size:11px; color:var(--text-secondary); margin-bottom:3px;">Intake Input Type</label>
+                                    <label for="intake-add-type" style="display:block; font-size:11px; color:var(--text-secondary); margin-bottom:3px;">Intake Input Type</label>
                                     <select id="intake-add-type" style="padding: 8px 12px; font-size:12px; background: #0f172a; border: 1px solid var(--border-subtle); color:#fff; border-radius:6px; width:100%;">
                                         <option value="new_spec">New Spec</option>
                                         <option value="spec_slice">Spec Slice</option>
@@ -2255,15 +2276,15 @@ def cmd_serve(port=8080):
                                     </select>
                                 </div>
                                 <div>
-                                    <label style="display:block; font-size:11px; color:var(--text-secondary); margin-bottom:3px;">Affected Documents</label>
+                                    <label for="intake-add-docs" style="display:block; font-size:11px; color:var(--text-secondary); margin-bottom:3px;">Affected Documents</label>
                                     <input type="text" id="intake-add-docs" style="padding: 8px 12px; font-size:12px; background:rgba(255,255,255,0.03); border:1px solid var(--border-subtle); color:#fff; border-radius:6px; width:100%;" placeholder="docs/specs/auth.md">
                                 </div>
                                 <div>
-                                    <label style="display:block; font-size:11px; color:var(--text-secondary); margin-bottom:3px;">Story ID mapping (optional)</label>
+                                    <label for="intake-add-story" style="display:block; font-size:11px; color:var(--text-secondary); margin-bottom:3px;">Story ID mapping (optional)</label>
                                     <input type="text" id="intake-add-story" style="padding: 8px 12px; font-size:12px; background:rgba(255,255,255,0.03); border:1px solid var(--border-subtle); color:#fff; border-radius:6px; width:100%;" placeholder="ST-101">
                                 </div>
                                 <div>
-                                    <label style="display:block; font-size:11px; color:var(--text-secondary); margin-bottom:3px;">Notes (optional)</label>
+                                    <label for="intake-add-notes" style="display:block; font-size:11px; color:var(--text-secondary); margin-bottom:3px;">Notes (optional)</label>
                                     <textarea id="intake-add-notes" class="sql-textarea" style="height: 50px; font-size:12px; padding: 6px; border: 1px solid var(--border-subtle); border-radius: 6px; background: rgba(0,0,0,0.2);" placeholder="Context notes..."></textarea>
                                 </div>
                                 <button class="btn-run" style="background:#10b981; width:100%;" onclick="submitCreatedIntake()">➕ Record Intake</button>
@@ -2377,23 +2398,23 @@ def cmd_serve(port=8080):
                         <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.4;">Acquire exclusive locks on files or globs to prevent other agents from editing them concurrently.</p>
                         
                         <div>
-                            <label style="display:block; font-size:11px; color:var(--text-secondary); margin-bottom:3px;">Agent Name</label>
+                            <label for="res-agent" style="display:block; font-size:11px; color:var(--text-secondary); margin-bottom:3px;">Agent Name</label>
                             <input type="text" id="res-agent" value="Antigravity" style="padding: 8px 12px; font-size:12px; background:rgba(255,255,255,0.03); border:1px solid var(--border-subtle); color:#fff; border-radius:6px; width:100%;">
                         </div>
                         <div>
-                            <label style="display:block; font-size:11px; color:var(--text-secondary); margin-bottom:3px;">Task / Bead ID</label>
+                            <label for="res-bead" style="display:block; font-size:11px; color:var(--text-secondary); margin-bottom:3px;">Task / Bead ID</label>
                             <input type="text" id="res-bead" style="padding: 8px 12px; font-size:12px; background:rgba(255,255,255,0.03); border:1px solid var(--border-subtle); color:#fff; border-radius:6px; width:100%;" placeholder="e.g. ST-101">
                         </div>
                         <div>
-                            <label style="display:block; font-size:11px; color:var(--text-secondary); margin-bottom:3px;">File Paths / Globs (one per line)</label>
+                            <label for="res-paths" style="display:block; font-size:11px; color:var(--text-secondary); margin-bottom:3px;">File Paths / Globs (one per line)</label>
                             <textarea id="res-paths" style="height: 80px; padding: 10px; border: 1px solid var(--border-subtle); border-radius: 6px; background: rgba(0,0,0,0.2); font-family: monospace; font-size:12px; width:100%; color:#fff; outline:none;" placeholder="e.g.&#10;src/components/Auth.js&#10;src/utils/*.js"></textarea>
                         </div>
                         <div>
-                            <label style="display:block; font-size:11px; color:var(--text-secondary); margin-bottom:3px;">TTL (Seconds)</label>
+                            <label for="res-ttl" style="display:block; font-size:11px; color:var(--text-secondary); margin-bottom:3px;">TTL (Seconds)</label>
                             <input type="number" id="res-ttl" value="3600" style="padding: 8px 12px; font-size:12px; background:rgba(255,255,255,0.03); border:1px solid var(--border-subtle); color:#fff; border-radius:6px; width:100%;">
                         </div>
                         <div>
-                            <label style="display:block; font-size:11px; color:var(--text-secondary); margin-bottom:3px;">Reason / Notes</label>
+                            <label for="res-note" style="display:block; font-size:11px; color:var(--text-secondary); margin-bottom:3px;">Reason / Notes</label>
                             <textarea id="res-note" style="height: 50px; padding: 10px; border: 1px solid var(--border-subtle); border-radius: 6px; background: rgba(0,0,0,0.2); font-size:12px; width:100%; color:#fff; outline:none;" placeholder="e.g. Editing auth forms"></textarea>
                         </div>
                         <button class="btn-run" style="width:100%; background: var(--primary);" onclick="createReservation()">⚡ Acquire Lock</button>
@@ -2701,8 +2722,14 @@ def cmd_serve(port=8080):
             <div class="console-grid">
                 <div class="editor-box">
                     <h3 style="font-size:16px; margin-bottom:12px; color:#a5b4fc;">SQLite Terminal Sandbox</h3>
-                    <select id="sql-templates" class="filter-select" onchange="loadSqlTemplate()"><option value="stories">Select * Stories</option><option value="traces">Select * Traces</option></select>
-                    <textarea id="sql-query-input" class="sql-textarea" placeholder="SELECT * FROM story;"></textarea>
+                    <div style="margin-bottom: 12px;">
+                        <label for="sql-templates" style="display:block; font-size:11px; color:var(--text-secondary); margin-bottom:3px;">Select SQL Query Template</label>
+                        <select id="sql-templates" class="filter-select" onchange="loadSqlTemplate()" style="width: 100%;"><option value="stories">Select * Stories</option><option value="traces">Select * Traces</option></select>
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <label for="sql-query-input" style="display:block; font-size:11px; color:var(--text-secondary); margin-bottom:3px;">SQL Query Editor</label>
+                        <textarea id="sql-query-input" class="sql-textarea" placeholder="SELECT * FROM story;"></textarea>
+                    </div>
                     <button class="btn-run" onclick="runSqlQuery()">⚡ Execute Query</button>
                 </div>
                 <div class="sql-results-panel" id="sql-results"></div>
@@ -2729,16 +2756,20 @@ def cmd_serve(port=8080):
                 <!-- Left Sidebar: Search and List -->
                 <div style="border-right: 1px solid var(--border-subtle); padding-right: 25px; display: flex; flex-direction: column; gap: 15px;">
                     <h3 style="font-size: 16px; color: #a5b4fc; font-weight: 600;">CodeGraph Explorer</h3>
-                    <div style="display: flex; gap: 10px;">
-                        <input type="text" id="cg-search-input" placeholder="Search functions, classes..." 
-                               style="flex: 1; background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); padding: 10px 14px; border-radius: 8px; color: #fff; font-family: inherit; font-size: 13px;"
-                               onkeydown="if(event.key === 'Enter') searchCodeGraph()">
-                        <button onclick="searchCodeGraph()" 
-                                style="background: var(--primary); color: white; border: none; padding: 0 16px; border-radius: 8px; font-family: inherit; font-weight: 500; cursor: pointer; transition: all 0.3s ease;">
-                            Search
-                        </button>
+                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                        <label for="cg-search-input" style="font-size: 11px; color: var(--text-secondary);">Search symbols</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" id="cg-search-input" placeholder="Search functions, classes..." 
+                                   style="flex: 1; background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); padding: 10px 14px; border-radius: 8px; color: #fff; font-family: inherit; font-size: 13px;"
+                                   onkeydown="if(event.key === 'Enter') searchCodeGraph()">
+                            <button onclick="searchCodeGraph()" 
+                                    style="background: var(--primary); color: white; border: none; padding: 0 16px; border-radius: 8px; font-family: inherit; font-weight: 500; cursor: pointer; transition: all 0.3s ease;">
+                                Search
+                            </button>
+                        </div>
                     </div>
-                    <div style="display: flex; gap: 8px;">
+                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                        <label for="cg-kind-select" style="font-size: 11px; color: var(--text-secondary);">Symbol Kind Filter</label>
                         <select id="cg-kind-select" style="width: 100%; background: #0f172a; border: 1px solid var(--border-subtle); color: var(--text-primary); padding: 8px 12px; border-radius: 8px; outline: none; cursor: pointer; font-family: inherit; font-size: 12px;" onchange="searchCodeGraph()">
                             <option value="">All Kinds</option>
                             <option value="function">Functions</option>
@@ -3027,12 +3058,12 @@ def cmd_serve(port=8080):
                 
                 <div class="drawer-section">
                     <h4>Details & Context</h4>
-                    <label>Mapping to Story ID</label>
+                    <label for="intake-story-map">Mapping to Story ID</label>
                     <div style="display:flex; gap:10px;">
                         <input type="text" id="intake-story-map" value="${escapeHtml(intake.story_id)}" style="margin-bottom:0;" placeholder="ST-101">
                         <button class="btn-run" style="background:#10b981; padding:8px 15px; font-size:12px;" onclick="updateIntakeStoryMap(${intake.id})">Link</button>
                     </div>
-                    <label style="margin-top:15px;">Notes</label>
+                    <label for="intake-notes" style="margin-top:15px;">Notes</label>
                     <textarea id="intake-notes" style="height:60px;">${escapeHtml(intake.notes || '')}</textarea>
                     <button class="btn-run" style="width:100%; margin-top:10px;" onclick="updateIntakeNotes(${intake.id})">Update Notes</button>
                 </div>
@@ -3095,7 +3126,7 @@ def cmd_serve(port=8080):
                     <h4>Contract Document & Evidence</h4>
                     <div style="margin-bottom:10px;">${filesHtml}</div>
                     <div id="story-markdown-renderer" style="max-height:200px; overflow-y:auto; font-size:13px; border-radius:6px; background:rgba(0,0,0,0.15); padding:10px;"></div>
-                    <label style="margin-top:12px;">Evidence Log</label>
+                    <span class="drawer-label-heading" style="margin-top:12px;">Evidence Log</span>
                     <pre style="max-height:100px;">${escapeHtml(story.evidence || 'No evidence recorded.')}</pre>
                 </div>
                 
@@ -3112,12 +3143,12 @@ def cmd_serve(port=8080):
             
             document.getElementById('drawer-body').innerHTML = `
                 <div class="drawer-section">
-                    <label>Title / Specification</label>
+                    <label for="edit-story-title">Title / Specification</label>
                     <input type="text" id="edit-story-title" value="${escapeHtml(story.title)}">
                     
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
                         <div>
-                            <label>Risk Lane</label>
+                            <label for="edit-story-lane">Risk Lane</label>
                             <select id="edit-story-lane">
                                 <option value="tiny" ${story.risk_lane === 'tiny' ? 'selected' : ''}>Tiny</option>
                                 <option value="normal" ${story.risk_lane === 'normal' ? 'selected' : ''}>Normal</option>
@@ -3125,7 +3156,7 @@ def cmd_serve(port=8080):
                             </select>
                         </div>
                         <div>
-                            <label>Status</label>
+                            <label for="edit-story-status">Status</label>
                             <select id="edit-story-status">
                                 <option value="proposed" ${story.status === 'proposed' ? 'selected' : ''}>Proposed</option>
                                 <option value="implemented" ${story.status === 'implemented' ? 'selected' : ''}>Implemented</option>
@@ -3134,25 +3165,25 @@ def cmd_serve(port=8080):
                         </div>
                     </div>
                     
-                    <label>Contract Doc Path</label>
+                    <label for="edit-story-contract">Contract Doc Path</label>
                     <input type="text" id="edit-story-contract" value="${escapeHtml(story.contract_doc || '')}">
                     
-                    <label>Unit Test Proof Path</label>
+                    <label for="edit-story-unit">Unit Test Proof Path</label>
                     <input type="text" id="edit-story-unit" value="${escapeHtml(story.unit_proof || '')}">
                     
-                    <label>Integration Test Proof Path</label>
+                    <label for="edit-story-integration">Integration Test Proof Path</label>
                     <input type="text" id="edit-story-integration" value="${escapeHtml(story.integration_proof || '')}">
                     
-                    <label>E2E Test Proof Path</label>
+                    <label for="edit-story-e2e">E2E Test Proof Path</label>
                     <input type="text" id="edit-story-e2e" value="${escapeHtml(story.e2e_proof || '')}">
                     
-                    <label>Platform / Sandbox Proof Path</label>
+                    <label for="edit-story-platform">Platform / Sandbox Proof Path</label>
                     <input type="text" id="edit-story-platform" value="${escapeHtml(story.platform_proof || '')}">
                     
-                    <label>Evidence Log Output</label>
+                    <label for="edit-story-evidence">Evidence Log Output</label>
                     <textarea id="edit-story-evidence" style="height:65px;">${escapeHtml(story.evidence || '')}</textarea>
                     
-                    <label>Notes</label>
+                    <label for="edit-story-notes">Notes</label>
                     <textarea id="edit-story-notes" style="height:65px;">${escapeHtml(story.notes || '')}</textarea>
                     
                     <div class="drawer-btn-group">
@@ -3209,7 +3240,7 @@ def cmd_serve(port=8080):
                         <code style="display:block; font-size:12px; color:#38bdf8; background:rgba(0,0,0,0.4); padding:8px; border-radius:4px; margin-bottom:10px;">${escapeHtml(dec.verify_command)}</code>
                         <button class="btn-run" style="width:100%;" id="btn-run-verify" onclick="triggerDecisionVerification('${dec.id}')">⚡ Execute Verify Command</button>
                         <div id="verify-console-output" style="margin-top:12px; display:none;">
-                            <label>Console Output</label>
+                            <span class="drawer-label-heading">Console Output</span>
                             <pre style="max-height:200px; font-size:11px; padding:8px; overflow:auto;"></pre>
                         </div>
                     </div>
@@ -3227,7 +3258,7 @@ def cmd_serve(port=8080):
                         <span>Status:</span>
                         <span class="badge badge-${dec.status}">${dec.status}</span>
                     </div>
-                    <label>Notes</label>
+                    <span class="drawer-label-heading">Notes</span>
                     <p style="font-size:14px; line-height:1.5; color:var(--text-secondary);">${escapeHtml(dec.notes || 'None')}</p>
                 </div>
                 
@@ -3285,10 +3316,10 @@ def cmd_serve(port=8080):
             
             document.getElementById('drawer-body').innerHTML = `
                 <div class="drawer-section">
-                    <label>Title / Objective</label>
+                    <label for="edit-dec-title">Title / Objective</label>
                     <input type="text" id="edit-dec-title" value="${escapeHtml(dec.title)}">
                     
-                    <label>Status</label>
+                    <label for="edit-dec-status">Status</label>
                     <select id="edit-dec-status">
                         <option value="proposed" ${dec.status === 'proposed' ? 'selected' : ''}>Proposed</option>
                         <option value="accepted" ${dec.status === 'accepted' ? 'selected' : ''}>Accepted</option>
@@ -3296,13 +3327,13 @@ def cmd_serve(port=8080):
                         <option value="superseded" ${dec.status === 'superseded' ? 'selected' : ''}>Superseded</option>
                     </select>
                     
-                    <label>Document Path (ADR markdown)</label>
+                    <label for="edit-dec-doc">Document Path (ADR markdown)</label>
                     <input type="text" id="edit-dec-doc" value="${escapeHtml(dec.doc_path || '')}">
                     
-                    <label>Verification Command</label>
+                    <label for="edit-dec-cmd">Verification Command</label>
                     <input type="text" id="edit-dec-cmd" value="${escapeHtml(dec.verify_command || '')}" placeholder="E.g. pytest tests/test_auth.py">
                     
-                    <label>Notes</label>
+                    <label for="edit-dec-notes">Notes</label>
                     <textarea id="edit-dec-notes" style="height:80px;">${escapeHtml(dec.notes || '')}</textarea>
                     
                     <div class="drawer-btn-group">
@@ -3346,9 +3377,9 @@ def cmd_serve(port=8080):
                 actionPanel = `
                     <div class="drawer-section" style="background:rgba(239, 68, 68, 0.03); border:1px solid rgba(239, 68, 68, 0.1); border-radius:8px; padding:15px; margin-top:10px;">
                         <h4 style="color:#f87171;">Close Backlog Item</h4>
-                        <label>Actual Outcome / Solution</label>
+                        <label for="backlog-close-outcome">Actual Outcome / Solution</label>
                         <textarea id="backlog-close-outcome" style="height:60px;" placeholder="Describe how the improvement was implemented..."></textarea>
-                        <label>Additional Notes</label>
+                        <label for="backlog-close-notes">Additional Notes</label>
                         <textarea id="backlog-close-notes" style="height:50px;" placeholder="Refactor lessons..."></textarea>
                         <button class="btn-run" style="background:#ef4444; width:100%; margin-top:8px;" onclick="closeBacklogItem(${b.id})">❌ Close Task</button>
                     </div>
@@ -3357,7 +3388,7 @@ def cmd_serve(port=8080):
                 actionPanel = `
                     <div class="drawer-section">
                         <h4>Resolution Details</h4>
-                        <label>Actual Outcome</label>
+                        <span class="drawer-label-heading">Actual Outcome</span>
                         <p style="font-size:14px; font-style:italic; line-height:1.5; color:var(--success);">${escapeHtml(b.actual_outcome || 'No outcome documented.')}</p>
                     </div>
                 `;
@@ -3369,18 +3400,18 @@ def cmd_serve(port=8080):
                         <span class="badge badge-${b.risk}">${b.risk} risk</span>
                         <span class="badge badge-${b.status}">${b.status}</span>
                     </div>
-                    <label>Current Friction Pain</label>
+                    <span class="drawer-label-heading">Current Friction Pain</span>
                     <p style="font-size:14px; line-height:1.5; margin-bottom:12px;">${escapeHtml(b.pain || 'None')}</p>
                     
-                    <label>Suggested Solution</label>
+                    <span class="drawer-label-heading">Suggested Solution</span>
                     <p style="font-size:14px; line-height:1.5; margin-bottom:12px;">${escapeHtml(b.suggestion || 'None')}</p>
                     
-                    <label>Discovered While</label>
+                    <span class="drawer-label-heading">Discovered While</span>
                     <p style="font-size:13px; font-family:monospace; color:var(--text-secondary);">${escapeHtml(b.discovered_while || 'Not specified')}</p>
                 </div>
                 
                 <div class="drawer-section">
-                    <label>Notes</label>
+                    <span class="drawer-label-heading">Notes</span>
                     <p style="font-size:13px; color:var(--text-secondary); line-height:1.5;">${escapeHtml(b.notes || 'None')}</p>
                 </div>
                 
@@ -3473,15 +3504,15 @@ def cmd_serve(port=8080):
             if (type === 'story') {
                 document.getElementById('drawer-body').innerHTML = `
                     <div class="drawer-section">
-                        <label>Story ID (e.g., ST-101)</label>
+                        <label for="add-story-id">Story ID (e.g., ST-101)</label>
                         <input type="text" id="add-story-id" placeholder="ST-101">
                         
-                        <label>Title / Objective</label>
+                        <label for="add-story-title">Title / Objective</label>
                         <input type="text" id="add-story-title" placeholder="Implement security audit endpoint">
                         
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
                             <div>
-                                <label>Risk Lane</label>
+                                <label for="add-story-lane">Risk Lane</label>
                                 <select id="add-story-lane">
                                     <option value="tiny">Tiny</option>
                                     <option value="normal" selected>Normal</option>
@@ -3489,7 +3520,7 @@ def cmd_serve(port=8080):
                                 </select>
                             </div>
                             <div>
-                                <label>Status</label>
+                                <label for="add-story-status">Status</label>
                                 <select id="add-story-status">
                                     <option value="proposed" selected>Proposed</option>
                                     <option value="implemented">Implemented</option>
@@ -3498,22 +3529,22 @@ def cmd_serve(port=8080):
                             </div>
                         </div>
                         
-                        <label>Contract Document File (optional)</label>
+                        <label for="add-story-contract">Contract Document File (optional)</label>
                         <input type="text" id="add-story-contract" placeholder="docs/specs/auth.md">
                         
-                        <label>Unit Proof (optional)</label>
+                        <label for="add-story-unit">Unit Proof (optional)</label>
                         <input type="text" id="add-story-unit" placeholder="pytest tests/unit/ -v">
                         
-                        <label>Integration Proof (optional)</label>
+                        <label for="add-story-integration">Integration Proof (optional)</label>
                         <input type="text" id="add-story-integration" placeholder="pytest tests/integration/ -v">
                         
-                        <label>E2E Proof (optional)</label>
+                        <label for="add-story-e2e">E2E Proof (optional)</label>
                         <input type="text" id="add-story-e2e" placeholder="playwright test">
                         
-                        <label>Platform/Registry Proof (optional)</label>
+                        <label for="add-story-platform">Platform/Registry Proof (optional)</label>
                         <input type="text" id="add-story-platform" placeholder="docker run --rm test-suite">
                         
-                        <label>Notes</label>
+                        <label for="add-story-notes">Notes</label>
                         <textarea id="add-story-notes" style="height:60px;"></textarea>
                         
                         <button class="btn-run" style="width:100%; background:#10b981; margin-top:15px;" onclick="submitStoryCreate()">➕ Create Story</button>
@@ -3522,13 +3553,13 @@ def cmd_serve(port=8080):
             } else if (type === 'decision') {
                 document.getElementById('drawer-body').innerHTML = `
                     <div class="drawer-section">
-                        <label>Decision ID (e.g., ADR-001)</label>
+                        <label for="add-dec-id">Decision ID (e.g., ADR-001)</label>
                         <input type="text" id="add-dec-id" placeholder="ADR-001">
                         
-                        <label>Title / Subject</label>
+                        <label for="add-dec-title">Title / Subject</label>
                         <input type="text" id="add-dec-title" placeholder="Use SQLite for isolated test sessions">
                         
-                        <label>Status</label>
+                        <label for="add-dec-status">Status</label>
                         <select id="add-dec-status">
                             <option value="proposed" selected>Proposed</option>
                             <option value="accepted">Accepted</option>
@@ -3536,13 +3567,13 @@ def cmd_serve(port=8080):
                             <option value="superseded">Superseded</option>
                         </select>
                         
-                        <label>ADR Markdown Path</label>
+                        <label for="add-dec-doc">ADR Markdown Path</label>
                         <input type="text" id="add-dec-doc" placeholder="docs/adr/001-sqlite-isolation.md">
                         
-                        <label>Verify Command</label>
+                        <label for="add-dec-cmd">Verify Command</label>
                         <input type="text" id="add-dec-cmd" placeholder="pytest tests/test_isolation.py">
                         
-                        <label>Notes</label>
+                        <label for="add-dec-notes">Notes</label>
                         <textarea id="add-dec-notes" style="height:60px;"></textarea>
                         
                         <button class="btn-run" style="width:100%; background:#10b981; margin-top:15px;" onclick="submitDecisionCreate()">➕ Create ADR</button>
@@ -3551,26 +3582,26 @@ def cmd_serve(port=8080):
             } else if (type === 'backlog') {
                 document.getElementById('drawer-body').innerHTML = `
                     <div class="drawer-section">
-                        <label>Title / Improvement Area</label>
+                        <label for="add-back-title">Title / Improvement Area</label>
                         <input type="text" id="add-back-title" placeholder="Speed up schema initialization">
                         
-                        <label>Suggested Solution</label>
+                        <label for="add-back-suggestion">Suggested Solution</label>
                         <textarea id="add-back-suggestion" style="height:55px;" placeholder="Use an in-memory SQL schema dump..."></textarea>
                         
-                        <label>Current Friction Pain</label>
+                        <label for="add-back-pain">Current Friction Pain</label>
                         <textarea id="add-back-pain" style="height:55px;" placeholder="Loading DDL migrations on every pytest run takes 4 seconds..."></textarea>
                         
-                        <label>Discovered While (task context)</label>
+                        <label for="add-back-discovered">Discovered While (task context)</label>
                         <input type="text" id="add-back-discovered" placeholder="Story ST-101">
                         
-                        <label>Risk Assessment</label>
+                        <label for="add-back-risk">Risk Assessment</label>
                         <select id="add-back-risk">
                             <option value="tiny">Tiny</option>
                             <option value="normal" selected>Normal</option>
                             <option value="high_risk">High Risk</option>
                         </select>
                         
-                        <label>Notes</label>
+                        <label for="add-back-notes">Notes</label>
                         <textarea id="add-back-notes" style="height:60px;"></textarea>
                         
                         <button class="btn-run" style="width:100%; background:#10b981; margin-top:15px;" onclick="submitBacklogCreate()">➕ Create Backlog Item</button>
