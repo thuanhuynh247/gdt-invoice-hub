@@ -162,6 +162,99 @@ def get_supplier_pivot_data(mst, year_filter, value_type):
         "grand_total": grand_total
     }
 
+
+def get_customer_pivot_data(mst, year_filter, value_type):
+    from extensions import db
+    from invoices.models import Invoice
+    from sqlalchemy import func
+
+    # Query sales invoices (invoice_type = 'sales')
+    query = db.session.query(
+        Invoice.buyer_mst,
+        Invoice.buyer_name,
+        func.substr(Invoice.date, 1, 7).label("month_str"),
+        func.count(Invoice.id).label("count"),
+        func.sum(Invoice.amount_before_tax).label("amount_before_tax"),
+        func.sum(Invoice.tax_amount).label("tax_amount"),
+        func.sum(Invoice.total_amount).label("total_amount")
+    ).filter(
+        Invoice.invoice_type == 'sales'
+    )
+
+    if mst and mst != "all":
+        query = query.filter(Invoice.taxpayer_mst == mst)
+
+    if year_filter:
+        query = query.filter(Invoice.date.like(f"{year_filter}-%"))
+
+    results = query.group_by(
+        Invoice.buyer_mst,
+        Invoice.buyer_name,
+        func.substr(Invoice.date, 1, 7)
+    ).all()
+
+    # Build pivot structure
+    if year_filter:
+        months_list = [f"{i:02d}" for i in range(1, 13)]
+    else:
+        months_set = set()
+        for r in results:
+            if r.month_str and len(r.month_str) == 7:
+                months_set.add(r.month_str)
+        months_list = sorted(list(months_set))
+
+    customers_map = {}
+    for r in results:
+        buyer_mst = r.buyer_mst or "UNKNOWN"
+        buyer_name = r.buyer_name or "Không rõ"
+        month_key = r.month_str
+        if year_filter and month_key:
+            month_key = month_key.split("-")[1]
+
+        val = 0.0
+        if value_type == "amount_before_tax":
+            val = r.amount_before_tax or 0.0
+        elif value_type == "tax_amount":
+            val = r.tax_amount or 0.0
+        elif value_type == "invoice_count":
+            val = r.count or 0
+        else:
+            val = r.total_amount or 0.0
+
+        if buyer_mst not in customers_map:
+            customers_map[buyer_mst] = {
+                "buyer_mst": buyer_mst,
+                "buyer_name": buyer_name,
+                "monthly_values": {m: 0.0 for m in months_list},
+                "row_total": 0.0
+            }
+        
+        if month_key in customers_map[buyer_mst]["monthly_values"]:
+            customers_map[buyer_mst]["monthly_values"][month_key] = val
+            customers_map[buyer_mst]["row_total"] += val
+
+    rows = list(customers_map.values())
+    rows.sort(key=lambda x: x["row_total"], reverse=True)
+
+    column_totals = {m: 0.0 for m in months_list}
+    grand_total = 0.0
+
+    for r in rows:
+        for m in months_list:
+            val = r["monthly_values"].get(m, 0.0)
+            column_totals[m] += val
+            grand_total += val
+
+    return {
+        "year": year_filter or "Tất cả",
+        "value_type": value_type,
+        "months": months_list,
+        "rows": rows,
+        "column_totals": column_totals,
+        "grand_total": grand_total
+    }
+
+
 _AGING_BUCKETS = [
     ("1–30 ngày",   1,  30),
     ("31–60 ngày",  31, 60),

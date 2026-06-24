@@ -26,6 +26,7 @@ from invoices.routes.shared import invoices_blueprint, DOWNLOAD_TASKS, DOWNLOAD_
 from invoices.routes.helpers import (
     _ensure_logged_in,
     get_supplier_pivot_data,
+    get_customer_pivot_data,
     _AGING_BUCKETS,
     classify_fct_item,
     generate_fct_excel,
@@ -2316,6 +2317,198 @@ def api_supplier_pivot_export():
         excel_bytes = excel_file.getvalue()
 
         filename = f"Pivot_NCC_{value_type}_{data['year']}.xlsx"
+        return send_file(
+            BytesIO(excel_bytes),
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            as_attachment=True,
+            download_name=filename
+        )
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@invoices_blueprint.get("/api/invoices/customer-pivot")
+def api_customer_pivot():
+    """Aggregate sales invoices by customer and month/year in a pivot structure."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    try:
+        year_filter = request.args.get("year", "2026")
+        value_type = request.args.get("value_type", "total_amount")
+        mst = request.args.get("taxpayer_mst") or session.get("active_taxpayer_mst")
+        if mst == "all":
+            mst = None
+
+        data = get_customer_pivot_data(mst, year_filter, value_type)
+        return jsonify({"success": True, **data})
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@invoices_blueprint.get("/api/invoices/customer-pivot/export")
+def api_customer_pivot_export():
+    """Export the customer pivot table to a beautifully formatted Excel sheet."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    from io import BytesIO
+    from flask import send_file
+    import openpyxl
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+    from export.formatter import auto_adjust_column_widths
+
+    try:
+        year_filter = request.args.get("year", "2026")
+        value_type = request.args.get("value_type", "total_amount")
+        mst = request.args.get("taxpayer_mst") or session.get("active_taxpayer_mst")
+        if mst == "all":
+            mst = None
+
+        data = get_customer_pivot_data(mst, year_filter, value_type)
+
+        workbook = Workbook()
+        ws = workbook.active
+        ws.title = "Pivot KH"
+        ws.views.sheetView[0].showGridLines = True
+
+        # Titles
+        title_font = Font(name="Calibri", size=14, bold=True, color="1F4E78")
+        info_font = Font(name="Calibri", size=11, italic=True)
+        header_font = Font(name="Calibri", size=11, bold=True, color="FFFFFF")
+        bold_font = Font(name="Calibri", size=11, bold=True)
+        regular_font = Font(name="Calibri", size=11)
+
+        header_fill = PatternFill(start_color="1F4E78", end_color="1F4E78", fill_type="solid")
+        zebra_fill = PatternFill(start_color="F2F4F7", end_color="F2F4F7", fill_type="solid")
+        total_fill = PatternFill(start_color="DDEBF7", end_color="DDEBF7", fill_type="solid")
+
+        thin_border = Border(
+            left=Side(style='thin', color='BFBFBF'),
+            right=Side(style='thin', color='BFBFBF'),
+            top=Side(style='thin', color='BFBFBF'),
+            bottom=Side(style='thin', color='BFBFBF')
+        )
+        double_bottom_border = Border(
+            left=Side(style='thin', color='BFBFBF'),
+            right=Side(style='thin', color='BFBFBF'),
+            top=Side(style='thin', color='BFBFBF'),
+            bottom=Side(style='double', color='1F4E78')
+        )
+
+        ws["A1"] = f"BẢNG TỔNG HỢP HOÁ ĐƠN ĐẦU RA THEO KHÁCH HÀNG - NĂM {data['year']}"
+        ws["A1"].font = title_font
+        ws.row_dimensions[1].height = 25
+
+        value_type_titles = {
+            "total_amount": "Tổng tiền thanh toán (đồng)",
+            "amount_before_tax": "Doanh số trước thuế (đồng)",
+            "tax_amount": "Tiền thuế GTGT (đồng)",
+            "invoice_count": "Số lượng hóa đơn (tờ)"
+        }
+        value_title = value_type_titles.get(data["value_type"], "Tổng tiền thanh toán")
+
+        mst_str = mst if mst else "Tất cả Doanh nghiệp"
+        ws["A2"] = f"Mã số thuế Doanh nghiệp: {mst_str} | Chỉ số: {value_title}"
+        ws["A2"].font = info_font
+        ws.row_dimensions[2].height = 20
+
+        # Headers on row 4
+        headers = ["Mã số thuế", "Tên khách hàng"]
+        for m in data["months"]:
+            if len(m) == 2:
+                headers.append(f"Tháng {m}")
+            else:
+                headers.append(m)
+        headers.append("Tổng cộng")
+
+        ws.append([]) # row 3 blank
+        ws.append(headers) # row 4
+        ws.row_dimensions[4].height = 25
+
+        for col_idx in range(1, len(headers) + 1):
+            cell = ws.cell(row=4, column=col_idx)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+            cell.border = thin_border
+
+        # Rows starting at row 5
+        current_row = 5
+        for row_idx, r in enumerate(data["rows"]):
+            row_data = [r["buyer_mst"], r["buyer_name"]]
+            for m in data["months"]:
+                row_data.append(r["monthly_values"].get(m, 0.0))
+            row_data.append(r["row_total"])
+
+            ws.append(row_data)
+            ws.row_dimensions[current_row].height = 20
+
+            # Format cells
+            is_even = row_idx % 2 == 1
+            for col_idx in range(1, len(row_data) + 1):
+                cell = ws.cell(row=current_row, column=col_idx)
+                cell.border = thin_border
+                
+                if col_idx == 1:
+                    cell.alignment = Alignment(horizontal="center", vertical="center")
+                    cell.font = regular_font
+                elif col_idx == 2:
+                    cell.alignment = Alignment(horizontal="left", vertical="center")
+                    cell.font = regular_font
+                else:
+                    cell.alignment = Alignment(horizontal="right", vertical="center")
+                    if value_type == "invoice_count":
+                        cell.number_format = "#,##0"
+                    else:
+                        cell.number_format = "#,##0"
+                    cell.font = regular_font
+
+                if is_even:
+                    cell.fill = zebra_fill
+
+            current_row += 1
+
+        # Totals Row at current_row
+        total_row_data = ["TỔNG CỘNG", ""]
+        for m in data["months"]:
+            total_row_data.append(data["column_totals"].get(m, 0.0))
+        total_row_data.append(data["grand_total"])
+
+        ws.append(total_row_data)
+        ws.merge_cells(start_row=current_row, start_column=1, end_row=current_row, end_column=2)
+        ws.row_dimensions[current_row].height = 22
+
+        for col_idx in range(1, len(total_row_data) + 1):
+            cell = ws.cell(row=current_row, column=col_idx)
+            cell.font = Font(name="Calibri", size=11, bold=True, color="1F4E78")
+            cell.fill = total_fill
+            cell.border = double_bottom_border
+            if col_idx >= 3:
+                cell.alignment = Alignment(horizontal="right", vertical="center")
+                if value_type == "invoice_count":
+                    cell.number_format = "#,##0"
+                else:
+                    cell.number_format = "#,##0"
+            else:
+                cell.alignment = Alignment(horizontal="center", vertical="center")
+
+        # Auto adjust column widths
+        auto_adjust_column_widths(ws)
+
+        # Set specific widths for MST and Name columns to look beautiful
+        ws.column_dimensions['A'].width = 16
+        ws.column_dimensions['B'].width = 38
+
+        # Output
+        excel_file = BytesIO()
+        workbook.save(excel_file)
+        excel_bytes = excel_file.getvalue()
+
+        filename = f"Pivot_KhachHang_{value_type}_{data['year']}.xlsx"
         return send_file(
             BytesIO(excel_bytes),
             mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

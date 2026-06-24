@@ -268,7 +268,7 @@
 
                         <input type="radio" class="btn-check" name="partnerViewMode" id="viewModePivot" autocomplete="off">
                         <label class="btn btn-outline-primary-accent btn-sm py-1 px-3" for="viewModePivot" style="font-size: 0.85rem; border-radius: 0 6px 6px 0;">
-                            <i class="bi bi-grid-3x3-gap-fill" aria-hidden="true"></i> Bảng Pivot NCC
+                            <i class="bi bi-grid-3x3-gap-fill" aria-hidden="true"></i> Bảng Pivot
                         </label>
                     </div>
 
@@ -343,6 +343,14 @@
                                 <option value="2025">2025</option>
                                 <option value="2024">2024</option>
                                 <option value="">Tất cả</option>
+                            </select>
+                        </div>
+                        <!-- Object Selector -->
+                        <div class="d-flex align-items-center gap-2">
+                            <label for="pivotObjectType" class="text-secondary fw-semibold mb-0" style="font-size: 0.85rem; white-space: nowrap;">Đối tượng:</label>
+                            <select class="form-select custom-select form-select-sm" id="pivotObjectType" style="width: 150px; height: 32px; font-size: 0.85rem;">
+                                <option value="supplier" selected>Nhà cung cấp</option>
+                                <option value="customer">Khách hàng</option>
                             </select>
                         </div>
                         <!-- Metric Selector -->

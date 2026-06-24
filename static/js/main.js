@@ -1703,6 +1703,7 @@ let cachedPivotData = null;
 async function loadPartnersPivot() {
     const year = document.getElementById("pivotYearFilter")?.value || "2026";
     const metric = document.getElementById("pivotMetricType")?.value || "total_amount";
+    const objectType = document.getElementById("pivotObjectType")?.value || "supplier";
     
     const tbody = document.getElementById("pivotTableBody");
     const thead = document.getElementById("pivotTableHeader");
@@ -1715,10 +1716,14 @@ async function loadPartnersPivot() {
     if (tfoot) tfoot.innerHTML = '';
     
     try {
-        const res = await apiCall(`/api/invoices/supplier-pivot?year=${year}&value_type=${metric}`);
+        const endpoint = objectType === "customer" ? `/api/invoices/customer-pivot` : `/api/invoices/supplier-pivot`;
+        const res = await apiCall(`${endpoint}?year=${year}&value_type=${metric}`);
         if (!res || !res.success) {
             throw new Error(res ? res.error : "Không thể lấy dữ liệu pivot");
         }
+        
+        // Save objectType on response for rendering logic
+        res.objectType = objectType;
         
         cachedPivotData = res;
         renderPivotTable(res);
@@ -1736,12 +1741,14 @@ function renderPivotTable(data) {
     if (!thead || !tbody || !tfoot) return;
     
     const isCount = data.value_type === "invoice_count";
+    const isCustomer = data.objectType === "customer";
+    const entityLabel = isCustomer ? "Tên khách hàng" : "Tên nhà cung cấp";
     
     // Render Header
     let headerHtml = `
         <tr style="background: rgba(255, 255, 255, 0.02);">
             <th class="sticky-col text-center" style="width: 130px; min-width: 130px;">Mã số thuế</th>
-            <th class="sticky-col-2" style="width: 300px; min-width: 300px;">Tên nhà cung cấp</th>
+            <th class="sticky-col-2" style="width: 300px; min-width: 300px;">${entityLabel}</th>
     `;
     data.months.forEach(m => {
         const displayMonth = m.length === 2 ? `Tháng ${m}` : m;
@@ -1757,24 +1764,27 @@ function renderPivotTable(data) {
     let filteredRows = data.rows || [];
     if (searchQuery) {
         filteredRows = filteredRows.filter(r => {
-            const mst = (r.seller_mst || "").toLowerCase();
-            const name = (r.seller_name || "").toLowerCase();
+            const mst = (r.seller_mst || r.buyer_mst || "").toLowerCase();
+            const name = (r.seller_name || r.buyer_name || "").toLowerCase();
             return mst.includes(searchQuery) || name.includes(searchQuery);
         });
     }
     
     if (filteredRows.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="${data.months.length + 3}" class="text-center text-secondary py-5">Không tìm thấy nhà cung cấp nào.</td></tr>`;
+        const noEntityText = isCustomer ? "Không tìm thấy khách hàng nào." : "Không tìm thấy nhà cung cấp nào.";
+        tbody.innerHTML = `<tr><td colspan="${data.months.length + 3}" class="text-center text-secondary py-5">${noEntityText}</td></tr>`;
         tfoot.innerHTML = "";
         return;
     }
     
     // Render Body
     tbody.innerHTML = filteredRows.map(r => {
+        const mstVal = r.seller_mst || r.buyer_mst || "";
+        const nameVal = r.seller_name || r.buyer_name || "";
         let cellsHtml = `
             <tr>
-                <td class="sticky-col text-center font-monospace fw-semibold text-secondary" style="background-color: var(--card-bg, #1a1e29);">${r.seller_mst}</td>
-                <td class="sticky-col-2 fw-bold text-dark text-wrap" style="background-color: var(--card-bg, #1a1e29); max-width: 300px;">${r.seller_name}</td>
+                <td class="sticky-col text-center font-monospace fw-semibold text-secondary" style="background-color: var(--card-bg, #1a1e29);">${mstVal}</td>
+                <td class="sticky-col-2 fw-bold text-dark text-wrap" style="background-color: var(--card-bg, #1a1e29); max-width: 300px;">${nameVal}</td>
         `;
         data.months.forEach(m => {
             const val = r.monthly_values[m] || 0;
@@ -1956,7 +1966,13 @@ document.addEventListener("DOMContentLoaded", () => {
             if (partnersPivotContainer) partnersPivotContainer.style.setProperty("display", "block", "important");
             if (summaryPeriodSelector) summaryPeriodSelector.style.setProperty("display", "none", "important");
             if (btnDownloadPartnersPdf) btnDownloadPartnersPdf.style.setProperty("display", "none", "important");
-            if (partnersTitleText) partnersTitleText.textContent = "Bảng Tổng Hợp Hóa Đơn Đầu Vào Theo Nhà Cung Cấp (Pivot)";
+            
+            const isCustomer = document.getElementById("pivotObjectType")?.value === "customer";
+            if (partnersTitleText) {
+                partnersTitleText.textContent = isCustomer 
+                    ? "Bảng Tổng Hợp Hóa Đơn Bán Ra Theo Khách Hàng (Pivot)"
+                    : "Bảng Tổng Hợp Hóa Đơn Đầu Vào Theo Nhà Cung Cấp (Pivot)";
+            }
             loadPartnersPivot();
         }
     };
@@ -1969,12 +1985,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Bind Pivot Table events
     document.getElementById("pivotYearFilter")?.addEventListener("change", loadPartnersPivot);
+    document.getElementById("pivotObjectType")?.addEventListener("change", loadPartnersPivot);
     document.getElementById("pivotMetricType")?.addEventListener("change", loadPartnersPivot);
     document.getElementById("pivotSearchInput")?.addEventListener("input", filterPivotRows);
     document.getElementById("btnPivotExport")?.addEventListener("click", () => {
         const year = document.getElementById("pivotYearFilter")?.value || "2026";
         const metric = document.getElementById("pivotMetricType")?.value || "total_amount";
-        window.location.href = `/api/invoices/supplier-pivot/export?year=${year}&value_type=${metric}`;
+        const objectType = document.getElementById("pivotObjectType")?.value || "supplier";
+        const endpoint = objectType === "customer" ? `/api/invoices/customer-pivot/export` : `/api/invoices/supplier-pivot/export`;
+        window.location.href = `${endpoint}?year=${year}&value_type=${metric}`;
     });
 
 
