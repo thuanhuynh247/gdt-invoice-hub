@@ -247,6 +247,7 @@ def api_compliance_concept_map():
         {"id": "v73", "label": "Hazardous Waste Hub (v73)", "group": "environmental", "risk": "high", "url": "/v73-compliance-hub", "status": "active"},
         {"id": "v74", "label": "Noise & Vibration Hub (v74)", "group": "environmental", "risk": "medium", "url": "/v74-compliance-hub", "status": "active"},
         {"id": "v75", "label": "Plastics Levy Hub (v75)", "group": "environmental", "risk": "high", "url": "/v75-compliance-hub", "status": "active"},
+        {"id": "v76", "label": "Headroom AI Hub (v76)", "group": "core", "risk": "medium", "url": "/v76-headroom-hub", "status": "active"},
     ]
     
     links = [
@@ -270,6 +271,7 @@ def api_compliance_concept_map():
         {"source": "v53", "target": "v73", "type": "subset", "label": "Hazardous Waste Control"},
         {"source": "v53", "target": "v74", "type": "subset", "label": "Noise & Vibration Limits"},
         {"source": "v53", "target": "v75", "type": "subset", "label": "Single-Use Plastics Levy"},
+        {"source": "v44", "target": "v76", "type": "dependency", "label": "AI Context Optimization"},
     ]
 
     violations = {n["id"]: 0 for n in nodes}
@@ -417,6 +419,7 @@ def api_compliance_concept_map_expand(version_id):
         "hazardous_logs_count": 0,
         "noise_logs_count": 0,
         "plastics_logs_count": 0,
+        "headroom_logs_count": 0,
         "total_violations": 0
     }
     
@@ -479,9 +482,10 @@ def api_compliance_concept_map_expand(version_id):
         pass
 
     try:
-        from invoices.models import Invoice
+        from invoices.models import Invoice, HeadroomTelemetry
         invoices_with_warnings = Invoice.query.filter(Invoice.taxpayer_mst == mst).all()
         db_stats["total_violations"] = sum(len(inv.warnings) for inv in invoices_with_warnings if inv.warnings)
+        db_stats["headroom_logs_count"] = HeadroomTelemetry.query.count()
     except Exception:
         pass
 
@@ -492,7 +496,7 @@ def api_compliance_concept_map_expand(version_id):
         "v26", "v27", "v28", "v29", "v30", "v31", "v44", "v45", "v46", "v47", "v48", "v49",
         "v50", "v51", "v52", "v53", "v54", "v55", "v56", "v57", "v58", "v59", "v60", "v61",
         "v62", "v63", "v64", "v65", "v66", "v67", "v68", "v69", "v70", "v71", "v72", "v73",
-        "v74", "v75"
+        "v74", "v75", "v76"
     }
     
     if v_clean not in valid_nodes:

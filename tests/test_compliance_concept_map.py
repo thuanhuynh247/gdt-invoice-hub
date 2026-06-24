@@ -64,6 +64,7 @@ def test_concept_map_api(mock_app):
     v26 = next((n for n in nodes if n["id"] == "v26"), None)
     v53 = next((n for n in nodes if n["id"] == "v53"), None)
     v70 = next((n for n in nodes if n["id"] == "v70"), None)
+    v76 = next((n for n in nodes if n["id"] == "v76"), None)
     
     assert v26 is not None
     assert v26["group"] == "income"
@@ -76,6 +77,10 @@ def test_concept_map_api(mock_app):
     assert v70 is not None
     assert v70["group"] == "environmental"
     assert v70["risk"] == "medium"
+
+    assert v76 is not None
+    assert v76["group"] == "core"
+    assert v76["risk"] == "medium"
     
     # Check relationships
     links = data["links"]
@@ -83,6 +88,11 @@ def test_concept_map_api(mock_app):
     rel = next((l for l in links if l["source"] == "v53" and l["target"] == "v70"), None)
     assert rel is not None
     assert rel["type"] == "subset"
+
+    rel_v76 = next((l for l in links if l["source"] == "v44" and l["target"] == "v76"), None)
+    assert rel_v76 is not None
+    assert rel_v76["type"] == "dependency"
+    assert rel_v76["label"] == "AI Context Optimization"
 
 def test_concept_map_expand_api(mock_app):
     """Verify that the Concept Map Expander API returns 7-page field guide data."""
@@ -101,6 +111,16 @@ def test_concept_map_expand_api(mock_app):
     assert len(data["pages"]) == 7
     assert data["pages"][0]["title"] == "1. Định Hướng (Orientation)"
     assert "v53" in data["pages"][0]["content"].lower() or "môi trường" in data["pages"][0]["content"].lower()
+
+    # Test v76 guide
+    res_v76 = client.get("/api/compliance/concept-map/expand/v76")
+    assert res_v76.status_code == 200
+    data_v76 = json.loads(res_v76.data)
+    assert data_v76["status"] == "success"
+    assert data_v76["mst"] == "0102030470"
+    assert len(data_v76["pages"]) == 7
+    assert data_v76["pages"][0]["title"] == "1. Định Hướng (Orientation)"
+    assert "v76" in data_v76["pages"][0]["content"].lower() or "headroom" in data_v76["pages"][0]["content"].lower()
 
     # Test invalid compliance node version
     res = client.get("/api/compliance/concept-map/expand/v999")

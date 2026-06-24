@@ -16,6 +16,7 @@ def get_compliance_pages(version_id: str, mst: str, db_stats: dict) -> list[dict
     hazardous_count = db_stats.get("hazardous_logs_count", 0)
     noise_count = db_stats.get("noise_logs_count", 0)
     plastics_count = db_stats.get("plastics_logs_count", 0)
+    headroom_count = db_stats.get("headroom_logs_count", 0)
     total_violations = db_stats.get("total_violations", 0)
     
     pages = []
@@ -1233,6 +1234,38 @@ def get_compliance_pages(version_id: str, mst: str, db_stats: dict) -> list[dict
             {
                 "title": "7. Ứng Dụng & Lộ Trình Học Tập (Application & Learning Path)",
                 "content": "### Lộ Trình Triển Khai\n*   **Bước 1**: Rà soát nhà cung cấp bao bì nhựa để chuyển đổi sang sử dụng túi ni-lông có chứng chỉ tự phân hủy sinh học.\n*   **Bước 2**: Thực hiện quét và nộp tờ khai thuế bảo vệ môi trường đối với bao bì nhựa tự sản xuất trước khi xuất xưởng.\n\n### Luật tham chiếu\n*   **Thông tư số 152/2011/TT-BTC** hướng dẫn thi hành Luật Thuế bảo vệ môi trường."
+            }
+        ]
+
+    elif v_clean == "v76":
+        pages = [
+            {
+                "title": "1. Định Hướng (Orientation)",
+                "content": "### Mục tiêu chính (True Purpose)\nHướng dẫn quản lý, cấu hình và giám sát phân hệ tối ưu hóa ngữ cảnh AI và lưu trữ vết đo lường (Telemetry Traces) qua Headroom AI Hub (v76).\n\n### Câu hỏi trọng tâm (Focus Question)\n*Làm thế nào để nén ngữ cảnh thông minh mà không làm mất thông tin quan trọng của các tác vụ kiểm toán thuế phức tạp?*\n\n### Lời hứa của bản đồ (Map Promise)\nCung cấp hiểu biết sâu sắc về kỹ thuật nén token, bảo vệ các đoạn thông tin gần nhất và cách cấu hình tỷ lệ nén (target ratio) tối ưu."
+            },
+            {
+                "title": "2. Mô Mô Hình Lõi (Core Model)",
+                "content": "### Cấu Trúc Hoạt Động Headroom AI Hub\n*   **Lớp Đo Lường (Telemetry Logging)**: Tự động ghi vết các cuộc gọi LLM bao gồm số lượng token trước/sau nén, tỷ lệ nén và các phép chuyển đổi đã áp dụng.\n*   **Lớp Tối Ưu Hóa (Optimization Engine)**: Sử dụng giải thuật loại bỏ trùng lặp, tóm tắt và lược bỏ các từ thừa mà không thay đổi ngữ nghĩa.\n*   **Lớp Kiểm Soát (Steering Gates)**: Cho phép bật/tắt động, đặt tỷ lệ mục tiêu (target_ratio) và bảo vệ một số lượng tin nhắn gần nhất (protect_recent)."
+            },
+            {
+                "title": "3. Phân Vùng Phạm Vi (Scope Rings)",
+                "content": "### Phân Lớp Phạm Vi v76\n*   **Vùng Lõi (Core)**: Nén và tối ưu hóa hệ thống prompt (system & user content), lưu nhật ký telemetry vào cơ sở dữ liệu.\n*   **Vùng Cận Biên (Adjacent)**: Liên kết với cổng tương tác API Playground và giao diện Dashboard kiểm soát hiệu năng.\n*   **Vùng Biên Giới (Frontier)**: Tự động điều chỉnh cấu hình nén dựa trên độ dài lịch sử chat và phản hồi từ mô hình LLM.\n*   **Ngoài Phạm Vi (Out-of-Scope)**: Huấn luyện hoặc tinh chỉnh các mô hình ngôn ngữ lớn (LLM SFT)."
+            },
+            {
+                "title": "4. Ngữ Pháp Liên Kết (Relation Grammar)",
+                "content": "### Quy Tắc Liên Kết & Ràng Buộc\n*   **Mối quan hệ phụ thuộc (Dependency)**: v76 phụ thuộc vào v44 (Compliance Hub) để đồng bộ cấu hình hệ thống và cập nhật trạng thái chung.\n*   **Ràng buộc (Constraint)**: Mọi thao tác nén prompt phải đảm bảo không vượt quá dung lượng ngữ cảnh cực đại của mô hình và không làm méo mó các thông số kiểm toán quan trọng (như MST, số tiền thuế, trạng thái hóa đơn)."
+            },
+            {
+                "title": "5. Cơ Chế Vận Hành (Mechanism & Dynamics)",
+                "content": "### Luồng Vận Hành Chung\n\n```mermaid\nsequenceDiagram\n    Client->>Webapp: Gửi yêu cầu kiểm toán/chat\n    Webapp->>Headroom Hub: Gọi compress_and_log()\n    Note over Headroom Hub: Kiểm tra settings.ai_headroom_enabled\n    alt Enabled\n        Headroom Hub->>Headroom Hub: Thực hiện nén (Target Ratio / Protect Recent)\n        Headroom Hub->>Database: Lưu vết HeadroomTelemetry\n    else Disabled\n        Note over Headroom Hub: Giữ nguyên prompt gốc\n    end\n    Headroom Hub-->>Webapp: Trả về prompts đã tối ưu\n    Webapp->>LLM: Thực thi yêu cầu với prompts tối ưu\n```"
+            },
+            {
+                "title": "6. Giới Hạn & Lỗi Thường Gặp (Boundaries & Failure Cases)",
+                "content": f"### Dữ Liệu Đo Lường v76\n*   MST Đang Xem: **{mst}**\n*   Số lượng vết đo lường đã ghi nhận: **{headroom_count} sự kiện**\n*   Tổng số cảnh báo hệ thống: **{total_violations} cảnh báo**\n\n### Sai sót thường gặp\n1. **Over-compression (Nén quá đà)**: Đặt target_ratio quá thấp khiến AI đánh mất ngữ cảnh quan trọng về luật thuế.\n2. **Telemetry Table missing (Thiếu bảng dữ liệu)**: Chưa chạy di chuyển (migration) DB dẫn đến lỗi ghi nhật ký telemetry."
+            },
+            {
+                "title": "7. Ứng Dụng & Lộ Trình Học Tập (Application & Learning Path)",
+                "content": "### Lộ Trình Triển Khai\n*   **Bước 1**: Bật tính năng Headroom AI tại trang cài đặt hệ thống.\n*   **Bước 2**: Sử dụng Playground để thử nghiệm các mức độ nén và kiểm tra chất lượng câu trả lời.\n*   **Bước 3**: Giám sát biểu đồ hiệu năng và số lượng token tiết kiệm được trên Dashboard.\n\n### Tài liệu tham chiếu\n*   **Headroom AI Context Compression / Telemetry Hub Specification**"
             }
         ]
     
