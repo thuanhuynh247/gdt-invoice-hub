@@ -1046,6 +1046,64 @@ def cmd_serve(port=8080):
                         except Exception as e:
                             send_json({"success": False, "error": str(e)})
 
+                elif parsed.path == '/api/khuym/gate':
+                    gate_name = data.get('gate', '')
+                    approved = bool(data.get('approved', False))
+                    
+                    khuym_state_path = os.path.join(".khuym", "state.json")
+                    if not os.path.exists(khuym_state_path):
+                        send_json({"success": False, "error": ".khuym/state.json not found"})
+                    else:
+                        try:
+                            with open(khuym_state_path, "r", encoding="utf-8") as f:
+                                state_data = json.load(f)
+                                
+                            if "approved_gates" not in state_data:
+                                state_data["approved_gates"] = {}
+                                
+                            state_data["approved_gates"][gate_name] = approved
+                            state_data["last_updated"] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+                            
+                            with open(khuym_state_path, "w", encoding="utf-8") as f:
+                                json.dump(state_data, f, indent=2)
+                                
+                            send_json({"success": True, "state": state_data})
+                        except Exception as e:
+                            send_json({"success": False, "error": str(e)})
+
+                elif parsed.path == '/api/khuym/action':
+                    action = data.get('action', '')
+                    
+                    cmd = []
+                    if action == 'sync_codegraph':
+                        cmd = ['npx', '@colbymchenry/codegraph', 'sync']
+                    elif action == 'onboard':
+                        cmd = ['node', 'scripts/onboard_khuym.mjs', '--repo-root', '.']
+                    elif action == 'index_codegraph':
+                        cmd = ['npx', '@colbymchenry/codegraph', 'init', '-i']
+                    else:
+                        send_json({"success": False, "error": f"Unknown action: {action}"})
+                    
+                    if cmd:
+                        import subprocess
+                        try:
+                            # Let's run with shell=True for windows command compatibility
+                            proc = subprocess.run(
+                                cmd, 
+                                shell=True, 
+                                stdout=subprocess.PIPE, 
+                                stderr=subprocess.STDOUT, 
+                                text=True,
+                                timeout=90
+                            )
+                            send_json({
+                                "success": True if proc.returncode == 0 else False,
+                                "returncode": proc.returncode,
+                                "output": proc.stdout
+                            })
+                        except Exception as e:
+                            send_json({"success": False, "error": str(e)})
+
                 else:
                     self.send_error(404, 'Not Found')
             except Exception as e:
@@ -1069,6 +1127,52 @@ def cmd_serve(port=8080):
                         self.send_error(500, f"Error parsing reservation output: {e}")
                 else:
                     self.send_error(500, f"Error listing reservations: {proc.stderr or proc.stdout}")
+                return
+
+            elif parsed.path == '/api/khuym/status':
+                khuym_state = {}
+                khuym_onboarding = {}
+                khuym_status_cmd = {}
+                
+                # 1. state.json
+                state_path = os.path.join(".khuym", "state.json")
+                if os.path.exists(state_path):
+                    try:
+                        with open(state_path, "r", encoding="utf-8") as f:
+                            khuym_state = json.load(f)
+                    except Exception as e:
+                        khuym_state = {"error": str(e)}
+                        
+                # 2. onboarding.json
+                onboarding_path = os.path.join(".khuym", "onboarding.json")
+                if os.path.exists(onboarding_path):
+                    try:
+                        with open(onboarding_path, "r", encoding="utf-8") as f:
+                            khuym_onboarding = json.load(f)
+                    except Exception as e:
+                        khuym_onboarding = {"error": str(e)}
+                        
+                # 3. Running .codex/khuym_status.mjs --json
+                import subprocess
+                cmd = ['node', '.codex/khuym_status.mjs', '--json']
+                proc = subprocess.run(cmd, capture_output=True, text=True)
+                if proc.returncode == 0:
+                    try:
+                        khuym_status_cmd = json.loads(proc.stdout)
+                    except Exception as e:
+                        khuym_status_cmd = {"error": f"JSON parse error: {e}", "raw": proc.stdout}
+                else:
+                    khuym_status_cmd = {"error": proc.stderr or proc.stdout}
+                    
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(json.dumps({
+                    "success": True,
+                    "state": khuym_state,
+                    "onboarding": khuym_onboarding,
+                    "status_scout": khuym_status_cmd
+                }).encode('utf-8'))
                 return
 
             elif parsed.path == '/api/data':
@@ -2075,7 +2179,253 @@ def cmd_serve(port=8080):
         }
         .alert-success { background: rgba(16, 185, 129, 0.1); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.2); }
         .alert-error { background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.2); }
+        
+        /* ── Khuym Styles ────────────────────────────────────────── */
+        .khuym-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+        
+        @media (min-width: 1024px) {
+            .khuym-grid {
+                grid-template-columns: 2fr 1fr;
+            }
+        }
+        
+        .khuym-card {
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .khuym-card-title {
+            font-size: 16px;
+            color: #a5b4fc;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .khuym-stepper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            margin: 20px 0;
+            padding: 0 10px;
+        }
+        
+        .khuym-stepper::before {
+            content: '';
+            position: absolute;
+            top: 25px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.05);
+            z-index: 1;
+        }
+        
+        .khuym-stepper-progress {
+            position: absolute;
+            top: 25px;
+            left: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary), var(--success));
+            z-index: 2;
+            transition: width 0.5s ease;
+        }
+        
+        .khuym-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 3;
+            flex: 1;
+            text-align: center;
+        }
+        
+        .khuym-step-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #0f172a;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .khuym-step.completed .khuym-step-circle {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: var(--success);
+            color: var(--success);
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+        }
+        
+        .khuym-step.active .khuym-step-circle {
+            background: rgba(99, 102, 241, 0.15);
+            border-color: var(--primary);
+            color: #fff;
+            box-shadow: 0 0 15px var(--primary-glow);
+            transform: scale(1.1);
+            animation: pulse-step 2s infinite;
+        }
+        
+        @keyframes pulse-step {
+            0% { box-shadow: 0 0 10px var(--primary-glow); }
+            50% { box-shadow: 0 0 25px var(--primary-glow); }
+            100% { box-shadow: 0 0 10px var(--primary-glow); }
+        }
+        
+        .khuym-step-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+        
+        .khuym-step.active .khuym-step-label {
+            color: #fff;
+            font-weight: 600;
+        }
+        
+        .khuym-step.completed .khuym-step-label {
+            color: #34d399;
+        }
+        
+        .gates-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 15px;
+        }
+        
+        .gate-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .gate-card:hover {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.03);
+        }
+        
+        .gate-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .gate-checkbox {
+            width: 18px;
+            height: 18px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: #0f172a;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        
+        .gate-card.approved .gate-checkbox {
+            background: var(--success);
+            border-color: var(--success);
+        }
+        
+        .gate-card.approved .gate-checkbox::after {
+            content: '✓';
+            color: #0f172a;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .khuym-action-panel {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .khuym-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-subtle);
+            color: #fff;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        
+        .khuym-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--primary);
+        }
+        
+        .khuym-btn.primary {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+        
+        .khuym-btn.primary:hover {
+            box-shadow: 0 0 12px var(--primary-glow);
+            filter: brightness(1.15);
+        }
+        
+        .khuym-console {
+            background: #030712;
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: #a5b4fc;
+            max-height: 250px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        
+        .khuym-file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-subtle);
+            padding: 10px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 13px;
+        }
+        
+        .khuym-file-item:hover {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.02);
+            color: #fff;
+        }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
     <div class="app-container">
@@ -2122,6 +2472,7 @@ def cmd_serve(port=8080):
             <button class="tab-btn" data-tab="backlogs" onclick="switchTab('backlogs')">Task Backlog</button>
             <button class="tab-btn" data-tab="traces" onclick="switchTab('traces')">Execution Traces</button>
             <button class="tab-btn" data-tab="graph" onclick="switchTab('graph')">Interactive Risk Graph</button>
+            <button class="tab-btn" data-tab="khuym" onclick="switchTab('khuym')">Khuym Workflow</button>
             <button class="tab-btn" data-tab="codegraph" onclick="switchTab('codegraph')">CodeGraph Explorer</button>
             <button class="tab-btn" data-tab="console" onclick="switchTab('console')">SQL Sandbox Console</button>
             <button class="tab-btn" data-tab="reservations" onclick="switchTab('reservations')">File Reservations</button>
@@ -2198,7 +2549,7 @@ def cmd_serve(port=8080):
             const btnDecisions = document.getElementById('add-btn-decisions');
             const btnBacklogs = document.getElementById('add-btn-backlogs');
             
-            if (tabName === 'graph' || tabName === 'console' || tabName === 'codegraph' || tabName === 'reservations' || tabName === 'validation') {
+            if (tabName === 'graph' || tabName === 'console' || tabName === 'codegraph' || tabName === 'reservations' || tabName === 'validation' || tabName === 'khuym') {
                 controls.style.display = 'none';
             } else {
                 controls.style.display = 'flex';
@@ -2375,7 +2726,65 @@ def cmd_serve(port=8080):
                 container.innerHTML = html + '</tbody></table>';
             } else if (activeTab === 'traces') {
                 let filtered = appData.traces.filter(t => (t.task_summary.toLowerCase().includes(query) || t.agent.toLowerCase().includes(query)) && (statusFilter === 'all' || t.outcome === statusFilter));
-                let html = `<table><thead><tr><th>ID</th><th>Created At</th><th>Summary</th><th>Agent</th><th>Outcome</th></tr></thead><tbody>`;
+                
+                // Build activity timeline data (group by date)
+                let timelineHtml = '';
+                if (filtered.length > 0) {
+                    const dateMap = {};
+                    filtered.forEach(t => {
+                        const day = (t.created_at || '').substring(0, 10);
+                        if (!day) return;
+                        if (!dateMap[day]) dateMap[day] = { passed: 0, failed: 0, other: 0 };
+                        if (t.outcome === 'passed' || t.outcome === 'completed' || t.outcome === 'success') dateMap[day].passed++;
+                        else if (t.outcome === 'failed' || t.outcome === 'blocked') dateMap[day].failed++;
+                        else dateMap[day].other++;
+                    });
+                    const sortedDays = Object.keys(dateMap).sort().slice(-30);
+                    const maxVal = Math.max(...sortedDays.map(d => dateMap[d].passed + dateMap[d].failed + dateMap[d].other), 1);
+                    const barW = Math.max(6, Math.floor(800 / Math.max(sortedDays.length, 1)) - 4);
+                    const chartH = 120;
+                    let bars = '';
+                    sortedDays.forEach((day, idx) => {
+                        const d = dateMap[day];
+                        const total = d.passed + d.failed + d.other;
+                        const h = Math.max(4, (total / maxVal) * (chartH - 20));
+                        const pctPassed = d.passed / total;
+                        const pctFailed = d.failed / total;
+                        const x = idx * (barW + 4) + 40;
+                        const y = chartH - h - 5;
+                        const passedH = h * pctPassed;
+                        const failedH = h * pctFailed;
+                        const otherH = h - passedH - failedH;
+                        bars += `<g>`;
+                        if (otherH > 0) bars += `<rect x="${x}" y="${y}" width="${barW}" height="${otherH}" rx="2" fill="#6366f1" opacity="0.7"><title>${day}: ${d.other} other</title></rect>`;
+                        if (passedH > 0) bars += `<rect x="${x}" y="${y + otherH}" width="${barW}" height="${passedH}" rx="2" fill="#10b981" opacity="0.85"><title>${day}: ${d.passed} passed</title></rect>`;
+                        if (failedH > 0) bars += `<rect x="${x}" y="${y + otherH + passedH}" width="${barW}" height="${failedH}" rx="2" fill="#ef4444" opacity="0.85"><title>${day}: ${d.failed} failed</title></rect>`;
+                        if (idx % Math.max(1, Math.floor(sortedDays.length / 8)) === 0 || idx === sortedDays.length - 1) {
+                            bars += `<text x="${x + barW/2}" y="${chartH + 2}" fill="#94a3b8" font-size="9" text-anchor="middle" font-family="JetBrains Mono, monospace">${day.substring(5)}</text>`;
+                        }
+                        bars += `</g>`;
+                    });
+                    const svgW = sortedDays.length * (barW + 4) + 60;
+                    timelineHtml = `
+                    <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h3 style="font-size: 14px; color: #a5b4fc; font-weight: 600;">Execution Activity Timeline <span style="font-size: 11px; color: var(--text-secondary); font-weight: 400;">(last 30 days)</span></h3>
+                            <div style="display: flex; gap: 12px; font-size: 11px;">
+                                <span style="display: flex; align-items: center; gap: 4px;"><span style="width: 8px; height: 8px; border-radius: 2px; background: #10b981; display: inline-block;"></span> Passed</span>
+                                <span style="display: flex; align-items: center; gap: 4px;"><span style="width: 8px; height: 8px; border-radius: 2px; background: #ef4444; display: inline-block;"></span> Failed</span>
+                                <span style="display: flex; align-items: center; gap: 4px;"><span style="width: 8px; height: 8px; border-radius: 2px; background: #6366f1; display: inline-block;"></span> Other</span>
+                            </div>
+                        </div>
+                        <div style="overflow-x: auto;">
+                            <svg width="${svgW}" height="${chartH + 15}" style="display: block;">
+                                <line x1="38" y1="${chartH - 5}" x2="${svgW}" y2="${chartH - 5}" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+                                ${bars}
+                            </svg>
+                        </div>
+                    </div>`;
+                }
+                
+                let html = timelineHtml + `<table><thead><tr><th>ID</th><th>Created At</th><th>Summary</th><th>Agent</th><th>Outcome</th></tr></thead><tbody>`;
                 filtered.forEach(t => {
                     html += `<tr onclick="openTraceDrawer('${t.id}')"><td>#${t.id}</td><td style="font-size:12px; color:var(--text-secondary); white-space:nowrap;">${escapeHtml(t.created_at)}</td><td>${escapeHtml(t.task_summary)}</td><td><code style="color:#a5b4fc; font-size:12px;">${escapeHtml(t.agent)}</code></td><td><span class="badge badge-${t.outcome === 'completed' ? 'success' : t.outcome === 'blocked' ? 'warn' : 'failed'}">${t.outcome}</span></td></tr>`;
                 });
@@ -2432,8 +2841,8 @@ def cmd_serve(port=8080):
                     <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 25px; display: flex; flex-direction: column; gap: 15px;">
                         <h3 style="font-size: 16px; color: #a5b4fc; font-weight: 600;">Validation Test Suite</h3>
                         <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.4;">
-                            Execute the automated quality gate validation suite (runs <code>scripts/validate.bat</code> in non-interactive mode). 
-                            This verifies all stories, databases, files, and rules constraints.
+                             Execute the automated quality gate validation suite (runs <code>scripts/validate.bat</code> in non-interactive mode). 
+                             This verifies all stories, databases, files, and rules constraints.
                         </p>
                         <div>
                             <button class="btn-run" style="background:#10b981; color:white; border:none; padding:10px 20px; border-radius:6px; font-weight:600; cursor:pointer;" onclick="runValidationSuite()">⚡ Execute Validation Suite</button>
@@ -2445,12 +2854,444 @@ def cmd_serve(port=8080):
                         <div id="validation-console" style="flex: 1; background: #030712; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 15px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #10b981; min-height: 400px; max-height: 600px; overflow-y: auto; white-space: pre-wrap;">Console idle... Click run to execute.</div>
                     </div>
                 </div>`;
+            } else if (activeTab === 'khuym') {
+                renderKhuym(container);
+            }
+        }
+
+        async function renderKhuym(container) {
+            container.innerHTML = `
+            <div style="display: flex; justify-content: center; align-items: center; min-height: 400px;">
+                <div style="text-align: center; color: var(--text-secondary);">
+                    <div class="logo-glow" style="margin: 0 auto 15px auto; width: 20px; height: 20px; box-shadow: 0 0 20px var(--primary);"></div>
+                    <p style="font-size: 14px;">Loading Khuym state &amp; GKG index status...</p>
+                </div>
+            </div>`;
+            
+            try {
+                const res = await fetch('/api/khuym/status');
+                const result = await res.json();
+                if (!result.success) {
+                    container.innerHTML = `<div class="error-callout">Error: ${result.error}</div>`;
+                    return;
+                }
+                
+                const state = result.state || {};
+                const onboarding = result.onboarding || {};
+                const statusScout = result.status_scout || {};
+                
+                const activePhase = state.phase || statusScout.phase || 'exploring';
+                const approvedGates = state.approved_gates || {};
+                
+                // Map of phases for stepper
+                const phases = ['exploring', 'planning', 'validating', 'swarming', 'executing', 'reviewing', 'compounding'];
+                const phaseLabels = {
+                    'exploring': 'Exploring',
+                    'planning': 'Planning',
+                    'validating': 'Validating',
+                    'swarming': 'Swarming',
+                    'executing': 'Executing',
+                    'reviewing': 'Reviewing',
+                    'compounding': 'Compounding'
+                };
+                
+                const activeIdx = phases.indexOf(activePhase);
+                let progressPercent = 0;
+                if (activeIdx >= 0) {
+                    progressPercent = (activeIdx / (phases.length - 1)) * 100;
+                }
+                
+                let stepperHtml = `
+                <div class="khuym-stepper">
+                    <div class="khuym-stepper-progress" style="width: ${progressPercent}%;"></div>`;
+                
+                phases.forEach((p, idx) => {
+                    let stepClass = '';
+                    if (idx < activeIdx) stepClass = 'completed';
+                    else if (idx === activeIdx) stepClass = 'active';
+                    
+                    const num = idx + 1;
+                    const checkIcon = stepClass === 'completed' ? '✓' : num;
+                    stepperHtml += `
+                    <div class="khuym-step ${stepClass}">
+                        <div class="khuym-step-circle">${checkIcon}</div>
+                        <div class="khuym-step-label">${phaseLabels[p]}</div>
+                    </div>`;
+                });
+                stepperHtml += `</div>`;
+                
+                // Render gates checklist
+                const gates = ['context', 'work_shape', 'phase_plan', 'execution', 'review', 'compounding'];
+                const gateLabels = {
+                    'context': 'Context Gate',
+                    'work_shape': 'Work Shape Gate',
+                    'phase_plan': 'Phase Plan Gate',
+                    'execution': 'Execution Gate',
+                    'review': 'Review Gate',
+                    'compounding': 'Compounding Gate'
+                };
+                const gateDescs = {
+                    'context': 'Validate story requirements & dependencies',
+                    'work_shape': 'Assess risk classifier checklist triggers',
+                    'phase_plan': 'Structure phase tasks & beads mapping',
+                    'execution': 'Run automated sandboxed workers',
+                    'review': 'Complete validation checks & UAT report',
+                    'compounding': 'Extract learnings & archive story traces'
+                };
+                
+                let gatesHtml = ``;
+                gates.forEach(gate => {
+                    const approved = !!approvedGates[gate];
+                    const approvedClass = approved ? 'approved' : '';
+                    gatesHtml += `
+                    <div class="gate-card ${approvedClass}" onclick="toggleKhuymGate('${gate}', ${approved})">
+                        <div class="gate-card-header">
+                            <span style="font-weight:600; font-size:13px; color:${approved ? '#34d399' : '#f59e0b'};">${gateLabels[gate]}</span>
+                            <div class="gate-checkbox"></div>
+                        </div>
+                        <p style="font-size:11px; color:var(--text-secondary); line-height:1.3; margin:0;">${gateDescs[gate]}</p>
+                    </div>`;
+                });
+                
+                // Render active file reservations
+                const reservations = statusScout.reservations || [];
+                let resRows = '';
+                if (reservations.length > 0) {
+                    reservations.forEach(r => {
+                        resRows += `
+                        <tr>
+                            <td style="font-family:monospace; font-size:12px; color:#fff;">${escapeHtml(r.path)}</td>
+                            <td><code style="color:#a5b4fc; font-size:12px;">${escapeHtml(r.agent || 'Agent')}</code></td>
+                            <td><span class="badge badge-normal" style="font-size:9px;">${escapeHtml(r.bead_id || 'N/A')}</span></td>
+                            <td style="font-size:12px; color:var(--text-secondary);">${escapeHtml(r.expires || '')}</td>
+                            <td>
+                                <button class="khuym-btn" style="padding:4px 8px; font-size:11px; border-color:var(--danger); color:var(--danger);" onclick="releaseReservationFromKhuym('${escapeHtml(r.path)}')">Release</button>
+                            </td>
+                        </tr>`;
+                    });
+                } else {
+                    resRows = `<tr><td colspan="5" style="text-align:center; color:var(--text-secondary); padding:20px; font-size:13px;">No active file reservations.</td></tr>`;
+                }
+                
+                // Recommended Next Actions
+                let recommendedAction = 'Assess context and check checklist details.';
+                if (activePhase === 'exploring') {
+                    recommendedAction = 'Fetch context for story: <code>python scripts/harness_win.py context --story &lt;story_id&gt;</code>';
+                } else if (activePhase === 'planning') {
+                    recommendedAction = 'Analyze risks and design solution: <code>python scripts/harness_win.py evaluate-risk --text "&lt;spec&gt;"</code>';
+                } else if (activePhase === 'validating') {
+                    recommendedAction = 'Run spike tests and test suitability verification suite.';
+                } else if (activePhase === 'executing') {
+                    recommendedAction = 'Execute workers swarming: <code>python scripts/harness_win.py run-bead --story &lt;story_id&gt;</code>';
+                } else if (activePhase === 'reviewing') {
+                    recommendedAction = 'Generate TSA UAT report & unified gate: <code>python scripts/harness_win.py unified-gate --story &lt;story_id&gt; ...</code>';
+                } else if (activePhase === 'compounding') {
+                    recommendedAction = 'Log execution trace and commit history learnings: <code>python scripts/harness_win.py trace ...</code>';
+                }
+                
+                // Next Reads Docs
+                const docsList = [
+                    { name: 'AGENTS.md', path: 'AGENTS.md' },
+                    { name: '.khuym/state.json', path: '.khuym/state.json' },
+                    { name: '.khuym/onboarding.json', path: '.khuym/onboarding.json' },
+                    { name: 'README.md', path: 'README.md' }
+                ];
+                let docsHtml = '';
+                docsList.forEach(d => {
+                    docsHtml += `
+                    <div class="khuym-file-item" onclick="previewKhuymFile('${escapeHtml(d.path)}')">
+                        <span>📄 ${d.name}</span>
+                        <span style="font-size:11px; color:var(--text-secondary);">Preview</span>
+                    </div>`;
+                });
+                
+                // Combine into full HTML grid layout
+                container.innerHTML = `
+                <div class="khuym-grid">
+                    <!-- Left Panel: Stepper, Gates, Reservations -->
+                    <div style="display:flex; flex-direction:column; gap:25px;">
+                        <!-- Stepper card -->
+                        <div class="khuym-card">
+                            <div class="khuym-card-title">
+                                <span>Khuym Developmental Skill Chain</span>
+                                <span class="badge badge-normal" style="background:rgba(99,102,241,0.2); color:#a5b4fc; font-weight:600; text-transform:uppercase;">${activePhase}</span>
+                            </div>
+                            ${stepperHtml}
+                            <div style="font-size:12px; color:var(--text-secondary); line-height:1.5; border-top:1px solid var(--border-subtle); padding-top:15px; display:flex; justify-content:space-between; align-items:center;">
+                                <span>Active Skill Version: <strong>${onboarding.plugin_version || '3.0'}</strong></span>
+                                <span>Status: <strong style="color:var(--success);">${onboarding.status || 'Active'}</strong></span>
+                            </div>
+                        </div>
+                        
+                        <!-- Gates card -->
+                        <div class="khuym-card">
+                            <div class="khuym-card-title">
+                                <span>Human-in-the-Loop Approval Gates</span>
+                                <span style="font-size:11px; color:var(--text-secondary);">Click cards to toggle approval</span>
+                            </div>
+                            <div class="gates-grid">
+                                ${gatesHtml}
+                            </div>
+                        </div>
+                        
+                        <!-- Active Reservations Card -->
+                        <div class="khuym-card">
+                            <div class="khuym-card-title">
+                                <span>Active File Reservations / Leases</span>
+                            </div>
+                            <div style="overflow-x:auto;">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Reserved Path / Glob</th>
+                                            <th>Agent</th>
+                                            <th>Reason / Bead</th>
+                                            <th>Lease Expiry</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${resRows}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Right Panel: Diagnostics, Quick Actions, File Preview -->
+                    <div style="display:flex; flex-direction:column; gap:25px;">
+                        <!-- GKG & CodeGraph Diagnostics -->
+                        <div class="khuym-card">
+                            <div class="khuym-card-title">CodeGraph &amp; Index Status</div>
+                            <div style="display:flex; flex-direction:column; gap:12px; font-size:13px;">
+                                <div style="display:flex; justify-content:space-between;">
+                                    <span style="color:var(--text-secondary);">GKG Server status:</span>
+                                    <span id="gkg-status-badge" class="badge" style="background:rgba(245,158,11,0.1); color:#fbbf24; font-weight:600;">CHECKING...</span>
+                                </div>
+                                <div style="display:flex; justify-content:space-between;">
+                                    <span style="color:var(--text-secondary);">Primary language:</span>
+                                    <span style="font-weight:500;" id="gkg-primary-lang">${statusScout.gkg_readiness ? statusScout.gkg_readiness.primary_supported_language || 'Unknown' : 'Unknown'}</span>
+                                </div>
+                                <div style="display:flex; justify-content:space-between;">
+                                    <span style="color:var(--text-secondary);">Indexed elements:</span>
+                                    <span style="font-weight:600; color:#fff;" id="codegraph-element-count">Checking...</span>
+                                </div>
+                            </div>
+                            
+                            <div style="border-top:1px solid var(--border-subtle); padding-top:15px; display:flex; flex-direction:column; gap:10px;">
+                                <h4 style="font-size:12px; color:#a5b4fc; text-transform:uppercase; letter-spacing:0.05em;">Sync Controls</h4>
+                                <div class="khuym-action-panel">
+                                    <button class="khuym-btn primary" onclick="runKhuymAction('sync_codegraph')">🔄 Sync CodeGraph</button>
+                                    <button class="khuym-btn" onclick="runKhuymAction('index_codegraph')">⚡ Full Re-Index</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Next Steps & Recommended Actions -->
+                        <div class="khuym-card">
+                            <div class="khuym-card-title">Recommended Next Step</div>
+                            <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border-subtle); border-radius:8px; padding:15px; font-size:13px; line-height:1.4;">
+                                ${recommendedAction}
+                            </div>
+                        </div>
+                        
+                        <!-- Next Reads Docs -->
+                        <div class="khuym-card">
+                            <div class="khuym-card-title">Project Documents</div>
+                            <div style="display:flex; flex-direction:column; gap:8px;">
+                                ${docsHtml}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Action console & preview log section -->
+                <div style="margin-top:30px; display:grid; grid-template-columns:1fr; gap:20px;" id="khuym-detail-panel-wrapper">
+                    <!-- Dynamic preview / terminal panel rendered here -->
+                </div>`;
+                
+                // Fetch CodeGraph node count and GKG status dynamically
+                fetchCodeGraphElementCount();
+                updateGkgStatusBadge(statusScout);
+            } catch (err) {
+                container.innerHTML = `<div class="error-callout">Error rendering Khuym tab: ${err.message}</div>`;
+            }
+        }
+
+        async function toggleKhuymGate(gate, currentVal) {
+            try {
+                const res = await fetch('/api/khuym/gate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ gate: gate, approved: !currentVal })
+                });
+                const result = await res.json();
+                if (result.success) {
+                    showNotification(`Gate '${gate}' updated successfully.`);
+                    renderKhuym(document.getElementById('main-panel'));
+                } else {
+                    showNotification(`Error: ${result.error}`, true);
+                }
+            } catch (err) {
+                showNotification(`Request failed: ${err.message}`, true);
+            }
+        }
+        
+        async function runKhuymAction(action) {
+            const wrapper = document.getElementById('khuym-detail-panel-wrapper');
+            wrapper.innerHTML = `
+            <div class="glass-panel" style="padding: 20px;">
+                <h4 style="font-size: 13px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px;">Action Execution Console</h4>
+                <div class="khuym-console" style="color: #38bdf8;">Running action: ${action}... Please wait.</div>
+            </div>`;
+            wrapper.scrollIntoView({ behavior: 'smooth' });
+            
+            try {
+                const res = await fetch('/api/khuym/action', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: action })
+                });
+                const result = await res.json();
+                const statusColor = result.success ? '#10b981' : '#f87171';
+                wrapper.innerHTML = `
+                <div class="glass-panel" style="padding: 20px;">
+                    <h4 style="font-size: 13px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px;">Action Execution Console</h4>
+                    <div class="khuym-console" style="color: ${statusColor};">${escapeHtml(result.output || 'No output details returned.')}</div>
+                </div>`;
+                if (result.success) {
+                    showNotification(`Action '${action}' completed successfully.`);
+                    renderKhuym(document.getElementById('main-panel'));
+                } else {
+                    showNotification(`Action '${action}' failed: ${result.error || 'Check console output'}`, true);
+                }
+            } catch (err) {
+                wrapper.innerHTML = `
+                <div class="glass-panel" style="padding: 20px;">
+                    <h4 style="font-size: 13px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px;">Action Execution Console</h4>
+                    <div class="error-callout">Error running action: ${err.message}</div>
+                </div>`;
+            }
+        }
+        
+        async function previewKhuymFile(filePath) {
+            const wrapper = document.getElementById('khuym-detail-panel-wrapper');
+            wrapper.innerHTML = `
+            <div class="glass-panel" style="padding: 20px;">
+                <h4 style="font-size: 13px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px;">File Preview: ${filePath}</h4>
+                <div class="khuym-console" style="color: #6366f1;">Loading file content...</div>
+            </div>`;
+            wrapper.scrollIntoView({ behavior: 'smooth' });
+            
+            try {
+                const res = await fetch(`/api/file?path=${encodeURIComponent(filePath)}`);
+                const content = await res.text();
+                
+                // Format nicely (either markdown or code)
+                let renderContent = '';
+                if (filePath.endsWith('.json')) {
+                    try {
+                        const parsedJson = JSON.parse(content);
+                        renderContent = `<pre style="color: #34d399; font-family: monospace; font-size:12px; margin:0; overflow-x:auto;">${escapeHtml(JSON.stringify(parsedJson, null, 2))}</pre>`;
+                    } catch (e) {
+                        renderContent = `<pre style="color: #34d399; font-family: monospace; font-size:12px; margin:0; overflow-x:auto;">${escapeHtml(content)}</pre>`;
+                    }
+                } else {
+                    renderContent = `<div style="line-height:1.6; font-size:14px; color:var(--text-primary); font-family: inherit;">${renderMarkdown(content)}</div>`;
+                }
+                
+                wrapper.innerHTML = `
+                <div class="glass-panel" style="padding: 20px;">
+                    <h4 style="font-size: 13px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px;">File Preview: ${filePath}</h4>
+                    <div style="background: #030712; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 20px; max-height: 500px; overflow-y: auto;">
+                        ${renderContent}
+                    </div>
+                </div>`;
+            } catch (err) {
+                wrapper.innerHTML = `
+                <div class="glass-panel" style="padding: 20px;">
+                    <h4 style="font-size: 13px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px;">File Preview: ${filePath}</h4>
+                    <div class="error-callout">Error previewing file: ${err.message}</div>
+                </div>`;
+            }
+        }
+        
+        async function releaseReservationFromKhuym(path) {
+            try {
+                const res = await fetch('/api/reservations/release', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ paths: [path], agent: 'Antigravity' })
+                });
+                const result = await res.json();
+                if (result.success) {
+                    showNotification(`Reservation released: ${path}`);
+                    renderKhuym(document.getElementById('main-panel'));
+                } else {
+                    showNotification(`Error: ${result.error}`, true);
+                }
+            } catch (err) {
+                showNotification(`Request failed: ${err.message}`, true);
+            }
+        }
+        
+        async function fetchCodeGraphElementCount() {
+            try {
+                const res = await fetch('/api/codegraph/files');
+                const result = await res.json();
+                const elem = document.getElementById('codegraph-element-count');
+                if (result.success && result.files) {
+                    elem.textContent = `${result.files.length} Files Indexed`;
+                } else {
+                    elem.textContent = 'Index Empty / Unavailable';
+                }
+            } catch (err) {
+                const elem = document.getElementById('codegraph-element-count');
+                if (elem) elem.textContent = 'Connection Error';
             }
         }
 
         function escapeHtml(str) {
             if (!str) return '';
             return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        function renderMarkdown(str) {
+            if (!str) return '';
+            if (window.marked && typeof window.marked.parse === 'function') {
+                return window.marked.parse(str);
+            }
+            // simple fallback parser
+            return str
+                .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+                .replace(/```([\\s\\S]*?)```/g, '<pre style="background:#030712; padding:10px; border-radius:6px; font-family:monospace; color:#34d399; overflow-x:auto;">$1</pre>')
+                .replace(/`([^`\\n]+)`/g, '<code style="background:#030712; padding:2px 6px; border-radius:4px; font-family:monospace; color:#e0f2fe;">$1</code>')
+                .replace(/\\*\\*([^*]+)\\*\\*/g, '<strong>$1</strong>')
+                .replace(/^\\s*#\\s+(.*)$/gm, '<h1 style="font-size:20px; color:#fff; border-bottom:1px solid #1e293b; padding-bottom:5px; margin:15px 0 10px 0;">$1</h1>')
+                .replace(/^\\s*##\\s+(.*)$/gm, '<h2 style="font-size:16px; color:#a5b4fc; margin:12px 0 8px 0;">$1</h2>')
+                .replace(/^\\s*###\\s+(.*)$/gm, '<h3 style="font-size:14px; color:#6366f1; margin:10px 0 6px 0;">$1</h3>')
+                .replace(/\\n/g, '<br>');
+        }
+
+        function updateGkgStatusBadge(statusScout) {
+            const badge = document.getElementById('gkg-status-badge');
+            if (!badge) return;
+            if (statusScout && statusScout.gkg_readiness) {
+                const gkg = statusScout.gkg_readiness;
+                if (gkg.server_reachable) {
+                    badge.textContent = 'REACHABLE';
+                    badge.style.background = 'rgba(16,185,129,0.1)';
+                    badge.style.color = '#34d399';
+                } else {
+                    badge.textContent = 'OFFLINE';
+                    badge.style.background = 'rgba(245,158,11,0.1)';
+                    badge.style.color = '#fbbf24';
+                }
+            } else {
+                badge.textContent = 'UNKNOWN';
+                badge.style.background = 'rgba(148,163,184,0.1)';
+                badge.style.color = '#94a3b8';
+            }
         }
 
         function showNotification(message, isError = false) {
@@ -3002,7 +3843,7 @@ def cmd_serve(port=8080):
             document.getElementById('drawer-overlay').classList.remove('open');
         }
         
-        function showNotification(msg, isError=false) {
+        function showDrawerNotification(msg, isError=false) {
             const alert = document.getElementById('drawer-alert');
             alert.textContent = msg;
             alert.className = isError ? 'alert-box alert-error' : 'alert-box alert-success';
@@ -3014,10 +3855,6 @@ def cmd_serve(port=8080):
             const res = await fetch(`/api/file?path=${encodeURIComponent(filePath)}`);
             const text = await res.text();
             container.innerHTML = renderMarkdown(text);
-        }
-        
-        function renderMarkdown(md) {
-            return md.replace(/^# (.*$)/gim, '<h1>$1</h1>').replace(/\\*\\*(.*?)\\*\\*/g, '<strong>$1</strong>');
         }
         
         // ── DRAWER CONTENT RENDERERS ──────────────────────────────────────
@@ -3684,10 +4521,6 @@ def cmd_serve(port=8080):
             } catch(e) { showNotification(e.message, true); }
         }
 
-        function escapeHtml(str) {
-            if(!str) return '';
-            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        }
         window.addEventListener('DOMContentLoaded', reloadData);
     </script>
 </body>
