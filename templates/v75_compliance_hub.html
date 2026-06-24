@@ -89,9 +89,68 @@
                 'Multi-Agent Plastics & Ocean Protection Debate', 'Decree 08/2022/NĐ-CP Consensus') }}
         </div>
 
+        {# ── Annual Plastics Levy & Quantity Summary ── #}
+        <div class="col-lg-12">
+            {% call glass_card('Annual Plastics Levy & Quantity Summary', 'bi bi-graph-up-arrow', 'text-success',
+                'Real-time aggregate plastics consumption statistics and environmental levy liability.') %}
+                <div class="row g-3 text-center mb-3" id="annual-summary-grid">
+                    <div class="col-md-2">
+                        <div class="border rounded-3 p-3 bg-premium-light h-100">
+                            <div class="small text-muted mb-1">Total Shipments</div>
+                            <h3 class="fw-bold mb-0 text-success" id="sum-shipments">0</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="border rounded-3 p-3 bg-premium-light h-100">
+                            <div class="small text-muted mb-1">Total Net Weight</div>
+                            <h3 class="fw-bold mb-0 text-primary" id="sum-weight">0 kg</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="border rounded-3 p-3 bg-premium-light h-100">
+                            <div class="small text-muted mb-1">Gross Levy</div>
+                            <h3 class="fw-bold mb-0 text-warning" id="sum-gross">0 VND</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="border rounded-3 p-3 bg-premium-light h-100">
+                            <div class="small text-muted mb-1">Final Liability</div>
+                            <h3 class="fw-bold mb-0 text-danger" id="sum-fees">0 VND</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="border rounded-3 p-3 bg-premium-light h-100">
+                            <div class="small text-muted mb-1">Exempt Levy</div>
+                            <h3 class="fw-bold mb-0 text-success" id="sum-exempt-levy">0 VND</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="border rounded-3 p-3 bg-premium-light h-100">
+                            <div class="small text-muted mb-1">Exempt / Charged</div>
+                            <h3 class="fw-bold mb-0 text-secondary" id="sum-ratio">0 / 0</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Non-Biodegradable Plastics Weight Threshold Gauge -->
+                <div class="w-100 mt-2 px-2">
+                    <div class="d-flex justify-content-between small text-muted mb-1">
+                        <span>Annual Single-Use Plastics Net Weight vs Target Green Threshold (1,000 kg):</span>
+                        <span id="gauge-label" class="fw-bold text-dark">0.0 / 1,000.0 kg</span>
+                    </div>
+                    <div class="progress" style="height: 12px; border-radius: 6px;">
+                        <div id="gauge-bar" class="progress-bar bg-success progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <span class="small text-muted d-block text-center mt-1" style="font-size: 10px;">
+                        <i class="bi bi-info-circle"></i> Non-biodegradable single-use plastics are levied up to 150,000 VND/kg under Decree 08/2022/NĐ-CP. Try to keep total usage under 1,000 kg/year.
+                    </span>
+                </div>
+            {% endcall %}
+        </div>
+
         {# ── Nhật ký lịch sử tuân thủ ── #}
         <div class="col-lg-12">
-            {% call data_table('Plastics Levy History Log', 'bi bi-clock-history', 'history-table-v75', 'No logs available.', 10) %}
+            {% call data_table('Plastics Levy History Log', 'bi bi-clock-history', 'history-table-v75', 'No logs available.', 11) %}
                 <thead class="table-dark">
                     <tr>
                         <th>ID</th>
@@ -104,6 +163,7 @@
                         <th>Total Surcharge</th>
                         <th>Status</th>
                         <th>Timestamp</th>
+                        <th class="text-center">Action</th>
                     </tr>
                 </thead>
             {% endcall %}
@@ -114,19 +174,61 @@
 <script>
 document.addEventListener("DOMContentLoaded", () => {
     const fVND = n => new Intl.NumberFormat("vi-VN").format(Math.round(n)) + " VND";
-    
+
+    const getMst = () => {
+        return document.getElementById("tenant-mst") ? document.getElementById("tenant-mst").value : (sessionStorage.getItem("taxpayer_mst") || "0102030405");
+    };
+
     const load = () => {
-        fetch('/api/v75/compliance-data').then(r=>r.json()).then(d=>{
+        const mst = getMst();
+        fetch(`/api/v75/compliance-data?mst=${mst}`).then(r=>r.json()).then(d=>{
             if(d.status==="success"){
                 rB(d);
                 rD(d.debate, d.consensus_summary);
                 rH(d.history);
+                loadSummary();
             }
         }).catch(e=>console.error(e));
     };
-    
+
+    const loadSummary = () => {
+        const mst = getMst();
+        fetch(`/api/v75/annual-summary?mst=${mst}`).then(r=>r.json()).then(d=>{
+            if(d.status==="success" && d.summary){
+                const s = d.summary;
+                document.getElementById("sum-shipments").textContent = s.total_shipments;
+                document.getElementById("sum-weight").textContent = s.total_quantity_kg.toFixed(1) + " kg";
+                document.getElementById("sum-gross").textContent = fVND(s.total_gross_fee);
+                document.getElementById("sum-fees").textContent = fVND(s.total_final_fee);
+                document.getElementById("sum-exempt-levy").textContent = fVND(s.total_exempt_fee);
+                document.getElementById("sum-ratio").textContent = `${s.exempt_count} / ${s.charged_count}`;
+
+                // Update gauge for weight vs 1000 limit
+                const qtyVal = s.total_quantity_kg;
+                const pct = Math.min(100, Math.max(0, (qtyVal / 1000.0) * 100));
+                const gaugeBar = document.getElementById("gauge-bar");
+                const gaugeLabel = document.getElementById("gauge-label");
+
+                gaugeLabel.textContent = `${qtyVal.toFixed(1)} / 1,000.0 kg`;
+                gaugeBar.style.width = `${pct}%`;
+                gaugeBar.setAttribute("aria-valuenow", pct);
+
+                // Change gauge colors
+                gaugeBar.className = "progress-bar progress-bar-striped progress-bar-animated";
+                if (qtyVal < 500.0) {
+                    gaugeBar.classList.add("bg-success");
+                } else if (qtyVal <= 1000.0) {
+                    gaugeBar.classList.add("bg-warning");
+                } else {
+                    gaugeBar.classList.add("bg-danger");
+                }
+            }
+        }).catch(e=>console.error(e));
+    };
+
     const calc = () => {
         const p = {
+            mst: getMst(),
             plastic_category: document.getElementById("input-category").value,
             quantity_kg: parseFloat(document.getElementById("input-weight").value || 0),
             biodegradable_certified: document.getElementById("input-biodegradable").checked,
@@ -145,12 +247,12 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }).catch(e=>console.error(e));
     };
-    
+
     const rR = r => {
         document.getElementById("res-rate").textContent = fVND(r.charge_rate) + " / kg";
         document.getElementById("res-gross").textContent = fVND(r.gross_fee);
         document.getElementById("res-final").textContent = fVND(r.final_fee);
-        
+
         if (r.is_exempt) {
             document.getElementById("res-exempt-badge").innerHTML = '<span class="badge bg-success">Exempt</span>';
         } else {
@@ -181,7 +283,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const bgStyle = isSelected ? colors[k] : '#6c757d';
                 const opacityStyle = isSelected ? 'opacity: 1;' : 'opacity: 0.55;';
                 const textWeight = isSelected ? 'fw-bold text-dark' : 'text-muted';
-                
+
                 const row = document.createElement("div");
                 row.className = "d-flex align-items-center gap-2 small";
                 row.innerHTML = `<span style="min-width:100px" class="${textWeight}">${labels[k]||k}</span>
@@ -201,13 +303,13 @@ document.addEventListener("DOMContentLoaded", () => {
             chartEl.style.display = "none";
         }
     };
-    
+
     const rB = d => {
         document.getElementById("base1-eff").textContent = fVND(d.microbeads_standard.final_fee);
         document.getElementById("base2-eff").textContent = fVND(d.bags_standard.final_fee);
         document.getElementById("base3-notes").textContent = d.packaging_exempt.notes;
     };
-    
+
     const rD = (debate, summary) => {
         const c = document.getElementById("debate-container-v75");
         c.innerHTML = "";
@@ -224,11 +326,11 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         document.getElementById("consensus-text-v75").textContent = summary;
     };
-    
+
     const rH = h => {
         const tb = document.getElementById("history-table-v75");
         if (!h || !h.length) {
-            tb.innerHTML = '<tr><td colspan="10" class="text-center text-muted py-4">No logs available.</td></tr>';
+            tb.innerHTML = '<tr><td colspan="11" class="text-center text-muted py-4">No logs available.</td></tr>';
             return;
         }
         tb.innerHTML = "";
@@ -237,7 +339,7 @@ document.addEventListener("DOMContentLoaded", () => {
             let statusBadge = l.is_exempt ? '<span class="badge bg-success">Exempt</span>' : '<span class="badge bg-danger">Payable</span>';
             tr.innerHTML = `
                 <td>${l.id}</td>
-                <td class="fw-bold">${l.plastic_category}</td>
+                <td class="fw-bold">${l.plastic_category.toUpperCase()}</td>
                 <td>${l.quantity_kg.toFixed(1)} kg</td>
                 <td>${l.biodegradable_certified ? 'Yes' : 'No'}</td>
                 <td>${l.medical_containment ? 'Yes' : 'No'}</td>
@@ -246,11 +348,37 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td class="fw-bold text-dark">${fVND(l.final_fee)}</td>
                 <td>${statusBadge}</td>
                 <td class="text-muted">${l.created_at}</td>
+                <td class="text-center">
+                    <button class="btn btn-outline-danger btn-sm py-0 px-2 btn-delete-log" data-id="${l.id}">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
             `;
             tb.appendChild(tr);
         });
+
+        // Wire up delete buttons
+        tb.querySelectorAll(".btn-delete-log").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const logId = btn.dataset.id;
+                if (confirm(`Are you sure you want to delete log #${logId}?`)) {
+                    const mst = getMst();
+                    fetch('/api/v75/delete-log', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ mst, log_id: logId })
+                    }).then(r=>r.json()).then(d=>{
+                        if (d.status === "success") {
+                            load();
+                        } else {
+                            alert(d.error || "Failed to delete log");
+                        }
+                    }).catch(e=>console.error(e));
+                }
+            });
+        });
     };
-    
+
     document.getElementById("btn-calc-levy").addEventListener("click", calc);
     document.getElementById("btn-refresh-v75").addEventListener("click", load);
     load();

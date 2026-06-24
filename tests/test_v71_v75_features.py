@@ -321,6 +321,43 @@ def test_v75_plastics_levy_exempt(mock_tenant_db):
     assert res["is_exempt"] is True
 
 
+def test_v74_delete_and_summary(mock_tenant_db):
+    service = V74ComplianceService()
+    service.calculate_surcharge(mock_tenant_db, 75.0, 0.075, shift="day")
+    history = service.get_history(mock_tenant_db, limit=10)
+    assert len(history) > 0
+    log_id = history[0]["id"]
+
+    summary = service.get_annual_summary(mock_tenant_db)
+    assert summary["total_incidents"] > 0
+    assert summary["avg_noise_db"] > 0.0
+    assert summary["avg_vibration"] > 0.0
+
+    deleted = service.delete_log(mock_tenant_db, log_id)
+    assert deleted is True
+
+    history_after = service.get_history(mock_tenant_db, limit=10)
+    assert not any(h["id"] == log_id for h in history_after)
+
+
+def test_v75_delete_and_summary(mock_tenant_db):
+    service = V75ComplianceService()
+    service.calculate_levy(mock_tenant_db, "plastic_bags", 250.0)
+    history = service.get_history(mock_tenant_db, limit=10)
+    assert len(history) > 0
+    log_id = history[0]["id"]
+
+    summary = service.get_annual_summary(mock_tenant_db)
+    assert summary["total_shipments"] > 0
+    assert summary["total_quantity_kg"] > 0.0
+
+    deleted = service.delete_log(mock_tenant_db, log_id)
+    assert deleted is True
+
+    history_after = service.get_history(mock_tenant_db, limit=10)
+    assert not any(h["id"] == log_id for h in history_after)
+
+
 # --- FLASK API ROUTES TESTING ---
 def test_flask_endpoints_v71_v75(mock_app, mock_tenant_db):
     client = mock_app.test_client()
@@ -443,4 +480,42 @@ def test_flask_endpoints_v71_v75(mock_app, mock_tenant_db):
         "log_id": 999999
     })
     assert r2_del_fake.status_code == 404
+
+    # V74 REST API check
+    r4_summary = client.get(f"/api/v74/annual-summary?mst={mock_tenant_db}")
+    assert r4_summary.status_code == 200
+    d4_sum = json.loads(r4_summary.data)
+    assert d4_sum["status"] == "success"
+    assert "summary" in d4_sum
+
+    r4_data = client.get(f"/api/v74/compliance-data?mst={mock_tenant_db}")
+    d4_data = json.loads(r4_data.data)
+    assert len(d4_data["history"]) > 0
+    t4_id = d4_data["history"][0]["id"]
+
+    r4_del = client.post("/api/v74/delete-log", json={
+        "mst": mock_tenant_db,
+        "log_id": t4_id
+    })
+    assert r4_del.status_code == 200
+    assert json.loads(r4_del.data)["status"] == "success"
+
+    # V75 REST API check
+    r5_summary = client.get(f"/api/v75/annual-summary?mst={mock_tenant_db}")
+    assert r5_summary.status_code == 200
+    d5_sum = json.loads(r5_summary.data)
+    assert d5_sum["status"] == "success"
+    assert "summary" in d5_sum
+
+    r5_data = client.get(f"/api/v75/compliance-data?mst={mock_tenant_db}")
+    d5_data = json.loads(r5_data.data)
+    assert len(d5_data["history"]) > 0
+    t5_id = d5_data["history"][0]["id"]
+
+    r5_del = client.post("/api/v75/delete-log", json={
+        "mst": mock_tenant_db,
+        "log_id": t5_id
+    })
+    assert r5_del.status_code == 200
+    assert json.loads(r5_del.data)["status"] == "success"
 

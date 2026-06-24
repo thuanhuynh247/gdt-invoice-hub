@@ -84,17 +84,74 @@
                         'Exempt: Yes', 'Notes', 'base3-notes') }}
                 </div>
             {% endcall %}
-        </div>
-
         {# ── Tranh luận Hội đồng tư vấn ── #}
         <div class="col-lg-12">
             {{ debate_panel('debate-container-v74', 'consensus-text-v74',
                 'Multi-Agent Acoustic & Vibration Impact Debate', 'Law on EP 2020 Consensus') }}
         </div>
 
+        {# ── Annual Acoustic & Vibration Compliance Summary ── #}
+        <div class="col-lg-12">
+            {% call glass_card('Annual Acoustic & Vibration Compliance Summary', 'bi bi-graph-up-arrow', 'text-success',
+                'Real-time aggregate noise and vibration compliance statistics and average levels.') %}
+                <div class="row g-3 text-center mb-3" id="annual-summary-grid">
+                    <div class="col-md-2">
+                        <div class="border rounded-3 p-3 bg-premium-light h-100">
+                            <div class="small text-muted mb-1">Total Measurements</div>
+                            <h3 class="fw-bold mb-0 text-success" id="sum-incidents">0</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="border rounded-3 p-3 bg-premium-light h-100">
+                            <div class="small text-muted mb-1">Avg Noise Level</div>
+                            <h3 class="fw-bold mb-0 text-primary" id="sum-avg-noise">0 dBA</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="border rounded-3 p-3 bg-premium-light h-100">
+                            <div class="small text-muted mb-1">Avg Vibration</div>
+                            <h3 class="fw-bold mb-0 text-warning" id="sum-avg-vibration">0.0000 m/s²</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="border rounded-3 p-3 bg-premium-light h-100">
+                            <div class="small text-muted mb-1">Gross Fees</div>
+                            <h3 class="fw-bold mb-0 text-danger" id="sum-gross">0 VND</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="border rounded-3 p-3 bg-premium-light h-100">
+                            <div class="small text-muted mb-1">Final Surcharge</div>
+                            <h3 class="fw-bold mb-0 text-danger" id="sum-fees">0 VND</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="border rounded-3 p-3 bg-premium-light h-100">
+                            <div class="small text-muted mb-1">Exempt / Charged</div>
+                            <h3 class="fw-bold mb-0 text-secondary" id="sum-ratio">0 / 0</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Noise vs Day Limit Gauge -->
+                <div class="w-100 mt-2 px-2">
+                    <div class="d-flex justify-content-between small text-muted mb-1">
+                        <span>Average Noise vs Day Shift Statutory Limit (70.0 dBA):</span>
+                        <span id="gauge-label" class="fw-bold text-dark">0.0 / 70.0 dBA</span>
+                    </div>
+                    <div class="progress" style="height: 12px; border-radius: 6px;">
+                        <div id="gauge-bar" class="progress-bar bg-success progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <span class="small text-muted d-block text-center mt-1" style="font-size: 10px;">
+                        <i class="bi bi-info-circle"></i> Surcharges of 100,000 VND per dBA apply to any level exceeding 70.0 dBA (day) or 55.0 dBA (night).
+                    </span>
+                </div>
+            {% endcall %}
+        </div>
+
         {# ── Nhật ký lịch sử tuân thủ ── #}
         <div class="col-lg-12">
-            {% call data_table('Acoustic & Vibration Compliance History Log', 'bi bi-clock-history', 'history-table-v74', 'No logs available.', 12) %}
+            {% call data_table('Acoustic & Vibration Compliance History Log', 'bi bi-clock-history', 'history-table-v74', 'No logs available.', 13) %}
                 <thead class="table-dark">
                     <tr>
                         <th>ID</th>
@@ -109,6 +166,7 @@
                         <th>Total Fee</th>
                         <th>Status</th>
                         <th>Timestamp</th>
+                        <th class="text-center">Action</th>
                     </tr>
                 </thead>
             {% endcall %}
@@ -119,22 +177,64 @@
 <script>
 document.addEventListener("DOMContentLoaded", () => {
     const fVND = n => new Intl.NumberFormat("vi-VN").format(Math.round(n)) + " VND";
-    
+
+    const getMst = () => {
+        return document.getElementById("tenant-mst") ? document.getElementById("tenant-mst").value : (sessionStorage.getItem("taxpayer_mst") || "0102030405");
+    };
+
     const load = () => {
-        fetch('/api/v74/compliance-data').then(r=>r.json()).then(d=>{
+        const mst = getMst();
+        fetch(`/api/v74/compliance-data?mst=${mst}`).then(r=>r.json()).then(d=>{
             if(d.status==="success"){
                 rB(d);
                 rD(d.debate, d.consensus_summary);
                 rH(d.history);
+                loadSummary();
             }
         }).catch(e=>console.error(e));
     };
-    
+
+    const loadSummary = () => {
+        const mst = getMst();
+        fetch(`/api/v74/annual-summary?mst=${mst}`).then(r=>r.json()).then(d=>{
+            if(d.status==="success" && d.summary){
+                const s = d.summary;
+                document.getElementById("sum-incidents").textContent = s.total_incidents;
+                document.getElementById("sum-avg-noise").textContent = s.avg_noise_db.toFixed(1) + " dBA";
+                document.getElementById("sum-avg-vibration").textContent = s.avg_vibration.toFixed(4) + " m/s²";
+                document.getElementById("sum-gross").textContent = fVND(s.total_gross_fee);
+                document.getElementById("sum-fees").textContent = fVND(s.total_final_fee);
+                document.getElementById("sum-ratio").textContent = `${s.exempt_count} / ${s.charged_count}`;
+
+                // Update gauge for noise vs 70 limit
+                const noiseVal = s.avg_noise_db;
+                const pct = Math.min(100, Math.max(0, (noiseVal / 70.0) * 100));
+                const gaugeBar = document.getElementById("gauge-bar");
+                const gaugeLabel = document.getElementById("gauge-label");
+
+                gaugeLabel.textContent = `${noiseVal.toFixed(1)} / 70.0 dBA`;
+                gaugeBar.style.width = `${pct}%`;
+                gaugeBar.setAttribute("aria-valuenow", pct);
+
+                // Change gauge colors
+                gaugeBar.className = "progress-bar progress-bar-striped progress-bar-animated";
+                if (noiseVal < 55.0) {
+                    gaugeBar.classList.add("bg-success");
+                } else if (noiseVal <= 70.0) {
+                    gaugeBar.classList.add("bg-warning");
+                } else {
+                    gaugeBar.classList.add("bg-danger");
+                }
+            }
+        }).catch(e=>console.error(e));
+    };
+
     const calc = () => {
         const p = {
-            noise_level_dba: parseFloat(document.getElementById("input-noise").value || 0),
-            vibration_level_m_s2: parseFloat(document.getElementById("input-vibration").value || 0),
-            time_shift: document.getElementById("input-shift").value,
+            mst: getMst(),
+            noise_db: parseFloat(document.getElementById("input-noise").value || 0),
+            vibration_m_s2: parseFloat(document.getElementById("input-vibration").value || 0),
+            shift: document.getElementById("input-shift").value,
             public_infrastructure: document.getElementById("input-infrastructure").checked,
             emergency_relief: document.getElementById("input-emergency").checked,
             traditional_festival: document.getElementById("input-festival").checked
@@ -152,13 +252,13 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }).catch(e=>console.error(e));
     };
-    
+
     const rR = r => {
         document.getElementById("res-noise").textContent = fVND(r.noise_surcharge);
         document.getElementById("res-vibration").textContent = fVND(r.vibration_surcharge);
         document.getElementById("res-gross").textContent = fVND(r.gross_fee);
         document.getElementById("res-final").textContent = fVND(r.final_fee);
-        
+
         if (r.is_exempt) {
             document.getElementById("res-exempt-badge").innerHTML = '<span class="badge bg-success">Exempt</span>';
         } else {
@@ -203,20 +303,20 @@ document.addEventListener("DOMContentLoaded", () => {
             chartEl.style.display = "none";
         }
     };
-    
+
     const rB = d => {
-        document.getElementById("base1-eff").textContent = fVND(d.day_shift_sample.final_fee);
-        document.getElementById("base2-eff").textContent = fVND(d.night_shift_sample.final_fee);
+        document.getElementById("base1-eff").textContent = fVND(d.day_surcharge.final_fee);
+        document.getElementById("base2-eff").textContent = fVND(d.night_surcharge.final_fee);
         document.getElementById("base3-notes").textContent = d.festival_exempt.notes;
     };
-    
+
     const rD = (debate, summary) => {
         const c = document.getElementById("debate-container-v74");
         c.innerHTML = "";
         const cl = {
-            "Acoustic Auditor": "bg-success text-white",
-            "Project Logistics Planner": "bg-warning text-dark",
-            "Traditional Festival Director": "bg-info text-dark"
+            "Acoustic Monitoring Officer": "bg-success text-white",
+            "Shift Supervisor": "bg-warning text-dark",
+            "Civil Project Lead": "bg-info text-dark"
         };
         debate.forEach(m => {
             const div = document.createElement("div");
@@ -226,11 +326,11 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         document.getElementById("consensus-text-v74").textContent = summary;
     };
-    
+
     const rH = h => {
         const tb = document.getElementById("history-table-v74");
         if (!h || !h.length) {
-            tb.innerHTML = '<tr><td colspan="12" class="text-center text-muted py-4">No logs available.</td></tr>';
+            tb.innerHTML = '<tr><td colspan="13" class="text-center text-muted py-4">No logs available.</td></tr>';
             return;
         }
         tb.innerHTML = "";
@@ -239,9 +339,9 @@ document.addEventListener("DOMContentLoaded", () => {
             let statusBadge = l.is_exempt ? '<span class="badge bg-success">Exempt</span>' : '<span class="badge bg-danger">Payable</span>';
             tr.innerHTML = `
                 <td>${l.id}</td>
-                <td>${l.noise_level_dba.toFixed(1)} dBA</td>
-                <td>${l.vibration_level_m_s2.toFixed(3)} m/s²</td>
-                <td><span class="badge bg-secondary">${l.time_shift.toUpperCase()}</span></td>
+                <td>${l.noise_db.toFixed(1)} dBA</td>
+                <td>${l.vibration_m_s2.toFixed(4)} m/s²</td>
+                <td><span class="badge bg-secondary">${l.shift.toUpperCase()}</span></td>
                 <td>${l.public_infrastructure ? 'Yes' : 'No'}</td>
                 <td>${l.emergency_relief ? 'Yes' : 'No'}</td>
                 <td>${l.traditional_festival ? 'Yes' : 'No'}</td>
@@ -250,11 +350,37 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td class="fw-bold text-dark">${fVND(l.final_fee)}</td>
                 <td>${statusBadge}</td>
                 <td class="text-muted">${l.created_at}</td>
+                <td class="text-center">
+                    <button class="btn btn-outline-danger btn-sm py-0 px-2 btn-delete-log" data-id="${l.id}">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
             `;
             tb.appendChild(tr);
         });
+
+        // Wire up delete buttons
+        tb.querySelectorAll(".btn-delete-log").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const logId = btn.dataset.id;
+                if (confirm(`Are you sure you want to delete log #${logId}?`)) {
+                    const mst = getMst();
+                    fetch('/api/v74/delete-log', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ mst, log_id: logId })
+                    }).then(r=>r.json()).then(d=>{
+                        if (d.status === "success") {
+                            load();
+                        } else {
+                            alert(d.error || "Failed to delete log");
+                        }
+                    }).catch(e=>console.error(e));
+                }
+            });
+        });
     };
-    
+
     document.getElementById("btn-calc-surcharge").addEventListener("click", calc);
     document.getElementById("btn-refresh-v74").addEventListener("click", load);
     load();

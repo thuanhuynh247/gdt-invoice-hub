@@ -139,3 +139,72 @@ class V74ComplianceService:
         rows = cur.fetchall()
         conn.close()
         return [dict(r) for r in rows]
+
+    def delete_log(self, mst: str, log_id: int) -> bool:
+        """Delete a noise/vibration log entry by ID."""
+        conn = self.get_tenant_connection(mst)
+        cur = conn.cursor()
+        cur.execute("DELETE FROM noise_vibration_logs WHERE id = ?", (log_id,))
+        deleted = cur.rowcount > 0
+        conn.commit()
+        conn.close()
+        return deleted
+
+    def get_annual_summary(self, mst: str, year: int | None = None) -> Dict[str, Any]:
+        """Returns a summary of noise/vibration activity for the given calendar year."""
+        if year is None:
+            year = datetime.now().year
+        conn = self.get_tenant_connection(mst)
+        cur = conn.cursor()
+
+        summary = {
+            "year": year,
+            "total_incidents": 0,
+            "avg_noise_db": 0.0,
+            "avg_vibration": 0.0,
+            "total_gross_fee": 0.0,
+            "total_final_fee": 0.0,
+            "total_exempt_fee": 0.0,
+            "exempt_count": 0,
+            "charged_count": 0
+        }
+
+        try:
+            cur.execute("""
+                SELECT noise_db, vibration_m_s2, gross_fee, final_fee, is_exempt
+                FROM noise_vibration_logs
+                WHERE strftime('%Y', created_at) = ?
+            """, (str(year),))
+            rows = cur.fetchall()
+
+            total_noise = 0.0
+            total_vibration = 0.0
+            for row in rows:
+                r_noise = row["noise_db"]
+                r_vib = row["vibration_m_s2"]
+                r_gross = row["gross_fee"]
+                r_final = row["final_fee"]
+                r_exempt = bool(row["is_exempt"])
+
+                summary["total_incidents"] += 1
+                total_noise += r_noise
+                total_vibration += r_vib
+                summary["total_gross_fee"] += r_gross
+                summary["total_final_fee"] += r_final
+
+                if r_exempt:
+                    summary["exempt_count"] += 1
+                else:
+                    summary["charged_count"] += 1
+
+            if summary["total_incidents"] > 0:
+                summary["avg_noise_db"] = total_noise / summary["total_incidents"]
+                summary["avg_vibration"] = total_vibration / summary["total_incidents"]
+                summary["total_exempt_fee"] = max(0.0, summary["total_gross_fee"] - summary["total_final_fee"])
+        except Exception:
+            pass
+        finally:
+            conn.close()
+
+        return summary
+
