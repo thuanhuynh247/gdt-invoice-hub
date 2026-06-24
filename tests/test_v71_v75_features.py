@@ -82,6 +82,95 @@ def test_v71_epr_small_scale_exemption(mock_tenant_db):
     assert res2["exemption_type"] == "small_scale_import_exemption"
 
 
+def test_v71_epr_save_to_db_false(mock_tenant_db):
+    service = V71ComplianceService()
+    service.calculate_epr(mock_tenant_db, "laptop", 100.0, save_to_db=False)
+    history = service.get_history(mock_tenant_db)
+    assert len(history) == 0
+
+def test_v71_epr_save_to_db_true(mock_tenant_db):
+    service = V71ComplianceService()
+    service.calculate_epr(mock_tenant_db, "laptop", 100.0, save_to_db=True)
+    history = service.get_history(mock_tenant_db)
+    assert len(history) == 1
+    assert history[0]["product_category"] == "laptop"
+
+def test_v71_epr_delete_log(mock_tenant_db):
+    service = V71ComplianceService()
+    service.calculate_epr(mock_tenant_db, "laptop", 100.0)
+    history = service.get_history(mock_tenant_db)
+    assert len(history) == 1
+    log_id = history[0]["id"]
+    assert service.delete_log(mock_tenant_db, log_id) is True
+    assert len(service.get_history(mock_tenant_db)) == 0
+    assert service.delete_log(mock_tenant_db, 99999) is False
+
+def test_v71_epr_annual_summary(mock_tenant_db):
+    service = V71ComplianceService()
+    service.calculate_epr(mock_tenant_db, "laptop", 100.0)
+    service.calculate_epr(mock_tenant_db, "battery", 50.0, is_export=True)
+    summary = service.get_annual_summary(mock_tenant_db)
+    assert summary["total_shipments"] == 2
+    assert summary["total_quantity"] == 150.0
+    assert summary["exempt_count"] == 1
+    assert summary["charged_count"] == 1
+    assert "laptop" in summary["category_distribution"]
+    assert "battery" in summary["category_distribution"]
+    assert summary["category_distribution"]["laptop"]["count"] == 1
+    assert summary["category_distribution"]["battery"]["count"] == 1
+
+def test_api_v71_annual_summary_route(mock_app, mock_tenant_db):
+    client = mock_app.test_client()
+    with client.session_transaction() as sess:
+        sess["logged_in"] = True
+        sess["user_role"] = "admin"
+        sess["taxpayer_mst"] = mock_tenant_db
+
+    # Insert a log via calculate API first
+    client.post("/api/v71/calculate", json={
+        "mst": mock_tenant_db,
+        "product_category": "laptop",
+        "quantity": 10.0
+    })
+
+    res = client.get(f"/api/v71/annual-summary?mst={mock_tenant_db}")
+    assert res.status_code == 200
+    data = json.loads(res.data)
+    assert data["status"] == "success"
+    assert "summary" in data
+    assert data["summary"]["total_shipments"] >= 1
+
+def test_api_v71_delete_log_route(mock_app, mock_tenant_db):
+    client = mock_app.test_client()
+    with client.session_transaction() as sess:
+        sess["logged_in"] = True
+        sess["user_role"] = "admin"
+        sess["taxpayer_mst"] = mock_tenant_db
+
+    # Create log entry
+    res_calc = client.post("/api/v71/calculate", json={
+        "mst": mock_tenant_db,
+        "product_category": "laptop",
+        "quantity": 10.0
+    })
+    assert res_calc.status_code == 200
+
+    service = V71ComplianceService(mock_app.config["BASE_DATA_DIR"])
+    history = service.get_history(mock_tenant_db)
+    assert len(history) >= 1
+    log_id = history[0]["id"]
+
+    # Delete via API
+    res = client.post("/api/v71/delete-log", json={"mst": mock_tenant_db, "log_id": log_id})
+    assert res.status_code == 200
+    data = json.loads(res.data)
+    assert data["status"] == "success"
+
+    # Attempt to delete again (should 404)
+    res2 = client.post("/api/v71/delete-log", json={"mst": mock_tenant_db, "log_id": log_id})
+    assert res2.status_code == 404
+
+
 # --- V72 WASTEWATER TESTING ---
 def test_v72_wastewater_flat_rate(mock_tenant_db):
     service = V72ComplianceService()

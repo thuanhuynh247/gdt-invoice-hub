@@ -98,14 +98,60 @@
                 'Multi-Agent E-Waste Regulation Debate', 'Decree 08/2022/NĐ-CP Consensus') }}
         </div>
 
+        {# ── Annual EPR Compliance Summary Dashboard ── #}
+        <div class="col-lg-12">
+            {% call glass_card('Annual EPR Compliance Summary', 'bi bi-graph-up-arrow', 'text-success',
+                'Real-time aggregate E-Waste compliance statistics for the current calendar year.') %}
+                <div class="row g-3 text-center" id="annual-summary-grid">
+                    <div class="col-md-2">
+                        <div class="border rounded-3 p-3 bg-premium-light h-100">
+                            <div class="small text-muted mb-1">Total Shipments</div>
+                            <h3 class="fw-bold mb-0 text-success" id="sum-shipments">0</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="border rounded-3 p-3 bg-premium-light h-100">
+                            <div class="small text-muted mb-1">Total Quantity</div>
+                            <h3 class="fw-bold mb-0 text-primary" id="sum-quantity">0</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="border rounded-3 p-3 bg-premium-light h-100">
+                            <div class="small text-muted mb-1">Gross Fee</div>
+                            <h3 class="fw-bold mb-0 text-warning" id="sum-gross-fee">0 VND</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="border rounded-3 p-3 bg-premium-light h-100">
+                            <div class="small text-muted mb-1">Final Fee</div>
+                            <h3 class="fw-bold mb-0 text-danger" id="sum-final-fee">0 VND</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="border rounded-3 p-3 bg-premium-light h-100">
+                            <div class="small text-muted mb-1">Exempted Amount</div>
+                            <h3 class="fw-bold mb-0 text-info" id="sum-exempt-fee">0 VND</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="border rounded-3 p-3 bg-premium-light h-100">
+                            <div class="small text-muted mb-1">Exempt / Charged</div>
+                            <h3 class="fw-bold mb-0 text-secondary" id="sum-ratio">0 / 0</h3>
+                        </div>
+                    </div>
+                </div>
+            {% endcall %}
+        </div>
+
         {# ── Bảng lịch sử tuân thủ EPR ── #}
         <div class="col-lg-12">
-            {% call data_table('EPR Compliance History Log', 'bi bi-clock-history', 'history-table-v71', 'No logs available.', 11) %}
+            {% call data_table('EPR Compliance History Log', 'bi bi-clock-history', 'history-table-v71', 'No logs available.', 12) %}
             <thead class="table-dark">
                 <tr>
                     <th>ID</th><th>Category</th><th>Quantity</th><th>Export</th>
                     <th>Rev Threshold</th><th>Imp Threshold</th><th>Rate</th>
                     <th>Gross Fee</th><th>Final Fee</th><th>Status</th><th>Timestamp</th>
+                    <th class="text-center">Action</th>
                 </tr>
             </thead>
             {% endcall %}
@@ -127,6 +173,21 @@ document.addEventListener("DOMContentLoaded", () => {
                 rB(d);
                 rD(d.debate, d.consensus_summary);
                 rH(d.history);
+                loadAnnualSummary();
+            }
+        }).catch(e=>console.error(e));
+    };
+
+    const loadAnnualSummary = () => {
+        fetch('/api/v71/annual-summary').then(r=>r.json()).then(d=>{
+            if(d.status==="success") {
+                const s = d.summary;
+                document.getElementById("sum-shipments").textContent = s.total_shipments || 0;
+                document.getElementById("sum-quantity").textContent = (s.total_quantity || 0).toLocaleString();
+                document.getElementById("sum-gross-fee").textContent = fVND(s.total_gross_fee || 0);
+                document.getElementById("sum-final-fee").textContent = fVND(s.total_final_fee || 0);
+                document.getElementById("sum-exempt-fee").textContent = fVND(s.total_exempt_fee || 0);
+                document.getElementById("sum-ratio").textContent = `${s.exempt_count || 0} / ${s.charged_count || 0}`;
             }
         }).catch(e=>console.error(e));
     };
@@ -222,7 +283,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const rH = h => {
         const tb = document.getElementById("history-table-v71");
         if (!h || !h.length) {
-            tb.innerHTML = '<tr><td colspan="11" class="text-center text-muted py-4">No logs available.</td></tr>';
+            tb.innerHTML = '<tr><td colspan="12" class="text-center text-muted py-4">No logs available.</td></tr>';
             return;
         }
         tb.innerHTML = "";
@@ -241,6 +302,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td class="fw-bold text-dark">${fVND(l.final_fee)}</td>
                 <td>${statusBadge}</td>
                 <td class="text-muted">${l.created_at}</td>
+                <td class="text-center"><button class="btn btn-sm btn-outline-danger px-2 py-0" onclick="deleteLog(${l.id})" title="Delete this entry"><i class="bi bi-trash"></i></button></td>
             `;
             tb.appendChild(tr);
         });
@@ -250,6 +312,23 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("btn-refresh-v71").addEventListener("click", load);
     load();
 });
+
+// Global delete handler (outside DOMContentLoaded to be accessible from inline onclick)
+function deleteLog(logId) {
+    if (!confirm(`Delete EPR log entry #${logId}? This action is irreversible.`)) return;
+    fetch('/api/v71/delete-log', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({log_id: logId})
+    }).then(r => r.json()).then(d => {
+        if (d.status === 'success') {
+            // Trigger full reload to refresh history and summary
+            document.getElementById('btn-refresh-v71').click();
+        } else {
+            alert(d.error || 'Failed to delete entry.');
+        }
+    }).catch(e => console.error(e));
+}
 </script>
 
 {{ entry_animations() }}

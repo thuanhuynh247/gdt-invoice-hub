@@ -3644,9 +3644,9 @@ def api_v71_compliance_data():
     from invoices.v71_service import V71ComplianceService
     service = V71ComplianceService(current_app.config["BASE_DATA_DIR"])
 
-    laptop_standard = service.calculate_epr(mst, "laptop", 500.0)
-    battery_standard = service.calculate_epr(mst, "battery", 1200.0)
-    export_exempt = service.calculate_epr(mst, "solar_panel", 1500.0, is_export=True)
+    laptop_standard = service.calculate_epr(mst, "laptop", 500.0, save_to_db=False)
+    battery_standard = service.calculate_epr(mst, "battery", 1200.0, save_to_db=False)
+    export_exempt = service.calculate_epr(mst, "solar_panel", 1500.0, is_export=True, save_to_db=False)
 
     debate_transcript = [
         {"speaker": "E-Waste Recycling Inspector", "text": "Decree 08/2022/NĐ-CP mandates Extended Producer Responsibility (EPR) recycling charges on laptops (20k VND), TVs/monitors (30k VND), and phones (5k VND)."},
@@ -3664,6 +3664,39 @@ def api_v71_compliance_data():
         "consensus_summary": consensus_summary,
         "history": service.get_history(mst, 20)
     })
+
+@invoices_blueprint.get("/api/v71/annual-summary")
+def api_v71_annual_summary():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    year = request.args.get("year", type=int)
+
+    from invoices.v71_service import V71ComplianceService
+    service = V71ComplianceService(current_app.config["BASE_DATA_DIR"])
+    summary = service.get_annual_summary(mst, year)
+    return jsonify({"status": "success", "summary": summary})
+
+@invoices_blueprint.post("/api/v71/delete-log")
+def api_v71_delete_log():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    log_id = data.get("log_id")
+    if not log_id:
+        return jsonify({"error": "log_id is required"}), 400
+
+    from invoices.v71_service import V71ComplianceService
+    service = V71ComplianceService(current_app.config["BASE_DATA_DIR"])
+    deleted = service.delete_log(mst, int(log_id))
+    if deleted:
+        return jsonify({"status": "success", "message": f"Log #{log_id} deleted."})
+    return jsonify({"error": f"Log #{log_id} not found."}), 404
 
 # --- VERSION 72 ROUTES ---
 @invoices_blueprint.get("/v72-compliance-hub")
