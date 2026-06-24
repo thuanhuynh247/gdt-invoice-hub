@@ -90,9 +90,68 @@
                 'Multi-Agent Toxic Waste Management Debate', 'Decree 08/2022/NĐ-CP Consensus') }}
         </div>
 
+        {# ── Annual Hazardous Waste Compliance Summary ── #}
+        <div class="col-lg-12">
+            {% call glass_card('Annual Hazardous Waste Compliance Summary', 'bi bi-graph-up-arrow', 'text-success',
+                'Real-time aggregate hazardous waste compliance statistics and small generator quota tracking.') %}
+                <div class="row g-3 text-center mb-3" id="annual-summary-grid">
+                    <div class="col-md-2">
+                        <div class="border rounded-3 p-3 bg-premium-light h-100">
+                            <div class="small text-muted mb-1">Total Shipments</div>
+                            <h3 class="fw-bold mb-0 text-success" id="sum-shipments">0</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="border rounded-3 p-3 bg-premium-light h-100">
+                            <div class="small text-muted mb-1">Total Weight</div>
+                            <h3 class="fw-bold mb-0 text-primary" id="sum-weight">0 kg</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="border rounded-3 p-3 bg-premium-light h-100">
+                            <div class="small text-muted mb-1">Licensing Fees</div>
+                            <h3 class="fw-bold mb-0 text-warning" id="sum-license">0 VND</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="border rounded-3 p-3 bg-premium-light h-100">
+                            <div class="small text-muted mb-1">Disposal Fees</div>
+                            <h3 class="fw-bold mb-0 text-danger" id="sum-disposal">0 VND</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="border rounded-3 p-3 bg-premium-light h-100">
+                            <div class="small text-muted mb-1">Total Surcharge</div>
+                            <h3 class="fw-bold mb-0 text-danger" id="sum-fees">0 VND</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="border rounded-3 p-3 bg-premium-light h-100">
+                            <div class="small text-muted mb-1">Exempt / Charged</div>
+                            <h3 class="fw-bold mb-0 text-secondary" id="sum-ratio">0 / 0</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Small Generator Quota Gauge -->
+                <div class="w-100 mt-2 px-2">
+                    <div class="d-flex justify-content-between small text-muted mb-1">
+                        <span>Small Generator Weight Usage:</span>
+                        <span id="gauge-label" class="fw-bold text-dark">0.0 / 600.0 kg</span>
+                    </div>
+                    <div class="progress" style="height: 12px; border-radius: 6px;">
+                        <div id="gauge-bar" class="progress-bar bg-success progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <span class="small text-muted d-block text-center mt-1" style="font-size: 10px;">
+                        <i class="bi bi-info-circle"></i> Small generators (&lt; 600 kg/year) are exempt from the base 5,000,000 VND permit licensing fee under Decree 08/2022/NĐ-CP.
+                    </span>
+                </div>
+            {% endcall %}
+        </div>
+
         {# ── Nhật ký lịch sử tuân thủ ── #}
         <div class="col-lg-12">
-            {% call data_table('Hazardous Waste History Log', 'bi bi-clock-history', 'history-table-v73', 'No logs available.', 11) %}
+            {% call data_table('Hazardous Waste History Log', 'bi bi-clock-history', 'history-table-v73', 'No logs available.', 12) %}
                 <thead class="table-dark">
                     <tr>
                         <th>ID</th>
@@ -106,6 +165,7 @@
                         <th>Total Surcharge</th>
                         <th>Status</th>
                         <th>Timestamp</th>
+                        <th class="text-center">Action</th>
                     </tr>
                 </thead>
             {% endcall %}
@@ -225,7 +285,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const rH = h => {
         const tb = document.getElementById("history-table-v73");
         if (!h || !h.length) {
-            tb.innerHTML = '<tr><td colspan="11" class="text-center text-muted py-4">No logs available.</td></tr>';
+            tb.innerHTML = '<tr><td colspan="12" class="text-center text-muted py-4">No logs available.</td></tr>';
             return;
         }
         tb.innerHTML = "";
@@ -244,9 +304,71 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td class="fw-bold text-dark">${fVND(l.final_fee)}</td>
                 <td>${statusBadge}</td>
                 <td class="text-muted">${l.created_at}</td>
+                <td class="text-center">
+                    <button class="btn btn-sm btn-outline-danger btn-delete-log" data-id="${l.id}">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
             `;
             tb.appendChild(tr);
         });
+
+        tb.querySelectorAll(".btn-delete-log").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const logId = btn.dataset.id;
+                if (confirm(`Are you sure you want to delete Hazardous Waste log #${logId}?`)) {
+                    deleteLog(logId);
+                }
+            });
+        });
+    };
+
+    const loadAnnualSummary = () => {
+        fetch('/api/v73/annual-summary').then(r => r.json()).then(d => {
+            if (d.status === "success") {
+                const s = d.summary;
+                document.getElementById("sum-shipments").textContent = s.total_shipments || 0;
+                document.getElementById("sum-weight").textContent = (s.total_weight_kg || 0).toFixed(1) + " kg";
+                document.getElementById("sum-license").textContent = fVND(s.total_license_fee || 0);
+                document.getElementById("sum-disposal").textContent = fVND(s.total_disposal_fee || 0);
+                document.getElementById("sum-fees").textContent = fVND(s.total_fees_vnd || 0);
+                document.getElementById("sum-ratio").textContent = `${s.exempt_count} / ${s.charged_count}`;
+
+                // Update small generator quota gauge (600 kg limit)
+                const totalWeight = s.total_weight_kg || 0.0;
+                const pct = Math.min((totalWeight / 600.0) * 100, 100);
+                const gLabel = document.getElementById("gauge-label");
+                const gBar = document.getElementById("gauge-bar");
+
+                gLabel.textContent = `${totalWeight.toFixed(1)} / 600.0 kg`;
+                gBar.style.width = `${pct}%`;
+                gBar.setAttribute("aria-valuenow", pct.toFixed(1));
+
+                // Change colors depending on usage
+                gBar.className = "progress-bar progress-bar-striped progress-bar-animated";
+                if (totalWeight < 400.0) {
+                    gBar.classList.add("bg-success");
+                } else if (totalWeight < 600.0) {
+                    gBar.classList.add("bg-warning");
+                } else {
+                    gBar.classList.add("bg-danger");
+                }
+            }
+        }).catch(e => console.error(e));
+    };
+
+    const deleteLog = (logId) => {
+        fetch('/api/v73/delete-log', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ log_id: logId })
+        }).then(r => r.json()).then(d => {
+            if (d.status === "success") {
+                load();
+            } else {
+                alert("Error: " + (d.error || "Could not delete log."));
+            }
+        }).catch(e => console.error(e));
     };
     
     document.getElementById("btn-calc-waste").addEventListener("click", calc);

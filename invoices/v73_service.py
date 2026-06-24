@@ -135,3 +135,72 @@ class V73ComplianceService:
         rows = cur.fetchall()
         conn.close()
         return [dict(r) for r in rows]
+
+    def delete_log(self, mst: str, log_id: int) -> bool:
+        """Delete a hazardous waste log entry by ID (for audit corrections)."""
+        conn = self.get_tenant_connection(mst)
+        cur = conn.cursor()
+        cur.execute("DELETE FROM hazardous_waste_logs WHERE id = ?", (log_id,))
+        deleted = cur.rowcount > 0
+        conn.commit()
+        conn.close()
+        return deleted
+
+    def get_annual_summary(self, mst: str, year: int | None = None) -> Dict[str, Any]:
+        """Returns a summary of hazardous waste activity for the given calendar year."""
+        if year is None:
+            year = datetime.now().year
+        conn = self.get_tenant_connection(mst)
+        cur = conn.cursor()
+
+        summary = {
+            "year": year,
+            "total_shipments": 0,
+            "total_weight_kg": 0.0,
+            "total_license_fee": 0.0,
+            "total_disposal_fee": 0.0,
+            "total_fees_vnd": 0.0,
+            "exempt_count": 0,
+            "charged_count": 0,
+            "waiver_remaining_kg": 600.0
+        }
+
+        try:
+            # We filter by year in created_at column
+            cur.execute("""
+                SELECT weight_kg, license_fee, disposal_fee, final_fee, is_exempt, annual_weight_kg
+                FROM hazardous_waste_logs
+                WHERE strftime('%Y', created_at) = ?
+            """, (str(year),))
+            rows = cur.fetchall()
+
+            total_annual_weight = 0.0
+            for row in rows:
+                r_wt = row["weight_kg"]
+                r_lic = row["license_fee"]
+                r_disp = row["disposal_fee"]
+                r_final = row["final_fee"]
+                r_exempt = bool(row["is_exempt"])
+                
+                summary["total_shipments"] += 1
+                summary["total_weight_kg"] += r_wt
+                summary["total_license_fee"] += r_lic
+                summary["total_disposal_fee"] += r_disp
+                summary["total_fees_vnd"] += r_final
+
+                if r_exempt:
+                    summary["exempt_count"] += 1
+                else:
+                    summary["charged_count"] += 1
+
+                total_annual_weight += r_wt
+
+            # The waiver remaining is out of the 600 kg threshold for the year
+            summary["waiver_remaining_kg"] = max(0.0, 600.0 - total_annual_weight)
+        except Exception:
+            pass
+        finally:
+            conn.close()
+
+        return summary
+

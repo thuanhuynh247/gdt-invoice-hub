@@ -246,6 +246,30 @@ def test_v73_hazardous_waste_exemptions(mock_tenant_db):
     assert res["final_fee"] == 500000.0
     assert res["is_exempt"] is True
 
+def test_v73_annual_summary(mock_tenant_db):
+    service = V73ComplianceService()
+    # Add a couple of logs
+    service.calculate_hazardous_waste(mock_tenant_db, "category_a", 150.0, apply_license=True)
+    service.calculate_hazardous_waste(mock_tenant_db, "category_b", 100.0, apply_license=False)
+    
+    summary = service.get_annual_summary(mock_tenant_db)
+    assert summary["total_shipments"] == 2
+    assert summary["total_weight_kg"] == 250.0
+    assert summary["total_disposal_fee"] == (150 * 2000.0) + (100 * 5000.0)
+    assert summary["waiver_remaining_kg"] == 350.0
+
+def test_v73_delete_log(mock_tenant_db):
+    service = V73ComplianceService()
+    res = service.calculate_hazardous_waste(mock_tenant_db, "category_a", 50.0)
+    history = service.get_history(mock_tenant_db, limit=5)
+    log_id = history[0]["id"]
+    
+    deleted = service.delete_log(mock_tenant_db, log_id)
+    assert deleted is True
+    
+    history_after = service.get_history(mock_tenant_db, limit=5)
+    assert not any(h["id"] == log_id for h in history_after)
+
 
 # --- V74 NOISE & VIBRATION TESTING ---
 def test_v74_noise_vibration_day(mock_tenant_db):
@@ -343,6 +367,27 @@ def test_flask_endpoints_v71_v75(mock_app, mock_tenant_db):
     assert r3_calc.status_code == 200
     d3 = json.loads(r3_calc.data)
     assert d3["status"] == "success"
+
+    # API annual summary check
+    r3_sum = client.get(f"/api/v73/annual-summary?mst={mock_tenant_db}")
+    assert r3_sum.status_code == 200
+    d3_sum = json.loads(r3_sum.data)
+    assert d3_sum["status"] == "success"
+    assert d3_sum["summary"]["total_shipments"] >= 1
+
+    # API delete check
+    r3_data = client.get(f"/api/v73/compliance-data?mst={mock_tenant_db}")
+    history = json.loads(r3_data.data)["history"]
+    log_id = history[0]["id"]
+    r3_del = client.post("/api/v73/delete-log", json={
+        "mst": mock_tenant_db,
+        "log_id": log_id
+    })
+    assert r3_del.status_code == 200
+    d3_del = json.loads(r3_del.data)
+    assert d3_del["status"] == "success"
+    assert d3_del["deleted"] is True
+
 
     # V74 check
     r4_page = client.get("/v74-compliance-hub")

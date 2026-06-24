@@ -3862,6 +3862,41 @@ def api_v73_compliance_data():
         "history": service.get_history(mst, 20)
     })
 
+@invoices_blueprint.get("/api/v73/annual-summary")
+def api_v73_annual_summary():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    from invoices.v73_service import V73ComplianceService
+    try:
+        service = V73ComplianceService(current_app.config["BASE_DATA_DIR"])
+        summary = service.get_annual_summary(mst)
+        return jsonify({"status": "success", "summary": summary})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+@invoices_blueprint.post("/api/v73/delete-log")
+def api_v73_delete_log():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    log_id = data.get("log_id")
+    if not log_id:
+        return jsonify({"error": "Missing log_id"}), 400
+
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    from invoices.v73_service import V73ComplianceService
+    try:
+        service = V73ComplianceService(current_app.config["BASE_DATA_DIR"])
+        success = service.delete_log(mst, int(log_id))
+        return jsonify({"status": "success", "deleted": success})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
 # --- VERSION 74 ROUTES ---
 @invoices_blueprint.get("/v74-compliance-hub")
 def v74_compliance_hub_page():
