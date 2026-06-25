@@ -1399,7 +1399,7 @@
             .then(res => res.json())
             .then(data => {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-cpu"></i> Run Audit';
+                btn.innerHTML = '<i class="bi bi-cpu" aria-hidden="true"></i> Run Audit';
                 
                 scoreVal.innerText = data.score;
                 if (data.score >= 90) {
@@ -1412,7 +1412,7 @@
                 
                 tbody.innerHTML = "";
                 if (!data.findings || data.findings.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="3" class="text-center text-success fw-semibold"><i class="bi bi-check-circle me-1"></i> Perfect Score! No over-engineering detected.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="3" class="text-center text-success fw-semibold"><i class="bi bi-check-circle me-1" aria-hidden="true"></i> Perfect Score! No over-engineering detected.</td></tr>';
                     return;
                 }
                 
@@ -1435,7 +1435,7 @@
             .catch(err => {
                 console.error(err);
                 btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-cpu"></i> Run Audit';
+                btn.innerHTML = '<i class="bi bi-cpu" aria-hidden="true"></i> Run Audit';
                 tbody.innerHTML = '<tr><td colspan="3" class="text-center text-danger">Audit run failed. See developer console.</td></tr>';
             });
     }
@@ -1514,11 +1514,11 @@
                         showAppAlert(data.message, "danger");
                         source.close();
                         btn.disabled = false;
-                        btn.innerHTML = '<i class="bi bi-cloud-arrow-down-fill me-1"></i> Install Plugin';
+                        btn.innerHTML = '<i class="bi bi-cloud-arrow-down-fill me-1" aria-hidden="true"></i> Install Plugin';
                     } else if (data.type === 'done') {
                         source.close();
                         btn.disabled = false;
-                        btn.innerHTML = '<i class="bi bi-cloud-arrow-down-fill me-1"></i> Install Plugin';
+                        btn.innerHTML = '<i class="bi bi-cloud-arrow-down-fill me-1" aria-hidden="true"></i> Install Plugin';
                         if (data.success) {
                             showAppAlert("Plugin installed successfully!", "success");
                             loadPluginsList();
@@ -1534,7 +1534,7 @@
                     appendPluginConsoleLine("[System Error] SSE connection lost or failed.", "error");
                     source.close();
                     btn.disabled = false;
-                    btn.innerHTML = '<i class="bi bi-cloud-arrow-down-fill me-1"></i> Install Plugin';
+                    btn.innerHTML = '<i class="bi bi-cloud-arrow-down-fill me-1" aria-hidden="true"></i> Install Plugin';
                 };
             });
         }

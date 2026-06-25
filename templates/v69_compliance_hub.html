@@ -206,7 +206,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td class="fw-bold">${l.facility_name}</td>
                 <td><span class="badge bg-secondary">${l.facility_type.toUpperCase()}</span></td>
                 <td>${l.capacity_m3.toLocaleString()} m³</td>
-                <td>${l.has_double_hull ? '<span class="text-success"><i class="bi bi-check-circle-fill"></i> Yes</span>' : '<span class="text-muted">No</span>'}</td>
+                <td>${l.has_double_hull ? '<span class="text-success"><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Yes</span>' : '<span class="text-muted">No</span>'}</td>
                 <td><span class="badge bg-premium-light text-dark">${l.exemption_category.toUpperCase()}</span></td>
                 <td>${fVND(l.base_fee_vnd)}</td>
                 <td>${fVND(l.capacity_charge_vnd)}</td>

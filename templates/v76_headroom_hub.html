@@ -163,7 +163,7 @@
     <div class="row align-items-center mb-4">
         <div class="col-md-8">
             <h1 class="h2 fw-bold mb-1 d-flex align-items-center gap-2">
-                <i class="bi bi-cpu-fill text-success"></i>
+                <i class="bi bi-cpu-fill text-success" aria-hidden="true"></i>
                 Headroom AI Context Hub
             </h1>
             <p class="text-secondary mb-0">Tối ưu hóa ngữ cảnh và căn chỉnh bộ đệm KV thời gian thực để giảm thiểu chi phí LLM và cải thiện tốc độ phản hồi.</p>
@@ -185,7 +185,7 @@
                 <div>
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <span class="text-secondary small fw-bold uppercase">Tổng Yêu Cầu Tối Ưu</span>
-                        <i class="bi bi-chat-square-text text-secondary fs-5"></i>
+                        <i class="bi bi-chat-square-text text-secondary fs-5" aria-hidden="true"></i>
                     </div>
                     <div class="kpi-value my-2" id="kpiTotalCalls">0</div>
                 </div>
@@ -199,7 +199,7 @@
                 <div>
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <span class="text-secondary small fw-bold uppercase">Token Tiết Kiệm</span>
-                        <i class="bi bi-gift text-success fs-5"></i>
+                        <i class="bi bi-gift text-success fs-5" aria-hidden="true"></i>
                     </div>
                     <div class="kpi-value kpi-accent my-2" id="kpiTotalSaved">0</div>
                 </div>
@@ -215,7 +215,7 @@
                 <div>
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <span class="text-secondary small fw-bold uppercase">Tỷ Lệ Nén Trung Bình</span>
-                        <i class="bi bi-percent text-info fs-5"></i>
+                        <i class="bi bi-percent text-info fs-5" aria-hidden="true"></i>
                     </div>
                     <div class="kpi-value my-2" id="kpiAvgRatio">0.0%</div>
                 </div>
@@ -237,7 +237,7 @@
                 <div>
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <span class="text-secondary small fw-bold uppercase">Ước Tính Tiết Kiệm</span>
-                        <i class="bi bi-currency-dollar text-warning fs-5"></i>
+                        <i class="bi bi-currency-dollar text-warning fs-5" aria-hidden="true"></i>
                     </div>
                     <div class="kpi-value text-success my-2" id="kpiSavingsUsd">$0.00</div>
                 </div>
@@ -252,7 +252,7 @@
         <div class="col-xl-4 col-lg-5">
             <div class="glass-card p-4 h-100">
                 <h3 class="h5 fw-bold mb-3 d-flex align-items-center gap-2">
-                    <i class="bi bi-sliders text-success"></i>
+                    <i class="bi bi-sliders text-success" aria-hidden="true"></i>
                     Cấu Hình Headroom AI
                 </h3>
                 <hr class="my-3">
@@ -304,7 +304,7 @@
                     </div>
 
                     <button type="submit" class="btn btn-gradient w-100 py-2.5">
-                        <i class="bi bi-save-fill me-1"></i> Lưu Cấu Hình Hệ Thống
+                        <i class="bi bi-save-fill me-1" aria-hidden="true"></i> Lưu Cấu Hình Hệ Thống
                     </button>
                 </form>
             </div>
@@ -315,11 +315,11 @@
             <div class="glass-card p-4 h-100">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h3 class="h5 fw-bold mb-0 d-flex align-items-center gap-2">
-                        <i class="bi bi-play-btn text-success"></i>
+                        <i class="bi bi-play-btn text-success" aria-hidden="true"></i>
                         Playground Thử Nghiệm Nén Live
                     </h3>
                     <button class="btn btn-sm btn-outline-secondary" id="btnLoadSample">
-                        <i class="bi bi-arrow-clockwise"></i> Nạp Mẫu Thử
+                        <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Nạp Mẫu Thử
                     </button>
                 </div>
                 <hr class="my-3">
@@ -328,11 +328,11 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label for="playSystem" class="form-label fw-bold small text-secondary">SYSTEM PROMPT (Hướng dẫn hệ thống dài)</label>
-                            <textarea class="form-control" id="playSystem" rows="6" placeholder="Nhập chỉ thị hệ thống lớn, văn bản quy định thuế, luật hoặc tài liệu tham khảo..."></textarea>
+                            <textarea class="form-control" id="playSystem" rows="6" placeholder="Nhập chỉ thị hệ thống lớn, văn bản quy định thuế, luật hoặc tài liệu tham khảo…"></textarea>
                         </div>
                         <div class="col-md-6">
                             <label for="playUser" class="form-label fw-bold small text-secondary">USER CONTENT (Nội dung người dùng / Câu hỏi)</label>
-                            <textarea class="form-control" id="playUser" rows="6" placeholder="Nhập câu hỏi, dữ liệu hóa đơn, hoặc nội dung hội thoại cần xử lý..."></textarea>
+                            <textarea class="form-control" id="playUser" rows="6" placeholder="Nhập câu hỏi, dữ liệu hóa đơn, hoặc nội dung hội thoại cần xử lý…"></textarea>
                         </div>
                     </div>
 
@@ -349,7 +349,7 @@
                         </div>
                         <div class="col-sm-6 text-sm-end">
                             <button class="btn btn-gradient px-4" id="btnRunPlayground">
-                                <i class="bi bi-lightning-fill me-1"></i> Thực Thi Nén
+                                <i class="bi bi-lightning-fill me-1" aria-hidden="true"></i> Thực Thi Nén
                             </button>
                         </div>
                     </div>
@@ -358,7 +358,7 @@
                 <!-- Live Results Pane -->
                 <div class="mt-4 d-none" id="playgroundResultsPane">
                     <h4 class="h6 fw-bold mb-3 d-flex align-items-center gap-2 text-success">
-                        <i class="bi bi-check-circle-fill"></i>
+                        <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
                         Kết Quả Tối Ưu Hóa Ngữ Cảnh
                     </h4>
 
@@ -402,11 +402,11 @@
             <div class="glass-card p-4">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h3 class="h5 fw-bold mb-0 d-flex align-items-center gap-2">
-                        <i class="bi bi-journal-text text-success"></i>
+                        <i class="bi bi-journal-text text-success" aria-hidden="true"></i>
                         Nhật Ký Tối Ưu Hóa Thực Tế (15 Bản ghi gần nhất)
                     </h3>
                     <button class="btn btn-sm btn-outline-success" id="btnRefreshStats">
-                        <i class="bi bi-arrow-repeat me-1"></i> Làm mới logs
+                        <i class="bi bi-arrow-repeat me-1" aria-hidden="true"></i> Làm mới logs
                     </button>
                 </div>
                 <hr class="my-3">
@@ -605,7 +605,7 @@
             .then(res => res.json())
             .then(data => {
                 btnRunPlayground.disabled = false;
-                btnRunPlayground.innerHTML = `<i class="bi bi-lightning-fill me-1"></i> Thực Thế Nén`;
+                btnRunPlayground.innerHTML = `<i class="bi bi-lightning-fill me-1" aria-hidden="true"></i> Thực Thế Nén`;
 
                 if (data.status === "success") {
                     resultsPane.classList.remove("d-none");
@@ -643,7 +643,7 @@
             })
             .catch(err => {
                 btnRunPlayground.disabled = false;
-                btnRunPlayground.innerHTML = `<i class="bi bi-lightning-fill me-1"></i> Thực Thế Nén`;
+                btnRunPlayground.innerHTML = `<i class="bi bi-lightning-fill me-1" aria-hidden="true"></i> Thực Thế Nén`;
                 console.error(err);
                 showToast("danger", "Lỗi kết nối máy chủ khi nén.");
             });
@@ -696,7 +696,7 @@
             if (alertRegion) {
                 const alertHtml = `
                     <div class="alert alert-${type === 'danger' ? 'danger' : type === 'info' ? 'info' : 'success'} alert-dismissible fade show border-0 shadow-sm" role="alert" style="border-radius: 12px;">
-                        <i class="bi ${type === 'danger' ? 'bi-exclamation-triangle-fill' : type === 'info' ? 'bi-info-circle-fill' : 'bi-check-circle-fill'} me-2"></i>
+                        <i class="bi ${type === 'danger' ? 'bi-exclamation-triangle-fill' : type === 'info' ? 'bi-info-circle-fill' : 'bi-check-circle-fill'} me-2" aria-hidden="true"></i>
                         ${message}
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>

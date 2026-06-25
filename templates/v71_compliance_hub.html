@@ -302,7 +302,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td class="fw-bold text-dark">${fVND(l.final_fee)}</td>
                 <td>${statusBadge}</td>
                 <td class="text-muted">${l.created_at}</td>
-                <td class="text-center"><button class="btn btn-sm btn-outline-danger px-2 py-0" onclick="deleteLog(${l.id})" title="Delete this entry"><i class="bi bi-trash"></i></button></td>
+                <td class="text-center"><button class="btn btn-sm btn-outline-danger px-2 py-0" onclick="deleteLog(${l.id})" title="Delete this entry"><i class="bi bi-trash" aria-hidden="true"></i></button></td>
             `;
             tb.appendChild(tr);
         });

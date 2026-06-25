@@ -143,7 +143,7 @@
                         <div id="gauge-bar" class="progress-bar bg-success progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                     </div>
                     <span class="small text-muted d-block text-center mt-1" style="font-size: 10px;">
-                        <i class="bi bi-info-circle"></i> Small generators (&lt; 600 kg/year) are exempt from the base 5,000,000 VND permit licensing fee under Decree 08/2022/NĐ-CP.
+                        <i class="bi bi-info-circle" aria-hidden="true"></i> Small generators (&lt; 600 kg/year) are exempt from the base 5,000,000 VND permit licensing fee under Decree 08/2022/NĐ-CP.
                     </span>
                 </div>
             {% endcall %}
@@ -306,7 +306,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td class="text-muted">${l.created_at}</td>
                 <td class="text-center">
                     <button class="btn btn-sm btn-outline-danger btn-delete-log" data-id="${l.id}">
-                        <i class="bi bi-trash"></i>
+                        <i class="bi bi-trash" aria-hidden="true"></i>
                     </button>
                 </td>
             `;

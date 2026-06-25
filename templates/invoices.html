@@ -3375,13 +3375,13 @@
             
             const resp = await fetch("/api/providers/stats");
             if (!resp.ok) {
-                grid.innerHTML = '<div class="col-12 text-center text-secondary py-3"><i class="bi bi-exclamation-triangle me-2"></i>Không thể tải dữ liệu nhà cung cấp.</div>';
+                grid.innerHTML = '<div class="col-12 text-center text-secondary py-3"><i class="bi bi-exclamation-triangle me-2" aria-hidden="true"></i>Không thể tải dữ liệu nhà cung cấp.</div>';
                 return;
             }
             
             const data = await resp.json();
             if (!data.stats || data.stats.length === 0) {
-                grid.innerHTML = '<div class="col-12 text-center text-secondary py-3"><i class="bi bi-folder2-open me-2"></i>Chưa có dữ liệu hóa đơn.</div>';
+                grid.innerHTML = '<div class="col-12 text-center text-secondary py-3"><i class="bi bi-folder2-open me-2" aria-hidden="true"></i>Chưa có dữ liệu hóa đơn.</div>';
                 return;
             }
             
@@ -3421,7 +3421,7 @@
             html += `
             <div class="col-12 mt-2">
                 <div class="text-secondary small text-end">
-                    <i class="bi bi-info-circle me-1"></i>
+                    <i class="bi bi-info-circle me-1" aria-hidden="true"></i>
                     Tổng: <strong>${data.total_invoices}</strong> hóa đơn từ <strong>${data.total_providers}</strong> nhà cung cấp
                 </div>
             </div>`;
@@ -3429,7 +3429,7 @@
             grid.innerHTML = html;
         } catch (err) {
             console.error("Provider stats error:", err);
-            grid.innerHTML = '<div class="col-12 text-center text-danger py-3"><i class="bi bi-exclamation-circle me-2"></i>Lỗi tải dữ liệu.</div>';
+            grid.innerHTML = '<div class="col-12 text-center text-danger py-3"><i class="bi bi-exclamation-circle me-2" aria-hidden="true"></i>Lỗi tải dữ liệu.</div>';
         }
     }
     

@@ -211,7 +211,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td><span class="badge bg-secondary">${l.ecosystem_type.toUpperCase()}</span></td>
                 <td>${l.impact_area_ha.toFixed(2)} ha</td>
                 <td>${l.impact_rating.toUpperCase()}</td>
-                <td>${l.has_offset_plan ? '<span class="text-success"><i class="bi bi-check-circle-fill"></i> Yes</span>' : '<span class="text-muted">No</span>'}</td>
+                <td>${l.has_offset_plan ? '<span class="text-success"><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Yes</span>' : '<span class="text-muted">No</span>'}</td>
                 <td><span class="badge bg-premium-light text-dark">${l.exemption_category.toUpperCase()}</span></td>
                 <td class="fw-bold text-dark">${fVND(l.effective_fee_vnd)}</td>
                 <td>${statusBadge}</td>

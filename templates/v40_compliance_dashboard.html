@@ -792,7 +792,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (report.status === "VALID") {
             recHtml = `
                 <div class="p-3 bg-success-subtle text-success-emphasis rounded-3 border border-success border-opacity-25 mb-2">
-                    <p class="mb-1 fw-bold"><i class="bi bi-shield-fill-check me-1"></i> Khuyến nghị từ AI Agent (Luật Kế toán & Nghị định 123):</p>
+                    <p class="mb-1 fw-bold"><i class="bi bi-shield-fill-check me-1" aria-hidden="true"></i> Khuyến nghị từ AI Agent (Luật Kế toán & Nghị định 123):</p>
                     <p class="mb-0">Hóa đơn điện tử này đã được ký số hợp lệ bằng chứng thư số tin cậy. 
                     Doanh nghiệp được phép kê khai thuế GTGT đầu vào và hạch toán chi phí hợp lý. 
                     Hãy thực hiện lưu trữ tệp XML gốc tối thiểu 10 năm tại hệ thống kế toán nội bộ hoặc lưu trữ đám mây an toàn.</p>
@@ -801,10 +801,10 @@ document.addEventListener("DOMContentLoaded", function () {
         } else if (report.status === "EXPIRED") {
             recHtml = `
                 <div class="p-3 bg-warning-subtle text-warning-emphasis rounded-3 border border-warning border-opacity-25 mb-2">
-                    <p class="mb-1 fw-bold"><i class="bi bi-exclamation-triangle-fill me-1"></i> Hướng dẫn pháp lý & Hành động xử lý:</p>
+                    <p class="mb-1 fw-bold"><i class="bi bi-exclamation-triangle-fill me-1" aria-hidden="true"></i> Hướng dẫn pháp lý & Hành động xử lý:</p>
                     <p class="mb-2">Chứng thư số ký hóa đơn đã hết hạn hiệu lực tại thời điểm ký hoặc kiểm tra. 
                     Theo Nghị định 123/2020/NĐ-CP, hóa đơn điện tử không có chữ ký số hợp lệ sẽ không được khấu trừ thuế đầu vào.</p>
-                    <p class="mb-0 fw-bold"><i class="bi bi-arrow-right-short"></i> Các bước xử lý đề xuất:</p>
+                    <p class="mb-0 fw-bold"><i class="bi bi-arrow-right-short" aria-hidden="true"></i> Các bước xử lý đề xuất:</p>
                     <ul class="mb-0 ps-3">
                         <li><strong>Bước 1:</strong> Liên hệ ngay với bên bán để yêu cầu lập hóa đơn thay thế mới sử dụng chữ ký số đang còn hạn.</li>
                         <li><strong>Bước 2:</strong> Nếu thời điểm ký thực tế (trong chứng thư) vẫn hợp lệ nhưng thời điểm kiểm tra hết hạn, hãy xuất trình nhật ký ký số (Time-stamping) để giải trình với Cơ quan Thuế.</li>
@@ -814,9 +814,9 @@ document.addEventListener("DOMContentLoaded", function () {
         } else {
             recHtml = `
                 <div class="p-3 bg-danger-subtle text-danger-emphasis rounded-3 border border-danger border-opacity-25 mb-2">
-                    <p class="mb-1 fw-bold"><i class="bi bi-x-octagon-fill me-1"></i> Cảnh báo Pháp lý & Hành động khẩn cấp:</p>
+                    <p class="mb-1 fw-bold"><i class="bi bi-x-octagon-fill me-1" aria-hidden="true"></i> Cảnh báo Pháp lý & Hành động khẩn cấp:</p>
                     <p class="mb-2">Chữ ký số không hợp lệ, không có cấu trúc chữ ký ký số, hoặc sử dụng chứng thư tự ký (Self-signed) không được Bộ Thông tin và Truyền thông / Tổng cục Thuế công nhận.</p>
-                    <p class="mb-0 fw-bold"><i class="bi bi-arrow-right-short"></i> Các bước xử lý đề xuất:</p>
+                    <p class="mb-0 fw-bold"><i class="bi bi-arrow-right-short" aria-hidden="true"></i> Các bước xử lý đề xuất:</p>
                     <ul class="mb-0 ps-3">
                         <li><strong>Bước 1:</strong> Không sử dụng hóa đơn này để kê khai thuế GTGT hoặc hạch toán chi phí được trừ khi tính thuế TNDN.</li>
                         <li><strong>Bước 2:</strong> Gửi thông báo sai sót hóa đơn điện tử cho bên bán, yêu cầu họ làm thủ tục hủy hóa đơn lỗi này và phát hành lại hóa đơn điện tử hợp lệ mới.</li>

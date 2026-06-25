@@ -632,7 +632,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!region) return;
         region.innerHTML = `
             <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center gap-2" role="alert">
-                <i class="bi bi-exclamation-triangle-fill"></i>
+                <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
                 <span>${msg}</span>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>`;
@@ -916,10 +916,10 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("vn-rev-gap").textContent = formatVND(vn.revenue_gap_ifrs15_vs_gdt);
         const gapAlert = document.getElementById("vn-rev-gap-alert");
         if (Math.abs(vn.revenue_gap_ifrs15_vs_gdt) > 10000000) {
-            gapAlert.innerHTML = `<i class="bi bi-exclamation-octagon-fill text-danger me-2"></i><strong>VAT Exposure:</strong> The revenue timing gap exceeds the VND 10M warning threshold. Under Decree 123, revenue recognized under IFRS 15 that is not physically invoiced creates legal exposure for VAT penalties. Accompanying physical GDT invoices must be checked immediately.`;
+            gapAlert.innerHTML = `<i class="bi bi-exclamation-octagon-fill text-danger me-2" aria-hidden="true"></i><strong>VAT Exposure:</strong> The revenue timing gap exceeds the VND 10M warning threshold. Under Decree 123, revenue recognized under IFRS 15 that is not physically invoiced creates legal exposure for VAT penalties. Accompanying physical GDT invoices must be checked immediately.`;
             gapAlert.className = "alert alert-danger small mt-3 mb-0 py-2";
         } else {
-            gapAlert.innerHTML = `<i class="bi bi-check-circle-fill text-success me-2"></i><strong>Verified compliant:</strong> IFRS 15 recognized revenue matches General Department of Taxation (GDT) invoiced revenues within normal rounding tolerances.`;
+            gapAlert.innerHTML = `<i class="bi bi-check-circle-fill text-success me-2" aria-hidden="true"></i><strong>Verified compliant:</strong> IFRS 15 recognized revenue matches General Department of Taxation (GDT) invoiced revenues within normal rounding tolerances.`;
             gapAlert.className = "alert alert-success small mt-3 mb-0 py-2";
         }
 

@@ -49,7 +49,7 @@
                 
                 {# Warning alert for cumulative limits #}
                 <div id="calc-warning-box" class="alert alert-warning border-warning-subtle mt-3 d-none" role="alert">
-                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <i class="bi bi-exclamation-triangle-fill me-2" aria-hidden="true"></i>
                     <span id="calc-warning-text"></span>
                 </div>
 
@@ -140,7 +140,7 @@
                             <div id="gauge-bar" class="progress-bar bg-success progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                         </div>
                         <span class="small text-muted d-block text-center mt-1" style="font-size: 10px;">
-                            <i class="bi bi-info-circle"></i> Low-volume waiver applies to cumulative annual imports under 50 kg.
+                            <i class="bi bi-info-circle" aria-hidden="true"></i> Low-volume waiver applies to cumulative annual imports under 50 kg.
                         </span>
                     </div>
                 </div>
@@ -155,28 +155,28 @@
                     <div class="col-md-4 border-end border-light-subtle">
                         <div class="nav flex-column nav-pills me-3" id="v-pills-tab" role="tablist" aria-orientation="vertical">
                             <button class="nav-link active text-start d-flex align-items-center gap-2 py-3" id="tab-reg-registration" data-bs-toggle="pill" data-bs-target="#panel-registration" type="button" role="tab">
-                                <i class="bi bi-pencil-square text-success"></i>
+                                <i class="bi bi-pencil-square text-success" aria-hidden="true"></i>
                                 <div>
                                     <strong class="d-block">1. Quota Registration</strong>
                                     <span class="small text-muted">Annual filing before Dec 31</span>
                                 </div>
                             </button>
                             <button class="nav-link text-start d-flex align-items-center gap-2 py-3" id="tab-reg-customs" data-bs-toggle="pill" data-bs-target="#panel-customs" type="button" role="tab">
-                                <i class="bi bi-file-earmark-text text-success"></i>
+                                <i class="bi bi-file-earmark-text text-success" aria-hidden="true"></i>
                                 <div>
                                     <strong class="d-block">2. Customs Clearance</strong>
                                     <span class="small text-muted">HS Code matching & licensing</span>
                                 </div>
                             </button>
                             <button class="nav-link text-start d-flex align-items-center gap-2 py-3" id="tab-reg-reporting" data-bs-toggle="pill" data-bs-target="#panel-reporting" type="button" role="tab">
-                                <i class="bi bi-calendar-check text-success"></i>
+                                <i class="bi bi-calendar-check text-success" aria-hidden="true"></i>
                                 <div>
                                     <strong class="d-block">3. Annual Reporting</strong>
                                     <span class="small text-muted">Deadline: January 15</span>
                                 </div>
                             </button>
                             <button class="nav-link text-start d-flex align-items-center gap-2 py-3" id="tab-reg-penalties" data-bs-toggle="pill" data-bs-target="#panel-penalties" type="button" role="tab">
-                                <i class="bi bi-exclamation-triangle text-danger"></i>
+                                <i class="bi bi-exclamation-triangle text-danger" aria-hidden="true"></i>
                                 <div>
                                     <strong class="d-block text-danger">4. Violations & Penalties</strong>
                                     <span class="small text-muted">Decree 155/2016/NĐ-CP</span>
@@ -188,7 +188,7 @@
                         <div class="tab-content p-3 bg-premium-light rounded border border-light-subtle" id="v-pills-tabContent" style="min-height: 260px;">
                             <!-- Panel 1: Registration -->
                             <div class="tab-pane fade show active" id="panel-registration" role="tabpanel">
-                                <h5 class="text-success fw-bold"><i class="bi bi-pencil-square"></i> Step 1: ODS Quota & Use Registration</h5>
+                                <h5 class="text-success fw-bold"><i class="bi bi-pencil-square" aria-hidden="true"></i> Step 1: ODS Quota & Use Registration</h5>
                                 <hr>
                                 <p>Under <strong>Article 24 of Decree 06/2022/NĐ-CP</strong>, all organizations importing, exporting, or manufacturing controlled substances (ODS) must register their annual demand with the <strong>Ministry of Natural Resources and Environment (MONRE)</strong>.</p>
                                 <ul class="lh-lg small">
@@ -205,7 +205,7 @@
                             </div>
                             <!-- Panel 2: Customs -->
                             <div class="tab-pane fade" id="panel-customs" role="tabpanel">
-                                <h5 class="text-success fw-bold"><i class="bi bi-file-earmark-text"></i> Step 2: Customs Reconciliation & HS Codes</h5>
+                                <h5 class="text-success fw-bold"><i class="bi bi-file-earmark-text" aria-hidden="true"></i> Step 2: Customs Reconciliation & HS Codes</h5>
                                 <hr>
                                 <p>Once the quota is allocated, every shipment must undergo strict HS Code verification during customs declaration to ensure total volume remains within the licensed ceiling.</p>
                                 <table class="table table-sm table-bordered mt-3 small">
@@ -247,11 +247,11 @@
                             </div>
                             <!-- Panel 3: Reporting -->
                             <div class="tab-pane fade" id="panel-reporting" role="tabpanel">
-                                <h5 class="text-success fw-bold"><i class="bi bi-calendar-check"></i> Step 3: Annual ODS Consumption Report</h5>
+                                <h5 class="text-success fw-bold"><i class="bi bi-calendar-check" aria-hidden="true"></i> Step 3: Annual ODS Consumption Report</h5>
                                 <hr>
                                 <p>All licensed ODS importers and manufacturers are legally obligated to submit a comprehensive compliance and usage report detailing their actual consumption, recycling rate, and stockpile volumes.</p>
                                 <div class="alert alert-warning border-warning-subtle py-2 small">
-                                    <i class="bi bi-clock-history"></i> <strong>Hard Deadline: January 15</strong> of the following year. Late filings automatically suspend import licenses for the subsequent cycle.
+                                    <i class="bi bi-clock-history" aria-hidden="true"></i> <strong>Hard Deadline: January 15</strong> of the following year. Late filings automatically suspend import licenses for the subsequent cycle.
                                 </div>
                                 <ul class="lh-lg mt-3 small">
                                     <li>Reports must match exactly with the purchase invoices and customs XML logs parsed in GDT Invoice Hub.</li>
@@ -261,18 +261,18 @@
                             </div>
                             <!-- Panel 4: Penalties -->
                             <div class="tab-pane fade" id="panel-penalties" role="tabpanel">
-                                <h5 class="text-danger fw-bold"><i class="bi bi-exclamation-triangle"></i> Administrative Violations & Penalties</h5>
+                                <h5 class="text-danger fw-bold"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i> Administrative Violations & Penalties</h5>
                                 <hr>
                                 <p>Non-compliance with ODS regulations triggers heavy administrative penalties and immediate quota suspensions under <strong>Decree 155/2016/NĐ-CP</strong> and Decree 45/2022/NĐ-CP.</p>
                                 <div class="card border-danger-subtle bg-danger-subtle bg-opacity-10 mb-3">
                                     <div class="card-body py-2 px-3">
-                                        <h6 class="fw-bold text-danger mb-1"><i class="bi bi-x-circle-fill"></i> Quota Overruns & Unlicensed Imports</h6>
+                                        <h6 class="fw-bold text-danger mb-1"><i class="bi bi-x-circle-fill" aria-hidden="true"></i> Quota Overruns & Unlicensed Imports</h6>
                                         <p class="small mb-0 text-muted">Importing controlled substances without a license or exceeding the annual quota ceiling is fined between <strong>100,000,000 VND and 250,000,000 VND</strong>, alongside mandatory re-export or destruction of the illegal shipment.</p>
                                     </div>
                                 </div>
                                 <div class="card border-warning-subtle bg-warning-subtle bg-opacity-10">
                                     <div class="card-body py-2 px-3">
-                                        <h6 class="fw-bold text-warning-emphasis mb-1"><i class="bi bi-exclamation-circle-fill"></i> Reporting Failures & Stockpile Mismatches</h6>
+                                        <h6 class="fw-bold text-warning-emphasis mb-1"><i class="bi bi-exclamation-circle-fill" aria-hidden="true"></i> Reporting Failures & Stockpile Mismatches</h6>
                                         <p class="small mb-0 text-muted">Failing to report annual usage or providing inaccurate inventory records triggers fines between <strong>30,000,000 VND and 50,000,000 VND</strong>, with automatic demotion of taxpayer compliance tier in GDT risk index.</p>
                                     </div>
                                 </div>
@@ -353,7 +353,7 @@
             <div class="d-flex justify-content-between align-items-center mb-2 px-1">
                 <div></div>
                 <a href="/api/v70/export-pdf" class="btn btn-sm btn-outline-success px-3 shadow-sm rounded-pill" style="transition: all 0.2s ease;">
-                    <i class="bi bi-file-pdf me-2"></i>Export PDF Compliance Report
+                    <i class="bi bi-file-pdf me-2" aria-hidden="true"></i>Export PDF Compliance Report
                 </a>
             </div>
             {% call data_table('ODS Compliance History Log', 'bi bi-clock-history', 'history-table-v70', 'No logs available.', 12) %}
@@ -618,7 +618,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td class="fw-bold text-dark">${fVND(l.effective_fee_vnd)}</td>
                 <td>${statusBadge}</td>
                 <td class="text-muted">${l.created_at}</td>
-                <td class="text-center"><button class="btn btn-sm btn-outline-danger px-2 py-0" onclick="deleteLog(${l.id})" title="Delete this entry"><i class="bi bi-trash"></i></button></td>
+                <td class="text-center"><button class="btn btn-sm btn-outline-danger px-2 py-0" onclick="deleteLog(${l.id})" title="Delete this entry"><i class="bi bi-trash" aria-hidden="true"></i></button></td>
             `;
             tb.appendChild(tr);
         });
