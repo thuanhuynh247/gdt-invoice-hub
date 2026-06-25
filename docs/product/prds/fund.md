@@ -1,7 +1,7 @@
 ---
 id: PRD-FUND
 type: prd
-brd_goals: ["BRD-G1", "BRD-G2", "BRD-G3"]
+brd_goals: ["BRD-G1", "BRD-G2", "BRD-G3", "BRD-G4"]
 status: approved
 lang: vi
 owner: TBD
@@ -12,7 +12,7 @@ personas: ["roommate", "fund-keeper"]
 scope: core-value
 moscow: must
 horizon: now
-metrics: ["groups-with-fund", "group-retention-d30", "fund-tx-per-active-group"]
+metrics: ["groups-with-fund", "group-retention-d30", "fund-tx-per-active-group", "members-per-group"]
 risks: [{"description": "Số dư quỹ sai lệch so với thực tế sẽ làm sụp đổ niềm tin vào tính minh bạch", "impact": "high", "likelihood": "med", "status": "open", "mitigation": "Số dư luôn dẫn xuất = tổng nộp − tổng chi; mọi sửa/xóa giao dịch đều lưu vết; không cho chỉnh số dư trực tiếp"}, {"description": "Quỹ chỉ hữu ích khi cả nhóm cùng theo dõi; nếu chỉ fund-keeper ghi thì thành viên vẫn phải tin", "impact": "med", "likelihood": "med", "status": "open", "mitigation": "Cho mọi thành viên xem realtime số dư + lịch sử; đợt sau cho thành viên tự ghi khoản nộp của mình"}]
 competitive_parity: {"COMP-SPLITWISE": "ahead", "COMP-MONEYLOVER": "none", "COMP-MANUAL": "ahead"}
 scope_intent: mvp

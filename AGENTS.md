@@ -1,3 +1,7 @@
+---
+trigger: always_on
+glob: "*"
+---
 # Agent Instructions
 
 This repository contains multi-agent orchestration guidelines and system tooling rules. Follow these instructions exactly.

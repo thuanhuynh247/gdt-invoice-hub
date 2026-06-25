@@ -2,7 +2,7 @@
 id: PRD-FUND-E3-S1
 type: story
 epic: PRD-FUND-E3
-status: completed
+status: approved
 lang: vi
 owner: TBD
 version: 0.1.0
