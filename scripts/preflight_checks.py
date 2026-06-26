@@ -118,22 +118,34 @@ def main() -> int:
         print(f"  {YELLOW}⚠️  WARN{RESET}  No SQLite database files found in '{db_dir}'. Will be scaffolded on launch.")
         warnings += 1
     else:
-        for db_path in sorted(dbs_to_check):
+        from concurrent.futures import ThreadPoolExecutor
+        
+        def check_db(db_path):
             db_name = os.path.basename(db_path)
             try:
                 conn = sqlite3.connect(db_path)
                 cur = conn.cursor()
                 cur.execute("PRAGMA integrity_check")
                 integrity = cur.fetchone()[0]
-                if integrity == "ok":
-                    print(f"  {GREEN}✅ PASS{RESET}  {db_name} integrity verified (OK).")
-                    passed += 1
-                else:
-                    print(f"  {RED}❌ FAIL{RESET}  {db_name} integrity compromised: {integrity}")
-                    failures += 1
                 conn.close()
+                return db_name, integrity, None
             except Exception as e:
-                print(f"  {RED}❌ FAIL{RESET}  Error connecting to {db_name}: {e}")
+                return db_name, None, e
+
+        with ThreadPoolExecutor(max_workers=8) as executor:
+            results = list(executor.map(check_db, sorted(dbs_to_check)))
+
+        for db_name, integrity, err in results:
+            if err:
+                print(f"  {RED}❌ FAIL{RESET}  Error connecting to {db_name}: {err}")
+                failures += 1
+            elif integrity == "ok":
+                # Print only main databases or first few to keep console clean, but count all as passed
+                if len(dbs_to_check) <= 10 or db_name in ["invoices.db", "harness.db"]:
+                    print(f"  {GREEN}✅ PASS{RESET}  {db_name} integrity verified (OK).")
+                passed += 1
+            else:
+                print(f"  {RED}❌ FAIL{RESET}  {db_name} integrity compromised: {integrity}")
                 failures += 1
             
     harness_db_path = "harness.db"
