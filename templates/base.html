@@ -96,12 +96,13 @@
 
                     <!-- Dashboards Dropdown (v37-v39) -->
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle {% if request.path in ['/dashboard','/v37-ceo-dashboard','/v38-delivery-reconciliation','/v39-deferred-tax-and-risk'] %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <a class="nav-link dropdown-toggle {% if request.path in ['/dashboard','/v37-ceo-dashboard','/v38-delivery-reconciliation','/v39-deferred-tax-and-risk','/tax-health-score'] %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-speedometer2" aria-hidden="true"></i> Phân tích
                         </a>
                         <ul class="dropdown-menu dropdown-menu-premium">
                             <li><h6 class="dropdown-header"><i class="bi bi-bar-chart-line-fill me-1" aria-hidden="true"></i> Bảng điều khiển</h6></li>
                             <li><a class="dropdown-item {% if request.path == '/dashboard' %}active{% endif %}" href="{{ url_for('invoices.dashboard_page') }}"><i class="bi bi-grid-1x2-fill text-success me-2" aria-hidden="true"></i>Tổng quan QL</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/tax-health-score' %}active{% endif %}" href="/tax-health-score"><i class="bi bi-heart-pulse text-danger me-2" aria-hidden="true"></i>Sức khỏe Thuế v78</a></li>
                             <li><a class="dropdown-item {% if request.path == '/v37-ceo-dashboard' %}active{% endif %}" href="{{ url_for('invoices.v37_ceo_dashboard_page') }}"><i class="bi bi-speedometer2 text-info me-2" aria-hidden="true"></i>CEO Dashboard v37</a></li>
                             <li><a class="dropdown-item {% if request.path == '/v38-delivery-reconciliation' %}active{% endif %}" href="{{ url_for('invoices.v38_delivery_reconciliation_page') }}"><i class="bi bi-shuffle text-warning me-2" aria-hidden="true"></i>Đối soát kho v38</a></li>
                             <li><a class="dropdown-item {% if request.path == '/v39-deferred-tax-and-risk' %}active{% endif %}" href="{{ url_for('invoices.v39_deferred_tax_and_risk') }}"><i class="bi bi-bank text-info me-2" aria-hidden="true"></i>Hoãn thuế & Rủi ro v39</a></li>

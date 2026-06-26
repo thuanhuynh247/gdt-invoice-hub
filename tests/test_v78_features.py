@@ -295,3 +295,234 @@ def test_vba_gateway_sync_invoices(mock_app):
         warnings = json.loads(inv.warnings_json)
         assert isinstance(warnings, list)
 
+
+# --- AXIS 5 & 3: TAX HEALTH SCORE & RECONCILIATION TESTS ---
+
+def test_tax_health_score_calculation(mock_app):
+    """Test tax health score service, Benford's Law penalty, cash payment risk, and bank reconciliation."""
+    from invoices.models import TaxpayerProfile, Invoice, BankTransaction, Partner
+    from invoices.tax_health_service import calculate_tax_health
+
+    with mock_app.app_context():
+        # 1. Create taxpayer profile
+        tp = TaxpayerProfile(
+            mst="0102030499",
+            company_name="Cong ty Kiem Thu",
+            gdt_username="testuser",
+            gdt_password_encrypted="pass",
+            is_active=True,
+            created_at="2026-01-01T00:00:00"
+        )
+        db.session.add(tp)
+        
+        # 2. Seed some partners (one normal, one risky)
+        partner_normal = Partner(
+            mst="1234567890",
+            name="Nha cung cap Binh Thuong",
+            address="Hanoi, Vietnam",
+            mst_status="Đang hoạt động"
+        )
+        partner_risky = Partner(
+            mst="9999999999",
+            name="Nha cung cap Rủi ro Cao",
+            address="Haiphong, Vietnam",
+            mst_status="Ngừng hoạt động"
+        )
+        db.session.add_all([partner_normal, partner_risky])
+
+        # 3. Seed some purchase and sales invoices
+        # Normal purchase
+        inv1 = Invoice(
+            id="inv-1",
+            taxpayer_mst="0102030499",
+            invoice_type="purchase",
+            seller_mst="1234567890",
+            seller_name="Nha cung cap Binh Thuong",
+            amount_before_tax=10000000.0,
+            tax_amount=1000000.0,
+            total_amount=11000000.0,
+            payment_method="Chuyển khoản",
+            date="2026-06-01",
+            signing_date="2026-06-01",
+            imported_at="2026-06-26T00:00:00"
+        )
+        # Sales invoice
+        inv2 = Invoice(
+            id="inv-2",
+            taxpayer_mst="0102030499",
+            invoice_type="sales",
+            buyer_mst="8888888888",
+            buyer_name="Khach Hang A",
+            amount_before_tax=30000000.0,
+            tax_amount=3000000.0,
+            total_amount=33000000.0,
+            payment_method="Chuyển khoản",
+            date="2026-06-02",
+            signing_date="2026-06-02",
+            imported_at="2026-06-26T00:00:00"
+        )
+        # Cash violation purchase invoice >= 20M (No bank matching or Cash method)
+        inv3 = Invoice(
+            id="inv-3",
+            taxpayer_mst="0102030499",
+            invoice_type="purchase",
+            seller_mst="1234567890",
+            seller_name="Nha cung cap Binh Thuong",
+            amount_before_tax=25000000.0,
+            tax_amount=2500000.0,
+            total_amount=27500000.0,
+            payment_method="Tiền mặt",  # VIOLATION!
+            date="2026-06-03",
+            signing_date="2026-06-03",
+            imported_at="2026-06-26T00:00:00"
+        )
+        # Late signature invoice (> 5 days)
+        inv4 = Invoice(
+            id="inv-4",
+            taxpayer_mst="0102030499",
+            invoice_type="purchase",
+            seller_mst="1234567890",
+            seller_name="Nha cung cap Binh Thuong",
+            amount_before_tax=5000000.0,
+            tax_amount=500000.0,
+            total_amount=5500000.0,
+            payment_method="Chuyển khoản",
+            date="2026-06-04",
+            signing_date="2026-06-20",  # 16 days late!
+            imported_at="2026-06-26T00:00:00"
+        )
+        db.session.add_all([inv1, inv2, inv3, inv4])
+
+        # 4. Seed bank transactions for reconciliation matrix
+        # Inflow matched
+        tx_in = BankTransaction(
+            id="tx-1",
+            taxpayer_mst="0102030499",
+            bank_name="Vietcombank",
+            transaction_date="2026-06-02",
+            description="Thanh toan hoa don inv-2",
+            amount=33000000.0,
+            status="matched",
+            matched_invoice_id="inv-2",
+            imported_at="2026-06-26T00:00:00"
+        )
+        # Outflow unmatched/unreconciled
+        tx_out = BankTransaction(
+            id="tx-2",
+            taxpayer_mst="0102030499",
+            bank_name="Vietcombank",
+            transaction_date="2026-06-10",
+            description="Rut tien mat chi tieu",
+            amount=-5000000.0,
+            status="unreconciled",
+            imported_at="2026-06-26T00:00:00"
+        )
+        db.session.add_all([tx_in, tx_out])
+        db.session.commit()
+
+        # 5. Execute calculation
+        res = calculate_tax_health("0102030499")
+        
+        # Check score, rating and metrics
+        assert res["taxpayer_mst"] == "0102030499"
+        assert "health_score" in res
+        assert "compliance_rating" in res
+        
+        # Check non-cash payment risk count
+        assert res["metrics"]["cash_payment_risk_count"] == 1
+        # Check late signature count
+        assert res["metrics"]["late_signature_count"] == 1
+        
+        # Check exposure projections
+        # CIT exposure: 25,000,000 * 20% = 5,000,000
+        # VAT exposure: 2,500,000
+        assert res["tax_exposure"]["cit_non_deductible_exposure"] == 5000000.0
+        assert res["tax_exposure"]["vat_non_deductible_exposure"] == 2500000.0
+        assert res["tax_exposure"]["total_exposure"] == 7500000.0
+
+        # Check bank reconciliation matrix
+        assert res["reconciliation"]["total_bank_inflows"] == 33000000.0
+        assert res["reconciliation"]["total_bank_outflows"] == 5000000.0
+        assert len(res["reconciliation"]["unreconciled_transactions"]) == 1
+
+
+def test_api_tax_health_score_endpoint(mock_app):
+    """Test the HTTP endpoints for Tax Health Score."""
+    client = mock_app.test_client()
+    
+    # 1. Page unauthorized
+    res = client.get("/tax-health-score")
+    assert res.status_code == 302  # Should redirect to login
+
+    # 2. Page authorized
+    with client.session_transaction() as sess:
+        sess["logged_in"] = True
+        sess["user_role"] = "admin"
+        sess["active_taxpayer_mst"] = "0102030499"
+
+    res = client.get("/tax-health-score")
+    assert res.status_code == 200
+    assert b"Suckhoe" in res.data or b"Wise" in res.data or b"Health" in res.data or b"S\xe1\xbb\xa9c kh\xe1\xbb\x8fe" in res.data or b"S\xe1\xbb\xa9c Kh\xe1\xbb\x8fe" in res.data
+
+    # 3. JSON API authorized (with mock database taxpayer)
+    from invoices.models import TaxpayerProfile
+    with mock_app.app_context():
+        tp = TaxpayerProfile(
+            mst="0102030499",
+            company_name="Cong ty Kiem Thu",
+            gdt_username="testuser",
+            gdt_password_encrypted="pass",
+            is_active=True,
+            created_at="2026-01-01T00:00:00"
+        )
+        db.session.add(tp)
+        db.session.commit()
+
+    res_api = client.get("/api/tax/health-score")
+    assert res_api.status_code == 200
+    data = json.loads(res_api.data)
+    assert data["taxpayer_mst"] == "0102030499"
+    assert "health_score" in data
+    assert "reconciliation" in data
+
+
+def test_supplier_risk_audit_check(mock_app):
+    """Test Axis 3: Supplier Risk Index triggers check alerts on high risk partner."""
+    from invoices.models import Partner, Invoice
+    from invoices.invoice_validator import validate_invoice
+
+    with mock_app.app_context():
+        # Register a blacklisted/closed partner in database
+        risky_partner = Partner(
+            mst="8888888888",
+            name="Doanh Nghiep Ma A",
+            address="Văn phòng ảo, Quận 1, TPHCM",
+            mst_status="Ngừng hoạt động"  # Trigger condition
+        )
+        db.session.add(risky_partner)
+        db.session.commit()
+
+        # Create invoice from this partner
+        inv = Invoice(
+            id="inv-risky",
+            taxpayer_mst="0102030499",
+            invoice_type="purchase",
+            seller_mst="8888888888",
+            seller_name="Doanh Nghiep Ma A",
+            amount_before_tax=10000000.0,
+            tax_amount=1000000.0,
+            total_amount=11000000.0,
+            payment_method="Chuyển khoản",
+            date="2026-06-05",
+            signing_date="2026-06-05",
+            imported_at="2026-06-26T00:00:00"
+        )
+        
+        # Run invoice validator engine
+        alerts = validate_invoice(inv)
+        
+        # We expect a critical supplier risk warning in the output
+        supplier_alerts = [a for a in alerts if a["check"] == "Rủi ro NCC"]
+        assert len(supplier_alerts) == 1
+        assert supplier_alerts[0]["severity"] == "Nghiêm trọng"
+        assert "NGỪNG HOẠT ĐỘNG" in supplier_alerts[0]["detail"]

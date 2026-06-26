@@ -1,0 +1,903 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Include Chart.js and FontAwesome for premium interactive experience -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+    :root {
+        --wise-bg: #0c0e17;
+        --wise-card-bg: rgba(22, 28, 45, 0.6);
+        --wise-border: rgba(255, 255, 255, 0.08);
+        --wise-text-primary: #f8fafc;
+        --wise-text-secondary: #94a3b8;
+        --wise-success: #10b981;
+        --wise-warning: #f59e0b;
+        --wise-danger: #ef4444;
+        --wise-primary: #3b82f6;
+        --wise-primary-gradient: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+        --wise-glow-green: 0 0 20px rgba(16, 185, 129, 0.2);
+        --wise-glow-red: 0 0 20px rgba(239, 68, 68, 0.2);
+    }
+
+    body {
+        background-color: var(--wise-bg);
+        color: var(--wise-text-primary);
+    }
+
+    .dashboard-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 30px 15px;
+    }
+
+    .glass-card {
+        background: var(--wise-card-bg);
+        border: 1px solid var(--wise-border);
+        border-radius: 16px;
+        backdrop-filter: blur(12px);
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .glass-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.45);
+    }
+
+    .score-circle-container {
+        position: relative;
+        width: 220px;
+        height: 220px;
+        margin: 0 auto;
+    }
+
+    .score-circle-bg {
+        fill: none;
+        stroke: rgba(255, 255, 255, 0.05);
+        stroke-width: 14;
+    }
+
+    .score-circle-progress {
+        fill: none;
+        stroke: var(--wise-success);
+        stroke-width: 14;
+        stroke-linecap: round;
+        transform: rotate(-90deg);
+        transform-origin: 50% 50%;
+        transition: stroke-dashoffset 1.5s ease-in-out, stroke 1.5s ease;
+    }
+
+    .score-text-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .score-value {
+        font-size: 3rem;
+        font-weight: 800;
+        color: var(--wise-text-primary);
+        line-height: 1;
+    }
+
+    .score-rating {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-top: 4px;
+        padding: 2px 10px;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.08);
+    }
+
+    .badge-rating {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 9999px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .badge-rating-a {
+        background-color: rgba(16, 185, 129, 0.15);
+        color: #34d399;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .badge-rating-b {
+        background-color: rgba(245, 158, 11, 0.15);
+        color: #fbbf24;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .badge-rating-d {
+        background-color: rgba(239, 68, 68, 0.15);
+        color: #f87171;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .metric-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 20px;
+        margin-bottom: 24px;
+    }
+
+    .metric-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--wise-border);
+        border-radius: 12px;
+        padding: 16px 20px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        transition: background 0.2s ease;
+    }
+
+    .metric-card:hover {
+        background: rgba(255, 255, 255, 0.04);
+    }
+
+    .metric-icon-box {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+    }
+
+    .metric-info {
+        flex: 1;
+    }
+
+    .metric-label {
+        font-size: 0.8rem;
+        color: var(--wise-text-secondary);
+        margin-bottom: 2px;
+    }
+
+    .metric-value {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--wise-text-primary);
+    }
+
+    .wise-tabs {
+        display: flex;
+        gap: 8px;
+        border-bottom: 1px solid var(--wise-border);
+        margin-bottom: 24px;
+        padding-bottom: 8px;
+    }
+
+    .wise-tab {
+        background: transparent;
+        border: none;
+        color: var(--wise-text-secondary);
+        padding: 10px 20px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+
+    .wise-tab:hover {
+        color: var(--wise-text-primary);
+        background: rgba(255, 255, 255, 0.04);
+    }
+
+    .wise-tab.active {
+        color: var(--wise-text-primary);
+        background: rgba(59, 130, 246, 0.15);
+        border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
+    .tab-pane {
+        display: none;
+        animation: fadeIn 0.4s ease;
+    }
+
+    .tab-pane.active {
+        display: block;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .table-wise {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+
+    .table-wise th {
+        background: rgba(255, 255, 255, 0.02);
+        color: var(--wise-text-secondary);
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        text-align: left;
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--wise-border);
+    }
+
+    .table-wise td {
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--wise-border);
+        color: var(--wise-text-primary);
+        font-size: 0.9rem;
+    }
+
+    .table-wise tr:hover td {
+        background: rgba(255, 255, 255, 0.01);
+    }
+
+    .progress-bar-wise {
+        height: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 9999px;
+        overflow: hidden;
+    }
+
+    .progress-bar-inner {
+        height: 100%;
+        border-radius: 9999px;
+        transition: width 1s ease;
+    }
+
+    .text-glow-green {
+        text-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+    }
+
+    .text-glow-red {
+        text-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+    }
+</style>
+
+<div class="dashboard-container">
+    <!-- Header with MST & taxpayer info -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1"><i class="fa-solid fa-heart-pulse text-danger me-2"></i>Chỉ Số Sức Khỏe Thuế Doanh Nghiệp</h1>
+            <p class="text-muted mb-0">Mã số thuế: <span id="taxpayer-mst" class="font-monospace fw-bold text-primary">--</span></p>
+        </div>
+        <button onclick="loadHealthScore()" class="btn btn-outline-light btn-sm">
+            <i class="fa-solid fa-rotate me-2"></i>Làm mới dữ liệu
+        </button>
+    </div>
+
+    <!-- Top Summary Card: Health Score Circle & Core Financials -->
+    <div class="row">
+        <!-- Circular Health Score -->
+        <div class="col-lg-4 col-md-12">
+            <div class="glass-card text-center d-flex flex-column justify-content-center align-items-center" style="min-height: 380px;">
+                <h5 class="card-title mb-4">Điểm Tuân Thủ Toàn Diện</h5>
+                
+                <div class="score-circle-container">
+                    <svg width="220" height="220" viewBox="0 0 220 220">
+                        <circle class="score-circle-bg" cx="110" cy="110" r="95"></circle>
+                        <circle id="score-progress" class="score-circle-progress" cx="110" cy="110" r="95" stroke-dasharray="596.9" stroke-dashoffset="596.9"></circle>
+                    </svg>
+                    <div class="score-text-container">
+                        <span id="score-text" class="score-value">0</span>
+                        <span id="score-rating-badge" class="score-rating">--</span>
+                    </div>
+                </div>
+                
+                <p id="compliance-desc" class="mt-4 text-muted px-3 small" style="min-height: 48px;">
+                    Đang tính toán chỉ số tuân thủ...
+                </p>
+            </div>
+        </div>
+
+        <!-- Financial Summary & Exposures -->
+        <div class="col-lg-8 col-md-12">
+            <div class="glass-card" style="min-height: 380px;">
+                <h5 class="card-title mb-4"><i class="fa-solid fa-chart-pie text-primary me-2"></i>Tóm Tắt Chỉ Số Sức Khỏe</h5>
+                
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between text-muted small mb-1">
+                                <span>Doanh số bán ra</span>
+                                <span id="sales-amount-txt" class="fw-bold text-white">0 VND</span>
+                            </div>
+                            <div class="progress-bar-wise">
+                                <div class="progress-bar-inner bg-primary" style="width: 100%"></div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between text-muted small mb-1">
+                                <span>Thuế GTGT đầu ra</span>
+                                <span id="sales-vat-txt" class="fw-bold text-white">0 VND</span>
+                            </div>
+                            <div class="progress-bar-wise">
+                                <div class="progress-bar-inner bg-info" style="width: 100%"></div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between text-muted small mb-1">
+                                <span>Chi phí mua vào</span>
+                                <span id="purchase-amount-txt" class="fw-bold text-white">0 VND</span>
+                            </div>
+                            <div class="progress-bar-wise">
+                                <div class="progress-bar-inner bg-success" style="width: 100%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="d-flex justify-content-between text-muted small mb-1">
+                                <span>Thuế GTGT đầu vào</span>
+                                <span id="purchase-vat-txt" class="fw-bold text-white">0 VND</span>
+                            </div>
+                            <div class="progress-bar-wise">
+                                <div class="progress-bar-inner bg-warning" style="width: 100%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 border-start border-secondary border-opacity-10 ps-md-4">
+                        <h6 class="text-muted small mb-3">Ước tính rủi ro thuế (Tax Exposure)</h6>
+                        
+                        <div class="p-3 rounded mb-3" style="background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.1);">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="small">
+                                    <div class="fw-bold text-white">Tổng rủi ro tiềm ẩn</div>
+                                    <div class="text-muted small">Thuế CIT truy thu & phạt VAT</div>
+                                </div>
+                                <span id="total-exposure-txt" class="h5 mb-0 text-danger fw-bold text-glow-red">0 VND</span>
+                            </div>
+                        </div>
+
+                        <div class="small text-muted mb-2">
+                            <i class="fa-solid fa-triangle-exclamation text-warning me-2"></i>
+                            Thuế TNDN bị loại trừ: <span id="cit-exposure-txt" class="text-white fw-bold">0 VND</span>
+                        </div>
+                        <div class="small text-muted mb-2">
+                            <i class="fa-solid fa-triangle-exclamation text-warning me-2"></i>
+                            Thuế GTGT không được khấu trừ: <span id="vat-exposure-txt" class="text-white fw-bold">0 VND</span>
+                        </div>
+                        <div class="small text-muted">
+                            <i class="fa-solid fa-calculator text-info me-2"></i>
+                            Thuế GTGT dự kiến phải nộp: <span id="vat-payable-txt" class="text-white fw-bold">0 VND</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs Navigation -->
+    <div class="wise-tabs">
+        <button class="wise-tab active" onclick="switchTab('tab-overview')">
+            <i class="fa-solid fa-shield-halved me-2"></i>Quy tắc tuân thủ
+        </button>
+        <button class="wise-tab" onclick="switchTab('tab-reconciliation')">
+            <i class="fa-solid fa-building-columns me-2"></i>Đối chiếu dòng tiền (Matrix)
+        </button>
+        <button class="wise-tab" onclick="switchTab('tab-benford')">
+            <i class="fa-solid fa-calculator me-2"></i>Phân tích Định luật Benford
+        </button>
+    </div>
+
+    <!-- Tab Contents -->
+    <!-- 1. Overview Tab -->
+    <div id="tab-overview" class="tab-pane active">
+        <div class="glass-card">
+            <h5 class="card-title mb-4">Danh mục Quy tắc Kiểm toán tuân thủ (v78)</h5>
+            
+            <div class="metric-grid">
+                <div class="metric-card">
+                    <div class="metric-icon-box bg-danger bg-opacity-15 text-danger">
+                        <i class="fa-solid fa-circle-xmark"></i>
+                    </div>
+                    <div class="metric-info">
+                        <div class="metric-label">Lỗi nghiêm trọng</div>
+                        <div id="cnt-critical" class="metric-value">0</div>
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon-box bg-warning bg-opacity-15 text-warning">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                    </div>
+                    <div class="metric-info">
+                        <div class="metric-label">Cảnh báo rủi ro</div>
+                        <div id="cnt-warning" class="metric-value">0</div>
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon-box bg-info bg-opacity-15 text-info">
+                        <i class="fa-solid fa-circle-nodes"></i>
+                    </div>
+                    <div class="metric-info">
+                        <div class="metric-label">Rủi ro đối tác/NCC</div>
+                        <div id="cnt-supplier-risk" class="metric-value">0</div>
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon-box bg-primary bg-opacity-15 text-primary">
+                        <i class="fa-solid fa-money-bill-wave"></i>
+                    </div>
+                    <div class="metric-info">
+                        <div class="metric-label">Rủi ro tiền mặt (≥20M)</div>
+                        <div id="cnt-cash-risk" class="metric-value">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table-wise">
+                    <thead>
+                        <tr>
+                            <th>Tên Quy tắc / Chỉ số</th>
+                            <th>Mức độ ảnh hưởng</th>
+                            <th>Trạng thái</th>
+                            <th>Giá trị ghi nhận</th>
+                            <th>Đánh giá nghiệp vụ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><i class="fa-solid fa-skull-crossbones text-danger me-2"></i>Hóa đơn lỗi nghiêm trọng</td>
+                            <td>Rất cao (-15đ/lỗi)</td>
+                            <td><span id="badge-critical" class="badge-rating badge-rating-a">Đạt</span></td>
+                            <td id="val-critical" class="font-monospace fw-bold">0</td>
+                            <td class="text-muted">Các hóa đơn có chữ ký số không hợp lệ, bị sửa đổi cấu trúc XML hoặc sai lệch mã số thuế nghiêm trọng.</td>
+                        </tr>
+                        <tr>
+                            <td><i class="fa-solid fa-circle-exclamation text-warning me-2"></i>Cảnh báo rủi ro hóa đơn</td>
+                            <td>Trung bình (-5đ/lỗi)</td>
+                            <td><span id="badge-warning" class="badge-rating badge-rating-a">Đạt</span></td>
+                            <td id="val-warning" class="font-monospace fw-bold">0</td>
+                            <td class="text-muted">Các cảnh báo về mặt cấu trúc hóa đơn, lệch chữ số thập phân nhỏ, hoặc các trường thông tin bổ sung bị thiếu.</td>
+                        </tr>
+                        <tr>
+                            <td><i class="fa-solid fa-building-circle-exclamation text-danger me-2"></i>Rủi ro từ nhà cung cấp (Supplier Risk)</td>
+                            <td>Rất cao (-10đ/lỗi)</td>
+                            <td><span id="badge-supplier" class="badge-rating badge-rating-a">Đạt</span></td>
+                            <td id="val-supplier" class="font-monospace fw-bold">0</td>
+                            <td class="text-muted">Các hóa đơn xuất bởi doanh nghiệp thuộc danh sách rủi ro cao, ngừng hoạt động hoặc bỏ trốn khỏi địa chỉ kinh doanh.</td>
+                        </tr>
+                        <tr>
+                            <td><i class="fa-solid fa-hand-holding-dollar text-warning me-2"></i>Thanh toán tiền mặt cho hóa đơn ≥ 20M</td>
+                            <td>Cao (-10đ/lỗi)</td>
+                            <td><span id="badge-cash" class="badge-rating badge-rating-a">Đạt</span></td>
+                            <td id="val-cash" class="font-monospace fw-bold">0</td>
+                            <td class="text-muted">Hóa đơn mua vào có giá trị thanh toán thực tế ≥ 20 triệu đồng nhưng ghi phương thức thanh toán là Tiền mặt (TM), vi phạm quy định khấu trừ thuế.</td>
+                        </tr>
+                        <tr>
+                            <td><i class="fa-solid fa-clock text-info me-2"></i>Ký số muộn (Late Signature)</td>
+                            <td>Thấp (-2đ/lỗi)</td>
+                            <td><span id="badge-signature" class="badge-rating badge-rating-a">Đạt</span></td>
+                            <td id="val-signature" class="font-monospace fw-bold">0</td>
+                            <td class="text-muted">Hóa đơn có ngày ký số muộn hơn ngày lập quá 5 ngày, tiềm ẩn rủi ro ghi nhận sai kỳ kế toán.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Cashflow & Bank Reconciliation Tab -->
+    <div id="tab-reconciliation" class="tab-pane">
+        <div class="row">
+            <div class="col-lg-6 col-md-12">
+                <div class="glass-card" style="min-height: 450px;">
+                    <h5 class="card-title mb-4"><i class="fa-solid fa-scale-balanced text-primary me-2"></i>Ma Trận Đối Chiếu Ngân Hàng - Hóa Đơn</h5>
+                    <div style="height: 320px; position: relative;">
+                        <canvas id="reconcileChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-6 col-md-12">
+                <div class="glass-card" style="min-height: 450px;">
+                    <h5 class="card-title mb-4"><i class="fa-solid fa-triangle-exclamation text-warning me-2"></i>Sai Lệch Dòng Tiền Phục Hồi</h5>
+                    
+                    <div class="row g-3 mb-4">
+                        <div class="col-6">
+                            <div class="p-3 rounded bg-white bg-opacity-5 border border-secondary border-opacity-10">
+                                <div class="small text-muted mb-1">Chênh lệch Bán ra - Tiền vào</div>
+                                <div id="inflow-gap-txt" class="h5 mb-0 fw-bold text-white">0 VND</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-3 rounded bg-white bg-opacity-5 border border-secondary border-opacity-10">
+                                <div class="small text-muted mb-1">Chênh lệch Mua vào - Tiền ra</div>
+                                <div id="outflow-gap-txt" class="h5 mb-0 fw-bold text-white">0 VND</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h6 class="text-muted small mb-3">Các giao dịch ngân hàng chưa đối chiếu (Chưa khớp hóa đơn)</h6>
+                    <div class="table-responsive" style="max-height: 220px; overflow-y: auto;">
+                        <table class="table-wise" style="font-size: 0.85rem;">
+                            <thead>
+                                <tr>
+                                    <th>Ngày</th>
+                                    <th>Ngân hàng</th>
+                                    <th>Mô tả chuyển khoản</th>
+                                    <th>Số tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody id="unreconciled-txs-body">
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted">Không phát hiện giao dịch chưa đối chiếu.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Benford Tab -->
+    <div id="tab-benford" class="tab-pane">
+        <div class="row">
+            <div class="col-lg-7 col-md-12">
+                <div class="glass-card" style="min-height: 480px;">
+                    <h5 class="card-title mb-4"><i class="fa-solid fa-chart-column text-primary me-2"></i>Tần suất Chữ số đầu tiên so với Định luật Benford</h5>
+                    <div style="height: 360px; position: relative;">
+                        <canvas id="benfordChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-5 col-md-12">
+                <div class="glass-card" style="min-height: 480px;">
+                    <h5 class="card-title mb-4"><i class="fa-solid fa-square-poll-vertical text-warning me-2"></i>Kết Quả Đánh Giá Chi-Square</h5>
+                    
+                    <div id="benford-status-box" class="p-3 rounded mb-4 text-center">
+                        <h4 id="benford-status" class="mb-2 fw-bold">--</h4>
+                        <p id="benford-message" class="mb-0 small text-muted">Đang phân tích định luật Benford...</p>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-2 pb-2 border-bottom border-secondary border-opacity-10 small text-muted">
+                        <span>Số lượng hóa đơn phân tích</span>
+                        <span id="benford-valid-count" class="fw-bold text-white">0</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2 pb-2 border-bottom border-secondary border-opacity-10 small text-muted">
+                        <span>Giá trị kiểm định Chi-Square</span>
+                        <span id="benford-chi-stat" class="fw-bold text-white">0.00</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2 pb-2 border-bottom border-secondary border-opacity-10 small text-muted">
+                        <span>Ngưỡng cảnh báo rủi ro (95%)</span>
+                        <span class="fw-bold text-white">15.51</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-4 small text-muted">
+                        <span>Ngưỡng bất thường nghiêm trọng (99%)</span>
+                        <span class="fw-bold text-white">20.09</span>
+                    </div>
+
+                    <div class="alert alert-info bg-dark bg-opacity-30 border-info border-opacity-20 text-info small mb-0">
+                        <i class="fa-solid fa-circle-info me-2"></i>
+                        <strong>Định luật Benford</strong> khẳng định chữ số đầu tiên của các số tiền hóa đơn phát sinh tự nhiên tuân theo một phân phối logarit cụ thể. Khi phân phối thực tế lệch quá lớn khỏi phân phối chuẩn (Chi-square > 15.51), điều này báo động khả năng các số liệu hóa đơn đã bị chế biến hoặc can thiệp thủ công.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let benfordChart = null;
+    let reconcileChart = null;
+
+    document.addEventListener("DOMContentLoaded", function() {
+        loadHealthScore();
+    });
+
+    function formatVND(value) {
+        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
+    }
+
+    function switchTab(tabId) {
+        document.querySelectorAll('.wise-tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        document.querySelectorAll('.tab-pane').forEach(pane => {
+            pane.classList.remove('active');
+        });
+        
+        event.currentTarget.classList.add('active');
+        document.getElementById(tabId).classList.add('active');
+
+        // Force chart updates on tab view to prevent rendering bugs
+        if (tabId === 'tab-benford' && benfordChart) {
+            benfordChart.resize();
+        }
+        if (tabId === 'tab-reconciliation' && reconcileChart) {
+            reconcileChart.resize();
+        }
+    }
+
+    function loadHealthScore() {
+        fetch("/api/tax/health-score")
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    alert("Lỗi khi tải điểm sức khỏe thuế: " + data.error);
+                    return;
+                }
+
+                // Fill MST
+                document.getElementById("taxpayer-mst").innerText = data.taxpayer_mst;
+
+                // Update Health Score Circle
+                const score = data.health_score;
+                document.getElementById("score-text").innerText = score;
+                
+                const circle = document.getElementById("score-progress");
+                const radius = 95;
+                const circumference = 2 * Math.PI * radius; // ~596.9
+                const offset = circumference - (score / 100) * circumference;
+                circle.style.strokeDasharray = `${circumference}`;
+                circle.style.strokeDashoffset = offset;
+
+                // Color stroke according to score
+                let color = "var(--wise-success)";
+                if (score < 70) color = "var(--wise-danger)";
+                else if (score < 90) color = "var(--wise-warning)";
+                circle.style.stroke = color;
+
+                // Set Rating badge
+                const ratingBadge = document.getElementById("score-rating-badge");
+                ratingBadge.innerText = data.compliance_rating;
+                ratingBadge.className = "score-rating";
+                if (data.compliance_rating.startsWith("A")) {
+                    ratingBadge.style.color = "#34d399";
+                    ratingBadge.style.borderColor = "rgba(16, 185, 129, 0.3)";
+                } else if (data.compliance_rating.startsWith("B") || data.compliance_rating.startsWith("C")) {
+                    ratingBadge.style.color = "#fbbf24";
+                    ratingBadge.style.borderColor = "rgba(245, 158, 11, 0.3)";
+                } else {
+                    ratingBadge.style.color = "#f87171";
+                    ratingBadge.style.borderColor = "rgba(239, 68, 68, 0.3)";
+                }
+
+                // Summary
+                document.getElementById("compliance-desc").innerText = data.compliance_description;
+
+                // Financial values
+                document.getElementById("sales-amount-txt").innerText = formatVND(data.financials.sales_amount);
+                document.getElementById("sales-vat-txt").innerText = formatVND(data.financials.sales_vat);
+                document.getElementById("purchase-amount-txt").innerText = formatVND(data.financials.purchase_amount);
+                document.getElementById("purchase-vat-txt").innerText = formatVND(data.financials.purchase_vat);
+
+                // Exposures
+                document.getElementById("total-exposure-txt").innerText = formatVND(data.tax_exposure.total_exposure);
+                document.getElementById("cit-exposure-txt").innerText = formatVND(data.tax_exposure.cit_non_deductible_exposure);
+                document.getElementById("vat-exposure-txt").innerText = formatVND(data.tax_exposure.vat_non_deductible_exposure);
+                document.getElementById("vat-payable-txt").innerText = formatVND(data.tax_exposure.vat_payable_projected);
+
+                // Counts
+                document.getElementById("cnt-critical").innerText = data.metrics.critical_alert_count;
+                document.getElementById("cnt-warning").innerText = data.metrics.warning_alert_count;
+                document.getElementById("cnt-supplier-risk").innerText = data.metrics.supplier_risk_count;
+                document.getElementById("cnt-cash-risk").innerText = data.metrics.cash_payment_risk_count;
+
+                // Rules checklist values
+                document.getElementById("val-critical").innerText = data.metrics.critical_alert_count;
+                document.getElementById("val-warning").innerText = data.metrics.warning_alert_count;
+                document.getElementById("val-supplier").innerText = data.metrics.supplier_risk_count;
+                document.getElementById("val-cash").innerText = data.metrics.cash_payment_risk_count;
+                document.getElementById("val-signature").innerText = data.metrics.late_signature_count;
+
+                // Badges updates
+                updateRuleBadge("badge-critical", data.metrics.critical_alert_count, true);
+                updateRuleBadge("badge-warning", data.metrics.warning_alert_count, false);
+                updateRuleBadge("badge-supplier", data.metrics.supplier_risk_count, true);
+                updateRuleBadge("badge-cash", data.metrics.cash_payment_risk_count, true);
+                updateRuleBadge("badge-signature", data.metrics.late_signature_count, false);
+
+                // Reconciliation values
+                document.getElementById("inflow-gap-txt").innerText = formatVND(data.reconciliation.inflow_gap);
+                document.getElementById("outflow-gap-txt").innerText = formatVND(data.reconciliation.outflow_gap);
+
+                // Render unreconciled transactions
+                const txsBody = document.getElementById("unreconciled-txs-body");
+                txsBody.innerHTML = "";
+                if (data.reconciliation.unreconciled_transactions.length === 0) {
+                    txsBody.innerHTML = `<tr><td colspan="4" class="text-center text-muted">Không phát hiện giao dịch chưa đối chiếu.</td></tr>`;
+                } else {
+                    data.reconciliation.unreconciled_transactions.forEach(tx => {
+                        const tr = document.createElement("tr");
+                        tr.innerHTML = `
+                            <td>${tx.transaction_date}</td>
+                            <td>${tx.bank_name}</td>
+                            <td class="text-muted small text-truncate" style="max-width: 200px;" title="${tx.description}">${tx.description}</td>
+                            <td class="fw-bold ${tx.amount > 0 ? 'text-success' : 'text-danger'}">${formatVND(tx.amount)}</td>
+                        `;
+                        txsBody.appendChild(tr);
+                    });
+                }
+
+                // Benford status box
+                const benfordStatusBox = document.getElementById("benford-status-box");
+                const benfordStatus = document.getElementById("benford-status");
+                const benfordMessage = document.getElementById("benford-message");
+                
+                benfordStatus.innerText = data.benford.status;
+                benfordMessage.innerText = data.benford.message;
+                
+                document.getElementById("benford-valid-count").innerText = data.benford.distribution.valid_count;
+                document.getElementById("benford-chi-stat").innerText = data.benford.chi_square;
+
+                if (data.benford.status === "Nghiêm trọng") {
+                    benfordStatusBox.className = "p-3 rounded mb-4 text-center bg-danger bg-opacity-10 border border-danger border-opacity-20 text-danger";
+                } else if (data.benford.status === "Cảnh báo") {
+                    benfordStatusBox.className = "p-3 rounded mb-4 text-center bg-warning bg-opacity-10 border border-warning border-opacity-20 text-warning";
+                } else {
+                    benfordStatusBox.className = "p-3 rounded mb-4 text-center bg-success bg-opacity-10 border border-success border-opacity-20 text-success";
+                }
+
+                // Build / Update Charts
+                renderBenfordChart(data.benford.distribution);
+                renderReconciliationChart(data);
+            })
+            .catch(err => console.error("Error loading health score dashboard:", err));
+    }
+
+    function updateRuleBadge(id, count, isCritical) {
+        const badge = document.getElementById(id);
+        if (count === 0) {
+            badge.innerText = "Đạt";
+            badge.className = "badge-rating badge-rating-a";
+        } else {
+            badge.innerText = `${count} Lỗi`;
+            badge.className = isCritical ? "badge-rating badge-rating-d" : "badge-rating badge-rating-b";
+        }
+    }
+
+    function renderBenfordChart(distribution) {
+        const ctx = document.getElementById('benfordChart').getContext('2d');
+        if (benfordChart) {
+            benfordChart.destroy();
+        }
+
+        const labels = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
+        const observedData = labels.map(d => distribution.observed_percentages[d] || 0);
+        const expectedData = labels.map(d => distribution.expected_percentages[d] || 0);
+
+        benfordChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Tần suất ghi nhận (%)',
+                        data: observedData,
+                        backgroundColor: 'rgba(59, 130, 246, 0.6)',
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    },
+                    {
+                        label: 'Phân phối Benford chuẩn (%)',
+                        data: expectedData,
+                        type: 'line',
+                        fill: false,
+                        borderColor: '#10b981',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#10b981',
+                        tension: 0.2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#94a3b8'
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.05)'
+                        },
+                        ticks: {
+                            color: '#94a3b8'
+                        }
+                    },
+                    y: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.05)'
+                        },
+                        ticks: {
+                            color: '#94a3b8',
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function renderReconciliationChart(data) {
+        const ctx = document.getElementById('reconcileChart').getContext('2d');
+        if (reconcileChart) {
+            reconcileChart.destroy();
+        }
+
+        reconcileChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Bán ra vs Dòng tiền vào', 'Mua vào vs Dòng tiền ra'],
+                datasets: [
+                    {
+                        label: 'Giá trị hóa đơn phát sinh',
+                        data: [data.financials.sales_amount, data.financials.purchase_amount],
+                        backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                        borderColor: '#3b82f6',
+                        borderWidth: 1,
+                        borderRadius: 6
+                    },
+                    {
+                        label: 'Dòng tiền ngân hàng thực tế',
+                        data: [data.reconciliation.total_bank_inflows, data.reconciliation.total_bank_outflows],
+                        backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                        borderColor: '#10b981',
+                        borderWidth: 1,
+                        borderRadius: 6
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#94a3b8'
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.05)'
+                        },
+                        ticks: {
+                            color: '#94a3b8'
+                        }
+                    },
+                    y: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.05)'
+                        },
+                        ticks: {
+                            color: '#94a3b8',
+                            callback: function(value) {
+                                return (value / 1000000).toLocaleString() + ' M';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+</script>
+{% endblock %}

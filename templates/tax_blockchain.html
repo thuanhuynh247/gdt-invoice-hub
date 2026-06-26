@@ -1,0 +1,397 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    :root {
+        --blockchain-green: #10b981;
+        --blockchain-blue: #3b82f6;
+        --blockchain-crimson: #ef4444;
+        --glass-bg: rgba(255, 255, 255, 0.7);
+        --glass-border: rgba(229, 231, 235, 0.5);
+    }
+
+    .glass-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
+    }
+
+    .blockchain-badge {
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 0.8rem;
+        font-weight: bold;
+    }
+
+    .hex-hash {
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 0.75rem;
+        color: #4b5563;
+        background: #f3f4f6;
+        padding: 2px 6px;
+        border-radius: 4px;
+        word-break: break-all;
+    }
+
+    .block-card {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-left: 5px solid var(--blockchain-blue);
+    }
+    .block-card:hover {
+        transform: translateX(5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important;
+    }
+
+    .block-card.secure {
+        border-left-color: var(--blockchain-green);
+    }
+
+    .block-card.corrupt {
+        border-left-color: var(--blockchain-crimson);
+        background-color: rgba(239, 68, 68, 0.05);
+    }
+
+    /* Scanning laser animation */
+    .scanner-line {
+        height: 3px;
+        width: 100%;
+        background: linear-gradient(90deg, transparent, var(--blockchain-blue), transparent);
+        position: absolute;
+        animation: scan 2s linear infinite;
+        opacity: 0;
+        z-index: 10;
+    }
+
+    @keyframes scan {
+        0% { top: 0%; opacity: 1; }
+        50% { top: 100%; opacity: 1; }
+        100% { top: 0%; opacity: 0; }
+    }
+
+    /* Pulse effect for status */
+    .status-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 8px;
+    }
+    .status-dot.active {
+        background-color: var(--blockchain-green);
+        box-shadow: 0 0 8px var(--blockchain-green);
+        animation: pulse-dot 1.5s infinite;
+    }
+    .status-dot.warning {
+        background-color: var(--blockchain-crimson);
+        box-shadow: 0 0 8px var(--blockchain-crimson);
+        animation: pulse-dot-red 1.5s infinite;
+    }
+
+    @keyframes pulse-dot {
+        0% { transform: scale(0.9); opacity: 0.8; }
+        50% { transform: scale(1.2); opacity: 1; }
+        100% { transform: scale(0.9); opacity: 0.8; }
+    }
+
+    @keyframes pulse-dot-red {
+        0% { transform: scale(0.9); opacity: 0.8; box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+        70% { transform: scale(1.2); opacity: 1; box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+        100% { transform: scale(0.9); opacity: 0.8; box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+</style>
+
+<div class="container-fluid py-4 position-relative">
+    <!-- Scanner line container overlay -->
+    <div id="scanLaser" class="scanner-line d-none"></div>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="h3 mb-1"><i class="fas fa-cubes text-primary"></i> Trình Duyệt Blockchain Hóa Đơn & Sổ Cái Mật Mã</h2>
+            <p class="text-muted mb-0">Công nghệ MISA Blockchain bảo vệ toàn vẹn dữ liệu, chống sửa đổi database trái phép và xác thực chữ ký số.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-warning rounded-pill px-4" onclick="rebuildLedger()">
+                <i class="fas fa-hammer"></i> Tái Thiết Lập Sổ Cái
+            </button>
+            <button id="verifyBtn" class="btn btn-primary rounded-pill px-4 shadow-sm" onclick="runIntegrityVerification()">
+                <i class="fas fa-shield-alt"></i> Kiểm Tra Toàn Vẹn Sổ Cái
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats & Integrity Panel -->
+    <div class="row mb-4">
+        <div class="col-lg-4">
+            <div class="card glass-card shadow-sm border-0 h-100">
+                <div class="card-body p-4 d-flex flex-column align-items-center justify-content-center text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-file-shield fa-4x text-primary"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">Tổng Số Hóa Đơn Khóa</h5>
+                    <h2 class="display-5 fw-bold text-primary mb-2" id="statInvoices">-</h2>
+                    <p class="text-muted mb-0" id="statMst">Mã số thuế: -</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card glass-card shadow-sm border-0 h-100">
+                <div class="card-body p-4 d-flex flex-column align-items-center justify-content-center text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-link fa-4x text-info"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">Khối Hành Động Kế Toán</h5>
+                    <h2 class="display-5 fw-bold text-info mb-2" id="statBlocks">-</h2>
+                    <p class="text-muted mb-0">Chuỗi liên kết AuditBlock</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card glass-card shadow-sm border-0 h-100" id="integrityCard">
+                <div class="card-body p-4 d-flex flex-column align-items-center justify-content-center text-center">
+                    <div class="mb-3" id="integrityIcon">
+                        <i class="fas fa-shield-virus fa-4x text-secondary"></i>
+                    </div>
+                    <h5 class="card-title fw-bold" id="integrityTitle">Chưa Xác Thực</h5>
+                    <div class="d-flex align-items-center justify-content-center mb-2">
+                        <span class="status-dot warning" id="integrityDot"></span>
+                        <span class="fw-semibold text-muted" id="integrityStatus">Chưa chạy kiểm tra hệ thống</span>
+                    </div>
+                    <p class="text-muted mb-0" id="integrityMessage">Nhấn nút bên trên để chạy kiểm tra mật mã học</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Action Ledger Chain Explorer -->
+        <div class="col-lg-8">
+            <div class="card glass-card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-network-wired text-primary"></i> Trình Duyệt Chuỗi Khối Lịch Sử (Audit Block Explorer)</h5>
+                    <span class="badge bg-light text-dark rounded-pill px-3">10 Khối Gần Nhất</span>
+                </div>
+                <div class="card-body p-4" id="blocksContainer" style="max-height: 60vh; overflow-y: auto;">
+                    <div class="text-center py-5 text-muted">
+                        <i class="fas fa-cubes fa-3x mb-3 text-light"></i>
+                        <div>Chưa tải danh sách khối sổ cái. Hãy bấm kiểm tra để đồng bộ!</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Merkle Root Security Card -->
+        <div class="col-lg-4">
+            <div class="card glass-card shadow-sm border-0 mb-4 h-100">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-tree text-success"></i> Cây Hash Merkle Hóa Đơn</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-secondary mb-1">Merkle Root Khóa (MISA Blockchain):</label>
+                        <div class="hex-hash p-3 rounded bg-dark text-light border-0 text-center fw-bold" id="merkleRootText" style="font-size: 0.85rem; letter-spacing: 0.5px;">
+                            CHƯA KIỂM TRA
+                        </div>
+                    </div>
+
+                    <div class="border-top pt-3">
+                        <h6 class="fw-bold mb-2"><i class="fas fa-circle-check text-success"></i> Nguyên tắc Bảo mật Ledger:</h6>
+                        <ul class="text-muted small ps-3 mb-0" style="line-height: 1.6;">
+                            <li class="mb-2">Mỗi hóa đơn khi lưu sẽ được tính toán mã Hash SHA-256 từ toàn bộ nội dung (Mã số thuế, Ngày, Tổng tiền, Số hóa đơn).</li>
+                            <li class="mb-2">Cây Merkle xây dựng Root tổng hợp đại diện cho toàn bộ lịch sử hóa đơn của MST đó. Một thay đổi dù nhỏ nhất ở bất kỳ dòng hóa đơn nào trong database cũng làm thay đổi Root này ngay lập tức.</li>
+                            <li class="mb-2">Hành động kế toán (Thêm, Xóa, Đồng bộ) được xâu chuỗi tuần tự bằng mật mã học (AuditBlock) kết nối với khối trước qua Hash của nó, ký số điện tử để đảm bảo tính bất biến.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        // Run a quick soft verification on page load to populate stats
+        runIntegrityVerification(true);
+    });
+
+    async function runIntegrityVerification(isSoft = false) {
+        const verifyBtn = document.getElementById("verifyBtn");
+        const scanLaser = document.getElementById("scanLaser");
+        const integrityCard = document.getElementById("integrityCard");
+        const integrityIcon = document.getElementById("integrityIcon");
+        const integrityTitle = document.getElementById("integrityTitle");
+        const integrityStatus = document.getElementById("integrityStatus");
+        const integrityMessage = document.getElementById("integrityMessage");
+        const integrityDot = document.getElementById("integrityDot");
+
+        if (!isSoft) {
+            verifyBtn.disabled = true;
+            verifyBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Đang quét mật mã...`;
+            scanLaser.classList.remove("d-none");
+        }
+
+        try {
+            const res = await fetch("/api/tax/blockchain-verify", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            });
+            const data = await res.json();
+
+            // Populate Stats
+            document.getElementById("statInvoices").innerText = data.total_invoices;
+            document.getElementById("statBlocks").innerText = data.total_blocks;
+            document.getElementById("statMst").innerText = `Mã số thuế: ${data.recent_blocks[0]?.mst || "Đang sử dụng"}`;
+
+            if (data.recent_blocks && data.recent_blocks.length > 0) {
+                // Display Merkle Root from last block or last invoice
+                const lastBlock = data.recent_blocks[0];
+                document.getElementById("merkleRootText").innerText = lastBlock.block_hash.substring(0, 32) + "...";
+                document.getElementById("merkleRootText").title = lastBlock.block_hash;
+            }
+
+            // Verify integrity check outcome
+            const auditValid = data.audit_ledger.valid;
+            const invoiceValid = data.invoice_ledger.valid;
+
+            if (auditValid && invoiceValid) {
+                // ALL SECURE
+                integrityIcon.innerHTML = `<i class="fas fa-shield-halved fa-4x text-success"></i>`;
+                integrityTitle.innerText = "Hệ Thống An Toàn";
+                integrityTitle.className = "card-title fw-bold text-success";
+                integrityStatus.innerText = "Toàn vẹn Mật mã Đạt";
+                integrityDot.className = "status-dot active";
+                integrityMessage.innerText = `Đã xác thực chữ ký số và chuỗi băm của ${data.total_blocks} Khối và ${data.total_invoices} Hóa đơn. Không phát hiện chỉnh sửa database trái phép.`;
+                integrityCard.style.border = "1px solid rgba(16, 185, 129, 0.3)";
+                integrityCard.style.background = "rgba(16, 185, 129, 0.05)";
+            } else {
+                // TAMPER DETECTED
+                integrityIcon.innerHTML = `<i class="fas fa-triangle-exclamation fa-4x text-danger"></i>`;
+                integrityTitle.innerText = "CẢNH BÁO XUNG ĐỘT";
+                integrityTitle.className = "card-title fw-bold text-danger";
+                integrityStatus.innerText = "Phát hiện Sai lệch Băm!";
+                integrityDot.className = "status-dot warning";
+                
+                let msg = "";
+                if (!auditValid) {
+                    msg += `Lỗi liên kết chuỗi khối tại Khối #${data.audit_ledger.error_block_id}. `;
+                }
+                if (!invoiceValid) {
+                    msg += `Phát hiện ${data.invoice_ledger.tampered_ids.length} hóa đơn bị sửa đổi trực tiếp trong database! `;
+                }
+                integrityMessage.innerText = msg + "Vui lòng chạy 'Tái thiết lập Sổ cái' để sửa đổi đồng bộ lại cây Merkle.";
+                integrityCard.style.border = "1px solid rgba(239, 68, 68, 0.3)";
+                integrityCard.style.background = "rgba(239, 68, 68, 0.05)";
+            }
+
+            // Render Blocks Chain
+            renderBlocks(data.recent_blocks, data.invoice_ledger.tampered_ids || [], data.audit_ledger.error_block_id);
+
+        } catch (err) {
+            console.error("Verification error:", err);
+            if (!isSoft) {
+                alert("Lỗi kết nối kiểm tra sổ cái: " + err.message);
+            }
+        } finally {
+            if (!isSoft) {
+                verifyBtn.disabled = false;
+                verifyBtn.innerHTML = `<i class="fas fa-shield-alt"></i> Kiểm Tra Toàn Vẹn Sổ Cái`;
+                scanLaser.classList.add("d-none");
+            }
+        }
+    }
+
+    function renderBlocks(blocks, tamperedInvoiceIds, errorBlockId) {
+        const container = document.getElementById("blocksContainer");
+        if (!blocks || blocks.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-5 text-muted">
+                    <i class="fas fa-cubes fa-3x mb-3 text-light"></i>
+                    <div>Không có khối giao dịch nào được ghi nhận.</div>
+                </div>
+            `;
+            return;
+        }
+
+        let html = "";
+        blocks.forEach((block, index) => {
+            const isFirst = index === 0;
+            const isCorrupt = block.block_id === errorBlockId;
+            const cardClass = isCorrupt ? "corrupt" : "secure";
+            const icon = isCorrupt ? "fa-circle-xmark text-danger" : "fa-circle-check text-success";
+            const statusLabel = isCorrupt ? "Bị lỗi liên kết" : "Đã ký số & Bảo mật";
+
+            html += `
+                <div class="card mb-3 shadow-sm border-light block-card ${cardClass} rounded-3 overflow-hidden">
+                    <div class="card-body p-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge bg-dark text-light blockchain-badge">BLOCK #${block.block_id}</span>
+                            <span class="small text-muted"><i class="fas fa-clock"></i> ${block.timestamp}</span>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-2 mb-md-0">
+                                <div class="small text-muted">Hành động:</div>
+                                <strong class="text-primary"><i class="fas fa-gears"></i> ${block.action_type}</strong>
+                            </div>
+                            <div class="col-md-6 mb-2 mb-md-0 text-md-end">
+                                <span class="small text-muted">Mã số thuế:</span>
+                                <strong class="d-block">${block.mst}</strong>
+                            </div>
+                        </div>
+                        <div class="mt-3 pt-2 border-top">
+                            <div class="row g-2">
+                                <div class="col-12">
+                                    <span class="small text-muted d-block" style="font-size: 0.75rem;">Mã băm khối hiện tại (Block Hash):</span>
+                                    <div class="hex-hash text-truncate" title="${block.block_hash}">${block.block_hash}</div>
+                                </div>
+                                <div class="col-12">
+                                    <span class="small text-muted d-block" style="font-size: 0.75rem;">Băm khối trước đó (Previous Block Hash):</span>
+                                    <div class="hex-hash text-truncate" title="${block.prev_block_hash}">${block.prev_block_hash}</div>
+                                </div>
+                                <div class="col-12">
+                                    <span class="small text-muted d-block" style="font-size: 0.75rem;">Chữ ký số Khối (RSA-2048 Digital Signature):</span>
+                                    <div class="hex-hash text-truncate text-success" title="${block.signature || 'None'}"><i class="fas fa-key"></i> ${block.signature || 'Chưa ký'}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-2 text-end">
+                            <span class="small fw-semibold"><i class="fas ${icon}"></i> Trạng thái: ${statusLabel}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    async function rebuildLedger() {
+        if (!confirm("Bạn có chắc chắn muốn chạy Tái thiết lập Sổ cái? Thao tác này sẽ tính toán lại toàn bộ mã băm và cây Merkle của hóa đơn để sửa chữa sai lệch đồng bộ.")) {
+            return;
+        }
+
+        const verifyBtn = document.getElementById("verifyBtn");
+        verifyBtn.disabled = true;
+
+        try {
+            const res = await fetch("/api/tax/blockchain-rebuild", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            });
+            const data = await res.json();
+            if (data.status === "success") {
+                alert("Tái thiết lập Cây Merkle và liên kết chuỗi mật mã thành công! Root mới: " + data.new_root);
+                runIntegrityVerification();
+            } else {
+                alert("Lỗi: " + data.error);
+            }
+        } catch (err) {
+            alert("Lỗi kết nối tái thiết lập: " + err.message);
+        } finally {
+            verifyBtn.disabled = false;
+        }
+    }
+</script>
+{% endblock %}

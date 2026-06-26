@@ -227,6 +227,49 @@ def _check_mst(inv: Invoice) -> list[dict[str, Any]]:
     return alerts
 
 
+def _check_supplier_risk(inv: Invoice) -> list[dict[str, Any]]:
+    """7. Kiểm tra rủi ro nhà cung cấp (Supplier Risk Index)."""
+    alerts: list[dict[str, Any]] = []
+    
+    from invoices.models import Partner
+    try:
+        partner = Partner.query.filter_by(mst=inv.seller_mst).first()
+        if partner:
+            status = (partner.mst_status or "").strip()
+            if status in ("Ngừng hoạt động", "Bỏ trốn", "Đã đóng mã số thuế", "Đóng mã số thuế"):
+                alerts.append({
+                    "check": "Rủi ro NCC",
+                    "severity": SEV_CRITICAL,
+                    "detail": f"Nhà cung cấp {partner.name or inv.seller_name} ({inv.seller_mst}) đã NGỪNG HOẠT ĐỘNG/ĐÓNG MST. Hóa đơn không có giá trị khấu trừ thuế!",
+                })
+            elif status in ("Rủi ro cao", "Nghi ngờ bán hóa đơn khống"):
+                alerts.append({
+                    "check": "Rủi ro NCC",
+                    "severity": SEV_CRITICAL,
+                    "detail": f"Nhà cung cấp {partner.name or inv.seller_name} ({inv.seller_mst}) nằm trong danh sách DOANH NGHIỆP RỦI RO CAO VỀ THUẾ!",
+                })
+            elif "tạm ngưng" in status.lower() or "tam ngung" in status.lower():
+                alerts.append({
+                    "check": "Rủi ro NCC",
+                    "severity": SEV_WARNING,
+                    "detail": f"Nhà cung cấp {partner.name or inv.seller_name} ({inv.seller_mst}) đang TẠM NGƯNG HOẠT ĐỘNG. Cần rà soát chứng từ kỹ lưỡng.",
+                })
+        
+        # Heuristic check on seller address for shell/virtual offices
+        addr = (inv.seller_address or "").lower()
+        virtual_keywords = ["dịch vụ ảo", "virtual office", "hộp thư", "phòng chia sẻ", "shared office", "co-working space"]
+        for kw in virtual_keywords:
+            if kw in addr:
+                alerts.append({
+                    "check": "Rủi ro NCC",
+                    "severity": SEV_WARNING,
+                    "detail": f"Địa chỉ nhà cung cấp chứa dấu hiệu văn phòng ảo/văn phòng chia sẻ ({kw}). Nguy cơ doanh nghiệp ma.",
+                })
+    except Exception:
+        pass
+    return alerts
+
+
 # ── public API ─────────────────────────────────────────────────────
 
 ALL_CHECKS = [
@@ -236,6 +279,7 @@ ALL_CHECKS = [
     _check_chu_ky_so,
     _check_aging,
     _check_mst,
+    _check_supplier_risk,
 ]
 
 

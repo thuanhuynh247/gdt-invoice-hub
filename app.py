@@ -115,6 +115,9 @@ def create_app() -> Flask:
             if "fees_breakdown_json" not in columns:
                 db.session.execute(db.text("ALTER TABLE invoice ADD COLUMN fees_breakdown_json TEXT NULL;"))
                 db.session.commit()
+            if "invoice_sub_type" not in columns:
+                db.session.execute(db.text("ALTER TABLE invoice ADD COLUMN invoice_sub_type VARCHAR(20) DEFAULT 'standard';"))
+                db.session.commit()
 
 
             res_item = db.session.execute(db.text("PRAGMA table_info(line_item);")).fetchall()

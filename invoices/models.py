@@ -141,6 +141,7 @@ class Invoice(db.Model):
     merkle_hash = db.Column(db.String(64), nullable=True)
     merkle_root = db.Column(db.String(64), nullable=True)
     merkle_index = db.Column(db.Integer, nullable=True)
+    invoice_sub_type = db.Column(db.String(50), nullable=True, default="standard")
 
     # VBA parity / deep parser fields
     mccqt = db.Column(db.String(100), nullable=True)
@@ -280,6 +281,7 @@ class Invoice(db.Model):
             "exchange_rate": self.exchange_rate,
             "tax_breakdown": self.tax_breakdown,
             "fees_breakdown": self.fees_breakdown,
+            "invoice_sub_type": self.invoice_sub_type or "standard",
         }
 
     def _resolve_provider_name(self) -> str:

@@ -306,10 +306,45 @@
                 errBubble.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Lỗi: ${data.error}`;
                 chatBox.appendChild(errBubble);
             } else {
-                // Append AI bubble with markdown rendering
+                // Append AI bubble with markdown rendering and active agent badge
                 const aiBubble = document.createElement("div");
-                aiBubble.className = "chat-bubble chat-bubble-ai align-self-start";
-                aiBubble.innerHTML = marked.parse(data.response);
+                aiBubble.className = "chat-bubble chat-bubble-ai align-self-start shadow-sm position-relative pt-4 w-100";
+                
+                const agentBadge = document.createElement("span");
+                agentBadge.className = "badge bg-gradient-primary position-absolute top-0 start-0 m-2";
+                agentBadge.style.fontSize = "0.75rem";
+                agentBadge.style.background = "linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%)";
+                agentBadge.innerHTML = `<i class="fas fa-user-tie me-1"></i> ${data.agent_name || 'Cố vấn Thuế AI'}`;
+                aiBubble.appendChild(agentBadge);
+                
+                const contentDiv = document.createElement("div");
+                contentDiv.className = "ai-content-div";
+                contentDiv.style.marginTop = "8px";
+                contentDiv.innerHTML = marked.parse(data.response);
+                aiBubble.appendChild(contentDiv);
+
+                // MISA AVA Translation Toolbar
+                const transToolbar = document.createElement("div");
+                transToolbar.className = "translation-toolbar mt-3 pt-2 border-top d-flex justify-content-between align-items-center";
+                transToolbar.style.fontSize = "0.8rem";
+                transToolbar.innerHTML = `
+                    <span class="text-muted"><i class="fas fa-language"></i> Dịch thuật MISA AVA:</span>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" class="btn btn-outline-primary btn-sm py-0 px-2 fw-semibold" onclick="translateBubble(this, 'en')">EN</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm py-0 px-2 fw-semibold" onclick="translateBubble(this, 'zh')">ZH</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm py-0 px-2 fw-semibold" onclick="translateBubble(this, 'ja')">JA</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm py-0 px-2 fw-semibold" onclick="translateBubble(this, 'ko')">KO</button>
+                    </div>
+                `;
+                aiBubble.appendChild(transToolbar);
+
+                const transBox = document.createElement("div");
+                transBox.className = "translated-box mt-2 p-3 bg-light rounded text-dark d-none shadow-inner";
+                transBox.style.fontSize = "0.9rem";
+                transBox.style.borderLeft = "4px solid #10b981";
+                transBox.style.animation = "fadeIn 0.2s ease-in-out";
+                aiBubble.appendChild(transBox);
+                
                 chatBox.appendChild(aiBubble);
 
                 // Render Citations Panel
@@ -437,6 +472,51 @@
         } catch (err) {
             alert("Lỗi kết nối: " + err.message);
         }
+    }
+
+    async function translateBubble(button, lang) {
+        const bubble = button.closest(".chat-bubble-ai");
+        const contentDiv = bubble.querySelector(".ai-content-div");
+        const textToTranslate = contentDiv.innerText || contentDiv.textContent;
+        const translatedBox = bubble.querySelector(".translated-box");
+        
+        translatedBox.classList.remove("d-none");
+        translatedBox.innerHTML = `<i class="fas fa-spinner fa-spin text-primary"></i> Đang dịch sang ngôn ngữ yêu cầu bằng MISA AVA...`;
+        
+        try {
+            const res = await fetch("/api/tax/translate", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ text: textToTranslate, target_lang: lang })
+            });
+            const data = await res.json();
+            if (data.error) {
+                translatedBox.innerHTML = `<span class="text-danger"><i class="fas fa-exclamation-triangle"></i> Lỗi dịch thuật: ${data.error}</span>`;
+            } else {
+                const langLabels = {
+                    "en": "Tiếng Anh (English)",
+                    "zh": "Tiếng Trung (Chinese)",
+                    "ja": "Tiếng Nhật (Japanese)",
+                    "ko": "Tiếng Hàn (Korean)"
+                };
+                const label = langLabels[lang] || lang.toUpperCase();
+                translatedBox.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom">
+                        <span class="text-success fw-bold"><i class="fas fa-check-circle"></i> Bản dịch ${label} (MISA AVA):</span>
+                        <button type="button" class="btn-close btn-xs" style="font-size: 0.7rem;" onclick="this.closest('.translated-box').classList.add('d-none')" aria-label="Close"></button>
+                    </div>
+                    <div class="translated-content text-dark">${marked.parse(data.translated)}</div>
+                `;
+            }
+        } catch (err) {
+            translatedBox.innerHTML = `<span class="text-danger"><i class="fas fa-exclamation-triangle"></i> Lỗi kết nối: ${err.message}</span>`;
+        }
+        
+        // Scroll chat container to bottom
+        const chatBox = document.getElementById("chatBox");
+        chatBox.scrollTop = chatBox.scrollHeight;
     }
 </script>
 {% endblock %}

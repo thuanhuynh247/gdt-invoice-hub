@@ -6877,16 +6877,18 @@ def api_tax_chat():
     if not user_message:
         return jsonify({"error": "Message cannot be empty"}), 400
         
-    from invoices.tax_advisor_service import load_settings, get_rag_context, call_llm
+    from invoices.tax_advisor_service import load_settings, get_rag_context, call_llm, get_specialized_agent
     import os
     
     try:
         settings = load_settings()
+        agent_name, agent_instructions = get_specialized_agent(user_message)
         rag_context, citations = get_rag_context(user_message)
         
         system_prompt = (
             "Bạn là Kế toán trưởng & Chuyên gia tư vấn thuế chuyên nghiệp (Senior Tax Compliance Consultant) của meInvoice Intelligence.\n"
-            "Nhiệm vụ của bạn là giải đáp các thắc mắc về luật thuế, chính sách kế toán, quy định hóa đơn tại Việt Nam.\n"
+            f"Vai trò chuyên biệt hiện tại của bạn: {agent_name}.\n"
+            f"Hướng dẫn nghiệp vụ cho vai trò của bạn:\n{agent_instructions}\n\n"
             "Hãy luôn trả lời bằng giọng điệu chuyên nghiệp, chuẩn mực của một cố vấn thuế cấp cao. Trích dẫn chính xác các Điều, Khoản, Thông tư, Nghị định liên quan (ví dụ: Nghị định 123/2020/NĐ-CP về hóa đơn, Nghị định 125/2020/NĐ-CP về xử phạt hành chính thuế/hóa đơn, Thông tư 219/2013/TT-BTC về thuế GTGT, Luật Thuế GTGT mới 48/2024/QH15 hoặc Luật số 149/2025/QH15) khi đưa ra lời khuyên pháp lý.\n"
         )
         
@@ -6920,7 +6922,8 @@ def api_tax_chat():
             
         return jsonify({
             "response": response,
-            "citations": web_citations
+            "citations": web_citations,
+            "agent_name": agent_name
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -6964,6 +6967,171 @@ def api_tax_settings():
         if visible_settings.get("ai_api_key"):
             visible_settings["ai_api_key"] = "********"
         return jsonify(visible_settings)
+
+
+@invoices_blueprint.route("/tax-health-score")
+def tax_health_score_page():
+    """Render the corporate tax health score dashboard page."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("tax_health_score.html")
+
+
+@invoices_blueprint.route("/api/tax/health-score")
+def api_tax_health_score():
+    """API endpoint returning computed tax health metrics and scores."""
+    if not session.get("logged_in"):
+        return jsonify({"error": "Unauthorized"}), 401
+        
+    mst = session.get("active_taxpayer_mst")
+    if not mst:
+        from invoices.models import TaxpayerProfile
+        profile = TaxpayerProfile.query.filter_by(is_active=True).first()
+        if profile:
+            mst = profile.mst
+            session["active_taxpayer_mst"] = mst
+            
+    if not mst:
+        return jsonify({"error": "No active taxpayer profile selected"}), 400
+        
+    from invoices.tax_health_service import calculate_tax_health
+    try:
+        data = calculate_tax_health(mst)
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.route("/api/tax/translate", methods=["POST"])
+def api_tax_translate():
+    """API to translate tax explanations and recommendations using LLM."""
+    if not session.get("logged_in"):
+        return jsonify({"error": "Unauthorized"}), 401
+    data = request.get_json() or {}
+    text = data.get("text", "")
+    target_lang = data.get("target_lang", "en")
+    if not text:
+        return jsonify({"error": "Text is required"}), 400
+    from invoices.tax_advisor_service import translate_text
+    try:
+        translated = translate_text(text, target_lang)
+        return jsonify({"translated": translated})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.route("/tax-blockchain")
+def tax_blockchain_page():
+    """Render the cryptographic blockchain ledger & Merkle Tree auditor."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("tax_blockchain.html")
+
+
+@invoices_blueprint.route("/api/tax/blockchain-verify", methods=["POST"])
+def api_tax_blockchain_verify():
+    """Run cryptographic checks on both sequential AuditBlock chain and invoice Merkle Trees."""
+    if not session.get("logged_in"):
+        return jsonify({"error": "Unauthorized"}), 401
+        
+    mst = session.get("active_taxpayer_mst")
+    if not mst:
+        from invoices.models import TaxpayerProfile
+        profile = TaxpayerProfile.query.filter_by(is_active=True).first()
+        if profile:
+            mst = profile.mst
+            
+    if not mst:
+        mst = "0102030405"
+        
+    # 1. Verify Action Ledger (Audit Blocks)
+    from invoices.audit_ledger_service import verify_ledger_integrity as verify_audit_ledger
+    audit_ok, error_id, audit_msg = verify_audit_ledger()
+    
+    # 2. Verify Invoice Merkle Tree Ledger
+    from invoices.merkle_service import verify_ledger_integrity as verify_invoice_ledger
+    invoice_ok, tampered_ids = verify_invoice_ledger(mst)
+    
+    # Get some block counts and invoice hashes for dashboard display
+    from invoices.models import AuditBlock, Invoice
+    recent_blocks = AuditBlock.query.order_by(AuditBlock.block_id.desc()).limit(10).all()
+    recent_blocks_list = [b.to_dict() for b in recent_blocks]
+    
+    total_blocks = AuditBlock.query.count()
+    total_invoices = Invoice.query.filter_by(taxpayer_mst=mst).count()
+    
+    return jsonify({
+        "status": "success",
+        "audit_ledger": {
+            "valid": audit_ok,
+            "error_block_id": error_id,
+            "message": audit_msg
+        },
+        "invoice_ledger": {
+            "valid": invoice_ok,
+            "tampered_ids": [str(i) for i in tampered_ids]
+        },
+        "total_blocks": total_blocks,
+        "total_invoices": total_invoices,
+        "recent_blocks": recent_blocks_list
+    })
+
+
+@invoices_blueprint.route("/api/tax/blockchain-rebuild", methods=["POST"])
+def api_tax_blockchain_rebuild():
+    """Re-key and rebuild invoice Merkle roots to fix inconsistencies."""
+    if not session.get("logged_in"):
+        return jsonify({"error": "Unauthorized"}), 401
+        
+    mst = session.get("active_taxpayer_mst")
+    if not mst:
+        from invoices.models import TaxpayerProfile
+        profile = TaxpayerProfile.query.filter_by(is_active=True).first()
+        if profile:
+            mst = profile.mst
+            
+    if not mst:
+        mst = "0102030405"
+        
+    from invoices.merkle_service import rebuild_and_write_merkle_roots
+    try:
+        root = rebuild_and_write_merkle_roots(mst)
+        
+        # Log this rebuild action in the cryptographic audit ledger
+        from invoices.audit_ledger_service import add_audit_block
+        add_audit_block(
+            action_type="LEDGER_REBUILD",
+            mst=mst,
+            payload_dict={"action": "rebuild_merkle_roots", "new_root": root, "rebuilder": session.get("username", "system")}
+        )
+        
+        return jsonify({"status": "success", "new_root": root})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.route("/invoice-customizer")
+def invoice_customizer_page():
+    """Render the interactive invoice template designer and customizer."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+        
+    mst = session.get("active_taxpayer_mst")
+    if not mst:
+        from invoices.models import TaxpayerProfile
+        profile = TaxpayerProfile.query.filter_by(is_active=True).first()
+        if profile:
+            mst = profile.mst
+            
+    if not mst:
+        mst = "0102030405"
+        
+    from invoices.models import Invoice
+    # Fetch recent invoices so the user can select one to preview
+    invoices = Invoice.query.filter_by(taxpayer_mst=mst).order_by(Invoice.imported_at.desc()).limit(10).all()
+    invoices_list = [inv.to_dict() for inv in invoices]
+    return render_template("invoice_customizer.html", invoices=invoices_list)
+
 
 @invoices_blueprint.route("/api/tenant/groups", methods=["GET", "POST"])
 @roles_required("admin", "auditor")
