@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-shield-check text-primary"></i> Trình Kiểm Tra Hóa Đơn Tự Động (v78)</h2>
+        <button class="btn btn-primary" onclick="runValidation()">
+            <i class="fas fa-play"></i> Chạy Kiểm Tra Lại
+        </button>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4" id="summaryCards" style="display: none;">
+        <div class="col-md-3">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">Tổng Hóa Đơn</h6>
+                    <h2 class="mb-0" id="statTotal">-</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h6 class="card-title">Hợp Lệ (Sạch)</h6>
+                    <h2 class="mb-0" id="statClean">-</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark">
+                <div class="card-body">
+                    <h6 class="card-title">Cảnh Báo</h6>
+                    <h2 class="mb-0" id="statWarning">-</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <h6 class="card-title">Nghiêm Trọng</h6>
+                    <h2 class="mb-0" id="statCritical">-</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts / Breakdown -->
+    <div class="row mb-4">
+        <div class="col-md-7">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-bar text-info"></i> Thống Kê Các Loại Kiểm Tra</h5>
+                </div>
+                <div class="card-body">
+                    <div id="breakdownContainer" class="d-flex flex-wrap gap-3">
+                        <div class="text-muted">Đang tải dữ liệu...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-5">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-bezier-curve text-success"></i> Phân Tích Định Luật Benford</h5>
+                </div>
+                <div class="card-body" id="benfordContainer">
+                    <div class="text-muted">Đang tải dữ liệu...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerts Table -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Danh Sách Cảnh Báo</h5>
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="filterCriticalOnly" onchange="renderTable()">
+                <label class="form-check-label" for="filterCriticalOnly">Chỉ hiện Nghiêm Trọng</label>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover table-striped mb-0" id="alertsTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Mức Độ</th>
+                            <th>Loại Lỗi</th>
+                            <th>Ký Hiệu</th>
+                            <th>Số HĐ</th>
+                            <th>MST Mua/Bán</th>
+                            <th>Chi Tiết</th>
+                            <th>Hành Động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="alertsTbody">
+                        <tr><td colspan="7" class="text-center py-4">Đang tải...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentAlerts = [];
+
+document.addEventListener("DOMContentLoaded", () => {
+    runValidation();
+});
+
+async function runValidation() {
+    const tbody = document.getElementById("alertsTbody");
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4"><i class="fas fa-spinner fa-spin"></i> Đang phân tích...</td></tr>';
+    document.getElementById("summaryCards").style.display = "flex";
+
+    try {
+        const res = await fetch("/api/v78/validate");
+        const data = await res.json();
+
+        if (data.error) {
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">${data.error}</td></tr>`;
+            return;
+        }
+
+        // Update stats
+        document.getElementById("statTotal").innerText = data.total_invoices || 0;
+        document.getElementById("statClean").innerText = data.clean_invoices || 0;
+        document.getElementById("statWarning").innerText = data.warning_count || 0;
+        document.getElementById("statCritical").innerText = data.critical_count || 0;
+
+        currentAlerts = data.alerts || [];
+        renderTable();
+        renderBreakdown(data.summary_by_check);
+        renderBenford(data.benford_analysis);
+
+    } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Lỗi kết nối: ${err.message}</td></tr>`;
+    }
+}
+
+function renderTable() {
+    const tbody = document.getElementById("alertsTbody");
+    const criticalOnly = document.getElementById("filterCriticalOnly").checked;
+    
+    let html = '';
+    
+    const filtered = currentAlerts.filter(a => criticalOnly ? a.severity === 'Nghiêm trọng' : true);
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-success"><i class="fas fa-check-circle"></i> Không tìm thấy cảnh báo nào.</td></tr>';
+        return;
+    }
+
+    filtered.forEach(a => {
+        const isCritical = a.severity === 'Nghiêm trọng';
+        const badgeClass = isCritical ? 'bg-danger' : 'bg-warning text-dark';
+        
+        let mst = a.seller_mst;
+        if (!mst || mst.trim() === '') mst = a.buyer_mst;
+
+        html += `
+            <tr>
+                <td><span class="badge ${badgeClass}">${a.severity}</span></td>
+                <td><strong>${a.check}</strong></td>
+                <td>${a.symbol}</td>
+                <td>${a.number}</td>
+                <td>${mst}</td>
+                <td>${a.detail}</td>
+                <td>
+                    <a href="/invoice/${a.invoice_id}" class="btn btn-sm btn-outline-primary" target="_blank">
+                        Xem HĐ
+                    </a>
+                </td>
+            </tr>
+        `;
+    });
+    
+    tbody.innerHTML = html;
+}
+
+function renderBreakdown(summary) {
+    const container = document.getElementById("breakdownContainer");
+    if (!summary || Object.keys(summary).length === 0) {
+        container.innerHTML = '<span class="text-success"><i class="fas fa-check"></i> Tất cả an toàn</span>';
+        return;
+    }
+
+    let html = '';
+    for (const [checkName, stats] of Object.entries(summary)) {
+        html += `
+            <div class="border rounded p-3 text-center" style="min-width: 150px;">
+                <h6 class="text-muted mb-2">${checkName}</h6>
+                <div class="fs-4 fw-bold mb-1">${stats.total} <span class="fs-6 fw-normal text-muted">lỗi</span></div>
+                <div class="d-flex justify-content-center gap-2 mt-2">
+                    <span class="badge bg-danger" title="Nghiêm trọng">${stats.critical}</span>
+                    <span class="badge bg-warning text-dark" title="Cảnh báo">${stats.warning}</span>
+                </div>
+            </div>
+        `;
+    }
+    container.innerHTML = html;
+}
+
+function renderBenford(benford) {
+    const container = document.getElementById("benfordContainer");
+    if (!benford) {
+        container.innerHTML = '<div class="text-muted">Không có dữ liệu phân tích Benford.</div>';
+        return;
+    }
+    
+    let badgeClass = 'bg-secondary';
+    if (benford.status === 'Đạt') badgeClass = 'bg-success';
+    else if (benford.status === 'Cảnh báo') badgeClass = 'bg-warning text-dark';
+    else if (benford.status === 'Nghiêm trọng') badgeClass = 'bg-danger';
+    
+    let html = `
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="badge ${badgeClass} fs-6 px-3 py-2 rounded-pill">${benford.status}</span>
+            <small class="text-muted">Chi-square: <strong class="text-dark">${benford.chi_square_stat}</strong> (mốc: 15.51)</small>
+        </div>
+        <p class="small text-muted mb-3" style="font-size: 0.875rem; line-height: 1.4;">${benford.message}</p>
+    `;
+    
+    if (benford.valid_count >= 20) {
+        html += '<div class="d-flex flex-column gap-2" style="max-height: 250px; overflow-y: auto; padding-right: 5px;">';
+        for (let d = 1; d <= 9; d++) {
+            const obs = benford.observed_percentages[d];
+            const exp = benford.expected_percentages[d];
+            
+            // Determine progress bar color based on deviation
+            const deviation = Math.abs(obs - exp);
+            let barColor = 'bg-info';
+            if (deviation > 10) barColor = 'bg-danger';
+            else if (deviation > 5) barColor = 'bg-warning';
+            
+            html += `
+                <div class="d-flex align-items-center gap-2">
+                    <span class="fw-bold text-secondary text-center" style="width: 15px;">${d}</span>
+                    <div class="flex-grow-1 position-relative bg-light rounded" style="height: 16px; overflow: hidden; border: 1px solid #e9ecef;">
+                        <!-- Expected Indicator line -->
+                        <div class="position-absolute" 
+                             style="left: ${exp}%; height: 100%; width: 2px; background-color: #6c757d; z-index: 2; opacity: 0.7;" 
+                             title="Kỳ vọng: ${exp}%"></div>
+                        <!-- Observed Fill -->
+                        <div class="${barColor}" 
+                             style="width: ${obs}%; height: 100%; transition: width 0.6s ease;" 
+                             title="Thực tế: ${obs}%"></div>
+                    </div>
+                    <span class="small text-end text-monospace" style="width: 85px; font-size: 0.75rem;">
+                        <strong class="text-primary">${obs}%</strong> <span class="text-muted">/ ${exp}%</span>
+                    </span>
+                </div>
+            `;
+        }
+        html += '</div>';
+    } else {
+        html += `
+            <div class="text-center py-4 text-muted bg-light rounded border border-dashed" style="border-style: dashed !important; border-width: 2px !important;">
+                <i class="fas fa-exclamation-triangle fa-2x mb-2 text-warning"></i>
+                <div class="small fw-bold">Thiếu dữ liệu phân tích (Có ${benford.valid_count}/20 hóa đơn)</div>
+                <div class="text-muted" style="font-size: 0.75rem;">Cần nạp thêm tối thiểu ${20 - benford.valid_count} hóa đơn để kích hoạt đối chiếu thống kê.</div>
+            </div>
+        `;
+    }
+    container.innerHTML = html;
+}
+</script>
+{% endblock %}

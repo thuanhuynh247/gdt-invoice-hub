@@ -1,7 +1,43 @@
 import pytest
 from extensions import db
-from invoices.models import Invoice, Partner, BlacklistedMST, LineItem, AIAuditResult
+from invoices.models import Invoice, Partner, BlacklistedMST, LineItem, AIAuditResult, TaxpayerProfile
 from invoices.supplier_risk_service import calculate_supplier_risk, get_all_suppliers_risk_radar
+
+@pytest.fixture(autouse=True)
+def seed_taxpayer_profiles(app):
+    """Seed required TaxpayerProfile entries to avoid foreign key errors."""
+    with app.app_context():
+        # Clean existing to avoid duplicates, but only for these test MSTs
+        TaxpayerProfile.query.filter(TaxpayerProfile.mst.in_(["9999999999", "0309876543"])).delete()
+        db.session.commit()
+
+        # Add profiles
+        p1 = TaxpayerProfile(
+            mst="9999999999",
+            company_name="Taxpayer Corporation 9999",
+            gdt_username="gdt_9999",
+            gdt_password_encrypted="pass_9999",
+            is_active=True,
+            created_at="2026-01-01 00:00:00"
+        )
+        p2 = TaxpayerProfile(
+            mst="0309876543",
+            company_name="Taxpayer Corporation 0309",
+            gdt_username="gdt_0309",
+            gdt_password_encrypted="pass_0309",
+            is_active=True,
+            created_at="2026-01-01 00:00:00"
+        )
+        db.session.add(p1)
+        db.session.add(p2)
+        db.session.commit()
+        yield
+        
+        # Cleanup
+        with app.app_context():
+            TaxpayerProfile.query.filter(TaxpayerProfile.mst.in_(["9999999999", "0309876543"])).delete()
+            db.session.commit()
+
 
 def test_supplier_risk_scoring_basic_and_blacklist(app):
     """Verify standard scoring and absolute blacklist F rating."""

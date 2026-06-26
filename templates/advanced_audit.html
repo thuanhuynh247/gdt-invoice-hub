@@ -719,6 +719,28 @@
     </div>
 </div>
 
+<!-- PixelRAG Image Preview Modal -->
+<div class="modal fade" id="pixelRagModal" tabindex="-1" aria-labelledby="pixelRagModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content bg-glass border-0 shadow-lg" style="background: rgba(30, 30, 45, 0.95); border: 1px solid rgba(255, 255, 255, 0.1); color: #f8fafc;">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold text-info" id="pixelRagModalLabel"><i class="bi bi-eye-fill" aria-hidden="true"></i> Ảnh Chụp Trang Tài Liệu Biểu Thuế (PixelRAG)</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center pt-3">
+                <p class="text-secondary small mb-3" id="pixelRagModalMeta"></p>
+                <div class="border rounded p-2 bg-dark d-flex justify-content-center align-items-center" style="max-height: 70vh; overflow: auto; border-color: rgba(255,255,255,0.1) !important;">
+                    <img id="pixelRagModalImage" src="" alt="PixelRAG Document Page" class="img-fluid rounded shadow-sm" style="max-height: 65vh; object-fit: contain;">
+                </div>
+            </div>
+            <div class="modal-footer border-top-0 pt-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <style>
 /* CSS Tokens & Custom Styling for Premium Visuals */
 .text-gradient {
@@ -1601,6 +1623,13 @@ function downloadPitXmlFile() {
 let ragInvoicesList = [];
 
 function initRagAdvisory() {
+    window.previewPixelRagImage = function(url, title) {
+        document.getElementById("pixelRagModalImage").src = url;
+        document.getElementById("pixelRagModalMeta").innerText = title;
+        const modal = new bootstrap.Modal(document.getElementById("pixelRagModal"));
+        modal.show();
+    };
+
     const selector = document.getElementById("globalTaxpayerSelector");
     const mst = window.activeTaxpayerMst || (selector ? selector.value : "");
     if (!mst) return;
@@ -1759,13 +1788,22 @@ function sendRagQuestion() {
         if (data.citations && data.citations.length > 0) {
             citationsHtml = `<div class="mt-3 pt-2 border-top small text-secondary">
                 <strong class="text-info"><i class="bi bi-journal-bookmark-fill" aria-hidden="true"></i> Tài liệu tham khảo & Trích dẫn:</strong>
-                <div class="mt-1 d-flex flex-wrap gap-2">`;
+                <div class="mt-1 d-flex flex-column gap-2">`;
             data.citations.forEach((c) => {
                 const title = `${c.source} (Trang ${c.page})`;
                 const safeText = escapeHtml(c.text).replace(/'/g, "\\'");
-                citationsHtml += `<span class="badge bg-dark-subtle text-secondary border border-secondary-subtle px-2 py-1 card-hover-glow" style="cursor: pointer;" title="${safeText}" onclick="alert('Trích dẫn chi tiết:\\n\\n${safeText}')">
-                    <i class="bi bi-file-earmark-text text-primary" aria-hidden="true"></i> ${escapeHtml(title)}
-                </span>`;
+                let imgBadge = "";
+                if (c.image_url) {
+                    imgBadge = `<span class="badge bg-info text-dark border border-info px-2 py-1 ms-2 card-hover-glow" style="cursor: pointer;" onclick="window.previewPixelRagImage('${c.image_url}', '${escapeHtml(title)}')">
+                        <i class="bi bi-eye-fill" aria-hidden="true"></i> Xem Ảnh PixelRAG
+                    </span>`;
+                }
+                citationsHtml += `<div class="d-flex align-items-center flex-wrap">
+                    <span class="badge bg-dark-subtle text-secondary border border-secondary-subtle px-2 py-1 card-hover-glow" style="cursor: pointer;" title="${safeText}" onclick="alert('Trích dẫn chi tiết:\\n\\n${safeText}')">
+                        <i class="bi bi-file-earmark-text text-primary" aria-hidden="true"></i> ${escapeHtml(title)}
+                    </span>
+                    ${imgBadge}
+                </div>`;
             });
             citationsHtml += `</div></div>`;
         }

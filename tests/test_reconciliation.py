@@ -16,7 +16,7 @@ def test_csv_content():
 def test_reconciliation_engine_process_csv(app, test_csv_content):
     with app.app_context():
         engine = ReconciliationEngine()
-        txns = engine.process_csv(test_csv_content)
+        txns = engine.process_csv(test_csv_content, "0123456789")
         
         assert len(txns) == 3
         
@@ -72,9 +72,9 @@ def test_reconciliation_engine_matching(app, test_csv_content):
         
         # Run process
         engine = ReconciliationEngine()
-        engine.process_csv(test_csv_content)
+        engine.process_csv(test_csv_content, "0123456789")
         
-        results = engine.run_matching()
+        results = engine.run_matching("0123456789")
         
         assert results["transactions_processed"] == 3
         assert results["matches_found"] == 1

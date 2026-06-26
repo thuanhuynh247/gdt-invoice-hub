@@ -264,6 +264,13 @@ def test_system_prompt_and_context_binding(mock_post, app, chat_setup):
     mock_post.side_effect = [mock_resp_intent, mock_resp_chat]
 
     with app.app_context():
+        save_scheduler_settings({
+            "ai_enabled": True,
+            "ai_provider": "ollama",
+            "ai_model_name": "gemma-4",
+            "ai_system_prompt": "Test Prompt",
+            "ai_headroom_enabled": False
+        })
         agent.ask(chat_setup.id, "Kiểm tra luật thuế")
         
         assert mock_post.call_count == 2
@@ -277,4 +284,5 @@ def test_system_prompt_and_context_binding(mock_post, app, chat_setup):
         assert "Senior Tax Compliance Consultant" in system_msg
         assert "danh sách hóa đơn hiện có" in system_msg
         assert "Điều, Khoản, Thông tư, Nghị định" in system_msg
+
 

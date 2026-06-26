@@ -182,6 +182,12 @@ def parse_and_chunk_pdf(filename: str) -> list[dict]:
             effective_date = "2026-03-12"
         elif "48" in filename:
             effective_date = "2025-07-01"
+        elif "69" in filename:
+            effective_date = "2025-07-01"
+        elif "18" in filename:
+            effective_date = "2026-03-12"
+        elif "144" in filename:
+            effective_date = "2026-06-20"
         else:
             effective_date = "2026-01-01"
         
@@ -238,7 +244,7 @@ def run_dynamic_pdf_ingestion(app):
         
         init_fts5_tables()
         
-        pdf_files = ["luat48.pdf", "luat149.signed.pdf", "20-btc.pdf"]
+        pdf_files = ["luat48.pdf", "luat149.signed.pdf", "20-btc.pdf", "thongtu69_2025.pdf", "thongtu18_2026.pdf", "nghidinh144_2026.pdf"]
         ingested_any = False
         
         for filename in pdf_files:

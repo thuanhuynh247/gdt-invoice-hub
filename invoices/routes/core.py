@@ -6835,6 +6835,136 @@ def consolidated_dashboard_page():
         return redirect(url_for("auth.login_page"))
     return render_template("consolidated.html")
 
+@invoices_blueprint.get("/v78-invoice-validation")
+def v78_invoice_validation_page():
+    """Render the v78 invoice validation page."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("v78_invoice_validation.html")
+
+@invoices_blueprint.get("/api/v78/validate")
+def api_v78_validate_invoices():
+    """Run all 6 validation checks and return results."""
+    if not session.get("logged_in"):
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    mst = session.get("active_taxpayer_mst") or session.get("taxpayer_mst")
+    if not mst:
+        return jsonify({"error": "No active taxpayer MST"}), 400
+
+    from invoices.invoice_validator import validate_all_invoices
+    try:
+        results = validate_all_invoices(taxpayer_mst=mst)
+        return jsonify(results)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@invoices_blueprint.get("/tax-advisor")
+def tax_advisor_page():
+    """Render the AI Tax Advisor chat interface."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("tax_advisor.html")
+
+@invoices_blueprint.post("/api/tax/chat")
+def api_tax_chat():
+    """Process chat messages with FTS5-RAG tax knowledge retrieval and LLM response."""
+    if not session.get("logged_in"):
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    data = request.get_json() or {}
+    user_message = data.get("message", "").strip()
+    if not user_message:
+        return jsonify({"error": "Message cannot be empty"}), 400
+        
+    from invoices.tax_advisor_service import load_settings, get_rag_context, call_llm
+    import os
+    
+    try:
+        settings = load_settings()
+        rag_context, citations = get_rag_context(user_message)
+        
+        system_prompt = (
+            "Bạn là Kế toán trưởng & Chuyên gia tư vấn thuế chuyên nghiệp (Senior Tax Compliance Consultant) của meInvoice Intelligence.\n"
+            "Nhiệm vụ của bạn là giải đáp các thắc mắc về luật thuế, chính sách kế toán, quy định hóa đơn tại Việt Nam.\n"
+            "Hãy luôn trả lời bằng giọng điệu chuyên nghiệp, chuẩn mực của một cố vấn thuế cấp cao. Trích dẫn chính xác các Điều, Khoản, Thông tư, Nghị định liên quan (ví dụ: Nghị định 123/2020/NĐ-CP về hóa đơn, Nghị định 125/2020/NĐ-CP về xử phạt hành chính thuế/hóa đơn, Thông tư 219/2013/TT-BTC về thuế GTGT, Luật Thuế GTGT mới 48/2024/QH15 hoặc Luật số 149/2025/QH15) khi đưa ra lời khuyên pháp lý.\n"
+        )
+        
+        if rag_context:
+            system_prompt += (
+                "Dưới đây là các tài liệu quy định pháp luật thuế liên quan được truy xuất từ cơ sở dữ liệu luật thuế (RAG Context):\n"
+                f"{rag_context}\n\n"
+                "Khi trả lời các câu hỏi về luật thuế, hãy:\n"
+                "- Trích dẫn chính xác các Điều, Khoản, Thông tư, Nghị định liên quan.\n"
+                "- Cung cấp giải thích rõ ràng, chuyên nghiệp và có chiều sâu bằng tiếng Việt.\n"
+                "- Đưa ra các khuyến nghị hoặc hành động cụ thể để giảm thiểu rủi ro pháp lý cho doanh nghiệp.\n\n"
+            )
+            
+        system_prompt += (
+            "Hãy trả lời bằng tiếng Việt tự nhiên, cực kỳ chuyên nghiệp, chính xác và có thể sử dụng định dạng bảng (Markdown Table) hoặc danh sách khi cần thiết.\n"
+            "Nếu người dùng hỏi thông tin không liên quan đến hóa đơn thuế/kế toán doanh nghiệp, hãy phản hồi lịch sự rằng bạn chỉ hỗ trợ tư vấn thuế doanh nghiệp."
+        )
+        
+        response = call_llm(settings, system_prompt, user_message)
+        
+        # Convert citation paths to web-friendly static paths
+        web_citations = []
+        for cit in citations:
+            img_path = cit["img_path"]
+            filename = os.path.basename(img_path)
+            web_citations.append({
+                "source": cit["source"],
+                "page": cit["page"],
+                "img_url": f"/static/tax_pages/{filename}"
+            })
+            
+        return jsonify({
+            "response": response,
+            "citations": web_citations
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@invoices_blueprint.route("/api/tax/settings", methods=["GET", "POST"])
+def api_tax_settings():
+    """GET or POST endpoint to load and save AI Tax Advisor settings."""
+    if not session.get("logged_in"):
+        return jsonify({"error": "Unauthorized"}), 401
+        
+    from invoices.tax_advisor_service import load_settings, save_settings
+    
+    if request.method == "POST":
+        data = request.get_json() or {}
+        provider = data.get("ai_provider", "ollama")
+        model_name = data.get("ai_model_name", "gemma-4")
+        api_key = data.get("ai_api_key", "")
+        ollama_endpoint = data.get("ai_ollama_endpoint", "http://localhost:11434")
+        
+        settings = load_settings()
+        
+        # If API key is provided, encrypt it (or store as is if fallback)
+        from invoices.tax_advisor_service import encrypt_password
+        if api_key and api_key != "********":
+            settings["ai_api_key"] = encrypt_password(api_key)
+        
+        settings["ai_provider"] = provider
+        settings["ai_model_name"] = model_name
+        settings["ai_ollama_endpoint"] = ollama_endpoint
+        
+        if save_settings(settings):
+            return jsonify({"success": True})
+            
+        return jsonify({"error": "Failed to save settings"}), 500
+        
+    else:
+        # GET request
+        settings = load_settings()
+        # Hide password before returning
+        visible_settings = dict(settings)
+        if visible_settings.get("ai_api_key"):
+            visible_settings["ai_api_key"] = "********"
+        return jsonify(visible_settings)
+
 @invoices_blueprint.route("/api/tenant/groups", methods=["GET", "POST"])
 @roles_required("admin", "auditor")
 def api_tenant_groups():

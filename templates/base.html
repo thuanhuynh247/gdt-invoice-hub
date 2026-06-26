@@ -60,7 +60,7 @@
 
                     <!-- Compliance Dropdown (v26-v31) -->
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle {% if request.path in ['/v26-compliance','/v27-compliance','/v28-compliance','/v29-compliance','/v30-compliance','/v31-compliance'] %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <a class="nav-link dropdown-toggle {% if request.path in ['/v26-compliance','/v27-compliance','/v28-compliance','/v29-compliance','/v30-compliance','/v31-compliance','/v78-invoice-validation'] %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-shield-check" aria-hidden="true"></i> Tuân thủ
                         </a>
                         <ul class="dropdown-menu dropdown-menu-premium">
@@ -71,6 +71,7 @@
                             <li><a class="dropdown-item {% if request.path == '/v29-compliance' %}active{% endif %}" href="{{ url_for('invoices.v29_compliance_page') }}"><i class="bi bi-shield-slash-fill text-warning me-2" aria-hidden="true"></i>Tuân thủ v29</a></li>
                             <li><a class="dropdown-item {% if request.path == '/v30-compliance' %}active{% endif %}" href="{{ url_for('invoices.v30_compliance_page') }}"><i class="bi bi-shield-lock-fill text-info me-2" aria-hidden="true"></i>Tuân thủ v30</a></li>
                             <li><a class="dropdown-item {% if request.path == '/v31-compliance' %}active{% endif %}" href="{{ url_for('invoices.v31_compliance_page') }}"><i class="bi bi-shield-check-fill text-primary me-2" aria-hidden="true"></i>Tuân thủ v31</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/v78-invoice-validation' %}active{% endif %}" href="/v78-invoice-validation"><i class="bi bi-shield-exclamation text-danger me-2" aria-hidden="true"></i>Kiểm toán v78 & Benford</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item {% if request.path == '/v40-compliance-dashboard' %}active{% endif %}" href="{{ url_for('invoices.v40_compliance_dashboard') }}"><i class="bi bi-speedometer text-warning me-2" aria-hidden="true"></i>Dashboard Tuân thủ v40</a></li>
                             <li><a class="dropdown-item {% if request.path == '/compliance-concept-map' %}active{% endif %}" href="{{ url_for('invoices.compliance_concept_map_page') }}"><i class="bi bi-diagram-3-fill text-success me-2" aria-hidden="true"></i>Bản đồ Tuân thủ</a></li>
@@ -156,12 +157,14 @@
 
                     <!-- Admin Tools -->
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle {% if request.path in ['/harness','/consolidated-dashboard','/advanced-audit','/audit-trail'] %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <a class="nav-link dropdown-toggle {% if request.path in ['/harness','/consolidated-dashboard','/advanced-audit','/audit-trail','/tax-advisor'] %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-gear" aria-hidden="true"></i> Công cụ
                         </a>
                         <ul class="dropdown-menu dropdown-menu-premium">
                             <li><a class="dropdown-item {% if request.path == '/harness' %}active{% endif %}" href="{{ url_for('invoices.harness_page') }}"><i class="bi bi-cpu-fill me-2" aria-hidden="true"></i>Harness Agent</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/tax-advisor' %}active{% endif %}" href="/tax-advisor"><i class="bi bi-robot-fill text-primary me-2" aria-hidden="true"></i>Cố vấn Thuế AI v78</a></li>
                             <li><a class="dropdown-item {% if request.path == '/v76-headroom-hub' %}active{% endif %}" href="/v76-headroom-hub"><i class="bi bi-cpu-fill text-success me-2" aria-hidden="true"></i>Headroom AI Hub</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/v77-waf-resilience' %}active{% endif %}" href="/v77-waf-resilience"><i class="bi bi-shield-shaded text-danger me-2" aria-hidden="true"></i>Cấu hình Proxy & WAF v77</a></li>
                             {% if session.get('user_role') in ['admin', 'auditor'] %}
                             <li><hr class="dropdown-divider"></li>
                             <li><h6 class="dropdown-header"><i class="bi bi-shield-lock me-1" aria-hidden="true"></i> Quản trị</h6></li>

@@ -5,19 +5,20 @@
 
 ### 📊 1. THÔNG TIN HỆ THỐNG & ĐIỀU HÀNH (Operating System & telemetry)
 - **Tên Agent chịu trách nhiệm**: `Antigravity`
-- **Thời gian nghiệm thu (UAT Time)**: `2026-06-26 08:23:08`
+- **Thời gian nghiệm thu (UAT Time)**: `2026-06-26 08:25:34`
 - **Trạng thái cổng kết nối (Unified Gate)**: `✅ PASSED (Hoàn thành kiểm toán toàn diện)`
-- **Thời gian chạy thử nghiệm (Quality Gate Duration)**: `17 giây`
-- **Phiên bản mã nguồn (Git Commit)**: `8fb4cf741acaca1b22667e1edf3c9aabad277361 (dirty)`
-- **Ước tính tài nguyên tiêu thụ (Token Usage Estimate)**: `41,800 tokens`
+- **Thời gian chạy thử nghiệm (Quality Gate Duration)**: `11 giây`
+- **Phiên bản mã nguồn (Git Commit)**: `68fc0d7479c42fd71e46aa7aa9b15049250793f6 (dirty)`
+- **Ước tính tài nguyên tiêu thụ (Token Usage Estimate)**: `46,000 tokens`
 - **Độ rủi ro kiểm thử (Risk Lane)**: `TINY`
 
 ---
 
 ### 🛡️ 2. SOCRATIC RISK EVALUATION & SAFETY CHECKS
-- **Các cờ rủi ro được quét tự động (Risk Flags)**: `external`
+- **Các cờ rủi ro được quét tự động (Risk Flags)**: `audit, external`
 - **Checklist an toàn tương ứng**:
-  - [x] Đã vượt qua các bài kiểm thử cơ bản của hệ thống
+  - [x] Đã xác thực toàn bộ unit/integration tests trên máy cục bộ
+  - [x] Đã cập nhật ma trận kiểm thử tại `docs/TEST_MATRIX.md`
 
 ---
 
@@ -33,15 +34,18 @@
   - `Created tests/test_new_dashboard_features.py`
   - `modified invoices/routes/core.py`
   - `templates/dashboard.html`
+  - `templates/signup.html`
   - `app.py`
 - **Tệp tin đã đọc (Files Read)**:
   - `app.py`
   - `invoices/routes/core.py`
   - `templates/dashboard.html`
+  - `templates/signup.html`
 - **Tệp tin đã thay đổi (Files Changed)**:
   - `tests/test_new_dashboard_features.py`
   - `invoices/routes/core.py`
   - `templates/dashboard.html`
+  - `templates/signup.html`
   - `app.py`
 
 - **Ghi chú bổ sung (Notes)**: `Không có ghi chú thêm.`

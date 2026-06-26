@@ -43,6 +43,22 @@ def _build_mock_session_payload(username: str) -> dict:
 
     now = datetime.now(timezone.utc)
     expires_at = now + timedelta(minutes=30)
+    
+    try:
+        from invoices.models import TaxpayerProfile
+        profile = TaxpayerProfile.query.filter_by(gdt_username=username).first()
+        if profile:
+            return {
+                "username": username,
+                "login_time": now.isoformat(),
+                "expires_at": expires_at.isoformat(),
+                "session_token": f"mock-session-{username.lower()}",
+                "jwt": None,
+                "profile": {"display_name": profile.company_name, "mst": profile.mst},
+            }
+    except Exception:
+        pass
+
     return {
         "username": username,
         "login_time": now.isoformat(),
@@ -51,6 +67,7 @@ def _build_mock_session_payload(username: str) -> dict:
         "jwt": None,
         "profile": {"display_name": username, "mst": None},
     }
+
 
 
 def _authenticate_live(

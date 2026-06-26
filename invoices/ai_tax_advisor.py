@@ -494,9 +494,45 @@ class TaxAdvisoryAgent:
         dossier = self.generate_dossier()
         return SwarmAuditResult(dossier, self.findings)
 
+def get_image_base64_and_url(doc_source: str, page_num: int) -> dict | None:
+    import base64
+    base_doc = os.path.splitext(doc_source)[0]
+    filename = f"{base_doc}_page_{page_num}.png"
+    
+    workspace_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    local_path = os.path.join(workspace_dir, "static", "tax_pages", filename)
+    
+    if os.path.exists(local_path):
+        try:
+            with open(local_path, "rb") as img_file:
+                b64_data = base64.b64encode(img_file.read()).decode("utf-8")
+            return {
+                "url": f"/static/tax_pages/{filename}",
+                "base64": b64_data,
+                "filename": filename
+            }
+        except Exception:
+            pass
+    return None
+
 def query_local_tax_rag(query_text: str, model_name: str = "gemma:2b", deep_research: bool = False) -> dict:
-    """Performs semantic search over local Vietnamese tax regulations and queries Ollama."""
+    """Performs hybrid visual-text RAG search over Vietnamese tax regulations and queries LLM."""
     import requests
+    from invoices.scheduler import load_scheduler_settings
+    from auth.crypto import decrypt_password
+    
+    # Load scheduler settings
+    settings = {}
+    try:
+        settings = load_scheduler_settings()
+    except Exception:
+        pass
+        
+    provider = settings.get("ai_provider", "ollama").lower()
+    m_name = settings.get("ai_model_name", model_name)
+    api_key_cipher = settings.get("ai_api_key", "")
+    api_key = decrypt_password(api_key_cipher) if api_key_cipher else ""
+    
     store = create_tax_regulation_index()
     top_k = 6 if deep_research else 3
     results = store.query(query_text, top_k=top_k)
@@ -517,7 +553,6 @@ def query_local_tax_rag(query_text: str, model_name: str = "gemma:2b", deep_rese
             db_res = db.session.execute(db.text(sql), {"q": clean_q, "limit": top_k}).fetchall()
             for row in db_res:
                 content, source, page = row
-                # Check if already exists in results
                 exists = any(r["text"][:100] == content[:100] for r in results)
                 if not exists:
                     results.append({
@@ -527,17 +562,36 @@ def query_local_tax_rag(query_text: str, model_name: str = "gemma:2b", deep_rese
                         "page": page,
                         "score": 0.8
                     })
-    except Exception as e:
+    except Exception:
         pass
 
     context_parts = []
     citations = []
+    retrieved_images = []
+    
     for doc in results:
-        context_parts.append(f"- Nguồn: {doc['source']} (Trang {doc['page']}):\n  {doc['text']}")
+        source_name = doc['source']
+        page_num = doc['page']
+        
+        # Look up visual page screenshot
+        img_info = get_image_base64_and_url(source_name, page_num)
+        img_url = ""
+        if img_info:
+            img_url = img_info["url"]
+            if img_info["url"] not in [img["url"] for img in retrieved_images]:
+                retrieved_images.append({
+                    "url": img_info["url"],
+                    "base64": img_info["base64"],
+                    "source": source_name,
+                    "page": page_num
+                })
+        
+        context_parts.append(f"- Nguồn: {source_name} (Trang {page_num}):\n  {doc['text']}")
         citations.append({
-            "source": doc["source"],
-            "page": doc["page"],
+            "source": source_name,
+            "page": page_num,
             "text": doc["text"],
+            "image_url": img_url,
             "score": doc.get("score", 0.75)
         })
         
@@ -548,16 +602,19 @@ def query_local_tax_rag(query_text: str, model_name: str = "gemma:2b", deep_rese
         deep_steps = [
             "1. Phân tích ngữ nghĩa câu hỏi người dùng và trích xuất các thực thể pháp luật thuế Việt Nam...",
             "2. Truy vấn song song Kho dữ liệu Vectơ cục bộ (TF-IDF Cosine Similarity) và Cơ sở dữ liệu SQLite FTS5 (BM25)...",
-            "3. Lọc và chuẩn hóa dữ liệu từ các văn bản Luật thuế mới (Luật 48, Luật 149, Thông tư 20, Nghị định 123/125/132)...",
-            "4. Đánh giá tính khả thi ứng dụng Công cụ Thuế AI (Anomaly, ML predict, Graph, ZKP, Merkle Tree)...",
-            "5. Mô phỏng rủi ro tuân thủ và ước tính biểu phạt vi phạm hành chính theo Nghị định 125...",
+            "3. Lấy ra các trang biểu mẫu / bảng biểu biểu thuế và sơ đồ layout visual (PixelRAG) tương ứng...",
+            "4. Mã hóa và truyền tải dữ liệu đa phương thức (Multimodal Image Chunks) của trang biểu thuế đến LLM...",
+            "5. Đánh giá tính khả thi ứng dụng Công cụ Thuế AI (Anomaly, ML predict, Graph, ZKP, Merkle Tree)...",
             "6. Tổng hợp phân tích đa chiều và xây dựng báo cáo khuyến nghị chi tiết dưới dạng Markdown..."
         ]
         
-    prompt = f"""Bạn là một chuyên gia tư vấn thuế cao cấp tại Việt Nam. Hãy trả lời câu hỏi sau đây dựa trên ngữ cảnh được cung cấp.
-Nếu ngữ cảnh không có thông tin, hãy dùng kiến thức chuyên môn sâu sắc của bạn nhưng PHẢI nêu rõ cơ sở pháp lý (trích dẫn cụ thể số Luật, Nghị định, Thông tư và số Điều tương ứng nếu có).
-
-Ngữ cảnh tham khảo:
+    system_prompt = (
+        "Bạn là một chuyên gia tư vấn thuế cao cấp tại Việt Nam. Hãy trả lời câu hỏi của người dùng dựa trên ngữ cảnh được cung cấp.\n"
+        "Nếu trong ngữ cảnh được đính kèm hình ảnh trang tài liệu gốc (PixelRAG), hãy quan sát kỹ cấu trúc bảng biểu, dòng và cột của hình ảnh để cung cấp câu trả lời chính xác nhất.\n"
+        "Hãy luôn nêu rõ cơ sở pháp lý (trích dẫn cụ thể số Luật, Nghị định, Thông tư và số Điều tương ứng nếu có)."
+    )
+    
+    user_content = f"""Ngữ cảnh tham khảo:
 {context_text}
 
 Câu hỏi:
@@ -566,43 +623,94 @@ Câu hỏi:
 Yêu cầu trả lời:
 - Trả lời bằng tiếng Việt trang trọng, rõ ràng.
 - Nêu cụ thể số Luật, Nghị định, Thông tư trong phần giải trình.
-- Cấu trúc phản hồi theo định dạng Markdown chuyên nghiệp với tiêu đề lớn.
+- Cấu trúc phản hồi theo định dạng Markdown chuyên nghiệp với các tiêu đề lớn.
 """
     if deep_research:
-        prompt += """
+        user_content += """
 - Đối với chế độ DEEP RESEARCH (Nghiên cứu Chuyên sâu): Hãy phân tích chi tiết thêm về cách ứng dụng các công cụ Thuế AI (như phát hiện gian lận bằng đồ thị, dự báo máy học, sổ cái Merkle bảo mật dữ liệu, kiểm toán tự động) để tối ưu hóa việc quản lý tuân thủ đối với nội dung được hỏi.
 """
 
     answer = ""
     try:
-        url = "http://localhost:11434/api/chat"
-        payload = {
-            "model": model_name,
-            "messages": [{"role": "user", "content": prompt}],
-            "stream": False
-        }
-        resp = requests.post(url, json=payload, timeout=8)
-        if resp.status_code == 200:
-            answer = resp.json().get("message", {}).get("content", "").strip()
+        if provider == "ollama":
+            url = f"{settings.get('ai_ollama_endpoint', 'http://localhost:11434').rstrip('/')}/api/chat"
+            payload = {
+                "model": m_name,
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_content}
+                ],
+                "stream": False,
+                "options": {"temperature": 0.1}
+            }
+            resp = requests.post(url, json=payload, timeout=30)
+            if resp.status_code == 200:
+                answer = resp.json().get("message", {}).get("content", "").strip()
+                
+        elif provider == "gemini":
+            gemini_model = m_name if m_name else "gemini-1.5-flash"
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{gemini_model}:generateContent?key={api_key}"
+            
+            prompt_text = f"System Instruction:\n{system_prompt}\n\nUser Input:\n{user_content}"
+            parts = [{"text": prompt_text}]
+            
+            # Append images to multimodal Gemini request
+            for img in retrieved_images:
+                parts.append({
+                    "inlineData": {
+                        "mimeType": "image/png",
+                        "data": img["base64"]
+                    }
+                })
+                
+            payload = {
+                "contents": [{"parts": parts}],
+                "generationConfig": {"temperature": 0.1}
+            }
+            resp = requests.post(url, json=payload, timeout=45)
+            if resp.status_code == 200:
+                answer = resp.json().get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "").strip()
+                
+        elif provider == "openai":
+            openai_model = m_name if m_name else "gpt-4o-mini"
+            url = "https://api.openai.com/v1/chat/completions"
+            headers = {"Authorization": f"Bearer {api_key}"}
+            
+            content_list = [{"type": "text", "text": user_content}]
+            for img in retrieved_images:
+                content_list.append({
+                    "type": "image_url",
+                    "image_url": {
+                        "url": f"data:image/png;base64,{img['base64']}"
+                    }
+                })
+                
+            payload = {
+                "model": openai_model,
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": content_list}
+                ],
+                "temperature": 0.1
+            }
+            resp = requests.post(url, json=payload, headers=headers, timeout=45)
+            if resp.status_code == 200:
+                answer = resp.json().get("choices", [{}])[0].get("message", {}).get("content", "").strip()
     except Exception:
         pass
         
     if not answer:
-        # Fallback to rich structured generation in Python
+        # Fallback to structured generation in Python if API call fails
         answer_parts = []
         
-        # 1. Title/Header
         title = "BÁO CÁO PHÂN TÍCH CHUYÊN SÂU (DEEP RESEARCH REPORT) - HỆ THỐNG THUẾ AI" if deep_research else "BÁO CÁO TRUY VẤN PHÁP LUẬT THUẾ"
         answer_parts.append(f"# {title}\n\n*Ngày tạo: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')} | Chế độ: {'Deep Research (Nghiên cứu Chuyên sâu)' if deep_research else 'Tiêu chuẩn'}*")
         
-        # 2. Executive Summary / Analysis of question
         answer_parts.append(f"### I. Phân tích Câu hỏi và Bối cảnh nghiệp vụ\n\nHệ thống Thuế AI đã thực hiện phân tích câu hỏi: *\"{query_text}\"*. Đối với vấn đề này, doanh nghiệp cần lưu ý các khía cạnh tuân thủ luật thuế hiện hành tại Việt Nam cũng như phương án tự động hóa kiểm soát nội bộ.")
         
-        # 3. Legal Basis citation
         legal_basis_text = "### II. Cơ sở Pháp lý và Quy định Thuế liên quan\n\nCăn cứ vào các văn bản pháp lý hiện hành, doanh nghiệp cần đối chiếu trực tiếp với:\n"
         has_legal = False
         
-        # Search for matches
         for doc in results:
             if "decree125" in doc["id"] or "125/2020" in doc["text"]:
                 legal_basis_text += "- **Nghị định 125/2020/NĐ-CP (Điều 16):** Quy định xử phạt hành vi khai sai dẫn đến thiếu số tiền thuế phải nộp hoặc tăng số tiền thuế được miễn, giảm, hoàn. Mức phạt hành chính là 20% số tiền thuế khai thiếu hoặc số tiền đã được hoàn cao hơn.\n"
@@ -629,7 +737,6 @@ Yêu cầu trả lời:
             
         answer_parts.append(legal_basis_text)
         
-        # 4. Tax AI implementation application
         if deep_research:
             ai_app_text = "### III. Giải pháp Kiểm soát Tự động với Công cụ Thuế AI (TAX AI)\n\nĐể chủ động kiểm soát rủi ro tuân thủ cho vấn đề này, doanh nghiệp có thể kích hoạt các công cụ AI tích hợp sẵn trên nền tảng:\n\n"
             ai_app_text += "1. **Kiểm toán Tự động & Quét Anomaly:** Tự động phát hiện các hóa đơn ký chậm, thiếu chữ ký số hoặc từ các đối tác thuộc danh sách đen (T-Score thấp).\n"
@@ -640,17 +747,21 @@ Yêu cầu trả lời:
             ai_app_text += "6. **Xác thực ZKP (Zero-Knowledge Proof):** Chứng minh tính tuân thủ thuế với ngân hàng hoặc đối tác mà không cần cung cấp toàn bộ báo cáo doanh thu chi tiết."
             answer_parts.append(ai_app_text)
             
-            # 5. Mitigation recommendations
             answer_parts.append("### IV. Khuyến nghị Vận hành & Kế hoạch Phòng vệ\n\n- **Bước 1:** Rà soát lại tất cả hóa đơn liên quan đến đối tượng được truy vấn thông qua Anomaly Detector.\n- **Bước 2:** Đối với các giao dịch mua hàng ủy quyền qua nhân viên, cần bổ sung ngay chứng từ chứng minh tiền hoàn trả từ tài khoản công ty khớp với tài khoản cá nhân đã thanh toán (theo Thông tư 20/2026).\n- **Bước 3:** Sử dụng chức năng *Soạn thảo Giải trình Thuế* (Nghị định 125) tích hợp trên thanh công cụ bên phải để xuất nhanh văn bản mẫu gửi cơ quan thuế quản lý trực tiếp.")
         else:
             answer_parts.append("### III. Khuyến nghị Vận hành\n\nDoanh nghiệp cần đối chiếu kỹ lưỡng chứng từ thanh toán ngân hàng (chuyển khoản) đối với các giao dịch mua bán có giá trị từ ngưỡng quy định pháp luật để đảm bảo điều kiện khấu trừ thuế GTGT đầu vào và chi phí được trừ khi tính thuế TNDN.")
             
         answer = "\n\n".join(answer_parts)
         
+    # Strip base64 keys from returned retrieved_images structure to prevent bloated network traffic
+    sanitized_images = [{"url": img["url"], "source": img["source"], "page": img["page"]} for img in retrieved_images]
+    
     return {
         "query": query_text,
         "answer": answer,
         "citations": citations,
-        "deep_steps": deep_steps
+        "deep_steps": deep_steps,
+        "retrieved_images": sanitized_images
     }
+
 

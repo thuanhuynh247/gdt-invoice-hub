@@ -119,7 +119,7 @@ def save_settings(settings):
 def get_rag_context(query: str):
     conn = get_db_connection()
     if not conn:
-        return ""
+        return "", []
     
     try:
         clean_q = re.sub(r'[^\w\s\d]', ' ', query).strip()
@@ -129,7 +129,7 @@ def get_rag_context(query: str):
         cursor = conn.cursor()
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='tax_regulation_fts'")
         if not cursor.fetchone():
-            return ""
+            return "", []
             
         sql = """
             SELECT chunk_content, document_source, page_number
@@ -143,15 +143,29 @@ def get_rag_context(query: str):
         
         if res:
             matches = []
+            citations = []
             for row in res:
                 content, source, page = row
                 matches.append(f"### [{source} - Trang {page}]\n{content}")
-            return "\n\n".join(matches)
+                
+                # Check for corresponding rendered image page
+                base_doc = os.path.splitext(source)[0]
+                img_name = f"{base_doc}_page_{page}.png"
+                workspace_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                img_path = os.path.join(workspace_dir, "static", "tax_pages", img_name)
+                
+                if os.path.exists(img_path):
+                    citations.append({
+                        "source": source,
+                        "page": page,
+                        "img_path": img_path
+                    })
+            return "\n\n".join(matches), citations
     except Exception as e:
         pass
     finally:
         conn.close()
-    return ""
+    return "", []
 
 def call_llm(settings, system_prompt, user_content):
     provider = settings.get("ai_provider", "ollama").lower()
@@ -370,7 +384,7 @@ def main():
                 
             # Perform RAG Search
             with Status("[cyan]Đang tra cứu luật thuế liên quan...", console=console) as status:
-                rag_context = get_rag_context(query_clean)
+                rag_context, citations = get_rag_context(query_clean)
                 
             if rag_context:
                 console.print(f"[info]Tìm thấy ngữ cảnh luật liên quan. Đang soạn câu trả lời...[/info]")
@@ -409,6 +423,32 @@ def main():
             console.print("[bold yellow]Trợ lý AI:[/bold yellow]")
             markdown_content = format_law_badges(response)
             console.print(Markdown(markdown_content))
+            
+            # Print visual citations if available
+            if citations:
+                console.print("\n[bold info]📷 Tài liệu tham khảo trực quan (PixelRAG):[/bold info]")
+                for idx, cit in enumerate(citations):
+                    console.print(f"  {idx+1}. [yellow]{cit['source']}[/yellow] (Trang {cit['page']}) -> [dim]{os.path.basename(cit['img_path'])}[/dim]")
+                
+                # Ask if the user wants to open the visual document page
+                if len(citations) == 1:
+                    opt = Confirm.ask("Bạn có muốn mở xem ảnh trang tài liệu trực quan này không?", default=False)
+                    if opt:
+                        try:
+                            os.startfile(citations[0]["img_path"])
+                            console.print("[success]Đã mở ảnh chụp tài liệu gốc bằng trình xem mặc định.[/success]")
+                        except Exception as e:
+                            console.print(f"[danger]Không thể mở ảnh:[/danger] {e}")
+                else:
+                    opt_str = Prompt.ask("Nhập số thứ tự của tài liệu để mở xem (hoặc ấn Enter để bỏ qua)", default="")
+                    if opt_str.isdigit():
+                        idx = int(opt_str) - 1
+                        if 0 <= idx < len(citations):
+                            try:
+                                os.startfile(citations[idx]["img_path"])
+                                console.print("[success]Đã mở ảnh chụp tài liệu gốc bằng trình xem mặc định.[/success]")
+                            except Exception as e:
+                                console.print(f"[danger]Không thể mở ảnh:[/danger] {e}")
             console.print("=" * 60 + "\n")
             
         except KeyboardInterrupt:
