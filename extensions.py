@@ -53,6 +53,11 @@ class TenantRoutingSession(FlaskSQLAlchemySession):
                     from sqlalchemy import text
                     try:
                         with engine.begin() as conn:
+                            # Performance index creation
+                            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_invoice_lookup ON invoice (taxpayer_mst, invoice_type, date, total_amount);"))
+                            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_line_item_invoice ON line_item (invoice_id, expense_category);"))
+                            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_bank_trans_lookup ON bank_transaction (taxpayer_mst, status, amount);"))
+
                             # 1. Partner table checks
                             res_partner = conn.execute(text("PRAGMA table_info(partner);")).fetchall()
                             if res_partner:

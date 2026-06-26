@@ -2,6 +2,11 @@
 
 {% block title %}Executive Control Center & Compliance Hub - Pro Upgrade{% endblock %}
 
+{% block head_extra %}
+<!-- Chart.js CDN inclusion -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
 {% block content %}
 <style>
     /* Wise Fintech Premium Dashboard Styles */
@@ -244,19 +249,17 @@
 
     <!-- Charts & Feed Layout -->
     <div class="row g-4 mb-5">
-        <!-- Left: Analytics Trends (SVG chart) -->
+        <!-- Left: Analytics Trends (Chart.js Line Chart replacing SVG) -->
         <div class="col-lg-8">
             <div class="glass-card h-100">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h5 class="fw-bold mb-0 text-gradient"><i class="bi bi-activity me-2" aria-hidden="true"></i>Biểu đồ Xu hướng Doanh số & Doanh thu Hóa đơn</h5>
+                    <h5 class="fw-bold mb-0 text-gradient"><i class="bi bi-activity me-2" aria-hidden="true"></i>Biểu đồ Xu hướng Doanh số & Chi phí Hóa đơn</h5>
                     <button class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-1" onclick="loadDashboardData()">
                         <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Làm mới
                     </button>
                 </div>
-                <div class="chart-box" style="position: relative;">
-                    <svg id="trend-chart" viewBox="0 0 800 250" style="width:100%; height:100%; overflow:visible;">
-                        <!-- SVG line chart loaded by javascript -->
-                    </svg>
+                <div class="chart-box" style="position: relative; height: 280px; width: 100%;">
+                    <canvas id="trendChartCanvas" style="width: 100%; height: 100%;"></canvas>
                 </div>
             </div>
         </div>
@@ -289,6 +292,115 @@
                     <div class="d-flex justify-content-between align-items-center p-2 rounded bg-premium-light-subtle">
                         <span class="small"><i class="bi bi-circle-fill text-danger me-2" aria-hidden="true"></i>Rủi ro cao (<70)</span>
                         <strong id="risk-high-count">0</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bank Reconciliation Console (Option B Integration) -->
+    <div class="glass-card mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+            <div>
+                <h4 class="fw-bold mb-0 text-gradient"><i class="bi bi-bank me-2" aria-hidden="true"></i>Đối soát Ngân hàng & Kiểm thử Thanh toán Không dùng Tiền mặt</h4>
+                <p class="text-muted mb-0 small mt-1">Hệ thống đối soát giao dịch ngân hàng tự động với hóa đơn mua vào trên 20 triệu đồng (Luật Thuế TNDN & Khấu trừ VAT).</p>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-success btn-sm rounded-pill px-3" onclick="triggerAutoMatch()">
+                    <i class="bi bi-magic me-1" aria-hidden="true"></i> Tự động Đối soát
+                </button>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Left: Bank Statement CSV Upload & Status -->
+            <div class="col-lg-4">
+                <div class="card bg-premium-light-subtle border-0 rounded-4 p-4 h-100">
+                    <h6 class="fw-bold mb-3"><i class="bi bi-cloud-upload-fill text-primary me-2" aria-hidden="true"></i>Tải lên Sao kê Ngân hàng (.CSV)</h6>
+                    
+                    <div class="border border-dashed rounded-4 p-4 text-center bg-white bg-opacity-20 position-relative mb-3 animate-hover" style="border-style: dashed !important; border-width: 2px !important; border-color: var(--border-card) !important; transition: transform 0.2s;">
+                        <input type="file" id="bankCsvFileInput" accept=".csv" class="position-absolute top-0 start-0 w-100 h-100 opacity-0" style="cursor: pointer;" onchange="handleBankCsvSelection()">
+                        <div id="bankCsvUploadPrompt">
+                            <i class="bi bi-file-earmark-spreadsheet-fill fs-2 text-success mb-2 d-block" aria-hidden="true"></i>
+                            <span class="small fw-semibold text-primary">Kéo thả hoặc nhấp để tải sao kê .CSV</span>
+                            <div class="text-muted small mt-1" style="font-size: 0.72rem;">Định dạng: Ngày, Diễn giải, Số tiền</div>
+                        </div>
+                        <div id="bankCsvFileInfo" class="d-none text-start p-2 bg-white bg-opacity-30 rounded">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-file-earmark-bar-graph text-success fs-3" aria-hidden="true"></i>
+                                <div class="overflow-hidden">
+                                    <strong class="small text-primary d-block text-truncate" id="bankCsvFileName">statement.csv</strong>
+                                    <span class="text-muted small" style="font-size: 0.72rem;" id="bankCsvFileSize">0 KB</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary-accent w-100" id="btnUploadBankCsv" onclick="uploadBankCsv()" disabled>
+                        <i class="bi bi-shield-upload me-1" aria-hidden="true"></i> Xử lý & Import Sao kê
+                    </button>
+
+                    <!-- Cash Risk Alert Area -->
+                    <div class="mt-4 border-top pt-3">
+                        <h6 class="fw-bold text-danger mb-2"><i class="bi bi-exclamation-triangle-fill me-1" aria-hidden="true"></i>Cảnh báo Rủi ro Tiền mặt (>20M)</h6>
+                        <div id="cash-risk-warnings-container" class="d-flex flex-column gap-2" style="max-height: 200px; overflow-y: auto; scrollbar-width: thin;">
+                            <div class="text-muted small text-center py-2">Không phát hiện rủi ro thanh toán tiền mặt.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Interactive Bank Transactions & Manual Match Console -->
+            <div class="col-lg-8">
+                <div class="card bg-premium-light-subtle border-0 rounded-4 p-3 h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold mb-0"><i class="bi bi-list-stars text-primary me-2" aria-hidden="true"></i>Giao dịch ngân hàng & Khớp hóa đơn</h6>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="loadReconciliationData()">
+                            <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Làm mới
+                        </button>
+                    </div>
+
+                    <!-- Manual Match Form -->
+                    <div class="bg-white bg-opacity-20 p-3 rounded-4 mb-3 border border-light border-opacity-10">
+                        <div class="row g-2 align-items-end">
+                            <div class="col-md-5">
+                                <label class="form-label small fw-semibold text-muted mb-1" for="manualTxnSelector">1. Chọn giao dịch ngân hàng</label>
+                                <select class="form-select form-select-sm" id="manualTxnSelector">
+                                    <option value="">-- Chọn giao dịch chưa khớp --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label small fw-semibold text-muted mb-1" for="manualInvoiceSelector">2. Chọn hóa đơn mua vào đối chiếu</label>
+                                <select class="form-select form-select-sm" id="manualInvoiceSelector">
+                                    <option value="">-- Chọn hóa đơn chưa khớp --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <button class="btn btn-primary btn-sm w-100" onclick="submitManualMatch()">
+                                    <i class="bi bi-link-45deg" aria-hidden="true"></i> Khớp
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Transactions Table -->
+                    <div class="table-responsive" style="max-height: 300px; overflow-y: auto; scrollbar-width: thin;">
+                        <table class="table table-sm table-hover align-middle mb-0" style="font-size: 0.8rem;">
+                            <thead>
+                                <tr>
+                                    <th>Ngày</th>
+                                    <th>Diễn giải</th>
+                                    <th>Số tiền</th>
+                                    <th>Độ tin cậy</th>
+                                    <th>Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bank-transactions-table-body">
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">Không có dữ liệu sao kê ngân hàng.</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -417,7 +529,6 @@
                 </div>
                 <p class="text-muted small mb-3">Tự động quét nội dung hóa đơn đầu vào và phân nhóm chi phí thành các danh mục quản trị.</p>
                 <div id="expense-chart-container" class="d-flex flex-column gap-3">
-                    <!-- Dynamic expense bars will be injected here -->
                     <div class="text-center py-4 text-muted small">
                         <span class="spinner-border spinner-border-sm me-2" role="status"></span> Đang phân tích dữ liệu chi phí…
                     </div>
@@ -537,6 +648,8 @@
 </div>
 
 <script>
+    let myTrendChart = null;
+
     function formatVND(val) {
         return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
     }
@@ -571,7 +684,7 @@
                     document.getElementById("risk-med-count").textContent = data.risk_distribution.medium;
                     document.getElementById("risk-high-count").textContent = data.risk_distribution.high;
 
-                    // Draw charts
+                    // Draw Chart.js Line Chart
                     drawTrendChart(data.monthly_trends);
                     drawDonutChart(data.risk_distribution);
                     
@@ -583,93 +696,128 @@
     }
 
     function drawTrendChart(trends) {
-        const svg = document.getElementById("trend-chart");
-        svg.innerHTML = "";
+        const canvas = document.getElementById("trendChartCanvas");
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
         
+        if (myTrendChart) {
+            myTrendChart.destroy();
+        }
+
         if (!trends || trends.length === 0) {
-            svg.innerHTML = `<text x="400" y="125" fill="var(--text-tertiary)" text-anchor="middle">Chưa có đủ lịch sử hóa đơn để tạo biểu đồ xu hướng</text>`;
+            ctx.font = "14px Inter, sans-serif";
+            ctx.fillStyle = "#888";
+            ctx.textAlign = "center";
+            ctx.fillText("Chưa có đủ lịch sử hóa đơn để tạo biểu đồ xu hướng", canvas.width / 2, canvas.height / 2);
             return;
         }
 
-        const width = 800;
-        const height = 250;
-        const paddingLeft = 70;
-        const paddingRight = 30;
-        const paddingTop = 20;
-        const paddingBottom = 45;
+        const labels = trends.map(t => t.month);
+        const salesData = trends.map(t => t.sales || t.amount || 0);
+        const purchasesData = trends.map(t => t.purchases || 0);
 
-        const maxAmount = Math.max(...trends.map(t => t.amount), 100000);
-        const minAmount = 0;
-        const range = maxAmount - minAmount;
+        // Gradients
+        const salesGrad = ctx.createLinearGradient(0, 0, 0, 250);
+        salesGrad.addColorStop(0, 'rgba(16, 185, 129, 0.15)');
+        salesGrad.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
 
-        const points = [];
-        trends.forEach((t, idx) => {
-            const x = paddingLeft + (idx / (trends.length - 1 || 1)) * (width - paddingLeft - paddingRight);
-            const y = height - paddingBottom - ((t.amount - minAmount) / range) * (height - paddingTop - paddingBottom);
-            points.push({ x, y, label: t.month, amount: t.amount });
-        });
+        const purchasesGrad = ctx.createLinearGradient(0, 0, 0, 250);
+        purchasesGrad.addColorStop(0, 'rgba(245, 158, 11, 0.15)');
+        purchasesGrad.addColorStop(1, 'rgba(245, 158, 11, 0.0)');
 
-        // Grid lines
-        let grid = "";
-        const gridTiers = [0, maxAmount / 2, maxAmount];
-        gridTiers.forEach(v => {
-            const gy = height - paddingBottom - ((v - minAmount) / range) * (height - paddingTop - paddingBottom);
-            grid += `
-                <line x1="${paddingLeft}" y1="${gy}" x2="${width - paddingRight}" y2="${gy}" stroke="var(--border-card)" stroke-width="1" />
-                <text x="${paddingLeft - 10}" y="${gy + 4}" fill="var(--text-tertiary)" font-size="10" text-anchor="end">${v >= 1000000000 ? (v/1000000000).toFixed(1) + 'B' : v >= 1000000 ? (v/1000000).toFixed(1) + 'M' : v.toFixed(0)}</text>
-            `;
-        });
-
-        // Labels
-        points.forEach(p => {
-            grid += `
-                <line x1="${p.x}" y1="${height - paddingBottom}" x2="${p.x}" y2="${height - paddingBottom + 5}" stroke="var(--border-card)" />
-                <text x="${p.x}" y="${height - paddingBottom + 20}" fill="var(--text-tertiary)" font-size="10" text-anchor="middle">${p.label}</text>
-            `;
-        });
-
-        // Bezier interpolation
-        function getBezier(pts) {
-            if (pts.length === 0) return "";
-            if (pts.length === 1) return `M ${pts[0].x} ${pts[0].y}`;
-            let d = `M ${pts[0].x} ${pts[0].y}`;
-            for (let i = 0; i < pts.length - 1; i++) {
-                const cpX1 = pts[i].x + (pts[i+1].x - pts[i].x) / 3;
-                const cpY1 = pts[i].y;
-                const cpX2 = pts[i].x + 2 * (pts[i+1].x - pts[i].x) / 3;
-                const cpY2 = pts[i+1].y;
-                d += ` C ${cpX1} ${cpY1}, ${cpX2} ${cpY2}, ${pts[i+1].x} ${pts[i+1].y}`;
+        myTrendChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Doanh số bán ra (Sales)',
+                        data: salesData,
+                        borderColor: '#10b981',
+                        backgroundColor: salesGrad,
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointBackgroundColor: '#10b981',
+                        pointHoverRadius: 7
+                    },
+                    {
+                        label: 'Chi phí mua vào (Purchases)',
+                        data: purchasesData,
+                        borderColor: '#f59e0b',
+                        backgroundColor: purchasesGrad,
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointBackgroundColor: '#f59e0b',
+                        pointHoverRadius: 7
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            color: '#888',
+                            font: {
+                                family: 'Outfit, Inter, sans-serif',
+                                size: 12,
+                                weight: '500'
+                            }
+                        }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += formatVND(context.parsed.y);
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#888',
+                            font: {
+                                family: 'Inter, sans-serif'
+                            }
+                        }
+                    },
+                    y: {
+                        grid: {
+                            color: 'rgba(128, 128, 128, 0.1)'
+                        },
+                        ticks: {
+                            color: '#888',
+                            font: {
+                                family: 'Inter, sans-serif'
+                            },
+                            callback: function(value) {
+                                if (value >= 1e9) return (value / 1e9).toFixed(1) + ' tỷ';
+                                if (value >= 1e6) return (value / 1e6).toFixed(1) + ' tr';
+                                return value;
+                            }
+                        }
+                    }
+                }
             }
-            return d;
-        }
-
-        const linePath = getBezier(points);
-        const areaPath = points.length > 0 ? `${linePath} L ${points[points.length-1].x} ${height-paddingBottom} L ${points[0].x} ${height-paddingBottom} Z` : "";
-
-        // Render hover dots
-        let dots = "";
-        points.forEach(p => {
-            dots += `
-                <circle cx="${p.x}" cy="${p.y}" r="4" fill="var(--bg-card)" stroke="var(--primary-accent)" stroke-width="2.5" style="cursor: pointer; transition: r 0.2s;" 
-                        onmouseenter="event.target.setAttribute('r', '7')"
-                        onmouseleave="event.target.setAttribute('r', '4')">
-                    <title>${p.label}: ${formatVND(p.amount)}</title>
-                </circle>
-            `;
         });
-
-        svg.innerHTML = `
-            ${grid}
-            <path d="${areaPath}" fill="url(#areaGrad)" />
-            <path d="${linePath}" fill="none" stroke="var(--primary-accent)" stroke-width="3" />
-            ${dots}
-            <defs>
-                <linearGradient id="areaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stop-color="var(--primary-accent)" stop-opacity="0.2"/>
-                    <stop offset="100%" stop-color="var(--primary-accent)" stop-opacity="0.0"/>
-                </linearGradient>
-            </defs>
-        `;
     }
 
     function drawDonutChart(dist) {
@@ -726,7 +874,6 @@
     function appendSimulatedLogs(data) {
         const container = document.getElementById("feed-log-container");
         
-        // Add random log dynamically to look highly interactive
         const complianceMessages = [
             "AI verification sweep completed on the newest tax calendar deadline.",
             "Incremental ledger synchronization matched 100% of imported GDT logs.",
@@ -747,7 +894,6 @@
             <p class="mb-0">${randomMsg}</p>
         `;
         
-        // Keep container size neat
         if (container.children.length > 5) {
             container.removeChild(container.lastElementChild);
         }
@@ -771,10 +917,7 @@
                     return;
                 }
 
-                // Calculate total
                 const totalExpenses = data.reduce((acc, curr) => acc + curr.amount, 0);
-
-                // ProgressBar colors cycle
                 const colors = ["bg-primary-accent", "bg-success", "bg-info", "bg-warning", "bg-danger", "bg-secondary"];
 
                 data.forEach((item, idx) => {
@@ -904,7 +1047,7 @@
 
                 resultDiv.innerHTML = `
                     <div class="d-flex align-items-start gap-2 text-success text-start small">
-                        <i class="bi bi-check-circle-fill fs-5 mt-0.5"></i>
+                        <i class="bi bi-check-circle-fill fs-5 mt-0.5" aria-hidden="true"></i>
                         <div>
                             <strong class="d-block text-success">XML HỢP LỆ (GDT COMPLIANT)</strong>
                             <span>Hóa đơn đáp ứng đầy đủ định dạng XML chuẩn của Tổng cục Thuế và chữ ký số hợp lệ.</span>
@@ -932,7 +1075,7 @@
 
                 resultDiv.innerHTML = `
                     <div class="d-flex align-items-start gap-2 text-danger text-start small mb-2">
-                        <i class="bi bi-exclamation-octagon-fill fs-5 mt-0.5"></i>
+                        <i class="bi bi-exclamation-octagon-fill fs-5 mt-0.5" aria-hidden="true"></i>
                         <div>
                             <strong class="d-block text-danger">PHÁT HIỆN LỖI TUÂN THỦ (NON-COMPLIANT)</strong>
                             <span>Hóa đơn XML nháp không đạt chuẩn kiểm tra trước phát hành. Vui lòng rà soát lỗi dưới đây:</span>
@@ -949,20 +1092,249 @@
             resultDiv.className = "mt-3 p-3 rounded-4 border border-danger bg-danger-soft";
             resultDiv.innerHTML = `
                 <div class="text-danger text-start small">
-                    <i class="bi bi-exclamation-octagon-fill me-2"></i><strong>Lỗi kết nối:</strong> Không thể hoàn tất quá trình kiểm định. Vui lòng thử lại sau.
+                    <i class="bi bi-exclamation-octagon-fill me-2" aria-hidden="true"></i><strong>Lỗi kết nối:</strong> Không thể hoàn tất quá trình kiểm định. Vui lòng thử lại sau.
                 </div>
             `;
         });
     }
 
+    // Option B: Bank Statement Reconciliation JS Operations
+    function handleBankCsvSelection() {
+        const fileInput = document.getElementById("bankCsvFileInput");
+        const promptDiv = document.getElementById("bankCsvUploadPrompt");
+        const infoDiv = document.getElementById("bankCsvFileInfo");
+        const btnUpload = document.getElementById("btnUploadBankCsv");
+
+        if (fileInput.files.length > 0) {
+            const file = fileInput.files[0];
+            document.getElementById("bankCsvFileName").textContent = file.name;
+            document.getElementById("bankCsvFileSize").textContent = `${(file.size / 1024).toFixed(1)} KB`;
+            
+            promptDiv.classList.add("d-none");
+            infoDiv.classList.remove("d-none");
+            btnUpload.removeAttribute("disabled");
+        } else {
+            promptDiv.classList.remove("d-none");
+            infoDiv.classList.add("d-none");
+            btnUpload.setAttribute("disabled", "true");
+        }
+    }
+
+    function uploadBankCsv() {
+        const fileInput = document.getElementById("bankCsvFileInput");
+        if (fileInput.files.length === 0) return;
+
+        const file = fileInput.files[0];
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const btnUpload = document.getElementById("btnUploadBankCsv");
+        btnUpload.setAttribute("disabled", "true");
+        btnUpload.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status"></span> Đang xử lý đối soát...`;
+
+        fetch("/api/reconciliation/upload", {
+            method: "POST",
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            btnUpload.removeAttribute("disabled");
+            btnUpload.innerHTML = `<i class="bi bi-shield-upload me-1" aria-hidden="true"></i> Xử lý & Import Sao kê`;
+            
+            // Show alert
+            const alertRegion = document.getElementById("appAlertRegion");
+            if (alertRegion) {
+                alertRegion.innerHTML = `
+                    <div class="alert alert-success alert-dismissible fade show rounded-4" role="alert">
+                        <i class="bi bi-check-circle-fill me-2" aria-hidden="true"></i>
+                        <strong>Thành công!</strong> Sao kê đã được nhập và đối soát. Trận đấu khớp: ${data.results.matches_found}, Hóa đơn cảnh báo rủi ro: ${data.results.invoices_flagged_risk}.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                `;
+            }
+
+            // Reset File input UI
+            fileInput.value = "";
+            document.getElementById("bankCsvUploadPrompt").classList.remove("d-none");
+            document.getElementById("bankCsvFileInfo").classList.add("d-none");
+            
+            // Reload tables
+            loadReconciliationData();
+            loadDashboardData();
+        })
+        .catch(err => {
+            console.error("Error uploading bank CSV:", err);
+            btnUpload.removeAttribute("disabled");
+            btnUpload.innerHTML = `<i class="bi bi-shield-upload me-1" aria-hidden="true"></i> Xử lý & Import Sao kê`;
+        });
+    }
+
+    function triggerAutoMatch() {
+        fetch("/api/invoices/reconcile/auto", {
+            method: "POST"
+        })
+        .then(res => res.json())
+        .then(data => {
+            const alertRegion = document.getElementById("appAlertRegion");
+            if (alertRegion) {
+                alertRegion.innerHTML = `
+                    <div class="alert alert-success alert-dismissible fade show rounded-4" role="alert">
+                        <i class="bi bi-magic me-2" aria-hidden="true"></i>
+                        <strong>Tự động đối soát thành công!</strong> Khớp thêm ${data.results.matches_found} hóa đơn. Cảnh báo rủi ro mới: ${data.results.invoices_flagged_risk}.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                `;
+            }
+            loadReconciliationData();
+            loadDashboardData();
+        })
+        .catch(err => console.error("Error during auto-match:", err));
+    }
+
+    function loadReconciliationData() {
+        // 1. Fetch transactions
+        fetch("/api/reconciliation/results")
+            .then(res => res.json())
+            .then(data => {
+                const tbody = document.getElementById("bank-transactions-table-body");
+                const manualTxnSel = document.getElementById("manualTxnSelector");
+                
+                tbody.innerHTML = "";
+                manualTxnSel.innerHTML = `<option value="">-- Chọn giao dịch chưa khớp --</option>`;
+
+                if (data.status === "success" && data.transactions.length > 0) {
+                    data.transactions.forEach(txn => {
+                        const tr = document.createElement("tr");
+                        
+                        let statusBadge = `<span class="badge bg-warning-subtle text-warning">Chưa khớp</span>`;
+                        if (txn.status === "matched") {
+                            statusBadge = `<span class="badge bg-success-subtle text-success">Đã khớp (ID: ${txn.matched_invoice_id.substring(0,8)}...)</span>`;
+                        }
+
+                        const confidence = txn.confidence_score ? `${Math.round(txn.confidence_score * 100)}%` : "-";
+
+                        tr.innerHTML = `
+                            <td>${txn.transaction_date}</td>
+                            <td>${txn.description}</td>
+                            <td class="fw-semibold">${formatVND(txn.amount)}</td>
+                            <td>${confidence}</td>
+                            <td>${statusBadge}</td>
+                        `;
+                        tbody.appendChild(tr);
+
+                        // Add to selector if unmatched
+                        if (txn.status !== "matched") {
+                            const opt = document.createElement("option");
+                            opt.value = txn.id;
+                            opt.textContent = `[${txn.transaction_date}] ${txn.description.substring(0, 30)}... (${formatVND(txn.amount)})`;
+                            manualTxnSel.appendChild(opt);
+                        }
+                    });
+                } else {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="text-center py-4 text-muted">Không có dữ liệu sao kê ngân hàng cho mã số thuế này.</td>
+                        </tr>
+                    `;
+                }
+            })
+            .catch(err => console.error("Error loading bank transactions:", err));
+
+        // 2. Fetch unmatched purchase invoices
+        fetch("/api/invoices/unmatched")
+            .then(res => res.json())
+            .then(data => {
+                const manualInvSel = document.getElementById("manualInvoiceSelector");
+                const warningsContainer = document.getElementById("cash-risk-warnings-container");
+                
+                manualInvSel.innerHTML = `<option value="">-- Chọn hóa đơn chưa khớp --</option>`;
+                warningsContainer.innerHTML = "";
+
+                let highValueUnmatched = 0;
+
+                if (data.status === "success" && data.invoices.length > 0) {
+                    data.invoices.forEach(inv => {
+                        const opt = document.createElement("option");
+                        opt.value = inv.id;
+                        opt.textContent = `Số ${inv.number} - ${inv.seller_name.substring(0, 20)}... (${formatVND(inv.total_amount)})`;
+                        manualInvSel.appendChild(opt);
+
+                        // If amount >= 20M, flag as cash risk warning
+                        if (inv.total_amount >= 20000000) {
+                            highValueUnmatched++;
+                            const div = document.createElement("div");
+                            div.className = "d-flex justify-content-between align-items-center p-2 rounded bg-danger-soft border border-danger border-opacity-10";
+                            div.innerHTML = `
+                                <div>
+                                    <strong class="small text-danger d-block">HĐ Số ${inv.number} (${formatVND(inv.total_amount)})</strong>
+                                    <span class="text-muted" style="font-size: 0.65rem;">Người bán: ${inv.seller_name.substring(0, 22)}...</span>
+                                </div>
+                                <span class="badge bg-danger p-1" style="font-size: 0.6rem;">Chưa đối soát</span>
+                            `;
+                            warningsContainer.appendChild(div);
+                        }
+                    });
+                }
+
+                if (highValueUnmatched === 0) {
+                    warningsContainer.innerHTML = `
+                        <div class="text-muted small text-center py-2">
+                            <i class="bi bi-check-circle-fill text-success me-1" aria-hidden="true"></i> Không phát hiện rủi ro thanh toán tiền mặt.
+                        </div>
+                    `;
+                }
+            })
+            .catch(err => console.error("Error loading unmatched invoices:", err));
+    }
+
+    function submitManualMatch() {
+        const txnId = document.getElementById("manualTxnSelector").value;
+        const invId = document.getElementById("manualInvoiceSelector").value;
+
+        if (!txnId || !invId) {
+            alert("Vui lòng chọn cả giao dịch ngân hàng và hóa đơn tương ứng để đối soát.");
+            return;
+        }
+
+        fetch("/api/invoices/reconcile/manual", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                transaction_id: txnId,
+                invoice_id: invId
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            const alertRegion = document.getElementById("appAlertRegion");
+            if (alertRegion) {
+                alertRegion.innerHTML = `
+                    <div class="alert alert-success alert-dismissible fade show rounded-4" role="alert">
+                        <i class="bi bi-link-45deg me-2" aria-hidden="true"></i>
+                        <strong>Đối soát thủ công thành công!</strong> Đã liên kết hóa đơn với giao dịch ngân hàng.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                `;
+            }
+            loadReconciliationData();
+            loadDashboardData();
+        })
+        .catch(err => console.error("Error during manual match:", err));
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
         loadDashboardData();
         loadExpenseCategories();
-        // Dynamic loading interval every 10 seconds to feel live
+        loadReconciliationData();
+        
+        // Auto reload interval every 12 seconds
         setInterval(() => {
             loadDashboardData();
             loadExpenseCategories();
-        }, 10000);
+            loadReconciliationData();
+        }, 12000);
     });
 </script>
 {% endblock %}

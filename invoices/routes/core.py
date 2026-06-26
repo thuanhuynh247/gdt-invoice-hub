@@ -72,12 +72,30 @@ def dashboard_page():
         medium_risk_count = Invoice.query.filter(Invoice.taxpayer_mst == mst, Invoice.t_score >= 70, Invoice.t_score < 90).count()
         safe_count = Invoice.query.filter(Invoice.taxpayer_mst == mst, Invoice.t_score >= 90).count()
         
-        # Also fetch the monthly amounts for the chart
-        monthly_stats = db.session.query(
+        # Also fetch the monthly amounts for the chart (Sales and Purchases separately)
+        sales_stats = db.session.query(
             func.substr(Invoice.date, 1, 7).label("month"),
             func.sum(Invoice.total_amount).label("amount")
-        ).filter_by(taxpayer_mst=mst).group_by("month").order_by("month").all()
-        monthly_data = [{"month": row.month, "amount": row.amount} for row in monthly_stats]
+        ).filter_by(taxpayer_mst=mst, invoice_type="sale").group_by("month").order_by("month").all()
+
+        purchases_stats = db.session.query(
+            func.substr(Invoice.date, 1, 7).label("month"),
+            func.sum(Invoice.total_amount).label("amount")
+        ).filter_by(taxpayer_mst=mst, invoice_type="purchase").group_by("month").order_by("month").all()
+
+        sales_dict = {row.month: row.amount for row in sales_stats}
+        purchases_dict = {row.month: row.amount for row in purchases_stats}
+        all_months = sorted(list(set(sales_dict.keys()) | set(purchases_dict.keys())))
+
+        monthly_data = [
+            {
+                "month": m,
+                "sales": sales_dict.get(m, 0.0),
+                "purchases": purchases_dict.get(m, 0.0),
+                "amount": sales_dict.get(m, 0.0) # backward compatibility
+            }
+            for m in all_months
+        ]
         
         cached_result = {
             "status": "success",
@@ -139,13 +157,30 @@ def api_dashboard_stats():
     medium_risk_count = Invoice.query.filter(Invoice.taxpayer_mst == mst, Invoice.t_score >= 70, Invoice.t_score < 90).count()
     safe_count = Invoice.query.filter(Invoice.taxpayer_mst == mst, Invoice.t_score >= 90).count()
     
-    # Also fetch the monthly amounts for the chart
-    monthly_stats = db.session.query(
+    # Also fetch the monthly amounts for the chart (Sales and Purchases separately)
+    sales_stats = db.session.query(
         func.substr(Invoice.date, 1, 7).label("month"),
         func.sum(Invoice.total_amount).label("amount")
-    ).filter_by(taxpayer_mst=mst).group_by("month").order_by("month").all()
-    
-    monthly_data = [{"month": row.month, "amount": row.amount} for row in monthly_stats]
+    ).filter_by(taxpayer_mst=mst, invoice_type="sale").group_by("month").order_by("month").all()
+
+    purchases_stats = db.session.query(
+        func.substr(Invoice.date, 1, 7).label("month"),
+        func.sum(Invoice.total_amount).label("amount")
+    ).filter_by(taxpayer_mst=mst, invoice_type="purchase").group_by("month").order_by("month").all()
+
+    sales_dict = {row.month: row.amount for row in sales_stats}
+    purchases_dict = {row.month: row.amount for row in purchases_stats}
+    all_months = sorted(list(set(sales_dict.keys()) | set(purchases_dict.keys())))
+
+    monthly_data = [
+        {
+            "month": m,
+            "sales": sales_dict.get(m, 0.0),
+            "purchases": purchases_dict.get(m, 0.0),
+            "amount": sales_dict.get(m, 0.0) # backward compatibility
+        }
+        for m in all_months
+    ]
     
     response_payload = {
         "status": "success",
@@ -9821,4 +9856,66 @@ def api_expense_categories():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+# ==================== Invoice Monthly Trends API ====================
+
+@invoices_blueprint.get("/api/invoices/trends")
+def api_invoice_trends():
+    """Get sales and purchase trends grouped by month for the active taxpayer."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = session.get("active_taxpayer_mst") or session.get("taxpayer_mst") or session.get("tax_code")
+    if not mst:
+        return jsonify({"status": "success", "data": []})
+
+    from invoices.models import Invoice
+    from sqlalchemy import func
+
+    try:
+        # Query sold (sales) trends
+        sales_query = db.session.query(
+            func.substr(Invoice.date, 1, 7).label("month"),
+            func.sum(Invoice.total_amount).label("total")
+        ).filter(
+            Invoice.taxpayer_mst == mst,
+            Invoice.seller_mst == mst,
+            Invoice.is_cancelled == False
+        ).group_by("month").order_by("month").all()
+
+        # Query purchase (purchases) trends
+        purchases_query = db.session.query(
+            func.substr(Invoice.date, 1, 7).label("month"),
+            func.sum(Invoice.total_amount).label("total")
+        ).filter(
+            Invoice.taxpayer_mst == mst,
+            Invoice.buyer_mst == mst,
+            Invoice.is_cancelled == False
+        ).group_by("month").order_by("month").all()
+
+        # Group into a single structure
+        trends = {}
+        for row in sales_query:
+            if row.month:
+                trends[row.month] = {"month": row.month, "sales": float(row.total or 0.0), "purchases": 0.0}
+
+        for row in purchases_query:
+            if row.month:
+                if row.month in trends:
+                    trends[row.month]["purchases"] = float(row.total or 0.0)
+                else:
+                    trends[row.month] = {"month": row.month, "sales": 0.0, "purchases": float(row.total or 0.0)}
+
+        # Sort by month
+        sorted_trends = sorted(trends.values(), key=lambda x: x["month"])
+
+        return jsonify({
+            "status": "success",
+            "data": sorted_trends
+        }), 200
+
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
 
