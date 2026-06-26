@@ -127,6 +127,54 @@ def _extract_date_range():
 
 
 # ===========================================================================
+# POST /API/captcha/solve
+# ===========================================================================
+@smart_invoice_blueprint.post("/API/captcha/solve")
+def api_solve_captcha():
+    """Stateless CAPTCHA solving endpoint for external tools (e.g. Excel VBA).
+    
+    Accepts JSON:
+        {
+            "content": "<svg ...> or base64 string", 
+            "key": "optional_captcha_key",
+            "is_base64": false
+        }
+    
+    Returns JSON:
+        {"status": "success", "captcha": "ABCDE"}
+    """
+    payload = request.get_json(silent=True) or {}
+    content = payload.get("content", "").strip()
+    captcha_key = payload.get("key", "").strip() or None
+    is_base64 = payload.get("is_base64", False)
+    
+    if not content:
+        return jsonify({"error": "Thieu du lieu SVG (content)."}), 400
+        
+    svg_content = content
+    if is_base64:
+        import base64
+        try:
+            svg_content = base64.b64decode(content).decode("utf-8")
+        except Exception as e:
+            return jsonify({"error": f"Loi giai ma base64: {e}"}), 400
+            
+    try:
+        from auth.captcha_solver import solve_captcha_from_svg
+        solved_text = solve_captcha_from_svg(svg_content, captcha_key=captcha_key)
+        if solved_text:
+            return jsonify({
+                "status": "success",
+                "captcha": solved_text
+            })
+        else:
+            return jsonify({"error": "Khong the nhan dien duoc chu trong SVG."}), 422
+    except Exception as e:
+        logger.error("Error in api_solve_captcha: %s", e)
+        return jsonify({"error": f"Loi he thong: {str(e)}"}), 500
+
+
+# ===========================================================================
 # POST /API/login
 # ===========================================================================
 @smart_invoice_blueprint.post("/API/login")

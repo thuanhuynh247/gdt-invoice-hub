@@ -9,6 +9,55 @@ Covers the three smart-invoice.vn-compatible endpoints:
 from __future__ import annotations
 
 
+# ── /API/captcha/solve ──────────────────────────────────────────────────────
+
+
+class TestApiSolveCaptcha:
+    """CAPTCHA solving API endpoint."""
+
+    def test_solve_valid_mock_svg_success(self, client):
+        """Should solve a valid mock SVG containing a <text> tag."""
+        svg_content = (
+            '<?xml version="1.0" encoding="utf-8"?>'
+            '<svg xmlns="http://www.w3.org/2000/svg" width="150" height="50">'
+            '<text x="10" y="30" font-size="24" fill="black">MOCK12</text>'
+            '</svg>'
+        )
+        resp = client.post("/API/captcha/solve", json={
+            "content": svg_content,
+            "key": "test_key"
+        })
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert data["status"] == "success"
+        assert data["captcha"] == "MOCK12"
+
+    def test_solve_base64_svg_success(self, client):
+        """Should solve base64 encoded SVG content."""
+        import base64
+        svg_content = (
+            '<?xml version="1.0" encoding="utf-8"?>'
+            '<svg xmlns="http://www.w3.org/2000/svg" width="150" height="50">'
+            '<text x="10" y="30" font-size="24" fill="black">BASE64</text>'
+            '</svg>'
+        )
+        b64_content = base64.b64encode(svg_content.encode("utf-8")).decode("utf-8")
+        resp = client.post("/API/captcha/solve", json={
+            "content": b64_content,
+            "is_base64": True,
+            "key": "test_key_b64"
+        })
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert data["status"] == "success"
+        assert data["captcha"] == "BASE64"
+
+    def test_solve_missing_content_fails(self, client):
+        """Should return 400 if content is missing."""
+        resp = client.post("/API/captcha/solve", json={"key": "test_key"})
+        assert resp.status_code == 400
+
+
 # ── /API/login ─────────────────────────────────────────────────────────────
 
 
