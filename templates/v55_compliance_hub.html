@@ -12,6 +12,179 @@
 
 {% block title %}IET Law 107/2016 - Import-Export Tax Hub (v55){% endblock %}
 
+{% block head_extra %}
+<style>
+    /* Wise Fintech Design Tokens for v55 */
+    :root {
+        --wise-primary: #163300;
+        --wise-primary-light: rgba(22, 51, 0, 0.05);
+        --wise-accent: #02c39a;
+        --wise-accent-hover: #00a896;
+        --wise-dark: #1d2d1f;
+        --wise-light: #f7f9f7;
+        --wise-border: rgba(22, 51, 0, 0.1);
+        --glass-bg: rgba(255, 255, 255, 0.75);
+        --glass-border: rgba(255, 255, 255, 0.5);
+        --glass-shadow: 0 8px 32px 0 rgba(22, 51, 0, 0.06);
+    }
+
+    body {
+        background-color: var(--wise-light);
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* Premium Glass Card Adjustments */
+    .glass-card {
+        background: var(--glass-bg) !important;
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--glass-border) !important;
+        box-shadow: var(--glass-shadow) !important;
+        border-radius: 16px !important;
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+        margin-bottom: 24px;
+        overflow: hidden;
+    }
+
+    .glass-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 40px 0 rgba(22, 51, 0, 0.12) !important;
+    }
+
+    /* Form Controls Optimization */
+    .form-control, .form-select {
+        border-radius: 8px !important;
+        border: 1px solid var(--wise-border) !important;
+        padding: 0.6rem 0.75rem !important;
+        font-size: 0.9rem !important;
+        background-color: rgba(255, 255, 255, 0.8) !important;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--wise-accent) !important;
+        box-shadow: 0 0 0 4px rgba(2, 195, 154, 0.15) !important;
+        background-color: #fff !important;
+    }
+
+    /* Button Enhancements */
+    .btn-success, .btn-primary, .btn-warning {
+        background: linear-gradient(135deg, var(--wise-primary) 0%, #264d13 100%) !important;
+        border: none !important;
+        border-radius: 8px !important;
+        color: #fff !important;
+        padding: 0.6rem 1.25rem !important;
+        font-weight: 600 !important;
+        transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+    }
+
+    .btn-success:hover, .btn-primary:hover, .btn-warning:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(22, 51, 0, 0.2) !important;
+    }
+
+    .btn-success:active, .btn-primary:active, .btn-warning:active {
+        transform: translateY(1px);
+    }
+
+    /* Result Panel Animation & Aesthetics */
+    @keyframes calcPulse {
+        0% { 
+            box-shadow: 0 0 0 0 rgba(2, 195, 154, 0.4);
+            background-color: rgba(2, 195, 154, 0.15) !important; 
+        }
+        100% { 
+            box-shadow: 0 0 0 12px rgba(2, 195, 154, 0); 
+        }
+    }
+
+    .calc-pulse-effect {
+        animation: calcPulse 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* Baseline Cards Hover Glow */
+    .bg-premium-light {
+        transition: all 0.25s ease-in-out;
+        border-radius: 12px !important;
+        border: 1px solid rgba(22, 51, 0, 0.05) !important;
+    }
+
+    .bg-premium-light:hover {
+        background-color: rgba(255, 255, 255, 0.95) !important;
+        border-color: rgba(2, 195, 154, 0.3) !important;
+        box-shadow: 0 6px 16px rgba(22, 51, 0, 0.04);
+        transform: translateY(-2px);
+    }
+
+    /* Agent Debate Bubble Styling */
+    .debate-message-bubble {
+        transition: all 0.3s ease;
+        border-radius: 14px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    }
+
+    .debate-message-bubble:hover {
+        transform: translateX(4px);
+        box-shadow: 0 4px 12px rgba(22, 51, 0, 0.05);
+        border-color: rgba(2, 195, 154, 0.2) !important;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Table Adjustments */
+    .table-responsive {
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid rgba(22, 51, 0, 0.08);
+    }
+
+    .table thead {
+        background-color: var(--wise-primary) !important;
+        color: #fff !important;
+    }
+
+    .table th {
+        font-family: 'Outfit', sans-serif;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        padding: 12px 16px !important;
+        border-bottom: none !important;
+    }
+
+    .table td {
+        padding: 14px 16px !important;
+        font-size: 0.875rem;
+        vertical-align: middle;
+        border-bottom: 1px solid rgba(22, 51, 0, 0.05) !important;
+    }
+
+    .table tbody tr {
+        transition: background-color 0.15s ease;
+    }
+
+    .table tbody tr:hover {
+        background-color: rgba(2, 195, 154, 0.03) !important;
+    }
+
+    /* Custom Switch / Checkbox styling */
+    .form-check-input:checked {
+        background-color: var(--wise-accent) !important;
+        border-color: var(--wise-accent) !important;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container py-4">
 
@@ -172,6 +345,14 @@ document.addEventListener("DOMContentLoaded", () => {
             `<span class="badge bg-success">Yes - Exempt</span>` : 
             `<span class="badge bg-danger">No - Taxable</span>`;
         document.getElementById("res-notes").textContent = res.notes || "-";
+
+        // Pulse effect
+        const resPanel = document.getElementById("res-duty-amount").closest(".bg-premium-light");
+        if (resPanel) {
+            resPanel.classList.remove("calc-pulse-effect");
+            void resPanel.offsetWidth;
+            resPanel.classList.add("calc-pulse-effect");
+        }
     };
 
     const renderBaselines = (data) => {
@@ -200,16 +381,23 @@ document.addEventListener("DOMContentLoaded", () => {
         const container = document.getElementById("debate-container-v55");
         container.innerHTML = "";
         const colors = { 
-            "Border Customs Inspector": "bg-warning text-dark", 
-            "Trade Compliance Officer": "bg-success text-white", 
-            "Tax Advisory Consultant": "bg-info text-dark" 
+            "Border Customs Inspector": "bg-danger-subtle text-danger border border-danger", 
+            "Trade Compliance Officer": "bg-success-subtle text-success border border-success", 
+            "Tax Advisory Consultant": "bg-warning-subtle text-warning border border-warning" 
         };
-        debate.forEach(msg => {
+        debate.forEach((msg, idx) => {
             const div = document.createElement("div");
-            div.className = "d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";
+            div.className = "d-flex gap-3 align-items-start p-3 bg-white rounded border border-light-subtle debate-message-bubble";
+            div.style.animation = `fadeInUp 0.3s ease forwards ${idx * 0.1}s`;
+            div.style.opacity = "0";
             div.innerHTML = `
-                <span class="badge ${colors[msg.speaker] || "bg-secondary"} py-2 px-3" style="min-width: 200px;">${msg.speaker}</span>
-                <div class="text-dark small">${msg.text}</div>
+                <div class="d-flex flex-column align-items-center text-center" style="min-width: 140px;">
+                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mb-2" style="width: 40px; height: 40px;">
+                        <i class="bi bi-robot text-secondary fs-5"></i>
+                    </div>
+                    <span class="badge ${colors[msg.speaker] || "bg-secondary"} text-wrap py-1 px-2 small">${msg.speaker}</span>
+                </div>
+                <div class="text-dark small flex-grow-1 pt-1 leading-relaxed">${msg.text}</div>
             `;
             container.appendChild(div);
         });
