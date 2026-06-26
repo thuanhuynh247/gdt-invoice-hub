@@ -154,3 +154,144 @@ def test_api_tax_chat_fallback_and_rag(mock_post, mock_app):
     assert "citations" in data
     # Should contain at least some citations related to GTGT / Law 149 / Law 48
     assert len(data["citations"]) > 0
+
+
+# --- VBA & EXCEL INTEGRATION GATEWAY TESTS ---
+
+def test_vba_gateway_auth_failed(mock_app):
+    client = mock_app.test_client()
+    # Missing token -> 401
+    res = client.get("/api/v1/vba/status")
+    assert res.status_code == 401
+    
+    # Wrong token -> 401
+    res = client.get("/api/v1/vba/status?vba_token=wrong")
+    assert res.status_code == 401
+
+
+def test_vba_gateway_status_and_taxpayers(mock_app):
+    client = mock_app.test_client()
+    
+    # Standard seed profile
+    from invoices.models import TaxpayerProfile
+    with mock_app.app_context():
+        tp = TaxpayerProfile(
+            mst="0102030499",
+            company_name="Cong ty Kiem Thu",
+            gdt_username="testuser",
+            gdt_password_encrypted="pass",
+            is_active=True,
+            created_at="2026-01-01T00:00:00"
+        )
+        db.session.add(tp)
+        db.session.commit()
+
+    # Query with default token
+    res = client.get("/api/v1/vba/status?vba_token=vba-secret-token-123")
+    assert res.status_code == 200
+    data = json.loads(res.data)
+    assert data["status"] == "healthy"
+    assert data["total_taxpayers"] == 1
+
+    # Query taxpayers list
+    res_tp = client.get("/api/v1/vba/taxpayers?vba_token=vba-secret-token-123")
+    assert res_tp.status_code == 200
+    tps = json.loads(res_tp.data)
+    assert len(tps) == 1
+    assert tps[0]["mst"] == "0102030499"
+    assert tps[0]["company_name"] == "Cong ty Kiem Thu"
+
+
+@patch("auth.captcha_solver.solve_captcha_from_svg")
+def test_vba_gateway_solve_captcha(mock_solve, mock_app):
+    client = mock_app.test_client()
+    mock_solve.return_value = "XYZ12"
+
+    payload = {
+        "svg_content": "<svg><text>XYZ12</text></svg>",
+        "captcha_key": "some-session-key"
+    }
+    res = client.post("/api/v1/vba/solve-captcha?vba_token=vba-secret-token-123", json=payload)
+    assert res.status_code == 200
+    data = json.loads(res.data)
+    assert data["success"] is True
+    assert data["solution"] == "XYZ12"
+
+
+def test_vba_gateway_sync_invoices(mock_app):
+    client = mock_app.test_client()
+    
+    # Standard seed profile
+    from invoices.models import TaxpayerProfile
+    with mock_app.app_context():
+        tp = TaxpayerProfile(
+            mst="0102030499",
+            company_name="Cong ty Kiem Thu",
+            gdt_username="testuser",
+            gdt_password_encrypted="pass",
+            is_active=True,
+            created_at="2026-01-01T00:00:00"
+        )
+        db.session.add(tp)
+        db.session.commit()
+
+    payload = {
+        "taxpayer_mst": "0102030499",
+        "invoices": [
+            {
+                "seller_mst": "0123456789",
+                "symbol": "1C26TAA",
+                "number": "0000123",
+                "date": "2026-06-25",
+                "seller_name": "Nha Ban Si A",
+                "buyer_name": "Cong ty Kiem Thu",
+                "buyer_mst": "0102030499",
+                "amount_before_tax": 1000000.0,
+                "tax_amount": 80000.0,
+                "total_amount": 1080000.0,
+                "has_signature": True,
+                "signing_date": "2026-06-25",
+                "invoice_status": "Đã cấp mã",
+                "items": [
+                    {
+                        "item_name": "Dịch vụ phần mềm",
+                        "quantity": 1.0,
+                        "unit_price": 1000000.0,
+                        "amount_before_tax": 1000000.0,
+                        "tax_rate": "8%",
+                        "tax_amount": 80000.0,
+                        "amount_after_tax": 1080000.0
+                    }
+                ]
+            }
+        ]
+    }
+
+    res = client.post("/api/v1/vba/sync-invoices?vba_token=vba-secret-token-123", json=payload)
+    assert res.status_code == 200
+    data = json.loads(res.data)
+    assert data["success"] is True
+    assert data["summary"]["created"] == 1
+    assert data["summary"]["failed"] == 0
+
+    # Verify that it is in database and compliance validation was run
+    from invoices.models import Invoice, LineItem
+    with mock_app.app_context():
+        inv = db.session.get(Invoice, "0123456789-1c26taa-0000123")
+        assert inv is not None
+        assert inv.total_amount == 1080000.0
+        assert inv.taxpayer_mst == "0102030499"
+        
+        # Check line item is synced
+        items = LineItem.query.filter_by(invoice_id=inv.id).all()
+        assert len(items) == 1
+        assert items[0].item_name == "Dịch vụ phần mềm"
+        assert items[0].tax_rate == "8%"
+
+        # Check compliance auditing warnings are computed (warnings_json is a JSON string of list of alerts)
+        # Note: Since the mock DB lacks other invoices, semantic duplicate checks and other database-wide checks pass.
+        # But single invoice check ran and generated no error because math matches (1000000 + 80000 == 1080000).
+        assert inv.warnings_json is not None
+        warnings = json.loads(inv.warnings_json)
+        assert isinstance(warnings, list)
+
