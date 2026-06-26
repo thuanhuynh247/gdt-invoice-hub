@@ -11,20 +11,14 @@ from flask import current_app
 logger = logging.getLogger(__name__)
 
 
+from auth.proxy_manager import proxy_manager
+
 def _get_request_proxies() -> dict | None:
-    """Select a random proxy from config.GDT_PROXIES if available."""
+    """Select a rotated proxy from proxy_manager."""
     try:
-        proxies_list = current_app.config.get("GDT_PROXIES", [])
-        if not proxies_list:
-            return None
-        selected = random.choice(proxies_list)
-        logger.debug(f"Using rotated proxy for GDT request: {selected}")
-        return {
-            "http": selected,
-            "https": selected
-        }
+        return proxy_manager.get_active_proxy()
     except Exception as e:
-        logger.warning(f"Error selecting proxy: {e}")
+        logger.warning(f"Error selecting proxy from manager: {e}")
         return None
 
 
@@ -35,13 +29,19 @@ def gdt_request(method: str, path: str, **kwargs) -> requests.Response:
     - If standard request fails (network error or HTTP 403, 408, 429, 500+),
       automatically retries with direct port 30000 fallback (removing '/api/' prefix).
     - Sets browser-emulating headers to bypass WAF bot-detection.
-    - Automatically rotates proxies from config.GDT_PROXIES to bypass IP bans/limits.
-    - Automatically sleeps dynamically to prevent hitting rate limits too quickly.
+    - Automatically rotates proxies from GDTProxyManager to bypass IP bans/limits.
+    - Automatically sleeps dynamically based on proxy cooling state.
     """
-    # 0. Apply dynamic request delay for rate limit prevention
+    # 0. Check global cool-down first
+    if proxy_manager.is_global_cooldown():
+        rem = proxy_manager.get_global_cooldown_remaining()
+        logger.warning(f"GDT request blocked by active global cool-down. Remaining: {rem:.1f}s")
+        raise RuntimeError(f"GDT client is in global cool-down mode. Try again in {rem:.1f}s.")
+
+    # Apply dynamic request delay for rate limit prevention
     try:
-        delay_min = current_app.config.get("GDT_REQUEST_DELAY_MIN", 1.0)
-        delay_max = current_app.config.get("GDT_REQUEST_DELAY_MAX", 3.0)
+        delay_min = proxy_manager.dynamic_delay_min
+        delay_max = proxy_manager.dynamic_delay_max
         if delay_max > delay_min:
             sleep_time = random.uniform(delay_min, delay_max)
             logger.debug(f"Applying rate limit delay of {sleep_time:.2f}s before GDT request")
@@ -54,8 +54,8 @@ def gdt_request(method: str, path: str, **kwargs) -> requests.Response:
 
     # Construct clean headers
     headers = kwargs.get("headers", {}).copy()
-    if "User-Agent" not in headers:
-        headers["User-Agent"] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
+    if "User-Agent" not in headers or "Mozilla" not in headers.get("User-Agent", ""):
+        headers["User-Agent"] = proxy_manager.get_random_user_agent()
     if "Accept" not in headers:
         headers["Accept"] = "application/json, text/plain, */*"
     if "Accept-Language" not in headers:
@@ -65,10 +65,12 @@ def gdt_request(method: str, path: str, **kwargs) -> requests.Response:
     kwargs["timeout"] = timeout
 
     # Attach proxy if configured (unless overridden in kwargs)
+    proxy_used = None
     if "proxies" not in kwargs:
         proxy_dict = _get_request_proxies()
         if proxy_dict:
             kwargs["proxies"] = proxy_dict
+            proxy_used = proxy_dict.get("http")
 
     # 1. Try standard URL
     clean_path = path.lstrip('/')
@@ -76,6 +78,9 @@ def gdt_request(method: str, path: str, **kwargs) -> requests.Response:
     logger.debug(f"GDT standard request: {method} {standard_url}")
 
     last_error = None
+    resp = None
+    start_time = time.time()
+
     try:
         # Send OPTIONS preflight handshake if doing credentials authentication
         if method.upper() == "POST" and "authenticate" in clean_path:
@@ -96,20 +101,37 @@ def gdt_request(method: str, path: str, **kwargs) -> requests.Response:
         else:
             resp = requests.request(method, standard_url, **kwargs)
 
+        latency_ms = (time.time() - start_time) * 1000.0
+
         if resp.status_code not in [403, 408, 429, 500, 502, 503, 504]:
+            if proxy_used:
+                proxy_manager.report_success(proxy_used, latency_ms)
             return resp
+
         last_error = f"HTTP {resp.status_code}: {resp.text[:200]}"
+        if proxy_used:
+            proxy_manager.report_failure(proxy_used, resp.status_code, last_error)
     except Exception as e:
-        last_error = e
+        last_error = str(e)
+        if proxy_used:
+            proxy_manager.report_failure(proxy_used, None, last_error)
 
     # 2. Port 30000 direct fallback (matching VBA client)
     logger.warning(f"GDT standard request failed ({last_error}). Retrying with direct port 30000 fallback...")
 
-    # If standard request failed due to proxy issue, we can rotate to a different proxy for the fallback
+    # For fallback, check global cooldown again
+    if proxy_manager.is_global_cooldown():
+        raise RuntimeError(f"GDT client fallback aborted due to active global cool-down. Error: {last_error}")
+
+    # Rotate proxy for fallback
+    proxy_used_fallback = None
     if "proxies" in kwargs:
         new_proxy_dict = _get_request_proxies()
         if new_proxy_dict:
             kwargs["proxies"] = new_proxy_dict
+            proxy_used_fallback = new_proxy_dict.get("http")
+        else:
+            kwargs.pop("proxies", None)
 
     from urllib.parse import urlparse, urlunparse
     parsed = urlparse(base_url)
@@ -133,6 +155,7 @@ def gdt_request(method: str, path: str, **kwargs) -> requests.Response:
 
     kwargs["headers"] = fallback_headers
 
+    fallback_start = time.time()
     try:
         # Send OPTIONS preflight on fallback URL if authenticate
         if method.upper() == "POST" and "authenticate" in fallback_path:
@@ -152,9 +175,21 @@ def gdt_request(method: str, path: str, **kwargs) -> requests.Response:
             resp = requests.get(fallback_url, **kwargs)
         else:
             resp = requests.request(method, fallback_url, **kwargs)
-        return resp
+
+        fallback_latency = (time.time() - fallback_start) * 1000.0
+
+        if resp.status_code not in [403, 408, 429, 500, 502, 503, 504]:
+            if proxy_used_fallback:
+                proxy_manager.report_success(proxy_used_fallback, fallback_latency)
+            return resp
+
+        fallback_err_msg = f"HTTP {resp.status_code}: {resp.text[:200]}"
+        if proxy_used_fallback:
+            proxy_manager.report_failure(proxy_used_fallback, resp.status_code, fallback_err_msg)
+        raise RuntimeError(f"GDT connection failed (fallback status code: {resp.status_code})")
     except Exception as fallback_err:
         logger.error(f"GDT direct port 30000 fallback failed: {fallback_err}")
-        if isinstance(last_error, Exception):
-            raise last_error
+        if proxy_used_fallback:
+            proxy_manager.report_failure(proxy_used_fallback, None, str(fallback_err))
         raise RuntimeError(f"GDT connection failed (fallback error: {fallback_err})") from fallback_err
+

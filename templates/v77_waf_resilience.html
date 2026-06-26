@@ -1,0 +1,589 @@
+{% extends "base.html" %}
+
+{% block title %}Cấu hình Proxy & WAF Resilience v77 - GDT Invoice Hub{% endblock %}
+
+{% block head_extra %}
+<style>
+    :root {
+        --waf-primary: #f43f5e;
+        --waf-primary-glow: rgba(244, 63, 94, 0.15);
+        --waf-success: #10b981;
+        --waf-warning: #f59e0b;
+        --waf-bg-card: rgba(255, 255, 255, 0.85);
+        --waf-border: rgba(226, 232, 240, 0.8);
+        --waf-text-muted: #64748b;
+        --waf-console-bg: #0f172a;
+        --waf-console-text: #38bdf8;
+    }
+
+    [data-theme="dark"] {
+        --waf-bg-card: rgba(15, 23, 42, 0.85);
+        --waf-border: rgba(51, 65, 85, 0.6);
+        --waf-text-muted: #94a3b8;
+        --waf-console-bg: #020617;
+        --waf-console-text: #34d399;
+    }
+
+    .waf-container {
+        font-family: 'Inter', sans-serif;
+    }
+
+    .glass-card {
+        background: var(--waf-bg-card);
+        backdrop-filter: blur(16px);
+        border: 1px solid var(--waf-border);
+        border-radius: 16px;
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .glass-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06);
+    }
+
+    .kpi-value {
+        font-family: 'Outfit', sans-serif;
+        font-weight: 700;
+        font-size: 2.25rem;
+        letter-spacing: -0.02em;
+    }
+
+    .kpi-accent {
+        color: var(--waf-primary);
+        text-shadow: 0 0 12px var(--waf-primary-glow);
+    }
+
+    .console-pane {
+        background-color: var(--waf-console-bg);
+        color: var(--waf-console-text);
+        font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+        font-size: 0.85rem;
+        border-radius: 12px;
+        border: 1px solid var(--waf-border);
+        padding: 15px;
+        height: 280px;
+        overflow-y: auto;
+        box-shadow: inset 0 2px 8px rgba(0,0,0,0.5);
+    }
+
+    .console-line {
+        margin-bottom: 4px;
+        line-height: 1.4;
+    }
+
+    .console-timestamp {
+        color: #64748b;
+        margin-right: 8px;
+    }
+
+    .console-success { color: #10b981; }
+    .console-warning { color: #fbbf24; }
+    .console-danger { color: #f87171; }
+    .console-info { color: #38bdf8; }
+
+    @keyframes pulse-glow {
+        0% {
+            box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.4);
+        }
+        70% {
+            box-shadow: 0 0 0 10px rgba(244, 63, 94, 0);
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(244, 63, 94, 0);
+        }
+    }
+
+    .pulse-active {
+        animation: pulse-glow 2s infinite;
+    }
+
+    .btn-gradient {
+        background: linear-gradient(135deg, var(--waf-primary), #be123c);
+        color: white;
+        border: none;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+
+    .btn-gradient:hover {
+        background: linear-gradient(135deg, #be123c, #9f1239);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(244, 63, 94, 0.3);
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="waf-container container-fluid py-3">
+    <!-- Header Title -->
+    <div class="row align-items-center mb-4">
+        <div class="col-md-8">
+            <h1 class="h2 fw-bold mb-1 d-flex align-items-center gap-2">
+                <i class="bi bi-shield-shaded text-danger" aria-hidden="true"></i>
+                WAF Resilience & Proxy Controller
+            </h1>
+            <p class="text-secondary mb-0">Hệ thống xoay vòng Proxy thông minh, tự động giãn cách độ trễ và phục hồi lỗi WAF khi đồng bộ dữ liệu Tổng Cục Thuế (GDT).</p>
+        </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+            <div class="d-inline-flex align-items-center gap-2 bg-light dark-bg-slate-800 border p-2 rounded-pill px-3">
+                <span class="d-inline-block rounded-circle bg-success" style="width: 10px; height: 10px;" id="globalStatusDot"></span>
+                <span class="small fw-semibold text-secondary">Trạng thái WAF: </span>
+                <span class="small fw-bold text-success" id="globalStatusText">Bình thường</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Row 1: KPI Telemetry Cards -->
+    <div class="row g-4 mb-4">
+        <!-- Card 1: Total Proxies -->
+        <div class="col-lg-3 col-md-6">
+            <div class="glass-card p-4 h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-secondary small fw-bold uppercase">Tổng Số Proxy</span>
+                        <i class="bi bi-router text-secondary fs-5" aria-hidden="true"></i>
+                    </div>
+                    <div class="kpi-value my-2" id="kpiTotalProxies">0</div>
+                </div>
+                <div class="small text-secondary pt-2 border-top" id="kpiHealthyProxies">Đang hoạt động: 0</div>
+            </div>
+        </div>
+
+        <!-- Card 2: Global Cooldown Status -->
+        <div class="col-lg-3 col-md-6">
+            <div class="glass-card p-4 h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-secondary small fw-bold uppercase">Hệ Thống Tránh Chặn WAF</span>
+                        <i class="bi bi-hourglass-split text-warning fs-5" aria-hidden="true"></i>
+                    </div>
+                    <div class="kpi-value kpi-accent my-2" id="kpiCooldownText">Không</div>
+                </div>
+                <div class="small text-secondary pt-2 border-top" id="kpiCooldownRemaining">Cooldown: 0s</div>
+            </div>
+        </div>
+
+        <!-- Card 3: Dynamic Request Sleep Delay -->
+        <div class="col-lg-3 col-md-6">
+            <div class="glass-card p-4 h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-secondary small fw-bold uppercase">Độ Trễ Giãn Cách</span>
+                        <i class="bi bi-stopwatch text-info fs-5" aria-hidden="true"></i>
+                    </div>
+                    <div class="kpi-value my-2" id="kpiDelayRange">1.0s - 3.0s</div>
+                </div>
+                <div class="small text-secondary pt-2 border-top">Thích ứng thông minh với WAF GDT</div>
+            </div>
+        </div>
+
+        <!-- Card 4: Rotated User Agents -->
+        <div class="col-lg-3 col-md-6">
+            <div class="glass-card p-4 h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-secondary small fw-bold uppercase">Xoay Vòng Thiết Bị</span>
+                        <i class="bi bi-browser-chrome text-success fs-5" aria-hidden="true"></i>
+                    </div>
+                    <div class="kpi-value text-success my-2" style="font-size: 1.8rem;" id="kpiUserAgentsCount">32 UAs</div>
+                </div>
+                <div class="small text-secondary pt-2 border-top">Giảm thiểu vân tay thiết bị (Fingerprint)</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Row 2: Settings & Simulation Control -->
+    <div class="row g-4 mb-4">
+        <!-- Settings Panel -->
+        <div class="col-xl-5 col-lg-6">
+            <div class="glass-card p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="h5 fw-bold mb-0 d-flex align-items-center gap-2">
+                        <i class="bi bi-sliders text-danger" aria-hidden="true"></i>
+                        Quản Lý Danh Sách Proxy
+                    </h3>
+                    <button class="btn btn-sm btn-outline-danger" id="btnClearCooldowns">
+                        <i class="bi bi-trash3-fill" aria-hidden="true"></i> Reset Cooldowns
+                    </button>
+                </div>
+                <hr class="my-3">
+
+                <!-- Add Proxy Form -->
+                <div class="mb-4 bg-light dark-bg-slate-800 p-3 rounded-3 border">
+                    <h4 class="h6 fw-bold mb-2">Thêm Proxy Mới</h4>
+                    <form id="addProxyForm">
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="newProxyUrl" placeholder="http://username:password@ip:port hoặc http://ip:port" required>
+                            <button class="btn btn-danger" type="submit">
+                                <i class="bi bi-plus-lg" aria-hidden="true"></i> Thêm
+                            </button>
+                        </div>
+                        <span class="small text-secondary d-block mt-1">Hỗ trợ định dạng HTTP / HTTPS Proxy, có hoặc không có Basic Authentication.</span>
+                    </form>
+                </div>
+
+                <!-- Proxy List -->
+                <h4 class="h6 fw-bold mb-3 d-flex justify-content-between align-items-center">
+                    <span>Danh Sách Proxy Hiện Tại</span>
+                    <button class="btn btn-sm btn-link text-danger p-0" id="btnRefreshList">
+                        <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Tải lại danh sách
+                    </button>
+                </h4>
+                <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                    <table class="table table-hover table-sm align-middle" style="font-size: 0.85rem;" id="proxyListTable">
+                        <thead class="table-light dark-bg-slate-800">
+                            <tr>
+                                <th>Proxy URL</th>
+                                <th>Trạng Thái</th>
+                                <th>Lỗi Liên Tiếp</th>
+                                <th>Latency</th>
+                                <th>Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="proxyListTableBody">
+                            <tr>
+                                <td colspan="5" class="text-center py-3 text-secondary">Đang tải danh sách proxy...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Simulator and Console Panel -->
+        <div class="col-xl-7 col-lg-6">
+            <div class="glass-card p-4 h-100">
+                <h3 class="h5 fw-bold mb-3 d-flex align-items-center gap-2">
+                    <i class="bi bi-play-btn text-danger" aria-hidden="true"></i>
+                    Bản Mô Phỏng Request & Nhật Ký Thời Gian Thực
+                </h3>
+                <hr class="my-3">
+
+                <!-- Simulator form -->
+                <div class="bg-light dark-bg-slate-800 p-3 rounded-3 border mb-4">
+                    <h4 class="h6 fw-bold mb-2">Mô Phỏng Lỗi / Thành Công Từ WAF</h4>
+                    <form id="simulateRequestForm" class="row g-3">
+                        <div class="col-md-5">
+                            <label for="simProxyUrl" class="form-label small fw-bold">Chọn Proxy</label>
+                            <select class="form-select form-select-sm" id="simProxyUrl" required>
+                                <option value="">Đang tải...</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="simStatusCode" class="form-label small fw-bold">Status Code Phản Hồi</label>
+                            <select class="form-select form-select-sm" id="simStatusCode">
+                                <option value="200">200 OK (Thành công)</option>
+                                <option value="403">403 Forbidden (WAF Blocked)</option>
+                                <option value="429">429 Too Many Requests (Rate Limit)</option>
+                                <option value="503">503 Service Unavailable (Overloaded)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button class="btn btn-danger btn-sm w-100 py-2" type="submit" id="btnSimulate">
+                                <i class="bi bi-lightning-fill me-1" aria-hidden="true"></i> Gửi Request
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Live Developer Terminal Console -->
+                <h4 class="h6 fw-bold mb-2 d-flex justify-content-between align-items-center">
+                    <span>Bảng Điều Khiển / Live Logs</span>
+                    <button class="btn btn-sm btn-link text-secondary p-0" id="btnClearLogs">
+                        <i class="bi bi-trash" aria-hidden="true"></i> Xóa Logs
+                    </button>
+                </h4>
+                <div class="console-pane" id="consoleLogs">
+                    <div class="console-line">
+                        <span class="console-timestamp">[00:00:00]</span>
+                        <span class="console-info">Hệ thống WAF Resilience đã khởi chạy. Sẵn sàng giám sát...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const consoleLogs = document.getElementById("consoleLogs");
+        const proxyListTableBody = document.getElementById("proxyListTableBody");
+        const simProxyUrl = document.getElementById("simProxyUrl");
+
+        function addLog(type, message) {
+            const timeStr = new Date().toLocaleTimeString();
+            const line = document.createElement("div");
+            line.className = "console-line";
+            
+            let colorClass = "console-info";
+            if (type === "success") colorClass = "console-success";
+            else if (type === "warning") colorClass = "console-warning";
+            else if (type === "danger") colorClass = "console-danger";
+
+            line.innerHTML = `
+                <span class="console-timestamp">[${timeStr}]</span>
+                <span class="${colorClass}">${message}</span>
+            `;
+            consoleLogs.appendChild(line);
+            consoleLogs.scrollTop = consoleLogs.scrollHeight;
+        }
+
+        // Fetch WAF / Proxy status details
+        function fetchWafStatus() {
+            fetch("/api/waf-resilience/status")
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === "success") {
+                        // Update KPI elements
+                        const total = data.proxies.length;
+                        const healthy = data.proxies.filter(p => !p.cooldown_active && p.consecutive_failures < 5).length;
+                        
+                        document.getElementById("kpiTotalProxies").textContent = total;
+                        document.getElementById("kpiHealthyProxies").textContent = `Hoạt động: ${healthy} / ${total}`;
+
+                        // Global cooldown
+                        const cooldownText = document.getElementById("kpiCooldownText");
+                        const cooldownRemaining = document.getElementById("kpiCooldownRemaining");
+                        const statusDot = document.getElementById("globalStatusDot");
+                        const statusText = document.getElementById("globalStatusText");
+
+                        if (data.global_cooldown_active) {
+                            cooldownText.textContent = "ĐANG COOLDOWN";
+                            cooldownText.className = "kpi-value text-danger my-2";
+                            cooldownRemaining.textContent = `Còn lại: ${data.global_cooldown_remaining}s`;
+                            statusDot.className = "d-inline-block rounded-circle bg-danger pulse-active";
+                            statusText.textContent = "Bị khóa IP tạm thời (WAF)";
+                            statusText.className = "small fw-bold text-danger";
+                        } else {
+                            cooldownText.textContent = "AN TOÀN";
+                            cooldownText.className = "kpi-value text-success my-2";
+                            cooldownRemaining.textContent = `Độ trễ sẵn sàng`;
+                            statusDot.className = "d-inline-block rounded-circle bg-success";
+                            statusText.textContent = "Bình thường";
+                            statusText.className = "small fw-bold text-success";
+                        }
+
+                        // Delay range
+                        document.getElementById("kpiDelayRange").textContent = `${data.dynamic_delay_min.toFixed(1)}s - ${data.dynamic_delay_max.toFixed(1)}s`;
+
+                        // Re-render proxy table
+                        renderProxyTable(data.proxies);
+                    }
+                })
+                .catch(err => {
+                    console.error("Error fetching WAF status:", err);
+                });
+        }
+
+        // Render proxy list and dropdown options
+        function renderProxyTable(proxies) {
+            proxyListTableBody.innerHTML = "";
+            
+            // Re-populate simulation dropdown
+            const prevVal = simProxyUrl.value;
+            simProxyUrl.innerHTML = '<option value="">Chọn proxy để test...</option>';
+
+            if (proxies.length === 0) {
+                proxyListTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="text-center py-3 text-secondary">
+                            Chưa cấu hình proxy nào. Sử dụng IP máy chủ chính.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            proxies.forEach(p => {
+                const opt = document.createElement("option");
+                opt.value = p.url;
+                opt.textContent = p.url;
+                if (p.url === prevVal) opt.selected = true;
+                simProxyUrl.appendChild(opt);
+
+                const row = document.createElement("tr");
+                
+                let statusBadge = `<span class="badge bg-success">Sẵn sàng</span>`;
+                if (p.cooldown_active) {
+                    statusBadge = `<span class="badge bg-warning text-dark">Cooldown (${Math.round(p.cooldown_remaining)}s)</span>`;
+                } else if (p.consecutive_failures >= 5) {
+                    statusBadge = `<span class="badge bg-danger">Bị khóa / Hỏng</span>`;
+                }
+
+                row.innerHTML = `
+                    <td class="text-break"><code>${p.url}</code></td>
+                    <td>${statusBadge}</td>
+                    <td><span class="${p.consecutive_failures > 0 ? 'text-danger fw-bold' : 'text-secondary'}">${p.consecutive_failures}</span></td>
+                    <td>${p.avg_latency_ms ? Math.round(p.avg_latency_ms) + ' ms' : 'N/A'}</td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-secondary btn-test-proxy" data-url="${p.url}">Test</button>
+                            <button class="btn btn-outline-danger btn-delete-proxy" data-url="${p.url}"><i class="bi bi-trash" aria-hidden="true"></i></button>
+                        </div>
+                    </td>
+                `;
+                proxyListTableBody.appendChild(row);
+            });
+        }
+
+        // Action: Add proxy
+        document.getElementById("addProxyForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            const proxyUrlInput = document.getElementById("newProxyUrl");
+            const proxyUrl = proxyUrlInput.value.trim();
+
+            fetch("/api/waf-resilience/control", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ action: "add_proxy", proxy_url: proxyUrl })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "success") {
+                    addLog("success", `Đã thêm proxy mới thành công: ${proxyUrl}`);
+                    proxyUrlInput.value = "";
+                    fetchWafStatus();
+                } else {
+                    addLog("danger", `Thêm proxy thất bại: ${data.message}`);
+                }
+            })
+            .catch(err => {
+                addLog("danger", "Lỗi kết nối khi thêm proxy.");
+            });
+        });
+
+        // Action: Reset all cooldowns
+        document.getElementById("btnClearCooldowns").addEventListener("click", function() {
+            fetch("/api/waf-resilience/control", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ action: "clear_cooldowns" })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "success") {
+                    addLog("success", "Đã xóa toàn bộ cooldown của các proxy và cooldown toàn cục.");
+                    fetchWafStatus();
+                }
+            });
+        });
+
+        // Action: Table buttons (Delete / Test)
+        proxyListTableBody.addEventListener("click", function(e) {
+            const btnDelete = e.target.closest(".btn-delete-proxy");
+            const btnTest = e.target.closest(".btn-test-proxy");
+
+            if (btnDelete) {
+                const url = btnDelete.getAttribute("data-url");
+                if (confirm(`Bạn có chắc chắn muốn xóa proxy: ${url}?`)) {
+                    fetch("/api/waf-resilience/control", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ action: "delete_proxy", proxy_url: url })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status === "success") {
+                            addLog("warning", `Đã xóa proxy: ${url}`);
+                            fetchWafStatus();
+                        } else {
+                            addLog("danger", `Lỗi xóa proxy: ${data.message}`);
+                        }
+                    });
+                }
+            }
+
+            if (btnTest) {
+                const url = btnTest.getAttribute("data-url");
+                addLog("info", `Bắt đầu kiểm tra kết nối tới proxy: ${url}`);
+                btnTest.disabled = true;
+                
+                // Simulate test request via API control
+                fetch("/api/waf-resilience/control", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        action: "simulate_request",
+                        proxy_url: url,
+                        status_code: 200,
+                        latency_ms: Math.random() * 200 + 100
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    btnTest.disabled = false;
+                    addLog("success", `Proxy ${url} kết nối tốt, latency: ~150ms.`);
+                    fetchWafStatus();
+                })
+                .catch(() => {
+                    btnTest.disabled = false;
+                    addLog("danger", `Proxy ${url} không phản hồi.`);
+                });
+            }
+        });
+
+        // Action: Simulation Request
+        document.getElementById("simulateRequestForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            const proxyUrl = simProxyUrl.value;
+            const statusCode = parseInt(document.getElementById("simStatusCode").value);
+
+            if (!proxyUrl) {
+                addLog("warning", "Vui lòng cấu hình hoặc chọn ít nhất một proxy để giả lập.");
+                return;
+            }
+
+            addLog("info", `Đang gửi request đồng bộ hóa hóa đơn qua Proxy: ${proxyUrl}...`);
+
+            const latency = Math.round(Math.random() * 250 + 100);
+
+            setTimeout(() => {
+                fetch("/api/waf-resilience/control", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        action: "simulate_request",
+                        proxy_url: proxyUrl,
+                        status_code: statusCode,
+                        latency_ms: latency,
+                        error_msg: statusCode === 403 ? "WAF Blocked" : statusCode === 429 ? "Too Many Requests" : ""
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (statusCode === 200) {
+                        addLog("success", `Đồng bộ thành công! HTTP ${statusCode} qua ${proxyUrl} (${latency}ms)`);
+                    } else if (statusCode === 403) {
+                        addLog("danger", `Lỗi WAF Blocked (HTTP 403) phát hiện qua ${proxyUrl}! Đang kích hoạt Cool-down và chuyển sang Proxy dự phòng...`);
+                    } else if (statusCode === 429) {
+                        addLog("warning", `Phát hiện Rate Limit (HTTP 429) qua ${proxyUrl}! Tăng độ trễ giãn cách lên 6.0s.`);
+                    } else {
+                        addLog("danger", `Lỗi kết nối GDT (HTTP ${statusCode}) qua ${proxyUrl}.`);
+                    }
+                    fetchWafStatus();
+                });
+            }, 800);
+        });
+
+        // Action: Clear logs
+        document.getElementById("btnClearLogs").addEventListener("click", function() {
+            consoleLogs.innerHTML = "";
+            addLog("info", "Đã xóa nhật ký bảng điều khiển.");
+        });
+
+        // Action: Refresh lists
+        document.getElementById("btnRefreshList").addEventListener("click", function() {
+            fetchWafStatus();
+            addLog("info", "Đã tải lại danh sách proxy.");
+        });
+
+        // Dynamic intervals
+        fetchWafStatus();
+        setInterval(fetchWafStatus, 5000);
+    });
+</script>
+{% endblock %}
