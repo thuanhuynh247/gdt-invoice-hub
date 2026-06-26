@@ -118,6 +118,8 @@ class TenantRoutingSession(FlaskSQLAlchemySession):
                                     conn.execute(text("ALTER TABLE invoice ADD COLUMN tax_breakdown_json TEXT NULL;"))
                                 if "fees_breakdown_json" not in cols:
                                     conn.execute(text("ALTER TABLE invoice ADD COLUMN fees_breakdown_json TEXT NULL;"))
+                                if "invoice_sub_type" not in cols:
+                                    conn.execute(text("ALTER TABLE invoice ADD COLUMN invoice_sub_type VARCHAR(50) DEFAULT 'standard';"))
                                     
                             # 4. Line Item table checks
                             res_item = conn.execute(text("PRAGMA table_info(line_item);")).fetchall()

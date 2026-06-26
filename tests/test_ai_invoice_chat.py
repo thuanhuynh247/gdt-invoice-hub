@@ -177,7 +177,7 @@ def test_invoice_context_injection_in_ask(app, sample_invoice):
             return mock_resp
 
         with patch("requests.post", side_effect=mock_post):
-            with patch("invoices.ai_service.load_scheduler_settings", return_value={"ai_enabled": True, "ai_provider": "ollama", "ai_model_name": "gemma-4"}):
+            with patch("invoices.ai_service.load_scheduler_settings", return_value={"ai_enabled": True, "ai_provider": "ollama", "ai_model_name": "gemma-4", "ai_headroom_enabled": False}):
                 result = agent.ask(session_id, "Hóa đơn này có hợp lệ không?")
 
         # Verify invoice context was injected into the system prompt
