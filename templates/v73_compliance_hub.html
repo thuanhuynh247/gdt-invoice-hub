@@ -12,6 +12,170 @@
 
 {% block title %}Hazardous Waste Hub (v73){% endblock %}
 
+
+{% block head_extra %}
+<style>
+    /* Wise Fintech Design Tokens for v73 Hub */
+    :root {
+        --wise-primary: #002d04;
+        --wise-primary-light: rgba(0, 45, 4, 0.05);
+        --wise-accent: #02c39a;
+        --wise-accent-hover: #00a896;
+        --wise-dark: #122115;
+        --wise-light: #f4f7f4;
+        --wise-border: rgba(0, 45, 4, 0.1);
+        --glass-bg: rgba(255, 255, 255, 0.75);
+        --glass-border: rgba(255, 255, 255, 0.5);
+        --glass-shadow: 0 8px 32px 0 rgba(0, 45, 4, 0.06);
+    }
+
+    body {
+        background-color: var(--wise-light);
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* Premium Glass Card Adjustments */
+    .glass-card {
+        background: var(--glass-bg) !important;
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--glass-border) !important;
+        box-shadow: var(--glass-shadow) !important;
+        border-radius: 16px !important;
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+        margin-bottom: 24px;
+        overflow: hidden;
+    }
+
+    .glass-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 40px 0 rgba(0, 45, 4, 0.12) !important;
+    }
+
+    /* Form Controls Optimization */
+    .form-control, .form-select {
+        border-radius: 8px !important;
+        border: 1px solid var(--wise-border) !important;
+        padding: 0.6rem 0.75rem !important;
+        font-size: 0.9rem !important;
+        background-color: rgba(255, 255, 255, 0.8) !important;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--wise-accent) !important;
+        box-shadow: 0 0 0 4px rgba(2, 195, 154, 0.15) !important;
+        background-color: #fff !important;
+    }
+
+    /* Button Enhancements */
+    .btn-info {
+        background: linear-gradient(135deg, var(--wise-accent) 0%, #00a896 100%) !important;
+        border: none !important;
+        color: #fff !important;
+        border-radius: 8px !important;
+        padding: 0.6rem 1.25rem !important;
+        font-weight: 600 !important;
+        transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+    }
+
+    .btn-info:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(2, 195, 154, 0.3) !important;
+    }
+
+    /* Result Panel Animation & Aesthetics */
+    @keyframes calcPulse {
+        0% {
+            box-shadow: 0 0 0 0 rgba(2, 195, 154, 0.4);
+            background-color: rgba(2, 195, 154, 0.15) !important;
+        }
+        100% {
+            box-shadow: 0 0 0 12px rgba(2, 195, 154, 0);
+        }
+    }
+
+    .calc-pulse-effect {
+        animation: calcPulse 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* Baseline Cards Hover Glow */
+    .bg-premium-light {
+        transition: all 0.25s ease-in-out;
+        border-radius: 12px !important;
+        border: 1px solid rgba(0, 45, 4, 0.05) !important;
+    }
+
+    .bg-premium-light:hover {
+        background-color: rgba(255, 255, 255, 0.95) !important;
+        border-color: rgba(2, 195, 154, 0.3) !important;
+        box-shadow: 0 6px 16px rgba(0, 45, 4, 0.04);
+        transform: translateY(-2px);
+    }
+
+    /* Agent Debate Bubble Styling */
+    .debate-message-bubble {
+        transition: all 0.3s ease;
+        border-radius: 14px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    }
+
+    .debate-message-bubble:hover {
+        transform: translateX(4px);
+        box-shadow: 0 4px 12px rgba(0, 45, 4, 0.05);
+        border-color: rgba(2, 195, 154, 0.2) !important;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Table Adjustments */
+    .table-responsive {
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid rgba(0, 45, 4, 0.08);
+    }
+
+    .table thead {
+        background-color: var(--wise-primary) !important;
+        color: #fff !important;
+    }
+
+    .table th {
+        font-family: 'Outfit', sans-serif;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        padding: 12px 16px !important;
+        border-bottom: none !important;
+    }
+
+    .table td {
+        padding: 14px 16px !important;
+        font-size: 0.875rem;
+        vertical-align: middle;
+        border-bottom: 1px solid rgba(0, 45, 4, 0.05) !important;
+    }
+
+    .table tbody tr {
+        transition: background-color 0.15s ease;
+    }
+
+    .table tbody tr:hover {
+        background-color: rgba(2, 195, 154, 0.03) !important;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container py-4">
     {# ── Đầu trang Hub ── #}
@@ -215,9 +379,9 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("res-final").textContent = fVND(r.final_fee);
         
         if (r.is_exempt) {
-            document.getElementById("res-exempt-badge").innerHTML = '<span class="badge bg-success">Exempt</span>';
+            document.getElementById("res-exempt-badge").innerHTML = '<span class="badge bg-success-subtle text-success border border-success">Exempt</span>';
         } else {
-            document.getElementById("res-exempt-badge").innerHTML = '<span class="badge bg-danger">Payable</span>';
+            document.getElementById("res-exempt-badge").innerHTML = '<span class="badge bg-danger-subtle text-danger border border-danger">Payable</span>';
         }
         document.getElementById("res-notes").textContent = r.notes || "None";
 
@@ -269,14 +433,24 @@ document.addEventListener("DOMContentLoaded", () => {
         const c = document.getElementById("debate-container-v73");
         c.innerHTML = "";
         const cl = {
-            "Hazardous Waste Auditor": "bg-success text-white",
-            "R&D Lab Manager": "bg-warning text-dark",
-            "Small Workshop Owner": "bg-info text-dark"
+            "Hazardous Waste Inspector": "bg-success-subtle text-success border border-success",
+            "Licensed Transport Operator": "bg-warning-subtle text-warning border border-warning",
+            "MoNRE Waste Policy Advisor": "bg-info-subtle text-info border border-info"
         };
-        debate.forEach(m => {
+        debate.forEach((m, idx) => {
             const div = document.createElement("div");
-            div.className = "d-flex gap-3 align-items-start p-3 bg-premium-light rounded border border-light-subtle";
-            div.innerHTML = `<span class="badge ${cl[m.speaker] || "bg-secondary"} py-2 px-3" style="min-width:220px">${m.speaker}</span><div class="text-dark small">${m.text}</div>`;
+            div.className = "d-flex gap-3 align-items-start p-3 bg-white rounded border border-light-subtle debate-message-bubble";
+            div.style.animation = `fadeInUp 0.3s ease forwards ${idx * 0.1}s`;
+            div.style.opacity = "0";
+            div.innerHTML = `
+                <div class="d-flex flex-column align-items-center text-center" style="min-width: 140px;">
+                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mb-2" style="width: 40px; height: 40px;">
+                        <i class="bi bi-robot text-secondary fs-5"></i>
+                    </div>
+                    <span class="badge ${cl[m.speaker] || "bg-secondary"} text-wrap py-1 px-2 small">${m.speaker}</span>
+                </div>
+                <div class="text-dark small flex-grow-1 pt-1 leading-relaxed">${m.text}</div>
+            `;
             c.appendChild(div);
         });
         document.getElementById("consensus-text-v73").textContent = summary;
@@ -291,9 +465,9 @@ document.addEventListener("DOMContentLoaded", () => {
         tb.innerHTML = "";
         h.forEach(l => {
             const tr = document.createElement("tr");
-            let statusBadge = l.is_exempt ? '<span class="badge bg-success">Exempt</span>' : '<span class="badge bg-danger">Payable</span>';
+            let statusBadge = l.is_exempt ? '<span class="badge bg-success-subtle text-success border border-success">Exempt</span>' : '<span class="badge bg-danger-subtle text-danger border border-danger">Payable</span>';
             tr.innerHTML = `
-                <td>${l.id}</td>
+                <td><span class="text-secondary small fw-bold">#${l.id}</span></td>
                 <td class="fw-bold">${l.waste_category}</td>
                 <td>${l.weight_kg.toFixed(1)} kg</td>
                 <td>${l.apply_license ? 'Yes' : 'No'}</td>
@@ -301,7 +475,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td>${l.is_research_lab ? 'Yes' : 'No'}</td>
                 <td>${fVND(l.license_fee)}</td>
                 <td>${fVND(l.disposal_fee)}</td>
-                <td class="fw-bold text-dark">${fVND(l.final_fee)}</td>
+                <td class="fw-bold text-primary font-monospace">${fVND(l.final_fee)}</td>
                 <td>${statusBadge}</td>
                 <td class="text-muted">${l.created_at}</td>
                 <td class="text-center">
