@@ -419,7 +419,7 @@
                 <div id="expense-chart-container" class="d-flex flex-column gap-3">
                     <!-- Dynamic expense bars will be injected here -->
                     <div class="text-center py-4 text-muted small">
-                        <span class="spinner-border spinner-border-sm me-2" role="status"></span> Đang phân tích dữ liệu chi phí...
+                        <span class="spinner-border spinner-border-sm me-2" role="status"></span> Đang phân tích dữ liệu chi phí…
                     </div>
                 </div>
             </div>
@@ -438,13 +438,13 @@
                     <div class="border border-dashed rounded-4 p-4 text-center bg-premium-light-subtle position-relative" style="border-style: dashed !important; border-width: 2px !important; border-color: var(--border-card) !important;">
                         <input type="file" id="xmlFileInput" accept=".xml" class="position-absolute top-0 start-0 w-100 h-100 opacity-0" style="cursor: pointer;" onchange="handleXmlSelection()">
                         <div id="xmlUploadPrompt">
-                            <i class="bi bi-cloud-arrow-up fs-2 text-primary mb-2 d-block"></i>
+                            <i class="bi bi-cloud-arrow-up fs-2 text-primary mb-2 d-block" aria-hidden="true"></i>
                             <span class="small fw-semibold text-primary">Nhấp để tải lên hoặc kéo thả file XML hóa đơn</span>
                             <div class="text-muted small mt-1" style="font-size: 0.75rem;">Chỉ chấp nhận file định dạng .xml đầu vào</div>
                         </div>
                         <div id="xmlSelectedFileInfo" class="d-none text-start p-2 bg-white bg-opacity-10 rounded">
                             <div class="d-flex align-items-center gap-2">
-                                <i class="bi bi-file-code-fill text-success fs-3"></i>
+                                <i class="bi bi-file-code-fill text-success fs-3" aria-hidden="true"></i>
                                 <div class="overflow-hidden">
                                     <strong class="small text-primary d-block text-truncate" id="xmlFileName">invoice.xml</strong>
                                     <span class="text-muted small" style="font-size: 0.75rem;" id="xmlFileSize">0 KB</span>
@@ -456,7 +456,7 @@
                 
                 <div class="d-flex gap-2">
                     <button class="btn btn-primary-accent w-100" id="btnValidateXml" onclick="validateXmlFile()" disabled>
-                        <i class="bi bi-shield-fill-check me-1"></i>Bắt đầu Kiểm tra
+                        <i class="bi bi-shield-fill-check me-1" aria-hidden="true"></i>Bắt đầu Kiểm tra
                     </button>
                     <button class="btn btn-outline-secondary" id="btnResetXml" onclick="resetXmlValidator()" style="white-space: nowrap;">
                         Đặt lại

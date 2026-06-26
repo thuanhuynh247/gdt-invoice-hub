@@ -82,20 +82,20 @@
                     <form id="signupForm" class="vstack gap-3">
                         <div>
                             <label class="form-label fw-medium small" for="companyName">Tên Doanh Nghiệp</label>
-                            <input class="form-control custom-input" id="companyName" name="companyName" placeholder="Tên công ty dùng thử..." required autofocus>
+                            <input class="form-control custom-input" id="companyName" name="companyName" placeholder="Tên công ty dùng thử…" required autofocus autocomplete="organization">
                         </div>
                         <div>
                             <label class="form-label fw-medium small" for="mst">Mã Số Thuế (MST)</label>
-                            <input class="form-control custom-input" id="mst" name="mst" placeholder="MST (10 ký tự số)..." pattern="[0-9]{10}" required>
+                            <input class="form-control custom-input" id="mst" name="mst" placeholder="MST (10 ký tự số)…" pattern="[0-9]{10}" autocomplete="off" required>
                         </div>
                         <div>
                             <label class="form-label fw-medium small" for="username">Tên đăng nhập</label>
-                            <input class="form-control custom-input" id="username" name="username" placeholder="Nhập tên tài khoản..." required>
+                            <input class="form-control custom-input" id="username" name="username" placeholder="Nhập tên tài khoản…" autocomplete="username" required>
                         </div>
                         <div>
                             <label class="form-label fw-medium small" for="password">Mật khẩu</label>
                             <div class="input-group">
-                                <input class="form-control custom-input border-end-0" id="password" name="password" type="password" placeholder="Nhập mật khẩu..." required>
+                                <input class="form-control custom-input border-end-0" id="password" name="password" type="password" placeholder="Nhập mật khẩu…" autocomplete="new-password" required>
                                 <button class="btn btn-password-toggle border-start-0" type="button" id="togglePassword">
                                     <i class="bi bi-eye" id="togglePasswordIcon" aria-hidden="true"></i>
                                 </button>
@@ -159,7 +159,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Show loading state
         submitBtn.disabled = true;
         spinner.classList.remove('d-none');
-        btnLabel.textContent = 'Đang xử lý...';
+        btnLabel.textContent = 'Đang xử lý…';
 
         const payload = {
             company_name: document.getElementById('companyName').value.trim(),
@@ -186,7 +186,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (alertRegion) {
                     alertRegion.innerHTML = `
                         <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm" role="alert">
-                            <i class="bi bi-check-circle-fill me-2"></i><strong>Đăng ký thành công!</strong> Đang chuyển hướng đến Dashboard dùng thử...
+                            <i class="bi bi-check-circle-fill me-2"></i><strong>Đăng ký thành công!</strong> Đang chuyển hướng đến Dashboard dùng thử…
                         </div>
                     `;
                 }
