@@ -406,6 +406,71 @@
         </div>
     </div>
 
+    <!-- AI Expense & XML Validator Section (PRD-VAL-E1, AI-EXP-E2) -->
+    <div class="row g-4 mb-5">
+        <!-- AI Expense Chart Card -->
+        <div class="col-lg-6">
+            <div class="glass-card h-100">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold mb-0 text-gradient"><i class="bi bi-pie-chart-fill me-2" aria-hidden="true"></i>Phân tích Chi phí Mua vào (AI Expense Chart)</h5>
+                    <span class="badge bg-success-subtle text-success border border-success px-2 py-1 small">AI Phân loại</span>
+                </div>
+                <p class="text-muted small mb-3">Tự động quét nội dung hóa đơn đầu vào và phân nhóm chi phí thành các danh mục quản trị.</p>
+                <div id="expense-chart-container" class="d-flex flex-column gap-3">
+                    <!-- Dynamic expense bars will be injected here -->
+                    <div class="text-center py-4 text-muted small">
+                        <span class="spinner-border spinner-border-sm me-2" role="status"></span> Đang phân tích dữ liệu chi phí...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- XML Validator Card -->
+        <div class="col-lg-6">
+            <div class="glass-card h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-file-earmark-check-fill me-2 text-primary" aria-hidden="true"></i>XML Pre-issuance Validator</h5>
+                    <span class="badge bg-primary-subtle text-primary border border-primary px-2 py-1 small">GDT Standard</span>
+                </div>
+                <p class="text-muted small mb-3">Kiểm tra cấu trúc và tính pháp lý của file XML hóa đơn nháp trước khi truyền nhận chính thức lên Tổng cục Thuế.</p>
+                
+                <div class="mb-3">
+                    <div class="border border-dashed rounded-4 p-4 text-center bg-premium-light-subtle position-relative" style="border-style: dashed !important; border-width: 2px !important; border-color: var(--border-card) !important;">
+                        <input type="file" id="xmlFileInput" accept=".xml" class="position-absolute top-0 start-0 w-100 h-100 opacity-0" style="cursor: pointer;" onchange="handleXmlSelection()">
+                        <div id="xmlUploadPrompt">
+                            <i class="bi bi-cloud-arrow-up fs-2 text-primary mb-2 d-block"></i>
+                            <span class="small fw-semibold text-primary">Nhấp để tải lên hoặc kéo thả file XML hóa đơn</span>
+                            <div class="text-muted small mt-1" style="font-size: 0.75rem;">Chỉ chấp nhận file định dạng .xml đầu vào</div>
+                        </div>
+                        <div id="xmlSelectedFileInfo" class="d-none text-start p-2 bg-white bg-opacity-10 rounded">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-file-code-fill text-success fs-3"></i>
+                                <div class="overflow-hidden">
+                                    <strong class="small text-primary d-block text-truncate" id="xmlFileName">invoice.xml</strong>
+                                    <span class="text-muted small" style="font-size: 0.75rem;" id="xmlFileSize">0 KB</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-flex gap-2">
+                    <button class="btn btn-primary-accent w-100" id="btnValidateXml" onclick="validateXmlFile()" disabled>
+                        <i class="bi bi-shield-fill-check me-1"></i>Bắt đầu Kiểm tra
+                    </button>
+                    <button class="btn btn-outline-secondary" id="btnResetXml" onclick="resetXmlValidator()" style="white-space: nowrap;">
+                        Đặt lại
+                    </button>
+                </div>
+
+                <!-- Validation Result Area -->
+                <div id="xmlValidationResult" class="d-none mt-3 p-3 rounded-4 border">
+                    <!-- Loaded dynamically via JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Live Event Log & Background Daemon Status -->
     <div class="row g-4">
         <!-- Live Audit Activity -->
@@ -689,10 +754,215 @@
         container.insertBefore(div, container.firstChild);
     }
 
+    function loadExpenseCategories() {
+        const container = document.getElementById("expense-chart-container");
+        if (!container) return;
+
+        fetch("/api/invoices/expense-categories")
+            .then(res => res.json())
+            .then(data => {
+                container.innerHTML = "";
+                if (!data || data.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center py-4 text-muted small">
+                            <i class="bi bi-info-circle me-1"></i> Chưa có dữ liệu hóa đơn mua vào để phân nhóm chi phí.
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Calculate total
+                const totalExpenses = data.reduce((acc, curr) => acc + curr.amount, 0);
+
+                // ProgressBar colors cycle
+                const colors = ["bg-primary-accent", "bg-success", "bg-info", "bg-warning", "bg-danger", "bg-secondary"];
+
+                data.forEach((item, idx) => {
+                    const percent = totalExpenses > 0 ? (item.amount / totalExpenses) * 100 : 0;
+                    const colorClass = colors[idx % colors.length];
+
+                    const row = document.createElement("div");
+                    row.className = "expense-item mb-1";
+                    row.innerHTML = `
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="small fw-semibold text-primary">
+                                <i class="bi bi-tag-fill me-1" style="font-size: 0.8rem;"></i>${item.category}
+                            </span>
+                            <span class="small text-secondary fw-medium">
+                                ${formatVND(item.amount)} (${Math.round(percent)}%)
+                            </span>
+                        </div>
+                        <div class="progress mb-2" style="height: 8px; border-radius: 999px; background-color: var(--border-card);">
+                            <div class="progress-bar ${colorClass}" role="progressbar" style="width: ${percent}%;" aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    `;
+                    container.appendChild(row);
+                });
+            })
+            .catch(err => {
+                console.error("Error loading expense categories:", err);
+                container.innerHTML = `
+                    <div class="text-center py-4 text-danger small">
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i> Không thể tải dữ liệu phân tích chi phí.
+                    </div>
+                `;
+            });
+    }
+
+    function handleXmlSelection() {
+        const fileInput = document.getElementById("xmlFileInput");
+        const promptDiv = document.getElementById("xmlUploadPrompt");
+        const infoDiv = document.getElementById("xmlSelectedFileInfo");
+        const btnValidate = document.getElementById("btnValidateXml");
+
+        if (fileInput.files.length > 0) {
+            const file = fileInput.files[0];
+            document.getElementById("xmlFileName").textContent = file.name;
+            document.getElementById("xmlFileSize").textContent = `${(file.size / 1024).toFixed(1)} KB`;
+            
+            promptDiv.classList.add("d-none");
+            infoDiv.classList.remove("d-none");
+            btnValidate.removeAttribute("disabled");
+        } else {
+            promptDiv.classList.remove("d-none");
+            infoDiv.classList.add("d-none");
+            btnValidate.setAttribute("disabled", "true");
+        }
+    }
+
+    function resetXmlValidator() {
+        const fileInput = document.getElementById("xmlFileInput");
+        fileInput.value = "";
+        
+        document.getElementById("xmlUploadPrompt").classList.remove("d-none");
+        document.getElementById("xmlSelectedFileInfo").classList.add("d-none");
+        document.getElementById("btnValidateXml").setAttribute("disabled", "true");
+        
+        const resultDiv = document.getElementById("xmlValidationResult");
+        resultDiv.classList.add("d-none");
+        resultDiv.innerHTML = "";
+    }
+
+    function validateXmlFile() {
+        const fileInput = document.getElementById("xmlFileInput");
+        if (fileInput.files.length === 0) return;
+
+        const file = fileInput.files[0];
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const resultDiv = document.getElementById("xmlValidationResult");
+        resultDiv.classList.remove("d-none");
+        resultDiv.className = "mt-3 p-3 rounded-4 border bg-premium-light-subtle text-center";
+        resultDiv.innerHTML = `
+            <div class="py-3">
+                <span class="spinner-border spinner-border-sm text-primary me-2" role="status"></span>
+                <span class="small fw-semibold text-primary">Đang phân tích cấu trúc & giải mã chữ ký số hóa đơn...</span>
+            </div>
+        `;
+
+        fetch("/api/invoices/validate-xml", {
+            method: "POST",
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            resultDiv.innerHTML = "";
+            resultDiv.className = "mt-3 p-3 rounded-4 border";
+
+            if (data.error) {
+                resultDiv.classList.add("border-danger");
+                resultDiv.innerHTML = `
+                    <div class="alert alert-danger mb-0 text-start small">
+                        <i class="bi bi-exclamation-octagon-fill me-2"></i><strong>Lỗi:</strong> ${data.error}
+                    </div>
+                `;
+                return;
+            }
+
+            if (data.valid) {
+                resultDiv.classList.add("border-success");
+                resultDiv.classList.add("bg-success-soft");
+                
+                let metadataHtml = "";
+                if (data.metadata) {
+                    metadataHtml = `
+                        <div class="mt-3 border-top pt-2 text-start small">
+                            <div class="row g-2">
+                                <div class="col-6"><strong>Mẫu số/Ký hiệu:</strong> ${data.metadata.invoice_symbol}</div>
+                                <div class="col-6"><strong>Số hóa đơn:</strong> ${data.metadata.invoice_number}</div>
+                                <div class="col-6"><strong>Ngày lập:</strong> ${data.metadata.invoice_date}</div>
+                                <div class="col-6"><strong>Tổng tiền hàng:</strong> ${formatVND(parseFloat(data.metadata.amount_before_tax))}</div>
+                                <div class="col-6"><strong>Thuế suất VAT:</strong> 10%</div>
+                                <div class="col-6"><strong>Tổng thanh toán:</strong> ${formatVND(parseFloat(data.metadata.total_amount))}</div>
+                                <div class="col-12 text-truncate"><strong>Người bán:</strong> ${data.metadata.seller_name} (${data.metadata.seller_mst})</div>
+                                <div class="col-12 text-truncate"><strong>Người mua:</strong> ${data.metadata.buyer_name} (${data.metadata.buyer_mst})</div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                resultDiv.innerHTML = `
+                    <div class="d-flex align-items-start gap-2 text-success text-start small">
+                        <i class="bi bi-check-circle-fill fs-5 mt-0.5"></i>
+                        <div>
+                            <strong class="d-block text-success">XML HỢP LỆ (GDT COMPLIANT)</strong>
+                            <span>Hóa đơn đáp ứng đầy đủ định dạng XML chuẩn của Tổng cục Thuế và chữ ký số hợp lệ.</span>
+                        </div>
+                    </div>
+                    ${metadataHtml}
+                `;
+            } else {
+                resultDiv.classList.add("border-danger");
+                resultDiv.classList.add("bg-danger-soft");
+
+                let errorsList = "";
+                data.errors.forEach(err => {
+                    errorsList += `
+                        <div class="border-bottom border-danger border-opacity-10 py-2 last-no-border">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="badge bg-danger small fw-bold">${err.code}</span>
+                                <span class="text-danger small fw-semibold" style="font-size: 0.75rem;">Mức độ: Cực kỳ nghiêm trọng</span>
+                            </div>
+                            <div class="text-danger fw-medium small mb-1">${err.description}</div>
+                            <div class="text-muted small" style="font-size: 0.75rem;"><strong class="text-primary">Hướng dẫn xử lý:</strong> ${err.action}</div>
+                        </div>
+                    `;
+                });
+
+                resultDiv.innerHTML = `
+                    <div class="d-flex align-items-start gap-2 text-danger text-start small mb-2">
+                        <i class="bi bi-exclamation-octagon-fill fs-5 mt-0.5"></i>
+                        <div>
+                            <strong class="d-block text-danger">PHÁT HIỆN LỖI TUÂN THỦ (NON-COMPLIANT)</strong>
+                            <span>Hóa đơn XML nháp không đạt chuẩn kiểm tra trước phát hành. Vui lòng rà soát lỗi dưới đây:</span>
+                        </div>
+                    </div>
+                    <div class="text-start">
+                        ${errorsList}
+                    </div>
+                `;
+            }
+        })
+        .catch(err => {
+            console.error("Error validating XML:", err);
+            resultDiv.className = "mt-3 p-3 rounded-4 border border-danger bg-danger-soft";
+            resultDiv.innerHTML = `
+                <div class="text-danger text-start small">
+                    <i class="bi bi-exclamation-octagon-fill me-2"></i><strong>Lỗi kết nối:</strong> Không thể hoàn tất quá trình kiểm định. Vui lòng thử lại sau.
+                </div>
+            `;
+        });
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
         loadDashboardData();
+        loadExpenseCategories();
         // Dynamic loading interval every 10 seconds to feel live
-        setInterval(loadDashboardData, 10000);
+        setInterval(() => {
+            loadDashboardData();
+            loadExpenseCategories();
+        }, 10000);
     });
 </script>
 {% endblock %}

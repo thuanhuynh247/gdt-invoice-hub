@@ -9610,3 +9610,215 @@ def api_providers_stats():
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+# ==================== XML Pre-issuance Validator & GDT Error Explainer ====================
+
+@invoices_blueprint.post("/api/invoices/validate-xml")
+def api_validate_xml():
+    """Validate a draft invoice XML and provide friendly error explanations for GDT codes (PRD-VAL-E1-S1)."""
+    import xml.etree.ElementTree as ET
+
+    xml_text = ""
+    if "file" in request.files:
+        file = request.files["file"]
+        xml_text = file.read().decode("utf-8", errors="ignore")
+    elif request.is_json:
+        payload = request.get_json(silent=True) or {}
+        xml_text = payload.get("xml_content", "")
+    else:
+        xml_text = request.form.get("xml_content", "")
+
+    if not xml_text.strip():
+        return jsonify({"error": "Vui lòng tải lên file hoặc cung cấp nội dung XML."}), 400
+
+    errors = []
+    warnings = []
+    metadata = {}
+
+    # Helper function to find text of a tag case-insensitively and namespace-agnostic
+    def find_tag_text(element, tag_name):
+        for elem in element.iter():
+            local_name = elem.tag.split("}")[-1] if "}" in elem.tag else elem.tag
+            if local_name.lower() == tag_name.lower():
+                return elem.text
+        return None
+
+    # Helper to search for a tag within specific parent section names
+    def find_in_section(element, section_names, tag_name):
+        for sec in element.iter():
+            sec_name = sec.tag.split("}")[-1] if "}" in sec.tag else sec.tag
+            if any(s.lower() in sec_name.lower() for s in section_names):
+                val = find_tag_text(sec, tag_name)
+                if val:
+                    return val
+        return None
+
+    # 1. Parse XML Structure (XML-001)
+    try:
+        root = ET.fromstring(xml_text.strip())
+    except ET.ParseError as pe:
+        errors.append({
+            "code": "XML-001",
+            "severity": "critical",
+            "description": f"File không đúng định dạng XML hoặc bị lỗi cấu trúc: {str(pe)}",
+            "action": "Kiểm tra xem file XML có bị thiếu thẻ đóng/mở hoặc lỗi ký tự UTF-8 không."
+        })
+        return jsonify({
+            "valid": False,
+            "errors": errors,
+            "warnings": warnings,
+            "metadata": {}
+        })
+
+    # 2. Check Digital Signature (XML-002)
+    has_sig = False
+    for elem in root.iter():
+        if elem.tag.endswith("Signature"):
+            has_sig = True
+            break
+    if not has_sig:
+        errors.append({
+            "code": "XML-002",
+            "severity": "high",
+            "description": "Không tìm thấy thông tin Chữ ký số (Digital Signature) trong file XML.",
+            "action": "Hóa đơn hợp lệ bắt buộc phải có chữ ký số. Hãy đảm bảo bạn đã ký số và xuất file XML gốc."
+        })
+
+    # Extract Fields
+    seller_mst = find_in_section(root, ["NBan", "NguoiBan", "Seller"], "MST") or find_in_section(root, ["NBan", "NguoiBan", "Seller"], "MaSoThue") or find_tag_text(root, "MSTNguoiBan")
+    seller_name = find_in_section(root, ["NBan", "NguoiBan", "Seller"], "Ten") or find_in_section(root, ["NBan", "NguoiBan", "Seller"], "TenDonVi") or find_tag_text(root, "TenNguoiBan")
+
+    buyer_mst = find_in_section(root, ["NMua", "NguoiMua", "Buyer"], "MST") or find_in_section(root, ["NMua", "NguoiMua", "Buyer"], "MaSoThue") or find_tag_text(root, "MSTNguoiMua")
+    buyer_name = find_in_section(root, ["NMua", "NguoiMua", "Buyer"], "Ten") or find_in_section(root, ["NMua", "NguoiMua", "Buyer"], "TenDonVi") or find_tag_text(root, "TenNguoiMua")
+
+    inv_number = find_tag_text(root, "SHDon") or find_tag_text(root, "SoHoaDon") or find_tag_text(root, "InvoiceNo")
+    inv_date = find_tag_text(root, "NLap") or find_tag_text(root, "NgayLap") or find_tag_text(root, "InvoiceDate")
+    inv_symbol = find_tag_text(root, "KHHDon") or find_tag_text(root, "KyHieu") or find_tag_text(root, "InvoicePattern")
+
+    amount_before_tax_str = find_tag_text(root, "TgTCThue") or find_tag_text(root, "TongTienChuaThue") or find_tag_text(root, "TongTienChuaThueSuat")
+    tax_amount_str = find_tag_text(root, "TgTThue") or find_tag_text(root, "TongTienThue")
+    total_amount_str = find_tag_text(root, "TgTTTBachSo") or find_tag_text(root, "TongTienThanhToan")
+
+    # 3. Check for Seller MST == Buyer MST (XML-009)
+    if seller_mst and buyer_mst and seller_mst.strip() == buyer_mst.strip():
+        errors.append({
+            "code": "XML-009",
+            "severity": "medium",
+            "description": "Mã số thuế bên bán trùng khớp với Mã số thuế bên mua.",
+            "action": "Doanh nghiệp không thể tự lập hóa đơn cho chính mình. Kiểm tra lại thông tin NB/NM."
+        })
+
+    # 4. Check totals sum (XML-005)
+    try:
+        before_tax = float(amount_before_tax_str) if amount_before_tax_str else 0.0
+        tax = float(tax_amount_str) if tax_amount_str else 0.0
+        total = float(total_amount_str) if total_amount_str else 0.0
+
+        if total > 0 and abs((before_tax + tax) - total) > 5.0:
+            errors.append({
+                "code": "XML-005",
+                "severity": "high",
+                "description": f"Sai lệch số học: Tổng thanh toán ({total:,.0f}) khác tổng tiền hàng + thuế ({before_tax + tax:,.0f}).",
+                "action": "Kiểm tra lại giá trị đơn giá, thành tiền hoặc thuế suất của từng dòng sản phẩm."
+            })
+    except (ValueError, TypeError):
+        pass
+
+    # 5. Check invoice date (XML-010, XML-011)
+    if inv_date:
+        parsed_date = None
+        for fmt in ("%Y-%m-%d", "%d/%m/%Y", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S"):
+            try:
+                date_part = inv_date.split("T")[0] if "T" in inv_date else inv_date
+                date_part = date_part.strip()
+                if "/" in date_part:
+                    parsed_date = datetime.strptime(date_part, "%d/%m/%Y")
+                else:
+                    parsed_date = datetime.strptime(date_part, "%Y-%m-%d")
+                break
+            except Exception:
+                continue
+
+        if parsed_date:
+            if parsed_date.date() > datetime.now().date():
+                errors.append({
+                    "code": "XML-010",
+                    "severity": "high",
+                    "description": f"Ngày lập hóa đơn ({parsed_date.strftime('%d/%m/%Y')}) nằm trong tương lai.",
+                    "action": "Điều chỉnh ngày lập hóa đơn bằng hoặc trước ngày hiện tại."
+                })
+        else:
+            errors.append({
+                "code": "XML-011",
+                "severity": "medium",
+                "description": f"Định dạng ngày lập '{inv_date}' không đúng chuẩn quy định.",
+                "action": "Định dạng đúng yêu cầu là YYYY-MM-DD hoặc DD/MM/YYYY."
+            })
+
+    metadata = {
+        "seller_mst": seller_mst or "Không tìm thấy",
+        "seller_name": seller_name or "Không tìm thấy",
+        "buyer_mst": buyer_mst or "Không tìm thấy",
+        "buyer_name": buyer_name or "Không tìm thấy",
+        "invoice_number": inv_number or "Không tìm thấy",
+        "invoice_symbol": inv_symbol or "Không tìm thấy",
+        "invoice_date": inv_date or "Không tìm thấy",
+        "amount_before_tax": amount_before_tax_str or "0",
+        "tax_amount": tax_amount_str or "0",
+        "total_amount": total_amount_str or "0"
+    }
+
+    return jsonify({
+        "valid": len(errors) == 0,
+        "errors": errors,
+        "warnings": warnings,
+        "metadata": metadata
+    })
+
+
+# ==================== AI Expense Category Aggregation ====================
+
+@invoices_blueprint.get("/api/invoices/expense-categories")
+def api_expense_categories():
+    """Aggregate expense amounts by AI category for dashboard chart rendering."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    from invoices.models import Invoice, LineItem
+    from sqlalchemy import func
+
+    mst = session.get("active_taxpayer_mst") or session.get("taxpayer_mst") or session.get("tax_code")
+    if not mst:
+        return jsonify([])
+
+    try:
+        results = db.session.query(
+            LineItem.expense_category,
+            func.sum(LineItem.amount_after_tax).label("total_amount"),
+            func.count(LineItem.id).label("item_count")
+        ).join(
+            Invoice, Invoice.id == LineItem.invoice_id
+        ).filter(
+            Invoice.taxpayer_mst == mst,
+            Invoice.buyer_mst == mst  # Only count purchase invoices
+        ).group_by(
+            LineItem.expense_category
+        ).all()
+
+        data = []
+        for category, total_amount, item_count in results:
+            data.append({
+                "category": category or "Chưa phân loại",
+                "amount": float(total_amount or 0.0),
+                "count": int(item_count or 0)
+            })
+
+        # Sort by total amount descending
+        data.sort(key=lambda x: x["amount"], reverse=True)
+        return jsonify(data), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
