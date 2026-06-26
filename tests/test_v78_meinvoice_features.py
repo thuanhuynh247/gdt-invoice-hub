@@ -1,5 +1,5 @@
-"""Pytest verification suite for MISA meInvoice advanced features:
-1. MISA AVA Multilingual Tax Translation Widget
+"""Pytest verification suite for HAT AI & HAT Invoice advanced features:
+1. HAT AI Multilingual Tax Translation Widget
 2. Cryptographic Blockchain Ledger & Merkle Tree Integrity
 3. POS/Ticket/Receipt invoice sub-types
 """

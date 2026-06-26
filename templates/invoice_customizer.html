@@ -1,0 +1,603 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    :root {
+        --custom-primary: #3b82f6;
+        --custom-font: 'Inter', sans-serif;
+        --custom-radius: 8px;
+        --custom-logo: '';
+        --custom-watermark: rgba(59, 130, 246, 0.03);
+    }
+
+    .designer-container {
+        min-height: 85vh;
+    }
+
+    .control-panel {
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+
+    /* Professional Invoice styles */
+    .invoice-preview-card {
+        background: #ffffff;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        border-radius: var(--custom-radius);
+        font-family: var(--custom-font);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid #e5e7eb;
+        min-height: 297mm; /* Standard A4 ratio representation */
+        padding: 20mm;
+    }
+
+    /* Watermark decoration */
+    .invoice-preview-card::before {
+        content: "HAT Invoice";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-30deg);
+        font-size: 5rem;
+        font-weight: 900;
+        color: var(--custom-watermark);
+        z-index: 1;
+        pointer-events: none;
+        letter-spacing: 5px;
+        display: var(--show-watermark, block);
+    }
+
+    .invoice-header-line {
+        height: 4px;
+        background-color: var(--custom-primary);
+        margin-bottom: 20px;
+    }
+
+    .invoice-title {
+        color: var(--custom-primary);
+        font-weight: 800;
+        letter-spacing: 1px;
+    }
+
+    .invoice-table th {
+        background-color: var(--custom-primary) !important;
+        color: white !important;
+        font-weight: 600;
+    }
+
+    .invoice-table td, .invoice-table th {
+        padding: 10px 12px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .digital-signature-box {
+        border: 2px dashed var(--custom-primary);
+        border-radius: 6px;
+        padding: 10px;
+        background: rgba(59, 130, 246, 0.02);
+        font-size: 0.75rem;
+        color: var(--custom-primary);
+        text-align: center;
+        display: inline-block;
+        font-weight: bold;
+    }
+
+    .color-swatch {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: transform 0.2s;
+    }
+    .color-swatch:hover {
+        transform: scale(1.1);
+    }
+    .color-swatch.active {
+        border-color: #000;
+    }
+</style>
+
+<div class="container-fluid py-4 designer-container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="h3 mb-1"><i class="fas fa-palette text-primary"></i> Trình Thiết Kế Mẫu Hóa Đơn Trực Quan</h2>
+            <p class="text-muted mb-0">Tự do tùy biến màu sắc, font chữ, logo và bố cục hóa đơn điện tử chuẩn Nghị định 123/2020/NĐ-CP.</p>
+        </div>
+        <button class="btn btn-success rounded-pill px-4" onclick="downloadInvoiceHTML()">
+            <i class="fas fa-download"></i> Tải Mẫu Hóa Đơn (HTML)
+        </button>
+    </div>
+
+    <div class="row">
+        <!-- Controls Sidebar -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm border-0 control-panel rounded-3">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-sliders-h text-primary"></i> Bộ Công Cụ Tùy Biến</h5>
+                </div>
+                <div class="card-body p-4 pt-2">
+                    <!-- Preview Invoice Selection -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small text-secondary">Hóa đơn xem trước (Preview Data):</label>
+                        <select class="form-select" id="previewInvoiceSelect" onchange="updatePreviewData(this.value)">
+                            {% for inv in invoices %}
+                            <option value="{{ inv.id }}">Số: {{ inv.invoice_number or 'Mới' }} - {{ inv.buyer_name or 'Khách lẻ' }} ({{ "{:,.0f}".format(inv.total_amount) }}đ)</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Preset Styles -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small text-secondary">Phong cách Thiết kế (Preset Styles):</label>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <button class="btn btn-outline-secondary w-100 btn-sm py-2" onclick="applyPreset('wise')">Wise Tối Giản</button>
+                            </div>
+                            <div class="col-6">
+                                <button class="btn btn-outline-secondary w-100 btn-sm py-2" onclick="applyPreset('traditional')">Truyền Thống</button>
+                            </div>
+                            <div class="col-6">
+                                <button class="btn btn-outline-secondary w-100 btn-sm py-2" onclick="applyPreset('slate')">Slate Hiện Đại</button>
+                            </div>
+                            <div class="col-6">
+                                <button class="btn btn-outline-secondary w-100 btn-sm py-2" onclick="applyPreset('emerald')">Emerald Cổ Điển</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Color Picker -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small text-secondary">Màu chủ đạo (Primary Accent Color):</label>
+                        <div class="d-flex gap-2 align-items-center mb-2">
+                            <div class="color-swatch active" style="background-color: #3b82f6;" onclick="setAccentColor('#3b82f6', this)"></div>
+                            <div class="color-swatch" style="background-color: #10b981;" onclick="setAccentColor('#10b981', this)"></div>
+                            <div class="color-swatch" style="background-color: #8b5cf6;" onclick="setAccentColor('#8b5cf6', this)"></div>
+                            <div class="color-swatch" style="background-color: #f59e0b;" onclick="setAccentColor('#f59e0b', this)"></div>
+                            <div class="color-swatch" style="background-color: #ef4444;" onclick="setAccentColor('#ef4444', this)"></div>
+                            <div class="color-swatch" style="background-color: #111827;" onclick="setAccentColor('#111827', this)"></div>
+                            <input type="color" id="customColorPicker" class="form-control-color border-0 p-0" style="width: 32px; height: 32px; border-radius: 50%;" onchange="setAccentColor(this.value, null)">
+                        </div>
+                    </div>
+
+                    <!-- Typography -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small text-secondary">Phông chữ (Typography):</label>
+                        <select class="form-select" id="fontSelector" onchange="setFontFamily(this.value)">
+                            <option value="'Inter', sans-serif">Inter (Trực quan, Sạch sẽ)</option>
+                            <option value="'Outfit', sans-serif">Outfit (Bo tròn, Hiện đại)</option>
+                            <option value="'Playfair Display', serif">Playfair Display (Sang trọng, Cổ điển)</option>
+                            <option value="'Courier New', monospace">Courier New (Cơ khí, Mật mã)</option>
+                            <option value="'Roboto', sans-serif">Roboto (Tiêu chuẩn quốc tế)</option>
+                        </select>
+                    </div>
+
+                    <!-- Border Radius slider -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small text-secondary d-flex justify-content-between">
+                            <span>Độ bo góc (Border Radius):</span>
+                            <span id="radiusVal">8px</span>
+                        </label>
+                        <input type="range" class="form-range" min="0" max="24" value="8" id="borderRadiusSlider" oninput="setBorderRadius(this.value)">
+                    </div>
+
+                    <!-- Custom Logo -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small text-secondary">Ảnh Logo Công ty (URL):</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="logoUrlInput" placeholder="Dán link ảnh logo..." value="https://via.placeholder.com/150x50/ffffff/000000?text=COMPANY+LOGO">
+                            <button class="btn btn-primary" onclick="setCompanyLogo()">Lưu</button>
+                        </div>
+                    </div>
+
+                    <!-- Toggles -->
+                    <div class="mb-2">
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" role="switch" id="toggleWatermark" checked onchange="toggleWatermark(this.checked)">
+                            <label class="form-check-label small fw-semibold" for="toggleWatermark">Hiển thị Watermark chống giả</label>
+                        </div>
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" role="switch" id="toggleHeaderLine" checked onchange="toggleHeaderLine(this.checked)">
+                            <label class="form-check-label small fw-semibold" for="toggleHeaderLine">Đường line trang trí trên đầu</label>
+                        </div>
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" role="switch" id="toggleSignature" checked onchange="toggleSignature(this.checked)">
+                            <label class="form-check-label small fw-semibold" for="toggleSignature">Hiển thị Khung Ký Số Người Bán</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Preview Area -->
+        <div class="col-lg-8 mb-4">
+            <div id="invoicePreview" class="invoice-preview-card shadow-lg p-5 bg-white rounded-3">
+                <!-- Header border decoration -->
+                <div class="invoice-header-line" id="previewHeaderLine"></div>
+
+                <!-- Invoice Header -->
+                <div class="row align-items-start mb-4">
+                    <div class="col-7">
+                        <img id="previewLogo" src="https://via.placeholder.com/150x50/ffffff/000000?text=COMPANY+LOGO" alt="Logo" class="img-fluid mb-3" style="max-height: 60px; object-fit: contain;">
+                        <h5 class="fw-bold mb-1" id="previewSellerName">CÔNG TY CỔ PHẦN CÔNG NGHỆ HAT AI</h5>
+                        <p class="text-muted small mb-1"><i class="fas fa-map-marker-alt"></i> Tòa nhà HAT AI, Khu Công nghệ cao Hàng Xanh, Bình Thạnh, TP.HCM</p>
+                        <p class="text-muted small mb-1"><i class="fas fa-phone"></i> Điện thoại: 028 7309 8688 | MST: 0101243150</p>
+                    </div>
+                    <div class="col-5 text-end">
+                        <h2 class="invoice-title mb-1 text-uppercase" style="font-size: 1.8rem;">Hóa Đơn Giá Trị Gia Tăng</h2>
+                        <h5 class="text-muted mb-3">(VAT INVOICE)</h5>
+                        <p class="mb-1">Ký hiệu (Serial): <strong id="previewSerial">1C23TAA</strong></p>
+                        <p class="mb-1">Số hóa đơn (No.): <strong class="text-danger" id="previewNo" style="font-size: 1.2rem;">00001234</strong></p>
+                        <p class="text-muted small">Ngày (Date): <span id="previewDate">26/06/2026</span></p>
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
+                <!-- Buyer Info -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h6 class="fw-bold text-uppercase mb-3" style="letter-spacing: 0.5px;"><i class="fas fa-user-tie"></i> Đơn vị mua hàng (Buyer Details)</h6>
+                        <div class="row g-2">
+                            <div class="col-sm-3 text-muted small">Tên người mua (Fullname):</div>
+                            <div class="col-sm-9 fw-semibold small" id="previewBuyerName">-</div>
+                            <div class="col-sm-3 text-muted small">Tên đơn vị (Company):</div>
+                            <div class="col-sm-9 fw-semibold small" id="previewBuyerCompany">-</div>
+                            <div class="col-sm-3 text-muted small">Mã số thuế (Tax Code):</div>
+                            <div class="col-sm-9 fw-semibold small" id="previewBuyerMst">-</div>
+                            <div class="col-sm-3 text-muted small">Địa chỉ (Address):</div>
+                            <div class="col-sm-9 text-muted small" id="previewBuyerAddress">-</div>
+                            <div class="col-sm-3 text-muted small">Hình thức thanh toán:</div>
+                            <div class="col-sm-9 text-muted small" id="previewPaymentMethod">Tiền mặt/Chuyển khoản (TM/CK)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Products Table -->
+                <div class="table-responsive mb-4">
+                    <table class="table invoice-table border align-middle">
+                        <thead>
+                            <tr>
+                                <th width="5%" class="text-center">STT</th>
+                                <th width="45%">Tên hàng hóa, dịch vụ (Description)</th>
+                                <th width="10%" class="text-center">ĐVT</th>
+                                <th width="10%" class="text-center">Số lượng</th>
+                                <th width="15%" class="text-end">Đơn giá</th>
+                                <th width="15%" class="text-end">Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody id="previewItemsBody">
+                            <!-- Items dynamically loaded -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Invoice Totals Summary -->
+                <div class="row mb-4">
+                    <div class="col-md-7">
+                        <div class="p-3 bg-light rounded" style="min-height: 100px;">
+                            <div class="small fw-semibold text-secondary mb-1">Số tiền viết bằng chữ (Amount in Words):</div>
+                            <em class="small fw-bold text-primary" id="previewAmountWords">-</em>
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+                        <table class="table table-borderless table-sm mb-0">
+                            <tr>
+                                <td class="text-muted small">Cộng tiền hàng (Subtotal):</td>
+                                <td class="text-end fw-semibold small" id="previewSubtotal">-</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted small">Thuế suất GTGT (VAT Rate):</td>
+                                <td class="text-end fw-semibold small" id="previewVatRate">10%</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted small">Tiền thuế GTGT (VAT Amount):</td>
+                                <td class="text-end fw-semibold small" id="previewVatAmount">-</td>
+                            </tr>
+                            <tr class="border-top">
+                                <td class="fw-bold" style="color: var(--custom-primary)">TỔNG TIỀN THANH TOÁN:</td>
+                                <td class="text-end fw-bold text-danger" style="font-size: 1.15rem;" id="previewTotal">-</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Footer Signatures -->
+                <div class="row mt-5 pt-4 border-top" id="previewSignatureSection">
+                    <div class="col-4 text-center">
+                        <h6 class="fw-bold small mb-4">NGƯỜI MUA HÀNG (Buyer)</h6>
+                        <div class="text-muted small mt-4">(Ký, ghi rõ họ tên)</div>
+                    </div>
+                    <div class="col-4 text-center">
+                        <!-- Spacer -->
+                    </div>
+                    <div class="col-4 text-center" id="previewSellerSignatureBox">
+                        <h6 class="fw-bold small mb-3">NGƯỜI BÁN HÀNG (Seller)</h6>
+                        <div class="digital-signature-box shadow-sm my-2">
+                            <i class="fas fa-signature text-success me-1"></i> ĐÃ KÝ SỐ<br>
+                            <span class="text-dark small" style="font-size: 0.65rem;">BỞI: CÔNG TY CP CÔNG NGHỆ HAT AI</span><br>
+                            <span class="text-muted small" style="font-size: 0.6rem;" id="sigTimestamp">Ký ngày: 26/06/2026</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Raw Invoices Data inject into client side for dynamic preview rendering -->
+<script>
+    const invoicesData = {
+        {% for inv in invoices %}
+        "{{ inv.id }}": {
+            "no": "{{ inv.invoice_number or '00000000' }}",
+            "serial": "{{ inv.serial_number or '1C23TAA' }}",
+            "date": "{{ inv.invoice_date or '2026-06-26' }}",
+            "buyerName": "{{ inv.buyer_name or 'Khách hàng lẻ' }}",
+            "buyerCompany": "{{ inv.buyer_company or '' }}",
+            "buyerMst": "{{ inv.buyer_mst or '' }}",
+            "buyerAddress": "{{ inv.buyer_address or '' }}",
+            "subtotal": {{ inv.subtotal_amount or inv.total_amount }},
+            "vatRate": "{{ inv.vat_rate or '10' }}",
+            "vatAmount": {{ inv.vat_amount or 0 }},
+            "total": {{ inv.total_amount }},
+            "words": "{{ inv.total_amount_in_words or '' }}",
+            "items": [
+                {% if inv.items %}
+                    {% for item in inv.items %}
+                    {
+                        "desc": "{{ item.description }}",
+                        "unit": "{{ item.unit or 'Cái' }}",
+                        "qty": {{ item.quantity or 1 }},
+                        "price": {{ item.unit_price or item.total_amount }},
+                        "total": {{ item.total_amount }}
+                    },
+                    {% endfor %}
+                {% else %}
+                    {
+                        "desc": "Cung cấp dịch vụ phần mềm HAT Invoice",
+                        "unit": "Gói",
+                        "qty": 1,
+                        "price": {{ inv.total_amount }},
+                        "total": {{ inv.total_amount }}
+                    }
+                {% endif %}
+            ]
+        },
+        {% endfor %}
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+        // Load initial preview with first invoice
+        const select = document.getElementById("previewInvoiceSelect");
+        if (select && select.value) {
+            updatePreviewData(select.value);
+        }
+        
+        // Set timestamp signature
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('vi-VN') + " " + now.toLocaleTimeString('vi-VN');
+        document.getElementById("sigTimestamp").innerText = "Ký ngày: " + dateStr;
+    });
+
+    function formatNumber(num) {
+        return parseFloat(num).toLocaleString('vi-VN') + " đ";
+    }
+
+    function updatePreviewData(invoiceId) {
+        const data = invoicesData[invoiceId];
+        if (!data) return;
+
+        document.getElementById("previewNo").innerText = data.no;
+        document.getElementById("previewSerial").innerText = data.serial;
+        document.getElementById("previewDate").innerText = data.date;
+        document.getElementById("previewBuyerName").innerText = data.buyerName || "Khách hàng cá nhân";
+        document.getElementById("previewBuyerCompany").innerText = data.buyerCompany || "Không có";
+        document.getElementById("previewBuyerMst").innerText = data.buyerMst || "Không có";
+        document.getElementById("previewBuyerAddress").innerText = data.buyerAddress || "Không có";
+        document.getElementById("previewSubtotal").innerText = formatNumber(data.subtotal);
+        document.getElementById("previewVatRate").innerText = data.vatRate + "%";
+        document.getElementById("previewVatAmount").innerText = formatNumber(data.vatAmount);
+        document.getElementById("previewTotal").innerText = formatNumber(data.total);
+        document.getElementById("previewAmountWords").innerText = data.words || "Mười ngàn đồng chẵn.";
+
+        // Populate items table
+        const tbody = document.getElementById("previewItemsBody");
+        tbody.innerHTML = "";
+        data.items.forEach((item, index) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td class="text-center small">${index + 1}</td>
+                <td class="small">${item.desc}</td>
+                <td class="text-center small">${item.unit}</td>
+                <td class="text-center small">${item.qty}</td>
+                <td class="text-end small">${parseFloat(item.price).toLocaleString('vi-VN')}</td>
+                <td class="text-end small">${parseFloat(item.total).toLocaleString('vi-VN')}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // Interactive customizer controls
+    function setAccentColor(color, swatch) {
+        document.documentElement.style.setProperty('--custom-primary', color);
+        if (swatch) {
+            document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+            swatch.classList.add('active');
+        }
+    }
+
+    function setFontFamily(font) {
+        document.documentElement.style.setProperty('--custom-font', font);
+    }
+
+    function setBorderRadius(radius) {
+        document.documentElement.style.setProperty('--custom-radius', radius + 'px');
+        document.getElementById("radiusVal").innerText = radius + 'px';
+    }
+
+    function setCompanyLogo() {
+        const url = document.getElementById("logoUrlInput").value.trim();
+        if (url) {
+            document.getElementById("previewLogo").src = url;
+        }
+    }
+
+    function toggleWatermark(show) {
+        document.documentElement.style.setProperty('--show-watermark', show ? 'block' : 'none');
+    }
+
+    function toggleHeaderLine(show) {
+        const line = document.getElementById("previewHeaderLine");
+        if (show) {
+            line.classList.remove("d-none");
+        } else {
+            line.classList.add("d-none");
+        }
+    }
+
+    function toggleSignature(show) {
+        const sigBox = document.getElementById("previewSellerSignatureBox");
+        if (show) {
+            sigBox.style.opacity = "1";
+            sigBox.style.pointerEvents = "auto";
+        } else {
+            sigBox.style.opacity = "0";
+            sigBox.style.pointerEvents = "none";
+        }
+    }
+
+    // Apply Presets
+    function applyPreset(styleName) {
+        const presets = {
+            "wise": {
+                color: "#1f2937", // Charcoal Wise Slate
+                font: "'Inter', sans-serif",
+                radius: "4",
+                watermark: false
+            },
+            "traditional": {
+                color: "#991b1b", // Deep Crimson Red
+                font: "'Playfair Display', serif",
+                radius: "0",
+                watermark: true
+            },
+            "slate": {
+                color: "#0f766e", // Teal Dark
+                font: "'Outfit', sans-serif",
+                radius: "12",
+                watermark: true
+            },
+            "emerald": {
+                color: "#065f46", // Dark Emerald Green
+                font: "'Roboto', sans-serif",
+                radius: "8",
+                watermark: true
+            }
+        };
+
+        const config = presets[styleName];
+        if (!config) return;
+
+        setAccentColor(config.color, null);
+        setFontFamily(config.font);
+        document.getElementById("fontSelector").value = config.font;
+        setBorderRadius(config.radius);
+        document.getElementById("borderRadiusSlider").value = config.radius;
+        
+        toggleWatermark(config.watermark);
+        document.getElementById("toggleWatermark").checked = config.watermark;
+    }
+
+    // Download compiled HTML file
+    function downloadInvoiceHTML() {
+        // Get CSS style properties
+        const color = getComputedStyle(document.documentElement).getPropertyValue('--custom-primary').trim();
+        const font = getComputedStyle(document.documentElement).getPropertyValue('--custom-font').trim();
+        const radius = getComputedStyle(document.documentElement).getPropertyValue('--custom-radius').trim();
+        const showWatermark = document.getElementById("toggleWatermark").checked;
+
+        const previewContent = document.getElementById("invoicePreview").outerHTML;
+
+        const fullHTML = `
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Hóa đơn điện tử xuất khẩu</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f3f4f6;
+            padding: 40px 20px;
+        }
+        .invoice-preview-card {
+            background: #ffffff;
+            border-radius: ${radius};
+            font-family: ${font};
+            border: 1px solid #e5e7eb;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            position: relative;
+        }
+        ${showWatermark ? `
+        .invoice-preview-card::before {
+            content: "HAT Invoice";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            font-size: 4.5rem;
+            font-weight: 900;
+            color: rgba(59, 130, 246, 0.025);
+            z-index: 1;
+            pointer-events: none;
+            letter-spacing: 5px;
+        }` : ''}
+        .invoice-header-line {
+            height: 4px;
+            background-color: ${color};
+            margin-bottom: 20px;
+        }
+        .invoice-title {
+            color: ${color};
+            font-weight: 800;
+        }
+        .invoice-table th {
+            background-color: ${color} !important;
+            color: white !important;
+        }
+        .digital-signature-box {
+            border: 2px dashed ${color};
+            border-radius: 6px;
+            padding: 10px;
+            background: rgba(59, 130, 246, 0.02);
+            font-size: 0.75rem;
+            color: ${color};
+            text-align: center;
+            display: inline-block;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    ${previewContent}
+</body>
+</html>
+        `;
+
+        const blob = new Blob([fullHTML], { type: "text/html" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `mau_hoa_don_${document.getElementById("previewNo").innerText}.html`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+</script>
+{% endblock %}
