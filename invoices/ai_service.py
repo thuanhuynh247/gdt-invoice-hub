@@ -99,6 +99,19 @@ TAX_REGULATIONS = [
             "2. Chi phí không dùng tiền mặt: Thắt chặt quy định chứng từ thanh toán không dùng tiền mặt đối với các khoản chi ủy quyền cá nhân từ 5 triệu đồng trở lên để tránh gian lận chi phí hợp lý."
         ),
         "keywords": ["thông tư 20", "thong tu 20", "20/2026", "20/2026/tt-btc", "ủy quyền", "uy quyen", "thẻ cá nhân", "cá nhân thanh toán", "nhân viên thanh toán", "nhân viên ủy quyền", "5 triệu", "5 trieu"]
+    },
+    {
+        "id": "cit_law_61_2026",
+        "title": "Văn bản hợp nhất số 61/VBHN-VPQH & Luật Thuế TNDN mới (Thuế suất 15%, 17%, 20%)",
+        "content": (
+            "Văn bản hợp nhất số 61/VBHN-VPQH ngày 23/03/2026 hợp nhất Luật Thuế thu nhập doanh nghiệp (TNDN) mới nhất áp dụng các mức thuế suất phân tầng:\n"
+            "1. Thuế suất ưu đãi 15%: Áp dụng đối với doanh nghiệp có tổng doanh thu năm trước liền kề dưới 3 tỷ đồng.\n"
+            "2. Thuế suất ưu đãi 17%: Áp dụng đối với doanh nghiệp có tổng doanh thu năm trước liền kề từ 3 tỷ đồng đến dưới 50 tỷ đồng.\n"
+            "3. Thuế suất phổ thông 20%: Áp dụng đối với doanh nghiệp có tổng doanh thu năm trước liền kề từ 50 tỷ đồng trở lên.\n"
+            "4. Chống tránh thuế: Thuế suất ưu đãi 15% và 17% không áp dụng cho công ty con hoặc công ty trong quan hệ liên kết có giao dịch liên kết với công ty mẹ không đủ điều kiện hưởng ưu đãi.\n"
+            "5. Mở rộng chi phí được trừ: Chi phí chuyển đổi số, chuyển đổi xanh (giảm phát thải khí nhà kính Net Zero), đào tạo nâng cao trình độ nhân sự và đổi mới sáng tạo được ghi nhận chi phí hợp lệ khi quyết toán thuế."
+        ),
+        "keywords": ["văn bản hợp nhất 61", "van ban hop nhat 61", "thuế suất 15%", "thuế suất 17%", "doanh thu dưới 3 tỷ", "dưới 50 tỷ", "thuế tndn mới", "thuế thu nhập doanh nghiệp mới", "quy mô doanh thu", "phân tầng", "giảm phát thải", "net zero", "chuyển đổi xanh", "chuyển đổi số"]
     }
 ]
 
@@ -123,6 +136,13 @@ def get_tax_rag_context(query: str) -> str:
             LIMIT 3;
         """
         res = db.session.execute(db.text(sql), {"q": clean_q}).fetchall()
+        
+        if not res:
+            # Fallback to term OR search to handle loose matches
+            words = [w for w in clean_q.split() if len(w) > 1]
+            if words:
+                fts_query = " OR ".join(words)
+                res = db.session.execute(db.text(sql), {"q": fts_query}).fetchall()
         
         if res:
             matches = []
@@ -180,6 +200,8 @@ def parse_and_chunk_pdf(filename: str) -> list[dict]:
         reader = PdfReader(filename)
         if "20-btc" in filename:
             effective_date = "2026-03-12"
+        elif "vanbanhopnhat61" in filename:
+            effective_date = "2026-03-23"
         elif "48" in filename:
             effective_date = "2025-07-01"
         elif "69" in filename:
@@ -244,7 +266,7 @@ def run_dynamic_pdf_ingestion(app):
         
         init_fts5_tables()
         
-        pdf_files = ["luat48.pdf", "luat149.signed.pdf", "20-btc.pdf", "thongtu69_2025.pdf", "thongtu18_2026.pdf", "nghidinh144_2026.pdf"]
+        pdf_files = ["luat48.pdf", "luat149.signed.pdf", "20-btc.pdf", "thongtu69_2025.pdf", "thongtu18_2026.pdf", "nghidinh144_2026.pdf", "vanbanhopnhat61_2026_cit.pdf"]
         ingested_any = False
         
         for filename in pdf_files:

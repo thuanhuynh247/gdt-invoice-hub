@@ -56,6 +56,8 @@ def parse_and_chunk_pdf(filename: str) -> list[dict]:
         reader = PdfReader(filename)
         if "20-btc" in filename:
             effective_date = "2026-03-12"
+        elif "vanbanhopnhat61" in filename:
+            effective_date = "2026-03-23"
         elif "48" in filename:
             effective_date = "2025-07-01"
         elif "69" in filename:
@@ -137,7 +139,7 @@ def main():
     """)
     conn.commit()
     
-    pdf_files = ["luat48.pdf", "luat149.signed.pdf", "20-btc.pdf", "thongtu69_2025.pdf", "thongtu18_2026.pdf", "nghidinh144_2026.pdf"]
+    pdf_files = ["luat48.pdf", "luat149.signed.pdf", "20-btc.pdf", "thongtu69_2025.pdf", "thongtu18_2026.pdf", "nghidinh144_2026.pdf", "vanbanhopnhat61_2026_cit.pdf"]
     
     for filename in pdf_files:
         base_name = os.path.basename(filename)

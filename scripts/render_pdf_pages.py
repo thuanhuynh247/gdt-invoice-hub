@@ -11,7 +11,7 @@ except ImportError:
     sys.exit(1)
 
 WORKSPACE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PDF_FILES = ["luat48.pdf", "luat149.signed.pdf", "20-btc.pdf", "thongtu18_2026.pdf", "thongtu69_2025.pdf", "nghidinh144_2026.pdf"]
+PDF_FILES = ["luat48.pdf", "luat149.signed.pdf", "20-btc.pdf", "thongtu18_2026.pdf", "thongtu69_2025.pdf", "nghidinh144_2026.pdf", "vanbanhopnhat61_2026_cit.pdf"]
 OUTPUT_DIR = os.path.join(WORKSPACE_DIR, "static", "tax_pages")
 
 def render_pdfs():

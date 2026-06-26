@@ -336,6 +336,28 @@ TAX_REGULATION_EXCERPTS = [
             "của doanh nghiệp làm lõi RAG. Đảm bảo dữ liệu hóa đơn và kế toán không bao giờ bị gửi ra ngoài internet."
         ),
     },
+    {
+        "id": "cit-law-61-tax-rates",
+        "source": "Luật Thuế TNDN - VBHN 61/VBHN-VPQH 2026",
+        "page": 10,
+        "text": (
+            "Điều 10: Thuế suất thuế thu nhập doanh nghiệp mới. Biểu thuế suất phân tầng theo quy mô doanh thu áp dụng cho kỳ tính thuế 2025/2026: "
+            "Thuế suất 15% áp dụng đối với doanh nghiệp có tổng doanh thu năm trước liền kề dưới 3 tỷ đồng. "
+            "Thuế suất 17% áp dụng đối với doanh nghiệp có tổng doanh thu năm trước liền kề từ 3 tỷ đến dưới 50 tỷ đồng. "
+            "Thuế suất 20% là mức thuế suất phổ thông áp dụng cho doanh nghiệp có doanh thu từ 50 tỷ đồng trở lên. "
+            "Mức thuế suất ưu đãi 15% và 17% không áp dụng cho công ty con hoặc các công ty trong quan hệ liên kết có giao dịch liên kết với công ty mẹ không đủ điều kiện hưởng ưu đãi."
+        ),
+    },
+    {
+        "id": "cit-circular20-green-transition",
+        "source": "Thông tư 20/2026/TT-BTC - Thuế TNDN",
+        "page": 14,
+        "text": (
+            "Điều 14: Chi phí được trừ đặc biệt thúc đẩy chuyển đổi xanh và chuyển đổi số. "
+            "Doanh nghiệp được tính vào chi phí được trừ các khoản chi thực tế phát sinh liên quan đến giảm phát thải khí nhà kính (Net Zero) để phục vụ mục tiêu chuyển đổi xanh nếu có quyết định của người có thẩm quyền về kế hoạch giảm phát thải và hồ sơ dự án/đề án liên quan. "
+            "Chi phí nghiên cứu khoa học, đổi mới sáng tạo, chuyển đổi số (mua bản quyền công nghệ, số hóa dữ liệu, hạ tầng điện toán đám mây) và chi phí đào tạo nâng cao trình độ cho người lao động được tính vào chi phí được trừ khi có đủ chứng từ, quy chế tài chính và quyết định liên quan."
+        ),
+    },
 ]
 
 
