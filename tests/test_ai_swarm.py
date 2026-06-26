@@ -102,9 +102,10 @@ def test_agent_mailroom_api(client, app):
 
 
 def test_joint_audit_coordinator(client, app):
-    """Test the JointAuditCoordinator executing the swarm of agents."""
+    """Test the JointAuditCoordinator executing the swarm of agents and history persistence."""
     with client.session_transaction() as sess:
         sess["logged_in"] = True
+        sess["active_taxpayer_mst"] = "0101234567"
 
     response = client.post("/api/agents/audit-coordinator", json={
         "taxpayer_mst": "0101234567",
@@ -115,7 +116,25 @@ def test_joint_audit_coordinator(client, app):
     assert res_data["success"] is True
     assert "report_markdown" in res_data
     assert "swarm_confidence" in res_data
+    assert "session_id" in res_data
+    session_id = res_data["session_id"]
     assert "0101234567" in res_data["report_markdown"]
     assert "AuditorAgent" in res_data["report_markdown"]
     assert "ClassifierAgent" in res_data["report_markdown"]
     assert "ForecasterAgent" in res_data["report_markdown"]
+
+    # Test history endpoint
+    response = client.get("/api/agents/audit-coordinator/history?taxpayer_mst=0101234567")
+    assert response.status_code == 200
+    history = response.get_json()
+    assert len(history) == 1
+    assert history[0]["session_id"] == session_id
+    assert history[0]["user_query"] == "Kiểm toán hồ sơ thuế đầu vào và dự báo doanh số năm 2026"
+
+    # Test history detail endpoint
+    response = client.get(f"/api/agents/audit-coordinator/history/{session_id}")
+    assert response.status_code == 200
+    detail = response.get_json()
+    assert detail["session_id"] == session_id
+    assert detail["user_query"] == "Kiểm toán hồ sơ thuế đầu vào và dự báo doanh số năm 2026"
+    assert detail["swarm_confidence"] == res_data["swarm_confidence"]

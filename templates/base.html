@@ -74,6 +74,7 @@
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item {% if request.path == '/v40-compliance-dashboard' %}active{% endif %}" href="{{ url_for('invoices.v40_compliance_dashboard') }}"><i class="bi bi-speedometer text-warning me-2" aria-hidden="true"></i>Dashboard Tuân thủ v40</a></li>
                             <li><a class="dropdown-item {% if request.path == '/compliance-concept-map' %}active{% endif %}" href="{{ url_for('invoices.compliance_concept_map_page') }}"><i class="bi bi-diagram-3-fill text-success me-2" aria-hidden="true"></i>Bản đồ Tuân thủ</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/compliance-swarm-dashboard' %}active{% endif %}" href="{{ url_for('invoices.compliance_swarm_dashboard_page') }}"><i class="bi bi-cpu-fill text-warning me-2" aria-hidden="true"></i>Swarm Audit Orchestrator</a></li>
                         </ul>
                     </li>
 

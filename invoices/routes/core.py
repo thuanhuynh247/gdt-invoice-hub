@@ -199,6 +199,13 @@ def compliance_concept_map_page():
         return redirect(url_for("auth.login_page"))
     return render_template("compliance_concept_map.html")
 
+@invoices_blueprint.get("/compliance-swarm-dashboard")
+def compliance_swarm_dashboard_page():
+    """Render the Interactive Compliance & Swarm Audit Orchestrator UI (US-321)."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("compliance_swarm_dashboard.html")
+
 @invoices_blueprint.get("/api/compliance/concept-map")
 def api_compliance_concept_map():
     """Return JSON configuration for compliance concept map nodes and edges."""
@@ -7153,7 +7160,7 @@ def api_agents_update_status(message_id):
 
 @invoices_blueprint.post("/api/agents/audit-coordinator")
 def api_agents_audit_coordinator():
-    """US-321: Run the multi-agent joint audit coordinator swarm."""
+    """US-321: Run the multi-agent joint audit coordinator swarm and save history."""
     unauthorized = _ensure_logged_in()
     if unauthorized:
         return unauthorized
@@ -7166,10 +7173,59 @@ def api_agents_audit_coordinator():
         return jsonify({"error": "taxpayer_mst and user_prompt are required."}), 400
 
     from invoices.agent_swarm import JointAuditCoordinator
+    import uuid
+    from invoices.models import SwarmAuditLog
     try:
         coordinator = JointAuditCoordinator()
         result = coordinator.execute_swarm(taxpayer_mst=taxpayer_mst, user_prompt=user_prompt)
+        
+        session_id = str(uuid.uuid4())
+        new_log = SwarmAuditLog(
+            session_id=session_id,
+            taxpayer_mst=taxpayer_mst,
+            user_query=user_prompt,
+            report_markdown=result.get("report_markdown", ""),
+            swarm_confidence=result.get("swarm_confidence", 0.0),
+            created_at=result.get("timestamp", "")
+        )
+        db.session.add(new_log)
+        db.session.commit()
+        
+        result["session_id"] = session_id
         return jsonify(result)
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+@invoices_blueprint.get("/api/agents/audit-coordinator/history")
+def api_agents_audit_coordinator_history():
+    """US-321: Retrieve the history of swarm audits for the active taxpayer."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    taxpayer_mst = session.get("active_taxpayer_mst") or request.args.get("taxpayer_mst")
+    if not taxpayer_mst:
+        return jsonify({"error": "taxpayer_mst is required."}), 400
+
+    from invoices.models import SwarmAuditLog
+    try:
+        logs = SwarmAuditLog.query.filter_by(taxpayer_mst=taxpayer_mst).order_by(SwarmAuditLog.created_at.desc()).all()
+        return jsonify([log.to_dict() for log in logs])
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@invoices_blueprint.get("/api/agents/audit-coordinator/history/<session_id>")
+def api_agents_audit_coordinator_history_detail(session_id):
+    """US-321: Retrieve details of a specific past swarm audit."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    from invoices.models import SwarmAuditLog
+    try:
+        log = SwarmAuditLog.query.filter_by(session_id=session_id).first_or_404()
+        return jsonify(log.to_dict())
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

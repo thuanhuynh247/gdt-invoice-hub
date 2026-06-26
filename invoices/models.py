@@ -737,6 +737,28 @@ class AgentMessage(db.Model):
         }
 
 
+class SwarmAuditLog(db.Model):
+    """Storage for history of multi-agent joint swarm audit sessions (US-321)."""
+    __tablename__ = "swarm_audit_logs"
+
+    session_id = db.Column(db.String(36), primary_key=True)
+    taxpayer_mst = db.Column(db.String(20), nullable=False)
+    user_query = db.Column(db.Text, nullable=False)
+    report_markdown = db.Column(db.Text, nullable=False)
+    swarm_confidence = db.Column(db.Float, nullable=False)
+    created_at = db.Column(db.String(50), nullable=False)
+
+    def to_dict(self) -> dict:
+        return {
+            "session_id": self.session_id,
+            "taxpayer_mst": self.taxpayer_mst,
+            "user_query": self.user_query,
+            "report_markdown": self.report_markdown,
+            "swarm_confidence": self.swarm_confidence,
+            "created_at": self.created_at,
+        }
+
+
 class CustomsDeclaration(db.Model):
     """Vietnamese VNACCS/VCIS customs import declaration."""
     __tablename__ = "customs_declaration"

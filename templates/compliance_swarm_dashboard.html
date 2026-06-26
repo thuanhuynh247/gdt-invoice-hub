@@ -1,0 +1,1035 @@
+{% extends "base.html" %}
+
+{% block title %}Swarm Audit Orchestrator - GDT Invoice Hub{% endblock %}
+
+{% block head_extra %}
+<!-- Marked.js for rendering markdown report -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+    /* Swarm Dashboard Styles */
+    .glass-card {
+        background: var(--card-bg, rgba(255, 255, 255, 0.85));
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--border-color, rgba(0, 0, 0, 0.08));
+        border-radius: 16px;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.04);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    [data-theme="dark"] .glass-card {
+        background: rgba(25, 35, 20, 0.65);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .hero-panel {
+        background: linear-gradient(135deg, rgba(22, 51, 0, 0.05) 0%, rgba(0, 178, 254, 0.03) 100%);
+        border-radius: 20px;
+        padding: 2rem;
+        border: 1px solid rgba(22, 51, 0, 0.08);
+    }
+    
+    [data-theme="dark"] .hero-panel {
+        background: linear-gradient(135deg, rgba(30, 60, 20, 0.3) 0%, rgba(0, 100, 150, 0.2) 100%);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .eyebrow {
+        font-family: 'Outfit', sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--bs-warning, #ffc107);
+    }
+
+    .page-title {
+        font-family: 'Outfit', sans-serif;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+    }
+
+    .text-gradient {
+        background: linear-gradient(135deg, #8bc34a 0%, #00b2fe 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    /* History Sidebar */
+    .history-list {
+        max-height: 480px;
+        overflow-y: auto;
+    }
+
+    .history-item {
+        cursor: pointer;
+        padding: 0.85rem 1rem;
+        border-radius: 10px;
+        border: 1px solid transparent;
+        transition: all 0.2s ease;
+    }
+
+    .history-item:hover {
+        background: rgba(0, 0, 0, 0.03);
+        border-color: rgba(0, 0, 0, 0.05);
+    }
+    
+    [data-theme="dark"] .history-item:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.08);
+    }
+
+    .history-item.active {
+        background: rgba(22, 51, 0, 0.08);
+        border-color: rgba(22, 51, 0, 0.15);
+    }
+    
+    [data-theme="dark"] .history-item.active {
+        background: rgba(139, 195, 74, 0.15);
+        border-color: rgba(139, 195, 74, 0.25);
+    }
+
+    /* Swarm Visualizer Container */
+    .swarm-visualizer-container {
+        position: relative;
+        height: 350px;
+        background: rgba(0, 0, 0, 0.02);
+        border-radius: 16px;
+        border: 1px dashed rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+    }
+    
+    [data-theme="dark"] .swarm-visualizer-container {
+        background: rgba(0, 0, 0, 0.3);
+        border-color: rgba(255, 255, 255, 0.08);
+    }
+
+    /* SVG Link paths */
+    .swarm-link {
+        stroke: rgba(139, 195, 74, 0.3);
+        stroke-width: 3;
+        stroke-dasharray: 8, 8;
+        animation: linkFlow 30s linear infinite;
+        fill: none;
+    }
+    
+    .swarm-link.active {
+        stroke: #8bc34a;
+        stroke-width: 4;
+        animation: linkFlow 8s linear infinite;
+    }
+
+    @keyframes linkFlow {
+        to {
+            stroke-dashoffset: -1000;
+        }
+    }
+
+    /* Agent Nodes */
+    .agent-node {
+        position: absolute;
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        font-family: 'Outfit', sans-serif;
+        font-size: 0.75rem;
+        font-weight: 600;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        border: 2px solid rgba(0, 0, 0, 0.1);
+        z-index: 10;
+        background: var(--card-bg, #fff);
+    }
+
+    [data-theme="dark"] .agent-node {
+        border-color: rgba(255,255,255,0.1);
+        background: #1c2712;
+    }
+
+    .agent-node i {
+        font-size: 1.8rem;
+        margin-bottom: 4px;
+        transition: transform 0.3s ease;
+    }
+
+    /* Node Placements */
+    .node-coordinator {
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 120px;
+        height: 120px;
+        background: linear-gradient(135deg, #163300 0%, #8bc34a 100%);
+        color: #fff;
+        border: 3px solid rgba(255,255,255,0.2);
+    }
+
+    [data-theme="dark"] .node-coordinator {
+        background: linear-gradient(135deg, #0f2400 0%, #558b2f 100%);
+    }
+
+    .node-auditor {
+        top: 15%;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .node-classifier {
+        bottom: 12%;
+        left: 20%;
+    }
+
+    .node-forecaster {
+        bottom: 12%;
+        right: 20%;
+    }
+
+    /* Node States */
+    .agent-node.idle {
+        opacity: 0.7;
+    }
+
+    .agent-node.active-pulse {
+        opacity: 1;
+        transform: scale(1.15) !important;
+        border-color: var(--bs-warning, #ffc107) !important;
+        box-shadow: 0 0 25px rgba(255, 193, 7, 0.5);
+    }
+    
+    .agent-node.active-pulse i {
+        transform: rotate(360deg);
+        color: var(--bs-warning, #ffc107);
+    }
+
+    .agent-node.node-coordinator.active-pulse {
+        transform: translate(-50%, -50%) scale(1.1) !important;
+        border-color: #00b2fe !important;
+        box-shadow: 0 0 30px rgba(0, 178, 254, 0.6);
+    }
+
+    .agent-node.completed {
+        opacity: 1;
+        border-color: #8bc34a !important;
+        box-shadow: 0 0 20px rgba(139, 195, 74, 0.4);
+    }
+    
+    .agent-node.completed i {
+        color: #8bc34a;
+    }
+
+    /* Pulse wave effect around nodes */
+    .pulse-ring {
+        position: absolute;
+        border: 2px solid #8bc34a;
+        border-radius: 50%;
+        opacity: 0;
+        animation: pulseRing 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        z-index: 1;
+    }
+
+    @keyframes pulseRing {
+        0% {
+            width: 90px;
+            height: 90px;
+            opacity: 0.8;
+        }
+        100% {
+            width: 160px;
+            height: 160px;
+            opacity: 0;
+        }
+    }
+
+    /* Custom Input and Buttons */
+    .custom-textarea {
+        background: rgba(0, 0, 0, 0.02);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 12px;
+        transition: all 0.25s ease;
+        resize: none;
+    }
+
+    .custom-textarea:focus {
+        background: #fff;
+        border-color: #8bc34a;
+        box-shadow: 0 0 0 4px rgba(139, 195, 74, 0.15);
+    }
+
+    [data-theme="dark"] .custom-textarea {
+        background: rgba(255, 255, 255, 0.03);
+        border-color: rgba(255, 255, 255, 0.08);
+        color: #fff;
+    }
+    
+    [data-theme="dark"] .custom-textarea:focus {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* Report Formatting override */
+    .markdown-body h1, .markdown-body h2, .markdown-body h3 {
+        font-family: 'Outfit', sans-serif;
+        font-weight: 700;
+        color: var(--text-dark, #2b2b2b);
+        margin-top: 1.5rem;
+        margin-bottom: 0.8rem;
+    }
+    
+    [data-theme="dark"] .markdown-body h1, 
+    [data-theme="dark"] .markdown-body h2, 
+    [data-theme="dark"] .markdown-body h3 {
+        color: #e0e0e0;
+    }
+
+    .markdown-body p, .markdown-body li {
+        font-size: 0.92rem;
+        line-height: 1.6;
+    }
+
+    .markdown-body table {
+        width: 100%;
+        margin-bottom: 1.5rem;
+        border-collapse: collapse;
+    }
+
+    .markdown-body th, .markdown-body td {
+        padding: 8px 12px;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+    
+    [data-theme="dark"] .markdown-body th, 
+    [data-theme="dark"] .markdown-body td {
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .markdown-body th {
+        background: rgba(0, 0, 0, 0.03);
+    }
+    
+    [data-theme="dark"] .markdown-body th {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* SSE log streams */
+    .log-terminal {
+        background: #0f140c;
+        color: #a3be8c;
+        font-family: var(--font-monospace, monospace);
+        font-size: 0.82rem;
+        border-radius: 12px;
+        padding: 1rem;
+        max-height: 180px;
+        overflow-y: auto;
+        border: 1px solid rgba(139, 195, 74, 0.2);
+    }
+
+    .log-line {
+        margin-bottom: 4px;
+        line-height: 1.4;
+    }
+    
+    .log-line .timestamp {
+        color: #5e81ac;
+    }
+
+    .log-line .agent {
+        color: #ebcb8b;
+        font-weight: 600;
+    }
+
+    /* Template Cards styling */
+    .template-card {
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 12px;
+        padding: 1rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background: rgba(255, 255, 255, 0.5);
+    }
+
+    .template-card:hover {
+        border-color: #8bc34a;
+        background: rgba(139, 195, 74, 0.05);
+        transform: translateY(-2px);
+    }
+
+    [data-theme="dark"] .template-card {
+        border-color: rgba(255, 255, 255, 0.06);
+        background: rgba(255, 255, 255, 0.02);
+    }
+    
+    [data-theme="dark"] .template-card:hover {
+        border-color: #8bc34a;
+        background: rgba(139, 195, 74, 0.1);
+    }
+
+    .template-card.selected {
+        border-color: #8bc34a;
+        border-width: 2px;
+        background: rgba(139, 195, 74, 0.08);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Header -->
+    <div class="col-12">
+        <div class="hero-panel mb-2">
+            <span class="eyebrow"><i class="bi bi-cpu-fill me-1 text-primary-accent" aria-hidden="true"></i> US-321 / Multi-Agent</span>
+            <h1 class="page-title mt-2">Compliance & Swarm Audit Orchestrator</h1>
+            <p class="page-subtitle mb-0">Hệ thống phối hợp tác tử (P2P Swarm Agent) hỗ trợ rà soát rủi ro thuế và tự động hóa xây dựng thư giải trình bảo vệ doanh nghiệp theo Nghị định 125/2020/NĐ-CP.</p>
+        </div>
+    </div>
+
+    <!-- Active Profile & Session History List (Left Panel) -->
+    <div class="col-xl-4 col-lg-5">
+        <!-- Active Taxpayer Profile -->
+        <div class="glass-card p-4 mb-4">
+            <h5 class="fw-bold font-outfit text-dark mb-3"><i class="bi bi-building text-success me-2" aria-hidden="true"></i>Doanh Nghiệp Đang Chọn</h5>
+            <div id="activeProfileArea">
+                {% if session.get('active_taxpayer_mst') %}
+                    <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded-3 border">
+                        <div>
+                            <div class="fw-bold text-dark" id="activeProfileMst">{{ session.get('active_taxpayer_mst') }}</div>
+                            <div class="small text-secondary" id="activeProfileName">Công ty đang hoạt động</div>
+                        </div>
+                        <span class="badge bg-success-glow text-success px-2.5 py-1 rounded-pill">Đang hoạt động</span>
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning border-0 small mb-0 d-flex gap-2 align-items-center" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill text-warning fs-5" aria-hidden="true"></i>
+                        <span>Chưa chọn Mã số thuế. Vui lòng chọn MST ở góc phải thanh menu trước khi bắt đầu Swarm Audit!</span>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Swarm Audit Launcher -->
+        <div class="glass-card p-4 mb-4">
+            <h5 class="fw-bold font-outfit text-dark mb-3"><i class="bi bi-lightning-charge-fill text-warning me-2" aria-hidden="true"></i>Khởi Chạy Swarm Audit</h5>
+            <div class="mb-3">
+                <label for="userPromptInput" class="form-label small fw-semibold text-secondary">Mục tiêu rà soát / Câu hỏi kiểm toán</label>
+                <textarea class="form-control custom-textarea" id="userPromptInput" rows="3" placeholder="Ví dụ: Rà soát rủi ro thuế GTGT quý 2/2026, phân loại giao dịch liên kết theo NĐ 132 và ước tính dòng tiền thuế phải nộp..."></textarea>
+            </div>
+            <button class="btn btn-warning btn-lg w-100 fw-bold font-outfit" id="btnRunSwarm" type="button" {% if not session.get('active_taxpayer_mst') %}disabled{% endif %}>
+                <i class="bi bi-play-fill me-1" aria-hidden="true"></i> Chạy Swarm Audit
+            </button>
+        </div>
+
+        <!-- Session History -->
+        <div class="glass-card p-4">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h5 class="fw-bold font-outfit text-dark mb-0"><i class="bi bi-clock-history text-secondary me-2" aria-hidden="true"></i>Lịch Sử Phiên Khảo Sát</h5>
+                <button class="btn btn-xs btn-outline-secondary btn-pill" id="btnRefreshHistory" title="Làm mới lịch sử"><i class="bi bi-arrow-clockwise"></i></button>
+            </div>
+            
+            <div class="history-list d-flex flex-column gap-2" id="historyList">
+                <div class="text-center text-secondary py-4 small">
+                    <i class="bi bi-hourglass-split me-1 spinner-border spinner-border-sm border-0" aria-hidden="true"></i> Đang tải danh sách lịch sử...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Agent Swarm Visualizer & Report Display (Right Panel) -->
+    <div class="col-xl-8 col-lg-7">
+        <!-- Live Agent Interaction Visualizer -->
+        <div class="glass-card p-4 mb-4">
+            <h5 class="fw-bold font-outfit text-dark mb-3"><i class="bi bi-diagram-3-fill text-primary me-2" aria-hidden="true"></i>Tác Tử Phối Hợp Trực Quan (Swarm Visualizer)</h5>
+            
+            <div class="swarm-visualizer-container" id="visualizerContainer">
+                <svg style="position: absolute; top:0; left:0; width:100%; height:100%; pointer-events: none;">
+                    <!-- Paths between Coordinator and agents -->
+                    <path id="link-auditor" class="swarm-link" d="" />
+                    <path id="link-classifier" class="swarm-link" d="" />
+                    <path id="link-forecaster" class="swarm-link" d="" />
+                </svg>
+
+                <!-- Agent Nodes -->
+                <div class="agent-node node-coordinator idle" id="node-JointAuditCoordinator" style="transform: translate(-50%, -50%);">
+                    <i class="bi bi-cpu-fill"></i>
+                    <span>Swarm Coordinator</span>
+                </div>
+
+                <div class="agent-node node-auditor idle" id="node-AuditorAgent">
+                    <i class="bi bi-shield-check"></i>
+                    <span>AuditorAgent</span>
+                </div>
+
+                <div class="agent-node node-classifier idle" id="node-ClassifierAgent">
+                    <i class="bi bi-shield-slash"></i>
+                    <span>ClassifierAgent</span>
+                </div>
+
+                <div class="agent-node node-forecaster idle" id="node-ForecasterAgent">
+                    <i class="bi bi-graph-up-arrow"></i>
+                    <span>ForecasterAgent</span>
+                </div>
+            </div>
+
+            <!-- Streaming Terminal logs -->
+            <div class="mt-3">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="small fw-semibold text-secondary"><i class="bi bi-terminal me-1" aria-hidden="true"></i>Nhật ký hoạt động của Swarm</span>
+                    <span class="badge bg-secondary-glow text-secondary" id="swarmStatusBadge">IDLE</span>
+                </div>
+                <div class="log-terminal" id="logTerminal">
+                    <div class="log-line"><span class="timestamp">[10:15:30]</span> <span class="agent">[System]</span> Sẵn sàng nhận chỉ thị Swarm Audit.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs for Report Output and Legal Defense Generator -->
+        <div class="glass-card p-4">
+            <ul class="nav nav-tabs border-bottom mb-4" id="outputTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active fw-bold font-outfit" id="report-tab" data-bs-toggle="tab" data-bs-target="#report-pane" type="button" role="tab" aria-controls="report-pane" aria-selected="true">
+                        <i class="bi bi-file-text me-1" aria-hidden="true"></i>Báo Cáo Swarm
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link fw-bold font-outfit" id="defense-tab" data-bs-toggle="tab" data-bs-target="#defense-pane" type="button" role="tab" aria-controls="defense-pane" aria-selected="false">
+                        <i class="bi bi-envelope-paper-fill me-1" aria-hidden="true"></i>Thư Giải Trình (NĐ 125)
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="outputTabContent">
+                <!-- Swarm Report Markdown Pane -->
+                <div class="tab-pane fade show active" id="report-pane" role="tabpanel" aria-labelledby="report-tab">
+                    <div class="d-flex align-items-center justify-content-between mb-3" id="reportControls" style="display: none !important;">
+                        <div>
+                            <span class="small text-secondary me-2">Độ tin cậy của Swarm:</span>
+                            <span class="badge bg-success font-monospace" id="reportConfidence">0.0%</span>
+                        </div>
+                        <button class="btn btn-sm btn-outline-secondary" id="btnCopyReport"><i class="bi bi-clipboard me-1" aria-hidden="true"></i>Sao chép báo cáo</button>
+                    </div>
+
+                    <div class="markdown-body p-3 bg-premium-light-subtle rounded-3 border" id="reportOutput" style="min-height: 250px;">
+                        <div class="text-center text-secondary py-5">
+                            <i class="bi bi-file-text display-3 text-secondary mb-3" aria-hidden="true"></i>
+                            <h5>Chưa có báo cáo nào được chọn hoặc thực hiện</h5>
+                            <p class="small mb-0">Vui lòng chọn một phiên khảo sát từ lịch sử hoặc điền mục tiêu và nhấn "Chạy Swarm Audit".</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Decree 125 Tax Defense Letter Generator Pane -->
+                <div class="tab-pane fade" id="defense-pane" role="tabpanel" aria-labelledby="defense-tab">
+                    <div class="row g-3">
+                        <div class="col-md-5">
+                            <h6 class="fw-bold text-dark mb-3"><i class="bi bi-list-stars me-1 text-success" aria-hidden="true"></i>Chọn mẫu thư giải trình</h6>
+                            
+                            <div class="d-flex flex-column gap-2" id="defenseTemplatesList">
+                                <div class="template-card selected" data-template-id="interest_cap">
+                                    <div class="fw-bold text-dark small mb-1">Giải trình Chi phí lãi vay vượt trần</div>
+                                    <p class="text-secondary small mb-0" style="font-size:0.75rem;">Mẫu giải trình loại trừ chi phí lãi vay liên kết vượt trần 30% theo Nghị định 132/2020/NĐ-CP.</p>
+                                </div>
+                                <div class="template-card" data-template-id="expired_signature">
+                                    <div class="fw-bold text-dark small mb-1">Giải trình Hóa đơn Chữ ký số Hết hạn</div>
+                                    <p class="text-secondary small mb-0" style="font-size:0.75rem;">Giải trình hợp lệ về thời điểm ký thực tế và kiểm tra hiệu lực CA cho hóa đơn đầu vào.</p>
+                                </div>
+                                <div class="template-card" data-template-id="penalty_defense">
+                                    <div class="fw-bold text-dark small mb-1">Giải trình Giảm trừ xử phạt (NĐ 125)</div>
+                                    <p class="text-secondary small mb-0" style="font-size:0.75rem;">Giải trình tình tiết giảm nhẹ hoặc không xử phạt vi phạm hành chính về thuế theo NĐ 125/2020/NĐ-CP.</p>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 pt-3 border-top">
+                                <h6 class="fw-bold text-dark mb-3"><i class="bi bi-pencil-fill me-1 text-success" aria-hidden="true"></i>Thông tin tùy chỉnh thư</h6>
+                                <div class="mb-2">
+                                    <label for="defDirectorName" class="form-label small text-secondary">Tên Giám đốc / Đại diện pháp luật</label>
+                                    <input type="text" class="form-control form-control-sm" id="defDirectorName" value="Nguyễn Văn A">
+                                </div>
+                                <div class="mb-2">
+                                    <label for="defDepartment" class="form-label small text-secondary">Cục/Chi cục Thuế quản lý</label>
+                                    <input type="text" class="form-control form-control-sm" id="defTaxDepartment" value="Chi cục Thuế Quận 1, TP. HCM">
+                                </div>
+                                <div class="mb-2">
+                                    <label for="defDetails" class="form-label small text-secondary">Thông tin số liệu giải trình</label>
+                                    <textarea class="form-control form-control-sm" id="defDetailsInput" rows="3" placeholder="Điền chi tiết số tiền bị loại, số hóa đơn lỗi để AI điền vào mẫu..."></textarea>
+                                </div>
+                                <button class="btn btn-success btn-sm w-100 fw-bold mt-2" id="btnGenerateLetter"><i class="bi bi-file-earmark-diff me-1" aria-hidden="true"></i>Cập nhật thư giải trình</button>
+                            </div>
+                        </div>
+
+                        <div class="col-md-7">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="small fw-bold text-dark"><i class="bi bi-eye-fill me-1 text-success" aria-hidden="true"></i>Xem trước Thư giải trình</span>
+                                <button class="btn btn-xs btn-outline-success" id="btnCopyLetter"><i class="bi bi-clipboard me-1" aria-hidden="true"></i>Sao chép thư</button>
+                            </div>
+                            <div class="p-3 bg-white text-dark rounded-3 border font-monospace small" id="letterOutput" style="min-height: 420px; white-space: pre-wrap; max-height: 520px; overflow-y: auto; border: 1px solid rgba(0, 0, 0, 0.15) !important;">
+                                Chọn mẫu giải trình và bấm "Cập nhật thư giải trình" để hiển thị nội dung.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const mst = window.activeTaxpayerMst;
+        const historyList = document.getElementById("historyList");
+        const userPromptInput = document.getElementById("userPromptInput");
+        const btnRunSwarm = document.getElementById("btnRunSwarm");
+        const logTerminal = document.getElementById("logTerminal");
+        const swarmStatusBadge = document.getElementById("swarmStatusBadge");
+        const reportOutput = document.getElementById("reportOutput");
+        const reportConfidence = document.getElementById("reportConfidence");
+        const reportControls = document.getElementById("reportControls");
+        const btnCopyReport = document.getElementById("btnCopyReport");
+        
+        let reportMarkdownRaw = "";
+
+        // Position SVG elements visually
+        function drawVisualizerLinks() {
+            const container = document.getElementById("visualizerContainer");
+            if (!container) return;
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            // Place nodes explicitly
+            const coord = document.getElementById("node-JointAuditCoordinator");
+            const auditor = document.getElementById("node-AuditorAgent");
+            const classifier = document.getElementById("node-ClassifierAgent");
+            const forecaster = document.getElementById("node-ForecasterAgent");
+
+            // Coordinator center
+            coord.style.top = "50%";
+            coord.style.left = "50%";
+
+            // Auditor Top center
+            auditor.style.top = "15%";
+            auditor.style.left = "50%";
+            auditor.style.transform = "translateX(-50%)";
+
+            // Classifier Bottom Left
+            classifier.style.bottom = "12%";
+            classifier.style.left = "20%";
+
+            // Forecaster Bottom Right
+            forecaster.style.bottom = "12%";
+            forecaster.style.right = "20%";
+
+            // SVG Path points
+            const coordX = width / 2;
+            const coordY = height / 2;
+
+            const audX = width / 2;
+            const audY = height * 0.15 + 50;
+
+            const classX = width * 0.20 + 50;
+            const classY = height - (height * 0.12) - 50;
+
+            const foreX = width - (width * 0.20) - 50;
+            const foreY = height - (height * 0.12) - 50;
+
+            // Draw paths
+            document.getElementById("link-auditor").setAttribute("d", `M ${coordX} ${coordY} L ${audX} ${audY}`);
+            document.getElementById("link-classifier").setAttribute("d", `M ${coordX} ${coordY} L ${classX} ${classY}`);
+            document.getElementById("link-forecaster").setAttribute("d", `M ${coordX} ${coordY} L ${foreX} ${foreY}`);
+        }
+
+        window.addEventListener("resize", drawVisualizerLinks);
+        setTimeout(drawVisualizerLinks, 500);
+
+        // Append log to terminal helper
+        function appendLog(agent, message) {
+            const line = document.createElement("div");
+            line.className = "log-line";
+            const timeStr = new Date().toLocaleTimeString();
+            line.innerHTML = `<span class="timestamp">[${timeStr}]</span> <span class="agent">[${agent}]</span> ${message}`;
+            logTerminal.appendChild(line);
+            logTerminal.scrollTop = logTerminal.scrollHeight;
+        }
+
+        // Load Session History
+        function loadHistory() {
+            if (!mst) {
+                historyList.innerHTML = `<div class="text-center text-secondary py-3 small">Vui lòng chọn Mã số thuế doanh nghiệp để xem lịch sử Swarm.</div>`;
+                return;
+            }
+            historyList.innerHTML = `<div class="text-center text-secondary py-3 small"><i class="bi bi-hourglass-split me-1 spinner-border spinner-border-sm border-0"></i> Đang tải...</div>`;
+            fetch(`/api/agents/audit-coordinator/history?taxpayer_mst=${mst}`)
+                .then(res => res.json())
+                .then(data => {
+                    historyList.innerHTML = "";
+                    if (data.error) {
+                        historyList.innerHTML = `<div class="text-danger small py-2">Lỗi: ${data.error}</div>`;
+                        return;
+                    }
+                    if (data.length === 0) {
+                        historyList.innerHTML = `<div class="text-center text-secondary py-4 small">Chưa có lịch sử Swarm Audit cho MST này.</div>`;
+                        return;
+                    }
+
+                    data.forEach(log => {
+                        const dateStr = log.created_at ? log.created_at.substring(0, 10) : "N/A";
+                        const div = document.createElement("div");
+                        div.className = "history-item border border-opacity-10 d-flex flex-column gap-1";
+                        div.dataset.id = log.session_id;
+                        div.innerHTML = `
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-secondary-glow text-dark small" style="font-size:0.7rem;">${dateStr}</span>
+                                <span class="badge bg-success font-monospace" style="font-size:0.65rem;">Confidence: ${Math.round(log.swarm_confidence * 100)}%</span>
+                            </div>
+                            <div class="fw-semibold text-dark small text-truncate" title="${log.user_query}">${log.user_query}</div>
+                            <div class="text-secondary" style="font-size:0.65rem; text-align:right;">ID: <code>${log.session_id.substring(0,8)}...</code></div>
+                        `;
+                        div.addEventListener("click", () => {
+                            document.querySelectorAll(".history-item").forEach(item => item.classList.remove("active"));
+                            div.classList.add("active");
+                            loadSessionDetail(log.session_id);
+                        });
+                        historyList.appendChild(div);
+                    });
+                })
+                .catch(err => {
+                    historyList.innerHTML = `<div class="text-danger small py-2">Lỗi kết nối: ${err.message}</div>`;
+                });
+        }
+
+        // Load specific Session Detail
+        function loadSessionDetail(sessionId) {
+            reportOutput.innerHTML = `<div class="text-center text-secondary py-5"><i class="bi bi-hourglass-split me-1 spinner-border spinner-border-lg border-0"></i><h5>Đang tải báo cáo...</h5></div>`;
+            fetch(`/api/agents/audit-coordinator/history/${sessionId}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) {
+                        reportOutput.innerHTML = `<div class="alert alert-danger">Lỗi: ${data.error}</div>`;
+                        return;
+                    }
+                    reportMarkdownRaw = data.report_markdown;
+                    reportConfidence.innerText = Math.round(data.swarm_confidence * 100) + "%";
+                    reportControls.setAttribute("style", "display: flex !important;");
+                    reportOutput.innerHTML = marked.parse(data.report_markdown);
+                    
+                    // Auto fill defense helper prompt details
+                    document.getElementById("defDetailsInput").value = `Rà soát rủi ro thuế dựa trên yêu cầu: "${data.user_query}" với độ tin cậy Swarm là ${Math.round(data.swarm_confidence * 100)}%.`;
+                    
+                    // Trigger letter generation template update dynamically if user switch tabs
+                    updateDefenseLetter();
+                })
+                .catch(err => {
+                    reportOutput.innerHTML = `<div class="alert alert-danger">Lỗi kết nối: ${err.message}</div>`;
+                });
+        }
+
+        document.getElementById("btnRefreshHistory").addEventListener("click", loadHistory);
+        loadHistory();
+
+        // Run Swarm Orchestrator with Animations
+        btnRunSwarm.addEventListener("click", function () {
+            const prompt = userPromptInput.value.trim();
+            if (!prompt) {
+                alert("Vui lòng điền mục tiêu rà soát hoặc câu hỏi kiểm toán!");
+                return;
+            }
+
+            // Disable buttons & show loading states
+            btnRunSwarm.disabled = true;
+            swarmStatusBadge.innerText = "RUNNING";
+            swarmStatusBadge.className = "badge bg-warning-glow text-warning";
+            
+            // Clean visualizer states
+            document.querySelectorAll(".agent-node").forEach(node => {
+                node.className = "agent-node " + (node.id === "node-JointAuditCoordinator" ? "node-coordinator" : node.classList.contains("node-auditor") ? "node-auditor" : node.classList.contains("node-classifier") ? "node-classifier" : "node-forecaster") + " idle";
+            });
+            document.querySelectorAll(".swarm-link").forEach(link => link.classList.remove("active"));
+            
+            logTerminal.innerHTML = "";
+            appendLog("System", "Kích hoạt JointAuditCoordinator Swarm...");
+            
+            // Phase 1: JointAuditCoordinator active
+            const coordNode = document.getElementById("node-JointAuditCoordinator");
+            coordNode.classList.remove("idle");
+            coordNode.classList.add("active-pulse");
+            appendLog("JointAuditCoordinator", "Khởi tạo tác vụ phân tích, định biên phân hệ rà soát.");
+
+            // Start backend fetch in parallel immediately
+            const fetchPromise = fetch("/api/agents/audit-coordinator", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ user_prompt: prompt, taxpayer_mst: mst })
+            }).then(res => res.json());
+
+            // Sequence timeline animations
+            setTimeout(() => {
+                // Phase 2: AuditorAgent (VAT Compliance)
+                coordNode.classList.remove("active-pulse");
+                coordNode.classList.add("completed");
+                
+                const auditorNode = document.getElementById("node-AuditorAgent");
+                auditorNode.classList.remove("idle");
+                auditorNode.classList.add("active-pulse");
+                document.getElementById("link-auditor").classList.add("active");
+                appendLog("AuditorAgent", "Đang quét hóa đơn đầu vào & đầu ra, kiểm tra hạch toán, thanh toán không tiền mặt và T-Score...");
+            }, 1500);
+
+            setTimeout(() => {
+                // Phase 3: ClassifierAgent (Decree 132 Related Parties)
+                const auditorNode = document.getElementById("node-AuditorAgent");
+                auditorNode.classList.remove("active-pulse");
+                auditorNode.classList.add("completed");
+                
+                const classifierNode = document.getElementById("node-ClassifierAgent");
+                classifierNode.classList.remove("idle");
+                classifierNode.classList.add("active-pulse");
+                document.getElementById("link-classifier").classList.add("active");
+                appendLog("ClassifierAgent", "Đang truy xuất thông tin quan hệ liên kết. Rà soát rủi ro lãi vay vượt trần 30% và giao dịch liên kết theo Nghị định 132/2020...");
+            }, 3000);
+
+            setTimeout(() => {
+                // Phase 4: ForecasterAgent (VAT Forecast)
+                const classifierNode = document.getElementById("node-ClassifierAgent");
+                classifierNode.classList.remove("active-pulse");
+                classifierNode.classList.add("completed");
+                
+                const forecasterNode = document.getElementById("node-ForecasterAgent");
+                forecasterNode.classList.remove("idle");
+                forecasterNode.classList.add("active-pulse");
+                document.getElementById("link-forecaster").classList.add("active");
+                appendLog("ForecasterAgent", "Đang tổng hợp dòng tiền thuế GTGT phải nộp dự kiến trong kỳ tiếp theo...");
+            }, 4500);
+
+            setTimeout(() => {
+                // Complete timeline animation & wait for fetch to complete
+                const forecasterNode = document.getElementById("node-ForecasterAgent");
+                forecasterNode.classList.remove("active-pulse");
+                forecasterNode.classList.add("completed");
+                appendLog("JointAuditCoordinator", "Đang biên soạn báo cáo kiểm toán thuế hợp nhất...");
+
+                fetchPromise.then(data => {
+                    btnRunSwarm.disabled = false;
+                    swarmStatusBadge.innerText = "COMPLETED";
+                    swarmStatusBadge.className = "badge bg-success-glow text-success";
+                    
+                    if (data.error) {
+                        appendLog("System", "Lỗi: " + data.error);
+                        reportOutput.innerHTML = `<div class="alert alert-danger">Lỗi kiểm toán: ${data.error}</div>`;
+                        return;
+                    }
+
+                    appendLog("System", "Swarm Audit hoàn tất thành công! Đã lập báo cáo & lưu lịch sử.");
+                    
+                    // Render report
+                    reportMarkdownRaw = data.report_markdown;
+                    reportConfidence.innerText = Math.round(data.swarm_confidence * 100) + "%";
+                    reportControls.setAttribute("style", "display: flex !important;");
+                    reportOutput.innerHTML = marked.parse(data.report_markdown);
+                    
+                    // Refresh history sidebar
+                    loadHistory();
+                    
+                    // Pre-fill defense values
+                    document.getElementById("defDetailsInput").value = `Dữ liệu rà soát Swarm Audit ngày ${new Date().toLocaleDateString()}: Phát hiện các chỉ tiêu thuế cần điều chỉnh. Cần bổ sung giải trình theo Nghị định 125/2020/NĐ-CP.`;
+                    updateDefenseLetter();
+                }).catch(err => {
+                    btnRunSwarm.disabled = false;
+                    swarmStatusBadge.innerText = "FAILED";
+                    swarmStatusBadge.className = "badge bg-danger-glow text-danger";
+                    appendLog("System", "Lỗi kết nối Swarm API: " + err.message);
+                    reportOutput.innerHTML = `<div class="alert alert-danger">Lỗi kết nối API: ${err.message}</div>`;
+                });
+            }, 6000);
+        });
+
+        // Copy report markdown raw to clipboard
+        btnCopyReport.addEventListener("click", function () {
+            if (!reportMarkdownRaw) return;
+            navigator.clipboard.writeText(reportMarkdownRaw)
+                .then(() => alert("Đã sao chép báo cáo Markdown vào bộ nhớ tạm!"))
+                .catch(err => alert("Lỗi khi sao chép: " + err));
+        });
+
+        // --- Defense Templates & Letter Generator ---
+        const defenseTemplates = {
+            interest_cap: `CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
+Độc lập - Tự do - Hạnh phúc
+---
+..., ngày ... tháng ... năm 2026
+
+THƯ GIẢI TRÌNH
+Về chi phí lãi vay liên kết vượt trần theo Nghị định 132/2020/NĐ-CP
+
+Kính gửi: {TAX_DEPARTMENT}
+
+- Căn cứ Luật Quản lý thuế số 38/2019/QH14;
+- Căn cứ Nghị định số 132/2020/NĐ-CP ngày 05 tháng 11 năm 2020 của Chính phủ quy định về quản lý thuế đối với doanh nghiệp có giao dịch liên kết;
+- Căn cứ tình hình thực tế hoạt động sản xuất kinh doanh của Công ty.
+
+Tên người nộp thuế: {COMPANY_NAME}
+Mã số thuế: {MST}
+Địa chỉ trụ sở chính: ...
+Người đại diện theo pháp luật: Ông/Bà {DIRECTOR_NAME}
+
+Công ty chúng tôi xin giải trình với Quý cơ quan về khoản điều chỉnh chi phí lãi vay phát sinh trong kỳ tính thuế như sau:
+
+1. Trạng thái giao dịch liên kết phát sinh trong kỳ:
+Trong kỳ tính thuế, Công ty có phát sinh giao dịch liên kết với các thành viên trong nhóm liên kết theo quy định tại Điều 5 Nghị định 132/2020/NĐ-CP. Chi tiết giao dịch liên kết đã được Công ty kê khai đầy đủ tại các mẫu biểu quy định.
+
+2. Xác định chi phí lãi vay được trừ và chi phí lãi vay bị loại trừ:
+Căn cứ khoản 3 Điều 16 Nghị định 132/2020/NĐ-CP, tổng chi phí lãi vay sau khi trừ doanh thu tiền lãi gửi và lãi cho vay phát sinh trong kỳ được trừ khi xác định thu nhập chịu thuế thu nhập doanh nghiệp (TNDN) không vượt quá 30% của tổng lợi nhuận thuần từ hoạt động kinh doanh cộng chi phí lãi vay sau khi trừ doanh thu tiền lãi gửi, lãi cho vay cộng chi phí khấu hao trong kỳ (EBITDA).
+
+Theo tính toán dựa trên số liệu kiểm toán Swarm:
+- Tổng chi phí lãi vay phát sinh: ... VND
+- Doanh thu tiền lãi gửi, lãi cho vay: ... VND
+- Chi phí lãi vay thuần: ... VND
+- Chỉ số EBITDA tính toán: ... VND
+- Hạn mức 30% EBITDA (Trần chi phí lãi vay): ... VND
+
+Như vậy, phần chi phí lãi vay vượt mức 30% EBITDA không được trừ vào chi phí hợp lý khi tính thuế TNDN trong kỳ là: ... VND.
+
+3. Đề xuất điều chỉnh và kiến nghị:
+Công ty xin tự nguyện điều chỉnh tăng thu nhập chịu thuế TNDN tại Chỉ tiêu B4 trên Tờ khai quyết toán thuế TNDN số tiền lãi vay vượt trần tương ứng là: {DETAILS}.
+Công ty cam kết phần chi phí lãi vay không được trừ này sẽ được theo dõi để chuyển chi phí sang kỳ tính thuế tiếp theo nếu đáp ứng các điều kiện quy định tại Điểm c Khoản 3 Điều 16 Nghị định 132/2020/NĐ-CP (trong thời hạn không quá 05 năm liên tục).
+
+Kính mong Quý cơ quan ghi nhận giải trình này để làm cơ sở hoàn thiện hồ sơ quyết toán thuế của Công ty.
+
+Xin trân trọng cảm ơn./.
+
+ĐẠI DIỆN PHÁP LUẬT CỦA DOANH NGHIỆP
+(Ký, ghi rõ họ tên và đóng dấu)`,
+
+            expired_signature: `CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
+Độc lập - Tự do - Hạnh phúc
+---
+..., ngày ... tháng ... năm 2026
+
+BẢN GIẢI TRÌNH PHÁP LÝ
+Về thời điểm ký số trên hóa đơn điện tử đầu vào
+
+Kính gửi: {TAX_DEPARTMENT}
+
+Tên doanh nghiệp: {COMPANY_NAME}
+Mã số thuế: {MST}
+Địa chỉ: ...
+Người đại diện pháp luật: Ông/Bà {DIRECTOR_NAME}
+
+Công ty chúng tôi xin gửi tới Quý cơ quan văn bản giải trình chi tiết về việc xác thực hiệu lực chữ ký số đối với hóa đơn điện tử đầu vào có chứng thư số hết hạn tại thời điểm cơ quan thuế thanh kiểm tra nhưng hợp lệ tại thời điểm lập hóa đơn, cụ thể như sau:
+
+1. Nội dung vụ việc và hóa đơn phát sinh:
+Trong kỳ thuế, Công ty có tiếp nhận hóa đơn đầu vào ký hiệu ..., số hóa đơn ..., ngày lập ..., do bên bán là ... (MST: ...) phát hành. 
+Tại thời điểm hiện tại, khi tiến hành đối soát, hệ thống hiển thái chứng thư số hết hạn sử dụng.
+
+2. Căn cứ pháp lý chứng minh tính hợp lệ của hóa đơn:
+- Theo Khoản 3 Điều 10 Nghị định số 123/2020/NĐ-CP ngày 19/10/2020 của Chính phủ:
+  "Thời điểm ký số trên hóa đơn điện tử là thời điểm người bán, người mua sử dụng chữ ký số để ký trên hóa đơn điện tử được hiển thị theo định dạng ngày, tháng, năm, giờ, phút, giây. Trường hợp hóa đơn điện tử đã lập có thời điểm ký số khác thời điểm lập hóa đơn thì thời điểm khai thuế là thời điểm lập hóa đơn."
+- Theo Luật Giao dịch điện tử số 20/2023/QH15 và các quy định về chữ ký số: Chữ ký số trên hóa đơn điện tử được xác định là hợp lệ nếu chứng thư số đó còn hiệu lực tại thời điểm ký hóa đơn. Việc chứng thư số hết hạn sau đó (tại thời điểm kiểm tra sau này) không làm thay đổi tính pháp lý và tính hợp lệ của hóa đơn đã được lập và gửi đúng quy trình trước đó.
+
+3. Chi tiết kiểm tra xác thực (Time-stamping):
+Hệ thống Swarm Audit của chúng tôi đã truy xuất cấu trúc XML mã hóa và xác minh:
+- Thời điểm lập hóa đơn: ...
+- Thời điểm ký số thực tế (Signature Timestamp): ...
+- Thời hạn hiệu lực của chứng thư số (Valid from - to): ...
+Thời điểm ký số thực tế hoàn toàn nằm trong khoảng thời gian chứng thư số của bên bán còn hiệu lực. 
+
+4. Kiến nghị:
+Công ty kính đề nghị Quý cơ quan chấp thuận cho Công ty được khấu trừ thuế GTGT đầu vào và hạch toán chi phí được trừ đối với hóa đơn nêu trên.
+Chi tiết số liệu bổ sung: {DETAILS}.
+
+Công ty cam kết các nội dung giải trình trên là hoàn toàn trung thực và chịu trách nhiệm trước pháp luật.
+
+Xin trân trọng cảm ơn./.
+
+ĐẠI DIỆN PHÁP LUẬT CỦA DOANH NGHIỆP
+(Ký, ghi rõ họ tên và đóng dấu)`,
+
+            penalty_defense: `CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
+Độc lập - Tự do - Hạnh phúc
+---
+..., ngày ... tháng ... năm 2026
+
+VĂN BẢN GIẢI TRÌNH
+Đề xuất áp dụng tình tiết giảm nhẹ hoặc không xử phạt vi phạm hành chính về thuế
+
+Kính gửi: {TAX_DEPARTMENT}
+
+Tên doanh nghiệp: {COMPANY_NAME}
+Mã số thuế: {MST}
+Địa chỉ trụ sở chính: ...
+Người đại diện pháp luật: Ông/Bà {DIRECTOR_NAME}
+
+Công ty chúng tôi nhận được Thông báo/Biên bản kiểm tra thuế số ... ngày ... của Đoàn kiểm tra về việc vi phạm hành chính trong lĩnh vực thuế liên quan đến hành vi chậm nộp tờ khai / khai sai chỉ tiêu thuế.
+
+Bằng văn bản này, Công ty chúng tôi xin giải trình chi tiết về nguyên nhân khách quan và kính đề nghị Quý cơ quan xem xét áp dụng các quy định tại Nghị định 125/2020/NĐ-CP để miễn giảm xử phạt hành chính đối với Công ty chúng tôi:
+
+1. Nội dung vụ việc và hành vi phát sinh:
+Theo Biên bản ghi nhận, Công ty có phát sinh hành vi vi phạm: ...
+
+2. Căn cứ pháp lý về tình tiết giảm nhẹ và miễn xử phạt:
+- Căn cứ Điều 9 Nghị định số 125/2020/NĐ-CP quy định về những trường hợp không xử phạt vi phạm hành chính về thuế, hóa đơn (bao gồm lỗi do sự cố hệ thống hạ tầng kỹ thuật, do bên thứ ba cung cấp dịch vụ hoặc thiên tai bất khả kháng).
+- Căn cứ Điều 10 Nghị định số 125/2020/NĐ-CP quy định về tình tiết giảm nhẹ: 
+  "Người vi phạm hành chính đã có hành vi tự nguyện khắc phục hậu quả, tự nguyện khai báo, thành khẩn khai báo; hành vi vi phạm do hoàn cảnh đặc biệt khó khăn khách quan..."
+
+3. Nguyên nhân khách quan và tinh thần khắc phục:
+- Về nguyên nhân: Việc phát sinh sai sót do Công ty gặp sự cố kỹ thuật về cổng chữ ký số và hệ thống truyền nhận dữ liệu hóa đơn điện tử TCT bị nghẽn mạng cục bộ trong ngày cuối cùng của hạn nộp thuế. 
+- Về tinh thần khắc phục: Ngay sau khi phát hiện lỗi hệ thống, Công ty đã chủ động liên hệ nhà cung cấp và nộp bổ sung hồ sơ tờ khai, nộp đầy đủ số tiền thuế phát sinh cùng tiền chậm nộp vào ngân sách nhà nước mà không chờ cơ quan thuế ban hành quyết định thanh tra.
+Số liệu khắc phục chi tiết: {DETAILS}.
+
+4. Kiến nghị:
+Căn cứ các quy định trên, Công ty chúng tôi kính đề nghị Quý cơ quan xem xét không áp dụng hình thức xử phạt tiền mà chỉ áp dụng hình thức cảnh cáo, hoặc xem xét áp dụng mức phạt tối thiểu trong khung phạt hành chính do Công ty có nhiều tình tiết giảm nhẹ và đã tự nguyện khắc phục hậu quả 100%.
+
+Công ty kính mong nhận được sự hỗ trợ và tạo điều kiện từ Quý cơ quan thuế.
+
+Xin trân trọng cảm ơn./.
+
+ĐẠI DIỆN PHÁP LUẬT CỦA DOANH NGHIỆP
+(Ký, ghi rõ họ tên và đóng dấu)`
+        };
+
+        let selectedTemplateId = "interest_cap";
+
+        // Template selector trigger
+        document.querySelectorAll("#defenseTemplatesList .template-card").forEach(card => {
+            card.addEventListener("click", function () {
+                document.querySelectorAll("#defenseTemplatesList .template-card").forEach(c => c.classList.remove("selected"));
+                card.classList.add("selected");
+                selectedTemplateId = card.dataset.templateId;
+                updateDefenseLetter();
+            });
+        });
+
+        // Update / Generate Letter Output
+        function updateDefenseLetter() {
+            const directorName = document.getElementById("defDirectorName").value || "Nguyễn Văn A";
+            const taxDept = document.getElementById("defTaxDepartment").value || "Chi cục Thuế Quản lý";
+            const details = document.getElementById("defDetailsInput").value || "Không có số liệu điều chỉnh chi tiết.";
+            
+            const templateText = defenseTemplates[selectedTemplateId];
+            if (!templateText) return;
+
+            let letter = templateText
+                .replace(/{TAX_DEPARTMENT}/g, taxDept)
+                .replace(/{COMPANY_NAME}/g, "Công ty TNHH " + (mst ? "MST " + mst : "Doanh nghiệp"))
+                .replace(/{MST}/g, mst || "0101234567")
+                .replace(/{DIRECTOR_NAME}/g, directorName)
+                .replace(/{DETAILS}/g, details);
+
+            document.getElementById("letterOutput").innerText = letter;
+        }
+
+        document.getElementById("btnGenerateLetter").addEventListener("click", updateDefenseLetter);
+
+        // Copy defense letter to clipboard
+        document.getElementById("btnCopyLetter").addEventListener("click", function () {
+            const text = document.getElementById("letterOutput").innerText;
+            if (!text || text.startsWith("Chọn mẫu")) return;
+            
+            navigator.clipboard.writeText(text)
+                .then(() => alert("Đã sao chép Thư giải trình vào bộ nhớ tạm!"))
+                .catch(err => alert("Lỗi khi sao chép: " + err));
+        });
+    });
+</script>
+{% endblock %}

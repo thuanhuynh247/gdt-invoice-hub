@@ -41,14 +41,6 @@ from app import create_app
 @pytest.fixture
 def app():
     """Create a Flask app configured for tests."""
-    # Start with a clean test database file if possible
-    test_db_path = PROJECT_ROOT / "data" / "test_invoices.db"
-    if test_db_path.exists():
-        try:
-            test_db_path.unlink()
-        except Exception:
-            pass
-
     flask_app = create_app()
     flask_app.config.update(
         TESTING=True,
@@ -56,10 +48,38 @@ def app():
         PROPAGATE_EXCEPTIONS=True,
     )
     with flask_app.app_context():
+        from extensions import db
+        # Ensure a clean database state for the test
+        try:
+            db.drop_all()
+        except Exception:
+            pass
+        db.create_all()
+            
         yield flask_app
         
+        # Stop background workers first before database teardown
+        try:
+            from auth.captcha import stop_captcha_prefetch_worker
+            stop_captcha_prefetch_worker()
+        except Exception:
+            pass
+
+        try:
+            from invoices.scheduler import stop_scheduler_worker
+            stop_scheduler_worker()
+        except Exception:
+            pass
+
+        import threading
+        for t in threading.enumerate():
+            if t.name.startswith("BatchDownloadThread-"):
+                try:
+                    t.join(timeout=1.0)
+                except Exception:
+                    pass
+
         # Teardown database session and clean tables
-        from extensions import db
         db.session.remove()
         try:
             from invoices.thread_local import clear_thread_local_context
@@ -74,21 +94,6 @@ def app():
             db.engine.dispose()
         except Exception:
             pass
-
-    # Stop background workers and join thread workers
-    from auth.captcha import stop_captcha_prefetch_worker
-    stop_captcha_prefetch_worker()
-
-    from invoices.scheduler import stop_scheduler_worker
-    stop_scheduler_worker()
-
-    import threading
-    for t in threading.enumerate():
-        if t.name.startswith("BatchDownloadThread-"):
-            try:
-                t.join(timeout=1.0)
-            except Exception:
-                pass
 
 
 
