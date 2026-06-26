@@ -29,5 +29,11 @@ class Config:
         os.path.join(os.path.abspath(os.path.dirname(__file__)), "data")
     )
 
+    # Proxy list and rate limit prevention
+    GDT_PROXIES = [p.strip() for p in os.getenv("GDT_PROXIES", "").split(",") if p.strip()]
+    GDT_REQUEST_DELAY_MIN = float(os.getenv("GDT_REQUEST_DELAY_MIN", "1.0"))
+    GDT_REQUEST_DELAY_MAX = float(os.getenv("GDT_REQUEST_DELAY_MAX", "3.0"))
+
+
 
 

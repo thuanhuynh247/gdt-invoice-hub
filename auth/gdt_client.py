@@ -1,12 +1,31 @@
-"""Resilient GDT client with OPTIONS preflight and port 30000 fallback."""
+"""Resilient GDT client with OPTIONS preflight, port 30000 fallback, proxy rotation, and rate-limit prevention."""
 
 from __future__ import annotations
 
 import logging
+import random
+import time
 import requests
 from flask import current_app
 
 logger = logging.getLogger(__name__)
+
+
+def _get_request_proxies() -> dict | None:
+    """Select a random proxy from config.GDT_PROXIES if available."""
+    try:
+        proxies_list = current_app.config.get("GDT_PROXIES", [])
+        if not proxies_list:
+            return None
+        selected = random.choice(proxies_list)
+        logger.debug(f"Using rotated proxy for GDT request: {selected}")
+        return {
+            "http": selected,
+            "https": selected
+        }
+    except Exception as e:
+        logger.warning(f"Error selecting proxy: {e}")
+        return None
 
 
 def gdt_request(method: str, path: str, **kwargs) -> requests.Response:
@@ -16,7 +35,20 @@ def gdt_request(method: str, path: str, **kwargs) -> requests.Response:
     - If standard request fails (network error or HTTP 403, 408, 429, 500+),
       automatically retries with direct port 30000 fallback (removing '/api/' prefix).
     - Sets browser-emulating headers to bypass WAF bot-detection.
+    - Automatically rotates proxies from config.GDT_PROXIES to bypass IP bans/limits.
+    - Automatically sleeps dynamically to prevent hitting rate limits too quickly.
     """
+    # 0. Apply dynamic request delay for rate limit prevention
+    try:
+        delay_min = current_app.config.get("GDT_REQUEST_DELAY_MIN", 1.0)
+        delay_max = current_app.config.get("GDT_REQUEST_DELAY_MAX", 3.0)
+        if delay_max > delay_min:
+            sleep_time = random.uniform(delay_min, delay_max)
+            logger.debug(f"Applying rate limit delay of {sleep_time:.2f}s before GDT request")
+            time.sleep(sleep_time)
+    except Exception as e:
+        logger.warning(f"Failed to apply rate-limiting delay: {e}")
+
     base_url = current_app.config["GDT_BASE_URL"]
     timeout = kwargs.pop("timeout", current_app.config.get("GDT_TIMEOUT_SECONDS", 30))
 
@@ -32,6 +64,12 @@ def gdt_request(method: str, path: str, **kwargs) -> requests.Response:
     kwargs["headers"] = headers
     kwargs["timeout"] = timeout
 
+    # Attach proxy if configured (unless overridden in kwargs)
+    if "proxies" not in kwargs:
+        proxy_dict = _get_request_proxies()
+        if proxy_dict:
+            kwargs["proxies"] = proxy_dict
+
     # 1. Try standard URL
     clean_path = path.lstrip('/')
     standard_url = f"{base_url.rstrip('/')}/{clean_path}"
@@ -46,7 +84,7 @@ def gdt_request(method: str, path: str, **kwargs) -> requests.Response:
                     "User-Agent": headers["User-Agent"],
                     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
                 }
-                requests.options(standard_url, headers=preflight_headers, cookies=kwargs.get("cookies"), timeout=5)
+                requests.options(standard_url, headers=preflight_headers, cookies=kwargs.get("cookies"), timeout=5, proxies=kwargs.get("proxies"))
                 logger.debug(f"Standard preflight OPTIONS completed successfully.")
             except Exception as opt_err:
                 logger.warning(f"Standard preflight OPTIONS handshake failed (non-blocking): {opt_err}")
@@ -66,6 +104,12 @@ def gdt_request(method: str, path: str, **kwargs) -> requests.Response:
 
     # 2. Port 30000 direct fallback (matching VBA client)
     logger.warning(f"GDT standard request failed ({last_error}). Retrying with direct port 30000 fallback...")
+
+    # If standard request failed due to proxy issue, we can rotate to a different proxy for the fallback
+    if "proxies" in kwargs:
+        new_proxy_dict = _get_request_proxies()
+        if new_proxy_dict:
+            kwargs["proxies"] = new_proxy_dict
 
     from urllib.parse import urlparse, urlunparse
     parsed = urlparse(base_url)
@@ -97,7 +141,7 @@ def gdt_request(method: str, path: str, **kwargs) -> requests.Response:
                     "User-Agent": fallback_headers["User-Agent"],
                     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
                 }
-                requests.options(fallback_url, headers=preflight_headers, cookies=kwargs.get("cookies"), timeout=5)
+                requests.options(fallback_url, headers=preflight_headers, cookies=kwargs.get("cookies"), timeout=5, proxies=kwargs.get("proxies"))
                 logger.debug(f"Fallback preflight OPTIONS completed successfully.")
             except Exception as opt_err:
                 logger.warning(f"Fallback preflight OPTIONS handshake failed (non-blocking): {opt_err}")
