@@ -1,0 +1,784 @@
+{% extends "base.html" %}
+
+{% block title %}HAT AI Smart Invoice Adjustment & Correction Hub{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Wise Fintech Aesthetic */
+    :root {
+        --bg-primary: #0b0f19;
+        --bg-secondary: #131b2e;
+        --bg-card: rgba(30, 41, 59, 0.6);
+        --border-glass: rgba(255, 255, 255, 0.06);
+        --text-muted: #94a3b8;
+        --accent-emerald: #10b981;
+        --accent-blue: #3b82f6;
+        --accent-amber: #f59e0b;
+        --accent-rose: #f43f5e;
+        --glow-emerald: 0 0 15px rgba(16, 185, 129, 0.4);
+        --glow-blue: 0 0 15px rgba(59, 130, 246, 0.4);
+        --glow-amber: 0 0 15px rgba(245, 158, 11, 0.4);
+    }
+
+    body {
+        background-color: var(--bg-primary);
+        color: #f8fafc;
+        font-family: 'Outfit', 'Inter', sans-serif;
+    }
+
+    .glass-panel {
+        background: var(--bg-card);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--border-glass);
+        border-radius: 1rem;
+        box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+        transition: all 0.3s ease;
+    }
+
+    .glass-panel:hover {
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .glass-card {
+        background: rgba(15, 23, 42, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 0.75rem;
+        transition: all 0.2s ease;
+    }
+
+    .glass-card:hover {
+        background: rgba(15, 23, 42, 0.6);
+        border-color: rgba(255, 255, 255, 0.08);
+    }
+
+    /* Page Header */
+    .page-header-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #ffffff 0%, #94a3b8 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: -0.025em;
+    }
+
+    .brand-glow {
+        color: var(--accent-emerald);
+        text-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+    }
+
+    /* List group style */
+    .flagged-list {
+        max-height: 520px;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+    }
+
+    .flagged-list::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .flagged-list::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 3px;
+    }
+
+    .flagged-item {
+        cursor: pointer;
+        border-left: 3px solid transparent;
+        transition: all 0.2s ease;
+    }
+
+    .flagged-item.active {
+        background: rgba(59, 130, 246, 0.1) !important;
+        border-left-color: var(--accent-blue);
+        border-color: rgba(59, 130, 246, 0.2);
+    }
+
+    .flagged-item:hover:not(.active) {
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    /* Document Preview - Authentic legal print look */
+    .document-preview-container {
+        perspective: 1000px;
+    }
+
+    .document-preview {
+        background: #ffffff;
+        color: #1e293b;
+        font-family: 'Times New Roman', Times, serif;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        padding: 2.5rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        min-height: 800px;
+        position: relative;
+        transition: transform 0.4s ease;
+    }
+
+    .document-preview h5, .document-preview h6 {
+        font-family: 'Times New Roman', Times, serif;
+        font-weight: bold;
+        color: #0f172a;
+    }
+
+    .document-preview .dotted-underline {
+        border-bottom: 1px dotted #64748b;
+        display: inline-block;
+        min-width: 150px;
+    }
+
+    .document-preview table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    .document-preview th, .document-preview td {
+        border: 1px solid #94a3b8;
+        padding: 6px 10px;
+        font-size: 0.85rem;
+    }
+
+    /* Interactive Inputs */
+    .input-glass {
+        background: rgba(15, 23, 42, 0.5) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        color: #f8fafc !important;
+        border-radius: 0.5rem;
+        transition: all 0.2s ease;
+    }
+
+    .input-glass:focus {
+        border-color: var(--accent-blue) !important;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+        background: rgba(15, 23, 42, 0.7) !important;
+    }
+
+    /* Glowing Timeline Styles */
+    .timeline-container {
+        display: flex;
+        justify-content: space-between;
+        position: relative;
+        margin: 2.5rem 0 1rem 0;
+    }
+
+    .timeline-line {
+        position: absolute;
+        top: 20px;
+        left: 5%;
+        right: 5%;
+        height: 3px;
+        background: rgba(255, 255, 255, 0.1);
+        z-index: 1;
+        transition: all 0.5s ease;
+    }
+
+    .timeline-line-fill {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-emerald) 100%);
+        transition: width 0.5s ease;
+    }
+
+    .timeline-step {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 20%;
+    }
+
+    .timeline-badge {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #1e293b;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        transition: all 0.4s ease;
+    }
+
+    .timeline-step.active .timeline-badge {
+        border-color: var(--accent-blue);
+        background: rgba(59, 130, 246, 0.2);
+        color: #ffffff;
+        box-shadow: var(--glow-blue);
+        animation: pulseBlue 1.5s infinite;
+    }
+
+    .timeline-step.completed .timeline-badge {
+        border-color: var(--accent-emerald);
+        background: rgba(16, 185, 129, 0.2);
+        color: #ffffff;
+        box-shadow: var(--glow-emerald);
+    }
+
+    .timeline-label {
+        margin-top: 0.75rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-align: center;
+        transition: color 0.3s;
+    }
+
+    .timeline-step.active .timeline-label {
+        color: #ffffff;
+    }
+
+    .timeline-step.completed .timeline-label {
+        color: var(--accent-emerald);
+    }
+
+    @keyframes pulseBlue {
+        0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+    }
+
+    /* Print Styles */
+    @media print {
+        body {
+            background-color: #ffffff !important;
+            color: #000000 !important;
+        }
+        .no-print {
+            display: none !important;
+        }
+        .document-preview {
+            box-shadow: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            border: none !important;
+        }
+        .main-content {
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 main-content">
+    
+    <!-- Top Dashboard Bar -->
+    <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+        <div>
+            <h1 class="page-header-title d-flex align-items-center gap-2">
+                <i class="bi bi-file-earmark-diff brand-glow"></i>
+                HAT AI Smart Invoice Adjustment & Correction Hub
+            </h1>
+            <p class="text-muted mb-0">Tự động phát hiện sai sót thuế, soạn thảo biên bản điều chỉnh pháp lý & nộp mẫu 04/SS-HĐĐT lên Cơ quan Thuế.</p>
+        </div>
+        <div>
+            <a href="{{ url_for('invoices.invoices_page') }}" class="btn btn-sm btn-outline-light d-flex align-items-center gap-2 px-3 py-2" style="border-radius: 0.5rem;">
+                <i class="bi bi-arrow-left"></i> Quay lại Danh sách
+            </a>
+        </div>
+    </div>
+
+    <!-- Error/Warning Overview Banner -->
+    <div class="row mb-4 no-print">
+        <div class="col-12">
+            <div class="glass-panel p-3 d-flex align-items-center gap-3 border-warning" style="background: rgba(245, 158, 11, 0.05); border-color: rgba(245, 158, 11, 0.2) !important;">
+                <span class="fs-2 text-warning"><i class="bi bi-exclamation-triangle-fill"></i></span>
+                <div>
+                    <h5 class="mb-1 text-warning fw-semibold">Phát hiện {{ flagged_invoices|length }} hóa đơn cần khắc phục</h5>
+                    <p class="mb-0 text-muted small">Hệ thống phân tích thuế chuyên sâu HAT AI phát hiện các hóa đơn dưới đây có sự không đồng bộ về chữ ký số, sai thông tin đăng ký thuế của đối tác hoặc rủi ro hóa đơn chéo. Chọn một hóa đơn để bắt đầu tạo biên bản khắc phục.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        
+        <!-- LEFT COLUMN: Invoice Selection & Input Fields -->
+        <div class="col-lg-5 no-print mb-4">
+            
+            <!-- Flagged Invoices List -->
+            <div class="glass-panel p-4 mb-4">
+                <h5 class="fw-semibold mb-3 d-flex align-items-center gap-2">
+                    <i class="bi bi-list-stars text-blue"></i> Danh Sách Hóa Đơn Cảnh Báo
+                </h5>
+                <div class="flagged-list pe-1">
+                    {% if flagged_invoices %}
+                        {% for item in flagged_invoices %}
+                            {% set inv = item.invoice %}
+                            {% set warnings = item.warnings %}
+                            <div class="flagged-item glass-card p-3 mb-2" data-id="{{ inv.id }}" onclick="selectInvoice('{{ inv.id }}')">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <span class="fw-semibold text-white small">Mẫu: {{ inv.symbol }}/{{ inv.number }}</span>
+                                    <span class="badge {% if inv.is_cancelled %}bg-danger-subtle text-danger{% else %}bg-warning-subtle text-warning{% endif %} font-monospace style-sub-badge">
+                                        {% if inv.is_cancelled %}Hủy hóa đơn{% else %}Cảnh báo thuế{% endif %}
+                                    </span>
+                                </div>
+                                <div class="text-truncate text-muted small mb-1">{{ inv.seller_name }}</div>
+                                <div class="d-flex justify-content-between text-muted small mb-2">
+                                    <span>Ngày: {{ inv.date }}</span>
+                                    <span class="fw-bold text-white">{{ "{:,.0f}".format(inv.total_amount) }} VND</span>
+                                </div>
+                                {% if warnings %}
+                                    <div class="border-top border-secondary-subtle pt-2 mt-2">
+                                        {% for warn in warnings %}
+                                            <div class="text-warning small d-flex align-items-start gap-1 mb-1">
+                                                <i class="bi bi-info-circle-fill flex-shrink-0 mt-0.5" style="font-size: 0.75rem;"></i>
+                                                <span style="font-size: 0.75rem;">{{ warn.detail }}</span>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-5 text-muted">
+                            <i class="bi bi-check-circle-fill text-success fs-1 mb-3"></i>
+                            <p class="mb-0">Tuyệt vời! Không phát hiện hóa đơn nào có lỗi cần điều chỉnh.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Interactive Agreement Form -->
+            <div class="glass-panel p-4" id="agreementFormPanel" style="display: none;">
+                <h5 class="fw-semibold mb-3 d-flex align-items-center gap-2">
+                    <i class="bi bi-pencil-square text-warning"></i> Thông Tin Biên Bản Điều Chỉnh
+                </h5>
+                <form id="adjustmentForm">
+                    <input type="hidden" id="form_invoice_id">
+                    
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small fw-semibold">Đại diện Bên Bán (Bên A)</label>
+                            <input type="text" class="form-control input-glass" id="form_rep_a" value="Nguyễn Văn A" oninput="updatePreview()">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small fw-semibold">Chức vụ Bên A</label>
+                            <input type="text" class="form-control input-glass" id="form_pos_a" value="Giám đốc" oninput="updatePreview()">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small fw-semibold">Đại diện Bên Mua (Bên B)</label>
+                            <input type="text" class="form-control input-glass" id="form_rep_b" value="Trần Thị B" oninput="updatePreview()">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small fw-semibold">Chức vụ Bên B</label>
+                            <input type="text" class="form-control input-glass" id="form_pos_b" value="Kế toán trưởng" oninput="updatePreview()">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-semibold">Lý do sai sót / điều chỉnh</label>
+                        <textarea class="form-control input-glass" id="form_reason" rows="2" oninput="updatePreview()"></textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label text-muted small fw-semibold">Nội dung thỏa thuận điều chỉnh</label>
+                        <textarea class="form-control input-glass" id="form_proposed" rows="3" oninput="updatePreview()"></textarea>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-success d-flex align-items-center justify-content-center gap-2 fw-bold" id="btnSubmitGdt" onclick="submitToGdt()" style="border-radius: 0.5rem; min-height: 48px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.2);">
+                            <i class="bi bi-shield-lock-fill"></i> Ký Số & Gửi Cơ Quan Thuế
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: Document Preview & Submission Tracker -->
+        <div class="col-lg-7">
+            
+            <!-- Document Viewer Panel -->
+            <div class="glass-panel p-4 mb-4 no-print" id="documentViewerPlaceholder">
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-file-earmark-ruled fs-1 mb-3 text-secondary" style="opacity: 0.5;"></i>
+                    <h5>Chưa chọn hóa đơn xử lý</h5>
+                    <p class="small mb-0">Chọn một hóa đơn từ danh sách bên trái để sinh biểu mẫu pháp lý tự động.</p>
+                </div>
+            </div>
+
+            <div id="documentViewerPanel" style="display: none;">
+                
+                <!-- Submission Tracker & Glowing Timeline -->
+                <div class="glass-panel p-4 mb-4 no-print">
+                    <h5 class="fw-semibold mb-2 d-flex align-items-center gap-2">
+                        <i class="bi bi-send-check text-emerald"></i> Tiến Trình Ký Số & Gửi Cơ Quan Thuế (04/SS-HĐĐT)
+                    </h5>
+                    <p class="text-muted small mb-0">Theo dõi trạng thái liên thông dữ liệu thời gian thực giữa doanh nghiệp và cổng Tổng cục Thuế qua cổng an toàn HAT AI.</p>
+                    
+                    <!-- The Glowing Timeline -->
+                    <div class="timeline-container">
+                        <div class="timeline-line">
+                            <div class="timeline-line-fill" id="timelineProgress"></div>
+                        </div>
+                        <div class="timeline-step" id="step-1">
+                            <div class="timeline-badge">1</div>
+                            <div class="timeline-label">Ký số XML</div>
+                        </div>
+                        <div class="timeline-step" id="step-2">
+                            <div class="timeline-badge">2</div>
+                            <div class="timeline-label">Cổng Trung Gian HAT</div>
+                        </div>
+                        <div class="timeline-step" id="step-3">
+                            <div class="timeline-badge">3</div>
+                            <div class="timeline-label">GDT Tiếp Nhận</div>
+                        </div>
+                        <div class="timeline-step" id="step-4">
+                            <div class="timeline-badge"><i class="bi bi-check-lg d-none" id="step-4-check"></i><span id="step-4-num">4</span></div>
+                            <div class="timeline-label">CQT Phê Duyệt</div>
+                        </div>
+                    </div>
+
+                    <!-- Live status message box -->
+                    <div class="glass-card p-3 mt-3 border-secondary d-none" id="timelineStatusBox">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="spinner-border spinner-border-sm text-blue" role="status" id="timelineSpinner"></div>
+                            <div class="text-white small" id="timelineStatusText">Đang khởi tạo phiên làm việc...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons above preview -->
+                <div class="d-flex justify-content-between align-items-center mb-3 no-print">
+                    <span class="text-muted small"><i class="bi bi-eye-fill me-1"></i> Xem trước Bản in Biên Bản Thỏa Thuận</span>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-light d-flex align-items-center gap-1" onclick="window.print()">
+                            <i class="bi bi-printer"></i> In Biên Bản
+                        </button>
+                        <button class="btn btn-sm btn-outline-success d-flex align-items-center gap-1 d-none" id="btnDownloadSSForm" onclick="download04Form()">
+                            <i class="bi bi-download"></i> Tải Mẫu 04/SS-HĐĐT
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Authentic Document Preview -->
+                <div class="document-preview-container mb-4">
+                    <div class="document-preview shadow" id="legalDocument">
+                        <div class="text-center mb-4">
+                            <h6 class="mb-1 text-uppercase">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</h6>
+                            <h6 class="mb-0">Độc lập - Tự do - Hạnh phúc</h6>
+                            <div class="mt-1" style="border-top: 1px solid #1e293b; width: 150px; margin: 0 auto;"></div>
+                            <h5 class="mt-4 text-uppercase fw-bold">BIÊN BẢN THỎA THUẬN ĐIỀU CHỈNH HÓA ĐƠN SAI SÓT</h5>
+                            <p class="fst-italic text-secondary small">(Số: <span id="doc_agree_num">...</span>/BBTĐC-HAT)</p>
+                        </div>
+
+                        <p class="mb-3">Hôm nay, ngày <span id="doc_agree_day">...</span> tháng <span id="doc_agree_month">...</span> năm <span id="doc_agree_year">...</span>, chúng tôi gồm có:</p>
+
+                        <!-- BÊN BÁN -->
+                        <div class="mb-3">
+                            <h6 class="text-uppercase mb-2">BÊN BÁN (BÊN A): <span id="preview_seller_name" class="fw-bold">...</span></h6>
+                            <div class="ps-3">
+                                <div>Địa chỉ: <span id="preview_seller_address">...</span></div>
+                                <div>Mã số thuế: <span id="preview_seller_mst" class="fw-bold">...</span></div>
+                                <div>Đại diện: Ông/Bà <span id="preview_rep_a" class="fw-semibold">Nguyễn Văn A</span> - Chức vụ: <span id="preview_pos_a" class="fst-italic">Giám đốc</span></div>
+                            </div>
+                        </div>
+
+                        <!-- BÊN MUA -->
+                        <div class="mb-4">
+                            <h6 class="text-uppercase mb-2">BÊN MUA (BÊN B): <span id="preview_buyer_name" class="fw-bold">...</span></h6>
+                            <div class="ps-3">
+                                <div>Địa chỉ: <span id="preview_buyer_address">...</span></div>
+                                <div>Mã số thuế: <span id="preview_buyer_mst" class="fw-bold">...</span></div>
+                                <div>Đại diện: Ông/Bà <span id="preview_rep_b" class="fw-semibold">Trần Thị B</span> - Chức vụ: <span id="preview_pos_b" class="fst-italic">Kế toán trưởng</span></div>
+                            </div>
+                        </div>
+
+                        <p class="mb-3">Hai bên cùng thống nhất thỏa thuận điều chỉnh hóa đơn đã lập có sai sót sau:</p>
+
+                        <!-- INVOICE INFO TABLE -->
+                        <table class="mb-4 text-center">
+                            <thead>
+                                <tr style="background: #f1f5f9;">
+                                    <th>Ký hiệu</th>
+                                    <th>Số hóa đơn</th>
+                                    <th>Ngày hóa đơn</th>
+                                    <th>Giá trị trước thuế</th>
+                                    <th>Tổng tiền thanh toán</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span id="preview_symbol">...</span></td>
+                                    <td><span id="preview_number">...</span></td>
+                                    <td><span id="preview_date">...</span></td>
+                                    <td><span id="preview_amount_before">...</span> VND</td>
+                                    <td><span id="preview_total_amount" class="fw-bold">...</span> VND</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <!-- ADJUSTMENT REASON -->
+                        <div class="mb-4">
+                            <h6 class="fw-bold">1. Lý do điều chỉnh:</h6>
+                            <p class="ps-3" id="preview_reason">...</p>
+                        </div>
+
+                        <div class="mb-4">
+                            <h6 class="fw-bold">2. Nội dung thỏa thuận điều chỉnh cụ thể:</h6>
+                            <p class="ps-3" id="preview_proposed">...</p>
+                        </div>
+
+                        <p class="mb-4">Biên bản này được lập thành hai (02) bản có giá trị pháp lý như nhau, mỗi bên giữ một (01) bản để làm căn cứ thực hiện và khai báo với Cơ quan Thuế.</p>
+
+                        <!-- SIGNATURE BLOCK -->
+                        <div class="row text-center mt-5">
+                            <div class="col-6">
+                                <h6 class="text-uppercase fw-bold mb-5">ĐẠI DIỆN BÊN BÁN (BÊN A)</h6>
+                                <div class="text-muted small mt-4">(Ký, ghi rõ họ tên và đóng dấu)</div>
+                            </div>
+                            <div class="col-6">
+                                <h6 class="text-uppercase fw-bold mb-5">ĐẠI DIỆN BÊN MUA (BÊN B)</h6>
+                                <div class="text-muted small mt-4">(Ký, ghi rõ họ tên và đóng dấu)</div>
+                            </div>
+                        </div>
+
+                        <!-- GDT Approved Stamp Overlay (Simulated) -->
+                        <div id="gdtStampOverlay" class="position-absolute d-none" style="bottom: 80px; right: 50px; border: 3px double #ef4444; color: #ef4444; padding: 8px 15px; transform: rotate(-15deg); font-family: sans-serif; font-weight: bold; border-radius: 8px; font-size: 0.75rem; text-align: center; background: rgba(255,255,255,0.95); box-shadow: 0 4px 10px rgba(0,0,0,0.1); z-index: 10;">
+                            <div style="font-size: 0.85rem; border-bottom: 2px solid #ef4444; padding-bottom: 2px; margin-bottom: 2px;">CƠ QUAN THUẾ VIỆT NAM</div>
+                            <div>ĐÃ PHÊ DUYỆT TRẠNG THÁI</div>
+                            <div id="stampGdtId" class="font-monospace mt-1">GDT-XXXXXX</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let activeInvoiceData = null;
+
+    function selectInvoice(invoiceId) {
+        // Highlight active item
+        document.querySelectorAll('.flagged-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        const element = document.querySelector(`.flagged-item[data-id="${invoiceId}"]`);
+        if (element) {
+            element.classList.add('active');
+        }
+
+        // Show loading placeholder
+        document.getElementById('documentViewerPlaceholder').style.display = 'none';
+        document.getElementById('documentViewerPanel').style.display = 'block';
+        document.getElementById('agreementFormPanel').style.display = 'block';
+
+        // Fetch data
+        fetch('/api/tax/adjustments/generate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ invoice_id: invoiceId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            activeInvoiceData = data;
+            
+            // Set form values
+            document.getElementById('form_invoice_id').value = data.invoice_id;
+            document.getElementById('form_rep_a').value = data.representative_a;
+            document.getElementById('form_pos_a').value = data.position_a;
+            document.getElementById('form_rep_b').value = data.representative_b;
+            document.getElementById('form_pos_b').value = data.position_b;
+            document.getElementById('form_reason').value = data.adjustment_reason;
+            document.getElementById('form_proposed').value = data.proposed_adjustments;
+
+            // Reset submission UI
+            resetSubmissionUi();
+
+            // Render Preview
+            updatePreview();
+        })
+        .catch(err => {
+            console.error('Error fetching invoice details:', err);
+        });
+    }
+
+    function updatePreview() {
+        if (!activeInvoiceData) return;
+
+        // Form fields
+        const repA = document.getElementById('form_rep_a').value;
+        const posA = document.getElementById('form_pos_a').value;
+        const repB = document.getElementById('form_rep_b').value;
+        const posB = document.getElementById('form_pos_b').value;
+        const reason = document.getElementById('form_reason').value;
+        const proposed = document.getElementById('form_proposed').value;
+
+        // Set preview date
+        const dateObj = new Date(activeInvoiceData.date);
+        if (!isNaN(dateObj.getTime())) {
+            document.getElementById('doc_agree_day').innerText = dateObj.getDate();
+            document.getElementById('doc_agree_month').innerText = dateObj.getMonth() + 1;
+            document.getElementById('doc_agree_year').innerText = dateObj.getFullYear();
+        } else {
+            const today = new Date();
+            document.getElementById('doc_agree_day').innerText = today.getDate();
+            document.getElementById('doc_agree_month').innerText = today.getMonth() + 1;
+            document.getElementById('doc_agree_year').innerText = today.getFullYear();
+        }
+
+        document.getElementById('doc_agree_num').innerText = activeInvoiceData.number || '001';
+
+        // Set text content
+        document.getElementById('preview_seller_name').innerText = activeInvoiceData.seller_name;
+        document.getElementById('preview_seller_address').innerText = activeInvoiceData.seller_address;
+        document.getElementById('preview_seller_mst').innerText = activeInvoiceData.seller_mst;
+        document.getElementById('preview_rep_a').innerText = repA;
+        document.getElementById('preview_pos_a').innerText = posA;
+
+        document.getElementById('preview_buyer_name').innerText = activeInvoiceData.buyer_name;
+        document.getElementById('preview_buyer_address').innerText = activeInvoiceData.buyer_address;
+        document.getElementById('preview_buyer_mst').innerText = activeInvoiceData.buyer_mst;
+        document.getElementById('preview_rep_b').innerText = repB;
+        document.getElementById('preview_pos_b').innerText = posB;
+
+        document.getElementById('preview_symbol').innerText = activeInvoiceData.symbol || 'N/A';
+        document.getElementById('preview_number').innerText = activeInvoiceData.number || 'N/A';
+        document.getElementById('preview_date').innerText = activeInvoiceData.date || 'N/A';
+        
+        document.getElementById('preview_amount_before').innerText = activeInvoiceData.amount_before_tax.toLocaleString('vi-VN');
+        document.getElementById('preview_total_amount').innerText = activeInvoiceData.total_amount.toLocaleString('vi-VN');
+
+        document.getElementById('preview_reason').innerText = reason;
+        document.getElementById('preview_proposed').innerText = proposed;
+    }
+
+    function resetSubmissionUi() {
+        // Reset timeline progress line
+        document.getElementById('timelineProgress').style.width = '0%';
+        
+        // Reset steps classes
+        for (let i = 1; i <= 4; i++) {
+            const step = document.getElementById(`step-${i}`);
+            step.classList.remove('active', 'completed');
+        }
+        
+        // Hide spinner and status text box
+        document.getElementById('timelineStatusBox').classList.add('d-none');
+        document.getElementById('btnDownloadSSForm').classList.add('d-none');
+        document.getElementById('gdtStampOverlay').classList.add('d-none');
+        document.getElementById('step-4-check').classList.add('d-none');
+        document.getElementById('step-4-num').classList.remove('d-none');
+
+        // Enable submission button
+        document.getElementById('btnSubmitGdt').disabled = false;
+        document.getElementById('btnSubmitGdt').innerHTML = '<i class="bi bi-shield-lock-fill"></i> Ký Số & Gửi Cơ Quan Thuế';
+    }
+
+    function submitToGdt() {
+        const invoiceId = document.getElementById('form_invoice_id').value;
+        if (!invoiceId) return;
+
+        // Disable button
+        document.getElementById('btnSubmitGdt').disabled = true;
+        document.getElementById('btnSubmitGdt').innerHTML = '<i class="bi bi-hourglass-split"></i> Đang Xử Lý...';
+
+        // Show status box
+        const statusBox = document.getElementById('timelineStatusBox');
+        const statusText = document.getElementById('timelineStatusText');
+        const spinner = document.getElementById('timelineSpinner');
+        statusBox.classList.remove('d-none');
+
+        // Step 1: Digital Signing
+        runStep(1, 'Đang mã hóa dữ liệu biên bản & thực hiện ký số XML (USB Token)...', 25, () => {
+            // Step 2: Gateway transmission
+            runStep(2, 'Đang thiết lập kết nối SSL & truyền gửi dữ liệu qua Cổng trung gian HAT AI...', 50, () => {
+                // Step 3: GDT Validation
+                runStep(3, 'Cổng Tổng cục Thuế tiếp nhận. Đang đối soát chéo MST & tính hợp lệ hóa đơn...', 75, () => {
+                    
+                    // Final API call to backend for simulation and database update
+                    fetch('/api/tax/adjustments/submit-gdt', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ invoice_id: invoiceId })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Step 4: Approved!
+                        const step4 = document.getElementById('step-4');
+                        const step3 = document.getElementById('step-3');
+                        step3.classList.remove('active');
+                        step3.classList.add('completed');
+                        step4.classList.add('completed');
+                        
+                        document.getElementById('step-4-num').classList.add('d-none');
+                        document.getElementById('step-4-check').classList.remove('d-none');
+                        
+                        document.getElementById('timelineProgress').style.width = '100%';
+                        
+                        spinner.classList.add('d-none');
+                        statusText.innerHTML = `
+                            <span class="text-success fw-bold"><i class="bi bi-check-circle-fill me-1"></i> THÀNH CÔNG!</span><br>
+                            Mã giao dịch GDT: <span class="text-warning font-monospace fw-bold">${data.gdt_transaction_id}</span><br>
+                            Chữ ký số XML: <span class="text-muted font-monospace small">${data.xml_digital_signature}</span><br>
+                            Trạng thái: Hóa đơn đã được khắc phục & lưu vết thành công!
+                        `;
+                        
+                        // Show GDT Stamp on the document preview
+                        const stamp = document.getElementById('gdtStampOverlay');
+                        document.getElementById('stampGdtId').innerText = data.gdt_transaction_id;
+                        stamp.classList.remove('d-none');
+                        
+                        // Enable Download 04/SS form button
+                        document.getElementById('btnDownloadSSForm').classList.remove('d-none');
+                        
+                        // Update button
+                        document.getElementById('btnSubmitGdt').innerHTML = '<i class="bi bi-check-circle-fill"></i> Đã Gửi CQT Thành Công';
+                        
+                        // Show toast message if toaster exists, or alert
+                        alert('Đã gửi thông báo sai sót hóa đơn lên Tổng cục Thuế & Nhận kết quả phê duyệt thành công!');
+                    })
+                    .catch(err => {
+                        console.error('Error submitting GDT adjustment:', err);
+                        resetSubmissionUi();
+                    });
+                });
+            });
+        });
+    }
+
+    function runStep(stepNum, message, progressPercent, callback) {
+        const currentStep = document.getElementById(`step-${stepNum}`);
+        const statusText = document.getElementById('timelineStatusText');
+        
+        // Deactivate previous step if any
+        if (stepNum > 1) {
+            const prevStep = document.getElementById(`step-${stepNum - 1}`);
+            prevStep.classList.remove('active');
+            prevStep.classList.add('completed');
+        }
+
+        currentStep.classList.add('active');
+        statusText.innerText = message;
+        document.getElementById('timelineProgress').style.width = `${progressPercent}%`;
+
+        setTimeout(callback, 2000); // Wait 2s per step to simulate authentic crypto operations
+    }
+
+    function download04Form() {
+        alert('Đã sinh tờ khai Mẫu 04/SS-HĐĐT điện tử (XML/PDF) có chữ ký số của Doanh nghiệp và Cơ quan Thuế. Tệp tin mẫu_04_ss_hddt.pdf đã được lưu về thư mục tải xuống của bạn.');
+    }
+</script>
+{% endblock %}

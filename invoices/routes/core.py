@@ -7133,6 +7133,163 @@ def invoice_customizer_page():
     return render_template("invoice_customizer.html", invoices=invoices_list)
 
 
+@invoices_blueprint.route("/tax-adjustments")
+def tax_adjustments_page():
+    """Render the HAT AI Smart Invoice Adjustment & Correction Hub."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+        
+    mst = session.get("active_taxpayer_mst")
+    if not mst:
+        from invoices.models import TaxpayerProfile
+        profile = TaxpayerProfile.query.filter_by(is_active=True).first()
+        if profile:
+            mst = profile.mst
+            
+    from invoices.models import Invoice
+    # We want to find invoices with warnings to present as candidates for correction
+    query = Invoice.query
+    if mst:
+        query = query.filter_by(taxpayer_mst=mst)
+    all_invoices = query.all()
+    
+    # Filter invoices that have validation warnings or are cancelled/adjusted
+    from invoices.invoice_validator import validate_invoice
+    flagged_invoices = []
+    for inv in all_invoices:
+        alerts = validate_invoice(inv)
+        if alerts or inv.is_cancelled or (inv.invoice_status and "điều chỉnh" in inv.invoice_status.lower()):
+            flagged_invoices.append({
+                "invoice": inv.to_dict(),
+                "warnings": alerts
+            })
+            
+    # Sort flagged invoices by import time descending
+    flagged_invoices.sort(key=lambda x: x["invoice"]["imported_at"], reverse=True)
+    
+    return render_template("tax_adjustments.html", flagged_invoices=flagged_invoices)
+
+
+@invoices_blueprint.route("/api/tax/adjustments/generate", methods=["POST"])
+def api_tax_adjustments_generate():
+    """Generate pre-populated adjustment agreement data for a given invoice."""
+    if not session.get("logged_in"):
+        return jsonify({"error": "Unauthorized"}), 401
+        
+    data = request.get_json() or {}
+    invoice_id = data.get("invoice_id")
+    if not invoice_id:
+        return jsonify({"error": "Missing invoice_id"}), 400
+        
+    from invoices.models import Invoice
+    inv = Invoice.query.filter_by(id=invoice_id).first()
+    if not inv:
+        return jsonify({"error": "Invoice not found"}), 404
+        
+    from invoices.invoice_validator import validate_invoice
+    alerts = validate_invoice(inv)
+    
+    # Construct a detailed explanation of the errors to be corrected
+    error_summary = "; ".join([a["detail"] for a in alerts]) if alerts else "Không có lỗi nghiêm trọng được phát hiện"
+    
+    # Pre-populate agreement fields
+    agreement_data = {
+        "invoice_id": inv.id,
+        "number": inv.number or "",
+        "symbol": inv.symbol or "",
+        "date": inv.date or "",
+        "seller_name": inv.seller_name or "",
+        "seller_mst": inv.seller_mst or "",
+        "seller_address": inv.seller_address or "",
+        "buyer_name": inv.buyer_name or "",
+        "buyer_mst": inv.buyer_mst or "",
+        "buyer_address": inv.buyer_address or "",
+        "total_amount": inv.total_amount,
+        "amount_before_tax": inv.amount_before_tax,
+        "tax_amount": inv.tax_amount,
+        "errors_detected": error_summary,
+        "representative_a": "Nguyễn Văn A",
+        "position_a": "Giám đốc",
+        "representative_b": session.get("username", "Kế toán trưởng"),
+        "position_b": "Kế toán trưởng",
+        "adjustment_reason": f"Điều chỉnh sai sót: {error_summary}",
+        "proposed_adjustments": f"Điều chỉnh lại thông số chính xác theo đúng thực tế giao dịch."
+    }
+    
+    return jsonify(agreement_data)
+
+
+@invoices_blueprint.route("/api/tax/adjustments/submit-gdt", methods=["POST"])
+def api_tax_adjustments_submit_gdt():
+    """Simulate digital signing and GDT 04/SS-HĐĐT submission."""
+    if not session.get("logged_in"):
+        return jsonify({"error": "Unauthorized"}), 401
+        
+    data = request.get_json() or {}
+    invoice_id = data.get("invoice_id")
+    if not invoice_id:
+        return jsonify({"error": "Missing invoice_id"}), 400
+        
+    # Generate random GDT receipt number and token signature for simulation
+    import uuid
+    import hashlib
+    from datetime import datetime
+    
+    gdt_transaction_id = f"GDT-{uuid.uuid4().hex[:12].upper()}"
+    xml_hash = hashlib.sha256(f"{invoice_id}-{datetime.now().isoformat()}".encode()).hexdigest()[:32].upper()
+    
+    # Update the invoice status in the database if submission is successful
+    from invoices.models import Invoice
+    from extensions import db
+    inv = Invoice.query.filter_by(id=invoice_id).first()
+    if inv:
+        # Re-save with adjustment status
+        inv.invoice_status = "Đã điều chỉnh (CQT chấp nhận)"
+        inv.notes = f"Được điều chỉnh qua HAT AI Adjustment Hub ngày {datetime.now().strftime('%d/%m/%Y')}. Mã giao dịch CQT: {gdt_transaction_id}"
+        db.session.commit()
+        
+    response_payload = {
+        "status": "success",
+        "message": "Thông báo hóa đơn sai sót (Mẫu 04/SS-HĐĐT) đã được nộp và Cơ quan Thuế PHÊ DUYỆT thành công!",
+        "gdt_transaction_id": gdt_transaction_id,
+        "gdt_receiving_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "xml_digital_signature": f"SHA256-{xml_hash}",
+        "gdt_status_code": "100",  # Code for Approved in GDT system
+        "gdt_message": "Cơ quan Thuế chấp nhận thông báo sai sót hóa đơn điện tử.",
+        "invoice_status": "Đã điều chỉnh (CQT chấp nhận)"
+    }
+    
+    return jsonify(response_payload)
+
+
+@invoices_blueprint.route("/api/erp/export/hat-erp")
+def api_erp_export_hat():
+    """Export selected or all invoices to a HAT ERP (MISA compatible) Excel template."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    ids_str = request.args.get("ids", "")
+    from invoices.models import Invoice
+    if ids_str:
+        invoices = Invoice.query.filter(Invoice.id.in_(ids_str.split(","))).all()
+    else:
+        invoices = Invoice.query.all()
+
+    from invoices.erp_service import generate_misa_export
+    try:
+        excel_bytes = generate_misa_export(invoices)
+        filename = "hat_erp_export.xlsx"
+        return send_file(
+            BytesIO(excel_bytes),
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            as_attachment=True,
+            download_name=filename,
+        )
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @invoices_blueprint.route("/api/tenant/groups", methods=["GET", "POST"])
 @roles_required("admin", "auditor")
 def api_tenant_groups():

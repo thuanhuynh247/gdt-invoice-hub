@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="GDT Invoice Hub - Nền tảng tra cứu, kiểm tra tuân thủ thuế, và kết xuất hóa đơn điện tử chuyên nghiệp cho doanh nghiệp Việt Nam.">
+    <meta name="description" content="HAT AI Invoice Hub - Nền tảng tra cứu, kiểm tra tuân thủ thuế, và kết xuất hóa đơn điện tử chuyên nghiệp cho doanh nghiệp Việt Nam.">
     <meta name="theme-color" content="#163300">
-    <title>{% block title %}GDT Invoice Hub - Hệ thống Quản lý Hóa đơn{% endblock %}</title>
+    <title>{% block title %}HAT AI Invoice Hub - Hệ thống Quản lý Hóa đơn{% endblock %}</title>
     <!-- Google Fonts: Outfit & Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -31,7 +31,7 @@
         <div class="container">
             <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="{{ url_for('index') }}">
                 <span class="logo-accent"><i class="bi bi-lightning-charge-fill" aria-hidden="true"></i></span>
-                <span class="logo-text">GDT Invoice Hub</span>
+                <span class="logo-text">HAT Invoice (AI Hub)</span>
             </a>
             <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -158,7 +158,7 @@
 
                     <!-- Admin Tools -->
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle {% if request.path in ['/harness','/consolidated-dashboard','/advanced-audit','/audit-trail','/tax-advisor','/tax-blockchain','/invoice-customizer'] %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <a class="nav-link dropdown-toggle {% if request.path in ['/harness','/consolidated-dashboard','/advanced-audit','/audit-trail','/tax-advisor','/tax-blockchain','/invoice-customizer','/tax-adjustments'] %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-gear" aria-hidden="true"></i> Công cụ
                         </a>
                         <ul class="dropdown-menu dropdown-menu-premium">
@@ -166,6 +166,7 @@
                             <li><a class="dropdown-item {% if request.path == '/tax-advisor' %}active{% endif %}" href="/tax-advisor"><i class="bi bi-robot-fill text-primary me-2" aria-hidden="true"></i>Cố vấn Thuế AI v78</a></li>
                             <li><a class="dropdown-item {% if request.path == '/tax-blockchain' %}active{% endif %}" href="/tax-blockchain"><i class="bi bi-cubes text-info me-2" aria-hidden="true"></i>HAT Blockchain Ledger</a></li>
                             <li><a class="dropdown-item {% if request.path == '/invoice-customizer' %}active{% endif %}" href="/invoice-customizer"><i class="bi bi-palette text-success me-2" aria-hidden="true"></i>Thiết kế Mẫu Hóa Đơn</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/tax-adjustments' %}active{% endif %}" href="/tax-adjustments"><i class="bi bi-file-earmark-diff text-warning me-2" aria-hidden="true"></i>Biên Bản Điều Chỉnh AI</a></li>
                             <li><a class="dropdown-item {% if request.path == '/v76-headroom-hub' %}active{% endif %}" href="/v76-headroom-hub"><i class="bi bi-cpu-fill text-success me-2" aria-hidden="true"></i>Headroom AI Hub</a></li>
                             <li><a class="dropdown-item {% if request.path == '/v77-waf-resilience' %}active{% endif %}" href="/v77-waf-resilience"><i class="bi bi-shield-shaded text-danger me-2" aria-hidden="true"></i>Cấu hình Proxy & WAF v77</a></li>
                             {% if session.get('user_role') in ['admin', 'auditor'] %}
