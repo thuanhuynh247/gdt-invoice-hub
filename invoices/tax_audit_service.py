@@ -153,3 +153,68 @@ Xin trân trọng cảm ơn./.
 """
 
     return letter_header + "\n" + letter_body + "\n" + letter_footer
+
+
+def calculate_fct_tax(
+    contract_value: float,
+    contract_type: str,  # "net" or "gross"
+    industry_type: str   # "services", "goods_with_services", "construction_with_materials", "construction_no_materials", "transport_other", "royalties", "aircraft_vessel_lease", "loan_interest", "securities_transfer"
+) -> dict:
+    """Calculate Foreign Contractor Tax (FCT) in Vietnam under Circular 103/2014/TT-BTC.
+    
+    Returns details of FCT VAT, FCT CIT, grossed-up values, net values, and legal bases.
+    """
+    # Industry mappings: (VAT_rate, CIT_rate, description)
+    industry_rates = {
+        "services": (0.05, 0.05, "Dịch vụ, cho thuê máy móc thiết bị, bảo hiểm"),
+        "goods_with_services": (0.03, 0.01, "Cung cấp hàng hóa kèm dịch vụ lắp đặt, bảo hành, bảo dưỡng"),
+        "construction_with_materials": (0.03, 0.02, "Xây dựng, lắp đặt có bao thầu nguyên vật liệu"),
+        "construction_no_materials": (0.05, 0.02, "Xây dựng, lắp đặt không bao thầu nguyên vật liệu"),
+        "transport_other": (0.02, 0.02, "Kinh doanh vận tải, nhà hàng, khách sạn, hoạt động khác"),
+        "royalties": (0.00, 0.10, "Bản quyền, chuyển giao công nghệ, quyền sở hữu trí tuệ"),
+        "aircraft_vessel_lease": (0.00, 0.02, "Cho thuê tàu bay, động cơ tàu bay, tàu biển"),
+        "loan_interest": (0.00, 0.05, "Lãi tiền vay cung cấp cho doanh nghiệp Việt Nam"),
+        "securities_transfer": (0.00, 0.001, "Chuyển nhượng chứng khoán, chứng chỉ quỹ")
+    }
+    
+    if industry_type not in industry_rates:
+        raise ValueError(f"Loại hình kinh doanh không hợp lệ: {industry_type}")
+        
+    vat_rate, cit_rate, desc = industry_rates[industry_type]
+    
+    if contract_type == "net":
+        # Grossing up from net paid to foreign contractor
+        # CIT Taxable revenue = Net / (1 - CIT_Rate)
+        cit_revenue = float(round(contract_value / (1.0 - cit_rate)))
+        # Gross revenue = CIT Taxable revenue / (1 - VAT_Rate)
+        gross_revenue = float(round(cit_revenue / (1.0 - vat_rate)))
+        
+        fct_cit = float(round(cit_revenue * cit_rate))
+        fct_vat = float(round(gross_revenue * vat_rate))
+        total_fct = fct_cit + fct_vat
+        net_value = contract_value
+    else:
+        # Starting with Gross contract value (including FCT)
+        gross_revenue = contract_value
+        fct_vat = float(round(gross_revenue * vat_rate))
+        cit_revenue = gross_revenue - fct_vat
+        fct_cit = float(round(cit_revenue * cit_rate))
+        total_fct = fct_vat + fct_cit
+        net_value = gross_revenue - total_fct
+        
+    return {
+        "contract_value": contract_value,
+        "contract_type": contract_type,
+        "industry_type": industry_type,
+        "industry_description": desc,
+        "vat_rate": vat_rate,
+        "cit_rate": cit_rate,
+        "gross_revenue": gross_revenue,
+        "cit_revenue": cit_revenue,
+        "fct_vat": fct_vat,
+        "fct_cit": fct_cit,
+        "total_fct": total_fct,
+        "net_value": net_value,
+        "circular_reference": "Thông tư 103/2014/TT-BTC hướng dẫn nghĩa vụ thuế nhà thầu nước ngoài"
+    }
+

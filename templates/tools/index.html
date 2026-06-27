@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Công Cụ Miễn Phí — Thuế Việt Nam | GDT Invoice Hub{% endblock %}
+{% block meta_description %}Bộ công cụ tính thuế miễn phí dành cho doanh nghiệp Việt Nam: tính phạt chậm nộp thuế, thuế nhà thầu nước ngoài, kiểm tra sức khỏe thuế.{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 960px;">
+
+    <div class="text-center mb-5">
+        <h1 class="h2 fw-bold">
+            <i class="bi bi-tools me-2 text-primary"></i>Công Cụ Thuế Miễn Phí
+        </h1>
+        <p class="text-muted lead">Bộ công cụ tính toán thuế trực tuyến — miễn phí, không cần đăng ký.</p>
+    </div>
+
+    <div class="row g-4">
+
+        <!-- Tool 1: Tax Penalty Calculator -->
+        <div class="col-md-6 col-lg-4">
+            <div class="glass-card h-100 text-center p-4" style="cursor:pointer;" onclick="window.location='/tools/tax-penalty-calculator'">
+                <div class="mb-3">
+                    <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-danger bg-opacity-10" style="width:64px;height:64px;">
+                        <i class="bi bi-exclamation-triangle-fill text-danger fs-3"></i>
+                    </span>
+                </div>
+                <h5 class="fw-bold">Tính Phạt Chậm Nộp Thuế</h5>
+                <p class="text-muted small mb-3">Nghị định 125/2020/NĐ-CP — Tính tiền phạt, lãi chậm nộp 0.03%/ngày và phạt trốn thuế.</p>
+                <a href="/tools/tax-penalty-calculator" class="btn btn-outline-danger btn-sm">Sử dụng ngay →</a>
+            </div>
+        </div>
+
+        <!-- Tool 2: FCT Calculator -->
+        <div class="col-md-6 col-lg-4">
+            <div class="glass-card h-100 text-center p-4" style="cursor:pointer;" onclick="window.location='/tools/fct-calculator'">
+                <div class="mb-3">
+                    <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary bg-opacity-10" style="width:64px;height:64px;">
+                        <i class="bi bi-globe2 text-primary fs-3"></i>
+                    </span>
+                </div>
+                <h5 class="fw-bold">Tính Thuế Nhà Thầu (FCT)</h5>
+                <p class="text-muted small mb-3">Thông tư 103/2014/TT-BTC — Tính thuế GTGT và TNDN nhà thầu theo phương pháp trực tiếp, Gross-up giá Net sang Gross.</p>
+                <a href="/tools/fct-calculator" class="btn btn-outline-primary btn-sm">Sử dụng ngay →</a>
+            </div>
+        </div>
+
+        <!-- Tool 3: Coming Soon - Health Check -->
+        <div class="col-md-6 col-lg-4">
+            <div class="glass-card h-100 text-center p-4 opacity-75">
+                <div class="mb-3">
+                    <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-success bg-opacity-10" style="width:64px;height:64px;">
+                        <i class="bi bi-heart-pulse-fill text-success fs-3"></i>
+                    </span>
+                </div>
+                <h5 class="fw-bold">Kiểm Tra Sức Khỏe Thuế</h5>
+                <p class="text-muted small mb-3">Đánh giá nhanh 10 chỉ số rủi ro thuế doanh nghiệp — chấm điểm tuân thủ T-Score.</p>
+                <span class="badge bg-secondary">Sắp ra mắt</span>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="text-center mt-5 pt-4 border-top">
+        <p class="text-muted small">Được phát triển bởi <strong>GDT Invoice Hub</strong> — Nền tảng quản lý hóa đơn điện tử & tuân thủ thuế doanh nghiệp.</p>
+        <a href="/login" class="btn btn-primary btn-sm">Đăng nhập để sử dụng đầy đủ tính năng →</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,488 @@
+{% extends "base.html" %}
+{% from "components/_glass_card.html" import glass_card %}
+{% from "components/_calc_input.html" import number_input, date_input, switch_input, calc_button, select_input %}
+
+{% block title %}Tính Phạt Chậm Nộp Thuế — Nghị định 125/2020 | GDT Invoice Hub{% endblock %}
+{% block meta_description %}Công cụ tính phạt chậm nộp thuế miễn phí theo Nghị định 125/2020/NĐ-CP: lãi chậm nộp 0.03%/ngày, phạt khai thiếu 20%, phạt trốn thuế 1-3 lần. Chính xác, tức thời.{% endblock %}
+
+{% block content %}
+<style>
+    .tool-hero {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        color: #fff;
+        border-radius: 24px;
+        padding: 48px 32px;
+        margin-bottom: 32px;
+        position: relative;
+        overflow: hidden;
+    }
+    .tool-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -30%;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(232, 65, 65, 0.15) 0%, transparent 70%);
+        pointer-events: none;
+    }
+    .result-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 16px;
+        padding: 24px;
+        backdrop-filter: blur(8px);
+    }
+    .result-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .result-row:last-child { border-bottom: none; }
+    .result-label { color: rgba(255,255,255,0.7); font-size: 0.9rem; }
+    .result-value { font-weight: 700; font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+    .result-total {
+        background: linear-gradient(135deg, #e84141 0%, #c0392b 100%);
+        border-radius: 12px;
+        padding: 20px 24px;
+        margin-top: 16px;
+    }
+    .result-total .result-label { color: rgba(255,255,255,0.9); font-weight: 600; }
+    .result-total .result-value { font-size: 1.4rem; color: #fff; }
+    .pulse-calc {
+        animation: calcPulse 0.6s ease-out;
+    }
+    @keyframes calcPulse {
+        0% { transform: scale(0.95); opacity: 0.7; }
+        50% { transform: scale(1.02); }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    .legal-ref {
+        background: rgba(46, 204, 113, 0.08);
+        border-left: 3px solid #2ecc71;
+        border-radius: 8px;
+        padding: 16px 20px;
+        margin-top: 24px;
+    }
+    .penalty-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.78rem;
+        font-weight: 600;
+    }
+    .glass-input-wrapper .form-control,
+    .glass-input-wrapper .form-select {
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.12);
+        color: #fff;
+        border-radius: 10px;
+    }
+    .glass-input-wrapper .form-control:focus,
+    .glass-input-wrapper .form-select:focus {
+        background: rgba(255,255,255,0.1);
+        border-color: rgba(232, 65, 65, 0.5);
+        box-shadow: 0 0 0 3px rgba(232, 65, 65, 0.15);
+        color: #fff;
+    }
+    .glass-input-wrapper .form-label {
+        color: rgba(255,255,255,0.75);
+    }
+    .share-bar {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .share-bar button {
+        border-radius: 8px;
+        font-size: 0.82rem;
+        padding: 6px 14px;
+    }
+</style>
+
+<div class="container py-4" style="max-width: 880px;">
+
+    <!-- Hero -->
+    <div class="tool-hero">
+        <div class="d-flex align-items-center gap-2 mb-2">
+            <a href="/tools" class="text-white-50 text-decoration-none small">← Tất cả công cụ</a>
+        </div>
+        <h1 class="h3 fw-bold mb-2">
+            <i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Tính Phạt Chậm Nộp Thuế
+        </h1>
+        <p class="mb-0" style="color: rgba(255,255,255,0.7); max-width: 600px;">
+            Tính toán chính xác tiền phạt và lãi chậm nộp thuế theo <strong>Nghị định 125/2020/NĐ-CP</strong> và
+            <strong>Luật Quản lý thuế 38/2019/QH14</strong>. Miễn phí, không cần đăng nhập.
+        </p>
+    </div>
+
+    <!-- Calculator Form -->
+    <div class="glass-card mb-4">
+        <div class="card-body glass-input-wrapper">
+            <h5 class="fw-bold mb-3">
+                <i class="bi bi-calculator me-2 text-danger" aria-hidden="true"></i>Nhập Thông Tin
+            </h5>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-12">
+                    <label for="input-underpaid" class="form-label small mb-1">Số thuế khai thiếu / nộp thiếu (VND)</label>
+                    <input type="text" id="input-underpaid" class="form-control" placeholder="Ví dụ: 150,000,000" autocomplete="off" inputmode="numeric">
+                </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label for="input-due-date" class="form-label small mb-1">Ngày hạn nộp thuế</label>
+                    <input type="date" id="input-due-date" class="form-control" autocomplete="off">
+                </div>
+                <div class="col-md-6">
+                    <label for="input-pay-date" class="form-label small mb-1">Ngày thực nộp (hoặc ngày hiện tại)</label>
+                    <input type="date" id="input-pay-date" class="form-control" autocomplete="off">
+                </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label for="input-violation" class="form-label small mb-1">Loại vi phạm</label>
+                    <select id="input-violation" class="form-select" onchange="toggleEvasionSlider()">
+                        <option value="underdeclaration">Khai thiếu thuế (Phạt 20%)</option>
+                        <option value="evasion">Trốn thuế (Phạt 1x – 3x)</option>
+                    </select>
+                </div>
+                <div class="col-md-6" id="evasion-slider-group" style="display:none;">
+                    <label for="input-evasion-mult" class="form-label small mb-1 d-flex justify-content-between">
+                        <span>Hệ số phạt trốn thuế</span>
+                        <strong id="evasion-display">1.0x</strong>
+                    </label>
+                    <input type="range" class="form-range" id="input-evasion-mult"
+                           min="1.0" max="3.0" step="0.5" value="1.0"
+                           oninput="document.getElementById('evasion-display').textContent = this.value + 'x'">
+                </div>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-6 d-flex align-items-end">
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" id="input-mitigating">
+                        <label class="form-check-label small" for="input-mitigating">Có tình tiết giảm nhẹ (giảm 20% phạt)</label>
+                    </div>
+                </div>
+                <div class="col-md-6 text-end d-flex align-items-end justify-content-end">
+                    <button type="button" id="btn-calculate" class="btn btn-danger fw-bold px-4" onclick="calculatePenalty()">
+                        <i class="bi bi-calculator me-1" aria-hidden="true"></i> Tính Phạt
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results -->
+    <div id="result-area" style="display:none;">
+        <div class="tool-hero pulse-calc" style="padding: 32px;">
+            <h5 class="fw-bold mb-3">
+                <i class="bi bi-receipt-cutoff me-2" aria-hidden="true"></i>Kết Quả Tính Phạt
+            </h5>
+
+            <div class="result-card">
+                <div class="result-row">
+                    <span class="result-label">Số thuế khai thiếu / nộp thiếu</span>
+                    <span class="result-value" id="res-underpaid">—</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Số ngày chậm nộp</span>
+                    <span class="result-value">
+                        <span id="res-late-days">—</span> ngày
+                    </span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">
+                        Phạt khai thiếu thuế
+                        <span class="penalty-badge bg-warning bg-opacity-25 text-warning">20%</span>
+                    </span>
+                    <span class="result-value text-warning" id="res-declaration-fine">—</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">
+                        Lãi chậm nộp
+                        <span class="penalty-badge bg-info bg-opacity-25 text-info">0.03%/ngày</span>
+                    </span>
+                    <span class="result-value text-info" id="res-late-interest">—</span>
+                </div>
+                <div class="result-row" id="row-evasion" style="display:none;">
+                    <span class="result-label">
+                        Phạt trốn thuế
+                        <span class="penalty-badge bg-danger bg-opacity-25 text-danger" id="res-evasion-badge">1x</span>
+                    </span>
+                    <span class="result-value text-danger" id="res-evasion-fine">—</span>
+                </div>
+            </div>
+
+            <div class="result-total">
+                <div class="result-row" style="border:none; padding: 0;">
+                    <span class="result-label">TỔNG SỐ TIỀN PHẢI NỘP</span>
+                    <span class="result-value" id="res-total" style="font-size:1.5rem;">—</span>
+                </div>
+                <div class="d-flex justify-content-between mt-2 pt-2" style="border-top: 1px solid rgba(255,255,255,0.2);">
+                    <span class="result-label small">Trong đó tiền phạt:</span>
+                    <span class="result-value small" id="res-total-penalties">—</span>
+                </div>
+            </div>
+
+            <div class="legal-ref">
+                <p class="mb-1 small fw-bold" style="color: #2ecc71;">
+                    <i class="bi bi-book me-1" aria-hidden="true"></i>Căn cứ pháp lý
+                </p>
+                <p class="mb-0 small" style="color: rgba(255,255,255,0.7);" id="res-legal-ref">
+                    Nghị định 125/2020/NĐ-CP & Thông tư 80/2021/TT-BTC
+                </p>
+            </div>
+
+            <!-- Share & CTA -->
+            <div class="mt-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <div class="share-bar">
+                    <button type="button" class="btn btn-outline-light btn-sm" onclick="copyResultToClipboard()">
+                        <i class="bi bi-clipboard me-1" aria-hidden="true"></i> Sao chép
+                    </button>
+                    <button type="button" class="btn btn-outline-light btn-sm" onclick="window.print()">
+                        <i class="bi bi-printer me-1" aria-hidden="true"></i> In kết quả
+                    </button>
+                </div>
+                <a href="/login" class="btn btn-success btn-sm fw-bold">
+                    <i class="bi bi-box-arrow-in-right me-1" aria-hidden="true"></i>
+                    Đăng nhập để sử dụng đầy đủ
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAQ / Legal -->
+    <div class="glass-card mt-4">
+        <div class="card-body">
+            <h5 class="fw-bold mb-3"><i class="bi bi-question-circle me-2 text-primary" aria-hidden="true"></i>Câu Hỏi Thường Gặp</h5>
+
+            <div class="accordion" id="faqAccordion">
+                <div class="accordion-item bg-transparent border-0">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed bg-transparent small fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                            Lãi chậm nộp thuế được tính như thế nào?
+                        </button>
+                    </h2>
+                    <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body small text-muted">
+                            Theo Điều 59 Luật Quản lý thuế 38/2019/QH14, lãi chậm nộp được tính bằng <strong>0.03% mỗi ngày</strong> trên số tiền thuế chậm nộp, bắt đầu từ ngày tiếp theo sau ngày hết hạn nộp thuế.
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item bg-transparent border-0">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed bg-transparent small fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                            Phạt khai thiếu thuế 20% áp dụng khi nào?
+                        </button>
+                    </h2>
+                    <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body small text-muted">
+                            Theo Điều 16 Nghị định 125/2020/NĐ-CP, phạt <strong>20% trên số thuế khai thiếu</strong> áp dụng khi người nộp thuế khai sai dẫn đến thiếu số tiền thuế phải nộp hoặc tăng số tiền thuế được miễn/giảm/hoàn.
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item bg-transparent border-0">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed bg-transparent small fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                            Phạt trốn thuế được tính từ 1 lần đến 3 lần là sao?
+                        </button>
+                    </h2>
+                    <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body small text-muted">
+                            Theo Điều 17 Nghị định 125/2020/NĐ-CP, hành vi trốn thuế bị phạt từ <strong>1 lần đến 3 lần số thuế trốn</strong>, tùy thuộc mức độ nghiêm trọng và tình tiết tăng nặng/giảm nhẹ. Nếu có tình tiết giảm nhẹ, mức phạt có thể giảm 20%.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Structured Data for SEO -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Tính Phạt Chậm Nộp Thuế",
+        "description": "Công cụ tính phạt chậm nộp thuế miễn phí theo Nghị định 125/2020/NĐ-CP: lãi chậm nộp 0.03%/ngày, phạt khai thiếu 20%, phạt trốn thuế 1-3 lần.",
+        "url": "{{ request.url }}",
+        "applicationCategory": "FinanceApplication",
+        "operatingSystem": "Web",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "VND"
+        },
+        "creator": {
+            "@type": "Organization",
+            "name": "GDT Invoice Hub"
+        }
+    }
+    </script>
+</div>
+
+<script>
+    // Set default dates
+    (function() {
+        const today = new Date();
+        const payEl = document.getElementById('input-pay-date');
+        payEl.value = today.toISOString().slice(0, 10);
+
+        // Default due date = 90 days ago
+        const due = new Date(today);
+        due.setDate(due.getDate() - 90);
+        document.getElementById('input-due-date').value = due.toISOString().slice(0, 10);
+    })();
+
+    function toggleEvasionSlider() {
+        const violationType = document.getElementById('input-violation').value;
+        document.getElementById('evasion-slider-group').style.display =
+            violationType === 'evasion' ? '' : 'none';
+    }
+
+    function formatVND(value) {
+        return new Intl.NumberFormat('vi-VN').format(Math.round(value)) + ' VNĐ';
+    }
+
+    function parseInputNumber(val) {
+        // Remove commas, dots used as thousands separator, and non-numeric chars except decimal
+        return parseFloat(val.replace(/[^0-9.-]/g, '')) || 0;
+    }
+
+    async function calculatePenalty() {
+        const btn = document.getElementById('btn-calculate');
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Đang tính…';
+
+        const underpaidRaw = document.getElementById('input-underpaid').value;
+        const underpaid = parseInputNumber(underpaidRaw);
+        const dueDate = document.getElementById('input-due-date').value;
+        const payDate = document.getElementById('input-pay-date').value;
+        const violationType = document.getElementById('input-violation').value;
+        const evasionMult = violationType === 'evasion'
+            ? parseFloat(document.getElementById('input-evasion-mult').value)
+            : 0.0;
+        const hasMitigating = document.getElementById('input-mitigating').checked;
+
+        if (underpaid <= 0) {
+            alert('Vui lòng nhập số thuế khai thiếu lớn hơn 0.');
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            return;
+        }
+        if (!dueDate || !payDate) {
+            alert('Vui lòng nhập đầy đủ ngày hạn nộp và ngày thực nộp.');
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            return;
+        }
+
+        try {
+            const res = await fetch('/tools/api/penalty-calculate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    underpaid_tax: underpaid,
+                    due_date: dueDate,
+                    payment_date: payDate,
+                    evasion_multiplier: evasionMult,
+                    has_mitigating_factors: hasMitigating
+                })
+            });
+
+            const data = await res.json();
+
+            if (data.error) {
+                alert(data.error);
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                return;
+            }
+
+            const c = data.calculation;
+
+            // Populate results
+            document.getElementById('res-underpaid').textContent = formatVND(c.underpaid_tax);
+            document.getElementById('res-late-days').textContent = c.late_days.toLocaleString('vi-VN');
+            document.getElementById('res-declaration-fine').textContent = formatVND(c.under_declaration_fine);
+            document.getElementById('res-late-interest').textContent = formatVND(c.late_interest);
+
+            if (c.evasion_fine > 0) {
+                document.getElementById('row-evasion').style.display = '';
+                document.getElementById('res-evasion-fine').textContent = formatVND(c.evasion_fine);
+                document.getElementById('res-evasion-badge').textContent = evasionMult + 'x';
+            } else {
+                document.getElementById('row-evasion').style.display = 'none';
+            }
+
+            document.getElementById('res-total-penalties').textContent = formatVND(c.total_penalties);
+            document.getElementById('res-total').textContent = formatVND(c.total_liability);
+            document.getElementById('res-legal-ref').textContent = c.decree_reference;
+
+            // Show result area with animation
+            const resultArea = document.getElementById('result-area');
+            resultArea.style.display = '';
+            const heroEl = resultArea.querySelector('.tool-hero');
+            heroEl.classList.remove('pulse-calc');
+            void heroEl.offsetWidth; // trigger reflow
+            heroEl.classList.add('pulse-calc');
+
+            resultArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+        } catch (err) {
+            alert('Lỗi kết nối: ' + err.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    }
+
+    function copyResultToClipboard() {
+        const underpaid = document.getElementById('res-underpaid').textContent;
+        const lateDays = document.getElementById('res-late-days').textContent;
+        const declarationFine = document.getElementById('res-declaration-fine').textContent;
+        const lateInterest = document.getElementById('res-late-interest').textContent;
+        const total = document.getElementById('res-total').textContent;
+
+        const text = `[Tính Phạt Chậm Nộp Thuế - Nghị định 125/2020]
+Số thuế khai thiếu: ${underpaid}
+Số ngày chậm nộp: ${lateDays} ngày
+Phạt khai thiếu (20%): ${declarationFine}
+Lãi chậm nộp (0.03%/ngày): ${lateInterest}
+━━━━━━━━━━━━━━━━━━━
+TỔNG CỘNG: ${total}
+
+Nguồn: GDT Invoice Hub (${window.location.href})`;
+
+        navigator.clipboard.writeText(text).then(() => {
+            const btn = event.target.closest('button');
+            const orig = btn.innerHTML;
+            btn.innerHTML = '<i class="bi bi-check2 me-1"></i> Đã sao chép!';
+            setTimeout(() => { btn.innerHTML = orig; }, 2000);
+        });
+    }
+
+    // Format input as user types (add thousands separators)
+    document.getElementById('input-underpaid').addEventListener('input', function() {
+        const raw = this.value.replace(/[^0-9]/g, '');
+        if (raw) {
+            this.value = parseInt(raw).toLocaleString('vi-VN');
+        }
+    });
+
+    // Allow Enter key to trigger calculation
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !document.getElementById('btn-calculate').disabled) {
+            calculatePenalty();
+        }
+    });
+</script>
+{% endblock %}

@@ -228,6 +228,9 @@ def create_app() -> Flask:
     app.register_blueprint(invoices_blueprint)
     app.register_blueprint(smart_invoice_blueprint)
 
+    from invoices.routes.public_tools import public_tools_bp
+    app.register_blueprint(public_tools_bp)
+
     # Apply cybersecurity hardening headers (CSP, Clickjacking prevention, MIME protection)
     from auth.security import apply_security_headers
     apply_security_headers(app)

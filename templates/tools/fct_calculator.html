@@ -1,0 +1,433 @@
+{% extends "base.html" %}
+{% from "components/_glass_card.html" import glass_card %}
+
+{% block title %}Tính Thuế Nhà Thầu Nước Ngoài (FCT) — Thông tư 103/2014 | GDT Invoice Hub{% endblock %}
+{% block meta_description %}Công cụ tính thuế nhà thầu nước ngoài (FCT) miễn phí theo Thông tư 103/2014/TT-BTC: tính Gross-up (Net sang Gross) và tính xuôi (Gross sang Net) cực kỳ chính xác.{% endblock %}
+
+{% block content %}
+<style>
+    .tool-hero {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        color: #fff;
+        border-radius: 24px;
+        padding: 48px 32px;
+        margin-bottom: 32px;
+        position: relative;
+        overflow: hidden;
+    }
+    .tool-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -30%;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(52, 152, 219, 0.15) 0%, transparent 70%);
+        pointer-events: none;
+    }
+    .result-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 16px;
+        padding: 24px;
+        backdrop-filter: blur(8px);
+    }
+    .result-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .result-row:last-child { border-bottom: none; }
+    .result-label { color: rgba(255,255,255,0.7); font-size: 0.9rem; }
+    .result-value { font-weight: 700; font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+    .result-total {
+        background: linear-gradient(135deg, #2980b9 0%, #2c3e50 100%);
+        border-radius: 12px;
+        padding: 20px 24px;
+        margin-top: 16px;
+    }
+    .result-total .result-label { color: rgba(255,255,255,0.9); font-weight: 600; }
+    .result-total .result-value { font-size: 1.4rem; color: #fff; }
+    .pulse-calc {
+        animation: calcPulse 0.6s ease-out;
+    }
+    @keyframes calcPulse {
+        0% { transform: scale(0.95); opacity: 0.7; }
+        50% { transform: scale(1.02); }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    .legal-ref {
+        background: rgba(46, 204, 113, 0.08);
+        border-left: 3px solid #2ecc71;
+        border-radius: 8px;
+        padding: 16px 20px;
+        margin-top: 24px;
+    }
+    .penalty-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.78rem;
+        font-weight: 600;
+    }
+    .glass-input-wrapper .form-control,
+    .glass-input-wrapper .form-select {
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.12);
+        color: #fff;
+        border-radius: 10px;
+    }
+    .glass-input-wrapper .form-control:focus,
+    .glass-input-wrapper .form-select:focus {
+        background: rgba(255,255,255,0.1);
+        border-color: rgba(52, 152, 219, 0.5);
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+        color: #fff;
+    }
+    .glass-input-wrapper .form-label {
+        color: rgba(255,255,255,0.75);
+    }
+    .share-bar {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .share-bar button {
+        border-radius: 8px;
+        font-size: 0.82rem;
+        padding: 6px 14px;
+    }
+</style>
+
+<div class="container py-4" style="max-width: 880px;">
+
+    <!-- Hero -->
+    <div class="tool-hero">
+        <div class="d-flex align-items-center gap-2 mb-2">
+            <a href="/tools" class="text-white-50 text-decoration-none small">← Tất cả công cụ</a>
+        </div>
+        <h1 class="h3 fw-bold mb-2">
+            <i class="bi bi-globe2 text-primary me-2"></i>Tính Thuế Nhà Thầu Nước Ngoài (FCT)
+        </h1>
+        <p class="mb-0" style="color: rgba(255,255,255,0.7); max-width: 600px;">
+            Tính nhanh thuế GTGT và TNDN nhà thầu theo phương pháp trực tiếp của <strong>Thông tư 103/2014/TT-BTC</strong>. Hỗ trợ quy đổi Gross-up giá Net sang Gross cực kỳ chuẩn xác.
+        </p>
+    </div>
+
+    <!-- Calculator Form -->
+    <div class="glass-card mb-4">
+        <div class="card-body glass-input-wrapper">
+            <h5 class="fw-bold mb-3">
+                <i class="bi bi-calculator me-2 text-primary" aria-hidden="true"></i>Nhập Thông Tin Hợp Đồng
+            </h5>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label for="input-value" class="form-label small mb-1">Giá trị hợp đồng (VND)</label>
+                    <input type="text" id="input-value" class="form-control" placeholder="Ví dụ: 200,000,000" autocomplete="off" inputmode="numeric">
+                </div>
+                <div class="col-md-6">
+                    <label for="input-type" class="form-label small mb-1">Loại hợp đồng</label>
+                    <select id="input-type" class="form-select">
+                        <option value="net">Giá NET (Nhà thầu nhận đủ số tiền, doanh nghiệp Việt Nam chịu thuế)</option>
+                        <option value="gross">Giá GROSS (Hợp đồng đã bao gồm các loại thuế FCT)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-12">
+                    <label for="input-industry" class="form-label small mb-1">Nhóm ngành/Loại hình kinh doanh</label>
+                    <select id="input-industry" class="form-select">
+                        <option value="services">Dịch vụ, cho thuê thiết bị, bảo hiểm (VAT 5% - TNDN 5%)</option>
+                        <option value="goods_with_services">Cung cấp hàng hóa kèm dịch vụ lắp đặt, bảo hành tại VN (VAT 3% - TNDN 1%)</option>
+                        <option value="construction_with_materials">Xây dựng, lắp đặt có bao thầu nguyên vật liệu (VAT 3% - TNDN 2%)</option>
+                        <option value="construction_no_materials">Xây dựng, lắp đặt không bao thầu nguyên vật liệu (VAT 5% - TNDN 2%)</option>
+                        <option value="transport_other">Kinh doanh vận tải, nhà hàng, khách sạn, hoạt động khác (VAT 2% - TNDN 2%)</option>
+                        <option value="royalties">Bản quyền, chuyển giao công nghệ, nhượng quyền (VAT Miễn - TNDN 10%)</option>
+                        <option value="aircraft_vessel_lease">Cho thuê tàu bay, động cơ tàu bay, tàu biển (VAT Miễn - TNDN 2%)</option>
+                        <option value="loan_interest">Lãi tiền vay cung cấp từ nước ngoài (VAT Miễn - TNDN 5%)</option>
+                        <option value="securities_transfer">Chuyển nhượng chứng khoán, chứng chỉ quỹ (VAT Miễn - TNDN 0.1%)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="text-end">
+                <button type="button" id="btn-calculate" class="btn btn-primary fw-bold px-4" onclick="calculateFCT()">
+                    <i class="bi bi-calculator me-1" aria-hidden="true"></i> Tính Thuế
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results -->
+    <div id="result-area" style="display:none;">
+        <div class="tool-hero pulse-calc" style="padding: 32px; background: linear-gradient(135deg, #16213e 0%, #0f3460 100%);">
+            <h5 class="fw-bold mb-3">
+                <i class="bi bi-receipt-cutoff me-2" aria-hidden="true"></i>Kết Quả Tính Thuế FCT
+            </h5>
+
+            <div class="result-card">
+                <div class="result-row">
+                    <span class="result-label">Giá trị hợp đồng ban đầu</span>
+                    <span class="result-value" id="res-contract-value">—</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Loại hợp đồng</span>
+                    <span class="result-value text-uppercase" id="res-contract-type">—</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Thuế suất GTGT nhà thầu</span>
+                    <span class="result-value text-info" id="res-vat-rate">—</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Thuế suất TNDN nhà thầu</span>
+                    <span class="result-value text-warning" id="res-cit-rate">—</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Doanh thu tính thuế GTGT (Grossed)</span>
+                    <span class="result-value" id="res-gross-revenue">—</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Doanh thu tính thuế TNDN (Net of VAT)</span>
+                    <span class="result-value" id="res-cit-revenue">—</span>
+                </div>
+                <hr style="border-top:1px solid rgba(255,255,255,0.1); margin:12px 0;">
+                <div class="result-row">
+                    <span class="result-label">
+                        Thuế GTGT nhà thầu phải nộp
+                    </span>
+                    <span class="result-value text-info" id="res-fct-vat">—</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">
+                        Thuế TNDN nhà thầu phải nộp
+                    </span>
+                    <span class="result-value text-warning" id="res-fct-cit">—</span>
+                </div>
+            </div>
+
+            <div class="result-total">
+                <div class="result-row" style="border:none; padding: 0;">
+                    <span class="result-label">TỔNG SỐ THUẾ FCT PHẢI NỘP</span>
+                    <span class="result-value text-white" id="res-total" style="font-size:1.5rem;">—</span>
+                </div>
+                <div class="d-flex justify-content-between mt-2 pt-2" style="border-top: 1px solid rgba(255,255,255,0.2);">
+                    <span class="result-label small" id="res-final-note-label">Số tiền thực trả cho nhà thầu:</span>
+                    <span class="result-value small" id="res-net-paid">—</span>
+                </div>
+            </div>
+
+            <div class="legal-ref">
+                <p class="mb-1 small fw-bold" style="color: #2ecc71;">
+                    <i class="bi bi-book me-1" aria-hidden="true"></i>Căn cứ pháp lý
+                </p>
+                <p class="mb-0 small" style="color: rgba(255,255,255,0.7);" id="res-legal-ref">
+                    Thông tư 103/2014/TT-BTC ban hành ngày 06/08/2014 của Bộ Tài chính hướng dẫn thực hiện nghĩa vụ thuế áp dụng đối với tổ chức, cá nhân nước ngoài.
+                </p>
+            </div>
+
+            <!-- Share & CTA -->
+            <div class="mt-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <div class="share-bar">
+                    <button type="button" class="btn btn-outline-light btn-sm" onclick="copyResultToClipboard()">
+                        <i class="bi bi-clipboard me-1" aria-hidden="true"></i> Sao chép
+                    </button>
+                    <button type="button" class="btn btn-outline-light btn-sm" onclick="window.print()">
+                        <i class="bi bi-printer me-1" aria-hidden="true"></i> In kết quả
+                    </button>
+                </div>
+                <a href="/login" class="btn btn-success btn-sm fw-bold">
+                    <i class="bi bi-box-arrow-in-right me-1" aria-hidden="true"></i>
+                    Đăng nhập GDT Hub
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAQ / Legal -->
+    <div class="glass-card mt-4">
+        <div class="card-body">
+            <h5 class="fw-bold mb-3"><i class="bi bi-question-circle me-2 text-primary" aria-hidden="true"></i>Câu Hỏi Thường Gặp về FCT</h5>
+
+            <div class="accordion" id="faqAccordion">
+                <div class="accordion-item bg-transparent border-0">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed bg-transparent small fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                            Quy đổi giá Net sang Gross (Gross-up) hoạt động thế nào?
+                        </button>
+                    </h2>
+                    <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body small text-muted">
+                            Nếu ký hợp đồng giá NET, doanh nghiệp Việt Nam chịu thay thuế cho nhà thầu. Khi kê khai, cơ quan Thuế yêu cầu quy đổi (Gross-up) số tiền Net sang doanh thu có thuế để tính thuế. Công thức quy đổi:<br>
+                            1) Doanh thu tính thuế TNDN = Net / (1 - Tỉ lệ thuế TNDN)<br>
+                            2) Doanh thu tính thuế GTGT = Doanh thu tính thuế TNDN / (1 - Tỉ lệ thuế GTGT)
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item bg-transparent border-0">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed bg-transparent small fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                            Thuế GTGT nhà thầu nước ngoài có được khấu trừ hay không?
+                        </button>
+                    </h2>
+                    <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body small text-muted">
+                            Doanh nghiệp Việt Nam kê khai và nộp thay thuế GTGT nhà thầu nước ngoài bằng phương pháp trực tiếp. Số thuế GTGT nhà thầu đã nộp thay bằng biên lai/chứng từ nộp ngân sách nhà nước <strong>được khấu trừ toàn bộ</strong> làm thuế GTGT đầu vào nếu doanh nghiệp kê khai VAT theo phương pháp khấu trừ.
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item bg-transparent border-0">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed bg-transparent small fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                            Khi nào được miễn thuế GTGT nhà thầu?
+                        </button>
+                    </h2>
+                    <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body small text-muted">
+                            Một số hoạt động được miễn thuế GTGT nhà thầu theo Điều 6 Thông tư 103/2014/TT-BTC bao gồm: Cung cấp hàng hóa không kèm dịch vụ đi kèm tại Việt Nam (giao hàng tại cửa khẩu, hoặc ngoài lãnh thổ Việt Nam), dịch vụ tiêu dùng ngoài Việt Nam, bản quyền/chuyển nhượng công nghệ (thuộc đối tượng không chịu thuế GTGT), lãi tiền vay nước ngoài.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function formatVND(value) {
+        return new Intl.NumberFormat('vi-VN').format(Math.round(value)) + ' VNĐ';
+    }
+
+    function parseInputNumber(val) {
+        return parseFloat(val.replace(/[^0-9.-]/g, '')) || 0;
+    }
+
+    async function calculateFCT() {
+        const btn = document.getElementById('btn-calculate');
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Đang tính…';
+
+        const contractValRaw = document.getElementById('input-value').value;
+        const contractValue = parseInputNumber(contractValRaw);
+        const contractType = document.getElementById('input-type').value;
+        const industryType = document.getElementById('input-industry').value;
+
+        if (contractValue <= 0) {
+            alert('Vui lòng nhập giá trị hợp đồng lớn hơn 0.');
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            return;
+        }
+
+        try {
+            const res = await fetch('/tools/api/fct-calculate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contract_value: contractValue,
+                    contract_type: contractType,
+                    industry_type: industryType
+                })
+            });
+
+            const data = await res.json();
+
+            if (data.error) {
+                alert(data.error);
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                return;
+            }
+
+            const c = data.calculation;
+
+            // Populate fields
+            document.getElementById('res-contract-value').textContent = formatVND(c.contract_value);
+            document.getElementById('res-contract-type').textContent = c.contract_type === 'net' ? 'Giá Net (Chưa thuế)' : 'Giá Gross (Đã gồm thuế)';
+            document.getElementById('res-vat-rate').textContent = (c.vat_rate * 100) + '%';
+            document.getElementById('res-cit-rate').textContent = (c.cit_rate * 100) + '%';
+            document.getElementById('res-gross-revenue').textContent = formatVND(c.gross_revenue);
+            document.getElementById('res-cit-revenue').textContent = formatVND(c.cit_revenue);
+            document.getElementById('res-fct-vat').textContent = formatVND(c.fct_vat);
+            document.getElementById('res-fct-cit').textContent = formatVND(c.fct_cit);
+            document.getElementById('res-total').textContent = formatVND(c.total_fct);
+
+            const netPaidLabel = document.getElementById('res-final-note-label');
+            if (c.contract_type === 'net') {
+                netPaidLabel.textContent = "Tổng giá trị thanh toán thực tế (Gross):";
+                document.getElementById('res-net-paid').textContent = formatVND(c.gross_revenue);
+            } else {
+                netPaidLabel.textContent = "Số tiền thực nhận của nhà thầu (Net):";
+                document.getElementById('res-net-paid').textContent = formatVND(c.net_value);
+            }
+
+            // Show results container
+            const resultArea = document.getElementById('result-area');
+            resultArea.style.display = '';
+            const heroEl = resultArea.querySelector('.tool-hero');
+            heroEl.classList.remove('pulse-calc');
+            void heroEl.offsetWidth; // trigger reflow
+            heroEl.classList.add('pulse-calc');
+
+            resultArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+        } catch (err) {
+            alert('Lỗi hệ thống: ' + err.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    }
+
+    function copyResultToClipboard() {
+        const value = document.getElementById('res-contract-value').textContent;
+        const type = document.getElementById('res-contract-type').textContent;
+        const vatRate = document.getElementById('res-vat-rate').textContent;
+        const citRate = document.getElementById('res-cit-rate').textContent;
+        const grossRev = document.getElementById('res-gross-revenue').textContent;
+        const vatVal = document.getElementById('res-fct-vat').textContent;
+        const citVal = document.getElementById('res-fct-cit').textContent;
+        const total = document.getElementById('res-total').textContent;
+
+        const text = `[Tính Thuế Nhà Thầu Nước Ngoài (FCT) - Thông tư 103/2014]
+Giá trị hợp đồng: ${value} (${type})
+Ngành nghề: ${document.getElementById('input-industry').options[document.getElementById('input-industry').selectedIndex].text}
+Thuế suất: GTGT ${vatRate} | TNDN ${citRate}
+Doanh thu quy đổi (Gross): ${grossRev}
+━━━━━━━━━━━━━━━━━━━
+Thuế GTGT nhà thầu: ${vatVal}
+Thuế TNDN nhà thầu: ${citVal}
+TỔNG CỘNG THUẾ FCT: ${total}
+
+Nguồn: GDT Invoice Hub (${window.location.href})`;
+
+        navigator.clipboard.writeText(text).then(() => {
+            const btn = event.target.closest('button');
+            const orig = btn.innerHTML;
+            btn.innerHTML = '<i class="bi bi-check2 me-1"></i> Đã sao chép!';
+            setTimeout(() => { btn.innerHTML = orig; }, 2000);
+        });
+    }
+
+    // Format value as thousands separator
+    document.getElementById('input-value').addEventListener('input', function() {
+        const raw = this.value.replace(/[^0-9]/g, '');
+        if (raw) {
+            this.value = parseInt(raw).toLocaleString('vi-VN');
+        }
+    });
+
+    // Enter to calculate
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !document.getElementById('btn-calculate').disabled) {
+            calculateFCT();
+        }
+    });
+</script>
+{% endblock %}
