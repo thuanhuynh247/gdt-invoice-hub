@@ -260,6 +260,10 @@
                 </div>
                 <div class="chart-box" style="position: relative; height: 280px; width: 100%;">
                     <canvas id="trendChartCanvas" style="width: 100%; height: 100%;"></canvas>
+                    <div id="trendChartPlaceholder" class="position-absolute top-50 start-50 translate-middle text-center text-muted d-none" style="width: 90%;">
+                        <i class="bi bi-graph-up fs-2 mb-2 d-block opacity-50" aria-hidden="true"></i>
+                        <span class="small fw-medium">Chưa có đủ lịch sử hóa đơn để tạo biểu đồ xu hướng</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -697,20 +701,27 @@
 
     function drawTrendChart(trends) {
         const canvas = document.getElementById("trendChartCanvas");
+        const placeholder = document.getElementById("trendChartPlaceholder");
         if (!canvas) return;
 
         const ctx = canvas.getContext('2d');
         
         if (myTrendChart) {
             myTrendChart.destroy();
+            myTrendChart = null;
         }
 
         if (!trends || trends.length === 0) {
-            ctx.font = "14px Inter, sans-serif";
-            ctx.fillStyle = "#888";
-            ctx.textAlign = "center";
-            ctx.fillText("Chưa có đủ lịch sử hóa đơn để tạo biểu đồ xu hướng", canvas.width / 2, canvas.height / 2);
+            if (placeholder) {
+                placeholder.classList.remove("d-none");
+            }
+            canvas.style.display = "none";
             return;
+        } else {
+            if (placeholder) {
+                placeholder.classList.add("d-none");
+            }
+            canvas.style.display = "block";
         }
 
         const labels = trends.map(t => t.month);
@@ -911,7 +922,7 @@
                 if (!data || data.length === 0) {
                     container.innerHTML = `
                         <div class="text-center py-4 text-muted small">
-                            <i class="bi bi-info-circle me-1"></i> Chưa có dữ liệu hóa đơn mua vào để phân nhóm chi phí.
+                            <i class="bi bi-info-circle me-1" aria-hidden="true"></i> Chưa có dữ liệu hóa đơn mua vào để phân nhóm chi phí.
                         </div>
                     `;
                     return;
@@ -946,7 +957,7 @@
                 console.error("Error loading expense categories:", err);
                 container.innerHTML = `
                     <div class="text-center py-4 text-danger small">
-                        <i class="bi bi-exclamation-triangle-fill me-1"></i> Không thể tải dữ liệu phân tích chi phí.
+                        <i class="bi bi-exclamation-triangle-fill me-1" aria-hidden="true"></i> Không thể tải dữ liệu phân tích chi phí.
                     </div>
                 `;
             });
@@ -1017,7 +1028,7 @@
                 resultDiv.classList.add("border-danger");
                 resultDiv.innerHTML = `
                     <div class="alert alert-danger mb-0 text-start small">
-                        <i class="bi bi-exclamation-octagon-fill me-2"></i><strong>Lỗi:</strong> ${data.error}
+                        <i class="bi bi-exclamation-octagon-fill me-2" aria-hidden="true"></i><strong>Lỗi:</strong> ${data.error}
                     </div>
                 `;
                 return;
