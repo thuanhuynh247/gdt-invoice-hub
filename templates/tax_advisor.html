@@ -685,6 +685,37 @@
             renderCitations([]);
 
             chatBox.scrollTop = chatBox.scrollHeight;
+
+            // Load dynamic suggestions for this session's last query
+            const lastUserMsg = messages.filter(m => m.role === 'user').pop();
+            const lastAsstMsg = messages.filter(m => m.role === 'assistant').pop();
+            if (lastUserMsg) {
+                try {
+                    const suggRes = await fetch("/api/tax/chat/suggest-questions", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            query: lastUserMsg.content,
+                            agent_name: lastAsstMsg ? lastAsstMsg.agent_name : "",
+                            context: lastAsstMsg ? lastAsstMsg.content : ""
+                        })
+                    });
+                    const suggData = await suggRes.json();
+                    if (suggData.suggestions) {
+                        renderSuggestions(suggData.suggestions);
+                    } else {
+                        renderSuggestions([]);
+                    }
+                } catch (e) {
+                    console.error("Lỗi khi tải gợi ý động:", e);
+                }
+            } else {
+                renderSuggestions([
+                    "Điều kiện để được khấu trừ thuế GTGT đầu vào là gì?",
+                    "Thuế TNDN mới 2026 áp dụng các bậc thuế suất ưu đãi nào?",
+                    "Ủy quyền cá nhân thanh toán bằng thẻ trên 5 triệu đồng được tính chi phí hợp lý thế nào?"
+                ]);
+            }
         } catch (err) {
             chatBox.innerHTML = `<div class="chat-bubble chat-bubble-ai align-self-start text-danger">Lỗi kết nối tin nhắn: ${err.message}</div>`;
         }
@@ -707,6 +738,11 @@
             </div>
         `;
         renderCitations([]);
+        renderSuggestions([
+            "Điều kiện để được khấu trừ thuế GTGT đầu vào là gì?",
+            "Thuế TNDN mới 2026 áp dụng các bậc thuế suất ưu đãi nào?",
+            "Ủy quyền cá nhân thanh toán bằng thẻ trên 5 triệu đồng được tính chi phí hợp lý thế nào?"
+        ]);
         document.getElementById("userInput").focus();
     }
 
@@ -990,6 +1026,29 @@
         // Generate random Memo Number for realism
         const printMemoNo = document.getElementById("printMemoNo");
         printMemoNo.innerText = Math.floor(1000 + Math.random() * 9000);
+
+        // Get Selected Taxpayer info from Selector
+        const selector = document.getElementById("globalTaxpayerSelector");
+        let activeCompanyName = "Quý Doanh nghiệp / Khách hàng";
+        let activeMstStr = "Chưa xác định";
+        if (window.activeTaxpayerMst) {
+            activeMstStr = window.activeTaxpayerMst;
+            if (selector) {
+                const selectedOption = selector.options[selector.selectedIndex];
+                if (selectedOption && selectedOption.value !== "all") {
+                    const match = selectedOption.textContent.match(/\[.*?\]\s*(.*)/);
+                    if (match && match[1]) {
+                        activeCompanyName = match[1].trim();
+                    }
+                }
+            }
+        }
+        
+        const printCompNameEl = document.getElementById("printCompanyName");
+        if (printCompNameEl) printCompNameEl.innerText = activeCompanyName;
+        
+        const printMstEl = document.getElementById("printMst");
+        if (printMstEl) printMstEl.innerText = activeMstStr;
         
         let sectionIndex = 1;
         
@@ -1266,10 +1325,10 @@
 <!-- Formal Vietnamese Tax Advisory Memorandum Print Container -->
 <div id="printArea" class="d-none d-print-block p-4">
     <!-- Memorandum Header -->
-    <div class="d-flex justify-content-between mb-4">
+    <div class="d-flex justify-content-between mb-4" style="border-bottom: 2px solid #333; padding-bottom: 10px;">
         <div>
-            <h5 class="fw-bold mb-0">MISA meInvoice</h5>
-            <small class="text-muted">Hệ thống Trí tuệ nhân tạo meInvoice Intelligence</small>
+            <h5 class="fw-bold mb-0 text-success">HAT INVOICE (AI HUB)</h5>
+            <small class="text-muted">Hệ thống Trí tuệ Nhân tạo Phân tích Thuế & Hóa đơn</small>
         </div>
         <div class="text-end">
             <h6 class="fw-bold mb-0">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</h6>
@@ -1279,14 +1338,31 @@
     </div>
     
     <div class="text-center my-4">
-        <h3 class="fw-bold text-uppercase">BẢN Ý KIẾN TƯ VẤN PHÁP LUẬT THUẾ</h3>
+        <h3 class="fw-bold text-uppercase">BIÊN BẢN TƯ VẤN PHÁP LUẬT THUẾ</h3>
         <h5 class="text-muted italic">(TAX ADVISORY MEMORANDUM)</h5>
-        <p class="small text-muted mt-2">Ngày xuất bản: <span id="printDate"></span> | Số: <span id="printMemoNo"></span>/TVT-meInvoice</p>
+        <p class="small text-muted mt-2">Ngày tư vấn: <span id="printDate"></span> | Số: <span id="printMemoNo"></span>/BBTV-HAT</p>
+    </div>
+    
+    <div class="mb-4 p-3 bg-light rounded border">
+        <h6 class="fw-bold border-bottom pb-2 mb-2 text-dark">THÔNG TIN DOANH NGHIỆP ĐƯỢC TƯ VẤN:</h6>
+        <table class="table table-sm table-borderless mb-0 text-dark" style="font-size: 0.9rem;">
+            <tr>
+                <td style="width: 250px;"><strong>Tên Doanh nghiệp:</strong></td>
+                <td><span id="printCompanyName">Quý Doanh nghiệp / Khách hàng</span></td>
+            </tr>
+            <tr>
+                <td><strong>Mã số thuế (MST):</strong></td>
+                <td><span id="printMst">Chưa xác định</span></td>
+            </tr>
+            <tr>
+                <td><strong>Nội dung tư vấn:</strong></td>
+                <td>Giải đáp các vướng mắc về chính sách Thuế & Hóa đơn điện tử qua HAT AI Advisor.</td>
+            </tr>
+        </table>
     </div>
     
     <div class="mb-4">
-        <p><strong>Kính gửi:</strong> Quý Doanh nghiệp / Khách hàng sử dụng dịch vụ meInvoice</p>
-        <p>Ban cố vấn Thuế MISA meInvoice xin gửi ý kiến tư vấn chuyên môn đối với các nội dung vướng mắc về chính sách thuế và hóa đơn phát sinh trong quá trình hoạt động của Quý doanh nghiệp như sau:</p>
+        <p class="text-dark small">Ban cố vấn Thuế HAT AI Advisor xin gửi ý kiến tư vấn chuyên môn đối với các nội dung vướng mắc về chính sách thuế và hóa đơn phát sinh trong hoạt động sản xuất kinh doanh của Quý doanh nghiệp như sau:</p>
     </div>
     
     <div id="printMemoContent">
@@ -1295,11 +1371,19 @@
     
     <div class="mt-5 row justify-content-between">
         <div class="col-6">
-            <p class="small text-muted italic">Lưu ý: Bản ý kiến tư vấn này được chuẩn bị dựa trên thông tin do khách hàng cung cấp và các quy định pháp luật thuế có hiệu lực tại thời điểm lập văn bản.</p>
+            <p class="small text-muted italic">Lưu ý: Biên bản tư vấn này được chuẩn bị tự động dựa trên tri thức luật thuế Việt Nam hiện hành và thông tin phản hồi từ người dùng. Mọi ý kiến chỉ có tính chất tham khảo chuyên môn.</p>
         </div>
-        <div class="col-4 text-center">
-            <p class="fw-bold mb-5">ĐẠI DIỆN BAN CỐ VẤN THUẾ</p>
-            <p class="mt-5 fw-bold text-success">meInvoice Intelligence Agent</p>
+        <div class="col-6 text-center">
+            <div class="d-flex justify-content-around mt-4">
+                <div>
+                    <p class="fw-bold mb-5">ĐẠI DIỆN DOANH NGHIỆP</p>
+                    <p class="text-muted mt-5" style="font-size: 0.8rem;">(Ký và ghi rõ họ tên)</p>
+                </div>
+                <div>
+                    <p class="fw-bold mb-5">ĐẠI DIỆN BAN CỐ VẤN THUẾ</p>
+                    <p class="mt-5 fw-bold text-success" style="font-size: 0.95rem;">HAT AI Advisor</p>
+                </div>
+            </div>
         </div>
     </div>
 </div>
