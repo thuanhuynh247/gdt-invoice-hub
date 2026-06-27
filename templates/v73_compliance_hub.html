@@ -406,7 +406,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const row = document.createElement("div");
                 row.className = "d-flex align-items-center gap-2 small";
                 row.innerHTML = `<span style="min-width:110px" class="text-muted">${labels[k]||k}</span>
-                    <div class="flex-grow-1 bg-light rounded" style="height:18px;overflow:hidden">
+                    <div class="flex-grow-1 bg-premium-light rounded" style="height:18px;overflow:hidden">
                         <div style="width:0;height:100%;background:${colors[k]||'#6c757d'};border-radius:4px;transition:width .6s ease" data-target="${pct}%"></div>
                     </div>
                     <span class="text-dark fw-bold" style="min-width:110px;text-align:right">${fVND(v)}</span>`;
@@ -444,8 +444,8 @@ document.addEventListener("DOMContentLoaded", () => {
             div.style.opacity = "0";
             div.innerHTML = `
                 <div class="d-flex flex-column align-items-center text-center" style="min-width: 140px;">
-                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mb-2" style="width: 40px; height: 40px;">
-                        <i class="bi bi-robot text-secondary fs-5"></i>
+                    <div class="rounded-circle bg-premium-light d-flex align-items-center justify-content-center mb-2" style="width: 40px; height: 40px;">
+                        <i class="bi bi-robot text-secondary fs-5" aria-hidden="true"></i>
                     </div>
                     <span class="badge ${cl[m.speaker] || "bg-secondary"} text-wrap py-1 px-2 small">${m.speaker}</span>
                 </div>

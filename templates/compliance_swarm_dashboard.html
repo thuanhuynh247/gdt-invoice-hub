@@ -393,7 +393,7 @@
             <h5 class="fw-bold font-outfit text-dark mb-3"><i class="bi bi-building text-success me-2" aria-hidden="true"></i>Doanh Nghiệp Đang Chọn</h5>
             <div id="activeProfileArea">
                 {% if session.get('active_taxpayer_mst') %}
-                    <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded-3 border">
+                    <div class="d-flex align-items-center justify-content-between p-3 bg-premium-light rounded-3 border">
                         <div>
                             <div class="fw-bold text-dark" id="activeProfileMst">{{ session.get('active_taxpayer_mst') }}</div>
                             <div class="small text-secondary" id="activeProfileName">Công ty đang hoạt động</div>
@@ -414,7 +414,7 @@
             <h5 class="fw-bold font-outfit text-dark mb-3"><i class="bi bi-lightning-charge-fill text-warning me-2" aria-hidden="true"></i>Khởi Chạy Swarm Audit</h5>
             <div class="mb-3">
                 <label for="userPromptInput" class="form-label small fw-semibold text-secondary">Mục tiêu rà soát / Câu hỏi kiểm toán</label>
-                <textarea class="form-control custom-textarea" id="userPromptInput" rows="3" placeholder="Ví dụ: Rà soát rủi ro thuế GTGT quý 2/2026, phân loại giao dịch liên kết theo NĐ 132 và ước tính dòng tiền thuế phải nộp..."></textarea>
+                <textarea class="form-control custom-textarea" id="userPromptInput" rows="3" placeholder="Ví dụ: Rà soát rủi ro thuế GTGT quý 2/2026, phân loại giao dịch liên kết theo NĐ 132 và ước tính dòng tiền thuế phải nộp…"></textarea>
             </div>
             <button class="btn btn-warning btn-lg w-100 fw-bold font-outfit" id="btnRunSwarm" type="button" {% if not session.get('active_taxpayer_mst') %}disabled{% endif %}>
                 <i class="bi bi-play-fill me-1" aria-hidden="true"></i> Chạy Swarm Audit
@@ -425,7 +425,7 @@
         <div class="glass-card p-4">
             <div class="d-flex align-items-center justify-content-between mb-3">
                 <h5 class="fw-bold font-outfit text-dark mb-0"><i class="bi bi-clock-history text-secondary me-2" aria-hidden="true"></i>Lịch Sử Phiên Khảo Sát</h5>
-                <button class="btn btn-xs btn-outline-secondary btn-pill" id="btnRefreshHistory" title="Làm mới lịch sử"><i class="bi bi-arrow-clockwise"></i></button>
+                <button class="btn btn-xs btn-outline-secondary btn-pill" id="btnRefreshHistory" title="Làm mới lịch sử"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i></button>
             </div>
             
             <div class="history-list d-flex flex-column gap-2" id="historyList">
@@ -452,22 +452,22 @@
 
                 <!-- Agent Nodes -->
                 <div class="agent-node node-coordinator idle" id="node-JointAuditCoordinator" style="transform: translate(-50%, -50%);">
-                    <i class="bi bi-cpu-fill"></i>
+                    <i class="bi bi-cpu-fill" aria-hidden="true"></i>
                     <span>Swarm Coordinator</span>
                 </div>
 
                 <div class="agent-node node-auditor idle" id="node-AuditorAgent">
-                    <i class="bi bi-shield-check"></i>
+                    <i class="bi bi-shield-check" aria-hidden="true"></i>
                     <span>AuditorAgent</span>
                 </div>
 
                 <div class="agent-node node-classifier idle" id="node-ClassifierAgent">
-                    <i class="bi bi-shield-slash"></i>
+                    <i class="bi bi-shield-slash" aria-hidden="true"></i>
                     <span>ClassifierAgent</span>
                 </div>
 
                 <div class="agent-node node-forecaster idle" id="node-ForecasterAgent">
-                    <i class="bi bi-graph-up-arrow"></i>
+                    <i class="bi bi-graph-up-arrow" aria-hidden="true"></i>
                     <span>ForecasterAgent</span>
                 </div>
             </div>
@@ -552,7 +552,7 @@
                                 </div>
                                 <div class="mb-2">
                                     <label for="defDetails" class="form-label small text-secondary">Thông tin số liệu giải trình</label>
-                                    <textarea class="form-control form-control-sm" id="defDetailsInput" rows="3" placeholder="Điền chi tiết số tiền bị loại, số hóa đơn lỗi để AI điền vào mẫu..."></textarea>
+                                    <textarea class="form-control form-control-sm" id="defDetailsInput" rows="3" placeholder="Điền chi tiết số tiền bị loại, số hóa đơn lỗi để AI điền vào mẫu…"></textarea>
                                 </div>
                                 <button class="btn btn-success btn-sm w-100 fw-bold mt-2" id="btnGenerateLetter"><i class="bi bi-file-earmark-diff me-1" aria-hidden="true"></i>Cập nhật thư giải trình</button>
                             </div>
@@ -659,7 +659,7 @@
                 historyList.innerHTML = `<div class="text-center text-secondary py-3 small">Vui lòng chọn Mã số thuế doanh nghiệp để xem lịch sử Swarm.</div>`;
                 return;
             }
-            historyList.innerHTML = `<div class="text-center text-secondary py-3 small"><i class="bi bi-hourglass-split me-1 spinner-border spinner-border-sm border-0"></i> Đang tải...</div>`;
+            historyList.innerHTML = `<div class="text-center text-secondary py-3 small"><i class="bi bi-hourglass-split me-1 spinner-border spinner-border-sm border-0" aria-hidden="true"></i> Đang tải...</div>`;
             fetch(`/api/agents/audit-coordinator/history?taxpayer_mst=${mst}`)
                 .then(res => res.json())
                 .then(data => {
@@ -701,7 +701,7 @@
 
         // Load specific Session Detail
         function loadSessionDetail(sessionId) {
-            reportOutput.innerHTML = `<div class="text-center text-secondary py-5"><i class="bi bi-hourglass-split me-1 spinner-border spinner-border-lg border-0"></i><h5>Đang tải báo cáo...</h5></div>`;
+            reportOutput.innerHTML = `<div class="text-center text-secondary py-5"><i class="bi bi-hourglass-split me-1 spinner-border spinner-border-lg border-0" aria-hidden="true"></i><h5>Đang tải báo cáo...</h5></div>`;
             fetch(`/api/agents/audit-coordinator/history/${sessionId}`)
                 .then(res => res.json())
                 .then(data => {

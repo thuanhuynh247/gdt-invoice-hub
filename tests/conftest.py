@@ -51,6 +51,11 @@ def app():
         from extensions import db
         # Ensure a clean database state for the test
         try:
+            db.session.execute(db.text("DROP TABLE IF EXISTS tax_regulation_fts"))
+            db.session.commit()
+        except Exception:
+            pass
+        try:
             db.drop_all()
         except Exception:
             pass
@@ -84,6 +89,11 @@ def app():
         try:
             from invoices.thread_local import clear_thread_local_context
             clear_thread_local_context()
+        except Exception:
+            pass
+        try:
+            db.session.execute(db.text("DROP TABLE IF EXISTS tax_regulation_fts"))
+            db.session.commit()
         except Exception:
             pass
         try:

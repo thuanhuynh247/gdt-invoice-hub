@@ -214,7 +214,7 @@
             {% call glass_card('Tổng Quan Tình Trạng Chỉ Số', 'bi bi-pie-chart-fill', 'text-success', 'Tóm tắt chỉ số tuân thủ pháp lý và phát hiện rủi ro hóa đơn', '', '', 'mb-0') %}
             <div class="row g-3">
                 <div class="col-md-3">
-                    <div class="p-3 border rounded bg-light text-center h-100 d-flex flex-column justify-content-center">
+                    <div class="p-3 border rounded bg-premium-light text-center h-100 d-flex flex-column justify-content-center">
                         <div class="text-muted small fw-semibold uppercase tracking-wider">Tổng Số Hóa Đơn</div>
                         <strong id="statTotal" class="fs-2 text-dark font-outfit">-</strong>
                     </div>
@@ -248,7 +248,7 @@
         <div class="col-lg-7">
             {% call glass_card('Thống Kê Phát Hiện Theo Loại Kiểm Tra', 'bi bi-shield-check', 'text-success', 'Số lượng lỗi và cảnh báo bất thường được tách theo từng chuyên mục', '', '', 'h-100') %}
             <div id="breakdownContainer" class="d-flex flex-wrap gap-3">
-                <div class="text-muted"><i class="bi bi-hourglass-split pulse-dot"></i> Đang tải dữ liệu kiểm toán...</div>
+                <div class="text-muted"><i class="bi bi-hourglass-split pulse-dot" aria-hidden="true"></i> Đang tải dữ liệu kiểm toán...</div>
             </div>
             {% endcall %}
         </div>
@@ -257,7 +257,7 @@
         <div class="col-lg-5">
             {% call glass_card('Định Luật Phân Phối Số Học (Benford)', 'bi bi-bezier2', 'text-success', 'Đối chiếu phân bổ chữ số đầu tiên của tiền chưa thuế với phân phối Benford tiêu chuẩn', '', '', 'h-100') %}
             <div id="benfordContainer">
-                <div class="text-muted"><i class="bi bi-hourglass-split pulse-dot"></i> Đang tính toán tần suất Benford...</div>
+                <div class="text-muted"><i class="bi bi-hourglass-split pulse-dot" aria-hidden="true"></i> Đang tính toán tần suất Benford...</div>
             </div>
             {% endcall %}
         </div>
@@ -269,10 +269,10 @@
             {% call glass_card('Danh Sách Chi Tiết Cảnh Báo Tuân Thủ', 'bi bi-list-stars', 'text-success', 'Danh sách lỗi được lọc để kế khai thuế theo Nghị định 123/2020/NĐ-CP', '', '', 'w-100') %}
             <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                 <div>
-                    <span class="badge bg-success-subtle text-success me-2"><i class="bi bi-check-circle-fill"></i> Tự động kiểm tra chéo</span>
+                    <span class="badge bg-success-subtle text-success me-2"><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Tự động kiểm tra chéo</span>
                     <span class="text-muted small">Cập nhật theo dữ liệu GDT thời gian thực</span>
                 </div>
-                <div class="form-check form-switch bg-light p-2 px-3 rounded border">
+                <div class="form-check form-switch bg-premium-light p-2 px-3 rounded border">
                     <input class="form-check-input ms-0 me-2" type="checkbox" id="filterCriticalOnly" onchange="renderTable()">
                     <label class="form-check-label fw-semibold text-secondary" for="filterCriticalOnly">Chỉ hiện lỗi Nghiêm Trọng</label>
                 </div>
@@ -291,7 +291,7 @@
                         </tr>
                     </thead>
                     <tbody id="alertsTbody">
-                        <tr><td colspan="7" class="text-center py-4"><i class="bi bi-arrow-repeat spin"></i> Đang chuẩn bị bảng cảnh báo...</td></tr>
+                        <tr><td colspan="7" class="text-center py-4"><i class="bi bi-arrow-repeat spin" aria-hidden="true"></i> Đang chuẩn bị bảng cảnh báo...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -314,7 +314,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 async function runValidation() {
     const tbody = document.getElementById("alertsTbody");
-    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4"><i class="bi bi-arrow-repeat spin me-2"></i> Đang chạy quét kiểm toán dữ liệu...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4"><i class="bi bi-arrow-repeat spin me-2" aria-hidden="true"></i> Đang chạy quét kiểm toán dữ liệu...</td></tr>';
     document.getElementById("summaryCards").style.display = "block";
 
     try {
@@ -322,7 +322,7 @@ async function runValidation() {
         const data = await res.json();
 
         if (data.error) {
-            tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4 fw-bold"><i class="bi bi-exclamation-octagon-fill me-2"></i>Lỗi: ${data.error}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4 fw-bold"><i class="bi bi-exclamation-octagon-fill me-2" aria-hidden="true"></i>Lỗi: ${data.error}</td></tr>`;
             return;
         }
 
@@ -338,7 +338,7 @@ async function runValidation() {
         renderBenford(data.benford_analysis);
 
     } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4"><i class="bi bi-wifi-off me-2"></i>Lỗi kết nối máy chủ: ${err.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4"><i class="bi bi-wifi-off me-2" aria-hidden="true"></i>Lỗi kết nối máy chủ: ${err.message}</td></tr>`;
     }
 }
 
@@ -350,7 +350,7 @@ function renderTable() {
     const filtered = currentAlerts.filter(a => criticalOnly ? a.severity === 'Nghiêm trọng' : true);
 
     if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-5 text-success fw-bold"><i class="bi bi-check-circle-fill fs-4 d-block mb-2 text-success"></i>Không tìm thấy cảnh báo nào phù hợp tiêu chí lọc.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-5 text-success fw-bold"><i class="bi bi-check-circle-fill fs-4 d-block mb-2 text-success" aria-hidden="true"></i>Không tìm thấy cảnh báo nào phù hợp tiêu chí lọc.</td></tr>';
         return;
     }
 
@@ -372,7 +372,7 @@ function renderTable() {
                 <td class="text-dark small">${a.detail}</td>
                 <td class="text-center">
                     <a href="/invoice/${a.invoice_id}" class="btn btn-sm btn-outline-success rounded-pill px-3" target="_blank">
-                        <i class="bi bi-eye"></i> Xem HĐ
+                        <i class="bi bi-eye" aria-hidden="true"></i> Xem HĐ
                     </a>
                 </td>
             </tr>
@@ -385,7 +385,7 @@ function renderTable() {
 function renderBreakdown(summary) {
     const container = document.getElementById("breakdownContainer");
     if (!summary || Object.keys(summary).length === 0) {
-        container.innerHTML = '<div class="w-100 p-4 rounded text-center text-success bg-success-subtle border fw-semibold"><i class="bi bi-check-all me-1"></i> Tất cả các loại kiểm toán đều an toàn.</div>';
+        container.innerHTML = '<div class="w-100 p-4 rounded text-center text-success bg-success-subtle border fw-semibold"><i class="bi bi-check-all me-1" aria-hidden="true"></i> Tất cả các loại kiểm toán đều an toàn.</div>';
         return;
     }
 
@@ -422,8 +422,8 @@ function renderBenford(benford) {
             <span class="badge ${statusBadgeClass} fs-6 px-3 py-2 rounded-pill">${benford.status}</span>
             <small class="text-muted">Chi-square: <strong class="text-dark font-monospace">${benford.chi_square_stat}</strong> (Mốc: 15.51)</small>
         </div>
-        <div class="alert alert-info py-2 px-3 small border-0 bg-light-subtle mb-3" style="font-size: 0.85rem; border-left: 4px solid var(--wise-accent) !important;">
-            <i class="bi bi-info-circle-fill text-success me-1"></i> ${benford.message}
+        <div class="alert alert-info py-2 px-3 small border-0 bg-premium-light-subtle mb-3" style="font-size: 0.85rem; border-left: 4px solid var(--wise-accent) !important;">
+            <i class="bi bi-info-circle-fill text-success me-1" aria-hidden="true"></i> ${benford.message}
         </div>
     `;
     
@@ -461,7 +461,7 @@ function renderBenford(benford) {
     } else {
         html += `
             <div class="text-center py-5 text-muted bg-white rounded border border-dashed shadow-sm">
-                <i class="bi bi-file-earmark-bar-graph fs-2 mb-3 text-warning-emphasis d-block"></i>
+                <i class="bi bi-file-earmark-bar-graph fs-2 mb-3 text-warning-emphasis d-block" aria-hidden="true"></i>
                 <div class="small fw-bold text-dark">Dữ liệu tối thiểu không đáp ứng</div>
                 <div class="small px-4 mt-1" style="font-size: 0.78rem;">Hệ thống phát hiện thấy mới chỉ có <strong>${benford.valid_count}/20</strong> hóa đơn hợp lệ. Cần nạp thêm tối thiểu <strong>${20 - benford.valid_count}</strong> hóa đơn điện tử nữa để kích hoạt phân tích Benford.</div>
             </div>

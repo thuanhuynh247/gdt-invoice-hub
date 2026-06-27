@@ -1,5 +1,5 @@
 {# ═══════════════════════════════════════════════════════════════════
-   TRANG LẮP RÁP LEGO: v71 — E-Waste EPR Recycling Hub
+   TRANG LẮP RÁP LEGO: v71 - E-Waste EPR Recycling Hub
    ────────────────────────────────────────────────────────────────
    Nghị định 08/2022/NĐ-CP: Tính phí tái chế rác thải điện tử
    theo trách nhiệm mở rộng của nhà sản xuất (EPR).
@@ -325,7 +325,7 @@
 </div>{# /container #}
 
 {# ════════════════════════════════════════════════════════════════
-   LOGIC NGHIỆP VỤ RIÊNG TRANG — Giữ nguyên 100% JS gốc
+   LOGIC NGHIỆP VỤ RIÊNG TRANG - Giữ nguyên 100% JS gốc
    ════════════════════════════════════════════════════════════════ #}
 <script>
 document.addEventListener("DOMContentLoaded", () => {
@@ -407,7 +407,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const row = document.createElement("div");
                 row.className = "d-flex align-items-center gap-2 small";
                 row.innerHTML = `<span style="min-width:100px" class="${textWeight}">${labels[k]||k}</span>
-                    <div class="flex-grow-1 bg-light rounded" style="height:18px;overflow:hidden">
+                    <div class="flex-grow-1 bg-premium-light rounded" style="height:18px;overflow:hidden">
                         <div style="width:0;height:100%;background:${bgStyle};${opacityStyle}border-radius:4px;transition:width .6s ease" data-target="${pct}%"></div>
                     </div>
                     <span class="${textWeight}" style="min-width:110px;text-align:right">${fVND(v)}</span>`;
@@ -442,8 +442,8 @@ document.addEventListener("DOMContentLoaded", () => {
             div.style.opacity = "0";
             div.innerHTML = `
                 <div class="d-flex flex-column align-items-center text-center" style="min-width: 140px;">
-                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mb-2" style="width: 40px; height: 40px;">
-                        <i class="bi bi-robot text-secondary fs-5"></i>
+                    <div class="rounded-circle bg-premium-light d-flex align-items-center justify-content-center mb-2" style="width: 40px; height: 40px;">
+                        <i class="bi bi-robot text-secondary fs-5" aria-hidden="true"></i>
                     </div>
                     <span class="badge ${cl[m.speaker] || "bg-secondary"} text-wrap py-1 px-2 small">${m.speaker}</span>
                 </div>

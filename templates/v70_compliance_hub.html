@@ -261,7 +261,7 @@
                     <div class="w-100 text-center mb-1">
                         <span class="small text-muted d-block">Current Shipment Environmental Footprint</span>
                         <h3 class="fw-bold text-success mb-1" id="visual-odp-eq">0.00 ODP-kg</h3>
-                        <span class="badge bg-light text-dark border" id="visual-substance-tag">Selected Substance</span>
+                        <span class="badge bg-premium-light text-dark border" id="visual-substance-tag">Selected Substance</span>
                     </div>
 
                     <!-- SVG Bar Chart comparing ODP Factors -->
@@ -773,7 +773,7 @@ document.addEventListener("DOMContentLoaded", () => {
             tr.innerHTML = `
                 <td><span class="text-secondary small fw-bold">#${l.id}</span></td>
                 <td class="fw-bold">${l.substance_name}</td>
-                <td><span class="badge bg-light text-dark border">${l.substance_group.toUpperCase()}</span></td>
+                <td><span class="badge bg-premium-light text-dark border">${l.substance_group.toUpperCase()}</span></td>
                 <td>${l.weight_kg.toFixed(1)} kg</td>
                 <td>${l.odp_factor.toFixed(4)}</td>
                 <td>${l.odp_equivalent_kg.toFixed(3)} kg</td>

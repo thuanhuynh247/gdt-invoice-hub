@@ -373,8 +373,8 @@ document.addEventListener("DOMContentLoaded",()=>{
             div.style.opacity = "0";
             div.innerHTML = `
                 <div class="d-flex flex-column align-items-center text-center" style="min-width: 140px;">
-                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mb-2" style="width: 40px; height: 40px;">
-                        <i class="bi bi-robot text-secondary fs-5"></i>
+                    <div class="rounded-circle bg-premium-light d-flex align-items-center justify-content-center mb-2" style="width: 40px; height: 40px;">
+                        <i class="bi bi-robot text-secondary fs-5" aria-hidden="true"></i>
                     </div>
                     <span class="badge ${cl[m.speaker] || "bg-secondary"} text-wrap py-1 px-2 small">${m.speaker}</span>
                 </div>
@@ -401,10 +401,10 @@ document.addEventListener("DOMContentLoaded",()=>{
             tr.innerHTML = `
                 <td><span class="text-secondary small fw-bold">#${l.id}</span></td>
                 <td class="fw-bold text-dark">${l.mineral_description}</td>
-                <td><span class="badge bg-light text-dark border">${l.mineral_type.toUpperCase()}</span></td>
+                <td><span class="badge bg-premium-light text-dark border">${l.mineral_type.toUpperCase()}</span></td>
                 <td>${l.volume}${fUnit(l.mineral_type)}</td>
-                <td><span class="badge bg-light text-dark border">${l.is_salvage ? 'YES' : 'NO'}</span></td>
-                <td><span class="badge bg-light text-dark border">${l.exemption_category.toUpperCase()}</span></td>
+                <td><span class="badge bg-premium-light text-dark border">${l.is_salvage ? 'YES' : 'NO'}</span></td>
+                <td><span class="badge bg-premium-light text-dark border">${l.exemption_category.toUpperCase()}</span></td>
                 <td class="font-monospace">${fVND(l.base_rate)}</td>
                 <td class="font-monospace">${fVND(l.applied_rate)}</td>
                 <td class="font-monospace">${fVND(l.total_fee_vnd)}</td>

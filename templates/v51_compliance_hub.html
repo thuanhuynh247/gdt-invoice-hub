@@ -348,8 +348,8 @@ document.addEventListener("DOMContentLoaded", () => {
             div.style.opacity = "0";
             div.innerHTML = `
                 <div class="d-flex flex-column align-items-center text-center" style="min-width: 140px;">
-                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mb-2" style="width: 40px; height: 40px;">
-                        <i class="bi bi-robot text-secondary fs-5"></i>
+                    <div class="rounded-circle bg-premium-light d-flex align-items-center justify-content-center mb-2" style="width: 40px; height: 40px;">
+                        <i class="bi bi-robot text-secondary fs-5" aria-hidden="true"></i>
                     </div>
                     <span class="badge ${colors[msg.speaker] || "bg-secondary"} text-wrap py-1 px-2 small">${msg.speaker}</span>
                 </div>

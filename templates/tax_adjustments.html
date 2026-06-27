@@ -278,14 +278,14 @@
     <div class="d-flex justify-content-between align-items-center mb-4 no-print">
         <div>
             <h1 class="page-header-title d-flex align-items-center gap-2">
-                <i class="bi bi-file-earmark-diff brand-glow"></i>
+                <i class="bi bi-file-earmark-diff brand-glow" aria-hidden="true"></i>
                 HAT AI Smart Invoice Adjustment & Correction Hub
             </h1>
             <p class="text-muted mb-0">Tự động phát hiện sai sót thuế, soạn thảo biên bản điều chỉnh pháp lý & nộp mẫu 04/SS-HĐĐT lên Cơ quan Thuế.</p>
         </div>
         <div>
             <a href="{{ url_for('invoices.invoices_page') }}" class="btn btn-sm btn-outline-light d-flex align-items-center gap-2 px-3 py-2" style="border-radius: 0.5rem;">
-                <i class="bi bi-arrow-left"></i> Quay lại Danh sách
+                <i class="bi bi-arrow-left" aria-hidden="true"></i> Quay lại Danh sách
             </a>
         </div>
     </div>
@@ -294,7 +294,7 @@
     <div class="row mb-4 no-print">
         <div class="col-12">
             <div class="glass-panel p-3 d-flex align-items-center gap-3 border-warning" style="background: rgba(245, 158, 11, 0.05); border-color: rgba(245, 158, 11, 0.2) !important;">
-                <span class="fs-2 text-warning"><i class="bi bi-exclamation-triangle-fill"></i></span>
+                <span class="fs-2 text-warning"><i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i></span>
                 <div>
                     <h5 class="mb-1 text-warning fw-semibold">Phát hiện {{ flagged_invoices|length }} hóa đơn cần khắc phục</h5>
                     <p class="mb-0 text-muted small">Hệ thống phân tích thuế chuyên sâu HAT AI phát hiện các hóa đơn dưới đây có sự không đồng bộ về chữ ký số, sai thông tin đăng ký thuế của đối tác hoặc rủi ro hóa đơn chéo. Chọn một hóa đơn để bắt đầu tạo biên bản khắc phục.</p>
@@ -311,7 +311,7 @@
             <!-- Flagged Invoices List -->
             <div class="glass-panel p-4 mb-4">
                 <h5 class="fw-semibold mb-3 d-flex align-items-center gap-2">
-                    <i class="bi bi-list-stars text-blue"></i> Danh Sách Hóa Đơn Cảnh Báo
+                    <i class="bi bi-list-stars text-blue" aria-hidden="true"></i> Danh Sách Hóa Đơn Cảnh Báo
                 </h5>
                 <div class="flagged-list pe-1">
                     {% if flagged_invoices %}
@@ -344,7 +344,7 @@
                         {% endfor %}
                     {% else %}
                         <div class="text-center py-5 text-muted">
-                            <i class="bi bi-check-circle-fill text-success fs-1 mb-3"></i>
+                            <i class="bi bi-check-circle-fill text-success fs-1 mb-3" aria-hidden="true"></i>
                             <p class="mb-0">Tuyệt vời! Không phát hiện hóa đơn nào có lỗi cần điều chỉnh.</p>
                         </div>
                     {% endif %}
@@ -354,7 +354,7 @@
             <!-- Interactive Agreement Form -->
             <div class="glass-panel p-4" id="agreementFormPanel" style="display: none;">
                 <h5 class="fw-semibold mb-3 d-flex align-items-center gap-2">
-                    <i class="bi bi-pencil-square text-warning"></i> Thông Tin Biên Bản Điều Chỉnh
+                    <i class="bi bi-pencil-square text-warning" aria-hidden="true"></i> Thông Tin Biên Bản Điều Chỉnh
                 </h5>
                 <form id="adjustmentForm">
                     <input type="hidden" id="form_invoice_id">
@@ -393,7 +393,7 @@
 
                     <div class="d-grid gap-2">
                         <button type="button" class="btn btn-success d-flex align-items-center justify-content-center gap-2 fw-bold" id="btnSubmitGdt" onclick="submitToGdt()" style="border-radius: 0.5rem; min-height: 48px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.2);">
-                            <i class="bi bi-shield-lock-fill"></i> Ký Số & Gửi Cơ Quan Thuế
+                            <i class="bi bi-shield-lock-fill" aria-hidden="true"></i> Ký Số & Gửi Cơ Quan Thuế
                         </button>
                     </div>
                 </form>
@@ -417,7 +417,7 @@
                 <!-- Submission Tracker & Glowing Timeline -->
                 <div class="glass-panel p-4 mb-4 no-print">
                     <h5 class="fw-semibold mb-2 d-flex align-items-center gap-2">
-                        <i class="bi bi-send-check text-emerald"></i> Tiến Trình Ký Số & Gửi Cơ Quan Thuế (04/SS-HĐĐT)
+                        <i class="bi bi-send-check text-emerald" aria-hidden="true"></i> Tiến Trình Ký Số & Gửi Cơ Quan Thuế (04/SS-HĐĐT)
                     </h5>
                     <p class="text-muted small mb-0">Theo dõi trạng thái liên thông dữ liệu thời gian thực giữa doanh nghiệp và cổng Tổng cục Thuế qua cổng an toàn HAT AI.</p>
                     
@@ -455,13 +455,13 @@
 
                 <!-- Action Buttons above preview -->
                 <div class="d-flex justify-content-between align-items-center mb-3 no-print">
-                    <span class="text-muted small"><i class="bi bi-eye-fill me-1"></i> Xem trước Bản in Biên Bản Thỏa Thuận</span>
+                    <span class="text-muted small"><i class="bi bi-eye-fill me-1" aria-hidden="true"></i> Xem trước Bản in Biên Bản Thỏa Thuận</span>
                     <div class="d-flex gap-2">
                         <button class="btn btn-sm btn-outline-light d-flex align-items-center gap-1" onclick="window.print()">
-                            <i class="bi bi-printer"></i> In Biên Bản
+                            <i class="bi bi-printer" aria-hidden="true"></i> In Biên Bản
                         </button>
                         <button class="btn btn-sm btn-outline-success d-flex align-items-center gap-1 d-none" id="btnDownloadSSForm" onclick="download04Form()">
-                            <i class="bi bi-download"></i> Tải Mẫu 04/SS-HĐĐT
+                            <i class="bi bi-download" aria-hidden="true"></i> Tải Mẫu 04/SS-HĐĐT
                         </button>
                     </div>
                 </div>
@@ -682,7 +682,7 @@
 
         // Enable submission button
         document.getElementById('btnSubmitGdt').disabled = false;
-        document.getElementById('btnSubmitGdt').innerHTML = '<i class="bi bi-shield-lock-fill"></i> Ký Số & Gửi Cơ Quan Thuế';
+        document.getElementById('btnSubmitGdt').innerHTML = '<i class="bi bi-shield-lock-fill" aria-hidden="true"></i> Ký Số & Gửi Cơ Quan Thuế';
     }
 
     function submitToGdt() {
@@ -691,7 +691,7 @@
 
         // Disable button
         document.getElementById('btnSubmitGdt').disabled = true;
-        document.getElementById('btnSubmitGdt').innerHTML = '<i class="bi bi-hourglass-split"></i> Đang Xử Lý...';
+        document.getElementById('btnSubmitGdt').innerHTML = '<i class="bi bi-hourglass-split" aria-hidden="true"></i> Đang Xử Lý...';
 
         // Show status box
         const statusBox = document.getElementById('timelineStatusBox');
@@ -730,7 +730,7 @@
                         
                         spinner.classList.add('d-none');
                         statusText.innerHTML = `
-                            <span class="text-success fw-bold"><i class="bi bi-check-circle-fill me-1"></i> THÀNH CÔNG!</span><br>
+                            <span class="text-success fw-bold"><i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> THÀNH CÔNG!</span><br>
                             Mã giao dịch GDT: <span class="text-warning font-monospace fw-bold">${data.gdt_transaction_id}</span><br>
                             Chữ ký số XML: <span class="text-muted font-monospace small">${data.xml_digital_signature}</span><br>
                             Trạng thái: Hóa đơn đã được khắc phục & lưu vết thành công!
@@ -745,7 +745,7 @@
                         document.getElementById('btnDownloadSSForm').classList.remove('d-none');
                         
                         // Update button
-                        document.getElementById('btnSubmitGdt').innerHTML = '<i class="bi bi-check-circle-fill"></i> Đã Gửi CQT Thành Công';
+                        document.getElementById('btnSubmitGdt').innerHTML = '<i class="bi bi-check-circle-fill" aria-hidden="true"></i> Đã Gửi CQT Thành Công';
                         
                         // Show toast message if toaster exists, or alert
                         alert('Đã gửi thông báo sai sót hóa đơn lên Tổng cục Thuế & Nhận kết quả phê duyệt thành công!');

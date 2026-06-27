@@ -169,7 +169,7 @@
             <p class="text-secondary mb-0">Tối ưu hóa ngữ cảnh và căn chỉnh bộ đệm KV thời gian thực để giảm thiểu chi phí LLM và cải thiện tốc độ phản hồi.</p>
         </div>
         <div class="col-md-4 text-md-end mt-3 mt-md-0">
-            <div class="d-inline-flex align-items-center gap-2 bg-light dark-bg-slate-800 border p-2 rounded-pill px-3">
+            <div class="d-inline-flex align-items-center gap-2 bg-premium-light dark-bg-slate-800 border p-2 rounded-pill px-3">
                 <span class="d-inline-block rounded-circle bg-success" style="width: 10px; height: 10px; animation: pulse-glow 1.5s infinite;"></span>
                 <span class="small fw-semibold text-secondary">Trạng thái: </span>
                 <span class="small fw-bold text-success" id="headroomStatusText">Đang tải...</span>
@@ -258,7 +258,7 @@
                 <hr class="my-3">
                 <form id="headroomSettingsForm">
                     <!-- Enabled Switch -->
-                    <div class="form-check form-switch mb-3 p-3 bg-light dark-bg-slate-800 rounded-3 border d-flex justify-content-between align-items-center">
+                    <div class="form-check form-switch mb-3 p-3 bg-premium-light dark-bg-slate-800 rounded-3 border d-flex justify-content-between align-items-center">
                         <div class="ps-1">
                             <label class="form-check-label fw-bold d-block" for="settingEnabled">Kích hoạt Headroom</label>
                             <span class="small text-secondary">Tự động nén prompt & tối ưu cache</span>
@@ -553,7 +553,7 @@
                         const row = document.createElement("tr");
                         row.innerHTML = `
                             <td class="fw-semibold text-secondary small">${event.timestamp}</td>
-                            <td><span class="badge bg-light text-dark border">${event.caller}</span></td>
+                            <td><span class="badge bg-premium-light text-dark border">${event.caller}</span></td>
                             <td><code class="small text-primary">${event.model_name}</code></td>
                             <td>${event.tokens_before.toLocaleString()}</td>
                             <td>${event.tokens_after.toLocaleString()}</td>

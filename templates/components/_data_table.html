@@ -1,16 +1,16 @@
 {# ═══════════════════════════════════════════════════════════════════
-   LEGO COMPONENT: Data Table — Bảng dữ liệu động
+   LEGO COMPONENT: Data Table - Bảng dữ liệu động
    ────────────────────────────────────────────────────────────────
    Bọc bảng dữ liệu trong glass-card với tiêu đề + icon.
    Sử dụng caller() để định nghĩa phần <thead>.
    Phần <tbody> được render động bởi JavaScript.
    
    Tham số:
-     title       — tiêu đề bảng
-     icon        — class icon, ví dụ 'bi bi-clock-history'
-     tbody_id    — id HTML cho <tbody> (JS sẽ điền dữ liệu)
-     default_msg — thông báo mặc định khi chưa có dữ liệu
-     col_count   — số cột (dùng cho colspan của dòng trống)
+     title       - tiêu đề bảng
+     icon        - class icon, ví dụ 'bi bi-clock-history'
+     tbody_id    - id HTML cho <tbody> (JS sẽ điền dữ liệu)
+     default_msg - thông báo mặc định khi chưa có dữ liệu
+     col_count   - số cột (dùng cho colspan của dòng trống)
    ═══════════════════════════════════════════════════════════════════ #}
 
 {% macro data_table(title, icon, tbody_id, default_msg='Chưa có dữ liệu.', col_count=1) %}

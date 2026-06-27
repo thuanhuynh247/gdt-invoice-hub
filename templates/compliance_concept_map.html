@@ -78,7 +78,7 @@
             <!-- Emergent Complexity & Systemic Metrics -->
             <div class="pt-3 border-top border-secondary border-opacity-10 mt-3">
                 <label class="form-label small text-secondary d-block">Độ Phức Tạp Nổi Lên & Chỉ Số Mạng Lưới</label>
-                <div class="bg-dark bg-opacity-50 p-2 rounded border border-secondary border-opacity-10">
+                <div class="bg-custom-dark bg-opacity-50 p-2 rounded border border-secondary border-opacity-10">
                     <div class="row g-2 text-center">
                         <div class="col-4">
                             <div class="text-secondary" style="font-size: 0.65rem;">Gạch Lego (Links)</div>
@@ -234,7 +234,7 @@
                 <div class="row g-3">
                     <!-- Controllers (Left) -->
                     <div class="col-md-5">
-                        <div class="bg-dark bg-opacity-50 p-3 rounded border border-secondary border-opacity-10 d-flex flex-column gap-3">
+                        <div class="bg-custom-dark bg-opacity-50 p-3 rounded border border-secondary border-opacity-10 d-flex flex-column gap-3">
                             <h6 class="text-info fw-bold mb-1 small uppercase tracking-wider"><i class="bi bi-sliders me-1" aria-hidden="true"></i>Tham Số Vận Hành</h6>
                             
                             <div>
@@ -272,7 +272,7 @@
                     
                     <!-- Diagram & Plot (Right) -->
                     <div class="col-md-7">
-                        <div class="bg-dark bg-opacity-25 rounded border border-secondary border-opacity-10 p-3 h-100 d-flex flex-column gap-3">
+                        <div class="bg-custom-dark bg-opacity-25 rounded border border-secondary border-opacity-10 p-3 h-100 d-flex flex-column gap-3">
                             <h6 class="text-info fw-bold mb-0 small uppercase tracking-wider"><i class="bi bi-diagram-2 me-1" aria-hidden="true"></i>Sơ đồ Stocks & Flows và Biểu đồ Kết quả</h6>
                             
                             <!-- Small Diagram Box -->
@@ -324,7 +324,7 @@
                 <div class="row g-3">
                     <!-- Link Creator Form -->
                     <div class="col-md-6">
-                        <div class="bg-dark bg-opacity-50 p-3 rounded border border-secondary border-opacity-10 d-flex flex-column gap-3">
+                        <div class="bg-custom-dark bg-opacity-50 p-3 rounded border border-secondary border-opacity-10 d-flex flex-column gap-3">
                             <h6 class="text-info fw-bold mb-1 small uppercase tracking-wider"><i class="bi bi-plus-circle me-1" aria-hidden="true"></i>Snap Link Mới</h6>
                             
                             <div class="row g-2">
@@ -361,7 +361,7 @@
                     
                     <!-- Managed Custom Links List -->
                     <div class="col-md-6">
-                        <div class="bg-dark bg-opacity-25 rounded border border-secondary border-opacity-10 p-3 h-100 d-flex flex-column">
+                        <div class="bg-custom-dark bg-opacity-25 rounded border border-secondary border-opacity-10 p-3 h-100 d-flex flex-column">
                             <h6 class="text-info fw-bold mb-2 small uppercase tracking-wider"><i class="bi bi-list-check me-1" aria-hidden="true"></i>Các Khối Liên Kết LEGO</h6>
                             <div class="flex-grow-1 overflow-y-auto" id="legoLinksList" style="max-height: 220px;">
                                 <div class="text-center text-secondary py-5 small">Chưa có liên kết tùy chỉnh nào được ghép.</div>
@@ -469,6 +469,9 @@
 .bg-info-glow {
     background-color: #0dcaf0;
     box-shadow: 0 0 8px #0dcaf0;
+}
+.bg-custom-dark {
+    background-color: #212529 !important;
 }
 .btn-xs {
     padding: 0.25rem 0.5rem;

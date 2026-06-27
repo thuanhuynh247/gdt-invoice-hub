@@ -354,8 +354,8 @@ document.addEventListener("DOMContentLoaded", () => {
             div.style.opacity = "0";
             div.innerHTML = `
                 <div class="d-flex flex-column align-items-center text-center" style="min-width: 140px;">
-                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mb-2" style="width: 40px; height: 40px;">
-                        <i class="bi bi-robot text-secondary fs-5"></i>
+                    <div class="rounded-circle bg-premium-light d-flex align-items-center justify-content-center mb-2" style="width: 40px; height: 40px;">
+                        <i class="bi bi-robot text-secondary fs-5" aria-hidden="true"></i>
                     </div>
                     <span class="badge ${cl[m.speaker] || "bg-secondary"} text-wrap py-1 px-2 small">${m.speaker}</span>
                 </div>
@@ -382,7 +382,7 @@ document.addEventListener("DOMContentLoaded", () => {
             tr.innerHTML = `
                 <td><span class="text-secondary small fw-bold">#${l.id}</span></td>
                 <td class="fw-bold">${l.project_name}</td>
-                <td><span class="badge bg-light text-dark border">${l.ecosystem_type.toUpperCase()}</span></td>
+                <td><span class="badge bg-premium-light text-dark border">${l.ecosystem_type.toUpperCase()}</span></td>
                 <td>${l.impact_area_ha.toFixed(2)} ha</td>
                 <td>${l.impact_rating.toUpperCase()}</td>
                 <td>${l.has_offset_plan ? '<span class="text-success"><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Yes</span>' : '<span class="text-muted">No</span>'}</td>

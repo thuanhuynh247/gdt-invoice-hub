@@ -278,7 +278,7 @@
             <h1 class="h3 mb-1"><i class="fa-solid fa-heart-pulse text-danger me-2"></i>Chỉ Số Sức Khỏe Thuế Doanh Nghiệp</h1>
             <p class="text-muted mb-0">Mã số thuế: <span id="taxpayer-mst" class="font-monospace fw-bold text-primary">--</span></p>
         </div>
-        <button onclick="loadHealthScore()" class="btn btn-outline-light btn-sm">
+        <button type="button" onclick="loadHealthScore()" class="btn btn-outline-light btn-sm">
             <i class="fa-solid fa-rotate me-2"></i>Làm mới dữ liệu
         </button>
     </div>
@@ -302,7 +302,7 @@
                 </div>
                 
                 <p id="compliance-desc" class="mt-4 text-muted px-3 small" style="min-height: 48px;">
-                    Đang tính toán chỉ số tuân thủ...
+                    Đang tính toán chỉ số tuân thủ…
                 </p>
             </div>
         </div>
@@ -385,13 +385,13 @@
 
     <!-- Tabs Navigation -->
     <div class="wise-tabs">
-        <button class="wise-tab active" onclick="switchTab('tab-overview')">
+        <button type="button" class="wise-tab active" onclick="switchTab('tab-overview')">
             <i class="fa-solid fa-shield-halved me-2"></i>Quy tắc tuân thủ
         </button>
-        <button class="wise-tab" onclick="switchTab('tab-reconciliation')">
+        <button type="button" class="wise-tab" onclick="switchTab('tab-reconciliation')">
             <i class="fa-solid fa-building-columns me-2"></i>Đối chiếu dòng tiền (Matrix)
         </button>
-        <button class="wise-tab" onclick="switchTab('tab-benford')">
+        <button type="button" class="wise-tab" onclick="switchTab('tab-benford')">
             <i class="fa-solid fa-calculator me-2"></i>Phân tích Định luật Benford
         </button>
     </div>
@@ -566,7 +566,7 @@
                     
                     <div id="benford-status-box" class="p-3 rounded mb-4 text-center">
                         <h4 id="benford-status" class="mb-2 fw-bold">--</h4>
-                        <p id="benford-message" class="mb-0 small text-muted">Đang phân tích định luật Benford...</p>
+                        <p id="benford-message" class="mb-0 small text-muted">Đang phân tích định luật Benford…</p>
                     </div>
 
                     <div class="d-flex justify-content-between mb-2 pb-2 border-bottom border-secondary border-opacity-10 small text-muted">

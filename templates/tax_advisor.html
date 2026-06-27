@@ -229,15 +229,15 @@
 <div class="container-fluid py-4">
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
         <div>
-            <h2 class="h3 mb-1"><i class="bi bi-robot text-success"></i> Cố Vấn Thuế AI (PixelRAG Advisor)</h2>
+            <h2 class="h3 mb-1"><i class="bi bi-robot text-success" aria-hidden="true"></i> Cố Vấn Thuế AI (PixelRAG Advisor)</h2>
             <p class="text-muted mb-0">Hỏi đáp chính sách thuế TNDN, GTGT, TNCN & Hóa đơn liên kết trích lục văn bản gốc.</p>
         </div>
         <div class="d-flex gap-2">
             <button class="btn btn-outline-success rounded-pill px-3 fw-medium" data-bs-toggle="modal" data-bs-target="#crawlerModal">
-                <i class="bi bi-cloud-arrow-down-fill me-1"></i> Cào Dữ Liệu Thuế
+                <i class="bi bi-cloud-arrow-down-fill me-1" aria-hidden="true"></i> Cào Dữ Liệu Thuế
             </button>
             <button class="btn btn-outline-primary rounded-pill px-3 fw-medium" data-bs-toggle="modal" data-bs-target="#settingsModal" onclick="loadAISettings()">
-                <i class="bi bi-gear-fill me-1"></i> Cấu hình AI
+                <i class="bi bi-gear-fill me-1" aria-hidden="true"></i> Cấu hình AI
             </button>
         </div>
     </div>
@@ -247,7 +247,7 @@
         <div class="col-lg-3 col-md-4">
             <div class="session-sidebar p-3 shadow-sm">
                 <button class="btn btn-success w-100 rounded-pill mb-3 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2" onclick="startNewSession()" style="background: var(--primary-accent);">
-                    <i class="bi bi-plus-circle-fill"></i> Cuộc thảo luận mới
+                    <i class="bi bi-plus-circle-fill" aria-hidden="true"></i> Cuộc thảo luận mới
                 </button>
                 <div class="border-bottom border-light mb-3 pb-2">
                     <small class="text-muted fw-bold uppercase text-xs" style="letter-spacing: 0.05em;">Lịch sử tư vấn</small>
@@ -267,12 +267,12 @@
             <div class="card shadow-sm border-0 mb-4 h-100 d-flex flex-column" style="background: var(--bg-card); border: 1px solid var(--border-card); height: 74vh !important;">
                 <div class="card-header bg-transparent border-bottom border-light-subtle py-3 d-flex justify-content-between align-items-center">
                     <div class="d-flex align-items-center gap-2 text-truncate">
-                        <i class="bi bi-chat-left-dots text-success fw-bold"></i>
+                        <i class="bi bi-chat-left-dots text-success fw-bold" aria-hidden="true"></i>
                         <h5 class="mb-0 fw-bold text-truncate" id="activeSessionTitle" style="font-size: 1rem;">Cuộc thảo luận mới</h5>
                     </div>
                     <div class="d-flex gap-2">
                         <button class="btn btn-outline-secondary btn-sm rounded-pill px-2.5 d-flex align-items-center gap-1.5" id="btnExportChat" onclick="exportChatHistory()" disabled title="Xuất báo cáo tư vấn thuế">
-                            <i class="bi bi-download"></i> <span class="d-none d-sm-inline">Xuất báo cáo</span>
+                            <i class="bi bi-download" aria-hidden="true"></i> <span class="d-none d-sm-inline">Xuất báo cáo</span>
                         </button>
                     </div>
                 </div>
@@ -307,9 +307,9 @@
                     <!-- Input Form -->
                     <form id="chatForm" onsubmit="submitMessage(event)">
                         <div class="input-group shadow-sm rounded-pill overflow-hidden border" style="border-color: var(--border-card) !important;">
-                            <input type="text" id="userInput" class="form-control border-0 px-4 py-3" placeholder="Nhập câu hỏi thuế của bạn tại đây..." style="background: var(--bg-card); color: var(--text-primary);" required>
+                            <input type="text" id="userInput" class="form-control border-0 px-4 py-3" placeholder="Nhập câu hỏi thuế của bạn tại đây…" style="background: var(--bg-card); color: var(--text-primary);" required>
                             <button class="btn btn-success border-0 px-4" type="submit" id="sendBtn" style="background: var(--primary-accent);">
-                                <i class="bi bi-send-fill"></i>
+                                <i class="bi bi-send-fill" aria-hidden="true"></i>
                             </button>
                         </div>
                     </form>
@@ -321,11 +321,11 @@
         <div class="col-lg-3 col-md-12">
             <div class="card shadow-sm border-0 h-100" style="background: var(--bg-card); border: 1px solid var(--border-card); height: 74vh !important;">
                 <div class="card-header bg-transparent border-bottom border-light-subtle py-3">
-                    <h5 class="mb-0 text-success fw-bold" style="font-size: 1rem;"><i class="bi bi-images"></i> Tài Liệu Trực Quan (PixelRAG)</h5>
+                    <h5 class="mb-0 text-success fw-bold" style="font-size: 1rem;"><i class="bi bi-images" aria-hidden="true"></i> Tài Liệu Trực Quan (PixelRAG)</h5>
                 </div>
                 <div class="card-body d-flex flex-column gap-3 overflow-y-auto" id="citationsContainer" style="scrollbar-width: thin;">
                     <div class="text-center py-5 text-muted my-auto">
-                        <i class="bi bi-file-earmark-text fa-3x mb-3 text-light"></i>
+                        <i class="bi bi-file-earmark-text fa-3x mb-3 text-light" aria-hidden="true"></i>
                         <div>Khi bạn hỏi, các trang tài liệu gốc liên quan sẽ được tự động trích xuất và hiển thị ở đây.</div>
                     </div>
                 </div>
@@ -339,7 +339,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content" style="background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-card);">
             <div class="modal-header border-bottom-0 pb-0">
-                <h5 class="modal-title fw-bold" id="crawlerModalLabel"><i class="bi bi-cloud-arrow-down text-success"></i> Cào Dữ Liệu & Nạp Luật Thuế</h5>
+                <h5 class="modal-title fw-bold" id="crawlerModalLabel"><i class="bi bi-cloud-arrow-down text-success" aria-hidden="true"></i> Cào Dữ Liệu & Nạp Luật Thuế</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -347,11 +347,11 @@
                 
                 <form id="crawlerForm">
                     <div class="mb-3">
-                        <label class="form-label fw-bold">URL Web Luật Thuế</label>
+                        <label class="form-label fw-bold" for="crawlUrl">URL Web Luật Thuế</label>
                         <div class="input-group">
-                            <input type="url" class="form-control" id="crawlUrl" placeholder="https://thuvienphapluat.vn/van-ban/Thue-Phi-Le-Phi/..." required>
+                            <input type="url" class="form-control" id="crawlUrl" placeholder="https://thuvienphapluat.vn/van-ban/Thue-Phi-Le-Phi/…" autocomplete="url" required>
                             <button class="btn btn-success" type="button" id="btnFetchUrl" onclick="fetchUrlContent()">
-                                <i class="bi bi-cloud-download-fill me-1"></i> Cào Dữ Liệu
+                                <i class="bi bi-cloud-download-fill me-1" aria-hidden="true"></i> Cào Dữ Liệu
                             </button>
                         </div>
                     </div>
@@ -359,12 +359,12 @@
                     <div id="crawlResultArea" class="d-none">
                         <div class="row">
                             <div class="col-md-8 mb-3">
-                                <label class="form-label fw-bold">Tên Tài Liệu Nguồn</label>
-                                <input type="text" class="form-control" id="crawlDocTitle" required>
+                                <label class="form-label fw-bold" for="crawlDocTitle">Tên Tài Liệu Nguồn</label>
+                                <input type="text" class="form-control" id="crawlDocTitle" autocomplete="off" required>
                             </div>
                             <div class="col-md-4 mb-3">
-                                <label class="form-label fw-bold">Ngày Hiệu Lực</label>
-                                <input type="date" class="form-control" id="crawlEffectiveDate">
+                                <label class="form-label fw-bold" for="crawlEffectiveDate">Ngày Hiệu Lực</label>
+                                <input type="date" class="form-control" id="crawlEffectiveDate" autocomplete="off">
                             </div>
                         </div>
                         
@@ -374,7 +374,7 @@
                         </div>
                         
                         <div class="alert alert-success py-2 d-flex align-items-center gap-2" role="alert">
-                            <i class="bi bi-info-circle-fill"></i>
+                            <i class="bi bi-info-circle-fill" aria-hidden="true"></i>
                             <div>Nội dung sẽ được chia nhỏ thành các đoạn văn ngắn (~200 từ) và lập chỉ mục FTS5 để tối ưu hóa tìm kiếm.</div>
                         </div>
                     </div>
@@ -383,7 +383,7 @@
             <div class="modal-footer border-top-0 pt-0">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Đóng</button>
                 <button type="button" class="btn btn-success d-none" id="btnIngestRAG" onclick="ingestCrawledData()">
-                    <i class="bi bi-database-fill-check me-1"></i> Lưu & Nạp RAG Index
+                    <i class="bi bi-database-fill-check me-1" aria-hidden="true"></i> Lưu & Nạp RAG Index
                 </button>
             </div>
         </div>
@@ -395,7 +395,7 @@
     <div class="modal-dialog">
         <div class="modal-content" style="background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-card);">
             <div class="modal-header border-bottom-0 pb-0">
-                <h5 class="modal-title fw-bold" id="settingsModalLabel"><i class="bi bi-sliders2-vertical"></i> Cấu Hình Cố Vấn AI</h5>
+                <h5 class="modal-title fw-bold" id="settingsModalLabel"><i class="bi bi-sliders2-vertical" aria-hidden="true"></i> Cấu Hình Cố Vấn AI</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -410,19 +410,19 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Tên Model</label>
-                        <input type="text" class="form-control" id="aiModelName" required>
+                        <label class="form-label fw-bold" for="aiModelName">Tên Model</label>
+                        <input type="text" class="form-control" id="aiModelName" autocomplete="off" required>
                         <div class="form-text text-muted">Ví dụ: <code>gemma-4</code> (Ollama), <code>gpt-4o-mini</code> (OpenAI), <code>gemini-1.5-flash</code> (Gemini)</div>
                     </div>
 
                     <div class="mb-3" id="apiEndpointGroup">
-                        <label class="form-label fw-bold">Ollama Endpoint URL</label>
-                        <input type="url" class="form-control" id="aiOllamaEndpoint">
+                        <label class="form-label fw-bold" for="aiOllamaEndpoint">Ollama Endpoint URL</label>
+                        <input type="url" class="form-control" id="aiOllamaEndpoint" autocomplete="url">
                     </div>
 
                     <div class="mb-3" id="apiKeyGroup">
-                        <label class="form-label fw-bold">API Key</label>
-                        <input type="password" class="form-control" id="aiApiKey" placeholder="Nhập API Key nếu cần">
+                        <label class="form-label fw-bold" for="aiApiKey">API Key</label>
+                        <input type="password" class="form-control" id="aiApiKey" placeholder="Nhập API Key nếu cần" autocomplete="new-password">
                     </div>
                 </form>
             </div>
@@ -483,7 +483,7 @@
             if (sessions.length === 0) {
                 listContainer.innerHTML = `
                     <div class="text-center py-4 text-muted small">
-                        <i class="bi bi-chat-dots d-block fs-4 mb-2 opacity-50"></i>
+                        <i class="bi bi-chat-dots d-block fs-4 mb-2 opacity-50" aria-hidden="true"></i>
                         Không có cuộc hội thoại nào. Hãy bắt đầu cuộc hội thoại mới!
                     </div>
                 `;
@@ -500,16 +500,16 @@
                 item.setAttribute("onclick", `selectSession('${sess.id}')`);
                 item.innerHTML = `
                     <div class="text-truncate flex-grow-1 pe-2" style="font-size: 0.9rem;">
-                        <i class="bi bi-chat-left-text me-1.5 opacity-75"></i>
+                        <i class="bi bi-chat-left-text me-1.5 opacity-75" aria-hidden="true"></i>
                         <span class="sess-title-span" id="title-text-${sess.id}">${sess.title}</span>
                         <div class="text-muted small mt-0.5" style="font-size: 0.7rem;">${sess.created_at}</div>
                     </div>
                     <div class="session-actions">
                         <button class="btn-session-action" onclick="renameSession('${sess.id}', event)" title="Đổi tên">
-                            <i class="bi bi-pencil-fill"></i>
+                            <i class="bi bi-pencil-fill" aria-hidden="true"></i>
                         </button>
                         <button class="btn-session-action" onclick="deleteSession('${sess.id}', event)" title="Xóa">
-                            <i class="bi bi-trash3-fill"></i>
+                            <i class="bi bi-trash3-fill" aria-hidden="true"></i>
                         </button>
                     </div>
                 `;
@@ -548,7 +548,7 @@
         chatBox.innerHTML = `
             <div class="text-center py-5 my-auto text-muted">
                 <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-                Đang tải tin nhắn...
+                Đang tải tin nhắn…
             </div>
         `;
 
@@ -678,7 +678,7 @@
             agentBadge.style.fontSize = "0.75rem";
             agentBadge.style.background = "linear-gradient(135deg, var(--primary-accent) 0%, var(--primary-accent-hover) 100%)";
             agentBadge.style.color = "#ffffff";
-            agentBadge.innerHTML = `<i class="bi bi-person-fill-check me-1"></i> ${agentName || 'Cố vấn Thuế AI'}`;
+            agentBadge.innerHTML = `<i class="bi bi-person-fill-check me-1" aria-hidden="true"></i> ${agentName || 'Cố vấn Thuế AI'}`;
             aiBubble.appendChild(agentBadge);
             
             const contentDiv = document.createElement("div");
@@ -692,7 +692,7 @@
             transToolbar.className = "translation-toolbar mt-3 pt-2 border-top d-flex justify-content-between align-items-center";
             transToolbar.style.fontSize = "0.8rem";
             transToolbar.innerHTML = `
-                <span class="text-muted"><i class="bi bi-translate"></i> Dịch thuật HAT AI:</span>
+                <span class="text-muted"><i class="bi bi-translate" aria-hidden="true"></i> Dịch thuật HAT AI:</span>
                 <div class="btn-group btn-group-sm" role="group">
                     <button type="button" class="btn btn-outline-success btn-sm py-0 px-2 fw-semibold" onclick="translateBubble(this, 'en')">EN</button>
                     <button type="button" class="btn btn-outline-success btn-sm py-0 px-2 fw-semibold" onclick="translateBubble(this, 'zh')">ZH</button>
@@ -703,7 +703,7 @@
             aiBubble.appendChild(transToolbar);
 
             const transBox = document.createElement("div");
-            transBox.className = "translated-box mt-2 p-3 bg-light rounded text-dark d-none shadow-inner";
+            transBox.className = "translated-box mt-2 p-3 bg-premium-light rounded text-dark d-none shadow-inner";
             transBox.style.fontSize = "0.9rem";
             transBox.style.borderLeft = "4px solid #10b981";
             transBox.style.animation = "fadeInUp 0.2s ease-in-out";
@@ -735,7 +735,7 @@
         // Append Typing Indicator
         const typingBubble = document.createElement("div");
         typingBubble.className = "chat-bubble chat-bubble-ai align-self-start";
-        typingBubble.innerHTML = '<i class="bi bi-arrow-repeat spin-animation me-2 d-inline-block"></i> Cố vấn AI đang phân tích dữ liệu & trích xuất RAG...';
+        typingBubble.innerHTML = '<i class="bi bi-arrow-repeat spin-animation me-2 d-inline-block" aria-hidden="true"></i> Cố vấn AI đang phân tích dữ liệu & trích xuất RAG…';
         chatBox.appendChild(typingBubble);
         chatBox.scrollTop = chatBox.scrollHeight;
 
@@ -778,7 +778,7 @@
             if (data.error) {
                 const errBubble = document.createElement("div");
                 errBubble.className = "chat-bubble chat-bubble-ai align-self-start text-danger";
-                errBubble.innerHTML = `<i class="bi bi-exclamation-triangle-fill me-2"></i> Lỗi: ${data.error}`;
+                errBubble.innerHTML = `<i class="bi bi-exclamation-triangle-fill me-2" aria-hidden="true"></i> Lỗi: ${data.error}`;
                 chatBox.appendChild(errBubble);
             } else {
                 // If it was a new session, load list and select active session
@@ -801,7 +801,7 @@
             
             const errBubble = document.createElement("div");
             errBubble.className = "chat-bubble chat-bubble-ai align-self-start text-danger";
-            errBubble.innerHTML = `<i class="bi bi-exclamation-triangle-fill me-2"></i> Lỗi kết nối: ${err.message}`;
+            errBubble.innerHTML = `<i class="bi bi-exclamation-triangle-fill me-2" aria-hidden="true"></i> Lỗi kết nối: ${err.message}`;
             chatBox.appendChild(errBubble);
         } finally {
             document.getElementById("userInput").disabled = false;
@@ -816,7 +816,7 @@
         if (!citations || citations.length === 0) {
             container.innerHTML = `
                 <div class="text-center py-5 text-muted my-auto">
-                    <i class="bi bi-file-earmark-lock fa-3x mb-3 text-light"></i>
+                    <i class="bi bi-file-earmark-lock fa-3x mb-3 text-light" aria-hidden="true"></i>
                     <div>Không có tài liệu trích lục pháp lý trực tiếp cho câu hỏi này.</div>
                 </div>
             `;
@@ -828,14 +828,14 @@
             html += `
                 <div class="card shadow-sm mb-2 citation-card border-light rounded-3 overflow-hidden" onclick="openLightbox('${cit.img_url}', '${cit.source} - Trang ${cit.page}')">
                     <div class="row g-0">
-                        <div class="col-4 bg-light d-flex align-items-center justify-content-center" style="min-height: 100px;">
+                        <div class="col-4 bg-premium-light d-flex align-items-center justify-content-center" style="min-height: 100px;">
                             <img src="${cit.img_url}" class="img-fluid" style="max-height: 100px; object-fit: contain;" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22><rect width=%22100%22 height=%22100%22 fill=%22%23eee%22/><text x=%2250%%22 y=%2250%%22 font-size=%2212%22 text-anchor=%22middle%22 fill=%22%23aaa%22>Trang ${cit.page}</text></svg>';">
                         </div>
                         <div class="col-8">
                             <div class="card-body p-3">
                                 <h6 class="card-title text-truncate mb-1" style="font-size: 0.9rem;">${cit.source}</h6>
                                 <p class="card-text text-muted mb-0" style="font-size: 0.8rem;">Trang số: <strong>${cit.page}</strong></p>
-                                <small class="text-success" style="font-size: 0.75rem;"><i class="bi bi-zoom-in me-1"></i>Xem trang luật gốc</small>
+                                <small class="text-success" style="font-size: 0.75rem;"><i class="bi bi-zoom-in me-1" aria-hidden="true"></i>Xem trang luật gốc</small>
                             </div>
                         </div>
                     </div>
@@ -974,7 +974,7 @@
         const translatedBox = bubble.querySelector(".translated-box");
         
         translatedBox.classList.remove("d-none");
-        translatedBox.innerHTML = `<i class="bi bi-arrow-repeat spin-animation me-2 d-inline-block"></i> Đang dịch sang ngôn ngữ yêu cầu bằng HAT AI...`;
+        translatedBox.innerHTML = `<i class="bi bi-arrow-repeat spin-animation me-2 d-inline-block" aria-hidden="true"></i> Đang dịch sang ngôn ngữ yêu cầu bằng HAT AI…`;
         
         try {
             const res = await fetch("/api/tax/translate", {
@@ -986,7 +986,7 @@
             });
             const data = await res.json();
             if (data.error) {
-                translatedBox.innerHTML = `<span class="text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i> Lỗi dịch thuật: ${data.error}</span>`;
+                translatedBox.innerHTML = `<span class="text-danger"><i class="bi bi-exclamation-triangle-fill me-2" aria-hidden="true"></i> Lỗi dịch thuật: ${data.error}</span>`;
             } else {
                 const langLabels = {
                     "en": "Tiếng Anh (English)",
@@ -997,14 +997,14 @@
                 const label = langLabels[lang] || lang.toUpperCase();
                 translatedBox.innerHTML = `
                     <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom">
-                        <span class="text-success fw-bold"><i class="bi bi-check-circle-fill me-1"></i> Bản dịch ${label} (HAT AI):</span>
+                        <span class="text-success fw-bold"><i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Bản dịch ${label} (HAT AI):</span>
                         <button type="button" class="btn-close" style="font-size: 0.7rem;" onclick="this.closest('.translated-box').classList.add('d-none')" aria-label="Close"></button>
                     </div>
                     <div class="translated-content text-dark">${marked.parse(data.translated)}</div>
                 `;
             }
         } catch (err) {
-            translatedBox.innerHTML = `<span class="text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i> Lỗi kết nối: ${err.message}</span>`;
+            translatedBox.innerHTML = `<span class="text-danger"><i class="bi bi-exclamation-triangle-fill me-2" aria-hidden="true"></i> Lỗi kết nối: ${err.message}</span>`;
         }
         
         // Scroll chat container to bottom
