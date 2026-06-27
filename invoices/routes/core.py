@@ -6880,7 +6880,7 @@ def api_tax_chat():
         
     session_id = data.get("session_id", "").strip()
     
-    from invoices.tax_advisor_service import load_settings, get_rag_context, call_llm, get_specialized_agent
+    from invoices.tax_advisor_service import load_settings, get_rag_context, call_llm, get_specialized_agent, detect_and_run_tools, generate_dynamic_suggestions
     from invoices.models import TaxChatSession, TaxChatMessage
     from datetime import datetime
     import uuid
@@ -6923,8 +6923,18 @@ def api_tax_chat():
         db.session.commit()
 
         settings = load_settings()
-        agent_name, agent_instructions = get_specialized_agent(user_message)
+        forced_agent = data.get("forced_agent")
+        agent_name, agent_instructions = get_specialized_agent(user_message, forced_agent=forced_agent)
+        
+        # Run agentic calculator tool if detected
+        tool_result = detect_and_run_tools(user_message)
+        
         rag_context, citations = get_rag_context(user_message)
+        
+        # If tool executed, prepend its structured numeric results to RAG context for LLM grounding
+        if tool_result:
+            tool_info = f"\n[Hệ thống meInvoice Tool đã tính toán kết quả tự động cho công cụ '{tool_result.get('tool_name')}': {tool_result}. Hãy ưu tiên giải thích chi tiết các con số thực tế này cho khách hàng và đối chiếu với các quy định pháp luật.]"
+            rag_context = tool_info + "\n\n" + rag_context
         
         system_prompt = (
             "Bạn là Kế toán trưởng & Chuyên gia tư vấn thuế chuyên nghiệp (Senior Tax Compliance Consultant) của meInvoice Intelligence.\n"
@@ -6972,14 +6982,34 @@ def api_tax_chat():
                 "img_url": f"/static/tax_pages/{filename}"
             })
             
+        # Generate 3 dynamic follow-up suggestions
+        suggestions = generate_dynamic_suggestions(user_message, rag_context, agent_name)
+            
         return jsonify({
             "response": response,
             "citations": web_citations,
             "agent_name": agent_name,
-            "session_id": session_id
+            "session_id": session_id,
+            "tool_result": tool_result,
+            "suggestions": suggestions
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@invoices_blueprint.post("/api/tax/chat/suggest-questions")
+def api_tax_suggest_questions():
+    """Retrieve 3 dynamic follow-up suggestions for a given query and agent."""
+    if not session.get("logged_in"):
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    data = request.get_json() or {}
+    query = data.get("query", "").strip()
+    agent_name = data.get("agent_name", "").strip()
+    context = data.get("context", "").strip()
+    
+    from invoices.tax_advisor_service import generate_dynamic_suggestions
+    suggestions = generate_dynamic_suggestions(query, context, agent_name)
+    return jsonify({"suggestions": suggestions}), 200
 
 @invoices_blueprint.get("/api/tax/chat/sessions")
 def api_list_tax_sessions():

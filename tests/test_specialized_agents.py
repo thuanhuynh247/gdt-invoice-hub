@@ -48,6 +48,13 @@ def test_specialized_agent_routing():
     assert "Thông tư 103/2014" in inst3
 
 
+def test_forced_agent_override():
+    """Verify that forced_agent parameter overrides normal query routing."""
+    agent, inst = get_specialized_agent("Tính phạt chậm nộp thuế", forced_agent="FCT Consultant")
+    assert "FCT Consultant" in agent
+    assert "Thông tư 103/2014" in inst
+
+
 def test_specialized_rag_retrieval(app):
     """Verify FTS5 RAG queries match chunks from the newly ingested corporate tax PDFs."""
     with app.app_context():
@@ -65,4 +72,48 @@ def test_specialized_rag_retrieval(app):
         context_fct = get_tax_rag_context("phương pháp trực tiếp thuế nhà thầu nước ngoài 103/2014")
         assert "thongtu103_2014.pdf" in context_fct
         assert "nhà thầu nước ngoài" in context_fct
+
+
+def test_chat_endpoint_routing_and_calculations(logged_in_client, app):
+    """Verify tax chat API endpoint supports forced_agent override, suggestion list, and calculation tools."""
+    from unittest.mock import patch, MagicMock
+    
+    with patch("requests.post") as mock_post:
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            "message": {"content": "Theo quy định giao dịch liên kết..."}
+        }
+        mock_post.return_value = mock_response
+
+        # Test with normal routing for Transfer Pricing
+        response = logged_in_client.post(
+            "/api/tax/chat",
+            json={
+                "message": "Chi phí lãi vay khống chế 30% EBITDA đối với giao dịch liên kết thế nào",
+                "forced_agent": ""
+            }
+        )
+        assert response.status_code == 200
+        data = response.get_json()
+        assert "agent_name" in data
+        assert "Transfer Pricing Auditor" in data["agent_name"]
+        assert "suggestions" in data
+        assert len(data["suggestions"]) > 0
+
+        # Test calculations are parsed in response. If the query asks for calculations, it returns tool_result
+        calc_response = logged_in_client.post(
+            "/api/tax/chat",
+            json={
+                "message": "Tính phạt chậm nộp với số tiền thuế 100,000,000 từ 2026-01-01 đến 2026-01-31",
+                "forced_agent": "Tax Penalties Specialist"
+            }
+        )
+        assert calc_response.status_code == 200
+        calc_data = calc_response.get_json()
+        assert "tool_result" in calc_data
+        tool_res = calc_data["tool_result"]
+        assert "Tax Penalty" in tool_res["tool_name"]
+        assert "html_output" in tool_res
+        assert "100,000,000" in tool_res["html_output"] or "100.000.000" in tool_res["html_output"]
 

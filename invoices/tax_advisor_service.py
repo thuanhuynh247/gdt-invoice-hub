@@ -83,8 +83,52 @@ def save_settings(settings):
         conn.close()
 
 
-def get_specialized_agent(query: str) -> tuple[str, str]:
+def get_specialized_agent(query: str, forced_agent: str = None) -> tuple[str, str]:
     """Classify user query and return specialized agent name and system prompt instructions."""
+    if forced_agent:
+        fa = forced_agent.lower()
+        if "tp" in fa or "transfer pricing" in fa or "auditor" in fa or "giao dịch liên kết" in fa:
+            return "Chuyên gia Giao dịch liên kết (Transfer Pricing Auditor)", (
+                "Bạn là Chuyên gia Giao dịch liên kết (Transfer Pricing Auditor) cao cấp của meInvoice Intelligence.\n"
+                "Tập trung sâu vào: các quy định xác định giá giao dịch liên kết theo Nghị định 132/2020/NĐ-CP, tỷ lệ chi phí lãi vay được trừ (trần 30% EBITDA), nghĩa vụ kê khai mẫu biểu giao dịch liên kết (Mẫu 01, 02, 03, 04), nguyên tắc giao dịch độc lập (arm's length principle), và các rủi ro thanh tra chuyển giá của cơ quan thuế."
+            )
+        elif "pen" in fa or "penalties" in fa or "xử phạt" in fa or "phạt" in fa:
+            return "Chuyên gia Xử phạt hành chính Thuế (Tax Penalties Specialist)", (
+                "Bạn là Chuyên gia Xử phạt hành chính Thuế (Tax Penalties Specialist) cao cấp của meInvoice Intelligence.\n"
+                "Tập trung sâu vào: các mức xử phạt hành chính về thuế và hóa đơn theo Nghị định 125/2020/NĐ-CP. Hướng dẫn các hành vi vi phạm thời hạn nộp hồ sơ khai thuế, lập hóa đơn sai thời điểm, chậm nộp thuế (tính tiền chậm nộp 0.03%/ngày), và các tình tiết giảm nhẹ hoặc miễn xử phạt hành chính thuế."
+            )
+        elif "fct" in fa or "contractor" in fa or "nhà thầu" in fa:
+            return "Chuyên gia Thuế Nhà Thầu Nước Ngoài (FCT Consultant)", (
+                "Bạn là Chuyên gia Thuế Nhà Thầu Nước Ngoài (FCT Consultant) cao cấp của meInvoice Intelligence.\n"
+                "Tập trung sâu vào: đối tượng chịu thuế và không chịu thuế nhà thầu, phương pháp tính thuế nhà thầu (trực tiếp, khấu trừ, hỗn hợp) theo Thông tư 103/2014/TT-BTC. Trích dẫn tỷ lệ phần trăm thuế GTGT và thuế TNDN tính trên doanh thu tính thuế đối với từng hoạt động dịch vụ thương mại cụ thể của nhà thầu nước ngoài."
+            )
+        elif "vat" in fa or "gtgt" in fa or "giá trị gia tăng" in fa:
+            return "Chuyên gia Thuế GTGT (VAT Consultant)", (
+                "Bạn là Chuyên gia Thuế GTGT (VAT Consultant) cao cấp.\n"
+                "Tập trung sâu vào: điều kiện khấu trừ thuế GTGT đầu vào, thủ tục hoàn thuế GTGT, các trường hợp chịu thuế suất 0%, 5%, 8%, 10%, KKKNT (không phải kê khai tính thuế), KCT (không chịu thuế), và các quy định mới nhất theo Luật Thuế GTGT số 48/2024/QH15 hoặc Luật số 149/2025/QH15.\n"
+                "Hãy hướng dẫn chi tiết cách kê khai bổ sung thuế GTGT và xử lý các lỗi thường gặp."
+            )
+        elif "cit" in fa or "tndn" in fa or "thu nhập doanh nghiệp" in fa:
+            return "Chuyên gia Thuế TNDN (CIT Consultant)", (
+                "Bạn là Chuyên gia Thuế TNDN (CIT Consultant) cao cấp.\n"
+                "Tập trung sâu vào: chi phí được trừ và không được trừ khi xác định thu nhập chịu thuế TNDN, ưu đãi thuế CIT, miễn giảm thuế, trích lập các quỹ, chuyển lỗ, các điều kiện về chứng từ không dùng tiền mặt đối với giao dịch từ 20 triệu VND trở lên, và các quy định theo Luật Thuế Thu nhập doanh nghiệp."
+            )
+        elif "pit" in fa or "tncn" in fa or "thu nhập cá nhân" in fa:
+            return "Chuyên gia Thuế TNCN (PIT Consultant)", (
+                "Bạn là Chuyên gia Thuế TNCN (PIT Consultant) cao cấp.\n"
+                "Tập trung sâu vào: xác định đối tượng nộp thuế cư trú và không cư trú, các khoản thu nhập chịu thuế và được miễn thuế TNCN, mức giảm trừ gia cảnh cho bản thân và người phụ thuộc, cách tính thuế theo biểu thuế lũy tiến từng phần, và quyết toán thuế TNCN cuối năm cho người lao động."
+            )
+        elif "inv" in fa or "invoice" in fa or "hóa đơn" in fa or "chứng từ" in fa:
+            return "Chuyên gia Hóa đơn & Chứng từ (Invoice Specialist)", (
+                "Bạn là Chuyên gia Hóa đơn & Chứng từ (Invoice Specialist) cao cấp.\n"
+                "Tập trung sâu vào: quy định lập, quản lý và sử dụng hóa đơn điện tử theo Nghị định 123/2020/NĐ-CP and Thông tư 78/2021/TT-BTC. Hướng dẫn chi tiết cách xử lý hóa đơn sai sót (điều chỉnh, thay thế, hủy, giải trình Mẫu 04/SS-HĐĐT), kiểm tra tính hợp lệ của chữ ký số (nky), mã cơ quan thuế (mccqt), và thời hạn hóa đơn."
+            )
+        elif "gen" in fa or "general" in fa or "tổng hợp" in fa:
+            return "Cố vấn Thuế Tổng hợp (General Tax Advisor)", (
+                "Bạn là Cố vấn Thuế Tổng hợp (General Tax Advisor) cao cấp.\n"
+                "Tập trung giải đáp các vấn đề thuế tích hợp, mối liên quan giữa hóa đơn chứng từ, thuế GTGT, TNDN và kế toán tài chính doanh nghiệp."
+            )
+
     q = query.lower()
     
     # 1. VAT (Value Added Tax)
@@ -171,6 +215,7 @@ def get_rag_context(query: str):
         if not cursor.fetchone():
             return "", []
             
+        # Try direct FTS5 MATCH first
         sql = """
             SELECT chunk_content, document_source, page_number
             FROM tax_regulation_fts
@@ -180,6 +225,30 @@ def get_rag_context(query: str):
         """
         cursor.execute(sql, (clean_q,))
         res = cursor.fetchall()
+        
+        # Fallback 1: Tokenized OR fallback if 0 results
+        if not res:
+            tokens = [t.strip() for t in clean_q.split() if len(t.strip()) >= 2]
+            if tokens:
+                fallback_q = " OR ".join([f"{token}*" for token in tokens])
+                cursor.execute(sql, (fallback_q,))
+                res = cursor.fetchall()
+                
+        # Fallback 2: Simple LIKE on tax_regulation_chunk if still 0 results
+        if not res:
+            tokens = [t.strip() for t in clean_q.split() if len(t.strip()) >= 3]
+            if tokens:
+                tokens = sorted(tokens, key=len, reverse=True)[:3]
+                like_clauses = " AND ".join(["chunk_content LIKE ?" for _ in tokens])
+                like_sql = f"""
+                    SELECT chunk_content, document_source, page_number
+                    FROM tax_regulation_chunk
+                    WHERE {like_clauses}
+                    LIMIT 3;
+                """
+                like_params = [f"%{token}%" for token in tokens]
+                cursor.execute(like_sql, like_params)
+                res = cursor.fetchall()
         
         if res:
             matches = []
@@ -201,11 +270,314 @@ def get_rag_context(query: str):
                         "img_path": img_path
                     })
             return "\n\n".join(matches), citations
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"Error in RAG: {e}")
     finally:
         conn.close()
     return "", []
+
+
+def parse_amount_from_query(query: str) -> float | None:
+    q = query.lower()
+    
+    # 1. Match patterns like 1.5 tỷ, 500tr, 500 triệu, 100.000.000, etc.
+    match = re.search(r'(\d+(?:[\.,]\d+)?)\s*(tỷ|triệu|tr)\b', q)
+    if match:
+        val_str = match.group(1).replace(',', '.')
+        try:
+            val = float(val_str)
+        except ValueError:
+            return None
+        unit = match.group(2)
+        if 'tỷ' in unit:
+            val *= 1_000_000_000
+        elif 'triệu' in unit or 'tr' in unit:
+            val *= 1_000_000
+        return val
+        
+    # 2. Look for large numbers with thousand separators
+    match_num = re.search(r'\b(\d{1,3}(?:[\.,]\d{3})+|\d{5,15})\b', q)
+    if match_num:
+        num_str = match_num.group(1)
+        if '.' in num_str and ',' in num_str:
+            if num_str.find('.') < num_str.find(','):
+                num_str = num_str.replace('.', '').replace(',', '.')
+            else:
+                num_str = num_str.replace(',', '')
+        elif '.' in num_str:
+            parts = num_str.split('.')
+            if len(parts) > 2 or (len(parts) == 2 and len(parts[1]) == 3):
+                num_str = num_str.replace('.', '')
+        elif ',' in num_str:
+            parts = num_str.split(',')
+            if len(parts) > 2 or (len(parts) == 2 and len(parts[1]) == 3):
+                num_str = num_str.replace(',', '')
+            else:
+                num_str = num_str.replace(',', '.')
+                
+        try:
+            return float(num_str)
+        except ValueError:
+            pass
+            
+    return None
+
+
+def detect_and_run_tools(query: str) -> dict | None:
+    """Detect if the query contains intent for FCT or tax penalty calculations.
+    
+    If detected, executes calculations and returns detailed data/HTML output.
+    """
+    q = query.lower()
+    
+    # 1. FCT calculation detection
+    fct_triggers = ["tính thuế nhà thầu", "tính fct", "fct calculator", "thuế nhà thầu net", "thuế nhà thầu gross", "thuế nhà thầu"]
+    if any(trigger in q for trigger in fct_triggers):
+        val = parse_amount_from_query(query)
+        has_defaulted_val = False
+        if val is None:
+            val = 100000000.0
+            has_defaulted_val = True
+            
+        contract_type = "gross"
+        if any(w in q for w in ["net", "chưa thuế", "không bao gồm", "chưa tính"]):
+            contract_type = "net"
+            
+        industry_type = "services"
+        if any(w in q for w in ["hàng hóa", "kèm dịch vụ", "lắp ráp", "lắp đặt"]):
+            industry_type = "goods_with_services"
+        elif any(w in q for w in ["xây dựng"]) and any(w in q for w in ["bao thầu", "có vật tư"]):
+            industry_type = "construction_with_materials"
+        elif any(w in q for w in ["xây dựng"]):
+            industry_type = "construction_no_materials"
+        elif any(w in q for w in ["vận tải", "vận chuyển"]):
+            industry_type = "transport_other"
+        elif any(w in q for w in ["bản quyền", "phần mềm", "royalty", "licence", "sở hữu trí tuệ"]):
+            industry_type = "royalties"
+        elif any(w in q for w in ["lãi vay", "tiền vay", "vay vốn"]):
+            industry_type = "loan_interest"
+        elif any(w in q for w in ["chứng khoán", "cổ phần", "chuyển nhượng vốn"]):
+            industry_type = "securities_transfer"
+            
+        try:
+            from invoices.tax_audit_service import calculate_fct_tax
+        except ImportError:
+            from tax_audit_service import calculate_fct_tax
+            
+        try:
+            res = calculate_fct_tax(val, contract_type, industry_type)
+            res["estimated_value"] = has_defaulted_val
+            
+            html_output = f"""
+<div class="card border-success border-2 shadow-sm my-3 tool-calc-card" style="animation: fadeInUp 0.3s ease-in-out;">
+  <div class="card-header bg-success text-white d-flex align-items-center justify-content-between py-2">
+    <span class="fw-bold"><i class="bi bi-calculator-fill me-2"></i> meInvoice Intelligence: FCT Calculator Engine</span>
+    <span class="badge bg-light text-success fw-semibold">Circular 103/2014/TT-BTC</span>
+  </div>
+  <div class="card-body bg-light text-dark p-3" style="font-size: 0.9rem;">
+    {f'<div class="alert alert-warning py-1 px-2 mb-2" style="font-size: 0.8rem;"><i class="bi bi-info-circle-fill me-1"></i> Không tìm thấy số tiền cụ thể trong câu hỏi, hệ thống đang mô phỏng với mức <strong>100.000.000 VND</strong></div>' if has_defaulted_val else ''}
+    <div class="row g-3">
+      <div class="col-md-6 border-end">
+        <p class="mb-1 text-muted">Giá trị hợp đồng đầu vào:</p>
+        <h5 class="fw-bold text-success mb-2">{res['contract_value']:,.0f} VND ({res['contract_type'].upper()})</h5>
+        <p class="mb-1 text-muted">Loại hình kinh doanh nhà thầu:</p>
+        <span class="badge bg-secondary mb-3 text-wrap text-start">{res['industry_description']}</span>
+        <div class="d-flex justify-content-between mb-1">
+          <span>Thuế suất GTGT nhà thầu:</span>
+          <strong class="text-success">{res['vat_rate'] * 100:.1f}%</strong>
+        </div>
+        <div class="d-flex justify-content-between">
+          <span>Thuế suất TNDN nhà thầu:</span>
+          <strong class="text-success">{res['cit_rate'] * 100:.1f}%</strong>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <p class="mb-2 fw-semibold text-secondary">Kết quả phân bổ nghĩa vụ thuế:</p>
+        <div class="d-flex justify-content-between mb-2 pb-1 border-bottom">
+          <span>Doanh thu tính thuế GTGT:</span>
+          <strong>{res['gross_revenue']:,.0f} VND</strong>
+        </div>
+        <div class="d-flex justify-content-between mb-2 pb-1 border-bottom">
+          <span>Doanh thu tính thuế TNDN:</span>
+          <strong>{res['cit_revenue']:,.0f} VND</strong>
+        </div>
+        <div class="d-flex justify-content-between text-danger fw-bold mb-2 pb-1 border-bottom">
+          <span>1. Thuế GTGT phải nộp:</span>
+          <span>{res['fct_vat']:,.0f} VND</span>
+        </div>
+        <div class="d-flex justify-content-between text-danger fw-bold mb-2 pb-1 border-bottom">
+          <span>2. Thuế TNDN phải nộp:</span>
+          <span>{res['fct_cit']:,.0f} VND</span>
+        </div>
+        <div class="d-flex justify-content-between text-success fw-bold py-1 bg-white px-2 rounded border border-success">
+          <span>TỔNG THUẾ NHÀ THẦU (FCT):</span>
+          <span>{res['total_fct']:,.0f} VND</span>
+        </div>
+      </div>
+    </div>
+    <div class="mt-3 pt-2 border-top text-muted" style="font-size: 0.75rem;">
+      <i class="bi bi-book me-1"></i> <strong>Cơ sở pháp lý:</strong> {res['circular_reference']}
+    </div>
+  </div>
+</div>
+"""
+            res["html_output"] = html_output
+            res["tool_name"] = "FCT Calculator"
+            return res
+        except Exception as e:
+            print(f"Error executing FCT tool: {e}")
+            return None
+            
+    # 2. Tax penalty detection
+    penalty_triggers = ["tính phạt chậm nộp", "tính phạt muộn", "phạt chậm nộp", "phạt kê khai", "tiền chậm nộp", "phạt thuế", "phạt trễ nộp"]
+    if any(trigger in q for trigger in penalty_triggers):
+        val = parse_amount_from_query(query)
+        has_defaulted_val = False
+        if val is None:
+            val = 100000000.0
+            has_defaulted_val = True
+            
+        match_days = re.search(r'(\d+)\s*ngày', q)
+        has_defaulted_days = False
+        if match_days:
+            late_days = int(match_days.group(1))
+        else:
+            late_days = 30
+            has_defaulted_days = True
+            
+        evasion_multiplier = 0.0
+        if any(w in q for w in ["trốn thuế", "gian lận"]):
+            evasion_multiplier = 1.0
+            
+        try:
+            from invoices.tax_audit_service import calculate_audit_penalties
+        except ImportError:
+            from tax_audit_service import calculate_audit_penalties
+            
+        try:
+            from datetime import date, timedelta
+            due_date = date(2026, 1, 1)
+            payment_date = due_date + timedelta(days=late_days)
+            
+            res = calculate_audit_penalties(val, due_date, payment_date, evasion_multiplier)
+            res["estimated_value"] = has_defaulted_val
+            res["estimated_days"] = has_defaulted_days
+            
+            html_output = f"""
+<div class="card border-danger border-2 shadow-sm my-3 tool-calc-card" style="animation: fadeInUp 0.3s ease-in-out;">
+  <div class="card-header bg-danger text-white d-flex align-items-center justify-content-between py-2">
+    <span class="fw-bold"><i class="bi bi-exclamation-octagon-fill me-2"></i> meInvoice Intelligence: Tax Penalty Predictor</span>
+    <span class="badge bg-light text-danger fw-semibold">Decree 125/2020/NĐ-CP</span>
+  </div>
+  <div class="card-body bg-light text-dark p-3" style="font-size: 0.9rem;">
+    {f'<div class="alert alert-warning py-1 px-2 mb-2" style="font-size: 0.8rem;"><i class="bi bi-info-circle-fill me-1"></i> Thiếu thông tin số tiền hoặc số ngày. Đang giả lập với: <strong>{val:,.0f} VND</strong> và <strong>{late_days} ngày</strong> chậm nộp.</div>' if (has_defaulted_val or has_defaulted_days) else ''}
+    <div class="row g-3">
+      <div class="col-md-6 border-end">
+        <p class="mb-1 text-muted">Số thuế khai thiếu/chậm nộp:</p>
+        <h5 class="fw-bold text-danger mb-2">{res['underpaid_tax']:,.0f} VND</h5>
+        <p class="mb-1 text-muted">Số ngày chậm nộp tờ khai/tiền thuế:</p>
+        <h5 class="fw-bold text-dark mb-3">{res['late_days']} ngày</h5>
+        <div class="d-flex justify-content-between mb-1">
+          <span>Phạt chậm nộp tờ khai (20%):</span>
+          <strong class="text-danger">{res['under_declaration_fine']:,.0f} VND</strong>
+        </div>
+        <div class="d-flex justify-content-between">
+          <span>Tiền lãi chậm nộp (0.03%/ngày):</span>
+          <strong class="text-danger">{res['late_interest']:,.0f} VND</strong>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <p class="mb-2 fw-semibold text-secondary">Tổng nghĩa vụ thuế bổ sung:</p>
+        <div class="d-flex justify-content-between mb-2 pb-1 border-bottom">
+          <span>Số thuế gốc nộp bổ sung:</span>
+          <strong>{res['underpaid_tax']:,.0f} VND</strong>
+        </div>
+        <div class="d-flex justify-content-between text-danger fw-bold mb-2 pb-1 border-bottom">
+          <span>Tổng mức phạt xử phạt hành chính:</span>
+          <span>{(res['under_declaration_fine'] + res['evasion_fine']):,.0f} VND</span>
+        </div>
+        <div class="d-flex justify-content-between text-danger fw-bold mb-2 pb-1 border-bottom">
+          <span>Tiền lãi chậm nộp (0.03%/ngày):</span>
+          <span>{res['late_interest']:,.0f} VND</span>
+        </div>
+        <div class="d-flex justify-content-between text-danger fw-bold mb-2 pb-1 border-bottom">
+          <span>Tổng số tiền phạt phát sinh thêm:</span>
+          <span>{res['total_penalties']:,.0f} VND</span>
+        </div>
+        <div class="d-flex justify-content-between text-danger fw-bold py-1 bg-white px-2 rounded border border-danger">
+          <span>TỔNG SỐ PHẢI NỘP SAU PHẠT:</span>
+          <span>{res['total_liability']:,.0f} VND</span>
+        </div>
+      </div>
+    </div>
+    <div class="mt-3 pt-2 border-top text-muted" style="font-size: 0.75rem;">
+      <i class="bi bi-book me-1"></i> <strong>Cơ sở pháp lý:</strong> {res['decree_reference']}
+    </div>
+  </div>
+</div>
+"""
+            res["html_output"] = html_output
+            res["tool_name"] = "Tax Penalty Predictor"
+            return res
+        except Exception as e:
+            print(f"Error executing Tax Penalty tool: {e}")
+            return None
+            
+    return None
+
+
+def generate_dynamic_suggestions(query: str, context: str, agent_name: str) -> list[str]:
+    """Generate 3 dynamic, context-aware Vietnamese follow-up suggestions."""
+    q = query.lower()
+    
+    if "transfer pricing" in agent_name.lower() or "giao dịch liên kết" in q or "chuyển giá" in q:
+        return [
+            "Cách kê khai Mẫu 01 Giao dịch liên kết năm 2026",
+            "Trần chi phí lãi vay EBITDA 30% áp dụng thế nào?",
+            "Làm thế nào để lập hồ sơ xác định giá độc lập?"
+        ]
+    elif "fct" in agent_name.lower() or "nhà thầu" in q or "fct" in q:
+        return [
+            "Tính thuế nhà thầu Net dịch vụ 1 tỷ VND",
+            "Thuế nhà thầu cho bản quyền phần mềm nước ngoài là bao nhiêu?",
+            "Cách kê khai mẫu 01/NTNN thuế nhà thầu trực tuyến"
+        ]
+    elif "xử phạt" in agent_name.lower() or "penalties" in agent_name.lower() or "phạt" in q or "chậm nộp" in q:
+        return [
+            "Mức phạt lập hóa đơn điện tử sai thời điểm năm 2026",
+            "Tính phạt chậm nộp 100 triệu VND thuế GTGT trễ 45 ngày",
+            "Làm thư giải trình xin miễn giảm tiền phạt chậm nộp thế nào?"
+        ]
+    elif "gtgt" in agent_name.lower() or "vat" in q or "giá trị gia tăng" in q or "khấu trừ" in q:
+        return [
+            "Điều kiện để khấu trừ thuế GTGT đầu vào hóa đơn trên 20 triệu",
+            "Thuế suất GTGT 8% có được tiếp tục áp dụng trong năm 2026?",
+            "Hướng dẫn kê khai bổ sung điều chỉnh thuế GTGT đầu ra bị sót"
+        ]
+    elif "tndn" in agent_name.lower() or "cit" in q or "thu nhập doanh nghiệp" in q or "chi phí được trừ" in q:
+        return [
+            "Các chi phí không được trừ phổ biến khi quyết toán thuế TNDN",
+            "Quy chế hoàn ứng thanh toán bằng thẻ cá nhân hợp lệ chi phí",
+            "Thủ tục kết chuyển số lỗ thuế TNDN của năm trước"
+        ]
+    elif "tncn" in agent_name.lower() or "pit" in q or "thu nhập cá nhân" in q or "giảm trừ" in q:
+        return [
+            "Mức giảm trừ gia cảnh thuế TNCN mới nhất năm 2026",
+            "Cách quyết toán thuế TNCN trực tuyến cho cá nhân tự làm",
+            "Khấu trừ thuế TNCN 10% cho lao động thời vụ dưới 3 tháng"
+        ]
+    elif "hóa đơn" in agent_name.lower() or "invoice" in q:
+        return [
+            "Cách xử lý hóa đơn điện tử viết sai mã số thuế người mua",
+            "Hóa đơn điện tử lập sai thời điểm có được khấu trừ thuế?",
+            "Quy trình nộp mẫu 04/SS-HĐĐT giải trình hóa đơn sai sót"
+        ]
+    else:
+        return [
+            "Ủy quyền thanh toán thẻ cá nhân trên 20 triệu được khấu trừ thuế thế nào?",
+            "Mức phạt muộn thời hạn nộp quyết toán thuế TNDN năm",
+            "Tính thuế nhà thầu Net dịch vụ 500tr VND"
+        ]
 
 def call_llm(settings, system_prompt, user_content, history=None):
     provider = settings.get("ai_provider", "ollama").lower()

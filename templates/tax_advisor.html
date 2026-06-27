@@ -224,6 +224,65 @@
     .btn-session-action:hover {
         color: var(--danger) !important;
     }
+
+    /* Persona ribbon scrollable style */
+    .persona-ribbon::-webkit-scrollbar {
+        display: none;
+    }
+    .btn-persona {
+        background: var(--bg-app);
+        border: 1px solid var(--border-card);
+        color: var(--text-secondary);
+        font-weight: 500;
+        transition: all 0.2s ease;
+        font-size: 0.8rem !important;
+        padding: 4px 12px !important;
+    }
+    .btn-persona:hover {
+        background: var(--primary-accent-soft);
+        color: var(--primary-accent);
+        border-color: var(--primary-accent-soft);
+    }
+    .btn-persona.active {
+        background: var(--primary-accent) !important;
+        color: #ffffff !important;
+        border-color: var(--primary-accent) !important;
+    }
+    [data-theme="dark"] .btn-persona.active {
+        background: var(--lime-accent) !important;
+        color: #0e0f0c !important;
+        border-color: var(--lime-accent) !important;
+    }
+
+    /* Print styling rules */
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+        #printArea, #printArea * {
+            visibility: visible;
+        }
+        #printArea {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            display: block !important;
+            background: #ffffff !important;
+            color: #000000 !important;
+        }
+        .memo-section {
+            page-break-inside: avoid;
+        }
+        /* Ensure table text and borders render black for print readability */
+        #printArea table, #printArea th, #printArea td {
+            border: 1px solid #000000 !important;
+            color: #000000 !important;
+        }
+        #printArea th {
+            background-color: #f3f4f6 !important;
+        }
+    }
 </style>
 
 <div class="container-fluid py-4">
@@ -275,6 +334,35 @@
                             <i class="bi bi-download" aria-hidden="true"></i> <span class="d-none d-sm-inline">Xuất báo cáo</span>
                         </button>
                     </div>
+                </div>
+                
+                <!-- Persona Selector Ribbon (WISE Fintech Style) -->
+                <div class="persona-ribbon px-4 py-2 border-bottom border-light-subtle d-flex gap-2 align-items-center overflow-x-auto" style="scrollbar-width: none; white-space: nowrap; -webkit-overflow-scrolling: touch;">
+                    <small class="text-muted fw-bold me-1 text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.05em;"><i class="bi bi-person-badge"></i> Vai trò:</small>
+                    <button class="btn btn-sm rounded-pill btn-persona active" data-agent="" onclick="selectPersona(this, null)">
+                        🤖 Tự động
+                    </button>
+                    <button class="btn btn-sm rounded-pill btn-persona" data-agent="inv" onclick="selectPersona(this, 'inv')">
+                        🧾 Hóa đơn
+                    </button>
+                    <button class="btn btn-sm rounded-pill btn-persona" data-agent="vat" onclick="selectPersona(this, 'vat')">
+                        💸 Thuế GTGT
+                    </button>
+                    <button class="btn btn-sm rounded-pill btn-persona" data-agent="cit" onclick="selectPersona(this, 'cit')">
+                        🏢 Thuế TNDN
+                    </button>
+                    <button class="btn btn-sm rounded-pill btn-persona" data-agent="pit" onclick="selectPersona(this, 'pit')">
+                        👤 Thuế TNCN
+                    </button>
+                    <button class="btn btn-sm rounded-pill btn-persona" data-agent="fct" onclick="selectPersona(this, 'fct')">
+                        🚢 Nhà thầu ngoại
+                    </button>
+                    <button class="btn btn-sm rounded-pill btn-persona" data-agent="tp" onclick="selectPersona(this, 'tp')">
+                        🔗 Chuyển giá
+                    </button>
+                    <button class="btn btn-sm rounded-pill btn-persona" data-agent="pen" onclick="selectPersona(this, 'pen')">
+                        ⚠️ Xử phạt thuế
+                    </button>
                 </div>
                 
                 <div class="card-body p-4 d-flex flex-column justify-content-between flex-grow-1 overflow-hidden">
@@ -451,6 +539,23 @@
 
 <script>
     let currentSessionId = null;
+    let forcedAgentVal = null;
+
+    function selectPersona(button, agentCode) {
+        forcedAgentVal = agentCode;
+        
+        // Update active class on persona ribbon buttons
+        const ribbonButtons = document.querySelectorAll(".btn-persona");
+        ribbonButtons.forEach(btn => {
+            if (btn === button) {
+                btn.classList.add("active");
+            } else {
+                btn.classList.remove("active");
+            }
+        });
+        
+        console.log("Locked persona agent:", forcedAgentVal);
+    }
 
     document.addEventListener("DOMContentLoaded", () => {
         // Configure marked to render safe HTML
@@ -661,7 +766,7 @@
     }
 
     // Helper to append bubble to DOM
-    function appendMessageToDOM(role, content, agentName) {
+    function appendMessageToDOM(role, content, agentName, toolResult) {
         const chatBox = document.getElementById("chatBox");
         
         if (role === "user") {
@@ -680,6 +785,14 @@
             agentBadge.style.color = "#ffffff";
             agentBadge.innerHTML = `<i class="bi bi-person-fill-check me-1" aria-hidden="true"></i> ${agentName || 'Cố vấn Thuế AI'}`;
             aiBubble.appendChild(agentBadge);
+
+            // Render interactive calculation widget if tool executed successfully
+            if (toolResult && toolResult.html_output) {
+                const widgetWrapper = document.createElement("div");
+                widgetWrapper.className = "mt-3 mb-2";
+                widgetWrapper.innerHTML = toolResult.html_output;
+                aiBubble.appendChild(widgetWrapper);
+            }
             
             const contentDiv = document.createElement("div");
             contentDiv.className = "ai-content-div";
@@ -765,7 +878,8 @@
                 },
                 body: JSON.stringify({ 
                     message: prompt,
-                    session_id: currentSessionId
+                    session_id: currentSessionId,
+                    forced_agent: forcedAgentVal
                 })
             });
 
@@ -789,10 +903,15 @@
                 }
 
                 // Append assistant bubble
-                appendMessageToDOM("assistant", data.response, data.agent_name);
+                appendMessageToDOM("assistant", data.response, data.agent_name, data.tool_result);
                 
                 // Render Citations Panel
                 renderCitations(data.citations);
+
+                // Render dynamic follow-up suggestions if present
+                if (data.suggestions) {
+                    renderSuggestions(data.suggestions);
+                }
             }
         } catch (err) {
             chatBox.removeChild(typingBubble);
@@ -852,7 +971,7 @@
         modal.show();
     }
 
-    // Export Chat History as Markdown Report File
+    // Export Chat History formatted as a formal Vietnamese Tax Advisory Memorandum
     function exportChatHistory() {
         if (!currentSessionId) return;
 
@@ -860,42 +979,78 @@
         const chatBox = document.getElementById("chatBox");
         const bubbles = chatBox.querySelectorAll(".chat-bubble");
         
-        let markdown = `# Báo Cáo Tư Vấn Thuế Doanh Nghiệp\n`;
-        markdown += `*meInvoice Intelligence - PixelRAG Cố Vấn Thuế*\n`;
-        markdown += `*Chủ đề thảo luận: ${sessionTitle}*\n`;
-        markdown += `*Thời gian xuất bản: ${new Date().toLocaleString('vi-VN')}*\n\n`;
-        markdown += `--- \n\n`;
-
+        // Populate print content
+        const printMemoContent = document.getElementById("printMemoContent");
+        printMemoContent.innerHTML = "";
+        
+        // Format Date
+        const printDate = document.getElementById("printDate");
+        printDate.innerText = new Date().toLocaleDateString('vi-VN');
+        
+        // Generate random Memo Number for realism
+        const printMemoNo = document.getElementById("printMemoNo");
+        printMemoNo.innerText = Math.floor(1000 + Math.random() * 9000);
+        
+        let sectionIndex = 1;
+        
         bubbles.forEach(bubble => {
             if (bubble.classList.contains("chat-bubble-user")) {
                 const text = bubble.innerText.trim();
-                markdown += `### 👤 Câu hỏi của Doanh nghiệp:\n> ${text}\n\n`;
+                const section = document.createElement("div");
+                section.className = "memo-section border-bottom pb-3 mb-3";
+                section.innerHTML = `
+                    <h6 class="fw-bold text-success mb-2">${sectionIndex}. NỘI DUNG VẤN ĐỀ DOANH NGHIỆP YÊU CẦU TƯ VẤN (QUERY PART ${sectionIndex})</h6>
+                    <blockquote class="bg-light p-3 rounded border-start border-4 border-success small italic text-dark" style="margin-left: 0;">
+                        "${text}"
+                    </blockquote>
+                `;
+                printMemoContent.appendChild(section);
             } else if (bubble.classList.contains("chat-bubble-ai")) {
                 const badge = bubble.querySelector(".badge")?.innerText?.trim() || "Cố vấn Thuế AI";
                 const contentDiv = bubble.querySelector(".ai-content-div");
                 if (contentDiv) {
-                    const text = contentDiv.innerText.trim();
-                    markdown += `### 🤖 Phản hồi từ [${badge}]:\n${text}\n\n`;
+                    const htmlContent = contentDiv.innerHTML;
+                    const section = document.createElement("div");
+                    section.className = "memo-section pb-3 mb-3";
+                    section.innerHTML = `
+                        <h6 class="fw-bold text-primary mb-2">Ý KIẾN GIẢI ĐÁP & HƯỚNG DẪN NGHIỆP VỤ (${badge.toUpperCase()})</h6>
+                        <div class="memo-answer text-dark small" style="line-height: 1.6;">
+                            ${htmlContent}
+                        </div>
+                    `;
+                    printMemoContent.appendChild(section);
+                    sectionIndex++;
                 }
-                
-                // Add translation if visible
-                const transBox = bubble.querySelector(".translated-box:not(.d-none) .translated-content");
-                if (transBox) {
-                    markdown += `*Bản dịch chuyên ngành (HAT AI)*:\n> ${transBox.innerText.trim()}\n\n`;
-                }
-                markdown += `---\n\n`;
             }
         });
+        
+        // Trigger browser print dialog
+        window.print();
+    }
 
-        // Download trigger
-        const blob = new Blob([markdown], { type: "text/markdown;charset=utf-8;" });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = `Bao_Cao_Tu_Van_Thue_${sessionTitle.replace(/[^a-zA-Z0-9À-ỹ]/g, "_")}.md`;
-        link.style.display = "none";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+    // Render dynamic follow-up suggestions
+    function renderSuggestions(suggestions) {
+        const box = document.getElementById("suggestionsBox");
+        if (!box) return;
+        
+        if (!suggestions || suggestions.length === 0) {
+            box.classList.add("d-none");
+            return;
+        }
+        box.classList.remove("d-none");
+        
+        const container = box.querySelector(".d-flex");
+        container.innerHTML = "";
+        suggestions.forEach(s => {
+            const badge = document.createElement("span");
+            badge.className = "badge rounded-pill px-3 py-2 suggestion-badge";
+            badge.onclick = () => {
+                document.getElementById("userInput").value = s;
+                document.getElementById("userInput").focus();
+            };
+            badge.innerText = s;
+            container.appendChild(badge);
+        });
     }
 
     async function loadAISettings() {
@@ -1107,4 +1262,45 @@
         }
     }
 </script>
+
+<!-- Formal Vietnamese Tax Advisory Memorandum Print Container -->
+<div id="printArea" class="d-none d-print-block p-4">
+    <!-- Memorandum Header -->
+    <div class="d-flex justify-content-between mb-4">
+        <div>
+            <h5 class="fw-bold mb-0">MISA meInvoice</h5>
+            <small class="text-muted">Hệ thống Trí tuệ nhân tạo meInvoice Intelligence</small>
+        </div>
+        <div class="text-end">
+            <h6 class="fw-bold mb-0">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</h6>
+            <small class="fw-bold">Độc lập - Tự do - Hạnh phúc</small>
+            <div style="border-bottom: 1px solid #000; width: 120px; margin-left: auto; margin-top: 4px;"></div>
+        </div>
+    </div>
+    
+    <div class="text-center my-4">
+        <h3 class="fw-bold text-uppercase">BẢN Ý KIẾN TƯ VẤN PHÁP LUẬT THUẾ</h3>
+        <h5 class="text-muted italic">(TAX ADVISORY MEMORANDUM)</h5>
+        <p class="small text-muted mt-2">Ngày xuất bản: <span id="printDate"></span> | Số: <span id="printMemoNo"></span>/TVT-meInvoice</p>
+    </div>
+    
+    <div class="mb-4">
+        <p><strong>Kính gửi:</strong> Quý Doanh nghiệp / Khách hàng sử dụng dịch vụ meInvoice</p>
+        <p>Ban cố vấn Thuế MISA meInvoice xin gửi ý kiến tư vấn chuyên môn đối với các nội dung vướng mắc về chính sách thuế và hóa đơn phát sinh trong quá trình hoạt động của Quý doanh nghiệp như sau:</p>
+    </div>
+    
+    <div id="printMemoContent">
+        <!-- Dynamic populated questions & answers -->
+    </div>
+    
+    <div class="mt-5 row justify-content-between">
+        <div class="col-6">
+            <p class="small text-muted italic">Lưu ý: Bản ý kiến tư vấn này được chuẩn bị dựa trên thông tin do khách hàng cung cấp và các quy định pháp luật thuế có hiệu lực tại thời điểm lập văn bản.</p>
+        </div>
+        <div class="col-4 text-center">
+            <p class="fw-bold mb-5">ĐẠI DIỆN BAN CỐ VẤN THUẾ</p>
+            <p class="mt-5 fw-bold text-success">meInvoice Intelligence Agent</p>
+        </div>
+    </div>
+</div>
 {% endblock %}
