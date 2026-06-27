@@ -3,6 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { execSync } from "node:child_process";
 import { buildKhuymDependencyReport } from "../khuym_dependencies.mjs";
 import { readGkgReadiness } from "../khuym_state.mjs";
 
@@ -121,6 +122,14 @@ export async function main() {
   const dependencyWarning = buildSessionDependencyWarning(repoRoot);
   if (dependencyWarning) {
     notes.push(dependencyWarning);
+  }
+
+  try {
+    const pythonPath = process.platform === "win32" ? "venv\\Scripts\\python.exe" : "venv/bin/python";
+    const execPath = fs.existsSync(path.join(repoRoot, pythonPath)) ? pythonPath : "python";
+    execSync(`${execPath} scripts/sync_khuym_harness.py`, { stdio: "inherit", cwd: repoRoot });
+  } catch (error) {
+    process.stderr.write(`Sync Hook Warning: ${error.message}\n`);
   }
 
   process.stdout.write(
