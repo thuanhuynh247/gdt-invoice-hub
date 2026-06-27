@@ -6877,10 +6877,50 @@ def api_tax_chat():
     if not user_message:
         return jsonify({"error": "Message cannot be empty"}), 400
         
+    session_id = data.get("session_id", "").strip()
+    
     from invoices.tax_advisor_service import load_settings, get_rag_context, call_llm, get_specialized_agent
+    from invoices.models import TaxChatSession, TaxChatMessage
+    from datetime import datetime
+    import uuid
     import os
     
     try:
+        # Resolve session context
+        tax_session = None
+        if session_id:
+            tax_session = db.session.get(TaxChatSession, session_id)
+        
+        if not tax_session:
+            # Create a new session automatically
+            session_id = str(uuid.uuid4())
+            title = user_message[:40] + ("..." if len(user_message) > 40 else "")
+            tax_session = TaxChatSession(
+                id=session_id,
+                title=title,
+                created_at=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            )
+            db.session.add(tax_session)
+            db.session.commit()
+            
+        # Get history of the session (up to last 10 messages for token efficiency)
+        history_msgs = []
+        if tax_session:
+            # Query and format history
+            past_messages = TaxChatMessage.query.filter_by(session_id=session_id).order_by(TaxChatMessage.id.asc()).all()
+            for msg in past_messages[-10:]:
+                history_msgs.append({"role": msg.role, "content": msg.content})
+
+        # Save user message
+        user_msg_db = TaxChatMessage(
+            session_id=session_id,
+            role="user",
+            content=user_message,
+            created_at=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        )
+        db.session.add(user_msg_db)
+        db.session.commit()
+
         settings = load_settings()
         agent_name, agent_instructions = get_specialized_agent(user_message)
         rag_context, citations = get_rag_context(user_message)
@@ -6907,7 +6947,18 @@ def api_tax_chat():
             "Nếu người dùng hỏi thông tin không liên quan đến hóa đơn thuế/kế toán doanh nghiệp, hãy phản hồi lịch sự rằng bạn chỉ hỗ trợ tư vấn thuế doanh nghiệp."
         )
         
-        response = call_llm(settings, system_prompt, user_message)
+        response = call_llm(settings, system_prompt, user_message, history=history_msgs)
+        
+        # Save assistant message
+        asst_msg_db = TaxChatMessage(
+            session_id=session_id,
+            role="assistant",
+            content=response,
+            created_at=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            agent_name=agent_name
+        )
+        db.session.add(asst_msg_db)
+        db.session.commit()
         
         # Convert citation paths to web-friendly static paths
         web_citations = []
@@ -6923,8 +6974,95 @@ def api_tax_chat():
         return jsonify({
             "response": response,
             "citations": web_citations,
-            "agent_name": agent_name
+            "agent_name": agent_name,
+            "session_id": session_id
         })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@invoices_blueprint.get("/api/tax/chat/sessions")
+def api_list_tax_sessions():
+    """Retrieve all Tax Advisor chat sessions."""
+    if not session.get("logged_in"):
+        return jsonify({"error": "Unauthorized"}), 401
+    from invoices.models import TaxChatSession
+    try:
+        sessions = TaxChatSession.query.order_by(TaxChatSession.created_at.desc()).all()
+        return jsonify([s.to_dict() for s in sessions]), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@invoices_blueprint.post("/api/tax/chat/sessions")
+def api_create_tax_session():
+    """Create a new Tax Advisor chat session."""
+    if not session.get("logged_in"):
+        return jsonify({"error": "Unauthorized"}), 401
+    from invoices.models import TaxChatSession
+    from datetime import datetime
+    import uuid
+    try:
+        data = request.get_json() or {}
+        title = data.get("title", "").strip() or "Cuộc thảo luận thuế mới"
+        session_id = str(uuid.uuid4())
+        
+        new_session = TaxChatSession(
+            id=session_id,
+            title=title,
+            created_at=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        )
+        db.session.add(new_session)
+        db.session.commit()
+        return jsonify(new_session.to_dict()), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@invoices_blueprint.get("/api/tax/chat/sessions/<session_id>")
+def api_get_tax_session(session_id):
+    """Retrieve a specific Tax Advisor session and its message history."""
+    if not session.get("logged_in"):
+        return jsonify({"error": "Unauthorized"}), 401
+    from invoices.models import TaxChatSession
+    try:
+        tax_session = db.session.get(TaxChatSession, session_id)
+        if not tax_session:
+            return jsonify({"error": "Không tìm thấy phiên hội thoại."}), 404
+        return jsonify(tax_session.to_dict()), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@invoices_blueprint.delete("/api/tax/chat/sessions/<session_id>")
+def api_delete_tax_session(session_id):
+    """Delete a specific Tax Advisor session."""
+    if not session.get("logged_in"):
+        return jsonify({"error": "Unauthorized"}), 401
+    from invoices.models import TaxChatSession
+    try:
+        tax_session = db.session.get(TaxChatSession, session_id)
+        if not tax_session:
+            return jsonify({"error": "Không tìm thấy phiên hội thoại."}), 404
+        db.session.delete(tax_session)
+        db.session.commit()
+        return jsonify({"success": True}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@invoices_blueprint.put("/api/tax/chat/sessions/<session_id>")
+def api_rename_tax_session(session_id):
+    """Rename a specific Tax Advisor session title."""
+    if not session.get("logged_in"):
+        return jsonify({"error": "Unauthorized"}), 401
+    from invoices.models import TaxChatSession
+    try:
+        tax_session = db.session.get(TaxChatSession, session_id)
+        if not tax_session:
+            return jsonify({"error": "Không tìm thấy phiên hội thoại."}), 404
+        data = request.get_json() or {}
+        new_title = data.get("title", "").strip()
+        if not new_title:
+            return jsonify({"error": "Tên không được để trống."}), 400
+        tax_session.title = new_title
+        db.session.commit()
+        return jsonify(tax_session.to_dict()), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

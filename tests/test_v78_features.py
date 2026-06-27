@@ -526,3 +526,60 @@ def test_supplier_risk_audit_check(mock_app):
         assert len(supplier_alerts) == 1
         assert supplier_alerts[0]["severity"] == "Nghiêm trọng"
         assert "NGỪNG HOẠT ĐỘNG" in supplier_alerts[0]["detail"]
+
+
+def test_tax_chat_sessions_crud(mock_app):
+    """Test full CRUD operations for AI Tax Advisor chat sessions and messages."""
+    client = mock_app.test_client()
+
+    # 1. Access without login -> 401
+    res = client.get("/api/tax/chat/sessions")
+    assert res.status_code == 401
+
+    res = client.post("/api/tax/chat/sessions", json={"title": "Test Session"})
+    assert res.status_code == 401
+
+    # 2. Login
+    with client.session_transaction() as sess:
+        sess["logged_in"] = True
+        sess["user_role"] = "admin"
+
+    # 3. Create Session
+    res = client.post("/api/tax/chat/sessions", json={"title": "Tư vấn GTGT 2026"})
+    assert res.status_code == 201
+    data = json.loads(res.data)
+    assert "id" in data
+    assert data["title"] == "Tư vấn GTGT 2026"
+    session_id = data["id"]
+
+    # 4. List Sessions
+    res = client.get("/api/tax/chat/sessions")
+    assert res.status_code == 200
+    sessions_list = json.loads(res.data)
+    assert len(sessions_list) >= 1
+    assert any(s["id"] == session_id for s in sessions_list)
+
+    # 5. Get Session details
+    res = client.get(f"/api/tax/chat/sessions/{session_id}")
+    assert res.status_code == 200
+    session_detail = json.loads(res.data)
+    assert session_detail["id"] == session_id
+    assert session_detail["title"] == "Tư vấn GTGT 2026"
+    assert len(session_detail["messages"]) == 0
+
+    # 6. Rename Session
+    res = client.put(f"/api/tax/chat/sessions/{session_id}", json={"title": "Tư vấn GTGT 2026 V2"})
+    assert res.status_code == 200
+    session_detail = json.loads(res.data)
+    assert session_detail["title"] == "Tư vấn GTGT 2026 V2"
+
+    # 7. Delete Session
+    res = client.delete(f"/api/tax/chat/sessions/{session_id}")
+    assert res.status_code == 200
+    data = json.loads(res.data)
+    assert data["success"] is True
+
+    # 8. Verify deletion
+    res = client.get(f"/api/tax/chat/sessions/{session_id}")
+    assert res.status_code == 404
+

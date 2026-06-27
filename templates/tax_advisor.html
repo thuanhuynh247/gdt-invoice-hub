@@ -12,7 +12,7 @@
 
     /* Override layout to fit Wise Fintech style */
     .chat-container {
-        height: 68vh;
+        height: 60vh;
         overflow-y: auto;
         border-radius: 16px;
         background: var(--bg-app);
@@ -22,7 +22,7 @@
     }
 
     .chat-bubble {
-        max-width: 80%;
+        max-width: 85%;
         padding: 16px 20px;
         border-radius: 18px;
         margin-bottom: 15px;
@@ -136,6 +136,94 @@
         font-size: 0.85rem;
         white-space: pre-wrap;
     }
+
+    /* Chat Session Sidebar Styles */
+    .session-sidebar {
+        background: var(--bg-card);
+        border: 1px solid var(--border-card);
+        border-radius: 16px;
+        height: 74vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .session-list-container {
+        flex-grow: 1;
+        overflow-y: auto;
+        scrollbar-width: thin;
+    }
+
+    .session-item {
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        transition: all 0.2s ease-in-out;
+        border: 1px solid transparent;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: transparent;
+    }
+
+    .session-item:hover {
+        background: var(--primary-accent-soft);
+        border-color: var(--primary-accent-soft);
+    }
+
+    .session-item.active {
+        background: linear-gradient(135deg, var(--primary-accent) 0%, var(--primary-accent-hover) 100%) !important;
+        border-color: var(--primary-accent) !important;
+        color: #ffffff !important;
+        box-shadow: 0 4px 12px rgba(22, 51, 0, 0.12);
+    }
+
+    [data-theme="dark"] .session-item.active {
+        background: linear-gradient(135deg, var(--lime-accent) 0%, var(--lime-accent-hover) 100%) !important;
+        border-color: var(--lime-accent) !important;
+        color: #0e0f0c !important;
+        box-shadow: 0 4px 12px rgba(159, 232, 112, 0.15);
+    }
+
+    .session-item.active .text-muted {
+        color: rgba(255, 255, 255, 0.8) !important;
+    }
+
+    [data-theme="dark"] .session-item.active .text-muted {
+        color: rgba(14, 15, 12, 0.8) !important;
+    }
+
+    .session-item .session-actions {
+        opacity: 0;
+        transition: opacity 0.2s ease;
+        display: flex;
+        gap: 6px;
+    }
+
+    .session-item:hover .session-actions, .session-item.active .session-actions {
+        opacity: 1;
+    }
+
+    .session-item.active .btn-session-action {
+        color: rgba(255, 255, 255, 0.9) !important;
+    }
+
+    [data-theme="dark"] .session-item.active .btn-session-action {
+        color: rgba(14, 15, 12, 0.9) !important;
+    }
+
+    .btn-session-action {
+        background: transparent;
+        border: none;
+        padding: 2px 4px;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        transition: color 0.2s;
+    }
+
+    .btn-session-action:hover {
+        color: var(--danger) !important;
+    }
 </style>
 
 <div class="container-fluid py-4">
@@ -154,13 +242,44 @@
         </div>
     </div>
 
-    <div class="row">
+    <div class="row g-4">
+        <!-- Sidebar: Chat History Sessions -->
+        <div class="col-lg-3 col-md-4">
+            <div class="session-sidebar p-3 shadow-sm">
+                <button class="btn btn-success w-100 rounded-pill mb-3 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2" onclick="startNewSession()" style="background: var(--primary-accent);">
+                    <i class="bi bi-plus-circle-fill"></i> Cuộc thảo luận mới
+                </button>
+                <div class="border-bottom border-light mb-3 pb-2">
+                    <small class="text-muted fw-bold uppercase text-xs" style="letter-spacing: 0.05em;">Lịch sử tư vấn</small>
+                </div>
+                <div class="session-list-container d-flex flex-column" id="sessionList">
+                    <!-- Session items populated via JS -->
+                    <div class="text-center py-5 text-muted">
+                        <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                        <small>Đang tải lịch sử...</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Main Chat Area -->
-        <div class="col-lg-8">
-            <div class="card shadow-sm border-0 mb-4" style="background: var(--bg-card); border: 1px solid var(--border-card);">
-                <div class="card-body p-4">
+        <div class="col-lg-6 col-md-8">
+            <div class="card shadow-sm border-0 mb-4 h-100 d-flex flex-column" style="background: var(--bg-card); border: 1px solid var(--border-card); height: 74vh !important;">
+                <div class="card-header bg-transparent border-bottom border-light-subtle py-3 d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center gap-2 text-truncate">
+                        <i class="bi bi-chat-left-dots text-success fw-bold"></i>
+                        <h5 class="mb-0 fw-bold text-truncate" id="activeSessionTitle" style="font-size: 1rem;">Cuộc thảo luận mới</h5>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-secondary btn-sm rounded-pill px-2.5 d-flex align-items-center gap-1.5" id="btnExportChat" onclick="exportChatHistory()" disabled title="Xuất báo cáo tư vấn thuế">
+                            <i class="bi bi-download"></i> <span class="d-none d-sm-inline">Xuất báo cáo</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="card-body p-4 d-flex flex-column justify-content-between flex-grow-1 overflow-hidden">
                     <!-- Chat Container -->
-                    <div id="chatBox" class="chat-container d-flex flex-column p-3 mb-3">
+                    <div id="chatBox" class="chat-container d-flex flex-column p-3 mb-3 flex-grow-1">
                         <!-- Welcome message -->
                         <div class="chat-bubble chat-bubble-ai">
                             <strong>Xin chào!</strong> Tôi là Trợ lý Cố vấn Thuế cấp cao của HAT AI.<br>
@@ -170,7 +289,7 @@
                     </div>
 
                     <!-- Suggested Prompts -->
-                    <div class="mb-3">
+                    <div class="mb-3" id="suggestionsBox">
                         <small class="text-muted d-block mb-2">Gợi ý câu hỏi nhanh:</small>
                         <div class="d-flex flex-wrap gap-2">
                             <span class="badge rounded-pill px-3 py-2 suggestion-badge" onclick="useSuggestedPrompt(this)">
@@ -199,12 +318,12 @@
         </div>
 
         <!-- Citations / Visual Document Panel -->
-        <div class="col-lg-4">
-            <div class="card shadow-sm border-0 h-100" style="background: var(--bg-card); border: 1px solid var(--border-card);">
+        <div class="col-lg-3 col-md-12">
+            <div class="card shadow-sm border-0 h-100" style="background: var(--bg-card); border: 1px solid var(--border-card); height: 74vh !important;">
                 <div class="card-header bg-transparent border-bottom border-light-subtle py-3">
-                    <h5 class="mb-0 text-success fw-bold"><i class="bi bi-images"></i> Tài Liệu Trực Quan (PixelRAG)</h5>
+                    <h5 class="mb-0 text-success fw-bold" style="font-size: 1rem;"><i class="bi bi-images"></i> Tài Liệu Trực Quan (PixelRAG)</h5>
                 </div>
-                <div class="card-body d-flex flex-column gap-3" id="citationsContainer">
+                <div class="card-body d-flex flex-column gap-3 overflow-y-auto" id="citationsContainer" style="scrollbar-width: thin;">
                     <div class="text-center py-5 text-muted my-auto">
                         <i class="bi bi-file-earmark-text fa-3x mb-3 text-light"></i>
                         <div>Khi bạn hỏi, các trang tài liệu gốc liên quan sẽ được tự động trích xuất và hiển thị ở đây.</div>
@@ -331,17 +450,267 @@
 </div>
 
 <script>
+    let currentSessionId = null;
+
     document.addEventListener("DOMContentLoaded", () => {
         // Configure marked to render safe HTML
         marked.setOptions({
             sanitize: false,
             breaks: true
         });
+
+        // Load sessions list at startup
+        loadSessions();
     });
 
     function useSuggestedPrompt(element) {
         document.getElementById("userInput").value = element.innerText.trim();
         document.getElementById("userInput").focus();
+    }
+
+    // Sessions Sidebar Logic
+    async function loadSessions(keepActive = false) {
+        const listContainer = document.getElementById("sessionList");
+        try {
+            const res = await fetch("/api/tax/chat/sessions");
+            const sessions = await res.json();
+            
+            if (sessions.error) {
+                listContainer.innerHTML = `<div class="text-danger small p-3">Lỗi: ${sessions.error}</div>`;
+                return;
+            }
+
+            if (sessions.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="text-center py-4 text-muted small">
+                        <i class="bi bi-chat-dots d-block fs-4 mb-2 opacity-50"></i>
+                        Không có cuộc hội thoại nào. Hãy bắt đầu cuộc hội thoại mới!
+                    </div>
+                `;
+                document.getElementById("btnExportChat").disabled = true;
+                return;
+            }
+
+            listContainer.innerHTML = "";
+            sessions.forEach(sess => {
+                const isActive = currentSessionId === sess.id;
+                
+                const item = document.createElement("div");
+                item.className = `session-item ${isActive ? 'active' : ''}`;
+                item.setAttribute("onclick", `selectSession('${sess.id}')`);
+                item.innerHTML = `
+                    <div class="text-truncate flex-grow-1 pe-2" style="font-size: 0.9rem;">
+                        <i class="bi bi-chat-left-text me-1.5 opacity-75"></i>
+                        <span class="sess-title-span" id="title-text-${sess.id}">${sess.title}</span>
+                        <div class="text-muted small mt-0.5" style="font-size: 0.7rem;">${sess.created_at}</div>
+                    </div>
+                    <div class="session-actions">
+                        <button class="btn-session-action" onclick="renameSession('${sess.id}', event)" title="Đổi tên">
+                            <i class="bi bi-pencil-fill"></i>
+                        </button>
+                        <button class="btn-session-action" onclick="deleteSession('${sess.id}', event)" title="Xóa">
+                            <i class="bi bi-trash3-fill"></i>
+                        </button>
+                    </div>
+                `;
+                listContainer.appendChild(item);
+            });
+
+            // Auto-select first session if not keeping active, or if currentSessionId is invalid
+            if (!keepActive && sessions.length > 0) {
+                selectSession(sessions[0].id);
+            }
+        } catch (err) {
+            listContainer.innerHTML = `<div class="text-danger small p-3">Lỗi kết nối lịch sử</div>`;
+        }
+    }
+
+    async function selectSession(sessionId) {
+        currentSessionId = sessionId;
+        
+        // Highlight active session in sidebar
+        const items = document.querySelectorAll(".session-item");
+        items.forEach(item => {
+            const clickAttr = item.getAttribute("onclick");
+            if (clickAttr && clickAttr.includes(sessionId)) {
+                item.classList.add("active");
+            } else {
+                item.classList.remove("active");
+            }
+        });
+
+        // Set top bar title
+        const sessionTitleText = document.getElementById(`title-text-${sessionId}`)?.innerText || "Cuộc thảo luận";
+        document.getElementById("activeSessionTitle").innerText = sessionTitleText;
+        document.getElementById("btnExportChat").disabled = false;
+
+        const chatBox = document.getElementById("chatBox");
+        chatBox.innerHTML = `
+            <div class="text-center py-5 my-auto text-muted">
+                <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                Đang tải tin nhắn...
+            </div>
+        `;
+
+        try {
+            const res = await fetch(`/api/tax/chat/sessions/${sessionId}`);
+            const data = await res.json();
+            
+            chatBox.innerHTML = "";
+            if (data.error) {
+                chatBox.innerHTML = `<div class="chat-bubble chat-bubble-ai align-self-start text-danger">Lỗi: ${data.error}</div>`;
+                return;
+            }
+
+            const messages = data.messages || [];
+            if (messages.length === 0) {
+                chatBox.innerHTML = `
+                    <div class="chat-bubble chat-bubble-ai">
+                        <strong>Lưu ý:</strong> Phiên hội thoại trống. Hãy gửi câu hỏi đầu tiên bên dưới!
+                    </div>
+                `;
+                return;
+            }
+
+            messages.forEach(msg => {
+                appendMessageToDOM(msg.role, msg.content, msg.agent_name);
+            });
+
+            // Gather and render citations from last assistant bubble if present
+            renderCitations([]);
+
+            chatBox.scrollTop = chatBox.scrollHeight;
+        } catch (err) {
+            chatBox.innerHTML = `<div class="chat-bubble chat-bubble-ai align-self-start text-danger">Lỗi kết nối tin nhắn: ${err.message}</div>`;
+        }
+    }
+
+    function startNewSession() {
+        currentSessionId = null;
+        document.getElementById("activeSessionTitle").innerText = "Cuộc thảo luận mới";
+        document.getElementById("btnExportChat").disabled = true;
+
+        const items = document.querySelectorAll(".session-item");
+        items.forEach(item => item.classList.remove("active"));
+
+        const chatBox = document.getElementById("chatBox");
+        chatBox.innerHTML = `
+            <div class="chat-bubble chat-bubble-ai">
+                <strong>Xin chào!</strong> Tôi là Trợ lý Cố vấn Thuế cấp cao của HAT AI.<br>
+                Tôi sử dụng mô hình trí tuệ nhân tạo kết hợp công nghệ <strong>PixelRAG</strong> để tra cứu và giải đáp chính xác các quy định thuế TNDN, GTGT, TNCN và hóa đơn, chứng từ.<br>
+                Hãy đặt câu hỏi cho tôi ở bên dưới!
+            </div>
+        `;
+        renderCitations([]);
+        document.getElementById("userInput").focus();
+    }
+
+    async function deleteSession(sessionId, event) {
+        event.stopPropagation();
+        if (!confirm("Bạn có chắc chắn muốn xóa cuộc thảo luận này và toàn bộ lịch sử?")) {
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/tax/chat/sessions/${sessionId}`, { method: "DELETE" });
+            const data = await res.json();
+            if (data.success) {
+                if (currentSessionId === sessionId) {
+                    currentSessionId = null;
+                    startNewSession();
+                }
+                loadSessions(currentSessionId !== null);
+            } else {
+                alert("Lỗi: " + data.error);
+            }
+        } catch (err) {
+            alert("Lỗi kết nối: " + err.message);
+        }
+    }
+
+    async function renameSession(sessionId, event) {
+        event.stopPropagation();
+        const oldTitle = document.getElementById(`title-text-${sessionId}`)?.innerText || "";
+        const newTitle = prompt("Nhập tên mới cho cuộc thảo luận:", oldTitle);
+        if (newTitle === null) return;
+        
+        const titleClean = newTitle.trim();
+        if (!titleClean) {
+            alert("Tên không được để trống!");
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/tax/chat/sessions/${sessionId}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ title: titleClean })
+            });
+            const data = await res.json();
+            if (data.error) {
+                alert("Lỗi: " + data.error);
+            } else {
+                loadSessions(true);
+                if (currentSessionId === sessionId) {
+                    document.getElementById("activeSessionTitle").innerText = titleClean;
+                }
+            }
+        } catch (err) {
+            alert("Lỗi kết nối: " + err.message);
+        }
+    }
+
+    // Helper to append bubble to DOM
+    function appendMessageToDOM(role, content, agentName) {
+        const chatBox = document.getElementById("chatBox");
+        
+        if (role === "user") {
+            const userBubble = document.createElement("div");
+            userBubble.className = "chat-bubble chat-bubble-user align-self-end";
+            userBubble.innerText = content;
+            chatBox.appendChild(userBubble);
+        } else {
+            const aiBubble = document.createElement("div");
+            aiBubble.className = "chat-bubble chat-bubble-ai align-self-start shadow-sm position-relative pt-4 w-100";
+            
+            const agentBadge = document.createElement("span");
+            agentBadge.className = "badge position-absolute top-0 start-0 m-2";
+            agentBadge.style.fontSize = "0.75rem";
+            agentBadge.style.background = "linear-gradient(135deg, var(--primary-accent) 0%, var(--primary-accent-hover) 100%)";
+            agentBadge.style.color = "#ffffff";
+            agentBadge.innerHTML = `<i class="bi bi-person-fill-check me-1"></i> ${agentName || 'Cố vấn Thuế AI'}`;
+            aiBubble.appendChild(agentBadge);
+            
+            const contentDiv = document.createElement("div");
+            contentDiv.className = "ai-content-div";
+            contentDiv.style.marginTop = "8px";
+            contentDiv.innerHTML = marked.parse(content);
+            aiBubble.appendChild(contentDiv);
+
+            // HAT AI Translation Toolbar
+            const transToolbar = document.createElement("div");
+            transToolbar.className = "translation-toolbar mt-3 pt-2 border-top d-flex justify-content-between align-items-center";
+            transToolbar.style.fontSize = "0.8rem";
+            transToolbar.innerHTML = `
+                <span class="text-muted"><i class="bi bi-translate"></i> Dịch thuật HAT AI:</span>
+                <div class="btn-group btn-group-sm" role="group">
+                    <button type="button" class="btn btn-outline-success btn-sm py-0 px-2 fw-semibold" onclick="translateBubble(this, 'en')">EN</button>
+                    <button type="button" class="btn btn-outline-success btn-sm py-0 px-2 fw-semibold" onclick="translateBubble(this, 'zh')">ZH</button>
+                    <button type="button" class="btn btn-outline-success btn-sm py-0 px-2 fw-semibold" onclick="translateBubble(this, 'ja')">JA</button>
+                    <button type="button" class="btn btn-outline-success btn-sm py-0 px-2 fw-semibold" onclick="translateBubble(this, 'ko')">KO</button>
+                </div>
+            `;
+            aiBubble.appendChild(transToolbar);
+
+            const transBox = document.createElement("div");
+            transBox.className = "translated-box mt-2 p-3 bg-light rounded text-dark d-none shadow-inner";
+            transBox.style.fontSize = "0.9rem";
+            transBox.style.borderLeft = "4px solid #10b981";
+            transBox.style.animation = "fadeInUp 0.2s ease-in-out";
+            aiBubble.appendChild(transBox);
+            
+            chatBox.appendChild(aiBubble);
+        }
     }
 
     async function submitMessage(event) {
@@ -353,11 +722,14 @@
         input.value = "";
         const chatBox = document.getElementById("chatBox");
 
+        // Remove welcome prompt suggestions container on first active message
+        const welcomeClean = chatBox.querySelector(".chat-bubble-ai strong");
+        if (welcomeClean && chatBox.children.length === 1) {
+            chatBox.innerHTML = "";
+        }
+
         // Append User Bubble
-        const userBubble = document.createElement("div");
-        userBubble.className = "chat-bubble chat-bubble-user align-self-end";
-        userBubble.innerText = prompt;
-        chatBox.appendChild(userBubble);
+        appendMessageToDOM("user", prompt);
         chatBox.scrollTop = chatBox.scrollHeight;
 
         // Append Typing Indicator
@@ -391,7 +763,10 @@
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ message: prompt })
+                body: JSON.stringify({ 
+                    message: prompt,
+                    session_id: currentSessionId
+                })
             });
 
             const data = await res.json();
@@ -406,48 +781,16 @@
                 errBubble.innerHTML = `<i class="bi bi-exclamation-triangle-fill me-2"></i> Lỗi: ${data.error}`;
                 chatBox.appendChild(errBubble);
             } else {
-                // Append AI bubble with markdown rendering and active agent badge
-                const aiBubble = document.createElement("div");
-                aiBubble.className = "chat-bubble chat-bubble-ai align-self-start shadow-sm position-relative pt-4 w-100";
-                
-                const agentBadge = document.createElement("span");
-                agentBadge.className = "badge position-absolute top-0 start-0 m-2";
-                agentBadge.style.fontSize = "0.75rem";
-                agentBadge.style.background = "linear-gradient(135deg, var(--primary-accent) 0%, var(--primary-accent-hover) 100%)";
-                agentBadge.style.color = "#ffffff";
-                agentBadge.innerHTML = `<i class="bi bi-person-fill-check me-1"></i> ${data.agent_name || 'Cố vấn Thuế AI'}`;
-                aiBubble.appendChild(agentBadge);
-                
-                const contentDiv = document.createElement("div");
-                contentDiv.className = "ai-content-div";
-                contentDiv.style.marginTop = "8px";
-                contentDiv.innerHTML = marked.parse(data.response);
-                aiBubble.appendChild(contentDiv);
+                // If it was a new session, load list and select active session
+                const isNewSession = currentSessionId === null;
+                if (isNewSession) {
+                    currentSessionId = data.session_id;
+                    await loadSessions(true);
+                }
 
-                // HAT AI Translation Toolbar
-                const transToolbar = document.createElement("div");
-                transToolbar.className = "translation-toolbar mt-3 pt-2 border-top d-flex justify-content-between align-items-center";
-                transToolbar.style.fontSize = "0.8rem";
-                transToolbar.innerHTML = `
-                    <span class="text-muted"><i class="bi bi-translate"></i> Dịch thuật HAT AI:</span>
-                    <div class="btn-group btn-group-sm" role="group">
-                        <button type="button" class="btn btn-outline-success btn-sm py-0 px-2 fw-semibold" onclick="translateBubble(this, 'en')">EN</button>
-                        <button type="button" class="btn btn-outline-success btn-sm py-0 px-2 fw-semibold" onclick="translateBubble(this, 'zh')">ZH</button>
-                        <button type="button" class="btn btn-outline-success btn-sm py-0 px-2 fw-semibold" onclick="translateBubble(this, 'ja')">JA</button>
-                        <button type="button" class="btn btn-outline-success btn-sm py-0 px-2 fw-semibold" onclick="translateBubble(this, 'ko')">KO</button>
-                    </div>
-                `;
-                aiBubble.appendChild(transToolbar);
-
-                const transBox = document.createElement("div");
-                transBox.className = "translated-box mt-2 p-3 bg-light rounded text-dark d-none shadow-inner";
-                transBox.style.fontSize = "0.9rem";
-                transBox.style.borderLeft = "4px solid #10b981";
-                transBox.style.animation = "fadeInUp 0.2s ease-in-out";
-                aiBubble.appendChild(transBox);
+                // Append assistant bubble
+                appendMessageToDOM("assistant", data.response, data.agent_name);
                 
-                chatBox.appendChild(aiBubble);
-
                 // Render Citations Panel
                 renderCitations(data.citations);
             }
@@ -507,6 +850,52 @@
         document.getElementById("lightboxCaption").innerText = caption;
         const modal = new bootstrap.Modal(document.getElementById("imageModal"));
         modal.show();
+    }
+
+    // Export Chat History as Markdown Report File
+    function exportChatHistory() {
+        if (!currentSessionId) return;
+
+        const sessionTitle = document.getElementById("activeSessionTitle").innerText;
+        const chatBox = document.getElementById("chatBox");
+        const bubbles = chatBox.querySelectorAll(".chat-bubble");
+        
+        let markdown = `# Báo Cáo Tư Vấn Thuế Doanh Nghiệp\n`;
+        markdown += `*meInvoice Intelligence - PixelRAG Cố Vấn Thuế*\n`;
+        markdown += `*Chủ đề thảo luận: ${sessionTitle}*\n`;
+        markdown += `*Thời gian xuất bản: ${new Date().toLocaleString('vi-VN')}*\n\n`;
+        markdown += `--- \n\n`;
+
+        bubbles.forEach(bubble => {
+            if (bubble.classList.contains("chat-bubble-user")) {
+                const text = bubble.innerText.trim();
+                markdown += `### 👤 Câu hỏi của Doanh nghiệp:\n> ${text}\n\n`;
+            } else if (bubble.classList.contains("chat-bubble-ai")) {
+                const badge = bubble.querySelector(".badge")?.innerText?.trim() || "Cố vấn Thuế AI";
+                const contentDiv = bubble.querySelector(".ai-content-div");
+                if (contentDiv) {
+                    const text = contentDiv.innerText.trim();
+                    markdown += `### 🤖 Phản hồi từ [${badge}]:\n${text}\n\n`;
+                }
+                
+                // Add translation if visible
+                const transBox = bubble.querySelector(".translated-box:not(.d-none) .translated-content");
+                if (transBox) {
+                    markdown += `*Bản dịch chuyên ngành (HAT AI)*:\n> ${transBox.innerText.trim()}\n\n`;
+                }
+                markdown += `---\n\n`;
+            }
+        });
+
+        // Download trigger
+        const blob = new Blob([markdown], { type: "text/markdown;charset=utf-8;" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `Bao_Cao_Tu_Van_Thue_${sessionTitle.replace(/[^a-zA-Z0-9À-ỹ]/g, "_")}.md`;
+        link.style.display = "none";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
     async function loadAISettings() {

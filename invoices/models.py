@@ -417,6 +417,57 @@ class AIChatMessage(db.Model):
         }
 
 
+class TaxChatSession(db.Model):
+    """Conversational session for the AI General Tax Advisor."""
+
+    __tablename__ = "tax_chat_session"
+
+    id = db.Column(db.String(36), primary_key=True)
+    title = db.Column(db.String(255), nullable=False)
+    created_at = db.Column(db.String(50), nullable=False)
+
+    messages = db.relationship(
+        "TaxChatMessage",
+        backref="session",
+        cascade="all, delete-orphan",
+        passive_deletes=False,
+    )
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "title": self.title,
+            "created_at": self.created_at,
+            "messages": [msg.to_dict() for msg in self.messages]
+        }
+
+
+class TaxChatMessage(db.Model):
+    """An individual message within a Tax Advisor chat session."""
+
+    __tablename__ = "tax_chat_message"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    session_id = db.Column(
+        db.String(36),
+        db.ForeignKey("tax_chat_session.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    role = db.Column(db.String(10), nullable=False)  # 'user' or 'assistant'
+    content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.String(50), nullable=False)
+    agent_name = db.Column(db.String(100), nullable=True)
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "role": self.role,
+            "content": self.content,
+            "created_at": self.created_at,
+            "agent_name": self.agent_name or "",
+        }
+
+
 class TaxRegulationChunk(db.Model):
     """Storage for dynamically ingested tax regulation PDF text chunks."""
 

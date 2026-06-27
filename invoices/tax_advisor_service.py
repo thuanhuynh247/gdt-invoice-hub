@@ -95,8 +95,32 @@ def get_specialized_agent(query: str) -> tuple[str, str]:
     pit_keywords = ["tncn", "thu nhập cá nhân", "giảm trừ gia cảnh", "lương", "pit", "nhân sự", "lao động", "hợp đồng"]
     # 4. Invoicing & Documents
     inv_keywords = ["hóa đơn", "biên bản", "sai sót", "điều chỉnh", "thay thế", "hủy hóa đơn", "ký hiệu", "mẫu số", "nghị định 123", "thông tư 78", "nky", "tthai", "mccqt"]
-    
-    if any(k in q for k in vat_keywords):
+    # 5. Transfer Pricing
+    tp_keywords = ["liên kết", "chuyển giá", "132/2020", "chỉ số giao dịch", "báo cáo lợi nhuận", "liên kết kinh doanh", "arm's length", "arms length"]
+    # 6. Tax Penalties
+    pen_keywords = ["xử phạt", "phạt hành chính", "vi phạm", "nộp chậm", "trễ hạn", "125/2020", "tiền phạt", "mức phạt", "phạt tiền", "chậm nộp"]
+    # 7. Foreign Contractor Tax (FCT)
+    fct_keywords = ["nhà thầu nước ngoài", "nhà thầu phụ", "fct", "103/2014", "circular 103", "nhà thầu ngoại", "thuế nhà thầu"]
+
+    if any(k in q for k in tp_keywords):
+        agent_name = "Chuyên gia Giao dịch liên kết (Transfer Pricing Auditor)"
+        instructions = (
+            "Bạn là Chuyên gia Giao dịch liên kết (Transfer Pricing Auditor) cao cấp của meInvoice Intelligence.\n"
+            "Tập trung sâu vào: các quy định xác định giá giao dịch liên kết theo Nghị định 132/2020/NĐ-CP, tỷ lệ chi phí lãi vay được trừ (trần 30% EBITDA), nghĩa vụ kê khai mẫu biểu giao dịch liên kết (Mẫu 01, 02, 03, 04), nguyên tắc giao dịch độc lập (arm's length principle), và các rủi ro thanh tra chuyển giá của cơ quan thuế."
+        )
+    elif any(k in q for k in pen_keywords):
+        agent_name = "Chuyên gia Xử phạt hành chính Thuế (Tax Penalties Specialist)"
+        instructions = (
+            "Bạn là Chuyên gia Xử phạt hành chính Thuế (Tax Penalties Specialist) cao cấp của meInvoice Intelligence.\n"
+            "Tập trung sâu vào: các mức xử phạt hành chính về thuế và hóa đơn theo Nghị định 125/2020/NĐ-CP. Hướng dẫn các hành vi vi phạm thời hạn nộp hồ sơ khai thuế, lập hóa đơn sai thời điểm, chậm nộp thuế (tính tiền chậm nộp 0.03%/ngày), và các tình tiết giảm nhẹ hoặc miễn xử phạt hành chính thuế."
+        )
+    elif any(k in q for k in fct_keywords):
+        agent_name = "Chuyên gia Thuế Nhà Thầu Nước Ngoài (FCT Consultant)"
+        instructions = (
+            "Bạn là Chuyên gia Thuế Nhà Thầu Nước Ngoài (FCT Consultant) cao cấp của meInvoice Intelligence.\n"
+            "Tập trung sâu vào: đối tượng chịu thuế và không chịu thuế nhà thầu, phương pháp tính thuế nhà thầu (trực tiếp, khấu trừ, hỗn hợp) theo Thông tư 103/2014/TT-BTC. Trích dẫn tỷ lệ phần trăm thuế GTGT và thuế TNDN tính trên doanh thu tính thuế đối với từng hoạt động dịch vụ thương mại cụ thể của nhà thầu nước ngoài."
+        )
+    elif any(k in q for k in vat_keywords):
         agent_name = "Chuyên gia Thuế GTGT (VAT Consultant)"
         instructions = (
             "Bạn là Chuyên gia Thuế GTGT (VAT Consultant) cao cấp.\n"
@@ -183,7 +207,7 @@ def get_rag_context(query: str):
         conn.close()
     return "", []
 
-def call_llm(settings, system_prompt, user_content):
+def call_llm(settings, system_prompt, user_content, history=None):
     provider = settings.get("ai_provider", "ollama").lower()
     model_name = settings.get("ai_model_name", "gemma-4")
     api_key_cipher = settings.get("ai_api_key", "")
@@ -195,10 +219,11 @@ def call_llm(settings, system_prompt, user_content):
         except Exception:
             api_key = api_key_cipher
 
-    messages = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": user_content}
-    ]
+    messages = [{"role": "system", "content": system_prompt}]
+    if history:
+        for msg in history:
+            messages.append({"role": msg["role"], "content": msg["content"]})
+    messages.append({"role": "user", "content": user_content})
 
     if provider == "ollama":
         endpoint = settings.get("ai_ollama_endpoint", "http://localhost:11434").rstrip("/")
