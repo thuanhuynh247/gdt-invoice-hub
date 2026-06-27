@@ -10,88 +10,99 @@
         --glass-border: rgba(229, 231, 235, 0.5);
     }
 
+    /* Override layout to fit Wise Fintech style */
     .chat-container {
-        height: 70vh;
+        height: 68vh;
         overflow-y: auto;
-        border-radius: 12px;
-        background: #f8f9fa;
-        border: 1px solid var(--glass-border);
-        box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+        border-radius: 16px;
+        background: var(--bg-app);
+        border: 1px solid var(--border-card);
+        box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.03);
+        scrollbar-width: thin;
     }
 
     .chat-bubble {
-        max-width: 75%;
-        padding: 14px 18px;
-        border-radius: 16px;
+        max-width: 80%;
+        padding: 16px 20px;
+        border-radius: 18px;
         margin-bottom: 15px;
         line-height: 1.6;
         font-size: 0.95rem;
-        animation: fadeIn 0.3s ease-out forwards;
+        animation: fadeInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
     .chat-bubble-user {
-        background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
-        color: white;
+        background: linear-gradient(135deg, var(--primary-accent) 0%, var(--primary-accent-hover) 100%);
+        color: #ffffff;
         align-self: flex-end;
         border-bottom-right-radius: 4px;
-        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+        box-shadow: 0 6px 16px rgba(22, 51, 0, 0.15);
+    }
+
+    [data-theme="dark"] .chat-bubble-user {
+        background: linear-gradient(135deg, var(--lime-accent) 0%, var(--lime-accent-hover) 100%);
+        color: #0e0f0c;
+        box-shadow: 0 6px 16px rgba(159, 232, 112, 0.2);
     }
 
     .chat-bubble-ai {
-        background: white;
-        color: #1f2937;
+        background: var(--bg-card);
+        color: var(--text-primary);
         align-self: flex-start;
         border-bottom-left-radius: 4px;
-        border: 1px solid #e5e7eb;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        border: 1px solid var(--border-card);
+        box-shadow: var(--shadow-premium);
     }
 
     .chat-bubble-ai table {
         width: 100%;
-        margin-top: 10px;
-        margin-bottom: 10px;
+        margin-top: 12px;
+        margin-bottom: 12px;
         border-collapse: collapse;
     }
 
     .chat-bubble-ai th, .chat-bubble-ai td {
-        border: 1px solid #e5e7eb;
-        padding: 8px 12px;
+        border: 1px solid var(--border-card);
+        padding: 10px 14px;
         font-size: 0.85rem;
     }
 
     .chat-bubble-ai th {
-        background-color: #f3f4f6;
+        background-color: var(--table-header-bg);
+        color: var(--text-primary);
         font-weight: 600;
     }
 
     .citation-card {
         transition: transform 0.2s, box-shadow 0.2s;
         cursor: pointer;
-        border: 1px solid #e5e7eb;
+        background: var(--bg-card);
+        color: var(--text-primary);
+        border: 1px solid var(--border-card);
     }
 
     .citation-card:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 16px rgba(0,0,0,0.08) !important;
+        box-shadow: var(--shadow-card-hover) !important;
     }
 
     .suggestion-badge {
         cursor: pointer;
-        transition: all 0.2s;
-        border: 1px solid #d1d5db;
-        background: white;
-        color: #4b5563;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        border: 1px solid var(--border-card);
+        background: var(--bg-card);
+        color: var(--text-secondary);
     }
 
     .suggestion-badge:hover {
-        background: #eff6ff;
-        color: #1d4ed8;
-        border-color: #bfdbfe;
-        transform: translateY(-1px);
+        background: var(--primary-accent-soft);
+        color: var(--primary-accent);
+        border-color: var(--primary-accent);
+        transform: translateY(-2px);
     }
 
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(8px); }
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(12px); }
         to { opacity: 1; transform: translateY(0); }
     }
 
@@ -106,38 +117,54 @@
         top: 0;
         left: 0;
         border-radius: inherit;
-        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.5);
+        box-shadow: 0 0 0 0 var(--primary-accent-soft);
         animation: pulse 1.5s infinite;
     }
     @keyframes pulse {
-        0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
-        70% { box-shadow: 0 0 0 8px rgba(59, 130, 246, 0); }
-        100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+        0% { box-shadow: 0 0 0 0 rgba(22, 51, 0, 0.4); }
+        70% { box-shadow: 0 0 0 8px rgba(22, 51, 0, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(22, 51, 0, 0); }
+    }
+
+    .preview-box {
+        max-height: 250px;
+        overflow-y: auto;
+        background: var(--bg-app);
+        border: 1px solid var(--border-card);
+        border-radius: 8px;
+        padding: 12px;
+        font-size: 0.85rem;
+        white-space: pre-wrap;
     }
 </style>
 
 <div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
         <div>
-            <h2 class="h3 mb-1"><i class="fas fa-robot text-primary"></i> Cố Vấn Thuế AI (PixelRAG Advisor)</h2>
-            <p class="text-muted mb-0">Hỏi đáp chính sách thuế GTGT & hóa đơn tích hợp đối chiếu trang văn bản luật gốc.</p>
+            <h2 class="h3 mb-1"><i class="bi bi-robot text-success"></i> Cố Vấn Thuế AI (PixelRAG Advisor)</h2>
+            <p class="text-muted mb-0">Hỏi đáp chính sách thuế TNDN, GTGT, TNCN & Hóa đơn liên kết trích lục văn bản gốc.</p>
         </div>
-        <button class="btn btn-outline-primary rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#settingsModal" onclick="loadAISettings()">
-            <i class="fas fa-cog"></i> Cấu hình AI
-        </button>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-success rounded-pill px-3 fw-medium" data-bs-toggle="modal" data-bs-target="#crawlerModal">
+                <i class="bi bi-cloud-arrow-down-fill me-1"></i> Cào Dữ Liệu Thuế
+            </button>
+            <button class="btn btn-outline-primary rounded-pill px-3 fw-medium" data-bs-toggle="modal" data-bs-target="#settingsModal" onclick="loadAISettings()">
+                <i class="bi bi-gear-fill me-1"></i> Cấu hình AI
+            </button>
+        </div>
     </div>
 
     <div class="row">
         <!-- Main Chat Area -->
         <div class="col-lg-8">
-            <div class="card shadow-sm border-0 mb-4">
+            <div class="card shadow-sm border-0 mb-4" style="background: var(--bg-card); border: 1px solid var(--border-card);">
                 <div class="card-body p-4">
                     <!-- Chat Container -->
                     <div id="chatBox" class="chat-container d-flex flex-column p-3 mb-3">
                         <!-- Welcome message -->
                         <div class="chat-bubble chat-bubble-ai">
                             <strong>Xin chào!</strong> Tôi là Trợ lý Cố vấn Thuế cấp cao của HAT AI.<br>
-                            Tôi sử dụng mô hình trí tuệ nhân tạo kết hợp công nghệ <strong>PixelRAG</strong> để tra cứu và giải đáp chính xác các quy định thuế GTGT, hóa đơn, chứng từ.<br>
+                            Tôi sử dụng mô hình trí tuệ nhân tạo kết hợp công nghệ <strong>PixelRAG</strong> để tra cứu và giải đáp chính xác các quy định thuế TNDN, GTGT, TNCN và hóa đơn, chứng từ.<br>
                             Hãy đặt câu hỏi cho tôi ở bên dưới!
                         </div>
                     </div>
@@ -150,20 +177,20 @@
                                 Điều kiện để được khấu trừ thuế GTGT đầu vào là gì?
                             </span>
                             <span class="badge rounded-pill px-3 py-2 suggestion-badge" onclick="useSuggestedPrompt(this)">
-                                Hóa đơn viết sai tên công ty và địa chỉ xử lý như thế nào?
+                                Thuế TNDN mới 2026 áp dụng các bậc thuế suất ưu đãi nào?
                             </span>
                             <span class="badge rounded-pill px-3 py-2 suggestion-badge" onclick="useSuggestedPrompt(this)">
-                                Mức xử phạt hành chính đối với hành vi làm mất hóa đơn đầu vào?
+                                Ủy quyền cá nhân thanh toán bằng thẻ trên 5 triệu đồng được tính chi phí hợp lý thế nào?
                             </span>
                         </div>
                     </div>
 
                     <!-- Input Form -->
                     <form id="chatForm" onsubmit="submitMessage(event)">
-                        <div class="input-group shadow-sm rounded-pill overflow-hidden border">
-                            <input type="text" id="userInput" class="form-control border-0 px-4 py-3" placeholder="Nhập câu hỏi thuế của bạn tại đây..." required>
-                            <button class="btn btn-primary border-0 px-4" type="submit" id="sendBtn">
-                                <i class="fas fa-paper-plane"></i>
+                        <div class="input-group shadow-sm rounded-pill overflow-hidden border" style="border-color: var(--border-card) !important;">
+                            <input type="text" id="userInput" class="form-control border-0 px-4 py-3" placeholder="Nhập câu hỏi thuế của bạn tại đây..." style="background: var(--bg-card); color: var(--text-primary);" required>
+                            <button class="btn btn-success border-0 px-4" type="submit" id="sendBtn" style="background: var(--primary-accent);">
+                                <i class="bi bi-send-fill"></i>
                             </button>
                         </div>
                     </form>
@@ -173,13 +200,13 @@
 
         <!-- Citations / Visual Document Panel -->
         <div class="col-lg-4">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-header bg-white border-0 py-3">
-                    <h5 class="mb-0"><i class="fas fa-images text-success"></i> Tài Liệu Trực Quan (PixelRAG)</h5>
+            <div class="card shadow-sm border-0 h-100" style="background: var(--bg-card); border: 1px solid var(--border-card);">
+                <div class="card-header bg-transparent border-bottom border-light-subtle py-3">
+                    <h5 class="mb-0 text-success fw-bold"><i class="bi bi-images"></i> Tài Liệu Trực Quan (PixelRAG)</h5>
                 </div>
                 <div class="card-body d-flex flex-column gap-3" id="citationsContainer">
                     <div class="text-center py-5 text-muted my-auto">
-                        <i class="fas fa-file-invoice fa-3x mb-3 text-light"></i>
+                        <i class="bi bi-file-earmark-text fa-3x mb-3 text-light"></i>
                         <div>Khi bạn hỏi, các trang tài liệu gốc liên quan sẽ được tự động trích xuất và hiển thị ở đây.</div>
                     </div>
                 </div>
@@ -188,12 +215,68 @@
     </div>
 </div>
 
+<!-- Web Crawler & Data Ingestion Modal -->
+<div class="modal fade" id="crawlerModal" tabindex="-1" aria-labelledby="crawlerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-card);">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold" id="crawlerModalLabel"><i class="bi bi-cloud-arrow-down text-success"></i> Cào Dữ Liệu & Nạp Luật Thuế</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small">Nhập URL bài viết, tin tức hoặc văn bản hướng dẫn luật thuế trực tuyến (ví dụ: trên LuatVietnam, Thư Ký Luật, hoặc Cổng thông tin Tổng cục Thuế) để tự động nạp tri thức vào chatbot RAG.</p>
+                
+                <form id="crawlerForm">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">URL Web Luật Thuế</label>
+                        <div class="input-group">
+                            <input type="url" class="form-control" id="crawlUrl" placeholder="https://thuvienphapluat.vn/van-ban/Thue-Phi-Le-Phi/..." required>
+                            <button class="btn btn-success" type="button" id="btnFetchUrl" onclick="fetchUrlContent()">
+                                <i class="bi bi-cloud-download-fill me-1"></i> Cào Dữ Liệu
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="crawlResultArea" class="d-none">
+                        <div class="row">
+                            <div class="col-md-8 mb-3">
+                                <label class="form-label fw-bold">Tên Tài Liệu Nguồn</label>
+                                <input type="text" class="form-control" id="crawlDocTitle" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold">Ngày Hiệu Lực</label>
+                                <input type="date" class="form-control" id="crawlEffectiveDate">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Nội Dung Thu Thập Được (Có thể sửa lại)</label>
+                            <textarea class="form-control" id="crawlContentText" rows="8" style="font-family: var(--font-monospace); font-size: 0.85rem;"></textarea>
+                        </div>
+                        
+                        <div class="alert alert-success py-2 d-flex align-items-center gap-2" role="alert">
+                            <i class="bi bi-info-circle-fill"></i>
+                            <div>Nội dung sẽ được chia nhỏ thành các đoạn văn ngắn (~200 từ) và lập chỉ mục FTS5 để tối ưu hóa tìm kiếm.</div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-top-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-success d-none" id="btnIngestRAG" onclick="ingestCrawledData()">
+                    <i class="bi bi-database-fill-check me-1"></i> Lưu & Nạp RAG Index
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- AI Settings Modal -->
 <div class="modal fade" id="settingsModal" tabindex="-1" aria-labelledby="settingsModalLabel" aria-hidden="true">
     <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="settingsModalLabel"><i class="fas fa-sliders-h"></i> Cấu Hình Cố Vấn AI</h5>
+        <div class="modal-content" style="background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-card);">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold" id="settingsModalLabel"><i class="bi bi-sliders2-vertical"></i> Cấu Hình Cố Vấn AI</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -210,7 +293,7 @@
                     <div class="mb-3">
                         <label class="form-label fw-bold">Tên Model</label>
                         <input type="text" class="form-control" id="aiModelName" required>
-                        <div class="form-text">Ví dụ: <code>gemma-4</code> (Ollama), <code>gpt-4o-mini</code> (OpenAI), <code>gemini-1.5-flash</code> (Gemini)</div>
+                        <div class="form-text text-muted">Ví dụ: <code>gemma-4</code> (Ollama), <code>gpt-4o-mini</code> (OpenAI), <code>gemini-1.5-flash</code> (Gemini)</div>
                     </div>
 
                     <div class="mb-3" id="apiEndpointGroup">
@@ -224,9 +307,9 @@
                     </div>
                 </form>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn class-secondary" data-bs-dismiss="modal">Đóng</button>
-                <button type="button" class="btn btn-primary" onclick="saveAISettings()">Lưu cấu hình</button>
+            <div class="modal-footer border-top-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-success" onclick="saveAISettings()">Lưu cấu hình</button>
             </div>
         </div>
     </div>
@@ -280,9 +363,23 @@
         // Append Typing Indicator
         const typingBubble = document.createElement("div");
         typingBubble.className = "chat-bubble chat-bubble-ai align-self-start";
-        typingBubble.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cố vấn AI đang suy nghĩ và tra cứu luật thuế...';
+        typingBubble.innerHTML = '<i class="bi bi-arrow-repeat spin-animation me-2 d-inline-block"></i> Cố vấn AI đang phân tích dữ liệu & trích xuất RAG...';
         chatBox.appendChild(typingBubble);
         chatBox.scrollTop = chatBox.scrollHeight;
+
+        // Style helper for loading icon animation
+        const styleEl = document.createElement('style');
+        styleEl.id = 'spin-animation-style';
+        styleEl.innerHTML = `
+            .spin-animation {
+                animation: spin 1s linear infinite;
+            }
+            @keyframes spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(styleEl);
 
         // Disable input
         document.getElementById("userInput").disabled = true;
@@ -299,11 +396,14 @@
 
             const data = await res.json();
             chatBox.removeChild(typingBubble);
+            
+            const existingStyle = document.getElementById('spin-animation-style');
+            if (existingStyle) existingStyle.remove();
 
             if (data.error) {
                 const errBubble = document.createElement("div");
                 errBubble.className = "chat-bubble chat-bubble-ai align-self-start text-danger";
-                errBubble.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Lỗi: ${data.error}`;
+                errBubble.innerHTML = `<i class="bi bi-exclamation-triangle-fill me-2"></i> Lỗi: ${data.error}`;
                 chatBox.appendChild(errBubble);
             } else {
                 // Append AI bubble with markdown rendering and active agent badge
@@ -311,10 +411,11 @@
                 aiBubble.className = "chat-bubble chat-bubble-ai align-self-start shadow-sm position-relative pt-4 w-100";
                 
                 const agentBadge = document.createElement("span");
-                agentBadge.className = "badge bg-gradient-primary position-absolute top-0 start-0 m-2";
+                agentBadge.className = "badge position-absolute top-0 start-0 m-2";
                 agentBadge.style.fontSize = "0.75rem";
-                agentBadge.style.background = "linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%)";
-                agentBadge.innerHTML = `<i class="fas fa-user-tie me-1"></i> ${data.agent_name || 'Cố vấn Thuế AI'}`;
+                agentBadge.style.background = "linear-gradient(135deg, var(--primary-accent) 0%, var(--primary-accent-hover) 100%)";
+                agentBadge.style.color = "#ffffff";
+                agentBadge.innerHTML = `<i class="bi bi-person-fill-check me-1"></i> ${data.agent_name || 'Cố vấn Thuế AI'}`;
                 aiBubble.appendChild(agentBadge);
                 
                 const contentDiv = document.createElement("div");
@@ -328,12 +429,12 @@
                 transToolbar.className = "translation-toolbar mt-3 pt-2 border-top d-flex justify-content-between align-items-center";
                 transToolbar.style.fontSize = "0.8rem";
                 transToolbar.innerHTML = `
-                    <span class="text-muted"><i class="fas fa-language"></i> Dịch thuật HAT AI:</span>
+                    <span class="text-muted"><i class="bi bi-translate"></i> Dịch thuật HAT AI:</span>
                     <div class="btn-group btn-group-sm" role="group">
-                        <button type="button" class="btn btn-outline-primary btn-sm py-0 px-2 fw-semibold" onclick="translateBubble(this, 'en')">EN</button>
-                        <button type="button" class="btn btn-outline-primary btn-sm py-0 px-2 fw-semibold" onclick="translateBubble(this, 'zh')">ZH</button>
-                        <button type="button" class="btn btn-outline-primary btn-sm py-0 px-2 fw-semibold" onclick="translateBubble(this, 'ja')">JA</button>
-                        <button type="button" class="btn btn-outline-primary btn-sm py-0 px-2 fw-semibold" onclick="translateBubble(this, 'ko')">KO</button>
+                        <button type="button" class="btn btn-outline-success btn-sm py-0 px-2 fw-semibold" onclick="translateBubble(this, 'en')">EN</button>
+                        <button type="button" class="btn btn-outline-success btn-sm py-0 px-2 fw-semibold" onclick="translateBubble(this, 'zh')">ZH</button>
+                        <button type="button" class="btn btn-outline-success btn-sm py-0 px-2 fw-semibold" onclick="translateBubble(this, 'ja')">JA</button>
+                        <button type="button" class="btn btn-outline-success btn-sm py-0 px-2 fw-semibold" onclick="translateBubble(this, 'ko')">KO</button>
                     </div>
                 `;
                 aiBubble.appendChild(transToolbar);
@@ -342,7 +443,7 @@
                 transBox.className = "translated-box mt-2 p-3 bg-light rounded text-dark d-none shadow-inner";
                 transBox.style.fontSize = "0.9rem";
                 transBox.style.borderLeft = "4px solid #10b981";
-                transBox.style.animation = "fadeIn 0.2s ease-in-out";
+                transBox.style.animation = "fadeInUp 0.2s ease-in-out";
                 aiBubble.appendChild(transBox);
                 
                 chatBox.appendChild(aiBubble);
@@ -352,9 +453,12 @@
             }
         } catch (err) {
             chatBox.removeChild(typingBubble);
+            const existingStyle = document.getElementById('spin-animation-style');
+            if (existingStyle) existingStyle.remove();
+            
             const errBubble = document.createElement("div");
             errBubble.className = "chat-bubble chat-bubble-ai align-self-start text-danger";
-            errBubble.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Lỗi kết nối: ${err.message}`;
+            errBubble.innerHTML = `<i class="bi bi-exclamation-triangle-fill me-2"></i> Lỗi kết nối: ${err.message}`;
             chatBox.appendChild(errBubble);
         } finally {
             document.getElementById("userInput").disabled = false;
@@ -369,8 +473,8 @@
         if (!citations || citations.length === 0) {
             container.innerHTML = `
                 <div class="text-center py-5 text-muted my-auto">
-                    <i class="fas fa-file-invoice fa-3x mb-3 text-light"></i>
-                    <div>Không có trang tài liệu gốc liên quan trực tiếp cho câu hỏi này.</div>
+                    <i class="bi bi-file-earmark-lock fa-3x mb-3 text-light"></i>
+                    <div>Không có tài liệu trích lục pháp lý trực tiếp cho câu hỏi này.</div>
                 </div>
             `;
             return;
@@ -388,7 +492,7 @@
                             <div class="card-body p-3">
                                 <h6 class="card-title text-truncate mb-1" style="font-size: 0.9rem;">${cit.source}</h6>
                                 <p class="card-text text-muted mb-0" style="font-size: 0.8rem;">Trang số: <strong>${cit.page}</strong></p>
-                                <small class="text-primary" style="font-size: 0.75rem;"><i class="fas fa-search-plus"></i> Ấn để phóng to</small>
+                                <small class="text-success" style="font-size: 0.75rem;"><i class="bi bi-zoom-in me-1"></i>Xem trang luật gốc</small>
                             </div>
                         </div>
                     </div>
@@ -481,7 +585,7 @@
         const translatedBox = bubble.querySelector(".translated-box");
         
         translatedBox.classList.remove("d-none");
-        translatedBox.innerHTML = `<i class="fas fa-spinner fa-spin text-primary"></i> Đang dịch sang ngôn ngữ yêu cầu bằng HAT AI...`;
+        translatedBox.innerHTML = `<i class="bi bi-arrow-repeat spin-animation me-2 d-inline-block"></i> Đang dịch sang ngôn ngữ yêu cầu bằng HAT AI...`;
         
         try {
             const res = await fetch("/api/tax/translate", {
@@ -493,7 +597,7 @@
             });
             const data = await res.json();
             if (data.error) {
-                translatedBox.innerHTML = `<span class="text-danger"><i class="fas fa-exclamation-triangle"></i> Lỗi dịch thuật: ${data.error}</span>`;
+                translatedBox.innerHTML = `<span class="text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i> Lỗi dịch thuật: ${data.error}</span>`;
             } else {
                 const langLabels = {
                     "en": "Tiếng Anh (English)",
@@ -504,19 +608,114 @@
                 const label = langLabels[lang] || lang.toUpperCase();
                 translatedBox.innerHTML = `
                     <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom">
-                        <span class="text-success fw-bold"><i class="fas fa-check-circle"></i> Bản dịch ${label} (HAT AI):</span>
-                        <button type="button" class="btn-close btn-xs" style="font-size: 0.7rem;" onclick="this.closest('.translated-box').classList.add('d-none')" aria-label="Close"></button>
+                        <span class="text-success fw-bold"><i class="bi bi-check-circle-fill me-1"></i> Bản dịch ${label} (HAT AI):</span>
+                        <button type="button" class="btn-close" style="font-size: 0.7rem;" onclick="this.closest('.translated-box').classList.add('d-none')" aria-label="Close"></button>
                     </div>
                     <div class="translated-content text-dark">${marked.parse(data.translated)}</div>
                 `;
             }
         } catch (err) {
-            translatedBox.innerHTML = `<span class="text-danger"><i class="fas fa-exclamation-triangle"></i> Lỗi kết nối: ${err.message}</span>`;
+            translatedBox.innerHTML = `<span class="text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i> Lỗi kết nối: ${err.message}</span>`;
         }
         
         // Scroll chat container to bottom
         const chatBox = document.getElementById("chatBox");
         chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    // Crawler Client logic
+    async function fetchUrlContent() {
+        const urlInput = document.getElementById("crawlUrl");
+        const url = urlInput.value.trim();
+        if (!url) {
+            alert("Vui lòng điền URL trang web!");
+            return;
+        }
+
+        const btnFetch = document.getElementById("btnFetchUrl");
+        const origHtml = btnFetch.innerHTML;
+        btnFetch.disabled = true;
+        btnFetch.innerHTML = `<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Đang cào...`;
+
+        try {
+            const res = await fetch("/api/tax/crawl/fetch", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ url: url })
+            });
+
+            const data = await res.json();
+            if (data.error) {
+                alert("Lỗi cào dữ liệu: " + data.error);
+            } else {
+                document.getElementById("crawlResultArea").classList.remove("d-none");
+                document.getElementById("crawlDocTitle").value = data.title || "";
+                document.getElementById("crawlEffectiveDate").value = data.effective_date || "";
+                document.getElementById("crawlContentText").value = data.full_text || "";
+                document.getElementById("btnIngestRAG").classList.remove("d-none");
+            }
+        } catch (err) {
+            alert("Lỗi kết nối: " + err.message);
+        } finally {
+            btnFetch.disabled = false;
+            btnFetch.innerHTML = origHtml;
+        }
+    }
+
+    async function ingestCrawledData() {
+        const url = document.getElementById("crawlUrl").value.trim();
+        const title = document.getElementById("crawlDocTitle").value.trim();
+        const text = document.getElementById("crawlContentText").value.trim();
+        const effectiveDate = document.getElementById("crawlEffectiveDate").value.trim();
+
+        if (!title || !text) {
+            alert("Vui lòng điền đủ tên tài liệu và nội dung trước khi nạp!");
+            return;
+        }
+
+        const btnIngest = document.getElementById("btnIngestRAG");
+        const origHtml = btnIngest.innerHTML;
+        btnIngest.disabled = true;
+        btnIngest.innerHTML = `<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Đang nạp RAG...`;
+
+        try {
+            const res = await fetch("/api/tax/crawl/ingest", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    url: url,
+                    title: title,
+                    text: text,
+                    effective_date: effectiveDate
+                })
+            });
+
+            const data = await res.json();
+            if (data.error) {
+                alert("Lỗi nạp tri thức: " + data.error);
+            } else {
+                alert(`Thành công! Đã nạp "${data.document_source}" với ${data.chunks_count} chunks vào RAG Index.`);
+                
+                // Close modal
+                const modalEl = document.getElementById("crawlerModal");
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                modal.hide();
+                
+                // Clear crawler form
+                document.getElementById("crawlerForm").reset();
+                document.getElementById("crawlResultArea").classList.add("d-none");
+                btnIngest.classList.add("d-none");
+            }
+        } catch (err) {
+            alert("Lỗi kết nối: " + err.message);
+        } finally {
+            btnIngest.disabled = false;
+            btnIngest.innerHTML = origHtml;
+        }
     }
 </script>
 {% endblock %}

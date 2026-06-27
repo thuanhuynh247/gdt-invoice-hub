@@ -6969,6 +6969,54 @@ def api_tax_settings():
         return jsonify(visible_settings)
 
 
+@invoices_blueprint.post("/api/tax/crawl/fetch")
+def api_tax_crawl_fetch():
+    """Fetch and parse content from a tax URL without saving it."""
+    if not session.get("logged_in"):
+        return jsonify({"error": "Unauthorized"}), 401
+        
+    data = request.get_json() or {}
+    url = data.get("url", "").strip()
+    if not url:
+        return jsonify({"error": "URL cannot be empty"}), 400
+        
+    from invoices.tax_crawler_service import fetch_and_clean_url, extract_effective_date
+    try:
+        title, clean_text = fetch_and_clean_url(url)
+        eff_date = extract_effective_date(clean_text)
+        return jsonify({
+            "title": title,
+            "preview": clean_text[:2000] + ("..." if len(clean_text) > 2000 else ""),
+            "full_text": clean_text,
+            "effective_date": eff_date
+        })
+    except Exception as e:
+        return jsonify({"error": f"Failed to fetch and parse URL: {str(e)}"}), 500
+
+
+@invoices_blueprint.post("/api/tax/crawl/ingest")
+def api_tax_crawl_ingest():
+    """Ingest crawled tax content into the SQLite FTS5 index database."""
+    if not session.get("logged_in"):
+        return jsonify({"error": "Unauthorized"}), 401
+        
+    data = request.get_json() or {}
+    url = data.get("url", "").strip()
+    custom_title = data.get("title", "").strip()
+    text = data.get("text", "").strip()
+    effective_date = data.get("effective_date", "").strip()
+    
+    if not url or not text:
+        return jsonify({"error": "URL and text content are required for ingestion"}), 400
+        
+    from invoices.tax_crawler_service import ingest_crawled_content
+    try:
+        result = ingest_crawled_content(url, custom_title, text, effective_date)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": f"Failed to ingest content: {str(e)}"}), 500
+
+
 @invoices_blueprint.route("/tax-health-score")
 def tax_health_score_page():
     """Render the corporate tax health score dashboard page."""

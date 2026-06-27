@@ -241,6 +241,12 @@ Kế hoạch này theo sát tài liệu **Next-Gen Roadmap** và cấu trúc l�
 - [x] **Task 135 (US-HEADROOM-API-ROUTES)**: Live playground API & telemetry JSON aggregator routes.
 - [x] **Task 136 (US-HEADROOM-TEST-SUITE)**: Pytest suite `tests/test_v76_headroom.py` and Harness Quality Gate validation.
 
+### 🚀 Giai Đoạn 32: Tax Crawler Service & Chatbot RAG Integration (v78.0.0 Roadmap)
+- [x] **Task 137 (US-TAX-CRAWLER-SERVICE)**: Standalone crawler service to fetch and parse Vietnamese tax websites, strip HTML boilerplate, and parse titles.
+- [x] **Task 138 (US-TAX-CRAWLER-INGESTION)**: SQLite FTS5 index database integration and RAG query service for Ollama-based chat advisor.
+- [x] **Task 139 (US-TAX-CRAWLER-UI)**: Premium Wise Fintech tax advisor crawling UI, status indicators, and modal.
+- [x] **Task 140 (US-TAX-CRAWLER-TESTS)**: Pytest suite `tests/test_tax_crawler.py` covering HTML parsing, date extraction, chunking, database ingestion, and Flask REST endpoints.
+
 
 
 
