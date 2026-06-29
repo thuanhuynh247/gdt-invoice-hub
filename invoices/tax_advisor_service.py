@@ -522,8 +522,99 @@ def detect_and_run_tools(query: str) -> dict | None:
         except Exception as e:
             print(f"Error executing Tax Penalty tool: {e}")
             return None
+
+    # 3. PIT calculation detection
+    pit_triggers = ["tính thuế tncn", "tính pit", "thuế tncn", "pit calculator"]
+    if any(trigger in q for trigger in pit_triggers):
+        val = parse_amount_from_query(query)
+        has_defaulted_val = False
+        if val is None:
+            val = 30000000.0
+            has_defaulted_val = True
             
+        match_dep = re.search(r'(\d+)\s*(người phụ thuộc|người|phụ thuộc)', q)
+        has_defaulted_dep = False
+        if match_dep:
+            dependents = int(match_dep.group(1))
+        else:
+            dependents = 0
+            if "phụ thuộc" in q:
+                dependents = 1
+            else:
+                has_defaulted_dep = True
+                
+        try:
+            from invoices.tax_audit_service import calculate_pit_tax
+        except ImportError:
+            from tax_audit_service import calculate_pit_tax
+            
+        try:
+            res = calculate_pit_tax(val, dependents)
+            res["estimated_value"] = has_defaulted_val
+            res["estimated_dep"] = has_defaulted_dep
+            
+            html_output = f"""
+<div class="card border-primary border-2 shadow-sm my-3 tool-calc-card" style="animation: fadeInUp 0.3s ease-in-out;">
+  <div class="card-header bg-primary text-white d-flex align-items-center justify-content-between py-2">
+    <span class="fw-bold"><i class="bi bi-person-fill-check me-2"></i> meInvoice Intelligence: PIT Calculator Engine</span>
+    <span class="badge bg-light text-primary fw-semibold">Resolution 954/2020/UBTVQH14</span>
+  </div>
+  <div class="card-body bg-light text-dark p-3" style="font-size: 0.9rem;">
+    {f'<div class="alert alert-warning py-1 px-2 mb-2" style="font-size: 0.8rem;"><i class="bi bi-info-circle-fill me-1"></i> Không tìm thấy mức thu nhập hoặc người phụ thuộc. Đang giả lập với: <strong>{val:,.0f} VND</strong> thu nhập và <strong>{dependents} người phụ thuộc</strong>.</div>' if (has_defaulted_val) else ''}
+    <div class="row g-3">
+      <div class="col-md-6 border-end">
+        <p class="mb-1 text-muted">Tổng thu nhập chịu thuế hàng tháng:</p>
+        <h5 class="fw-bold text-primary mb-2">{res['monthly_income']:,.0f} VND</h5>
+        <p class="mb-1 text-muted">Số người phụ thuộc kê khai:</p>
+        <h5 class="fw-bold text-dark mb-3">{res['dependents']} người</h5>
+        <div class="d-flex justify-content-between mb-1">
+          <span>Giảm trừ bản thân:</span>
+          <strong class="text-muted">{res['personal_deduction']:,.0f} VND</strong>
+        </div>
+        <div class="d-flex justify-content-between mb-1">
+          <span>Giảm trừ người phụ thuộc:</span>
+          <strong class="text-muted">{res['dependent_deduction']:,.0f} VND</strong>
+        </div>
+        <div class="d-flex justify-content-between pt-1 border-top fw-semibold text-secondary">
+          <span>Tổng mức giảm trừ gia cảnh:</span>
+          <span>{res['total_deductions']:,.0f} VND</span>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <p class="mb-2 fw-semibold text-secondary">Kết quả tính thuế TNCN lũy tiến:</p>
+        <div class="d-flex justify-content-between mb-2 pb-1 border-bottom">
+          <span>Thu nhập tính thuế (sau giảm trừ):</span>
+          <strong>{res['taxable_income']:,.0f} VND</strong>
+        </div>
+        <div class="d-flex justify-content-between mb-2 pb-1 border-bottom">
+          <span>Bậc thuế lũy tiến cao nhất:</span>
+          <span class="badge bg-primary">Bậc {res['active_tier']} ({res['tax_rate'] * 100:.0f}%)</span>
+        </div>
+        <div class="d-flex justify-content-between text-danger fw-bold mb-2 pb-1 border-bottom">
+          <span>Thuế TNCN phải nộp:</span>
+          <span>{res['pit_tax']:,.0f} VND</span>
+        </div>
+        <div class="d-flex justify-content-between text-success fw-bold py-1 bg-white px-2 rounded border border-primary">
+          <span>THU NHẬP THỰC NHẬN (NET):</span>
+          <span>{res['net_income']:,.0f} VND</span>
+        </div>
+      </div>
+    </div>
+    <div class="mt-3 pt-2 border-top text-muted" style="font-size: 0.75rem;">
+      <i class="bi bi-book me-1"></i> <strong>Cơ sở pháp lý:</strong> {res['legal_reference']}
+    </div>
+  </div>
+</div>
+"""
+            res["html_output"] = html_output
+            res["tool_name"] = "PIT Calculator"
+            return res
+        except Exception as e:
+            print(f"Error executing PIT tool: {e}")
+            return None
+
     return None
+
 
 
 def generate_dynamic_suggestions(query: str, context: str, agent_name: str) -> list[str]:
@@ -591,6 +682,33 @@ def call_llm(settings, system_prompt, user_content, history=None):
         except Exception:
             api_key = api_key_cipher
 
+    # If provider key is empty, attempt to resolve from environment variables
+    if provider == "gemini" and not api_key:
+        api_key = os.environ.get("GEMINI_API_KEY", "")
+    elif provider == "openai" and not api_key:
+        api_key = os.environ.get("OPENAI_API_KEY", "")
+
+    # Auto-fallback check if Ollama endpoint is unreachable
+    if provider == "ollama":
+        endpoint = settings.get("ai_ollama_endpoint", "http://localhost:11434").rstrip("/")
+        try:
+            # Short timeout to detect offline Ollama
+            requests.get(endpoint, timeout=1.0)
+        except requests.RequestException:
+            # Ollama is offline. Try to fallback to Gemini first, then OpenAI
+            gemini_env_key = os.environ.get("GEMINI_API_KEY")
+            openai_env_key = os.environ.get("OPENAI_API_KEY")
+            if gemini_env_key:
+                provider = "gemini"
+                model_name = "gemini-2.5-flash"
+                api_key = gemini_env_key
+                print("⚠️ Ollama offline. Auto-falling back to Gemini.")
+            elif openai_env_key:
+                provider = "openai"
+                model_name = "gpt-4o-mini"
+                api_key = openai_env_key
+                print("⚠️ Ollama offline. Auto-falling back to OpenAI.")
+
     messages = [{"role": "system", "content": system_prompt}]
     if history:
         for msg in history:
@@ -611,7 +729,7 @@ def call_llm(settings, system_prompt, user_content, history=None):
         return resp.json().get("message", {}).get("content", "").strip()
 
     elif provider == "gemini":
-        m_name = model_name if model_name else "gemini-1.5-flash"
+        m_name = model_name if model_name and "gemini" in model_name else "gemini-2.5-flash"
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{m_name}:generateContent?key={api_key}"
         prompt_text = f"System Instruction:\n{system_prompt}\n\nUser Input:\n{user_content}"
         payload = {
@@ -678,3 +796,79 @@ def translate_text(text: str, target_lang: str) -> str:
     except Exception as e:
         # Fallback if LLM call fails (e.g. no internet or Ollama not running)
         return f"[Translation Error: {str(e)}] Bản dịch giả lập sang {lang_name} cho: {text[:100]}..."
+
+
+def clean_and_parse_json(text):
+    text = text.strip()
+    if not text:
+        return None
+        
+    # Strip markdown wrappers
+    if text.startswith("```"):
+        lines = text.splitlines()
+        if lines[0].startswith("```"):
+            lines = lines[1:]
+        if lines and lines[-1].startswith("```"):
+            lines = lines[:-1]
+        text = "\n".join(lines).strip()
+        
+    try:
+        return json.loads(text)
+    except Exception:
+        # Try finding JSON using regex
+        match = re.search(r'\{.*\}', text, re.DOTALL)
+        if match:
+            try:
+                return json.loads(match.group(0))
+            except Exception:
+                pass
+        return None
+
+
+def call_llm_with_debate(settings, system_prompt, user_content, history=None):
+    """Simulates an expert council debate between MoF Inspector and Independent Tax Auditor."""
+    json_instruction = (
+        "\n\nBẮT BUỘC TRẢ VỀ kết quả dưới dạng một chuỗi JSON hợp lệ duy nhất có cấu trúc sau (không kèm ký tự markdown như ```json hay bất kỳ văn bản thừa nào ngoài JSON):\n"
+        "{\n"
+        '  "debate": [\n'
+        '    {"speaker": "Thanh tra Bộ Tài chính", "text": "Ý kiến của Thanh tra từ khía cạnh tuân thủ luật pháp nghiêm ngặt, phòng tránh rủi ro vi phạm..."},\n'
+        '    {"speaker": "Kiểm toán viên độc lập", "text": "Ý kiến của Kiểm toán viên về tối ưu hóa lợi ích doanh nghiệp, chứng từ và thực tế kế toán..."}\n'
+        '  ],\n'
+        '  "consensus_summary": "Tóm tắt ngắn gọn điểm đồng thuận chính giữa 2 chuyên gia (1-2 câu)...",\n'
+        '  "response": "Câu trả lời chi tiết, chính xác và đầy đủ nhất dành cho người dùng về vấn đề này (kèm trích dẫn pháp lý chi tiết)..."\n'
+        "}"
+    )
+    
+    modified_system_prompt = system_prompt + json_instruction
+    
+    try:
+        raw_response = call_llm(settings, modified_system_prompt, user_content, history=history)
+        parsed = clean_and_parse_json(raw_response)
+        if parsed and isinstance(parsed, dict) and "response" in parsed:
+            return parsed
+    except Exception as e:
+        print(f"Error calling LLM with debate: {e}")
+
+    # Fallback if parsing or LLM fails
+    try:
+        # Attempt to get a normal response first
+        normal_response = call_llm(settings, system_prompt, user_content, history=history)
+    except Exception as e:
+        normal_response = f"Xin lỗi, tôi gặp lỗi kết nối với mô hình AI: {str(e)}"
+        
+    fallback_debate = [
+        {
+            "speaker": "Thanh tra Bộ Tài chính",
+            "text": f"Đối với câu hỏi về '{user_content[:60]}...', chúng tôi yêu cầu doanh nghiệp tuân thủ nghiêm ngặt các văn bản hướng dẫn và thông tư hiện hành."
+        },
+        {
+            "speaker": "Kiểm toán viên độc lập",
+            "text": "Từ góc độ thực tế kế toán, doanh nghiệp cần chuẩn bị đầy đủ chứng từ chứng minh tính hợp lý, hợp lệ của khoản chi để giải trình khi quyết toán."
+        }
+    ]
+    return {
+        "debate": fallback_debate,
+        "consensus_summary": "Doanh nghiệp cần kết hợp giữa việc tuân thủ các quy định pháp lý và hoàn thiện hồ sơ chứng từ thực tế.",
+        "response": normal_response
+    }
+

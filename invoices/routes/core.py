@@ -6279,6 +6279,237 @@ def api_harness_plugins_ponytail_audit():
     audit_results["score"] = max(10, audit_results["score"])
     return jsonify(audit_results)
 
+@invoices_blueprint.get("/api/harness/gkg/status")
+def api_harness_gkg_status():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+    
+    import subprocess
+    import json
+    try:
+        res = subprocess.run(
+            ["node", ".codex/khuym_status.mjs", "--json"],
+            capture_output=True,
+            text=True,
+            cwd="d:/LearnAnyThing/Webapp XML",
+            timeout=10
+        )
+        if res.returncode == 0:
+            status_data = json.loads(res.stdout)
+            return jsonify(status_data)
+        else:
+            return jsonify({"error": "Failed to run scout", "details": res.stderr}), 500
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@invoices_blueprint.post("/api/harness/gkg/index")
+def api_harness_gkg_index():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+    
+    import subprocess
+    try:
+        subprocess.Popen(
+            ["gkg", "index", "D:\\LearnAnyThing\\Webapp XML"],
+            cwd="d:/LearnAnyThing/Webapp XML",
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
+        )
+        return jsonify({"success": True, "message": "GKG indexing started in the background."})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@invoices_blueprint.get("/api/harness/codegraph/search")
+def api_harness_codegraph_search():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+        
+    query = request.args.get("query", "").strip()
+    if not query:
+        return jsonify([])
+        
+    import sqlite3
+    db_path = "d:/LearnAnyThing/Webapp XML/.codegraph/codegraph.db"
+    try:
+        conn = sqlite3.connect(db_path)
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        
+        like_query = f"%{query}%"
+        cur.execute(
+            """
+            SELECT id, kind, name, qualified_name, file_path, start_line, end_line, signature, docstring
+            FROM nodes 
+            WHERE name LIKE ? OR qualified_name LIKE ? OR file_path LIKE ?
+            LIMIT 50
+            """,
+            (like_query, like_query, like_query)
+        )
+        results = [dict(row) for row in cur.fetchall()]
+        return jsonify(results)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if 'conn' in locals() and conn:
+            conn.close()
+
+@invoices_blueprint.get("/api/harness/codegraph/node")
+def api_harness_codegraph_node():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+        
+    node_id = request.args.get("id", "").strip()
+    if not node_id:
+        return jsonify({"error": "Node ID is required"}), 400
+        
+    import sqlite3
+    db_path = "d:/LearnAnyThing/Webapp XML/.codegraph/codegraph.db"
+    try:
+        conn = sqlite3.connect(db_path)
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        
+        cur.execute(
+            "SELECT * FROM nodes WHERE id = ?", (node_id,)
+        )
+        node_row = cur.fetchone()
+        if not node_row:
+            return jsonify({"error": "Node not found"}), 404
+            
+        node_data = dict(node_row)
+        
+        cur.execute(
+            """
+            SELECT e.id, e.source, e.kind, n.name as source_name, n.kind as source_kind, n.file_path as source_file
+            FROM edges e
+            JOIN nodes n ON e.source = n.id
+            WHERE e.target = ?
+            """,
+            (node_id,)
+        )
+        incoming = [dict(row) for row in cur.fetchall()]
+        
+        cur.execute(
+            """
+            SELECT e.id, e.target, e.kind, n.name as target_name, n.kind as target_kind, n.file_path as target_file
+            FROM edges e
+            JOIN nodes n ON e.target = n.id
+            WHERE e.source = ?
+            """,
+            (node_id,)
+        )
+        outgoing = [dict(row) for row in cur.fetchall()]
+        
+        return jsonify({
+            "node": node_data,
+            "incoming": incoming,
+            "outgoing": outgoing
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if 'conn' in locals() and conn:
+            conn.close()
+
+@invoices_blueprint.get("/api/harness/codegraph/graph")
+def api_harness_codegraph_graph():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+        
+    node_id = request.args.get("id", "").strip()
+    depth = int(request.args.get("depth", 2))
+    if not node_id:
+        return jsonify({"nodes": [], "links": []})
+        
+    import sqlite3
+    db_path = "d:/LearnAnyThing/Webapp XML/.codegraph/codegraph.db"
+    try:
+        conn = sqlite3.connect(db_path)
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        
+        visited_nodes = {}
+        links = []
+        
+        queue = [(node_id, 0)]
+        
+        cur.execute("SELECT id, name, kind, file_path FROM nodes WHERE id = ?", (node_id,))
+        root_row = cur.fetchone()
+        if root_row:
+            visited_nodes[node_id] = dict(root_row)
+        else:
+            return jsonify({"nodes": [], "links": []})
+            
+        while queue:
+            curr_id, curr_depth = queue.pop(0)
+            if curr_depth >= depth:
+                continue
+                
+            cur.execute(
+                """
+                SELECT e.source, e.target, e.kind, n.name as target_name, n.kind as target_kind, n.file_path as target_file
+                FROM edges e
+                JOIN nodes n ON e.target = n.id
+                WHERE e.source = ?
+                """,
+                (curr_id,)
+            )
+            for row in cur.fetchall():
+                t_id = row["target"]
+                links.append({
+                    "source": row["source"],
+                    "target": t_id,
+                    "kind": row["kind"]
+                })
+                if t_id not in visited_nodes:
+                    visited_nodes[t_id] = {
+                        "id": t_id,
+                        "name": row["target_name"],
+                        "kind": row["target_kind"],
+                        "file_path": row["target_file"]
+                    }
+                    queue.append((t_id, curr_depth + 1))
+                    
+            cur.execute(
+                """
+                SELECT e.source, e.target, e.kind, n.name as source_name, n.kind as source_kind, n.file_path as source_file
+                FROM edges e
+                JOIN nodes n ON e.source = n.id
+                WHERE e.target = ?
+                """,
+                (curr_id,)
+            )
+            for row in cur.fetchall():
+                s_id = row["source"]
+                links.append({
+                    "source": s_id,
+                    "target": row["target"],
+                    "kind": row["kind"]
+                })
+                if s_id not in visited_nodes:
+                    visited_nodes[s_id] = {
+                        "id": s_id,
+                        "name": row["source_name"],
+                        "kind": row["source_kind"],
+                        "file_path": row["source_file"]
+                    }
+                    queue.append((s_id, curr_depth + 1))
+                    
+        return jsonify({
+            "nodes": list(visited_nodes.values()),
+            "links": links
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if 'conn' in locals() and conn:
+            conn.close()
+
 @invoices_blueprint.post("/api/bctc/compile")
 @roles_required("admin", "auditor")
 def api_bctc_compile():
@@ -6885,6 +7116,9 @@ def api_tax_chat():
     from datetime import datetime
     import uuid
     import os
+    import time
+    
+    start_time = time.perf_counter()
     
     try:
         # Resolve session context
@@ -6910,7 +7144,16 @@ def api_tax_chat():
             # Query and format history
             past_messages = TaxChatMessage.query.filter_by(session_id=session_id).order_by(TaxChatMessage.id.asc()).all()
             for msg in past_messages[-10:]:
-                history_msgs.append({"role": msg.role, "content": msg.content})
+                content_text = msg.content
+                if content_text and content_text.startswith('{'):
+                    try:
+                        import json
+                        parsed_json = json.loads(content_text)
+                        if isinstance(parsed_json, dict) and "response" in parsed_json:
+                            content_text = parsed_json["response"]
+                    except Exception:
+                        pass
+                history_msgs.append({"role": msg.role, "content": content_text})
 
         # Save user message
         user_msg_db = TaxChatMessage(
@@ -6958,13 +7201,31 @@ def api_tax_chat():
             "Nếu người dùng hỏi thông tin không liên quan đến hóa đơn thuế/kế toán doanh nghiệp, hãy phản hồi lịch sự rằng bạn chỉ hỗ trợ tư vấn thuế doanh nghiệp."
         )
         
-        response = call_llm(settings, system_prompt, user_message, history=history_msgs)
+        # We simulate the debate if it's a tax question
+        is_complex = agent_name != "Cố vấn Thuế Tổng hợp (General Tax Advisor)" or any(
+            w in user_message.lower() for w in ["thuế", "hóa đơn", "phạt", "tính", "luật", "thông tư", "nghị định", "doanh nghiệp", "chi phí", "khấu trừ", "hoàn thuế"]
+        )
         
+        debate = []
+        consensus_summary = ""
+        
+        if is_complex:
+            from invoices.tax_advisor_service import call_llm_with_debate
+            debate_result = call_llm_with_debate(settings, system_prompt, user_message, history=history_msgs)
+            response = debate_result["response"]
+            debate = debate_result["debate"]
+            consensus_summary = debate_result["consensus_summary"]
+            import json
+            db_content = json.dumps(debate_result, ensure_ascii=False)
+        else:
+            response = call_llm(settings, system_prompt, user_message, history=history_msgs)
+            db_content = response
+            
         # Save assistant message
         asst_msg_db = TaxChatMessage(
             session_id=session_id,
             role="assistant",
-            content=response,
+            content=db_content,
             created_at=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             agent_name=agent_name
         )
@@ -6984,14 +7245,30 @@ def api_tax_chat():
             
         # Generate 3 dynamic follow-up suggestions
         suggestions = generate_dynamic_suggestions(user_message, rag_context, agent_name)
+        
+        # Calculate session metrics
+        latency_ms = int((time.perf_counter() - start_time) * 1000)
+        token_count = (len(system_prompt) + len(user_message) + len(response)) // 4
+        rag_chunks_count = len(citations)
             
         return jsonify({
             "response": response,
+            "debate": debate,
+            "consensus_summary": consensus_summary,
             "citations": web_citations,
             "agent_name": agent_name,
             "session_id": session_id,
             "tool_result": tool_result,
-            "suggestions": suggestions
+            "suggestions": suggestions,
+            "metrics": {
+                "model": agent_name,
+                "model_name": agent_name,
+                "latency_ms": latency_ms,
+                "tokens": token_count,
+                "token_count": token_count,
+                "rag_count": rag_chunks_count,
+                "rag_chunks_count": rag_chunks_count
+            }
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500

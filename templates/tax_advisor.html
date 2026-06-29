@@ -10,6 +10,127 @@
         --glass-border: rgba(229, 231, 235, 0.5);
     }
 
+    /* Glassmorphic Metrics Status Bar */
+    .metrics-status-bar {
+        background: rgba(255, 255, 255, 0.45);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(229, 231, 235, 0.5);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+        font-size: 0.8rem;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        z-index: 10;
+    }
+    
+    [data-theme="dark"] .metrics-status-bar {
+        background: rgba(20, 24, 15, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    .metric-item {
+        color: var(--text-secondary);
+    }
+    
+    .metric-divider {
+        width: 1px;
+        height: 16px;
+        background: var(--border-card);
+        align-self: center;
+    }
+    
+    /* Custom agent badges with rich gradients */
+    .agent-badge-vat {
+        background: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%) !important;
+        color: #ffffff !important;
+        box-shadow: 0 2px 6px rgba(126, 34, 206, 0.2);
+    }
+    
+    .agent-badge-cit {
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+        color: #ffffff !important;
+        box-shadow: 0 2px 6px rgba(29, 78, 216, 0.2);
+    }
+    
+    .agent-badge-pit {
+        background: linear-gradient(135deg, #10b981 0%, #047857 100%) !important;
+        color: #ffffff !important;
+        box-shadow: 0 2px 6px rgba(4, 120, 87, 0.2);
+    }
+    
+    .agent-badge-fct {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+        color: #ffffff !important;
+        box-shadow: 0 2px 6px rgba(217, 119, 6, 0.2);
+    }
+    
+    .agent-badge-tp {
+        background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%) !important;
+        color: #ffffff !important;
+        box-shadow: 0 2px 6px rgba(67, 56, 202, 0.2);
+    }
+    
+    .agent-badge-penalties {
+        background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%) !important;
+        color: #ffffff !important;
+        box-shadow: 0 2px 6px rgba(185, 28, 28, 0.2);
+    }
+    
+    .agent-badge-default {
+        background: linear-gradient(135deg, var(--primary-accent) 0%, var(--primary-accent-hover) 100%) !important;
+        color: #ffffff !important;
+        box-shadow: 0 2px 6px rgba(22, 51, 0, 0.15);
+    }
+
+    /* Calculator card styling overrides for sleek, premium feel */
+    .tool-calc-card {
+        border-radius: 12px !important;
+        overflow: hidden;
+        border: 1px solid var(--border-card) !important;
+        background: var(--bg-card) !important;
+        box-shadow: var(--shadow-premium) !important;
+        color: var(--text-primary) !important;
+    }
+    
+    .tool-calc-card .card-header {
+        background: var(--primary-accent) !important;
+        border-bottom: 0 !important;
+    }
+    
+    .tool-calc-card .card-body {
+        background: var(--bg-card) !important;
+        color: var(--text-primary) !important;
+    }
+    
+    .tool-calc-card .border-end {
+        border-color: var(--border-card) !important;
+    }
+    
+    .tool-calc-card .border-top {
+        border-color: var(--border-card) !important;
+    }
+    
+    .tool-calc-card .border-bottom {
+        border-color: var(--border-card) !important;
+    }
+    
+    .tool-calc-card .bg-white {
+        background: rgba(var(--bg-app-rgb), 0.5) !important;
+        border-color: var(--border-card) !important;
+        color: var(--text-primary) !important;
+    }
+
+    @media (max-width: 576px) {
+        .metric-divider {
+            display: none;
+        }
+        .metrics-status-bar {
+            flex-direction: column;
+            align-items: flex-start !important;
+            gap: 6px !important;
+        }
+    }
+
     /* Override layout to fit Wise Fintech style */
     .chat-container {
         height: 60vh;
@@ -282,6 +403,143 @@
         #printArea th {
             background-color: #f3f4f6 !important;
         }
+        .debate-timeline {
+            border-left: 2px dashed #000000 !important;
+            padding-left: 20px !important;
+        }
+        .debate-speech-bubble {
+            background: #ffffff !important;
+            border: 1px solid #000000 !important;
+            color: #000000 !important;
+            box-shadow: none !important;
+        }
+        .consensus-card {
+            background: #ffffff !important;
+            border: 2px solid #000000 !important;
+            color: #000000 !important;
+            box-shadow: none !important;
+        }
+        .consensus-title {
+            color: #000000 !important;
+        }
+    }
+
+    /* Multi-Agent Debate Styles */
+    .debate-timeline {
+        position: relative;
+        padding-left: 32px;
+        margin: 20px 0;
+        border-left: 2px dashed var(--border-card);
+    }
+    
+    .debate-item {
+        position: relative;
+        margin-bottom: 24px;
+        animation: fadeInUp 0.4s ease-out forwards;
+    }
+    
+    .debate-item::before {
+        content: '';
+        position: absolute;
+        left: -38px;
+        top: 4px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--border-card);
+        border: 2px solid var(--bg-card);
+        transition: all 0.3s ease;
+    }
+    
+    .debate-item.inspector::before {
+        background: #ef4444;
+        box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.15);
+    }
+    
+    .debate-item.auditor::before {
+        background: #3b82f6;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+    }
+    
+    .debate-speaker-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 6px;
+    }
+    
+    .debate-speaker-name {
+        font-weight: 700;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .debate-item.inspector .debate-speaker-name {
+        color: #ef4444;
+    }
+    
+    .debate-item.auditor .debate-speaker-name {
+        color: #3b82f6;
+    }
+    
+    .debate-speaker-role {
+        font-size: 0.75rem;
+        padding: 2px 8px;
+        border-radius: 9999px;
+        font-weight: 600;
+    }
+    
+    .debate-item.inspector .debate-speaker-role {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+        border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+    
+    .debate-item.auditor .debate-speaker-role {
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+        border: 1px solid rgba(59, 130, 246, 0.2);
+    }
+    
+    .debate-speech-bubble {
+        background: rgba(var(--bg-app-rgb), 0.45);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1px solid var(--border-card);
+        border-radius: 12px;
+        padding: 12px 16px;
+        font-size: 0.9rem;
+        color: var(--text-primary);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.01);
+        position: relative;
+    }
+    
+    .consensus-card {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(4, 120, 87, 0.04) 100%);
+        border: 1px solid rgba(16, 185, 129, 0.25);
+        border-radius: 14px;
+        padding: 16px;
+        margin: 20px 0;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.05);
+    }
+    
+    .consensus-title {
+        font-weight: 700;
+        font-size: 0.9rem;
+        color: #10b981;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .consensus-body {
+        font-size: 0.9rem;
+        color: var(--text-primary);
+        line-height: 1.5;
     }
 </style>
 
@@ -366,6 +624,33 @@
                 </div>
                 
                 <div class="card-body p-4 d-flex flex-column justify-content-between flex-grow-1 overflow-hidden">
+                    <!-- Dynamic Metrics Status Bar (Wise Style Glassmorphism) -->
+                    <div id="metricsStatusBar" class="metrics-status-bar d-flex flex-wrap align-items-center gap-3 px-3 py-2 mb-3 rounded-3 d-none">
+                        <div class="metric-item d-flex align-items-center">
+                            <i class="bi bi-cpu me-2 text-primary"></i>
+                            <span>Specialist: </span>
+                            <strong class="ms-1 text-primary" id="metricModelName">-</strong>
+                        </div>
+                        <div class="metric-divider"></div>
+                        <div class="metric-item d-flex align-items-center">
+                            <i class="bi bi-lightning-charge me-2 text-warning"></i>
+                            <span>Latency: </span>
+                            <strong class="ms-1 text-warning" id="metricLatency">- ms</strong>
+                        </div>
+                        <div class="metric-divider"></div>
+                        <div class="metric-item d-flex align-items-center">
+                            <i class="bi bi-ticket-detailed me-2 text-success"></i>
+                            <span>Tokens: </span>
+                            <strong class="ms-1 text-success" id="metricTokens">-</strong>
+                        </div>
+                        <div class="metric-divider"></div>
+                        <div class="metric-item d-flex align-items-center">
+                            <i class="bi bi-layers me-2 text-info"></i>
+                            <span>RAG Sources: </span>
+                            <strong class="ms-1 text-info" id="metricRagCount">- chunks</strong>
+                        </div>
+                    </div>
+                    
                     <!-- Chat Container -->
                     <div id="chatBox" class="chat-container d-flex flex-column p-3 mb-3 flex-grow-1">
                         <!-- Welcome message -->
@@ -633,6 +918,9 @@
     async function selectSession(sessionId) {
         currentSessionId = sessionId;
         
+        // Hide metrics status bar since historic messages don't have current latency/token data
+        document.getElementById("metricsStatusBar").classList.add("d-none");
+        
         // Highlight active session in sidebar
         const items = document.querySelectorAll(".session-item");
         items.forEach(item => {
@@ -725,6 +1013,9 @@
         currentSessionId = null;
         document.getElementById("activeSessionTitle").innerText = "Cuộc thảo luận mới";
         document.getElementById("btnExportChat").disabled = true;
+        
+        // Hide metrics status bar for new clean session
+        document.getElementById("metricsStatusBar").classList.add("d-none");
 
         const items = document.querySelectorAll(".session-item");
         items.forEach(item => item.classList.remove("active"));
@@ -801,6 +1092,18 @@
         }
     }
 
+    function getAgentBadgeClass(agentName) {
+        if (!agentName) return 'agent-badge-default';
+        const name = agentName.toLowerCase();
+        if (name.includes('gtgt') || name.includes('vat')) return 'agent-badge-vat';
+        if (name.includes('tndn') || name.includes('cit')) return 'agent-badge-cit';
+        if (name.includes('tncn') || name.includes('pit')) return 'agent-badge-pit';
+        if (name.includes('nhà thầu') || name.includes('fct') || name.includes('contractor')) return 'agent-badge-fct';
+        if (name.includes('chuyển giá') || name.includes('transfer pricing') || name.includes('tp')) return 'agent-badge-tp';
+        if (name.includes('xử phạt') || name.includes('phạt') || name.includes('penalty')) return 'agent-badge-penalties';
+        return 'agent-badge-default';
+    }
+
     // Helper to append bubble to DOM
     function appendMessageToDOM(role, content, agentName, toolResult) {
         const chatBox = document.getElementById("chatBox");
@@ -815,10 +1118,9 @@
             aiBubble.className = "chat-bubble chat-bubble-ai align-self-start shadow-sm position-relative pt-4 w-100";
             
             const agentBadge = document.createElement("span");
-            agentBadge.className = "badge position-absolute top-0 start-0 m-2";
+            const badgeClass = getAgentBadgeClass(agentName);
+            agentBadge.className = `badge position-absolute top-0 start-0 m-2 ${badgeClass}`;
             agentBadge.style.fontSize = "0.75rem";
-            agentBadge.style.background = "linear-gradient(135deg, var(--primary-accent) 0%, var(--primary-accent-hover) 100%)";
-            agentBadge.style.color = "#ffffff";
             agentBadge.innerHTML = `<i class="bi bi-person-fill-check me-1" aria-hidden="true"></i> ${agentName || 'Cố vấn Thuế AI'}`;
             aiBubble.appendChild(agentBadge);
 
@@ -833,7 +1135,76 @@
             const contentDiv = document.createElement("div");
             contentDiv.className = "ai-content-div";
             contentDiv.style.marginTop = "8px";
-            contentDiv.innerHTML = marked.parse(content);
+            
+            let parsedContent = null;
+            if (content && content.trim().startsWith("{")) {
+                try {
+                    parsedContent = JSON.parse(content);
+                } catch (e) {
+                    console.error("Lỗi giải mã nội dung JSON:", e);
+                }
+            }
+
+            if (parsedContent && parsedContent.response) {
+                let html = "";
+                
+                // 1. Render Debate Timeline
+                if (parsedContent.debate && parsedContent.debate.length > 0) {
+                    html += `
+                        <div class="mb-3 small text-muted fw-semibold">
+                            <i class="bi bi-people-fill text-primary me-1" aria-hidden="true"></i> MÔ PHỎNG TRANH LUẬN HỘI ĐỒNG TÁC TỬ AI:
+                        </div>
+                        <div class="debate-timeline">
+                    `;
+                    parsedContent.debate.forEach(step => {
+                        const isInspector = step.speaker.includes("Thanh tra");
+                        const speakerClass = isInspector ? "inspector" : "auditor";
+                        const speakerRole = isInspector ? "Ủy viên Bộ Tài chính" : "Kiểm toán viên độc lập";
+                        html += `
+                            <div class="debate-item ${speakerClass}">
+                                <div class="debate-speaker-header">
+                                    <span class="debate-speaker-name">${step.speaker}</span>
+                                    <span class="debate-speaker-role">${speakerRole}</span>
+                                </div>
+                                <div class="debate-speech-bubble shadow-sm">
+                                    ${step.argument}
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += `</div>`;
+                }
+
+                // 2. Render Consensus Summary
+                if (parsedContent.consensus_summary) {
+                    html += `
+                        <div class="consensus-card">
+                            <div class="consensus-title">
+                                <i class="bi bi-shield-check-fill" aria-hidden="true"></i> Kết luận Đồng thuận
+                            </div>
+                            <div class="consensus-body">
+                                ${parsedContent.consensus_summary}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // 3. Render Final Response
+                html += `
+                    <div class="mt-3 pt-3 border-top border-light-subtle">
+                        <h6 class="fw-bold text-success mb-2">
+                            <i class="bi bi-bookmark-star-fill me-1" aria-hidden="true"></i> Giải pháp đề xuất từ Cố vấn Thuế:
+                        </h6>
+                        <div class="final-response-body">
+                            ${marked.parse(parsedContent.response)}
+                        </div>
+                    </div>
+                `;
+                
+                contentDiv.innerHTML = html;
+            } else {
+                contentDiv.innerHTML = marked.parse(content);
+            }
             aiBubble.appendChild(contentDiv);
 
             // HAT AI Translation Toolbar
@@ -939,7 +1310,21 @@
                 }
 
                 // Append assistant bubble
-                appendMessageToDOM("assistant", data.response, data.agent_name, data.tool_result);
+                const asstContent = (data.debate && data.debate.length > 0) ? JSON.stringify({
+                    response: data.response,
+                    debate: data.debate,
+                    consensus_summary: data.consensus_summary
+                }) : data.response;
+                appendMessageToDOM("assistant", asstContent, data.agent_name, data.tool_result);
+                
+                // Update metrics status bar
+                if (data.metrics) {
+                    document.getElementById("metricModelName").innerText = data.agent_name || "Cố vấn Thuế AI";
+                    document.getElementById("metricLatency").innerText = data.metrics.latency_ms + " ms";
+                    document.getElementById("metricTokens").innerText = data.metrics.token_count + " tokens";
+                    document.getElementById("metricRagCount").innerText = data.metrics.rag_chunks_count + " chunks";
+                    document.getElementById("metricsStatusBar").classList.remove("d-none");
+                }
                 
                 // Render Citations Panel
                 renderCitations(data.citations);
