@@ -1,11 +1,41 @@
 import csv
 import io
 import uuid
+import difflib
 from datetime import datetime
 from typing import List, Dict
 
 from extensions import db
 from invoices.models import Invoice, BankTransaction, AIAuditResult
+
+def clean_text(text: str) -> str:
+    if not text:
+        return ""
+    text = text.lower()
+    suffixes = [
+        "công ty", "cong ty", "tnhh", "cổ phần", "co phan", "cp", 
+        "một thành viên", "1 thành viên", "1 tv", "mtv", "group", "jsc",
+        "trách nhiệm hữu hạn", "trach nhiem huu han"
+    ]
+    for s in suffixes:
+        text = text.replace(s, "")
+    # Remove non-alphanumeric chars but keep spaces
+    text = "".join(c if c.isalnum() or c.isspace() else " " for c in text)
+    return " ".join(text.split())
+
+def calculate_fuzzy_score(name1: str, name2: str) -> float:
+    c1 = clean_text(name1)
+    c2 = clean_text(name2)
+    if not c1 or not c2:
+        return 0.0
+    tokens1 = set(c1.split())
+    tokens2 = set(c2.split())
+    if not tokens1 or not tokens2:
+        return 0.0
+    intersection = tokens1.intersection(tokens2)
+    intersection_ratio = len(intersection) / max(len(tokens1), len(tokens2))
+    seq_ratio = difflib.SequenceMatcher(None, c1, c2).ratio()
+    return 0.4 * intersection_ratio + 0.6 * seq_ratio
 
 class ReconciliationEngine:
     """Engine to process bank statements and match them to invoices."""
@@ -53,35 +83,43 @@ class ReconciliationEngine:
             matched_invoice_id=None
         ).all()
         
-        # Find all purchase invoices that are not yet matched
+        # Find all purchase invoices
         purchase_invoices = Invoice.query.filter(
             Invoice.taxpayer_mst == taxpayer_mst,
             Invoice.invoice_type == "purchase"
         ).all()
         
-        matched_count = 0
-        
         # Helper to parse date
         def parse_date(d_str):
             if not d_str:
                 return None
-            for fmt in ("%Y-%m-%d", "%d/%m/%Y", "%Y/%m/%d", "%d-%m-%Y"):
+            for fmt in ("%Y-%m-%d", "%d/%m/%Y", "%Y/%m/%d", "%d-%m-%Y", "%Y-%m-%dT%H:%M:%S"):
                 try:
                     return datetime.strptime(d_str.strip()[:10], fmt)
                 except ValueError:
                     continue
             return None
 
-        for inv in purchase_invoices:
-            # Check if this invoice is already matched
-            existing_match = BankTransaction.query.filter_by(matched_invoice_id=inv.id).first()
-            if existing_match:
-                continue
-                
+        # Build list of currently matched invoice IDs
+        matched_invoice_ids = {
+            t.matched_invoice_id for t in BankTransaction.query.filter(
+                BankTransaction.taxpayer_mst == taxpayer_mst,
+                BankTransaction.matched_invoice_id != None
+            ).all()
+        }
+        
+        unmatched_invoices = [
+            inv for inv in purchase_invoices if inv.id not in matched_invoice_ids
+        ]
+        
+        matched_count = 0
+
+        # --- PASS 1: Exact / Best 1-to-1 Matching ---
+        # For each unmatched invoice, find the best matching unmatched transaction
+        for inv in list(unmatched_invoices):
+            inv_date = parse_date(inv.date)
             best_match = None
             best_score = 0.0
-            
-            inv_date = parse_date(inv.date)
             
             for txn in unmatched_txns:
                 if txn.matched_invoice_id:
@@ -89,14 +127,14 @@ class ReconciliationEngine:
                     
                 score = 0.0
                 
-                # Rule 1: Amount match
+                # Rule 1: Amount match (within 1 VND)
                 diff_amount = abs(txn.amount - inv.total_amount)
                 if diff_amount < 1.0:
                     score += 0.5
                 elif diff_amount < 100.0:
                     score += 0.4
                     
-                # Rule 2: Date proximity check (Vietnamese invoice date vs transfer date)
+                # Rule 2: Date proximity check
                 txn_date = parse_date(txn.transaction_date)
                 if inv_date and txn_date:
                     days_diff = abs((txn_date - inv_date).days)
@@ -107,15 +145,17 @@ class ReconciliationEngine:
                 
                 # Rule 3: Seller MST / Seller Name fuzzy matching
                 desc_lower = txn.description.lower()
-                if inv.seller_mst and inv.seller_mst in txn.description:
+                if inv.seller_mst and inv.seller_mst in desc_lower:
                     score += 0.3
                     
                 if inv.number and inv.number.lower() in desc_lower:
                     score += 0.2
                     
                 if inv.seller_name:
-                    seller_name_clean = inv.seller_name.lower().replace("công ty", "").replace("tnhh", "").strip()
-                    if seller_name_clean and seller_name_clean in desc_lower:
+                    fuzzy_score = calculate_fuzzy_score(inv.seller_name, txn.description)
+                    if fuzzy_score > 0.6:
+                        score += 0.2
+                    elif fuzzy_score > 0.3:
                         score += 0.1
                         
                 # Match threshold
@@ -129,7 +169,146 @@ class ReconciliationEngine:
                 best_match.status = "matched"
                 db.session.add(best_match)
                 matched_count += 1
+                unmatched_invoices.remove(inv)
+
+        # --- PASS 2: Many-to-1 Matching (Multiple Transactions -> One Invoice) ---
+        # Find a combination of 2 or 3 unmatched transactions that sum exactly to the invoice amount
+        for inv in list(unmatched_invoices):
+            inv_date = parse_date(inv.date)
+            candidates = []
+            for t in unmatched_txns:
+                if t.matched_invoice_id:
+                    continue
+                t_date = parse_date(t.transaction_date)
+                if inv_date and t_date:
+                    days_diff = (t_date - inv_date).days
+                    if -5 <= days_diff <= 45:
+                        candidates.append(t)
+            
+            found_combination = None
+            n_cand = len(candidates)
+            for i in range(n_cand):
+                if found_combination:
+                    break
+                for j in range(i + 1, n_cand):
+                    t1, t2 = candidates[i], candidates[j]
+                    if abs((t1.amount + t2.amount) - inv.total_amount) < 2.0:
+                        desc_text = (t1.description + " " + t2.description).lower()
+                        has_ref = (
+                            (inv.number and inv.number.lower() in desc_text) or
+                            (inv.seller_mst and inv.seller_mst in desc_text) or
+                            (inv.seller_name and calculate_fuzzy_score(inv.seller_name, desc_text) > 0.4)
+                        )
+                        if has_ref:
+                            found_combination = [t1, t2]
+                            break
+            
+            if not found_combination:
+                for i in range(n_cand):
+                    if found_combination:
+                        break
+                    for j in range(i + 1, n_cand):
+                        if found_combination:
+                            break
+                        for k in range(j + 1, n_cand):
+                            t1, t2, t3 = candidates[i], candidates[j], candidates[k]
+                            if abs((t1.amount + t2.amount + t3.amount) - inv.total_amount) < 2.0:
+                                desc_text = (t1.description + " " + t2.description + " " + t3.description).lower()
+                                has_ref = (
+                                    (inv.number and inv.number.lower() in desc_text) or
+                                    (inv.seller_mst and inv.seller_mst in desc_text) or
+                                    (inv.seller_name and calculate_fuzzy_score(inv.seller_name, desc_text) > 0.4)
+                                )
+                                if has_ref:
+                                    found_combination = [t1, t2, t3]
+                                    break
+            
+            if found_combination:
+                for t in found_combination:
+                    t.matched_invoice_id = inv.id
+                    t.confidence_score = 0.75
+                    t.status = "matched"
+                    db.session.add(t)
+                    matched_count += 1
+                unmatched_invoices.remove(inv)
+
+        # --- PASS 3: 1-to-Many Matching (One Transaction -> Multiple Invoices) ---
+        # Find a combination of unmatched invoices that sum exactly to a single unmatched transaction
+        invoices_by_seller = {}
+        for inv in unmatched_invoices:
+            seller = inv.seller_mst or inv.seller_name
+            if seller:
+                invoices_by_seller.setdefault(seller, []).append(inv)
+
+        for txn in unmatched_txns:
+            if txn.matched_invoice_id:
+                continue
+            
+            found_split = None
+            for seller, invs in invoices_by_seller.items():
+                if found_split:
+                    break
+                if len(invs) < 2:
+                    continue
                 
+                n_invs = len(invs)
+                for i in range(n_invs):
+                    if found_split:
+                        break
+                    for j in range(i + 1, n_invs):
+                        i1, i2 = invs[i], invs[j]
+                        if abs((i1.total_amount + i2.total_amount) - txn.amount) < 2.0:
+                            found_split = [i1, i2]
+                            break
+                
+                if not found_split:
+                    for i in range(n_invs):
+                        if found_split:
+                            break
+                        for j in range(i + 1, n_invs):
+                            if found_split:
+                                break
+                            for k in range(j + 1, n_invs):
+                                i1, i2, i3 = invs[i], invs[j], invs[k]
+                                if abs((i1.total_amount + i2.total_amount + i3.total_amount) - txn.amount) < 2.0:
+                                    found_split = [i1, i2, i3]
+                                    break
+
+            if found_split:
+                # Split the transaction
+                first_inv = found_split[0]
+                txn.amount = first_inv.total_amount
+                txn.matched_invoice_id = first_inv.id
+                txn.confidence_score = 0.8
+                txn.status = "matched"
+                db.session.add(txn)
+                matched_count += 1
+                
+                for other_inv in found_split[1:]:
+                    new_txn = BankTransaction(
+                        id=str(uuid.uuid4()),
+                        taxpayer_mst=txn.taxpayer_mst,
+                        bank_name=txn.bank_name,
+                        account_number=txn.account_number,
+                        transaction_date=txn.transaction_date,
+                        reference_number=txn.reference_number,
+                        description=f"{txn.description} (Tách đối chiếu)",
+                        amount=other_inv.total_amount,
+                        status="matched",
+                        matched_invoice_id=other_inv.id,
+                        confidence_score=0.8,
+                        imported_at=txn.imported_at
+                    )
+                    db.session.add(new_txn)
+                    matched_count += 1
+                
+                for inv in found_split:
+                    if inv in unmatched_invoices:
+                        unmatched_invoices.remove(inv)
+                    seller = inv.seller_mst or inv.seller_name
+                    if seller in invoices_by_seller and inv in invoices_by_seller[seller]:
+                        invoices_by_seller[seller].remove(inv)
+
         db.session.commit()
         
         # Identify purchase invoices over 20M without bank transfer matches
@@ -139,7 +318,6 @@ class ReconciliationEngine:
         for inv in high_value_invoices:
             match = BankTransaction.query.filter_by(matched_invoice_id=inv.id).first()
             if not match:
-                # Flag as cash payment risk
                 warning = AIAuditResult.query.filter_by(
                     invoice_id=inv.id, 
                     warning_type="cash_payment_risk"
@@ -162,3 +340,4 @@ class ReconciliationEngine:
             "matches_found": matched_count,
             "invoices_flagged_risk": flagged_count
         }
+

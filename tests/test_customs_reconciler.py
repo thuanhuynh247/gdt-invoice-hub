@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 from extensions import db
-from invoices.models import CustomsDeclaration, Invoice
+from invoices.models import CustomsDeclaration, Invoice, AIAuditResult
 from invoices.customs_service import parse_customs_xml, CustomsReconciliationEngine
 
 TEST_CUSTOMS_XML = """<?xml version="1.0" encoding="UTF-8"?>
@@ -82,3 +82,8 @@ def test_customs_reconciliation_exact_and_discrepancy(app):
         assert res3["discrepancies"] == 1
         assert decl.status == "variance_exceeded"
         assert "Chênh lệch thuế GTGT nhập khẩu" in decl.variance_notes
+
+        # Verify that AIAuditResult has been created for the tax variance
+        audit_res = AIAuditResult.query.filter_by(invoice_id=inv.id, warning_type="customs_tax_variance").first()
+        assert audit_res is not None
+        assert "Chênh lệch thuế GTGT nhập khẩu trên tờ khai" in audit_res.explanation

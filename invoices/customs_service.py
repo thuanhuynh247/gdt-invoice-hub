@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import json
 import xml.etree.ElementTree as ET
+from datetime import datetime
 from extensions import db
-from invoices.models import CustomsDeclaration, Invoice
+from invoices.models import CustomsDeclaration, Invoice, AIAuditResult
 
 
 def parse_customs_xml(xml_bytes: bytes) -> dict:
@@ -245,6 +246,61 @@ class CustomsReconciliationEngine:
                 all_notes.append("⚠️ Cảnh báo thuế suất: " + " | ".join(duty_warnings))
 
             decl.variance_notes = " \n".join(all_notes)
+
+            # Write to AIAuditResult if matched_inv is found
+            if matched_inv:
+                if decl.status == "variance_exceeded":
+                    w_type = "customs_tax_variance"
+                    explanation = (
+                        f"Chênh lệch thuế GTGT nhập khẩu trên tờ khai {decl.declaration_number}: "
+                        f"Hải quan = {decl.import_vat_vnd:,.0f} VND, "
+                        f"Hóa đơn = {matched_inv.tax_amount:,.0f} VND. "
+                        f"Lệch = {matched_inv.tax_amount - decl.import_vat_vnd:,.0f} VND."
+                    )
+                    existing = AIAuditResult.query.filter_by(invoice_id=matched_inv.id, warning_type=w_type).first()
+                    if not existing:
+                        db.session.add(AIAuditResult(
+                            invoice_id=matched_inv.id,
+                            warning_type=w_type,
+                            explanation=explanation,
+                            created_at=datetime.now().isoformat()
+                        ))
+
+                if rate_warnings:
+                    w_type = "customs_rate_variance"
+                    explanation = f"Bất thường tỷ giá trên tờ khai {decl.declaration_number}: " + " | ".join(rate_warnings)
+                    existing = AIAuditResult.query.filter_by(invoice_id=matched_inv.id, warning_type=w_type).first()
+                    if not existing:
+                        db.session.add(AIAuditResult(
+                            invoice_id=matched_inv.id,
+                            warning_type=w_type,
+                            explanation=explanation,
+                            created_at=datetime.now().isoformat()
+                        ))
+
+                if hs_warnings:
+                    w_type = "customs_hs_risk"
+                    explanation = f"Mã HS rủi ro cao trên tờ khai {decl.declaration_number}: " + " | ".join(hs_warnings)
+                    existing = AIAuditResult.query.filter_by(invoice_id=matched_inv.id, warning_type=w_type).first()
+                    if not existing:
+                        db.session.add(AIAuditResult(
+                            invoice_id=matched_inv.id,
+                            warning_type=w_type,
+                            explanation=explanation,
+                            created_at=datetime.now().isoformat()
+                        ))
+
+                if duty_warnings:
+                    w_type = "customs_duty_risk"
+                    explanation = f"Cảnh báo thuế suất nhập khẩu trên tờ khai {decl.declaration_number}: " + " | ".join(duty_warnings)
+                    existing = AIAuditResult.query.filter_by(invoice_id=matched_inv.id, warning_type=w_type).first()
+                    if not existing:
+                        db.session.add(AIAuditResult(
+                            invoice_id=matched_inv.id,
+                            warning_type=w_type,
+                            explanation=explanation,
+                            created_at=datetime.now().isoformat()
+                        ))
 
         db.session.commit()
         return results

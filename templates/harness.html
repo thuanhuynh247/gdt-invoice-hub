@@ -89,6 +89,9 @@
                 <button class="nav-link" id="traces-tab" data-bs-toggle="pill" data-bs-target="#tab-traces" type="button" role="tab"><i class="bi bi-database-fill me-1" aria-hidden="true"></i> DB & Telemetry</button>
             </li>
             <li class="nav-item" role="presentation">
+                <button class="nav-link" id="codegraph-tab" data-bs-toggle="pill" data-bs-target="#tab-codegraph" type="button" role="tab" onclick="onCodeGraphTabActive()"><i class="bi bi-diagram-3-fill me-1" aria-hidden="true"></i> CodeGraph Explorer</button>
+            </li>
+            <li class="nav-item" role="presentation">
                 <button class="nav-link" id="plugins-tab" data-bs-toggle="pill" data-bs-target="#tab-plugins" type="button" role="tab" onclick="onPluginsTabActive()"><i class="bi bi-puzzle-fill me-1" aria-hidden="true"></i> Antigravity Plugins</button>
             </li>
         </ul>
@@ -358,6 +361,16 @@
                     <div class="row g-2" id="dbTablesRow"></div>
                 </div>
 
+                <!-- Interactive Timeline Card -->
+                <div class="glass-card mb-4 border-primary-subtle" style="border: 1px solid rgba(13, 110, 253, 0.25);">
+                    <h3 class="h5 mb-3 fw-bold text-gradient-primary"><i class="bi bi-clock-history me-2 text-primary-accent" aria-hidden="true"></i>Execution Trace Timeline</h3>
+                    <p class="text-secondary small mb-4">A visual timeline of the latest autonomous agent runs, validation runs, and system trace logs. Click a trace node to expand detailed files read/written, actions taken, and outcomes.</p>
+                    
+                    <div class="trace-timeline-container" id="traceTimeline">
+                        <div class="text-center text-secondary py-3 small">Loading timeline...</div>
+                    </div>
+                </div>
+
                 <div class="glass-card mb-4">
                     <h3 class="h5 mb-4 fw-bold border-bottom pb-3"><i class="bi bi-hdd-stack me-2 text-primary-accent" aria-hidden="true"></i>Execution Traces</h3>
                     <div class="table-responsive">
@@ -379,7 +392,119 @@
                 </div>
             </div>
 
-            <!-- 6. Antigravity Plugins Tab -->
+            <!-- 6. CodeGraph Explorer Tab -->
+            <div class="tab-pane fade" id="tab-codegraph" role="tabpanel">
+                <!-- GKG Status Card -->
+                <div class="glass-card mb-4 border-info-subtle" style="border: 1px solid rgba(0, 242, 254, 0.25);">
+                    <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                        <h3 class="h5 mb-0 fw-bold"><i class="bi bi-cpu-fill text-info me-2" aria-hidden="true"></i>GKG Codebase Intelligence Monitor</h3>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-outline-info" type="button" onclick="loadGKGStatus()"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Refresh Status</button>
+                            <button class="btn btn-sm btn-outline-success" type="button" id="btnGKGIndex" onclick="runGKGIndex()"><i class="bi bi-lightning-charge" aria-hidden="true"></i> Index Codebase</button>
+                        </div>
+                    </div>
+                    
+                    <div class="row g-3" id="gkgStatusContainer">
+                        <div class="col-md-3">
+                            <div class="p-2 border border-secondary border-opacity-25 rounded bg-dark bg-opacity-25 text-center">
+                                <span class="text-secondary small">GKG Server Status</span>
+                                <div class="h6 mb-0 fw-bold mt-1 text-secondary" id="gkgServerBadge">Checking...</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-2 border border-secondary border-opacity-25 rounded bg-dark bg-opacity-25 text-center">
+                                <span class="text-secondary small">Indexed Status</span>
+                                <div class="h6 mb-0 fw-bold mt-1 text-secondary" id="gkgIndexedBadge">Checking...</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-2 border border-secondary border-opacity-25 rounded bg-dark bg-opacity-25 text-center">
+                                <span class="text-secondary small">Supported Files</span>
+                                <div class="h6 mb-0 fw-bold mt-1 text-light" id="gkgFilesCount">0</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-2 border border-secondary border-opacity-25 rounded bg-dark bg-opacity-25 text-center">
+                                <span class="text-secondary small">Primary Language</span>
+                                <div class="h6 mb-0 fw-bold mt-1 text-info" id="gkgPrimaryLang">Python</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CodeGraph Search & Visualizer -->
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="glass-card h-100">
+                            <h4 class="h6 mb-3 fw-bold uppercase tracking-wider text-secondary"><i class="bi bi-search me-2" aria-hidden="true"></i>Search Symbols</h4>
+                            <div class="input-group mb-3">
+                                <input type="text" id="cgSearchQuery" class="form-control custom-input" placeholder="Search function, class, file..." onkeyup="if(event.key==='Enter') searchCodeGraph()" autocomplete="off" aria-label="Search CodeGraph">
+                                <button class="btn btn-primary-accent" type="button" onclick="searchCodeGraph()"><i class="bi bi-search" aria-hidden="true"></i></button>
+                            </div>
+                            <div class="list-group bg-dark bg-opacity-25 border border-secondary border-opacity-25 rounded" id="cgSearchResults" style="max-height: 400px; overflow-y: auto;">
+                                <div class="text-center text-secondary py-3 small">Enter query and press Enter</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-8">
+                        <div class="glass-card h-100">
+                            <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                                <h4 class="h6 mb-0 fw-bold uppercase tracking-wider text-secondary"><i class="bi bi-diagram-3 me-2" aria-hidden="true"></i>Force-Directed Call Graph</h4>
+                                <span class="badge bg-dark border border-secondary text-secondary small" id="cgActiveSymbol">No Active Symbol</span>
+                            </div>
+                            
+                            <!-- Graph SVG Container -->
+                            <div class="border border-secondary border-opacity-25 rounded bg-dark bg-opacity-50 position-relative" style="height: 400px; overflow: hidden;">
+                                <svg id="cgGraphSvg" width="100%" height="100%"></svg>
+                                <div class="position-absolute bottom-0 start-0 p-2 small text-secondary">
+                                    <span class="badge bg-primary-subtle text-primary border border-primary border-opacity-25 me-1">Class</span>
+                                    <span class="badge bg-success-subtle text-success border border-success border-opacity-25 me-1">Function</span>
+                                    <span class="badge bg-info-subtle text-info border border-info border-opacity-25 me-1">File</span>
+                                    <span class="badge bg-warning-subtle text-warning border border-warning border-opacity-25">Method</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Selected Node Details -->
+                <div class="glass-card mt-4" id="cgNodeDetailsCard" style="display: none;">
+                    <h4 class="h5 mb-3 fw-bold border-bottom pb-2 text-gradient-primary" id="cgDetailsName">Symbol Details</h4>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="mb-2"><span class="text-secondary small">Kind:</span> <span class="badge bg-secondary text-light ms-1" id="cgDetailsKind">function</span></div>
+                            <div class="mb-2"><span class="text-secondary small">File Path:</span> <code class="text-light ms-1" id="cgDetailsFilePath">path/to/file.py</code></div>
+                            <div class="mb-2"><span class="text-secondary small">Line Range:</span> <span class="text-light ms-1" id="cgDetailsLines">10 - 25</span></div>
+                            <div class="mb-2" id="cgDetailsSigContainer" style="display: none;">
+                                <span class="text-secondary small">Signature:</span>
+                                <pre class="bg-dark p-2 rounded border border-secondary border-opacity-25 text-info font-monospace small mt-1" id="cgDetailsSignature"></pre>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-2"><span class="text-secondary small">Docstring:</span></div>
+                            <div class="p-2 bg-dark rounded border border-secondary border-opacity-25 text-secondary small style-scroll" style="max-height: 120px; overflow-y: auto; font-style: italic;" id="cgDetailsDocstring">No docstring.</div>
+                        </div>
+                    </div>
+                    
+                    <div class="row g-3 mt-2 pt-2 border-top border-secondary border-opacity-10">
+                        <div class="col-md-6">
+                            <h5 class="h6 fw-semibold text-warning"><i class="bi bi-box-arrow-in-right me-1" aria-hidden="true"></i>Incoming Connections</h5>
+                            <div class="list-group list-group-flush bg-dark bg-opacity-10 border border-secondary border-opacity-10 rounded" id="cgIncomingList" style="max-height: 150px; overflow-y: auto;">
+                                <div class="text-secondary p-2 small">None</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="h6 fw-semibold text-info"><i class="bi bi-box-arrow-right me-1" aria-hidden="true"></i>Outgoing Connections</h5>
+                            <div class="list-group list-group-flush bg-dark bg-opacity-10 border border-secondary border-opacity-10 rounded" id="cgOutgoingList" style="max-height: 150px; overflow-y: auto;">
+                                <div class="text-secondary p-2 small">None</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7. Antigravity Plugins Tab -->
             <div class="tab-pane fade" id="tab-plugins" role="tabpanel">
                 <!-- Plugin Installation Card -->
                 <div class="glass-card mb-4 border-info-subtle">
@@ -1318,23 +1443,447 @@
     }
 
     function renderTraces(traces) {
+        // 1. Render Table as usual
         const tbody = document.querySelector("#tracesTable tbody");
         tbody.innerHTML = "";
+        
+        // 2. Render Visual Timeline
+        const timelineContainer = document.getElementById("traceTimeline");
+        if (timelineContainer) {
+            timelineContainer.innerHTML = "";
+        }
+        
         if (traces.length === 0) {
             tbody.innerHTML = '<tr><td colspan="5" class="text-center text-secondary">No execution traces yet.</td></tr>';
+            if (timelineContainer) {
+                timelineContainer.innerHTML = '<div class="text-center text-secondary py-3 small">No execution traces yet.</div>';
+            }
             return;
         }
-        traces.forEach(t => {
+        
+        traces.forEach((t, index) => {
+            // Table row
             const tr = document.createElement("tr");
             tr.innerHTML = `
                 <td class="small text-secondary">${new Date(t.created_at).toLocaleString()}</td>
                 <td><span class="badge bg-dark">${t.agent}</span></td>
                 <td class="small">${t.task_summary}</td>
                 <td><span class="badge bg-secondary-subtle text-secondary">${t.story_id || 'None'}</span></td>
-                <td><span class="badge bg-success-subtle text-success">${t.outcome}</span></td>
+                <td><span class="badge ${getStatusBadgeClass(t.outcome)}">${t.outcome}</span></td>
             `;
             tbody.appendChild(tr);
+            
+            // Timeline item
+            if (timelineContainer) {
+                const isSuccess = t.outcome.toLowerCase() === 'success' || t.outcome.toLowerCase() === 'passed';
+                const badgeClass = isSuccess ? 'success' : 'failed';
+                const badgeIcon = isSuccess ? 'bi-check2-circle' : 'bi-x-circle';
+                
+                const item = document.createElement("div");
+                item.className = "timeline-item";
+                
+                // Parse files read/changed if stored as JSON or string
+                let filesReadHtml = '';
+                let filesChangedHtml = '';
+                
+                if (t.files_read) {
+                    try {
+                        const files = typeof t.files_read === 'string' ? JSON.parse(t.files_read) : t.files_read;
+                        if (Array.isArray(files) && files.length > 0) {
+                            filesReadHtml = files.map(f => `<span class="badge bg-dark border border-secondary border-opacity-25 text-secondary me-1 font-monospace" style="font-size:0.7rem;">${f.split('/').pop()}</span>`).join('');
+                        }
+                    } catch(e) {
+                        filesReadHtml = `<span class="badge bg-dark border border-secondary border-opacity-25 text-secondary me-1 font-monospace" style="font-size:0.7rem;">${t.files_read}</span>`;
+                    }
+                }
+                
+                if (t.files_changed) {
+                    try {
+                        const files = typeof t.files_changed === 'string' ? JSON.parse(t.files_changed) : t.files_changed;
+                        if (Array.isArray(files) && files.length > 0) {
+                            filesChangedHtml = files.map(f => `<span class="badge bg-success-subtle text-success border border-success border-opacity-25 me-1 font-monospace" style="font-size:0.7rem;">${f.split('/').pop()}</span>`).join('');
+                        }
+                    } catch(e) {
+                        filesChangedHtml = `<span class="badge bg-success-subtle text-success border border-success border-opacity-25 me-1 font-monospace" style="font-size:0.7rem;">${t.files_changed}</span>`;
+                    }
+                }
+                
+                item.innerHTML = `
+                    <div class="timeline-badge ${badgeClass}">
+                        <i class="bi ${badgeIcon}" aria-hidden="true"></i>
+                    </div>
+                    <div class="timeline-panel" onclick="toggleTimelineDetails(${index})">
+                        <div class="timeline-header">
+                            <strong class="text-light">${t.agent}</strong>
+                            <div class="timeline-meta">
+                                <span class="badge bg-secondary-subtle text-secondary me-2">${t.story_id || 'Global Context'}</span>
+                                <span>${new Date(t.created_at).toLocaleString()}</span>
+                            </div>
+                        </div>
+                        <div class="timeline-body">
+                            ${t.task_summary}
+                        </div>
+                        <div class="timeline-details" id="timeline-details-${index}">
+                            <div class="row g-2 small">
+                                <div class="col-md-6">
+                                    <div class="text-secondary">Duration / Cost</div>
+                                    <div class="text-light mt-1">${t.duration_seconds ? t.duration_seconds + 's' : 'N/A'} | ${t.token_estimate ? t.token_estimate + ' tokens' : 'N/A'}</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="text-secondary">Outcome</div>
+                                    <div class="mt-1"><span class="badge ${getStatusBadgeClass(t.outcome)}">${t.outcome}</span></div>
+                                </div>
+                                ${filesReadHtml ? `
+                                <div class="col-12 mt-2">
+                                    <div class="text-secondary mb-1">Files Read</div>
+                                    <div class="d-flex flex-wrap gap-1">${filesReadHtml}</div>
+                                </div>` : ''}
+                                ${filesChangedHtml ? `
+                                <div class="col-12 mt-2">
+                                    <div class="text-secondary mb-1">Files Changed</div>
+                                    <div class="d-flex flex-wrap gap-1">${filesChangedHtml}</div>
+                                </div>` : ''}
+                                ${t.actions_taken ? `
+                                <div class="col-12 mt-2">
+                                    <div class="text-secondary mb-1">Actions Taken</div>
+                                    <div class="text-light bg-dark bg-opacity-20 p-2 rounded border border-secondary border-opacity-10 font-monospace" style="font-size:0.75rem; white-space: pre-wrap;">${t.actions_taken}</div>
+                                </div>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                timelineContainer.appendChild(item);
+            }
         });
+    }
+
+    function toggleTimelineDetails(index) {
+        const details = document.getElementById(`timeline-details-${index}`);
+        if (details) {
+            if (details.style.display === "block") {
+                details.style.display = "none";
+            } else {
+                details.style.display = "block";
+            }
+        }
+    }
+
+    // CodeGraph Explorer JS Logic
+    let currentD3Simulation = null;
+
+    function onCodeGraphTabActive() {
+        loadGKGStatus();
+    }
+
+    function loadGKGStatus() {
+        const serverBadge = document.getElementById("gkgServerBadge");
+        const indexedBadge = document.getElementById("gkgIndexedBadge");
+        const filesCount = document.getElementById("gkgFilesCount");
+        const primaryLang = document.getElementById("gkgPrimaryLang");
+        
+        serverBadge.innerText = "Checking...";
+        serverBadge.className = "h6 mb-0 fw-bold mt-1 text-secondary";
+        
+        fetch("/api/harness/gkg/status")
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    serverBadge.innerText = "Offline";
+                    serverBadge.className = "h6 mb-0 fw-bold mt-1 text-danger";
+                    indexedBadge.innerText = "N/A";
+                    indexedBadge.className = "h6 mb-0 fw-bold mt-1 text-secondary";
+                    return;
+                }
+                
+                serverBadge.innerText = "Online";
+                serverBadge.className = "h6 mb-0 fw-bold mt-1 text-success";
+                
+                if (data.project_indexed) {
+                    indexedBadge.innerText = "Indexed";
+                    indexedBadge.className = "h6 mb-0 fw-bold mt-1 text-success";
+                } else {
+                    indexedBadge.innerText = "Not Indexed";
+                    indexedBadge.className = "h6 mb-0 fw-bold mt-1 text-warning";
+                }
+                
+                filesCount.innerText = data.supported_file_count || 0;
+                primaryLang.innerText = data.primary_language || "Python";
+            })
+            .catch(err => {
+                serverBadge.innerText = "Offline";
+                serverBadge.className = "h6 mb-0 fw-bold mt-1 text-danger";
+                indexedBadge.innerText = "N/A";
+                indexedBadge.className = "h6 mb-0 fw-bold mt-1 text-secondary";
+            });
+    }
+
+    function runGKGIndex() {
+        const btn = document.getElementById("btnGKGIndex");
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Indexing...';
+        
+        fetch("/api/harness/gkg/index", { method: "POST" })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    showAppAlert(data.error, "danger");
+                } else {
+                    showAppAlert(data.message, "success");
+                }
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-lightning-charge" aria-hidden="true"></i> Index Codebase';
+                    loadGKGStatus();
+                }, 3000);
+            })
+            .catch(err => {
+                showAppAlert("Failed to start indexing", "danger");
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-lightning-charge" aria-hidden="true"></i> Index Codebase';
+            });
+    }
+
+    function searchCodeGraph() {
+        const query = document.getElementById("cgSearchQuery").value.trim();
+        if (!query) {
+            showAppAlert("Please enter a search query", "warning");
+            return;
+        }
+        
+        const resultsContainer = document.getElementById("cgSearchResults");
+        resultsContainer.innerHTML = '<div class="text-center text-secondary py-3 small"><span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Searching...</div>';
+        
+        fetch(`/api/harness/codegraph/search?query=${encodeURIComponent(query)}`)
+            .then(res => res.json())
+            .then(data => {
+                resultsContainer.innerHTML = "";
+                if (data.error) {
+                    resultsContainer.innerHTML = `<div class="text-center text-danger py-3 small">${data.error}</div>`;
+                    return;
+                }
+                if (data.length === 0) {
+                    resultsContainer.innerHTML = '<div class="text-center text-secondary py-3 small">No symbols found.</div>';
+                    return;
+                }
+                
+                data.forEach(sym => {
+                    const item = document.createElement("a");
+                    item.href = "#";
+                    item.className = "list-group-item list-group-item-action bg-transparent border-0 border-bottom border-secondary border-opacity-10 text-light py-2 px-3";
+                    item.onclick = (e) => {
+                       e.preventDefault();
+                       selectCodeGraphNode(sym.id);
+                    };
+                    
+                    let kindBadge = "bg-secondary";
+                    if (sym.kind === "class") kindBadge = "bg-primary-subtle text-primary border border-primary border-opacity-25";
+                    else if (sym.kind === "function") kindBadge = "bg-success-subtle text-success border border-success border-opacity-25";
+                    else if (sym.kind === "method") kindBadge = "bg-warning-subtle text-warning border border-warning border-opacity-25";
+                    
+                    item.innerHTML = `
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <strong class="text-accent text-truncate" style="max-width: 70%;">${sym.name}</strong>
+                            <span class="badge ${kindBadge} small">${sym.kind}</span>
+                        </div>
+                        <div class="text-secondary text-truncate small" style="font-size: 0.75rem;">${sym.file_path}</div>
+                    `;
+                    resultsContainer.appendChild(item);
+                });
+            })
+            .catch(err => {
+                resultsContainer.innerHTML = `<div class="text-center text-danger py-3 small">Failed to search.</div>`;
+            });
+    }
+
+    function selectCodeGraphNode(nodeId) {
+        document.getElementById("cgNodeDetailsCard").style.display = "block";
+        
+        fetch(`/api/harness/codegraph/node?id=${encodeURIComponent(nodeId)}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    showAppAlert(data.error, "danger");
+                    return;
+                }
+                
+                const n = data.node;
+                document.getElementById("cgActiveSymbol").innerText = n.name;
+                document.getElementById("cgDetailsName").innerText = n.qualified_name || n.name;
+                document.getElementById("cgDetailsKind").innerText = n.kind;
+                document.getElementById("cgDetailsFilePath").innerText = n.file_path;
+                document.getElementById("cgDetailsLines").innerText = `${n.start_line} - ${n.end_line}`;
+                
+                const sigContainer = document.getElementById("cgDetailsSigContainer");
+                if (n.signature) {
+                    sigContainer.style.display = "block";
+                    document.getElementById("cgDetailsSignature").innerText = n.signature;
+                } else {
+                    sigContainer.style.display = "none";
+                }
+                
+                document.getElementById("cgDetailsDocstring").innerText = n.docstring || "No docstring available.";
+                
+                const incomingList = document.getElementById("cgIncomingList");
+                incomingList.innerHTML = "";
+                if (data.incoming.length === 0) {
+                    incomingList.innerHTML = '<div class="text-secondary p-2 small">No incoming connections</div>';
+                } else {
+                    data.incoming.forEach(inc => {
+                        const div = document.createElement("a");
+                        div.href = "#";
+                        div.className = "list-group-item list-group-item-action bg-transparent border-0 text-light py-1 px-2 small d-flex justify-content-between align-items-center";
+                        div.onclick = (e) => {
+                            e.preventDefault();
+                            selectCodeGraphNode(inc.source);
+                        };
+                        div.innerHTML = `
+                            <span class="text-warning text-truncate" style="max-width: 80%;"><i class="bi bi-link-45deg me-1"></i>${inc.source_name}</span>
+                            <span class="badge bg-dark border border-secondary text-secondary" style="font-size: 0.65rem;">${inc.kind}</span>
+                        `;
+                        incomingList.appendChild(div);
+                    });
+                }
+                
+                const outgoingList = document.getElementById("cgOutgoingList");
+                outgoingList.innerHTML = "";
+                if (data.outgoing.length === 0) {
+                    outgoingList.innerHTML = '<div class="text-secondary p-2 small">No outgoing connections</div>';
+                } else {
+                    data.outgoing.forEach(out => {
+                        const div = document.createElement("a");
+                        div.href = "#";
+                        div.className = "list-group-item list-group-item-action bg-transparent border-0 text-light py-1 px-2 small d-flex justify-content-between align-items-center";
+                        div.onclick = (e) => {
+                            e.preventDefault();
+                            selectCodeGraphNode(out.target);
+                        };
+                        div.innerHTML = `
+                            <span class="text-info text-truncate" style="max-width: 80%;"><i class="bi bi-link-45deg me-1"></i>${out.target_name}</span>
+                            <span class="badge bg-dark border border-secondary text-secondary" style="font-size: 0.65rem;">${out.kind}</span>
+                        `;
+                        outgoingList.appendChild(div);
+                    });
+                }
+            })
+            .catch(err => console.error("Error fetching node details:", err));
+            
+        renderCallGraph(nodeId);
+    }
+
+    function renderCallGraph(nodeId) {
+        const svg = d3.select("#cgGraphSvg");
+        svg.selectAll("*").remove();
+        
+        const width = document.getElementById("cgGraphSvg").parentElement.clientWidth;
+        const height = 400;
+        
+        fetch(`/api/harness/codegraph/graph?id=${encodeURIComponent(nodeId)}&depth=2`)
+            .then(res => res.json())
+            .then(data => {
+                if (!data.nodes || data.nodes.length === 0) return;
+                
+                const nodes = data.nodes.map(d => ({ ...d }));
+                const links = data.links.map(d => ({ ...d }));
+                
+                if (currentD3Simulation) currentD3Simulation.stop();
+                
+                const simulation = d3.forceSimulation(nodes)
+                    .force("link", d3.forceLink(links).id(d => d.id).distance(100))
+                    .force("charge", d3.forceManyBody().strength(-150))
+                    .force("center", d3.forceCenter(width / 2, height / 2))
+                    .force("collision", d3.forceCollide().radius(25));
+                    
+                currentD3Simulation = simulation;
+                
+                svg.append("defs").append("marker")
+                    .attr("id", "arrowhead")
+                    .attr("viewBox", "0 -5 10 10")
+                    .attr("refX", 18)
+                    .attr("refY", 0)
+                    .attr("orient", "auto")
+                    .attr("markerWidth", 6)
+                    .attr("markerHeight", 6)
+                    .append("path")
+                    .attr("d", "M0,-5L10,0L0,5")
+                    .attr("fill", "rgba(255, 255, 255, 0.2)");
+                    
+                const link = svg.append("g")
+                    .attr("stroke", "rgba(255, 255, 255, 0.1)")
+                    .attr("stroke-width", 1.5)
+                    .selectAll("line")
+                    .data(links)
+                    .join("line")
+                    .attr("marker-end", "url(#arrowhead)");
+                    
+                const node = svg.append("g")
+                    .selectAll("g")
+                    .data(nodes)
+                    .join("g")
+                    .call(drag(simulation))
+                    .style("cursor", "pointer")
+                    .on("click", (event, d) => {
+                        selectCodeGraphNode(d.id);
+                    });
+                    
+                node.append("circle")
+                    .attr("r", d => d.id === nodeId ? 12 : 8)
+                    .attr("fill", d => {
+                        if (d.id === nodeId) return "#00f2fe";
+                        if (d.kind === "class") return "#0d6efd";
+                        if (d.kind === "function") return "#198754";
+                        if (d.kind === "method") return "#ffc107";
+                        return "#6c757d";
+                    })
+                    .attr("stroke", d => d.id === nodeId ? "#fff" : "rgba(255, 255, 255, 0.2)")
+                    .attr("stroke-width", d => d.id === nodeId ? 2 : 1)
+                    .style("filter", d => d.id === nodeId ? "drop-shadow(0px 0px 8px #00f2fe)" : "none");
+                    
+                node.append("text")
+                    .attr("x", 14)
+                    .attr("y", 4)
+                    .text(d => d.name)
+                    .attr("fill", "#fff")
+                    .attr("font-size", "10px")
+                    .attr("font-family", "sans-serif")
+                    .style("pointer-events", "none")
+                    .style("text-shadow", "0 1px 2px #000");
+                    
+                simulation.on("tick", () => {
+                    link
+                        .attr("x1", d => d.source.x)
+                        .attr("y1", d => d.source.y)
+                        .attr("x2", d => d.target.x)
+                        .attr("y2", d => d.target.y);
+                        
+                    node
+                        .attr("transform", d => `translate(${d.x},${d.y})`);
+                });
+            })
+            .catch(err => console.error("Error rendering D3 callgraph:", err));
+    }
+
+    function drag(simulation) {
+        function dragstarted(event) {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            event.subject.fx = event.subject.x;
+            event.subject.fy = event.subject.y;
+        }
+        
+        function dragged(event) {
+            event.subject.fx = event.x;
+            event.subject.fy = event.y;
+        }
+        
+        function dragended(event) {
+            if (!event.active) simulation.alphaTarget(0);
+            event.subject.fx = null;
+            event.subject.fy = null;
+        }
+        
+        return d3.drag()
+            .on("start", dragstarted)
+            .on("drag", dragged)
+            .on("end", dragended);
     }
 
     function getStatusBadgeClass(status) {
@@ -1540,8 +2089,107 @@
         }
     });
 </script>
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
 
 <style>
+    /* Timeline Styles */
+    .trace-timeline-container {
+        position: relative;
+        padding-left: 32px;
+        margin-top: 15px;
+    }
+    .trace-timeline-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 15px;
+        width: 2px;
+        background: rgba(255, 255, 255, 0.08);
+    }
+    .timeline-item {
+        position: relative;
+        margin-bottom: 24px;
+        transition: all 0.3s ease;
+    }
+    .timeline-badge {
+        position: absolute;
+        left: -32px;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #111;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2;
+        font-size: 0.9rem;
+    }
+    .timeline-badge.success {
+        border-color: #198754;
+        color: #198754;
+        box-shadow: 0 0 8px rgba(25, 135, 84, 0.3);
+    }
+    .timeline-badge.failed {
+        border-color: #dc3545;
+        color: #dc3545;
+        box-shadow: 0 0 8px rgba(220, 53, 69, 0.3);
+    }
+    .timeline-panel {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        padding: 16px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .timeline-panel:hover {
+        background: rgba(255, 255, 255, 0.04);
+        border-color: rgba(255, 255, 255, 0.1);
+        transform: translateX(2px);
+    }
+    .timeline-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .timeline-meta {
+        font-size: 0.75rem;
+        color: #888;
+    }
+    .timeline-body {
+        margin-top: 10px;
+        font-size: 0.85rem;
+        color: #ccc;
+    }
+    .timeline-details {
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        display: none;
+        animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-5px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .style-scroll::-webkit-scrollbar {
+        width: 6px;
+    }
+    .style-scroll::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.1);
+    }
+    .style-scroll::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 3px;
+    }
+    .style-scroll::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+
     .btn-pill {
         border-radius: 9999px !important;
         font-weight: 600;

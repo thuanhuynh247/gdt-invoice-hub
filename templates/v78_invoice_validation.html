@@ -4,6 +4,8 @@
 {% from "components/_metric_kpi.html" import metric_kpi %}
 
 {% block head_extra %}
+<!-- Include Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
     /* Wise Fintech Design Tokens */
     :root {
@@ -257,7 +259,10 @@
         <div class="col-lg-5">
             {% call glass_card('Định Luật Phân Phối Số Học (Benford)', 'bi bi-bezier2', 'text-success', 'Đối chiếu phân bổ chữ số đầu tiên của tiền chưa thuế với phân phối Benford tiêu chuẩn', '', '', 'h-100') %}
             <div id="benfordContainer">
-                <div class="text-muted"><i class="bi bi-hourglass-split pulse-dot" aria-hidden="true"></i> Đang tính toán tần suất Benford...</div>
+                <canvas id="benfordChart" style="max-height: 265px; width: 100%; display: none;"></canvas>
+                <div id="benfordMeta" class="mt-3">
+                    <div class="text-muted"><i class="bi bi-hourglass-split pulse-dot" aria-hidden="true"></i> Đang tính toán tần suất Benford...</div>
+                </div>
             </div>
             {% endcall %}
         </div>
@@ -267,13 +272,46 @@
     <div class="row mt-4">
         <div class="col-12">
             {% call glass_card('Danh Sách Chi Tiết Cảnh Báo Tuân Thủ', 'bi bi-list-stars', 'text-success', 'Danh sách lỗi được lọc để kế khai thuế theo Nghị định 123/2020/NĐ-CP', '', '', 'w-100') %}
+            
+            <!-- Advanced Filters Panel -->
+            <div class="bg-light p-3 rounded mb-4 border">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label small fw-semibold text-secondary mb-1">Từ ngày</label>
+                        <input type="date" id="filterStartDate" class="form-control rounded-pill px-3" onchange="applyFilters()">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-semibold text-secondary mb-1">Đến ngày</label>
+                        <input type="date" id="filterEndDate" class="form-control rounded-pill px-3" onchange="applyFilters()">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-semibold text-secondary mb-1">Đối tác (Tên / MST)</label>
+                        <input type="text" id="filterPartner" class="form-control rounded-pill px-3" placeholder="Nhập tên hoặc MST..." oninput="applyFilters()">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-semibold text-secondary mb-1">Loại kiểm tra</label>
+                        <select id="filterCategory" class="form-select rounded-pill px-3" onchange="applyFilters()">
+                            <option value="">Tất cả loại kiểm tra</option>
+                            <option value="Trạng thái">Trạng thái bất thường</option>
+                            <option value="KQ Xử lý">Kết quả xử lý</option>
+                            <option value="Chéo thuế">Chéo thuế</option>
+                            <option value="Chữ ký số">Chữ ký số</option>
+                            <option value="Aging">Aging (Thời hạn)</option>
+                            <option value="MST">MST hợp lệ</option>
+                            <option value="Rủi ro NCC">Rủi ro nhà cung cấp</option>
+                            <option value="Trùng lặp">Trùng lặp</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
             <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                 <div>
                     <span class="badge bg-success-subtle text-success me-2"><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Tự động kiểm tra chéo</span>
-                    <span class="text-muted small">Cập nhật theo dữ liệu GDT thời gian thực</span>
+                    <span class="text-muted small" id="filterCountText">Cập nhật theo dữ liệu GDT thời gian thực</span>
                 </div>
                 <div class="form-check form-switch bg-premium-light p-2 px-3 rounded border">
-                    <input class="form-check-input ms-0 me-2" type="checkbox" id="filterCriticalOnly" onchange="renderTable()">
+                    <input class="form-check-input ms-0 me-2" type="checkbox" id="filterCriticalOnly" onchange="applyFilters()">
                     <label class="form-check-label fw-semibold text-secondary" for="filterCriticalOnly">Chỉ hiện lỗi Nghiêm Trọng</label>
                 </div>
             </div>
@@ -302,9 +340,10 @@
 
 <script>
 let currentAlerts = [];
+let allData = null;
+let benfordChartInstance = null;
 
 document.addEventListener("DOMContentLoaded", () => {
-    // Bind reload click trigger
     const reloadBtn = document.getElementById("runValidationBtn");
     if (reloadBtn) {
         reloadBtn.addEventListener("click", runValidation);
@@ -326,15 +365,13 @@ async function runValidation() {
             return;
         }
 
-        // Update stats KPI
-        document.getElementById("statTotal").innerText = data.total_invoices || 0;
-        document.getElementById("statClean").innerText = data.clean_invoices || 0;
-        document.getElementById("statWarning").innerText = data.warning_count || 0;
-        document.getElementById("statCritical").innerText = data.critical_count || 0;
-
+        allData = data;
         currentAlerts = data.alerts || [];
-        renderTable();
-        renderBreakdown(data.summary_by_check);
+        
+        // Initial render and filter application
+        applyFilters();
+        
+        // Render Benford using Chart.js
         renderBenford(data.benford_analysis);
 
     } catch (err) {
@@ -342,18 +379,85 @@ async function runValidation() {
     }
 }
 
-function renderTable() {
-    const tbody = document.getElementById("alertsTbody");
+function applyFilters() {
+    const startDateVal = document.getElementById("filterStartDate").value;
+    const endDateVal = document.getElementById("filterEndDate").value;
+    const partnerVal = document.getElementById("filterPartner").value.trim().toLowerCase();
+    const categoryVal = document.getElementById("filterCategory").value;
     const criticalOnly = document.getElementById("filterCriticalOnly").checked;
-    
-    let html = '';
-    const filtered = currentAlerts.filter(a => criticalOnly ? a.severity === 'Nghiêm trọng' : true);
 
+    let filtered = currentAlerts;
+
+    // Filter by Severity
+    if (criticalOnly) {
+        filtered = filtered.filter(a => a.severity === 'Nghiêm trọng');
+    }
+
+    // Filter by Category
+    if (categoryVal) {
+        filtered = filtered.filter(a => a.check === categoryVal);
+    }
+
+    // Filter by Date Range
+    if (startDateVal || endDateVal) {
+        const start = startDateVal ? new Date(startDateVal) : null;
+        const end = endDateVal ? new Date(endDateVal) : null;
+        if (end) end.setHours(23, 59, 59, 999);
+
+        filtered = filtered.filter(a => {
+            if (!a.date) return false;
+            // Parse YYYY-MM-DD
+            const aDate = new Date(a.date);
+            if (isNaN(aDate.getTime())) return false;
+            if (start && aDate < start) return false;
+            if (end && aDate > end) return false;
+            return true;
+        });
+    }
+
+    // Filter by Partner (MST or Name)
+    if (partnerVal) {
+        filtered = filtered.filter(a => {
+            const mst = (a.seller_mst || a.buyer_mst || "").toLowerCase();
+            const detail = (a.detail || "").toLowerCase();
+            return mst.includes(partnerVal) || detail.includes(partnerVal);
+        });
+    }
+
+    // Update filter count text
+    document.getElementById("filterCountText").innerText = `Hiển thị ${filtered.length}/${currentAlerts.length} cảnh báo.`;
+
+    // Recalculate KPIs based on filtered set (except Total Invoices)
+    if (allData) {
+        document.getElementById("statTotal").innerText = allData.total_invoices || 0;
+        
+        // Count unique affected invoice IDs in the filtered list
+        const affectedInvoiceIds = new Set(filtered.map(a => a.invoice_id));
+        const cleanCount = Math.max(0, (allData.total_invoices || 0) - affectedInvoiceIds.size);
+        const warningCount = filtered.filter(a => a.severity === 'Cảnh báo').length;
+        const criticalCount = filtered.filter(a => a.severity === 'Nghiêm trọng').length;
+
+        document.getElementById("statClean").innerText = cleanCount;
+        document.getElementById("statWarning").innerText = warningCount;
+        document.getElementById("statCritical").innerText = criticalCount;
+    }
+
+    // Render Table
+    renderTableRows(filtered);
+
+    // Render Breakdown
+    renderBreakdownData(filtered);
+}
+
+function renderTableRows(filtered) {
+    const tbody = document.getElementById("alertsTbody");
+    
     if (filtered.length === 0) {
         tbody.innerHTML = '<tr><td colspan="7" class="text-center py-5 text-success fw-bold"><i class="bi bi-check-circle-fill fs-4 d-block mb-2 text-success" aria-hidden="true"></i>Không tìm thấy cảnh báo nào phù hợp tiêu chí lọc.</td></tr>';
         return;
     }
 
+    let html = '';
     filtered.forEach(a => {
         const isCritical = a.severity === 'Nghiêm trọng';
         const badgeClass = isCritical ? 'badge-glow-critical' : 'badge-glow-warning';
@@ -382,10 +486,26 @@ function renderTable() {
     tbody.innerHTML = html;
 }
 
-function renderBreakdown(summary) {
+function renderBreakdownData(filteredAlerts) {
     const container = document.getElementById("breakdownContainer");
-    if (!summary || Object.keys(summary).length === 0) {
-        container.innerHTML = '<div class="w-100 p-4 rounded text-center text-success bg-success-subtle border fw-semibold"><i class="bi bi-check-all me-1" aria-hidden="true"></i> Tất cả các loại kiểm toán đều an toàn.</div>';
+    
+    // Group filtered alerts by check type
+    const summary = {};
+    filteredAlerts.forEach(a => {
+        const chk = a.check;
+        if (!summary[chk]) {
+            summary[chk] = { critical: 0, warning: 0, total: 0 };
+        }
+        summary[chk].total++;
+        if (a.severity === 'Nghiêm trọng') {
+            summary[chk].critical++;
+        } else {
+            summary[chk].warning++;
+        }
+    });
+
+    if (Object.keys(summary).length === 0) {
+        container.innerHTML = '<div class="w-100 p-4 rounded text-center text-success bg-success-subtle border fw-semibold"><i class="bi bi-check-all me-1" aria-hidden="true"></i> Tất cả các loại kiểm toán đều an toàn với bộ lọc hiện tại.</div>';
         return;
     }
 
@@ -406,9 +526,15 @@ function renderBreakdown(summary) {
 }
 
 function renderBenford(benford) {
-    const container = document.getElementById("benfordContainer");
+    const metaContainer = document.getElementById("benfordMeta");
+    const canvas = document.getElementById("benfordChart");
+    
     if (!benford) {
-        container.innerHTML = '<div class="text-muted py-3">Không có thông tin dữ liệu phân tích Benford.</div>';
+        metaContainer.innerHTML = '<div class="text-muted py-3">Không có thông tin dữ liệu phân tích Benford.</div>';
+        if (benfordChartInstance) {
+            benfordChartInstance.destroy();
+            benfordChartInstance = null;
+        }
         return;
     }
     
@@ -417,57 +543,129 @@ function renderBenford(benford) {
     else if (benford.status === 'Cảnh báo') statusBadgeClass = 'badge-glow-warning';
     else if (benford.status === 'Nghiêm trọng') statusBadgeClass = 'badge-glow-critical';
     
-    let html = `
+    let metaHtml = `
         <div class="d-flex justify-content-between align-items-center mb-3">
             <span class="badge ${statusBadgeClass} fs-6 px-3 py-2 rounded-pill">${benford.status}</span>
             <small class="text-muted">Chi-square: <strong class="text-dark font-monospace">${benford.chi_square_stat}</strong> (Mốc: 15.51)</small>
         </div>
-        <div class="alert alert-info py-2 px-3 small border-0 bg-premium-light-subtle mb-3" style="font-size: 0.85rem; border-left: 4px solid var(--wise-accent) !important;">
+        <div class="alert alert-info py-2 px-3 small border-0 bg-premium-light-subtle mb-0" style="font-size: 0.85rem; border-left: 4px solid var(--wise-accent) !important;">
             <i class="bi bi-info-circle-fill text-success me-1" aria-hidden="true"></i> ${benford.message}
         </div>
     `;
-    
+    metaContainer.innerHTML = metaHtml;
+
     if (benford.valid_count >= 20) {
-        html += '<div class="benford-grid" style="max-height: 380px; overflow-y: auto; padding-right: 5px;">';
-        for (let d = 1; d <= 9; d++) {
-            const obs = benford.observed_percentages[d];
-            const exp = benford.expected_percentages[d];
-            
-            // Determine progress bar color based on deviation
-            const deviation = Math.abs(obs - exp);
-            let barGradient = 'linear-gradient(90deg, #2ec4b6, #02c39a)';
-            if (deviation > 10) barGradient = 'linear-gradient(90deg, #e63946, #d90429)';
-            else if (deviation > 5) barGradient = 'linear-gradient(90deg, #ffb703, #fb8500)';
-            
-            html += `
-                <div class="benford-row d-flex align-items-center gap-3">
-                    <span class="digit-badge">${d}</span>
-                    <div class="flex-grow-1">
-                        <div class="d-flex justify-content-between mb-1" style="font-size: 0.75rem;">
-                            <span class="text-muted">Kỳ vọng: <strong class="text-dark">${exp}%</strong></span>
-                            <span class="text-dark fw-bold">Thực tế: <strong class="text-primary">${obs}%</strong></span>
-                        </div>
-                        <div class="benford-bar-container">
-                            <!-- Expected reference vertical indicator line -->
-                            <div class="benford-bar-expected" style="left: ${exp}%;" title="Kỳ vọng: ${exp}%"></div>
-                            <!-- Observed fill with gradient -->
-                            <div class="benford-bar-observed" style="width: ${obs}%; background: ${barGradient};" title="Thực tế: ${obs}%"></div>
-                        </div>
-                    </div>
-                </div>
-            `;
+        canvas.style.display = 'block';
+        const ctx = canvas.getContext('2d');
+        
+        const labels = Array.from({length: 9}, (_, i) => (i + 1).toString());
+        const expectedData = labels.map(d => benford.expected_percentages[parseInt(d)]);
+        const observedData = labels.map(d => benford.observed_percentages[parseInt(d)]);
+        
+        if (benfordChartInstance) {
+            benfordChartInstance.destroy();
         }
-        html += '</div>';
+        
+        benfordChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Kỳ vọng (Benford)',
+                        data: expectedData,
+                        backgroundColor: '#163300',
+                        borderColor: '#163300',
+                        borderWidth: 1,
+                        borderRadius: 4,
+                        barPercentage: 0.6,
+                        categoryPercentage: 0.8
+                    },
+                    {
+                        label: 'Thực tế',
+                        data: observedData,
+                        backgroundColor: '#02c39a',
+                        borderColor: '#02c39a',
+                        borderWidth: 1,
+                        borderRadius: 4,
+                        barPercentage: 0.6,
+                        categoryPercentage: 0.8
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            font: {
+                                family: 'Inter',
+                                size: 11
+                            },
+                            color: '#1d2d1f'
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.raw + '%';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Tỷ lệ (%)',
+                            font: {
+                                family: 'Inter',
+                                size: 10
+                            }
+                        },
+                        ticks: {
+                            font: {
+                                size: 10
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(22, 51, 0, 0.05)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Chữ số đầu tiên',
+                            font: {
+                                family: 'Inter',
+                                size: 10
+                            }
+                        },
+                        ticks: {
+                            font: {
+                                size: 10
+                            }
+                        },
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
     } else {
-        html += `
-            <div class="text-center py-5 text-muted bg-white rounded border border-dashed shadow-sm">
-                <i class="bi bi-file-earmark-bar-graph fs-2 mb-3 text-warning-emphasis d-block" aria-hidden="true"></i>
+        canvas.style.display = 'none';
+        metaContainer.innerHTML += `
+            <div class="text-center py-4 text-muted bg-white rounded border border-dashed shadow-sm mt-3">
+                <i class="bi bi-file-earmark-bar-graph fs-2 mb-2 text-warning d-block" aria-hidden="true"></i>
                 <div class="small fw-bold text-dark">Dữ liệu tối thiểu không đáp ứng</div>
-                <div class="small px-4 mt-1" style="font-size: 0.78rem;">Hệ thống phát hiện thấy mới chỉ có <strong>${benford.valid_count}/20</strong> hóa đơn hợp lệ. Cần nạp thêm tối thiểu <strong>${20 - benford.valid_count}</strong> hóa đơn điện tử nữa để kích hoạt phân tích Benford.</div>
+                <div class="small px-4 mt-1" style="font-size: 0.78rem;">Hệ thống phát hiện thấy mới chỉ có <strong>${benford.valid_count}/20</strong> hóa đơn hợp lệ. Cần nạp thêm tối thiểu <strong>${20 - benford.valid_count}</strong> hóa đơn nữa để kích hoạt đồ thị Benford.</div>
             </div>
         `;
     }
-    container.innerHTML = html;
 }
 </script>
 {% endblock %}

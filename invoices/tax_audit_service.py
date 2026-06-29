@@ -218,3 +218,59 @@ def calculate_fct_tax(
         "circular_reference": "Thông tư 103/2014/TT-BTC hướng dẫn nghĩa vụ thuế nhà thầu nước ngoài"
     }
 
+
+def calculate_pit_tax(
+    monthly_income: float,
+    dependents: int = 0
+) -> dict:
+    """Calculate Vietnamese Personal Income Tax (PIT) on salary.
+    
+    Rules (Nghị quyết 954/2020/UBTVQH14 & Luật Thuế TNCN):
+      - Self deduction (giảm trừ bản thân): 11,000,000 VND / month
+      - Dependent deduction (giảm trừ người phụ thuộc): 4,400,000 VND / month per person
+    """
+    personal_deduction = 11000000.0
+    dependent_deduction = dependents * 4400000.0
+    total_deductions = personal_deduction + dependent_deduction
+    
+    taxable_income = max(0.0, monthly_income - total_deductions)
+    
+    # Calculate tax based on progressive tiers
+    brackets = [
+        (5000000.0, 0.05, 0.0),
+        (10000000.0, 0.10, 250000.0),
+        (18000000.0, 0.15, 750000.0),
+        (32000000.0, 0.20, 1650000.0),
+        (52000000.0, 0.25, 3250000.0),
+        (80000000.0, 0.30, 5850000.0),
+        (float('inf'), 0.35, 9850000.0)
+    ]
+    
+    active_bracket_idx = 0
+    for i, (limit, rate, subtract) in enumerate(brackets):
+        prev_limit = brackets[i-1][0] if i > 0 else 0.0
+        if taxable_income > prev_limit:
+            active_bracket_idx = i
+            
+    # Calculate total tax using the shortcut formulas
+    limit, rate, subtract = brackets[active_bracket_idx]
+    tax = float(round(taxable_income * rate - subtract))
+    tax = max(0.0, tax)
+    
+    net_income = monthly_income - tax
+    
+    return {
+        "monthly_income": monthly_income,
+        "dependents": dependents,
+        "personal_deduction": personal_deduction,
+        "dependent_deduction": dependent_deduction,
+        "total_deductions": total_deductions,
+        "taxable_income": taxable_income,
+        "tax_rate": rate,
+        "pit_tax": tax,
+        "net_income": net_income,
+        "active_tier": active_bracket_idx + 1,
+        "legal_reference": "Nghị quyết 954/2020/UBTVQH14 & Thông tư 111/2013/TT-BTC"
+    }
+
+
