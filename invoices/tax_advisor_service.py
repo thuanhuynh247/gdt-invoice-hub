@@ -524,7 +524,7 @@ def detect_and_run_tools(query: str) -> dict | None:
             return None
 
     # 3. PIT calculation detection
-    pit_triggers = ["tính thuế tncn", "tính pit", "thuế tncn", "pit calculator"]
+    pit_triggers = ["tính thuế tncn", "tính pit", "thuế tncn", "pit calculator", "giảm trừ gia cảnh"]
     if any(trigger in q for trigger in pit_triggers):
         val = parse_amount_from_query(query)
         has_defaulted_val = False
@@ -537,10 +537,10 @@ def detect_and_run_tools(query: str) -> dict | None:
         if match_dep:
             dependents = int(match_dep.group(1))
         else:
-            dependents = 0
-            if "phụ thuộc" in q:
-                dependents = 1
+            if "không" in q or "không có" in q:
+                dependents = 0
             else:
+                dependents = 1
                 has_defaulted_dep = True
                 
         try:

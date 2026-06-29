@@ -583,3 +583,50 @@ def test_tax_chat_sessions_crud(mock_app):
     res = client.get(f"/api/tax/chat/sessions/{session_id}")
     assert res.status_code == 404
 
+
+def test_calculate_pit_tax():
+    from invoices.tax_audit_service import calculate_pit_tax
+    
+    # Test case 1: Monthly income <= personal deduction (11M)
+    res = calculate_pit_tax(10000000.0, dependents=0)
+    assert res["taxable_income"] == 0.0
+    assert res["pit_tax"] == 0.0
+    assert res["net_income"] == 10000000.0
+    
+    # Test case 2: Monthly income 30M, 1 dependent (11M + 4.4M = 15.4M deduction)
+    # Taxable income = 30M - 15.4M = 14.6M
+    # Tax: Bậc 3 (10M - 18M): 14.6M * 0.15 - 750k = 2.19M - 750k = 1.44M
+    res = calculate_pit_tax(30000000.0, dependents=1)
+    assert res["taxable_income"] == 14600000.0
+    assert res["pit_tax"] == 1440000.0
+    assert res["net_income"] == 28560000.0
+
+
+def test_detect_and_run_tools_pit():
+    from invoices.tax_advisor_service import detect_and_run_tools
+    
+    # 1. Explicit income and dependents
+    res = detect_and_run_tools("tính thuế tncn cho thu nhập 50 triệu và 2 người phụ thuộc")
+    assert res is not None
+    assert res["tool_name"] == "PIT Calculator"
+    assert res["monthly_income"] == 50000000.0
+    assert res["dependents"] == 2
+    assert res["estimated_value"] is False
+    assert res["estimated_dep"] is False
+    
+    # 2. Trigger with "giảm trừ gia cảnh", no income/dependents -> fallbacks
+    res_fallback = detect_and_run_tools("tính giảm trừ gia cảnh")
+    assert res_fallback is not None
+    assert res_fallback["tool_name"] == "PIT Calculator"
+    assert res_fallback["monthly_income"] == 30000000.0
+    assert res_fallback["dependents"] == 1
+    assert res_fallback["estimated_value"] is True
+    assert res_fallback["estimated_dep"] is True
+
+    # 3. Explicit income, zero dependents ("không")
+    res_zero = detect_and_run_tools("tính pit cho thu nhập 40 triệu không có người phụ thuộc")
+    assert res_zero is not None
+    assert res_zero["tool_name"] == "PIT Calculator"
+    assert res_zero["monthly_income"] == 40000000.0
+    assert res_zero["dependents"] == 0
+

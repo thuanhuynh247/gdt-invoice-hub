@@ -625,11 +625,23 @@
                 
                 <div class="card-body p-4 d-flex flex-column justify-content-between flex-grow-1 overflow-hidden">
                     <!-- Dynamic Metrics Status Bar (Wise Style Glassmorphism) -->
-                    <div id="metricsStatusBar" class="metrics-status-bar d-flex flex-wrap align-items-center gap-3 px-3 py-2 mb-3 rounded-3 d-none">
+                    <div id="metricsStatusBar" class="metrics-status-bar d-flex flex-wrap align-items-center gap-3 px-3 py-2 mb-3 rounded-3">
+                        <div class="metric-item d-flex align-items-center">
+                            <i class="bi bi-building me-2 text-secondary"></i>
+                            <span>Taxpayer: </span>
+                            <strong class="ms-1 text-secondary" id="metricTaxpayer">
+                                {% if session.get('active_taxpayer_mst') %}
+                                    {{ session.get('active_taxpayer_mst') }}
+                                {% else %}
+                                    Chưa chọn MST
+                                {% endif %}
+                            </strong>
+                        </div>
+                        <div class="metric-divider"></div>
                         <div class="metric-item d-flex align-items-center">
                             <i class="bi bi-cpu me-2 text-primary"></i>
                             <span>Specialist: </span>
-                            <strong class="ms-1 text-primary" id="metricModelName">-</strong>
+                            <strong class="ms-1 text-primary" id="metricModelName">Cố vấn Thuế Tổng hợp</strong>
                         </div>
                         <div class="metric-divider"></div>
                         <div class="metric-item d-flex align-items-center">
@@ -839,6 +851,18 @@
             }
         });
         
+        // Map agentCode to name
+        let agentName = "Cố vấn Thuế Tổng hợp";
+        if (agentCode === 'inv') agentName = "Cố vấn Hóa đơn";
+        if (agentCode === 'vat') agentName = "Cố vấn Thuế GTGT";
+        if (agentCode === 'cit') agentName = "Cố vấn Thuế TNDN";
+        if (agentCode === 'pit') agentName = "Cố vấn Thuế TNCN";
+        if (agentCode === 'fct') agentName = "Cố vấn Thuế Nhà thầu";
+        if (agentCode === 'tp') agentName = "Cố vấn Chuyển giá";
+        if (agentCode === 'pen') agentName = "Cố vấn Xử phạt Thuế";
+        
+        document.getElementById("metricModelName").innerText = agentName;
+        
         console.log("Locked persona agent:", forcedAgentVal);
     }
 
@@ -918,8 +942,10 @@
     async function selectSession(sessionId) {
         currentSessionId = sessionId;
         
-        // Hide metrics status bar since historic messages don't have current latency/token data
-        document.getElementById("metricsStatusBar").classList.add("d-none");
+        // Reset metrics for the selected session
+        document.getElementById("metricLatency").innerText = "- ms";
+        document.getElementById("metricTokens").innerText = "-";
+        document.getElementById("metricRagCount").innerText = "- chunks";
         
         // Highlight active session in sidebar
         const items = document.querySelectorAll(".session-item");
@@ -968,6 +994,14 @@
             messages.forEach(msg => {
                 appendMessageToDOM(msg.role, msg.content, msg.agent_name);
             });
+
+            // Set the specialist name in the status bar based on the last assistant message
+            const lastAsstMsg = messages.filter(m => m.role === 'assistant').pop();
+            if (lastAsstMsg && lastAsstMsg.agent_name) {
+                document.getElementById("metricModelName").innerText = lastAsstMsg.agent_name;
+            } else {
+                document.getElementById("metricModelName").innerText = "Cố vấn Thuế Tổng hợp";
+            }
 
             // Gather and render citations from last assistant bubble if present
             renderCitations([]);
