@@ -122,7 +122,7 @@ def test_api_routes_v45(mock_app, mock_tenant_db):
         
     res_page = client.get("/v45-compliance-hub")
     assert res_page.status_code == 200
-    assert b"CIT &amp; TP Hub" in res_page.data or b"CIT & TP Hub" in res_page.data
+    assert b"CIT Incentives" in res_page.data or b"Transfer Pricing Hub" in res_page.data
     
     res_api = client.get(f"/api/v45/compliance-data?mst={mock_tenant_db}")
     assert res_api.status_code == 200
