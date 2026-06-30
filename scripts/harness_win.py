@@ -3530,6 +3530,33 @@ def cmd_serve(port=8080):
         let riskGraphSim = null;
         function renderRiskGraph(container) {
             container.innerHTML = '';
+            
+            // Inject component-specific styles
+            const style = document.createElement('style');
+            style.textContent = `
+                .risk-legend-item {
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    font-size: 11px;
+                    color: var(--text-secondary);
+                    cursor: pointer;
+                    padding: 4px 8px;
+                    border-radius: 4px;
+                    transition: all 0.2s ease;
+                }
+                .risk-legend-item:hover {
+                    background: rgba(255, 255, 255, 0.05);
+                    color: #fff;
+                }
+                .risk-legend-item.active {
+                    background: rgba(99, 102, 241, 0.2);
+                    border: 1px solid rgba(99, 102, 241, 0.4);
+                    color: #fff;
+                }
+            `;
+            document.head.appendChild(style);
+
             const wrapper = document.createElement('div');
             wrapper.className = 'graph-container';
             wrapper.style.position = 'relative';
@@ -3545,6 +3572,90 @@ def cmd_serve(port=8080):
                 return; 
             }
             
+            // Create controls wrapper
+            const controls = document.createElement('div');
+            controls.style.position = 'absolute';
+            controls.style.top = '15px';
+            controls.style.left = '15px';
+            controls.style.right = '15px';
+            controls.style.display = 'flex';
+            controls.style.justifyContent = 'space-between';
+            controls.style.pointerEvents = 'none';
+            controls.style.zIndex = '10';
+            
+            // Search Input
+            const searchInput = document.createElement('input');
+            searchInput.type = 'text';
+            searchInput.placeholder = '🔍 Search stories...';
+            searchInput.style.pointerEvents = 'auto';
+            searchInput.style.background = 'rgba(15, 23, 42, 0.85)';
+            searchInput.style.border = '1px solid var(--border-subtle)';
+            searchInput.style.borderRadius = '8px';
+            searchInput.style.padding = '6px 12px';
+            searchInput.style.fontSize = '12px';
+            searchInput.style.color = '#f8fafc';
+            searchInput.style.width = '180px';
+            searchInput.style.outline = 'none';
+            searchInput.style.backdropFilter = 'blur(8px)';
+            searchInput.style.transition = 'border-color 0.2s, box-shadow 0.2s';
+            
+            // Legend Panel
+            const legend = document.createElement('div');
+            legend.style.pointerEvents = 'auto';
+            legend.style.background = 'rgba(15, 23, 42, 0.85)';
+            legend.style.border = '1px solid var(--border-subtle)';
+            legend.style.borderRadius = '8px';
+            legend.style.padding = '6px 10px';
+            legend.style.display = 'flex';
+            legend.style.gap = '8px';
+            legend.style.alignItems = 'center';
+            legend.style.backdropFilter = 'blur(8px)';
+            
+            let activeFilter = null;
+            let searchQuery = '';
+            
+            // Calculate counts
+            const counts = { high_risk: 0, normal: 0, low_risk: 0, implemented: 0 };
+            appData.stories.forEach(s => {
+                if (s.status === 'implemented') {
+                    counts.implemented++;
+                } else {
+                    counts[s.risk_lane] = (counts[s.risk_lane] || 0) + 1;
+                }
+            });
+            
+            const categories = [
+                { id: 'high_risk', label: 'High Risk', color: '#ef4444', count: counts.high_risk },
+                { id: 'normal', label: 'Normal', color: '#3b82f6', count: counts.normal },
+                { id: 'low_risk', label: 'Low Risk', color: '#10b981', count: counts.low_risk },
+                { id: 'implemented', label: 'Implemented', color: '#10b981', count: counts.implemented }
+            ];
+            
+            categories.forEach(cat => {
+                const item = document.createElement('div');
+                item.className = 'risk-legend-item';
+                item.innerHTML = `
+                    <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:${cat.color};"></span>
+                    <span>${cat.label} (${cat.count})</span>
+                `;
+                item.addEventListener('click', () => {
+                    if (activeFilter === cat.id) {
+                        activeFilter = null;
+                        item.classList.remove('active');
+                    } else {
+                        legend.querySelectorAll('.risk-legend-item').forEach(el => el.classList.remove('active'));
+                        activeFilter = cat.id;
+                        item.classList.add('active');
+                    }
+                    updateNodeHighlights();
+                });
+                legend.appendChild(item);
+            });
+            
+            controls.appendChild(searchInput);
+            controls.appendChild(legend);
+            wrapper.appendChild(controls);
+
             const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
             svg.setAttribute('width', '100%');
             svg.setAttribute('height', '100%');
@@ -3600,13 +3711,14 @@ def cmd_serve(port=8080):
                 if (!link.weak) {
                     line.setAttribute('stroke-dasharray', '4 4');
                 }
+                line.style.transition = 'opacity 0.2s ease';
                 edgesG.appendChild(line);
                 return { data: link, el: line };
             });
             
             const nodeElements = nodes.map((n, idx) => {
                 const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-                g.setAttribute('style', 'cursor: grab; transition: transform 0.05s linear;');
+                g.setAttribute('style', 'cursor: grab; transition: transform 0.05s linear, opacity 0.2s ease;');
                 
                 let color = n.lane === 'high_risk' ? '#ef4444' : n.lane === 'normal' ? '#3b82f6' : '#10b981';
                 if (n.status === 'implemented') color = '#10b981';
@@ -3616,7 +3728,7 @@ def cmd_serve(port=8080):
                 circleBg.setAttribute('fill', '#0f172a');
                 circleBg.setAttribute('stroke', color);
                 circleBg.setAttribute('stroke-width', '3');
-                circleBg.setAttribute('style', 'filter: drop-shadow(0 0 6px ' + color + '40);');
+                circleBg.setAttribute('style', 'filter: drop-shadow(0 0 6px ' + color + '40); transition: stroke-width 0.2s ease;');
                 
                 const circleCenter = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
                 circleCenter.setAttribute('r', '6');
@@ -3644,7 +3756,77 @@ def cmd_serve(port=8080):
                     openStoryDrawer(n.id);
                 });
                 
-                return { data: n, el: g };
+                return { data: n, el: g, circleBg: circleBg };
+            });
+            
+            function updateNodeHighlights() {
+                nodeElements.forEach(ne => {
+                    const n = ne.data;
+                    let matchesSearch = true;
+                    if (searchQuery) {
+                        matchesSearch = n.id.toLowerCase().includes(searchQuery) || n.title.toLowerCase().includes(searchQuery);
+                    }
+                    
+                    let matchesFilter = true;
+                    if (activeFilter) {
+                        if (activeFilter === 'implemented') {
+                            matchesFilter = n.status === 'implemented';
+                        } else {
+                            matchesFilter = n.lane === activeFilter && n.status !== 'implemented';
+                        }
+                    }
+                    
+                    if (matchesSearch && matchesFilter) {
+                        ne.el.style.opacity = '1';
+                        ne.el.style.filter = 'none';
+                        if (searchQuery || activeFilter) {
+                            ne.circleBg.setAttribute('stroke-width', '5');
+                            ne.circleBg.setAttribute('style', 'filter: drop-shadow(0 0 12px ' + ne.circleBg.getAttribute('stroke') + '80);');
+                        } else {
+                            ne.circleBg.setAttribute('stroke-width', '3');
+                            ne.circleBg.setAttribute('style', 'filter: drop-shadow(0 0 6px ' + ne.circleBg.getAttribute('stroke') + '40);');
+                        }
+                    } else {
+                        ne.el.style.opacity = '0.15';
+                        ne.el.style.filter = 'grayscale(50%)';
+                        ne.circleBg.setAttribute('stroke-width', '2');
+                    }
+                });
+                
+                linkElements.forEach(le => {
+                    const source = nodes.find(n => n.id === le.data.source);
+                    const target = nodes.find(n => n.id === le.data.target);
+                    if (!source || !target) return;
+                    
+                    let sourceMatch = true;
+                    let targetMatch = true;
+                    
+                    if (searchQuery) {
+                        sourceMatch = source.id.toLowerCase().includes(searchQuery) || source.title.toLowerCase().includes(searchQuery);
+                        targetMatch = target.id.toLowerCase().includes(searchQuery) || target.title.toLowerCase().includes(searchQuery);
+                    }
+                    
+                    if (activeFilter) {
+                        if (activeFilter === 'implemented') {
+                            sourceMatch = sourceMatch && (source.status === 'implemented');
+                            targetMatch = targetMatch && (target.status === 'implemented');
+                        } else {
+                            sourceMatch = sourceMatch && (source.lane === activeFilter && source.status !== 'implemented');
+                            targetMatch = targetMatch && (target.lane === activeFilter && target.status !== 'implemented');
+                        }
+                    }
+                    
+                    if (sourceMatch && targetMatch) {
+                        le.el.style.opacity = '1';
+                    } else {
+                        le.el.style.opacity = '0.05';
+                    }
+                });
+            }
+            
+            searchInput.addEventListener('input', (e) => {
+                searchQuery = e.target.value.toLowerCase();
+                updateNodeHighlights();
             });
             
             let isDragging = false;
@@ -3882,6 +4064,21 @@ def cmd_serve(port=8080):
             if (!container) return;
             container.innerHTML = '';
             
+            // Inject dynamic style for animated flow lines
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes callGraphDash {
+                    to {
+                        stroke-dashoffset: -20;
+                    }
+                }
+                .call-flow-line {
+                    stroke-dasharray: 6, 4;
+                    animation: callGraphDash 1.2s linear infinite;
+                }
+            `;
+            document.head.appendChild(style);
+            
             const width = container.clientWidth || 500;
             const height = 220;
             
@@ -3937,6 +4134,7 @@ def cmd_serve(port=8080):
                 path.setAttribute('fill', 'none');
                 path.setAttribute('stroke', color);
                 path.setAttribute('stroke-width', '2');
+                path.setAttribute('class', 'call-flow-line');
                 path.setAttribute('marker-end', 'url(#arrow)');
                 svg.appendChild(path);
             };
@@ -4606,6 +4804,19 @@ def cmd_serve(port=8080):
             } catch(e) { showNotification(e.message, true); }
         }
 
+        function filterTraceSteps(query) {
+            const q = query.toLowerCase().trim();
+            const steps = document.querySelectorAll('#trace-timeline-list .timeline-step');
+            steps.forEach(step => {
+                const action = step.getAttribute('data-action') || '';
+                if (action.includes(q)) {
+                    step.style.display = 'block';
+                } else {
+                    step.style.display = 'none';
+                }
+            });
+        }
+
         function openTraceDrawer(id) {
             const t = appData.traces.find(x => x.id == id);
             if (!t) return;
@@ -4641,7 +4852,12 @@ def cmd_serve(port=8080):
                 }
                 if (actions && actions.length) {
                     actionsHtml = `
-                    <div class="trace-timeline" style="margin-top: 15px; display: flex; flex-direction: column; gap: 15px; position: relative; padding-left: 20px; border-left: 2px dashed rgba(255, 255, 255, 0.1);">
+                    <div style="margin-top: 10px; margin-bottom: 15px;">
+                        <input type="text" id="trace-step-search" placeholder="🔍 Filter action steps..." 
+                               style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); color: #fff; padding: 8px 12px; border-radius: 8px; font-size: 12px; width: 100%; outline: none;"
+                               oninput="filterTraceSteps(this.value)">
+                    </div>
+                    <div class="trace-timeline" id="trace-timeline-list" style="display: flex; flex-direction: column; gap: 15px; position: relative; padding-left: 20px; border-left: 2px dashed rgba(255, 255, 255, 0.1);">
                     `;
                     actions.forEach((act, idx) => {
                         let icon = '⚡';
@@ -4662,7 +4878,7 @@ def cmd_serve(port=8080):
                         }
                         
                         actionsHtml += `
-                        <div class="timeline-step" style="position: relative;">
+                        <div class="timeline-step" data-action="${escapeHtml(act.toLowerCase())}" style="position: relative; transition: all 0.2s ease;">
                             <div class="timeline-icon" style="position: absolute; left: -31px; top: 0; width: 22px; height: 22px; border-radius: 50%; background: #080c14; border: 2px solid ${color}; display: flex; align-items: center; justify-content: center; font-size: 11px; z-index: 2; box-shadow: 0 0 8px ${color}40;">${icon}</div>
                             <div class="timeline-content" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px 12px;">
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
