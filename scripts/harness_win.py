@@ -3527,35 +3527,231 @@ def cmd_serve(port=8080):
             } catch (err) { console.error(err); }
         }
         
+        let riskGraphSim = null;
         function renderRiskGraph(container) {
             container.innerHTML = '';
             const wrapper = document.createElement('div');
             wrapper.className = 'graph-container';
-            if (!appData.stories.length) { wrapper.innerHTML = '<p>No stories found.</p>'; container.appendChild(wrapper); return; }
+            wrapper.style.position = 'relative';
+            wrapper.style.overflow = 'hidden';
+            wrapper.style.background = 'rgba(15, 23, 42, 0.25)';
+            wrapper.style.border = '1px solid var(--border-subtle)';
+            wrapper.style.borderRadius = '16px';
+            wrapper.style.height = '500px';
+            
+            if (!appData.stories.length) { 
+                wrapper.innerHTML = '<p style="text-align:center; padding:50px; color:var(--text-secondary);">No stories found.</p>'; 
+                container.appendChild(wrapper); 
+                return; 
+            }
+            
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('width', '100%');
+            svg.setAttribute('height', '100%');
+            svg.style.display = 'block';
+            wrapper.appendChild(svg);
+            container.appendChild(wrapper);
+
+            const rect = wrapper.getBoundingClientRect();
+            const width = rect.width || 540;
+            const height = 500;
+            
             const nodes = appData.stories.map((s, idx) => {
                 const angle = (idx / appData.stories.length) * 2 * Math.PI;
-                const r = 180;
-                return { id: s.id, title: s.title, lane: s.risk_lane, status: s.status, x: 270 + r * Math.cos(angle), y: 250 + r * Math.sin(angle) };
+                const r = 150;
+                return {
+                    id: s.id,
+                    title: s.title,
+                    lane: s.risk_lane,
+                    status: s.status,
+                    x: width / 2 + r * Math.cos(angle),
+                    y: height / 2 + r * Math.sin(angle),
+                    vx: 0,
+                    vy: 0,
+                    radius: 20
+                };
             });
-            let svgContent = `<svg width="540" height="500">`;
+            
+            const links = [];
             for(let i=0; i<nodes.length; i++) {
-                let next = (i + 1) % nodes.length;
-                svgContent += `<line class="edge" id="edge-${i}-${next}" x1="${nodes[i].x}" y1="${nodes[i].y}" x2="${nodes[next].x}" y2="${nodes[next].y}" />`;
+                if (i < nodes.length - 1) {
+                    links.push({ source: nodes[i].id, target: nodes[i+1].id });
+                } else if (nodes.length > 2) {
+                    links.push({ source: nodes[i].id, target: nodes[0].id });
+                }
+                
+                for (let j = i + 1; j < nodes.length; j++) {
+                    if (nodes[i].lane === nodes[j].lane) {
+                        links.push({ source: nodes[i].id, target: nodes[j].id, weak: true });
+                    }
+                }
             }
-            nodes.forEach((n, idx) => {
+            
+            const edgesG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            svg.appendChild(edgesG);
+            
+            const nodesG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            svg.appendChild(nodesG);
+            
+            const linkElements = links.map(link => {
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('stroke', link.weak ? 'rgba(99, 102, 241, 0.06)' : 'rgba(99, 102, 241, 0.25)');
+                line.setAttribute('stroke-width', link.weak ? '1' : '2');
+                if (!link.weak) {
+                    line.setAttribute('stroke-dasharray', '4 4');
+                }
+                edgesG.appendChild(line);
+                return { data: link, el: line };
+            });
+            
+            const nodeElements = nodes.map((n, idx) => {
+                const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                g.setAttribute('style', 'cursor: grab; transition: transform 0.05s linear;');
+                
                 let color = n.lane === 'high_risk' ? '#ef4444' : n.lane === 'normal' ? '#3b82f6' : '#10b981';
                 if (n.status === 'implemented') color = '#10b981';
-                svgContent += `<g class="node" onclick="toggleGraphRisk('${n.id}', ${idx})" transform="translate(${n.x}, ${n.y})"><circle r="18" fill="#0f172a" stroke="${color}" stroke-width="3" /><circle r="6" fill="${color}" /><text y="30" text-anchor="middle" fill="#fff" font-size="10">${n.id}</text></g>`;
+                
+                const circleBg = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circleBg.setAttribute('r', '20');
+                circleBg.setAttribute('fill', '#0f172a');
+                circleBg.setAttribute('stroke', color);
+                circleBg.setAttribute('stroke-width', '3');
+                circleBg.setAttribute('style', 'filter: drop-shadow(0 0 6px ' + color + '40);');
+                
+                const circleCenter = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circleCenter.setAttribute('r', '6');
+                circleCenter.setAttribute('fill', color);
+                
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('y', '32');
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('fill', '#f8fafc');
+                text.setAttribute('font-size', '10px');
+                text.setAttribute('font-weight', '600');
+                text.textContent = n.id;
+                
+                const titleText = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+                titleText.textContent = `${n.id}: ${n.title}\nLane: ${n.lane}\nStatus: ${n.status}`;
+                
+                g.appendChild(circleBg);
+                g.appendChild(circleCenter);
+                g.appendChild(text);
+                g.appendChild(titleText);
+                nodesG.appendChild(g);
+                
+                g.addEventListener('click', (e) => {
+                    if (isDragging) return;
+                    openStoryDrawer(n.id);
+                });
+                
+                return { data: n, el: g };
             });
-            svgContent += `</svg>`;
-            wrapper.innerHTML += svgContent;
-            container.appendChild(wrapper);
-        }
-        
-        function toggleGraphRisk(storyId, idx) {
-            const edges = document.querySelectorAll('.edge');
-            edges.forEach(e => { if (e.id.includes(`-${idx}`) || e.id.includes(`${idx}-`)) e.classList.toggle('active'); });
-            openStoryDrawer(storyId);
+            
+            let isDragging = false;
+            let draggedNode = null;
+            
+            svg.addEventListener('mousedown', (e) => {
+                const rect = svg.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+                
+                for (let n of nodes) {
+                    const dx = n.x - mouseX;
+                    const dy = n.y - mouseY;
+                    if (Math.sqrt(dx * dx + dy * dy) < 25) {
+                        draggedNode = n;
+                        n.fixed = true;
+                        isDragging = false;
+                        svg.style.cursor = 'grabbing';
+                        break;
+                    }
+                }
+            });
+            
+            svg.addEventListener('mousemove', (e) => {
+                if (!draggedNode) return;
+                isDragging = true;
+                const rect = svg.getBoundingClientRect();
+                draggedNode.x = e.clientX - rect.left;
+                draggedNode.y = e.clientY - rect.top;
+            });
+            
+            const releaseDrag = () => {
+                if (draggedNode) {
+                    draggedNode.fixed = false;
+                    draggedNode = null;
+                    svg.style.cursor = 'default';
+                }
+            };
+            
+            svg.addEventListener('mouseup', releaseDrag);
+            svg.addEventListener('mouseleave', releaseDrag);
+            
+            if (riskGraphSim) cancelAnimationFrame(riskGraphSim);
+            
+            function step() {
+                for (let i = 0; i < nodes.length; i++) {
+                    for (let j = i + 1; j < nodes.length; j++) {
+                        const n1 = nodes[i];
+                        const n2 = nodes[j];
+                        const dx = n2.x - n1.x;
+                        const dy = n2.y - n1.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                        const minDist = 120;
+                        if (dist < minDist) {
+                            const force = (minDist - dist) * 0.05;
+                            const fx = (dx / dist) * force;
+                            const fy = (dy / dist) * force;
+                            if (!n1.fixed) { n1.x -= fx; n1.y -= fy; }
+                            if (!n2.fixed) { n2.x += fx; n2.y += fy; }
+                        }
+                    }
+                }
+                
+                linkElements.forEach(link => {
+                    const source = nodes.find(n => n.id === link.data.source);
+                    const target = nodes.find(n => n.id === link.data.target);
+                    if (!source || !target) return;
+                    const dx = target.x - source.x;
+                    const dy = target.y - source.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                    const targetDist = link.data.weak ? 220 : 100;
+                    const strength = link.data.weak ? 0.002 : 0.02;
+                    const force = (dist - targetDist) * strength;
+                    const fx = (dx / dist) * force;
+                    const fy = (dy / dist) * force;
+                    if (!source.fixed) { source.x += fx; source.y += fy; }
+                    if (!target.fixed) { target.x -= fx; target.y -= fy; }
+                });
+                
+                nodes.forEach(n => {
+                    if (n.fixed) return;
+                    n.x += (width / 2 - n.x) * 0.015;
+                    n.y += (height / 2 - n.y) * 0.015;
+                    
+                    n.x = Math.max(30, Math.min(width - 30, n.x));
+                    n.y = Math.max(30, Math.min(height - 30, n.y));
+                });
+                
+                linkElements.forEach(l => {
+                    const source = nodes.find(n => n.id === l.data.source);
+                    const target = nodes.find(n => n.id === l.data.target);
+                    if (source && target) {
+                        l.el.setAttribute('x1', source.x);
+                        l.el.setAttribute('y1', source.y);
+                        l.el.setAttribute('x2', target.x);
+                        l.el.setAttribute('y2', target.y);
+                    }
+                });
+                
+                nodeElements.forEach(ne => {
+                    ne.el.setAttribute('transform', `translate(${ne.data.x}, ${ne.data.y})`);
+                });
+                
+                riskGraphSim = requestAnimationFrame(step);
+            }
+            
+            step();
         }
         
         function renderConsole(container) {
@@ -3681,6 +3877,135 @@ def cmd_serve(port=8080):
             }
         }
         
+        function renderVisualCallGraph(node, callers, callees) {
+            const container = document.getElementById('cg-visual-graph-container');
+            if (!container) return;
+            container.innerHTML = '';
+            
+            const width = container.clientWidth || 500;
+            const height = 220;
+            
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('width', '100%');
+            svg.setAttribute('height', '100%');
+            svg.style.background = 'rgba(15, 23, 42, 0.3)';
+            svg.style.borderRadius = '8px';
+            svg.style.border = '1px solid var(--border-subtle)';
+            container.appendChild(svg);
+            
+            const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+            const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+            marker.setAttribute('id', 'arrow');
+            marker.setAttribute('viewBox', '0 0 10 10');
+            marker.setAttribute('refX', '22');
+            marker.setAttribute('refY', '5');
+            marker.setAttribute('markerWidth', '5');
+            marker.setAttribute('markerHeight', '5');
+            marker.setAttribute('orient', 'auto-start-reverse');
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('d', 'M 0 0 L 10 5 L 0 10 z');
+            path.setAttribute('fill', 'rgba(255, 255, 255, 0.35)');
+            marker.appendChild(path);
+            defs.appendChild(marker);
+            svg.appendChild(defs);
+            
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const leftX = width / 6;
+            const rightX = (width * 5) / 6;
+            
+            const callerNodes = callers.map((c, i) => {
+                const y = callers.length === 1 ? centerY : 30 + (i * (height - 60)) / (callers.length - 1);
+                return { ...c, x: leftX, y: y, isCaller: true };
+            });
+            
+            const calleeNodes = callees.map((c, i) => {
+                const y = callees.length === 1 ? centerY : 30 + (i * (height - 60)) / (callees.length - 1);
+                return { ...c, x: rightX, y: y, isCallee: true };
+            });
+            
+            const centerNode = { ...node, x: centerX, y: centerY, isCenter: true };
+            
+            const drawLink = (from, to, color) => {
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                const controlX1 = (from.x + to.x) / 2;
+                const controlY1 = from.y;
+                const controlX2 = (from.x + to.x) / 2;
+                const controlY2 = to.y;
+                const d = `M ${from.x} ${from.y} C ${controlX1} ${controlY1}, ${controlX2} ${controlY2}, ${to.x} ${to.y}`;
+                path.setAttribute('d', d);
+                path.setAttribute('fill', 'none');
+                path.setAttribute('stroke', color);
+                path.setAttribute('stroke-width', '2');
+                path.setAttribute('marker-end', 'url(#arrow)');
+                svg.appendChild(path);
+            };
+            
+            callerNodes.forEach(c => drawLink(c, centerNode, 'rgba(99, 102, 241, 0.4)'));
+            calleeNodes.forEach(c => drawLink(centerNode, c, 'rgba(16, 185, 129, 0.4)'));
+            
+            const renderNodeCircle = (n, strokeColor, fillColor, pulse = false) => {
+                const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                g.setAttribute('transform', `translate(${n.x}, ${n.y})`);
+                g.setAttribute('style', 'cursor: pointer;');
+                
+                if (pulse) {
+                    const pulseCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    pulseCircle.setAttribute('r', '16');
+                    pulseCircle.setAttribute('fill', 'none');
+                    pulseCircle.setAttribute('stroke', strokeColor);
+                    pulseCircle.setAttribute('stroke-width', '2');
+                    pulseCircle.setAttribute('opacity', '0.6');
+                    
+                    const animate = document.createElementNS('http://www.w3.org/2000/svg', 'animate');
+                    animate.setAttribute('attributeName', 'r');
+                    animate.setAttribute('values', '12;24;12');
+                    animate.setAttribute('dur', '3s');
+                    animate.setAttribute('repeatCount', 'indefinite');
+                    
+                    const animateOp = document.createElementNS('http://www.w3.org/2000/svg', 'animate');
+                    animateOp.setAttribute('attributeName', 'opacity');
+                    animateOp.setAttribute('values', '0.8;0;0.8');
+                    animateOp.setAttribute('dur', '3s');
+                    animateOp.setAttribute('repeatCount', 'indefinite');
+                    
+                    pulseCircle.appendChild(animate);
+                    pulseCircle.appendChild(animateOp);
+                    g.appendChild(pulseCircle);
+                }
+                
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('r', n.isCenter ? '14' : '10');
+                circle.setAttribute('fill', fillColor);
+                circle.setAttribute('stroke', strokeColor);
+                circle.setAttribute('stroke-width', '2');
+                g.appendChild(circle);
+                
+                const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                label.setAttribute('y', n.isCenter ? '-22' : '22');
+                label.setAttribute('text-anchor', 'middle');
+                label.setAttribute('fill', '#fff');
+                label.setAttribute('font-size', '10px');
+                label.setAttribute('font-weight', n.isCenter ? '700' : '500');
+                label.textContent = n.name;
+                g.appendChild(label);
+                
+                const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+                title.textContent = `${n.name} (${n.kind || 'symbol'})\nFile: ${n.file_path}`;
+                g.appendChild(title);
+                
+                g.addEventListener('click', () => {
+                    selectCodeGraphNode(n.id);
+                });
+                
+                svg.appendChild(g);
+            };
+            
+            callerNodes.forEach(c => renderNodeCircle(c, '#818cf8', '#1e1b4b'));
+            calleeNodes.forEach(c => renderNodeCircle(c, '#34d399', '#064e3b'));
+            renderNodeCircle(centerNode, '#fbbf24', '#0f172a', true);
+        }
+
         async function selectCodeGraphNode(nodeId) {
             const panel = document.getElementById('cg-details-panel');
             panel.innerHTML = '<div style="text-align: center; color: var(--text-secondary); margin-top: 100px;">Loading node details...</div>';
@@ -3735,8 +4060,8 @@ def cmd_serve(port=8080):
                              style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-subtle); padding: 8px 12px; border-radius: 6px; cursor: pointer; transition: all 0.2s ease; display: flex; justify-content: space-between; align-items: center;"
                              onmouseover="this.style.borderColor='rgba(99, 102, 241, 0.3)'"
                              onmouseout="this.style.borderColor='var(--border-subtle)'">
-                            <span style="color: #6366f1; font-weight: 500; font-size: 13px;">${escapeHtml(c.name)}</span>
-                            <span style="color: var(--text-secondary); font-size: 11px;">line ${c.call_line}</span>
+                             <span style="color: #6366f1; font-weight: 500; font-size: 13px;">${escapeHtml(c.name)}</span>
+                             <span style="color: var(--text-secondary); font-size: 11px;">line ${c.call_line}</span>
                         </div>
                     `).join('');
                 }
@@ -3748,8 +4073,8 @@ def cmd_serve(port=8080):
                              style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-subtle); padding: 8px 12px; border-radius: 6px; cursor: pointer; transition: all 0.2s ease; display: flex; justify-content: space-between; align-items: center;"
                              onmouseover="this.style.borderColor='rgba(99, 102, 241, 0.3)'"
                              onmouseout="this.style.borderColor='var(--border-subtle)'">
-                            <span style="color: #10b981; font-weight: 500; font-size: 13px;">${escapeHtml(c.name)}</span>
-                            <span style="color: var(--text-secondary); font-size: 11px;">line ${c.call_line}</span>
+                             <span style="color: #10b981; font-weight: 500; font-size: 13px;">${escapeHtml(c.name)}</span>
+                             <span style="color: var(--text-secondary); font-size: 11px;">line ${c.call_line}</span>
                         </div>
                     `).join('');
                 }
@@ -3789,6 +4114,12 @@ def cmd_serve(port=8080):
                     </div>
                     ${node.docstring ? `<p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; font-style: italic; border-left: 3px solid rgba(255,255,255,0.1); padding-left: 10px;">${escapeHtml(node.docstring)}</p>` : ''}
                 </div>
+
+                <!-- Visual Call Graph Panel -->
+                <div>
+                    <h3 style="font-size: 13px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Visual Call Graph</h3>
+                    <div id="cg-visual-graph-container" style="height: 220px; width: 100%;"></div>
+                </div>
                 
                 <!-- Code Definition Preview -->
                 <div>
@@ -3827,6 +4158,8 @@ def cmd_serve(port=8080):
                         </div>
                     </div>
                 </div>`;
+
+                renderVisualCallGraph(node, callers, callees);
             } catch (err) {
                 panel.innerHTML = `<div class="error-callout">Error: ${err.message}</div>`;
             }
@@ -4295,6 +4628,58 @@ def cmd_serve(port=8080):
                     filesChangedHtml = arr.map(f => `<code style="display:block; font-size:11px; margin-bottom:3px; word-break:break-all;">${escapeHtml(f)}</code>`).join('');
                 }
             } catch (e) { filesChangedHtml = t.files_changed || 'None'; }
+
+            let actionsHtml = '';
+            try {
+                let actions = [];
+                if (t.actions_taken) {
+                    try {
+                        actions = JSON.parse(t.actions_taken);
+                    } catch(e) {
+                        actions = t.actions_taken.split(/,|\n/).map(x => x.trim()).filter(x => x.length > 0);
+                    }
+                }
+                if (actions && actions.length) {
+                    actionsHtml = `
+                    <div class="trace-timeline" style="margin-top: 15px; display: flex; flex-direction: column; gap: 15px; position: relative; padding-left: 20px; border-left: 2px dashed rgba(255, 255, 255, 0.1);">
+                    `;
+                    actions.forEach((act, idx) => {
+                        let icon = '⚡';
+                        let color = '#a5b4fc';
+                        const actLower = act.toLowerCase();
+                        if (actLower.includes('read') || actLower.includes('view') || actLower.includes('inspect')) {
+                            icon = '🔍';
+                            color = '#60a5fa';
+                        } else if (actLower.includes('write') || actLower.includes('edit') || actLower.includes('change') || actLower.includes('modify') || actLower.includes('replace')) {
+                            icon = '📝';
+                            color = '#fbbf24';
+                        } else if (actLower.includes('test') || actLower.includes('verify') || actLower.includes('gate') || actLower.includes('check')) {
+                            icon = '✅';
+                            color = '#34d399';
+                        } else if (actLower.includes('error') || actLower.includes('fail') || actLower.includes('bug')) {
+                            icon = '❌';
+                            color = '#f87171';
+                        }
+                        
+                        actionsHtml += `
+                        <div class="timeline-step" style="position: relative;">
+                            <div class="timeline-icon" style="position: absolute; left: -31px; top: 0; width: 22px; height: 22px; border-radius: 50%; background: #080c14; border: 2px solid ${color}; display: flex; align-items: center; justify-content: center; font-size: 11px; z-index: 2; box-shadow: 0 0 8px ${color}40;">${icon}</div>
+                            <div class="timeline-content" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px 12px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                    <span style="font-weight: 600; font-size: 12px; color: ${color};">Step ${idx + 1}</span>
+                                </div>
+                                <p style="font-size: 13px; line-height: 1.4; color: var(--text-primary); margin: 0;">${escapeHtml(act)}</p>
+                            </div>
+                        </div>
+                        `;
+                    });
+                    actionsHtml += `</div>`;
+                } else {
+                    actionsHtml = '<div style="color: var(--text-secondary); font-size: 13px; font-style: italic;">No specific actions recorded in this trace.</div>';
+                }
+            } catch (e) {
+                actionsHtml = '<div style="color: var(--text-secondary); font-size: 13px; font-style: italic;">Error parsing actions.</div>';
+            }
             
             document.getElementById('drawer-body').innerHTML = `
                 <div class="drawer-section">
@@ -4311,6 +4696,11 @@ def cmd_serve(port=8080):
                 <div class="drawer-section">
                     <h4>Task Summary</h4>
                     <p style="font-size:14px; line-height:1.5;">${escapeHtml(t.task_summary)}</p>
+                </div>
+                
+                <div class="drawer-section">
+                    <h4>Execution Action Steps</h4>
+                    ${actionsHtml}
                 </div>
                 
                 <div class="drawer-section">
