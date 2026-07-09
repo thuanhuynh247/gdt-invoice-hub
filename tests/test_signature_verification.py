@@ -397,3 +397,77 @@ def test_verify_xml_signature_node_tampering():
     )
     assert "#invoice-body" in res_tampered["sig_tampered_nodes"]
 
+
+def test_verify_xml_signature_enveloped_exclusive_c14n():
+    """Test cryptographic signature verification with enveloped signature, exclusive C14N and ancestor namespace prefixes."""
+    seller_name = "Công ty TNHH Đầu tư MISA"
+    seller_mst = "0101234567"
+    
+    private_key, cert = generate_test_cert(
+        cn="MISA-CA",
+        org="Công ty Cổ phần MISA",
+        mst=seller_mst
+    )
+    
+    cert_b64 = base64.b64encode(cert.public_bytes(Encoding.DER)).decode("utf-8")
+    
+    # Target node is <Data Id="invoice-body">, which is inside <HDon xmlns:ns1="...">
+    # The transform requires exclusive C14N with inclusive namespace prefix "ns1" which is declared on root <HDon>
+    ref_node_content = b'<Data xmlns:ns1="http://example.com/ns1" Id="invoice-body"><Value>1000000</Value></Data>'
+    ref_node_hashed = hashes.Hash(hashes.SHA256())
+    ref_node_hashed.update(ref_node_content)
+    ref_node_digest = base64.b64encode(ref_node_hashed.finalize()).decode("utf-8").strip()
+
+    xml_template = f"""<HDon xmlns:ns1="http://example.com/ns1" xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+      <Data Id="invoice-body"><Value>1000000</Value></Data>
+      <ds:Signature>
+        <ds:SignedInfo>
+          <ds:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
+          <ds:SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"/>
+          <ds:Reference URI="#invoice-body">
+            <ds:Transforms>
+              <ds:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+              <ds:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#">
+                <InclusiveNamespaces PrefixList="ns1" xmlns="http://www.w3.org/2001/10/xml-exc-c14n#"/>
+              </ds:Transform>
+            </ds:Transforms>
+            <ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/>
+            <ds:DigestValue>{ref_node_digest}</ds:DigestValue>
+          </ds:Reference>
+        </ds:SignedInfo>
+        <ds:SignatureValue></ds:SignatureValue>
+        <ds:KeyInfo>
+          <ds:X509Data>
+            <ds:X509Certificate>{cert_b64}</ds:X509Certificate>
+          </ds:X509Data>
+        </ds:KeyInfo>
+      </ds:Signature>
+    </HDon>"""
+    
+    root = lxml.etree.fromstring(xml_template.encode("utf-8"))
+    sig_elem = root.xpath("//*[local-name()='Signature']")[0]
+    signed_info_elem = sig_elem.xpath(".//*[local-name()='SignedInfo']")[0]
+    c14n_data = lxml.etree.tostring(signed_info_elem, method="c14n", exclusive=True)
+    
+    signature = private_key.sign(
+        c14n_data,
+        padding.PKCS1v15(),
+        hashes.SHA256()
+    )
+    
+    sig_b64 = base64.b64encode(signature).decode("utf-8")
+    sig_val_elem = sig_elem.xpath(".//*[local-name()='SignatureValue']")[0]
+    sig_val_elem.text = sig_b64
+    
+    xml_bytes = lxml.etree.tostring(root)
+    
+    res = verify_xml_signature(
+        xml_bytes,
+        invoice_date_str=datetime.now().strftime("%Y-%m-%d"),
+        seller_mst=seller_mst,
+        seller_name=seller_name
+    )
+    assert res["sig_verified"] is True
+    assert len(res["sig_tampered_nodes"]) == 0
+
+

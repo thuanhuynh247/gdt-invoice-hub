@@ -266,7 +266,8 @@ def verify_xml_signature(xml_bytes: bytes, invoice_date_str: str | None = None, 
                 # Check for PrefixList in InclusiveNamespaces
                 inc_ns_elems = c14n_method_elems[0].xpath(".//*[local-name()='InclusiveNamespaces']")
                 if not inc_ns_elems:
-                    inc_ns_elems = signed_info_elem.xpath(".//*[local-name()='InclusiveNamespaces']")
+                    all_inc = signed_info_elem.xpath(".//*[local-name()='InclusiveNamespaces']")
+                    inc_ns_elems = [el for el in all_inc if not el.xpath("ancestor::*[local-name()='Reference']")]
                 if inc_ns_elems:
                     prefix_list = inc_ns_elems[0].get("PrefixList", "")
                     if prefix_list:
@@ -383,6 +384,12 @@ def verify_xml_signature(xml_bytes: bytes, invoice_date_str: str | None = None, 
                             parent = sig.getparent()
                             if parent is not None:
                                 parent.remove(sig)
+                        
+                        # Preserve original namespaces on target_copy by wrapping in a dummy parent
+                        if hasattr(target_node, "nsmap") and target_node.nsmap:
+                            dummy = lxml.etree.Element("dummy_parent", nsmap=target_node.nsmap)
+                            dummy.append(target_copy)
+                            
                         node_to_c14n = target_copy
                     else:
                         node_to_c14n = target_node
