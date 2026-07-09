@@ -1759,7 +1759,7 @@ def api_create_chat_session():
                 f"- **Số hóa đơn:** `{invoice.number}` | **Ký hiệu:** `{invoice.symbol}` | **Ngày lập:** {invoice.date}\n"
                 f"- **Tổng tiền thanh toán (sau thuế):** {invoice.total_amount:,.2f} {invoice.currency or 'VND'}\n"
                 f"- **Chỉ số tuân thủ T-Score:** **{invoice.t_score}/100** ({invoice.t_rating})\n\n"
-                f"**Đánh giá tuân thủ sơ bộ (Nghị định 123/2020/NĐ-CP & Thông tư 219/2013/TT-BTC):**\n"
+                f"**Đánh giá tuân thủ sơ bộ (Nghị định 254/2026/NĐ-CP & Thông tư 219/2013/TT-BTC):**\n"
             )
             
             warnings = []
@@ -7190,7 +7190,7 @@ def api_tax_chat():
             "Bạn là Kế toán trưởng & Chuyên gia tư vấn thuế chuyên nghiệp (Senior Tax Compliance Consultant) của meInvoice Intelligence.\n"
             f"Vai trò chuyên biệt hiện tại của bạn: {agent_name}.\n"
             f"Hướng dẫn nghiệp vụ cho vai trò của bạn:\n{agent_instructions}\n\n"
-            "Hãy luôn trả lời bằng giọng điệu chuyên nghiệp, chuẩn mực của một cố vấn thuế cấp cao. Trích dẫn chính xác các Điều, Khoản, Thông tư, Nghị định liên quan (ví dụ: Nghị định 123/2020/NĐ-CP về hóa đơn, Nghị định 125/2020/NĐ-CP về xử phạt hành chính thuế/hóa đơn, Thông tư 219/2013/TT-BTC về thuế GTGT, Luật Thuế GTGT mới 48/2024/QH15 hoặc Luật số 149/2025/QH15) khi đưa ra lời khuyên pháp lý.\n"
+            "Hãy luôn trả lời bằng giọng điệu chuyên nghiệp, chuẩn mực của một cố vấn thuế cấp cao. Trích dẫn chính xác các Điều, Khoản, Thông tư, Nghị định liên quan (ví dụ: Nghị định 254/2026/NĐ-CP về hóa đơn, Nghị định 252/2026/NĐ-CP về xử phạt hành chính thuế/hóa đơn và quản lý khai thuế, Thông tư 219/2013/TT-BTC về thuế GTGT, Luật Thuế GTGT mới 48/2024/QH15 hoặc Luật số 149/2025/QH15) khi đưa ra lời khuyên pháp lý.\n"
         )
         
         if rag_context:
@@ -7653,7 +7653,7 @@ def api_tax_crawler_stats():
                     stats["categories"]["GTGT"] += 1
                 elif "tncn" in combined or "thu nhập cá nhân" in combined:
                     stats["categories"]["TNCN"] += 1
-                elif "hóa đơn" in combined or "chứng từ" in combined or "123/2020" in combined:
+                elif "hóa đơn" in combined or "chứng từ" in combined or "254/2026" in combined or "123/2020" in combined:
                     stats["categories"]["HoaDon"] += 1
                 else:
                     stats["categories"]["Khac"] += 1

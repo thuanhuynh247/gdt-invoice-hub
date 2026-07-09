@@ -29,7 +29,7 @@ def get_compliance_pages(version_id: str, mst: str, db_stats: dict) -> list[dict
             },
             {
                 "title": "2. Mô Hình Lõi (Core Model)",
-                "content": "### Cấu Trúc Mô Hình Tính CIT\n*   **Thu nhập chịu thuế**: = Doanh thu - Chi phí được trừ + Các khoản thu nhập khác.\n*   **Thu nhập tính thuế**: = Thu nhập chịu thuế - Thu nhập được miễn thuế - Các khoản lỗ được kết chuyển.\n*   **Thuế CIT phải nộp**: = Thu nhập tính thuế × Thuế suất (Mặc định 20% hoặc mức ưu đãi).\n\n### Phân loại chi phí trên hệ thống\n*   **Deductible (Chi phí được trừ)**: Đầy đủ hóa đơn, chứng từ thanh toán không dùng tiền mặt nếu từ 20 triệu đồng trở lên.\n*   **Non-deductible (Chi phí không được trừ)**: Hóa đơn mua sắm cá nhân, chi phí lãi vay vượt trần EBITDA 30% (Nghị định 132), chi phí không phục vụ sản xuất kinh doanh."
+                "content": "### Cấu Trúc Mô Hình Tính CIT\n*   **Thu nhập chịu thuế**: = Doanh thu - Chi phí được trừ + Các khoản thu nhập khác.\n*   **Thu nhập tính thuế**: = Thu nhập chịu thuế - Thu nhập được miễn thuế - Các khoản lỗ được kết chuyển.\n*   **Thuế CIT phải nộp**: = Thu nhập tính thuế × Thuế suất (Mặc định 20% hoặc mức ưu đãi).\n\n### Phân loại chi phí trên hệ thống\n*   **Deductible (Chi phí được trừ)**: Đầy đủ hóa đơn, chứng từ thanh toán không dùng tiền mặt nếu từ 20 triệu đồng trở lên.\n*   **Non-deductible (Chi phí không được trừ)**: Hóa đơn mua sắm cá nhân, chi phí lãi vay vượt trần EBITDA 30% (Nghị định 255/2026/NĐ-CP thay thế Nghị định 132/2020/NĐ-CP), chi phí không phục vụ sản xuất kinh doanh."
             },
             {
                 "title": "3. Phân Vùng Phạm Vi (Scope Rings)",
@@ -57,10 +57,10 @@ def get_compliance_pages(version_id: str, mst: str, db_stats: dict) -> list[dict
         pages = [
             {
                 "title": "1. Định Hướng (Orientation)",
-                "content": "### Mục tiêu chính (True Purpose)\nĐảm bảo cấu trúc dữ liệu hóa đơn điện tử XML gốc hoàn toàn tuân thủ theo chuẩn của Tổng cục Thuế Việt Nam quy định tại Nghị định số 123/2020/NĐ-CP.\n\n### Câu hỏi trọng tâm (Focus Question)\n*Làm thế nào để phát hiện sớm các lỗi schema XML, thiếu chữ ký số, sai cấu trúc thẻ dữ liệu hoặc namespaces trước khi truyền nhận dữ liệu đến hệ thống GDT?*\n\n### Lời hứa của bản đồ (Map Promise)\nCung cấp sơ đồ phân tích các thẻ XML cốt lõi (DLHDon, TTChung, NBan, NMua, TToan), giúp lập trình viên và kế toán đối chiếu nhanh các sai lệch cấu trúc dữ liệu của nhà cung cấp."
+                "content": "### Mục tiêu chính (True Purpose)\nĐảm bảo cấu trúc dữ liệu hóa đơn điện tử XML gốc hoàn toàn tuân thủ theo chuẩn của Tổng cục Thuế Việt Nam quy định tại Nghị định số 254/2026/NĐ-CP (thay thế Nghị định số 123/2020/NĐ-CP).\n\n### Câu hỏi trọng tâm (Focus Question)\n*Làm thế nào để phát hiện sớm các lỗi schema XML, thiếu chữ ký số, sai cấu trúc thẻ dữ liệu hoặc namespaces trước khi truyền nhận dữ liệu đến hệ thống GDT?*\n\n### Lời hứa của bản đồ (Map Promise)\nCung cấp sơ đồ phân tích các thẻ XML cốt lõi (DLHDon, TTChung, NBan, NMua, TToan), giúp lập trình viên và kế toán đối chiếu nhanh các sai lệch cấu trúc dữ liệu của nhà cung cấp."
             },
             {
-                "title": "2. Mô Hình Lõi (Core Model)",
+                "title": "2. Mô Định Lõi (Core Model)",
                 "content": "### Cấu Trúc File XML Hóa Đơn Chuẩn\n*   **Thẻ gốc (Root Element)**: `<HDon>` hoặc `<HSoThueDTu>` chứa namespace chuẩn.\n*   **DLHDon (Dữ liệu hóa đơn)**: Chứa thông tin chung, thông tin người bán (NBan), người mua (NMua), chi tiết hàng hóa dịch vụ (DSHHDV) và thanh toán (TToan).\n*   **Signature (Chữ ký số)**: Thẻ chữ ký số chuẩn XMLDSig của đơn vị phát hành hóa đơn đảm bảo tính toàn vẹn dữ liệu."
             },
             {
@@ -73,7 +73,7 @@ def get_compliance_pages(version_id: str, mst: str, db_stats: dict) -> list[dict
             },
             {
                 "title": "5. Cơ Chế Vận Hành (Mechanism & Dynamics)",
-                "content": "### Luồng Phân Tích Cú Pháp XML Hóa Đơn\n\n```mermaid\ngraph TD\n    A[Nhận XML đầu vào] --> B{XML Well-formed?}\n    B -->|Không| C[Báo lỗi cấu trúc tệp XML]\n    B -->|Có| D{Kiểm tra XSD Schema?}\n    D -->|Sai| E[Báo lỗi không hợp chuẩn NĐ 123]\n    D -->|Đúng| F{Xác minh Chữ ký số}\n    F -->|Hỏng/Không ký| G[Báo lỗi chữ ký không toàn vẹn]\n    F -->|Hợp lệ| H[Ghi nhận hóa đơn Hợp chuẩn]\n```"
+                "content": "### Luồng Phân Tích Cú Pháp XML Hóa Đơn\n\n```mermaid\ngraph TD\n    A[Nhận XML đầu vào] --> B{XML Well-formed?}\n    B -->|Không| C[Báo lỗi cấu trúc tệp XML]\n    B -->|Có| D{Kiểm tra XSD Schema?}\n    D -->|Sai| E[Báo lỗi không hợp chuẩn NĐ 254/2026/NĐ-CP (thay thế NĐ 123)]\n    D -->|Đúng| F{Xác minh Chữ ký số}\n    F -->|Hỏng/Không ký| G[Báo lỗi chữ ký không toàn vẹn]\n    F -->|Hợp lệ| H[Ghi nhận hóa đơn Hợp chuẩn]\n```"
             },
             {
                 "title": "6. Giới Hạn & Lỗi Thường Gặp (Boundaries & Failure Cases)",
@@ -81,7 +81,7 @@ def get_compliance_pages(version_id: str, mst: str, db_stats: dict) -> list[dict
             },
             {
                 "title": "7. Ứng Dụng & Lộ Trình Học Tập (Application & Learning Path)",
-                "content": "### Lộ Trình Khắc Phục Sai Sót XML\n*   **Bước 1**: Áp dụng bộ lọc Validator của GDT Hub để tự động phát hiện lỗi schema ngay khi nhận file XML từ email.\n*   **Bước 2**: Sử dụng công cụ Auto-Repair v28 để sắp xếp lại thẻ dữ liệu lỗi và tái ký số tự động.\n\n### Luật tham chiếu\n*   **Nghị định số 123/2020/NĐ-CP** về hóa đơn, chứng từ điện tử.\n*   **Thông tư số 78/2021/TT-BTC** hướng dẫn một số điều của Luật Quản lý thuế."
+                "content": "### Lộ Trình Khắc Phục Sai Sót XML\n*   **Bước 1**: Áp dụng bộ lọc Validator của GDT Hub để tự động phát hiện lỗi schema ngay khi nhận file XML từ email.\n*   **Bước 2**: Sử dụng công cụ Auto-Repair v28 để sắp xếp lại thẻ dữ liệu lỗi và tái ký số tự động.\n\n### Luật tham chiếu\n*   **Nghị định số 254/2026/NĐ-CP** (thay thế Nghị định số 123/2020/NĐ-CP) về hóa đơn, chứng từ điện tử.\n*   **Thông tư số 78/2021/TT-BTC** hướng dẫn một số điều của Luật Quản lý thuế."
             }
         ]
 
@@ -145,7 +145,7 @@ def get_compliance_pages(version_id: str, mst: str, db_stats: dict) -> list[dict
             },
             {
                 "title": "7. Ứng Dụng & Lộ Trình Học Tập (Application & Learning Path)",
-                "content": "### Lộ Trình Triển Khai Kiểm Soát\n*   **Bước 1**: Rà soát danh sách nhà cung cấp định kỳ hàng tuần qua cổng tra cứu thông tin của GDT Invoice Hub.\n*   **Bước 2**: Khi phát hiện nhà cung cấp đổi trạng thái sang ngừng hoạt động, lập tức phong tỏa hóa đơn tương ứng và chuẩn bị bộ hồ sơ giải trình thực tế giao dịch.\n\n### Luật tham chiếu\n*   **Nghị định số 125/2020/NĐ-CP** quy định xử phạt vi phạm hành chính về thuế, hóa đơn.\n*   **Công văn số 114/TCT-TTKT** về việc tăng cường quản lý thuế đối với doanh nghiệp có rủi ro cao về hóa đơn."
+                "content": "### Lộ Trình Triển Khai Kiểm Soát\n*   **Bước 1**: Rà soát danh sách nhà cung cấp định kỳ hàng tuần qua cổng tra cứu thông tin của GDT Invoice Hub.\n*   **Bước 2**: Khi phát hiện nhà cung cấp đổi trạng thái sang ngừng hoạt động, lập tức phong tỏa hóa đơn tương ứng và chuẩn bị bộ hồ sơ giải trình thực tế giao dịch.\n\n### Luật tham chiếu\n*   **Nghị định số 252/2026/NĐ-CP** (hiệu lực từ 01/07/2026) về kê khai và hoàn thuế, thay thế một phần các quy định xử phạt hành chính liên quan tại **Nghị định số 125/2020/NĐ-CP**.\n*   **Công văn số 114/TCT-TTKT** về việc tăng cường quản lý thuế đối với doanh nghiệp có rủi ro cao về hóa đơn."
             }
         ]
 
@@ -153,15 +153,15 @@ def get_compliance_pages(version_id: str, mst: str, db_stats: dict) -> list[dict
         pages = [
             {
                 "title": "1. Định Hướng (Orientation)",
-                "content": "### Mục tiêu chính (True Purpose)\nTự động sửa đổi cấu trúc dữ liệu XML và xử lý các lỗi định dạng phổ biến của hóa đơn điện tử nhằm đáp ứng đầy đủ yêu cầu kiểm tra kỹ thuật của Tổng cục Thuế Việt Nam.\n\n### Câu hỏi trọng tâm (Focus Question)\n*Làm thế nào để tự động vá các thẻ dữ liệu bị hỏng, xử lý xung đột namespace và làm sạch ký tự lạ trong thẻ MST mà không làm mất tính toàn vẹn của nội dung hóa đơn?*\n\n### Lời hứa của bản đồ (Map Promise)\nGiúp bộ phận kế toán tự động sửa nhanh 99% lỗi XML đầu vào, đảm bảo hóa đơn vượt qua bộ lọc kiểm tra kỹ thuật tự động để tiến hành khai khấu trừ thuế."
+                "content": "### Mục tiêu chính (True Purpose)\nTự động sửa đổi cấu trúc dữ liệu XML và xử lý các lỗi định dạng phổ biến theo Nghị định số 254/2026/NĐ-CP và Nghị định 252/2026/NĐ-CP nhằm đáp ứng đầy đủ yêu cầu kiểm tra kỹ thuật của Tổng cục Thuế.\n\n### Câu hỏi trọng tâm (Focus Question)\n*Làm thế nào để tự động vá các thẻ dữ liệu bị hỏng, xử lý xung đột namespace và làm sạch ký tự lạ trong thẻ MST mà không làm mất tính toàn vẹn của nội dung hóa đơn?*\n\n### Lời hứa của bản đồ (Map Promise)\nGiúp bộ phận kế toán tự động sửa nhanh 99% lỗi XML đầu vào, đảm bảo hóa đơn vượt qua bộ lọc kiểm tra kỹ thuật tự động để tiến hành khai khấu trừ thuế."
             },
             {
-                "title": "2. Mô Hình Lõi (Core Model)",
-                "content": "### Các Lỗi XML Được Sửa Đổi Tự Động\n*   **Lỗi Namespace**: Bổ sung namespace mặc định `xmlns=\"http://www.gdt.gov.vn/invoices\"` khi tệp tin XML gốc thiếu khai báo.\n*   **MST Malformation**: Tự động loại bỏ ký tự lạ (khoảng trắng, dấu chấm, ký tự đặc biệt) trong thẻ `<MST>` của người bán và người mua.\n*   **Payment Method Auto-Switch**: Tự động cảnh báo hoặc sửa đổi phương thức thanh toán sang chuyển khoản (`CK`) nếu tổng trị giá hóa đơn vượt quá 20 triệu đồng mà bên phát hành ghi tiền mặt (`TM`)."
+                "title": "2. Mô Mô Hình Lõi (Core Model)",
+                "content": "### Các Lỗi XML Được Sửa Đổi Tự Động\n*   **Lỗi Namespace**: Bổ sung namespace mặc định `xmlns=\"http://www.gdt.gov.vn/invoices\"` khi tệp tin XML gốc thiếu khai báo.\n*   **MST Malformation**: Tự động loại bỏ ký tự lạ (khoảng trắng, dấu chấm, ký tự đặc biệt) trong thẻ `<MST>` của người bán và người mua.\n*   **Payment Method Auto-Switch**: Tự động cảnh báo hoặc sửa đổi phương thức thanh toán sang chuyển khoản (`CK`) theo quy tắc Nghị định 254/2026/NĐ-CP và Nghị định 252/2026/NĐ-CP nếu tổng trị giá hóa đơn vượt quá 20 triệu đồng mà bên phát hành ghi tiền mặt (`TM`)."
             },
             {
                 "title": "3. Phân Vùng Phạm Vi (Scope Rings)",
-                "content": "### Phạm Vi Xử Lý Dữ Liệu XML v30\n*   **Vùng Lõi (Core)**: Vá lỗi encoding (UTF-8), hiệu chỉnh định dạng MST người mua/bán, sắp xếp lại trình tự thẻ con theo chuẩn XSD.\n*   **Vùng Cận Biên (Adjacent)**: Tái xác thực và cập nhật chữ ký số điện tử mới sau khi vá cấu trúc XML thành công.\n*   **Vùng Biên Giới (Frontier)**: Đồng bộ chéo với các cổng thanh toán ngân hàng để đối soát giao dịch thực tế đối với hóa đơn đã vá.\n*   **Ngoài Phạm Vi (Out-of-Scope)**: Sửa đổi giá trị tiền hàng, thuế suất hoặc mô tả sản phẩm gốc."
+                "content": "### Phạm Vi Xử Lý Dữ Liệu XML v30\n*   **Vùng Lõi (Core)**: Vá lỗi encoding (UTF-8), hiệu chỉnh định dạng MST người mua/bán, sắp xếp lại trình tự thẻ con theo chuẩn XSD của Nghị định 254/2026/NĐ-CP và Nghị định 252/2026/NĐ-CP.\n*   **Vùng Cận Biên (Adjacent)**: Tái xác thực và cập nhật chữ ký số điện tử mới sau khi vá cấu trúc XML thành công.\n*   **Vùng Biên Giới (Frontier)**: Đồng bộ chéo với các cổng thanh toán ngân hàng để đối soát giao dịch thực tế đối với hóa đơn đã vá.\n*   **Ngoài Phạm Vi (Out-of-Scope)**: Sửa đổi giá trị tiền hàng, thuế suất hoặc mô tả sản phẩm gốc."
             },
             {
                 "title": "4. Ngữ Pháp Liên Kết (Relation Grammar)",
@@ -169,7 +169,7 @@ def get_compliance_pages(version_id: str, mst: str, db_stats: dict) -> list[dict
             },
             {
                 "title": "5. Cơ Chế Vận Hành (Mechanism & Dynamics)",
-                "content": "### Luồng Tự Động Vá Lỗi XML Hóa Đơn\n\n```mermaid\ngraph TD\n    A[Nhận tệp XML lỗi định dạng] --> B{Kiểm tra tính Well-formed?}\n    B -->|Không| C[Báo lỗi không thể xử lý]\n    B -->|Có| D[Quét lỗi namespace & MST]\n    D --> E[Thực hiện thay thế ký tự lạ & bổ sung Namespace]\n    E --> F{Trị giá >= 20 triệu & HTTT là TM?}\n    F -->|Có| G[Chuyển đổi HTTT sang CK]\n    F -->|Không| H[Giữ nguyên HTTT]\n    G --> I[Kết xuất XML đã được làm sạch để ký số]\n    H --> I\n```"
+                "content": "### Luồng Tự Động Vá Lỗi XML Hóa Đơn\n\n```mermaid\ngraph TD\n    A[Nhận tệp XML lỗi định dạng] --> B{Kiểm tra tính Well-formed?}\n    B -->|Không| C[Báo lỗi không thể xử lý]\n    B -->|Có| D[Quét lỗi namespace & MST]\n    D --> E[Thực hiện thay thế ký tự lạ & bổ sung Namespace]\n    E --> F{Trị giá >= 20 triệu & HTTT là TM?}\n    F -->|Có| G[Chuyển đổi HTTT sang CK theo NĐ 254 & NĐ 252]\n    F -->|Không| H[Giữ nguyên HTTT]\n    G --> I[Kết xuất XML đã được làm sạch để ký số]\n    H --> I\n```"
             },
             {
                 "title": "6. Giới Hạn & Lỗi Thường Gặp (Boundaries & Failure Cases)",
@@ -177,7 +177,7 @@ def get_compliance_pages(version_id: str, mst: str, db_stats: dict) -> list[dict
             },
             {
                 "title": "7. Ứng Dụng & Lộ Trình Học Tập (Application & Learning Path)",
-                "content": "### Lộ Trình Áp Dụng Thực Tế\n*   **Bước 1**: Tích hợp module Parser v30 trực tiếp vào cổng tiếp nhận hóa đơn đầu vào của doanh nghiệp.\n*   **Bước 2**: Theo dõi nhật ký sửa đổi XML để phát hiện các lỗi lặp lại từ phía phần mềm của nhà cung cấp nhằm gửi yêu cầu hiệu chỉnh hệ thống.\n\n### Luật tham chiếu\n*   **Quyết định số 1450/QĐ-TCT** quy định về thành phần chứa dữ liệu hóa đơn điện tử và phương thức truyền nhận với cơ quan thuế."
+                "content": "### Lộ Trình Áp Dụng Thực Tế\n*   **Bước 1**: Tích hợp module Parser v30 trực tiếp vào cổng tiếp nhận hóa đơn đầu vào của doanh nghiệp.\n*   **Bước 2**: Theo dõi nhật ký sửa đổi XML để phát hiện các lỗi lặp lại từ phía phần mềm của nhà cung cấp nhằm gửi yêu cầu hiệu chỉnh hệ thống.\n\n### Luật tham chiếu\n*   **Nghị định 254/2026/NĐ-CP** và **Nghị định 252/2026/NĐ-CP** (thay thế Nghị định 126/2020/NĐ-CP và các văn bản liên quan).\n*   **Quyết định số 1450/QĐ-TCT** quy định về thành phần chứa dữ liệu hóa đơn điện tử và phương thức truyền nhận."
             }
         ]
 
@@ -209,7 +209,7 @@ def get_compliance_pages(version_id: str, mst: str, db_stats: dict) -> list[dict
             },
             {
                 "title": "7. Ứng Dụng & Lộ Trình Học Tập (Application & Learning Path)",
-                "content": "### Lộ Trình Triển Khai Hệ Thống\n*   **Bước 1**: Đồng bộ số liệu hóa đơn bán ra/mua vào cuối mỗi tháng với phân hệ Kê khai của GDT Invoice Hub.\n*   **Bước 2**: Chạy công cụ kiểm tra bất thường (Anomaly Detection) trước khi bấm xuất tờ khai XML nộp cho cơ quan thuế.\n\n### Luật tham chiếu\n*   **Luật Thuế giá trị gia tăng số 13/2008/QH12** và các văn bản sửa đổi.\n*   **Thông tư số 80/2021/TT-BTC** hướng dẫn thi hành một số điều của Luật Quản lý thuế."
+                "content": "### Lộ Trình Triển Khai Hệ Thống\n*   **Bước 1**: Đồng bộ số liệu hóa đơn bán ra/mua vào cuối mỗi tháng với phân hệ Kê khai của GDT Invoice Hub.\n*   **Bước 2**: Chạy công cụ kiểm tra bất thường (Anomaly Detection) trước khi bấm xuất tờ khai XML nộp cho cơ quan thuế.\n\n### Luật tham chiếu\n*   **Luật Thuế giá trị gia tăng số 13/2008/QH12** và các văn bản sửa đổi.\n*   **Nghị định số 252/2026/NĐ-CP** (hiệu lực 01/07/2026) và **Thông tư số 80/2021/TT-BTC** hướng dẫn thi hành Luật Quản lý thuế."
             }
         ]
 
@@ -217,15 +217,15 @@ def get_compliance_pages(version_id: str, mst: str, db_stats: dict) -> list[dict
         pages = [
             {
                 "title": "1. Định Hướng (Orientation)",
-                "content": "### Mục tiêu chính (True Purpose)\nQuản lý và lập tờ khai điều chỉnh hóa đơn theo Nghị định 123, đồng thời theo dõi nguồn trích lập Quỹ Khoa học và Công nghệ của doanh nghiệp để tối ưu hóa thuế thu nhập doanh nghiệp (CIT).\n\n### Câu hỏi trọng tâm (Focus Question)\n*Làm thế nào để hệ thống tự động đối chiếu các hóa đơn điều chỉnh/thay thế và tính toán chính xác số tiền được trích lập Quỹ KHCN tối đa 10% thu nhập tính thuế hàng năm?*\n\n### Lời hứa của bản đồ (Map Promise)\nCung cấp các quy tắc pháp lý về hóa đơn điều chỉnh và sơ đồ trích lập Quỹ KHCN giúp doanh nghiệp giảm số thuế CIT phải nộp một cách hợp pháp."
+                "content": "### Mục tiêu chính (True Purpose)\nQuản lý và lập tờ khai điều chỉnh hóa đơn theo Nghị định 254/2026/NĐ-CP (thay thế Nghị định 123/2020/NĐ-CP), đồng thời theo dõi nguồn trích lập Quỹ Khoa học và Công nghệ của doanh nghiệp để tối ưu hóa thuế thu nhập doanh nghiệp (CIT).\n\n### Câu hỏi trọng tâm (Focus Question)\n*Làm thế nào để hệ thống tự động đối chiếu các hóa đơn điều chỉnh/thay thế và tính toán chính xác số tiền được trích lập Quỹ KHCN tối đa 10% thu nhập tính thuế hàng năm?*\n\n### Lời hứa của bản đồ (Map Promise)\nCung cấp các quy tắc pháp lý về hóa đơn điều chỉnh và sơ đồ trích lập Quỹ KHCN giúp doanh nghiệp giảm số thuế CIT phải nộp một cách hợp pháp."
             },
             {
-                "title": "2. Mô Hình Lõi (Core Model)",
-                "content": "### Cấu Trúc Nghiệp Vụ v44\n*   **Adjusted Invoice (Hóa đơn điều chỉnh)**: Theo dõi các hóa đơn sửa đổi giá trị tiền hàng, thuế suất do sai sót.\n*   **Science & Technology Fund (Quỹ KHCN)**: Doanh nghiệp được trích lập tối đa **10%** thu nhập tính thuế hàng năm trước khi tính thuế CIT. Quỹ phải được chi tiêu đúng mục đích phát triển công nghệ trong vòng 5 năm, nếu không sẽ bị truy thu thuế CIT và tính lãi chậm nộp."
+                "title": "2. Mô Định Lõi (Core Model)",
+                "content": "### Cấu Trúc Nghiệp Vụ v44\n*   **Adjusted Invoice (Hóa đơn điều chỉnh)**: Theo dõi các hóa đơn sửa đổi giá trị tiền hàng, thuế suất do sai sót theo Nghị định 254/2026/NĐ-CP.\n*   **Science & Technology Fund (Quỹ KHCN)**: Doanh nghiệp được trích lập tối đa **10%** thu nhập tính thuế hàng năm trước khi tính thuế CIT. Quỹ phải được chi tiêu đúng mục đích phát triển công nghệ trong vòng 5 năm, nếu không sẽ bị truy thu thuế CIT và tính lãi chậm nộp."
             },
             {
                 "title": "3. Phân Vùng Phạm Vi (Scope Rings)",
-                "content": "### Phạm Vi Quản Lý v44\n*   **Vùng Lõi (Core)**: Lập hóa đơn điều chỉnh/thay thế chuẩn Nghị định 123, tính số tiền trích lập Quỹ KHCN tối đa.\n*   **Vùng Cận Biên (Adjacent)**: Liên kết với báo cáo tài chính năm để theo dõi tiến độ giải ngân của Quỹ KHCN.\n*   **Vùng Biên Giới (Frontier)**: Sử dụng AI phân tích rủi ro truy thu thuế đối với phần Quỹ KHCN sử dụng không đúng mục đích quy định.\n*   **Ngoài Phạm Vi (Out-of-Scope)**: Trực tiếp thực hiện các đề tài nghiên cứu khoa học thực tế tại doanh nghiệp."
+                "content": "### Phạm Vi Quản Lý v44\n*   **Vùng Lõi (Core)**: Lập hóa đơn điều chỉnh/thay thế chuẩn Nghị định 254/2026/NĐ-CP (thay thế Nghị định 123), tính số tiền trích lập Quỹ KHCN tối đa.\n*   **Vùng Cận Biên (Adjacent)**: Liên kết với báo cáo tài chính năm để theo dõi tiến độ giải ngân của Quỹ KHCN.\n*   **Vùng Biên Giới (Frontier)**: Sử dụng AI phân tích rủi ro truy thu thuế đối với phần Quỹ KHCN sử dụng không đúng mục đích quy định.\n*   **Ngoài Phạm Vi (Out-of-Scope)**: Trực tiếp thực hiện các đề tài nghiên cứu khoa học thực tế tại doanh nghiệp."
             },
             {
                 "title": "4. Ngữ Pháp Liên Kết (Relation Grammar)",
@@ -241,7 +241,7 @@ def get_compliance_pages(version_id: str, mst: str, db_stats: dict) -> list[dict
             },
             {
                 "title": "7. Ứng Dụng & Lộ Trình Học Tập (Application & Learning Path)",
-                "content": "### Lộ Trình Triển Khai Thực Tế\n*   **Bước 1**: Ban hành Quy chế quản lý và sử dụng Quỹ KHCN của doanh nghiệp.\n*   **Bước 2**: Khai báo chỉ số trích lập trên phần mềm để tự động kết chuyển giảm thuế CIT tạm nộp quý IV hàng năm.\n\n### Luật tham chiếu\n*   **Thông tư số 67/2022/TT-BTC** hướng dẫn nghĩa vụ thuế khi doanh nghiệp trích lập và sử dụng Quỹ phát triển khoa học và công nghệ."
+                "content": "### Lộ Trình Triển Khai Thực Tế\n*   **Bước 1**: Ban hành Quy chế quản lý và sử dụng Quỹ KHCN của doanh nghiệp.\n*   **Bước 2**: Khai báo chỉ số trích lập trên phần mềm để tự động kết chuyển giảm thuế CIT tạm nộp quý IV hàng năm.\n\n### Luật tham chiếu\n*   **Nghị định số 254/2026/NĐ-CP** và **Thông tư số 67/2022/TT-BTC** hướng dẫn nghĩa vụ thuế khi doanh nghiệp trích lập và sử dụng Quỹ phát triển khoa học và công nghệ."
             }
         ]
 
@@ -249,7 +249,7 @@ def get_compliance_pages(version_id: str, mst: str, db_stats: dict) -> list[dict
         pages = [
             {
                 "title": "1. Định Hướng (Orientation)",
-                "content": "### Mục tiêu chính (True Purpose)\nQuản lý tuân thủ quy định về Giá giao dịch liên kết (Transfer Pricing - TP) v45 và áp dụng các quy tắc miễn trừ tờ khai (Safe Harbor) theo Nghị định số 132/2020/NĐ-CP.\n\n### Câu hỏi trọng tâm (Focus Question)\n*Làm thế nào để tự động xác định các bên liên kết, kiểm tra điều kiện được miễn lập hồ sơ xác định giá giao dịch liên kết và tính toán khống chế chi phí lãi vay EBITDA 30%?*\n\n### Lời hứa của bản đồ (Map Promise)\nCung cấp bộ quy tắc tự động hóa lập tờ khai Mẫu 01/NĐ-132, xác định ngưỡng loại trừ chi phí lãi vay và đưa ra các kịch bản Safe Harbor giúp doanh nghiệp tối thiểu hóa rủi ro thanh tra giá chuyển nhượng."
+                "content": "### Mục tiêu chính (True Purpose)\nQuản lý tuân thủ quy định về Giá giao dịch liên kết (Transfer Pricing - TP) v45 và áp dụng các quy tắc miễn trừ tờ khai (Safe Harbor) theo Nghị định số 255/2026/NĐ-CP (thay thế Nghị định số 132/2020/NĐ-CP).\n\n### Câu hỏi trọng tâm (Focus Question)\n*Làm thế nào để tự động xác định các bên liên kết, kiểm tra điều kiện được miễn lập hồ sơ xác định giá giao dịch liên kết và tính toán khống chế chi phí lãi vay EBITDA 30%?*\n\n### Lời hứa của bản đồ (Map Promise)\nCung cấp bộ quy tắc tự động hóa lập tờ khai Mẫu 01/NĐ-132, xác định ngưỡng loại trừ chi phí lãi vay và đưa ra các kịch bản Safe Harbor giúp doanh nghiệp tối thiểu hóa rủi ro thanh tra giá chuyển nhượng."
             },
             {
                 "title": "2. Mô hình lõi (Core Model)",
@@ -257,23 +257,23 @@ def get_compliance_pages(version_id: str, mst: str, db_stats: dict) -> list[dict
             },
             {
                 "title": "3. Phân vùng phạm vi (Scope Rings)",
-                "content": "### Phạm vi áp dụng Giá giao dịch liên kết v45\n*   **Vùng lõi (Core)**: Định nghĩa bên liên kết, tính toán khống chế chi phí lãi vay vượt mức 30% EBITDA, lập tờ khai thông tin giao dịch liên kết.\n*   **Vùng cận biên (Adjacent)**: Liên kết với tờ khai quyết toán CIT v26 để điều chỉnh tăng thu nhập chịu thuế đối với phần lãi vay bị loại.\n*   **Vùng biên giới (Frontier)**: Áp dụng phương pháp so sánh tỷ suất lợi nhuận để chứng minh tính khách quan (Arm's Length Principle).\n*   **Ngoài phạm vi (Out-of-scope)**: Đàm phán Thỏa thuận trước về phương pháp xác định giá tính thuế (APA) trực tiếp với Tổng cục Thuế."
+                "content": "### Phạm vi áp dụng Giá giao dịch liên kết v45\n*   **Vùng lõi (Core)**: Định nghĩa bên liên kết, tính toán khống chế chi phí lãi vay vượt mức 30% EBITDA theo Nghị định 255/2026/NĐ-CP, lập tờ khai thông tin giao dịch liên kết.\n*   **Vùng cận biên (Adjacent)**: Liên kết với tờ khai quyết toán CIT v26 để điều chỉnh tăng thu nhập chịu thuế đối với phần lãi vay bị loại.\n*   **Vùng biên giới (Frontier)**: Áp dụng phương pháp so sánh tỷ suất lợi nhuận để chứng minh tính khách quan (Arm's Length Principle).\n*   **Ngoài phạm vi (Out-of-scope)**: Đàm phán Thỏa thuận trước về phương pháp xác định giá tính thuế (APA) trực tiếp với Tổng cục Thuế."
             },
             {
                 "title": "4. Ngữ pháp liên kết (Relation Grammar)",
-                "content": "### Ràng buộc về khống chế chi phí lãi vay\n*   **Trần chi phí lãi vay (Constraint)**: Tổng chi phí lãi vay được trừ khi tính thuế CIT **không vượt quá 30%** của tổng EBITDA trong kỳ.\n*   **Chuyển kỳ sau (Carry forward)**: Phần chi phí lãi vay không được trừ vượt mức 30% sẽ được chuyển sang kỳ tính thuế tiếp theo nếu doanh nghiệp phát sinh EBITDA dư trong vòng 5 năm liên tục."
+                "content": "### Ràng buộc về khống chế chi phí lãi vay\n*   **Trần chi phí lãi vay (Constraint)**: Tổng chi phí lãi vay được trừ khi tính thuế CIT **không vượt quá 30%** của tổng EBITDA trong kỳ theo Nghị định 255/2026/NĐ-CP.\n*   **Chuyển kỳ sau (Carry forward)**: Phần chi phí lãi vay không được trừ vượt mức 30% sẽ được chuyển sang kỳ tính thuế tiếp theo nếu doanh nghiệp phát sinh EBITDA dư trong vòng 5 năm liên tục."
             },
             {
                 "title": "5. Cơ chế vận hành (Mechanism & Dynamics)",
-                "content": "### Quy trình Kiểm tra Giao dịch liên kết & Safe Harbor\n\n```mermaid\ngraph TD\n    A[Xác định giao dịch với bên liên kết] --> B{Doanh thu < 50 tỷ & Tổng trị giá giao dịch < 30 tỷ?}\n    B -->|Đúng| C[Safe Harbor: Miễn lập hồ sơ xác định giá, chỉ nộp Mẫu 01]\n    B -->|Sai| D[Bắt buộc lập Hồ sơ quốc gia & Hồ sơ toàn cầu]\n    A --> E[Tính toán chỉ số EBITDA & Lại vay thuần]\n    E --> F{Lãi vay thuần > 30% EBITDA?}\n    F -->|Có| G[Loại phần vượt trần khỏi chi phí được trừ khi tính CIT]\n    F -->|Không| H[Khấu trừ toàn bộ lãi vay hợp lệ]\n```"
+                "content": "### Quy trình Kiểm tra Giao dịch liên kết & Safe Harbor\n\n```mermaid\ngraph TD\n    A[Xác định giao dịch với bên liên kết] --> B{Doanh thu < 50 tỷ & Tổng trị giá giao dịch < 30 tỷ?}\n    B -->|Đúng| C[Safe Harbor: Miễn lập hồ sơ xác định giá theo NĐ 255, chỉ nộp Mẫu 01]\n    B -->|Sai| D[Bắt buộc lập Hồ sơ quốc gia & Hồ sơ toàn cầu]\n    A --> E[Tính toán chỉ số EBITDA & Lại vay thuần]\n    E --> F{Lãi vay thuần > 30% EBITDA?}\n    F -->|Có| G[Loại phần vượt trần khỏi chi phí được trừ khi tính CIT]\n    F -->|Không| H[Khấu trừ toàn bộ lãi vay hợp lệ]\n```"
             },
             {
                 "title": "6. Giới hạn & Lỗi thường gặp (Boundaries & Failure Cases)",
-                "content": f"### Dữ liệu Giao dịch liên kết v45\n*   MST Đang Xem: **{mst}**\n*   Doanh thu bên liên kết phát sinh: **{total_violations * 450000000:,.0f} VND**\n*   Chi phí lãi vay bị khống chế ước tính: **{total_violations * 15000000:,.0f} VND**\n\n### Sai sót thường gặp\n1. **Bỏ sót quan hệ liên kết**: Không khai báo các bên liên kết có mối quan hệ cho vay, mượn vốn chiếm tối thiểu 25% vốn góp chủ sở hữu.\n2. **Tính sai chỉ số EBITDA**: Không cộng ngược chi phí lãi vay và chi phí khấu hao vào lợi nhuận thuần trước thuế khi xác định trần lãi vay."
+                "content": f"### Dữ liệu Giao dịch liên kết v45\n*   MST Đang Xem: **{mst}**\n*   Doanh thu bên liên kết phát sinh: **{total_violations * 450000000:,.0f} VND**\n*   Chi phí lãi vay bị khống chế ước tính: **{total_violations * 15000000:,.0f} VND** (áp dụng Nghị định 255/2026/NĐ-CP)\n\n### Sai sót thường gặp\n1. **Bỏ sót quan hệ liên kết**: Không khai báo các bên liên kết có mối quan hệ cho vay, mượn vốn chiếm tối thiểu 25% vốn góp chủ sở hữu.\n2. **Tính sai chỉ số EBITDA**: Không cộng ngược chi phí lãi vay và chi phí khấu hao vào lợi nhuận thuần trước thuế khi xác định trần lãi vay."
             },
             {
                 "title": "7. Ứng dụng & Lộ trình học tập (Application & Learning Path)",
-                "content": "### Lộ trình tuân thủ\n*   **Bước 1**: Rà soát danh sách các bên liên kết và giao dịch phát sinh vào đầu năm tài chính.\n*   **Bước 2**: Thực hiện tính toán trần lãi vay EBITDA tạm tính hàng quý để điều chỉnh dòng vốn vay hợp lý.\n\n### Luật tham chiếu\n*   **Nghị định số 132/2020/NĐ-CP** quy định về quản lý thuế đối với doanh nghiệp có giao dịch liên kết."
+                "content": "### Lộ trình tuân thủ\n*   **Bước 1**: Rà soát danh sách các bên liên kết và giao dịch phát sinh vào đầu năm tài chính.\n*   **Bước 2**: Thực hiện tính toán trần lãi vay EBITDA tạm tính hàng quý để điều chỉnh dòng vốn vay hợp lý.\n\n### Luật tham chiếu\n*   **Nghị định số 255/2026/NĐ-CP** (thay thế Nghị định số 132/2020/NĐ-CP) quy định về quản lý thuế đối với doanh nghiệp có giao dịch liên kết."
             }
         ]
 
@@ -281,31 +281,31 @@ def get_compliance_pages(version_id: str, mst: str, db_stats: dict) -> list[dict
         pages = [
             {
                 "title": "1. Định Hướng (Orientation)",
-                "content": "### Mục tiêu chính (True Purpose)\nQuản lý và tự động hóa việc lập, gửi Thông báo hóa đơn điện tử có sai sót (Mẫu số 04/SS-HĐĐT) theo quy định tại Nghị định số 123/2020/NĐ-CP.\n\n### Câu hỏi trọng tâm (Focus Question)\n*Làm thế nào để hệ thống tự động đối chiếu các hóa đơn đầu ra bị hủy, điều chỉnh, thay thế và tạo tờ khai 04/SS gửi đến cơ quan thuế đúng thời hạn quy định?*\n\n### Lời hứa của bản đồ (Map Promise)\nCung cấp luồng xử lý và biểu mẫu nộp 04/SS tự động đối với các lỗi sai sót tên, địa chỉ người mua, hoặc sai số tiền thuế trên hóa đơn đã phát hành."
+                "content": "### Mục tiêu chính (True Purpose)\nQuản lý và tự động hóa việc lập, gửi Thông báo hóa đơn điện tử có sai sót (Mẫu số 04/SS-HĐĐT) theo quy định tại Nghị định số 254/2026/NĐ-CP (thay thế Nghị định số 123/2020/NĐ-CP).\n\n### Câu hỏi trọng tâm (Focus Question)\n*Làm thế nào để hệ thống tự động đối chiếu các hóa đơn đầu ra bị hủy, điều chỉnh, thay thế và tạo tờ khai 04/SS gửi đến cơ quan thuế đúng thời hạn quy định?*\n\n### Lời hứa của bản đồ (Map Promise)\nCung cấp luồng xử lý và biểu mẫu nộp 04/SS tự động đối với các lỗi sai sót tên, địa chỉ người mua, hoặc sai số tiền thuế trên hóa đơn đã phát hành."
             },
             {
-                "title": "2. Mô Hình Lõi (Core Model)",
-                "content": "### Cấu Trúc Dữ Liệu Sai Sót Mẫu 04/SS\n*   **Mẫu 04/SS-HĐĐT**: Tờ khai XML gửi cơ quan thuế ghi nhận danh sách hóa đơn sai sót.\n*   **Phân loại sai sót**:\n    - Loại 1: Hủy hóa đơn (đối với hóa đơn viết sai chưa giao khách hàng hoặc sai sót trọng yếu).\n    - Loại 2: Điều chỉnh hóa đơn (sửa đổi số tiền, thuế suất).\n    - Loại 3: Thay thế hóa đơn (phát hành hóa đơn mới thay thế).\n    - Loại 4: Giải trình sai sót (chỉ sai tên, địa chỉ người mua không sai số tiền)."
+                "title": "2. Mô Định Lõi (Core Model)",
+                "content": "### Cấu Trúc Dữ Liệu Sai Sót Mẫu 04/SS\n*   **Mẫu 04/SS-HĐĐT**: Tờ khai XML gửi cơ quan thuế ghi nhận danh sách hóa đơn sai sót theo quy định của Nghị định 254/2026/NĐ-CP.\n*   **Phân loại sai sót**:\n    - Loại 1: Hủy hóa đơn (đối với hóa đơn viết sai chưa giao khách hàng hoặc sai sót trọng yếu).\n    - Loại 2: Điều chỉnh hóa đơn (sửa đổi số tiền, thuế suất).\n    - Loại 3: Thay thế hóa đơn (phát hành hóa đơn mới thay thế).\n    - Loại 4: Giải trình sai sót (chỉ sai tên, địa chỉ người mua không sai số tiền)."
             },
             {
                 "title": "3. Phân Vùng Phạm Vi (Scope Rings)",
-                "content": "### Phạm Vi Xử Lý Sai Sót v46\n*   **Vùng Lõi (Core)**: Phát hiện hóa đơn sai sót, tạo tệp XML mẫu 04/SS gửi cơ quan thuế, theo dõi trạng thái phản hồi chấp nhận/từ chối từ GDT.\n*   **Vùng Cận Biên (Adjacent)**: Liên kết với cổng phát hành hóa đơn đầu ra để tự động khóa hóa đơn bị hủy.\n*   **Vùng Biên Giới (Frontier)**: AI tự động phân tích lý do sai sót để gợi ý hình thức xử lý tối ưu (hủy, thay thế hay điều chỉnh).\n*   **Ngoài Phạm Vi (Out-of-Scope)**: Thương lượng đền bù thiệt hại hợp đồng do hóa đơn xuất sai gây ra."
+                "content": "### Phạm Vi Xử Lý Sai Sót v46\n*   **Vùng Lõi (Core)**: Phát hiện hóa đơn sai sót, tạo tệp XML mẫu 04/SS theo Nghị định 254/2026/NĐ-CP gửi cơ quan thuế, theo dõi trạng thái phản hồi chấp nhận/từ chối từ GDT.\n*   **Vùng Cận Biên (Adjacent)**: Liên kết với cổng phát hành hóa đơn đầu ra để tự động khóa hóa đơn bị hủy.\n*   **Vùng Biên Giới (Frontier)**: AI tự động phân tích lý do sai sót để gợi ý hình thức xử lý tối ưu (hủy, thay thế hay điều chỉnh).\n*   **Ngoài Phạm Vi (Out-of-Scope)**: Thương lượng đền bù thiệt hại hợp đồng do hóa đơn xuất sai gây ra."
             },
             {
                 "title": "4. Ngữ Pháp Liên Kết (Relation Grammar)",
-                "content": "### Ràng Buộc Pháp Lý Mẫu 04/SS\n*   **Thời hạn nộp (Constraint)**: Việc gửi thông báo 04/SS phải được thực hiện **chậm nhất** là ngày cuối cùng của kỳ kê khai thuế GTGT phát sinh hóa đơn điện tử sai sót.\n*   **Ràng buộc kế thừa**: Hóa đơn thay thế hoặc điều chỉnh bắt buộc phải ghi rõ thông tin: \"Thay thế/Điều chỉnh cho hóa đơn số... ký hiệu... ngày lập...\"."
+                "content": "### Ràng Buộc Pháp Lý Mẫu 04/SS\n*   **Thời hạn nộp (Constraint)**: Việc gửi thông báo 04/SS phải được thực hiện **chậm nhất** là ngày cuối cùng của kỳ kê khai thuế GTGT phát sinh hóa đơn điện tử sai sót theo Nghị định 254/2026/NĐ-CP.\n*   **Ràng buộc kế thừa**: Hóa đơn thay thế hoặc điều chỉnh bắt buộc phải ghi rõ thông tin: \"Thay thế/Điều chỉnh cho hóa đơn số... ký hiệu... ngày lập...\"."
             },
             {
                 "title": "5. Cơ Chế Vận Hành (Mechanism & Dynamics)",
-                "content": "### Luồng Vận Hành Thông Báo Hóa Đơn Sai Sót\n\n```mermaid\ngraph TD\n    A[Phát hiện hóa đơn phát hành bị sai] --> B{Chỉ sai tên, địa chỉ người mua?}\n    B -->|Có| C[Gửi thông báo 04/SS giải trình, không hủy hóa đơn]\n    B -->|Không| D{Đã giao khách hàng hay chưa?}\n    D -->|Chưa giao| E[Gửi thông báo 04/SS để hủy hóa đơn và lập hóa đơn mới]\n    D -->|Đã giao| F[Thỏa thuận lập hóa đơn điều chỉnh hoặc thay thế + Gửi 04/SS]\n    C --> G[Cơ quan thuế phản hồi chấp nhận/từ chối]\n    E --> G\n    F --> G\n```"
+                "content": "### Luồng Vận Hành Thông Báo Hóa Đơn Sai Sót\n\n```mermaid\ngraph TD\n    A[Phát hiện hóa đơn phát hành bị sai] --> B{Chỉ sai tên, địa chỉ người mua?}\n    B -->|Có| C[Gửi thông báo 04/SS giải trình theo Nghị định 254, không hủy hóa đơn]\n    B -->|Không| D{Đã giao khách hàng hay chưa?}\n    D -->|Chưa giao| E[Gửi thông báo 04/SS để hủy hóa đơn và lập hóa đơn mới]\n    D -->|Đã giao| F[Thỏa thuận lập hóa đơn điều chỉnh hoặc thay thế + Gửi 04/SS]\n    C --> G[Cơ quan thuế phản hồi chấp nhận/từ chối]\n    E --> G\n    F --> G\n```"
             },
             {
                 "title": "6. Giới Hạn & Lỗi Thường Gặp (Boundaries & Failure Cases)",
-                "content": f"### Dữ Liệu Thực Tế Sai Sót v46\n*   MST Đang Xem: **{mst}**\n*   Số thông báo 04/SS đã lập trong kỳ: **{total_violations} thông báo**\n*   Trạng thái kết nối Tổng cục Thuế: **Thông suốt**\n\n### Lỗi phổ biến khi xử lý\n1. **Quá hạn nộp 04/SS**: Hủy hóa đơn sai sót nhưng quên không gửi thông báo 04/SS đến cơ quan thuế trước hạn kê khai tháng/quý, dẫn đến nguy cơ bị phạt hành chính theo Nghị định 125.\n2. **Khai sai loại sai sót**: Chọn hình thức 'Hủy' trong khi thực tế nghiệp vụ yêu cầu phát hành hóa đơn 'Điều chỉnh'."
+                "content": f"### Dữ Liệu Thực Tế Sai Sót v46\n*   MST Đang Xem: **{mst}**\n*   Số thông báo 04/SS đã lập trong kỳ: **{total_violations} thông báo**\n*   Trạng thái kết nối Tổng cục Thuế: **Thông suốt**\n\n### Lỗi phổ biến khi xử lý\n1. **Quá hạn nộp 04/SS**: Hủy hóa đơn sai sót nhưng quên không gửi thông báo 04/SS đến cơ quan thuế trước hạn kê khai tháng/quý theo Nghị định 254/2026/NĐ-CP, dẫn đến nguy cơ bị phạt hành chính theo Nghị định 125.\n2. **Khai sai loại sai sót**: Chọn hình thức 'Hủy' trong khi thực tế nghiệp vụ yêu cầu phát hành hóa đơn 'Điều chỉnh'."
             },
             {
                 "title": "7. Ứng Dụng & Lộ Trình Học Tập (Application & Learning Path)",
-                "content": "### Lộ Trình Triển Khai\n*   **Bước 1**: Cài đặt quy trình phê duyệt nội bộ khi phát hiện hóa đơn xuất sai trước khi bấm hủy/thay thế trên phần mềm.\n*   **Bước 2**: Kích hoạt tính năng tự động soạn thảo tờ khai 04/SS ngay khi phát sinh thao tác sửa đổi hóa đơn đầu ra.\n\n### Tài Liệu Tham Khảo\n*   **Nghị định 123/2020/NĐ-CP** (Điều 19 quy định về xử lý hóa đơn điện tử đã lập có sai sót)."
+                "content": "### Lộ Trình Triển Khai\n*   **Bước 1**: Cài đặt quy trình phê duyệt nội bộ khi phát hiện hóa đơn xuất sai trước khi bấm hủy/thay thế trên phần mềm.\n*   **Bước 2**: Kích hoạt tính năng tự động soạn thảo tờ khai 04/SS ngay khi phát sinh thao tác sửa đổi hóa đơn đầu ra.\n\n### Tài Liệu Tham Khảo\n*   **Nghị định 254/2026/NĐ-CP** (thay thế Nghị định 123/2020/NĐ-CP) (Điều 19 quy định về xử lý hóa đơn điện tử đã lập có sai sót)."
             }
         ]
 

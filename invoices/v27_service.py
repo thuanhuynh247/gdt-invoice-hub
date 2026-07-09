@@ -3,7 +3,7 @@
 Includes:
 - Electronic Delivery Notes (PXK) Sync, Validation & Parser (US-390)
 - PXK to Commercial Invoice Reconciliation & Discrepancy Exporter (US-391)
-- Circular 80 & Decree 123 Corporate Tax Pre-Audit Risk Scoring Engine (US-392)
+- Circular 80 & Decree 254 Corporate Tax Pre-Audit Risk Scoring Engine (US-392)
 - SVG Risk Radar Chart Generator & Advisory Panel (US-393)
 - E-Contract XML Metadata Parser & Milestone Alignment Tracker (US-394)
 - Smart Treasury Forecast & VAT Scenario Simulation Sandbox (US-395)
@@ -20,7 +20,7 @@ import xml.etree.ElementTree as ET
 # ── US-390: PXK XML Parser & Validation ──────────────────────────────────────
 
 def parse_delivery_note_xml(xml_content: str) -> dict:
-    """Parse and validate Electronic Delivery Note (PXK) conforming to Decree 123 regulations."""
+    """Parse and validate Electronic Delivery Note (PXK) conforming to Decree 254/2026/NĐ-CP regulations."""
     try:
         # Check signature presence
         has_signature = "<Signature" in xml_content or "<dscnhky" in xml_content.lower()
@@ -214,7 +214,7 @@ def calculate_pre_audit_risk(profile: dict, invoices: list[dict], related_party_
     else:
         supplier_blacklist_risk = 0.0
         
-    # 3. Invoicing Latency Risk (Decree 123)
+    # 3. Invoicing Latency Risk (Decree 254)
     # Delay between delivery and invoicing > 10 days
     delayed_invoices = 0
     total_reconciled = 0
@@ -278,11 +278,11 @@ def calculate_pre_audit_risk(profile: dict, invoices: list[dict], related_party_
     # Generate compliance suggestions
     advisory_notes = []
     if related_party_risk > 50:
-        advisory_notes.append("Cảnh báo Giao dịch Liên kết: Chi phí lãi vay vượt trần 30% EBITDA theo Nghị định 132/2020/NĐ-CP. Cần thực hiện kê khai Phụ lục I và loại trừ phần chi phí lãi vay không được trừ khi quyết toán thuế TNDN.")
+        advisory_notes.append("Cảnh báo Giao dịch Liên kết: Chi phí lãi vay vượt trần 30% EBITDA theo Nghị định 255/2026/NĐ-CP. Cần thực hiện kê khai Phụ lục I và loại trừ phần chi phí lãi vay không được trừ khi quyết toán thuế TNDN.")
     if supplier_blacklist_risk > 0:
         advisory_notes.append("Rủi ro Hóa đơn Đầu vào: Phát hiện hóa đơn từ doanh nghiệp thuộc danh sách rủi ro cao về thuế. Cần lập tức đối chiếu thực tế giao dịch, chuẩn bị biên bản bàn giao hàng hóa và chứng từ thanh toán ngân hàng để giải trình.")
     if latency_risk > 30:
-        advisory_notes.append("Vi phạm Thời điểm Lập Hóa đơn: Phát hiện hóa đơn lập sai thời điểm (trễ hơn 10 ngày so với biên bản bàn giao/xuất kho) theo quy định tại Nghị định 123/2020/NĐ-CP. Có thể bị phạt vi phạm hành chính từ 4 đến 8 triệu đồng.")
+        advisory_notes.append("Vi phạm Thời điểm Lập Hóa đơn: Phát hiện hóa đơn lập sai thời điểm (trễ hơn 10 ngày so với biên bản bàn giao/xuất kho) theo quy định tại Nghị định 254/2026/NĐ-CP. Có thể bị phạt vi phạm hành chính từ 4 đến 8 triệu đồng.")
     if cash_limit_risk > 0:
         advisory_notes.append("Vi phạm Thanh toán Tiền mặt: Có hóa đơn mua vào trị giá từ 20 triệu đồng trở lên thanh toán bằng tiền mặt. Giao dịch này sẽ bị loại trừ quyền khấu trừ thuế GTGT đầu vào và không được tính vào chi phí hợp lý được trừ khi xác định thuế TNDN.")
     if cancellation_risk > 50:

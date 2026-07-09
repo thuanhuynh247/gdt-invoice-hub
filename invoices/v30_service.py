@@ -1,4 +1,4 @@
-"""Version 30.0.0 Advanced Transfer Pricing (Decree 132/2020/ND-CP) & Arm's Length Compliance Suite.
+"""Version 30.0.0 Advanced Transfer Pricing (Decree 255/2026/NĐ-CP) & Arm's Length Compliance Suite.
 
 Includes:
 - Sector benchmark interquartile ranges (IQR).
@@ -11,7 +11,7 @@ Includes:
 from __future__ import annotations
 import datetime
 
-# Sector Benchmark Data conforming to Decree 132 guidelines and general GDT tax practices
+# Sector Benchmark Data conforming to Decree 255 guidelines and general GDT tax practices
 # Values represent Cost Plus Markup percentages (%)
 SECTOR_BENCHMARKS = {
     "manufacturing": {
@@ -65,7 +65,7 @@ def calculate_transfer_pricing_risk(markup_pct: float, cost_of_goods: float, sec
     if markup_pct < p35:
         # Underpriced related-party sale risk
         status = "Under-priced Risk"
-        # Adjustment is computed up to the median according to Decree 132 rules
+        # Adjustment is computed up to the median according to Decree 255 rules
         adjusted_revenue = cost_of_goods * (1 + median / 100.0)
         adjustment_needed = adjusted_revenue - actual_revenue
         cit_underpaid = adjustment_needed * 0.20 # Standard CIT rate is 20%
@@ -109,7 +109,7 @@ def generate_tp_audit_dossier(taxpayer_name: str, taxpayer_mst: str, sector: str
     today = datetime.datetime.now().strftime("%d/%m/%Y")
     
     dossier = f"""HỒ SƠ CHUẨN BỊ THANH TRA GIÁ GIAO DỊCH LIÊN KẾT (TRANSFER PRICING AUDIT DOSSIER)
-(Theo quy định tại Nghị định 132/2020/NĐ-CP & Luật Quản lý thuế số 38)
+(Theo quy định tại Nghị định 255/2026/NĐ-CP & Luật Quản lý thuế số 38)
 ---
 Ngày lập hồ sơ: {today}
 Tên người nộp thuế: {taxpayer_name}
@@ -137,13 +137,13 @@ I. KẾT QUẢ PHÂN TÍCH TỶ SUẤT LỢI NHUẬN (ARM'S LENGTH RANGE ANALYSI
 - TỔNG ẢNH HƯỞNG TÀI CHÍNH DỰ KIẾN: {risk_details["total_financial_impact"]:,.0f} VNĐ
 """
     else:
-        dossier += f"""Biên lợi nhuận của doanh nghiệp nằm trong khoảng độc lập an toàn. Doanh nghiệp tuân thủ tốt nguyên tắc giao dịch độc lập. Tuy nhiên, vẫn cần chuẩn bị đầy đủ hồ sơ xác định giá giao dịch liên kết để nộp kèm tờ khai quyết toán thuế TNDN (Mẫu số 01/132).
+        dossier += f"""Biên lợi nhuận của doanh nghiệp nằm trong khoảng độc lập an toàn. Doanh nghiệp tuân thủ tốt nguyên tắc giao dịch độc lập. Tuy nhiên, vẫn cần chuẩn bị đầy đủ hồ sơ xác định giá giao dịch liên kết để nộp kèm tờ khai quyết toán thuế TNDN (Mẫu số 01/255).
 """
 
     dossier += """
 III. DANH MỤC HỒ SƠ PHÁP LÝ CẦN CHUẨN BỊ KHI ĐÓN TIẾP ĐOÀN THANH TRA:
 1. Hợp đồng kinh tế ký kết giữa các bên liên kết (Kèm phụ lục giá thành chi tiết).
-2. Tờ khai thông tin quan hệ liên kết và giao dịch liên kết (Mẫu 01, Mẫu 02, Mẫu 03 ban hành kèm theo Nghị định 132/2020/NĐ-CP).
+2. Tờ khai thông tin quan hệ liên kết và giao dịch liên kết (Mẫu 01, Mẫu 02, Mẫu 03 ban hành kèm theo Nghị định 255/2026/NĐ-CP).
 3. Báo cáo phân tích so sánh tỷ suất lợi nhuận (Benchmarking study) với dữ liệu của ít nhất 3 doanh nghiệp độc lập tương đồng hoạt động tại thị trường Việt Nam.
 4. Hồ sơ quốc gia (Local File) và Hồ sơ thông tin tập đoàn toàn cầu (Master File) theo quy định hiện hành.
 
@@ -170,7 +170,7 @@ class SwarmV30Advisor:
             "role": "Điều phối viên chính",
             "avatar_class": "bg-primary text-white",
             "timestamp": (now - datetime.timedelta(seconds=8)).strftime("%H:%M:%S"),
-            "message": f"YÊU CẦU ĐÁNH GIÁ: Đối chiếu giao dịch liên kết cho phân khúc '{risk_details['sector_name']}' với mức markup đề xuất {markup_pct}%. Bắt đầu rà soát tuân thủ Nghị định 132."
+            "message": f"YÊU CẦU ĐÁNH GIÁ: Đối chiếu giao dịch liên kết cho phân khúc '{risk_details['sector_name']}' với mức markup đề xuất {markup_pct}%. Bắt đầu rà soát tuân thủ Nghị định 255."
         })
         
         # Step 2: Transfer Pricing Specialist Analysis
@@ -198,7 +198,7 @@ class SwarmV30Advisor:
                 "role": "Tác tử Kiểm toán Thuế TNDN",
                 "avatar_class": "bg-success text-white",
                 "timestamp": (now - datetime.timedelta(seconds=4)).strftime("%H:%M:%S"),
-                "message": "Không có truy thu thuế TNDN dự kiến từ chênh lệch giá. Tuy nhiên, cần lưu ý chi phí lãi vay khống chế 30% EBITDA theo Khoản 3 Điều 9 Nghị định 132 vẫn phải được kê khai và loại trừ nếu vượt ngưỡng."
+                "message": "Không có truy thu thuế TNDN dự kiến từ chênh lệch giá. Tuy nhiên, cần lưu ý chi phí lãi vay khống chế 30% EBITDA theo Khoản 3 Điều 8 Nghị định 255 vẫn phải được kê khai và loại trừ nếu vượt ngưỡng."
             })
             
         # Step 4: VAT Specialist
@@ -207,7 +207,7 @@ class SwarmV30Advisor:
             "role": "Tác tử Kiểm tra Hóa đơn & GTGT",
             "avatar_class": "bg-info text-dark",
             "timestamp": (now - datetime.timedelta(seconds=2)).strftime("%H:%M:%S"),
-            "message": "Kiểm tra chứng từ: Tất cả hóa đơn cho giao dịch liên kết này phải ghi rõ mã số thuế bên liên kết, có chứng từ thanh toán không dùng tiền mặt hợp chuẩn theo Nghị định 123 và Thông tư 80."
+            "message": "Kiểm tra chứng từ: Tất cả hóa đơn cho giao dịch liên kết này phải ghi rõ mã số thuế bên liên kết, có chứng từ thanh toán không dùng tiền mặt hợp chuẩn theo Nghị định 254 và Thông tư 80."
         })
         
         # Step 5: Coordinator synthesis

@@ -305,11 +305,11 @@ class TaxLawKnowledgeGraph:
         self._build_graph()
         
     def _build_graph(self):
-        # Index key provisions of Decree 123, Circular 80, Decree 132
+        # Index key provisions of Decree 254, Circular 80, Decree 255
         laws = [
             {
-                "id": "D123-A15",
-                "document": "Decree 123/2020/NĐ-CP",
+                "id": "D254-A15",
+                "document": "Decree 254/2026/NĐ-CP",
                 "article": "Article 15",
                 "content": "Thời điểm ký số trên hóa đơn điện tử là thời điểm người bán, người mua ký số trên hóa đơn điện tử được hiển thị theo định dạng ngày, tháng, năm. Trường hợp hóa đơn điện tử đã lập có thời điểm ký số khác thời điểm lập hóa đơn thì thời điểm khai thuế là thời điểm lập hóa đơn.",
                 "keywords": ["ký số", "thời điểm", "khai thuế", "lập hóa đơn", "signing time", "invoice date"],
@@ -321,7 +321,7 @@ class TaxLawKnowledgeGraph:
                 "article": "Article 8",
                 "content": "Hóa đơn điện tử không có mã của cơ quan thuế hoặc có mã của cơ quan thuế phải đảm bảo đầy đủ các điều kiện về chữ ký số, định dạng dữ liệu truyền nhận, đối chiếu số liệu và phương thức thanh toán không dùng tiền mặt đối với các hóa đơn có giá trị lớn.",
                 "keywords": ["chữ ký số", "không dùng tiền mặt", "hóa đơn lớn", "nộp thuế", "cashless"],
-                "links": ["D123-A15", "C80-A4"]
+                "links": ["D254-A15", "C80-A4"]
             },
             {
                 "id": "C80-A4",
@@ -332,20 +332,20 @@ class TaxLawKnowledgeGraph:
                 "links": ["C80-A8"]
             },
             {
-                "id": "D132-A8",
-                "document": "Decree 132/2020/NĐ-CP",
+                "id": "D255-A8",
+                "document": "Decree 255/2026/NĐ-CP",
                 "article": "Article 8",
                 "content": "Quy định khống chế chi phí lãi tiền vay được trừ khi xác định thu nhập chịu thuế TNDN đối với doanh nghiệp có giao dịch liên kết không vượt quá 30% tổng chi phí lãi vay ròng phát sinh cộng EBITDA trong kỳ.",
                 "keywords": ["giao dịch liên kết", "chi phí lãi vay", "30% EBITDA", "liên kết", "related party", "ebitda"],
-                "links": ["D132-A5"]
+                "links": ["D255-A5"]
             },
             {
-                "id": "D132-A5",
-                "document": "Decree 132/2020/NĐ-CP",
+                "id": "D255-A5",
+                "document": "Decree 255/2026/NĐ-CP",
                 "article": "Article 5",
                 "content": "Xác định các bên có quan hệ liên kết dựa trên tỷ lệ sở hữu vốn (tối thiểu 25% đối với công ty cổ phần, 35% đối với công ty trách nhiệm hữu hạn), hoặc sự kiểm soát trực tiếp/gián tiếp điều hành chỉ đạo sản xuất kinh doanh.",
                 "keywords": ["quan hệ liên kết", "sở hữu vốn", "kiểm soát", "vốn góp", "control", "capital"],
-                "links": ["D132-A8"]
+                "links": ["D255-A8"]
             }
         ]
         
@@ -400,7 +400,7 @@ def compose_audit_defense_letter(
         citations = [nodes[0]] if nodes else []
         
         declaration_period = context_answers.get("declaration_period", "thời điểm lập hóa đơn")
-        argument = f"""Thời điểm ký số trên hóa đơn trễ hơn thời điểm lập hóa đơn. Tuy nhiên, căn cứ theo <b>Nghị định 123/2020/NĐ-CP Điều 15 Khoản 9</b>, thời điểm khai thuế đối với bên bán và bên mua vẫn được xác định thống nhất theo <u>thời điểm lập hóa đơn</u> ({declaration_period}). Đơn vị đã kê khai và nộp thuế GTGT đầy đủ đúng kỳ hạn lập hóa đơn nên không phát sinh hành vi trốn thuế hay nộp chậm tiền thuế."""
+        argument = f"""Thời điểm ký số trên hóa đơn trễ hơn thời điểm lập hóa đơn. Tuy nhiên, căn cứ theo <b>Nghị định 254/2026/NĐ-CP Điều 15 Khoản 9</b>, thời điểm khai thuế đối với bên bán và bên mua vẫn được xác định thống nhất theo <u>thời điểm lập hóa đơn</u> ({declaration_period}). Đơn vị đã kê khai và nộp thuế GTGT đầy đủ đúng kỳ hạn lập hóa đơn nên không phát sinh hành vi trốn thuế hay nộp chậm tiền thuế."""
         
     elif audit_warning_type == "CASH_PAYMENT_LIMIT":
         nodes = kg.keyword_search("20 triệu chuyển khoản khấu trừ")
@@ -422,7 +422,7 @@ def compose_audit_defense_letter(
         allowed_cap = ebitda * 0.30
         excess = max(0.0, net_interest - allowed_cap)
         
-        argument = f"""Đơn vị có phát sinh giao dịch liên kết thuộc phạm vi điều chỉnh của Nghị định 132/2020/NĐ-CP. Tổng chi phí lãi vay ròng phát sinh là {net_interest:,.0f} VND. Chỉ số EBITDA năm tài chính là {ebitda:,.0f} VND. Hạn mức chi phí lãi vay được trừ theo mức trần 30% là {allowed_cap:,.0f} VND. Phần chi phí lãi vay vượt mức trần là {excess:,.0f} VND đã được đơn vị tự giác loại trừ khỏi tờ khai quyết toán thuế TNDN (Mẫu 01/TNDN) hoặc chuyển kỳ sau theo đúng quy định tại <b>Điều 8 Nghị định 132</b>."""
+        argument = f"""Đơn vị có phát sinh giao dịch liên kết thuộc phạm vi điều chỉnh của Nghị định 255/2026/NĐ-CP. Tổng chi phí lãi vay ròng phát sinh là {net_interest:,.0f} VND. Chỉ số EBITDA năm tài chính là {ebitda:,.0f} VND. Hạn mức chi phí lãi vay được trừ theo mức trần 30% là {allowed_cap:,.0f} VND. Phần chi phí lãi vay vượt mức trần là {excess:,.0f} VND đã được đơn vị tự giác loại trừ khỏi tờ khai quyết toán thuế TNDN (Mẫu 01/TNDN) hoặc chuyển kỳ sau theo đúng quy định tại <b>Điều 8 Nghị định 255</b>."""
         
     else:
         argument = "Đơn vị giải trình giao dịch mua bán hàng hóa, dịch vụ được thực hiện thực tế, đầy đủ hóa đơn, chứng từ hợp pháp, hạch toán đúng tài khoản và tuân thủ đầy đủ quy định pháp luật về thuế hiện hành."

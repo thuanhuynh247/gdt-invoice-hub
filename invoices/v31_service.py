@@ -373,7 +373,7 @@ def run_vat_anomaly_swarm(
 ## Khuyến nghị
 1. {'Rà soát chi tiết hóa đơn mua vào các kỳ có tỷ lệ >90%' if summary['avg_input_output_ratio'] > 85 else 'Tiếp tục kê khai và lưu trữ chứng từ theo quy định'}
 2. Chuẩn bị bảng kê mua vào (phụ lục 01-2/GTGT) và bán ra (01-1/GTGT) hoàn chỉnh
-3. Đảm bảo hóa đơn đầu vào có đầy đủ chữ ký số theo Nghị định 123/2020/NĐ-CP
+3. Đảm bảo hóa đơn đầu vào có đầy đủ chữ ký số theo Nghị định 254/2026/NĐ-CP
 """
 
     return {

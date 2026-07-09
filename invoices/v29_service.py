@@ -4,7 +4,7 @@ Includes:
 - Ghost-company blacklist search & transaction volume disproportion analysis.
 - Ghost Company Probability Index (0-100) and statutory risk flagging.
 - AI-driven Tax Audit Defense Letter & Rectification Plan generator.
-- Vietnamese Tax Regulations Knowledge Graph database (ND123, TT80, ND125, ND132, TT219).
+- Vietnamese Tax Regulations Knowledge Graph database (ND254, TT80, ND252, ND255, TT219).
 - Swarm chat simulator for ghost-company defense strategy.
 """
 
@@ -131,8 +131,8 @@ Doanh nghiệp chúng tôi khẳng định giao dịch mua bán trên là HOÀN 
 - Tra cứu thời điểm phát sinh: Tại thời điểm phát sinh giao dịch, Mã số thuế của nhà cung cấp vẫn hiển thị trạng thái "Đang hoạt động" trên Cổng thông tin Tổng cục Thuế. Doanh nghiệp không thể biết trước các vi phạm phát sinh sau đó của bên bán.
 
 3. Biện pháp khắc phục & Cam kết bảo vệ quyền lợi của Nhà nước:
-- Chúng tôi cam kết sẽ phối hợp chặt chẽ với cơ quan quản lý thuế để cung cấp chứng từ thanh toán ngân hàng đối ứng, hóa đơn gốc chuẩn Nghị định 123.
-- Nếu cơ quan điều tra kết luận bên bán xuất hóa đơn bất hợp pháp và không thể khắc phục, chúng tôi sẽ thực hiện khai điều chỉnh giảm thuế GTGT đầu vào và nộp bổ sung thuế TNDN tương ứng theo đúng quy định tại Nghị định 125/2020/NĐ-CP.
+- Chúng tôi cam kết sẽ phối hợp chặt chẽ với cơ quan quản lý thuế để cung cấp chứng từ thanh toán ngân hàng đối ứng, hóa đơn gốc chuẩn Nghị định 254/2026/NĐ-CP.
+- Nếu cơ quan điều tra kết luận bên bán xuất hóa đơn bất hợp pháp và không thể khắc phục, chúng tôi sẽ thực hiện khai điều chỉnh giảm thuế GTGT đầu vào và nộp bổ sung thuế TNDN tương ứng theo đúng quy định tại Nghị định 252/2026/NĐ-CP.
 
 Kính đề nghị cơ quan Thuế xem xét, tạo điều kiện cho doanh nghiệp giải trình thực tế giao dịch để tiếp tục được khấu trừ thuế hợp pháp.
 
@@ -145,20 +145,20 @@ def get_tax_knowledge_graph() -> dict:
     """Return Vietnamese Tax Regulations Knowledge Graph representation for visual UI rendering."""
     return {
         "nodes": [
-            {"id": "ND123", "label": "Nghị định 123/2020/NĐ-CP", "group": "invoice", "val": 25, "desc": "Quy định về hóa đơn, chứng từ điện tử và phiếu xuất kho kiêm vận chuyển nội bộ."},
+            {"id": "ND254", "label": "Nghị định 254/2026/NĐ-CP", "group": "invoice", "val": 25, "desc": "Quy định mới về hóa đơn, chứng từ điện tử áp dụng từ 01/07/2026."},
             {"id": "TT80", "label": "Thông tư 80/2021/TT-BTC", "group": "admin", "val": 20, "desc": "Hướng dẫn Luật Quản lý thuế, hạn mức thanh toán không dùng tiền mặt và hồ sơ hoàn thuế."},
-            {"id": "ND125", "label": "Nghị định 125/2020/NĐ-CP", "group": "penalty", "val": 15, "desc": "Xử phạt vi phạm hành chính về thuế, hóa đơn, chậm nộp, trốn thuế."},
-            {"id": "ND132", "label": "Nghị định 132/2020/NĐ-CP", "group": "tp", "val": 20, "desc": "Quản lý thuế đối với doanh nghiệp có giao dịch liên kết, khống chế lãi vay EBITDA 30%."},
+            {"id": "ND252", "label": "Nghị định 252/2026/NĐ-CP", "group": "penalty", "val": 15, "desc": "Quy định mới nhất về kê khai thuế, hoàn thuế và chế tài quản lý thuế áp dụng từ 01/07/2026."},
+            {"id": "ND255", "label": "Nghị định 255/2026/NĐ-CP", "group": "tp", "val": 20, "desc": "Quản lý thuế đối với doanh nghiệp có giao dịch liên kết, khống chế lãi vay EBITDA 30% áp dụng từ 01/07/2026."},
             {"id": "TT219", "label": "Thông tư 219/2013/TT-BTC", "group": "vat", "val": 22, "desc": "Điều kiện khấu trừ thuế GTGT đầu vào và thuế suất GTGT cho các ngành nghề."},
             {"id": "LQLT38", "label": "Luật Quản lý thuế 38/2019/QH14", "group": "law", "val": 30, "desc": "Luật khung quy định nghĩa vụ, quyền lợi và quy trình kiểm tra quyết toán thuế Việt Nam."}
         ],
         "edges": [
-            {"from": "LQLT38", "to": "ND123", "label": "Ủy quyền ban hành", "desc": "Luật 38 ủy quyền Chính phủ quy định chi tiết về hóa đơn điện tử."},
+            {"from": "LQLT38", "to": "ND254", "label": "Ủy quyền ban hành", "desc": "Luật 38 ủy quyền Chính phủ quy định chi tiết về hóa đơn điện tử."},
             {"from": "LQLT38", "to": "TT80", "label": "Ủy quyền hướng dẫn", "desc": "Luật 38 giao Bộ Tài chính hướng dẫn quy trình khai báo quản lý thuế."},
-            {"from": "LQLT38", "to": "ND125", "label": "Xử phạt hành chính", "desc": "Chế tài xử phạt hành chính các hành vi vi phạm nghĩa vụ đăng ký kê khai quy định trong Luật."},
-            {"from": "ND123", "to": "TT219", "label": "Điều kiện khấu trừ", "desc": "Hóa đơn điện tử hợp chuẩn theo ND123 là điều kiện bắt buộc để khấu trừ GTGT theo TT219."},
+            {"from": "LQLT38", "to": "ND252", "label": "Xử phạt hành chính", "desc": "Chế tài xử phạt hành chính các hành vi vi phạm nghĩa vụ đăng ký kê khai quy định trong Luật."},
+            {"from": "ND254", "to": "TT219", "label": "Điều kiện khấu trừ", "desc": "Hóa đơn điện tử hợp chuẩn theo ND254 là điều kiện bắt buộc để khấu trừ GTGT theo TT219."},
             {"from": "TT80", "to": "TT219", "label": "Chứng từ thanh toán", "desc": "TT80 hướng dẫn thanh toán qua ngân hàng để đáp ứng điều kiện khấu trừ thuế của TT219."},
-            {"from": "ND132", "to": "ND125", "label": "Chế tài liên kết", "desc": "Không nộp tờ khai liên kết mẫu 01 sẽ bị xử phạt vi phạm hóa đơn chứng từ theo ND125."}
+            {"from": "ND255", "to": "ND252", "label": "Chế tài liên kết", "desc": "Không nộp tờ khai liên kết mẫu 01 sẽ bị xử phạt theo ND252."}
         ]
     }
 
@@ -209,7 +209,7 @@ class SwarmV29Advisor:
             "role": "Tác tử Dự báo Phạt thuế",
             "avatar_class": "bg-warning text-dark",
             "timestamp": (now - datetime.timedelta(seconds=2)).strftime("%H:%M:%S"),
-            "message": f"Đánh giá tài chính: Nếu bị loại chi phí, doanh nghiệp đối mặt truy thu thuế GTGT {tax_impact:,.0f}đ và thuế TNDN {cit_impact:,.0f}đ. Tổng truy thu dự kiến {total_risk:,.0f}đ, chưa tính tiền phạt chậm nộp 0.03%/ngày theo Nghị định 125."
+            "message": f"Đánh giá tài chính: Nếu bị loại chi phí, doanh nghiệp đối mặt truy thu thuế GTGT {tax_impact:,.0f}đ và thuế TNDN {cit_impact:,.0f}đ. Tổng truy thu dự kiến {total_risk:,.0f}đ, chưa tính tiền phạt chậm nộp 0.03%/ngày theo Nghị định 252."
         })
         
         # Step 5: Coordinator synthesis

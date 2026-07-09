@@ -356,8 +356,8 @@ def build_defense_briefcase(taxpayer_mst: str, invoice_ids: List[str]) -> str:
 ## I. CĂN CỨ PHÁP LÝ & QUY ĐỊNH ÁP DỤNG
 Hồ sơ được lập và chuẩn bị nhằm giải trình với Cơ quan Thuế theo quy định tại:
 1. **Luật Quản lý thuế số 38/2019/QH14** về quyền tự bảo vệ và nghĩa vụ kê khai trung thực của người nộp thuế.
-2. **Nghị định số 123/2020/NĐ-CP** và **Thông tư số 78/2021/TT-BTC** hướng dẫn về hóa đơn điện tử hợp lệ.
-3. **Nghị định số 125/2020/NĐ-CP** quy định xử phạt vi phạm hành chính về thuế, hóa đơn.
+2. **Nghị định số 254/2026/NĐ-CP** và **Thông tư số 78/2021/TT-BTC** hướng dẫn về hóa đơn điện tử hợp lệ.
+3. **Nghị định số 252/2026/NĐ-CP** quy định xử phạt vi phạm hành chính về thuế, hóa đơn và hướng dẫn quản lý khai thuế.
 4. **Thông tư số 80/2021/TT-BTC** về các tiêu chuẩn khấu trừ hoàn thuế GTGT đầu vào.
 
 ---
@@ -471,7 +471,7 @@ def run_v35_swarm(taxpayer_mst: str) -> List[Dict[str, Any]]:
     add_step(
         "TaxInspector", "Thanh Tra Viên Thuế (GDT)",
         "Dựa trên dữ liệu truyền nhận hóa đơn, tôi phát hiện một số hóa đơn trên 20 triệu VND thanh toán bằng tiền mặt, "
-        "và một số khác ký chữ ký số trễ hơn 30 ngày so với ngày lập. Theo Nghị định 125/2020/NĐ-CP và Luật Quản lý Thuế, "
+        "và một số khác ký chữ ký số trễ hơn 30 ngày so với ngày lập. Theo Nghị định 252/2026/NĐ-CP và Luật Quản lý Thuế, "
         "tất cả các hóa đơn này sẽ bị loại trừ phần thuế GTGT đầu vào khấu trừ và không được tính vào chi phí hợp lý khi xác định thuế TNDN.",
         "bg-danger", 3
     )

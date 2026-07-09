@@ -232,8 +232,8 @@ TAX_REGULATION_EXCERPTS = [
         ),
     },
     {
-        "id": "decree123-art15-einvoice",
-        "source": "Nghị định 123/2020/NĐ-CP - Hóa đơn chứng từ",
+        "id": "decree254-art15-einvoice",
+        "source": "Nghị định 254/2026/NĐ-CP - Hóa đơn chứng từ",
         "page": 15,
         "text": (
             "Điều 15: Thời điểm lập hóa đơn điện tử. Lập hóa đơn đối với bán hàng hóa là thời điểm chuyển giao "
@@ -254,8 +254,8 @@ TAX_REGULATION_EXCERPTS = [
         ),
     },
     {
-        "id": "decree125-art16-tax-penalties",
-        "source": "Nghị định 125/2020/NĐ-CP - Xử phạt vi phạm hành chính thuế hóa đơn",
+        "id": "decree252-art16-tax-penalties",
+        "source": "Nghị định 252/2026/NĐ-CP - Xử phạt vi phạm hành chính thuế hóa đơn và quản lý khai thuế",
         "page": 16,
         "text": (
             "Điều 16: Phạt hành vi khai sai dẫn đến thiếu số tiền thuế phải nộp hoặc tăng số tiền thuế được miễn, "
@@ -303,7 +303,7 @@ TAX_REGULATION_EXCERPTS = [
         "text": (
             "Sổ cái Kiểm toán Bất biến (Immutable Cryptographic Merkle Ledger) sử dụng cấu trúc cây Merkle (Merkle Tree) "
             "để liên kết mã băm (SHA-256) của toàn bộ hóa đơn điện tử cùng với dấu thời gian tin cậy (TSA). Công cụ này đảm bảo "
-            "toàn vẹn dữ liệu tuyệt đối, chống sửa đổi thông tin hóa đơn hồi tố và tuân thủ chặt chẽ Nghị định 123/2020/NĐ-CP."
+            "toàn vẹn dữ liệu tuyệt đối, chống sửa đổi thông tin hóa đơn hồi tố và tuân thủ chặt chẽ Nghị định 254/2026/NĐ-CP."
         ),
     },
     {
@@ -322,7 +322,7 @@ TAX_REGULATION_EXCERPTS = [
         "page": 6,
         "text": (
             "Hệ thống Nhận diện Giao dịch Liên kết & Giá Chuyển nhượng (Transfer Pricing Detector) tự động phân tích cơ cấu sở hữu, "
-            "hợp đồng mua bán để xác định mối quan hệ liên kết theo Nghị định 132/2020/NĐ-CP. Công cụ tính toán giới hạn chi phí lãi vay "
+            "hợp đồng mua bán để xác định mối quan hệ liên kết theo Nghị định 255/2026/NĐ-CP. Công cụ tính toán giới hạn chi phí lãi vay "
             "được trừ (30% EBITDA) và hỗ trợ tự động lập Hồ sơ quốc gia xác định giá chuyển nhượng (Transfer Pricing Local File)."
         ),
     },
@@ -488,7 +488,7 @@ class TaxAdvisoryAgent:
         total_flagged = len(self.findings)
 
         if critical > 0:
-            rec = "⚠️ CẢNH BÁO KHẨN CẤP: Phát hiện hóa đơn có rủi ro cực kỳ nghiêm trọng (T-Score thấp hoặc dấu hiệu gian lận). Doanh nghiệp cần tạm dừng thanh toán/kê khai các hóa đơn này và thực hiện giải trình ngay lập tức để tránh bị xử phạt hành chính về thuế theo Nghị định 125."
+            rec = "⚠️ CẢNH BÁO KHẨN CẤP: Phát hiện hóa đơn có rủi ro cực kỳ nghiêm trọng (T-Score thấp hoặc dấu hiệu gian lận). Doanh nghiệp cần tạm dừng thanh toán/kê khai các hóa đơn này và thực hiện giải trình ngay lập tức để tránh bị xử phạt hành chính về thuế theo Nghị định 252."
         elif high > 0:
             rec = "⚠️ CẢNH BÁO CAO: Có hóa đơn thanh toán bằng tiền mặt >= 20 triệu VND hoặc thanh toán ủy quyền cá nhân >= 5 triệu VND thiếu chứng từ không dùng tiền mặt theo Thông tư 20. Cần rà soát và chuyển đổi sang thanh toán qua ngân hàng trước khi quyết toán thuế."
         elif medium > 0:
@@ -734,14 +734,14 @@ Yêu cầu trả lời:
         has_legal = False
         
         for doc in results:
-            if "decree125" in doc["id"] or "125/2020" in doc["text"]:
-                legal_basis_text += "- **Nghị định 125/2020/NĐ-CP (Điều 16):** Quy định xử phạt hành vi khai sai dẫn đến thiếu số tiền thuế phải nộp hoặc tăng số tiền thuế được miễn, giảm, hoàn. Mức phạt hành chính là 20% số tiền thuế khai thiếu hoặc số tiền đã được hoàn cao hơn.\n"
+            if "decree252" in doc["id"] or "decree125" in doc["id"] or "252/2026" in doc["text"] or "125/2020" in doc["text"]:
+                legal_basis_text += "- **Nghị định 252/2026/NĐ-CP (Điều 16) (thay thế Nghị định 125/2020/NĐ-CP):** Quy định xử phạt hành vi khai sai dẫn đến thiếu số tiền thuế phải nộp hoặc tăng số tiền thuế được miễn, giảm, hoàn. Mức phạt hành chính là 20% số tiền thuế khai thiếu hoặc số tiền đã được hoàn cao hơn.\n"
                 has_legal = True
             elif "circular20" in doc["id"] or "20/2026" in doc["text"]:
                 legal_basis_text += "- **Thông tư 20/2026/TT-BTC (Điều 13):** Quy định chặt chẽ về chi phí mua hàng ủy quyền qua cá nhân từ 5 triệu đồng trở lên. Bắt buộc phải có hóa đơn hợp pháp và chứng từ thanh toán không dùng tiền mặt (chuyển khoản ngân hàng).\n"
                 has_legal = True
-            elif "decree123" in doc["id"] or "123/2020" in doc["text"]:
-                legal_basis_text += "- **Nghị định 123/2020/NĐ-CP (Điều 15 & Điều 9):** Quy định về thời điểm lập hóa đơn điện tử đối với bán hàng hóa (thời điểm chuyển giao quyền sở hữu) và cung cấp dịch vụ (thời điểm hoàn thành hoặc thu tiền trước).\n"
+            elif "decree254" in doc["id"] or "decree123" in doc["id"] or "254/2026" in doc["text"] or "123/2020" in doc["text"]:
+                legal_basis_text += "- **Nghị định 254/2026/NĐ-CP (Điều 15 & Điều 9) (thay thế Nghị định 123/2020/NĐ-CP):** Quy định về thời điểm lập hóa đơn điện tử đối với bán hàng hóa (thời điểm chuyển giao quyền sở hữu) và cung cấp dịch vụ (thời điểm hoàn thành hoặc thu tiền trước).\n"
                 has_legal = True
             elif "circular80" in doc["id"] or "80/2021" in doc["text"]:
                 legal_basis_text += "- **Thông tư 80/2021/TT-BTC (Điều 28):** Quy định hồ sơ đề nghị hoàn thuế GTGT bao gồm giấy đề nghị nộp mẫu 01/HT, chứng từ thanh toán không dùng tiền mặt và bảng kê hóa đơn.\n"
@@ -755,14 +755,14 @@ Yêu cầu trả lời:
                 
         if not has_legal:
             legal_basis_text += "- **Luật Thuế GTGT số 48/2024/QH15 và Luật số 149/2025/QH15:** Các văn bản nền tảng sửa đổi thuế GTGT và nâng cao hiệu quả thanh toán không dùng tiền mặt.\n"
-            legal_basis_text += "- **Nghị định 123/2020/NĐ-CP & Thông tư 78/2021/TT-BTC:** Quy chế hóa đơn điện tử chuẩn định dạng Tổng cục Thuế.\n"
+            legal_basis_text += "- **Nghị định 254/2026/NĐ-CP & Thông tư 78/2021/TT-BTC:** Quy chế hóa đơn điện tử chuẩn định dạng Tổng cục Thuế.\n"
             
         answer_parts.append(legal_basis_text)
         
         if deep_research:
             ai_app_text = "### III. Giải pháp Kiểm soát Tự động với Công cụ Thuế AI (TAX AI)\n\nĐể chủ động kiểm soát rủi ro tuân thủ cho vấn đề này, doanh nghiệp có thể kích hoạt các công cụ AI tích hợp sẵn trên nền tảng:\n\n"
             ai_app_text += "1. **Kiểm toán Tự động & Quét Anomaly:** Tự động phát hiện các hóa đơn ký chậm, thiếu chữ ký số hoặc từ các đối tác thuộc danh sách đen (T-Score thấp).\n"
-            ai_app_text += "2. **Giám sát Giá chuyển nhượng (NĐ 132):** Nhận diện giao dịch liên kết và tự động cảnh báo khi chi phí lãi vay vượt mức trần 30% EBITDA.\n"
+            ai_app_text += "2. **Giám sát Giá chuyển nhượng (NĐ 255):** Nhận diện giao dịch liên kết và tự động cảnh báo khi chi phí lãi vay vượt mức trần 30% EBITDA.\n"
             ai_app_text += "3. **Phân tích Đồ thị VAT (Graph Fraud Analyzer):** Phát hiện các chuỗi giao dịch khống vòng tròn, giảm nguy cơ bị cơ quan thuế nghi ngờ trục lợi hoàn thuế.\n"
             ai_app_text += "4. **Hệ thống Dự báo ML (Machine Learning Forecast):** Dự đoán nghĩa vụ thuế cuối kỳ và cho phép giả lập kịch bản stress-test dòng tiền tối ưu thuế.\n"
             ai_app_text += "5. **Sổ cái Merkle TSA bảo mật:** Lưu trữ băm hóa đơn bất biến, bảo vệ tính toàn vẹn dữ liệu kế toán trước các cuộc thanh tra.\n"

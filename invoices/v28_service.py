@@ -1,7 +1,7 @@
 """Version 28.0.0 Advanced Compliance Auto-Repair Suite & Swarm Chat Advisor.
 
 Includes:
-- XML compliance checking for common Decree 123 errors.
+- XML compliance checking for common Decree 254 errors.
 - Real-time XML patching and auto-repairing for namespaces, wrong MSTs, tag sequence.
 - Automatic HSM digital signature embedding on the patched XML.
 - Live-simulated Swarm audit coordinator log generator for interactive dashboard.
@@ -56,7 +56,7 @@ def audit_xml_compliance(xml_content: str) -> dict:
     # 2. Schema structure check
     dlhdon_nodes = find_nodes("DLHDon")
     if not dlhdon_nodes:
-        errors.append("Thiếu thẻ gốc <DLHDon> hoặc hóa đơn không đúng cấu trúc Nghị định 123.")
+        errors.append("Thiếu thẻ gốc <DLHDon> hoặc hóa đơn không đúng cấu trúc Nghị định 254/2026/NĐ-CP.")
     
     # Namespace check
     has_namespace = False
@@ -114,7 +114,7 @@ def audit_xml_compliance(xml_content: str) -> dict:
             inv_date = invoice_date_nodes[0].text or ""
             sign_time = signing_time_nodes[0].text or ""
             if inv_date[:10] != sign_time[:10]:
-                warnings.append(f"Thời điểm ký số ({sign_time[:10]}) khác ngày lập hóa đơn ({inv_date[:10]}). Cảnh báo lập hóa đơn trễ hạn theo Nghị định 125.")
+                warnings.append(f"Thời điểm ký số ({sign_time[:10]}) khác ngày lập hóa đơn ({inv_date[:10]}). Cảnh báo lập hóa đơn trễ hạn theo Nghị định 252/2026/NĐ-CP.")
 
     status = "compliant" if not errors and not warnings else ("flagged" if warnings and not errors else "invalid")
     
@@ -126,7 +126,7 @@ def audit_xml_compliance(xml_content: str) -> dict:
     }
 
 def repair_xml_invoice(xml_content: str) -> dict:
-    """Auto-repair XML elements to align with Decree 123 guidelines, and sign with Mock HSM."""
+    """Auto-repair XML elements to align with Decree 254/2026/NĐ-CP guidelines, and sign with Mock HSM."""
     repairs_made = []
     
     try:
@@ -266,7 +266,7 @@ def simulate_swarm_step_by_step(taxpayer_mst: str, query: str) -> list[dict]:
         "role": "Chuyên gia Kiểm toán Thuế",
         "avatar_class": "bg-success text-white",
         "timestamp": (now - datetime.timedelta(seconds=6)).strftime("%H:%M:%S"),
-        "message": f"Nhận lệnh. Tôi đang rà soát dữ liệu hóa đơn của {taxpayer_mst} đối chiếu các quy định tại Nghị định 123 và Thông tư 80... Phát hiện có 3 hóa đơn mua vào ghi thanh toán TM nhưng giá trị trên 20 triệu, gây nguy cơ bị gạt chi phí thuế TNDN và không được khấu trừ GTGT."
+        "message": f"Nhận lệnh. Tôi đang rà soát dữ liệu hóa đơn của {taxpayer_mst} đối chiếu các quy định tại Nghị định 254/2026/NĐ-CP và Thông tư 80... Phát hiện có 3 hóa đơn mua vào ghi thanh toán TM nhưng giá trị trên 20 triệu, gây nguy cơ bị gạt chi phí thuế TNDN và không được khấu trừ GTGT."
     })
     
     # Step 3: Classifier agent analysis
@@ -275,7 +275,7 @@ def simulate_swarm_step_by_step(taxpayer_mst: str, query: str) -> list[dict]:
         "role": "Chuyên gia Giao dịch Liên kết",
         "avatar_class": "bg-info text-white",
         "timestamp": (now - datetime.timedelta(seconds=4)).strftime("%H:%M:%S"),
-        "message": "Tôi đang rà soát các đối tác có quan hệ sở hữu chéo. Phát hiện đối tác Công ty A (MST: 0109887766) nắm giữ 32% cổ phần có giao dịch mua bán trị giá 12.5 tỷ VNĐ. Giao dịch này thuộc diện Giao dịch Liên kết theo Nghị định 132/2020/NĐ-CP, cần lập tờ khai Mẫu 01."
+        "message": "Tôi đang rà soát các đối tác có quan hệ sở hữu chéo. Phát hiện đối tác Công ty A (MST: 0109887766) nắm giữ 32% cổ phần có giao dịch mua bán trị giá 12.5 tỷ VNĐ. Giao dịch này thuộc diện Giao dịch Liên kết theo Nghị định 255/2026/NĐ-CP, cần lập tờ khai Mẫu 01."
     })
     
     # Step 4: Forecaster agent analysis
@@ -293,7 +293,7 @@ def simulate_swarm_step_by_step(taxpayer_mst: str, query: str) -> list[dict]:
         "role": "Điều phối viên chính",
         "avatar_class": "bg-primary text-white",
         "timestamp": now.strftime("%H:%M:%S"),
-        "message": "Tuyệt vời. Tôi đã tổng hợp đầy đủ báo cáo rà soát bao gồm: (1) Cảnh báo hóa đơn tiền mặt quá hạn mức, (2) Nghĩa vụ khai báo giao dịch liên kết mẫu 01/132, (3) Dự toán dòng tiền thuế phải nộp. Tôi đang xuất báo cáo ra định dạng Markdown bên dưới."
+        "message": "Tuyệt vời. Tôi đã tổng hợp đầy đủ báo cáo rà soát bao gồm: (1) Cảnh báo hóa đơn tiền mặt quá hạn mức, (2) Nghĩa vụ khai báo giao dịch liên kết mẫu 01/255, (3) Dự toán dòng tiền thuế phải nộp. Tôi đang xuất báo cáo ra định dạng Markdown bên dưới."
     })
     
     return steps
@@ -313,7 +313,7 @@ class JointAuditCoordinator:
 ---
 
 ## 1. RÀ SOÁT TUÂN THỦ HÓA ĐƠN & THUẾ GTGT (AuditorAgent)
-* **Quy định rà soát:** Nghị định 123/2020/NĐ-CP & Thông tư 80/2021/TT-BTC.
+* **Quy định rà soát:** Nghị định 254/2026/NĐ-CP & Thông tư 80/2021/TT-BTC.
 * **Kết quả phân tích:**
   | Số hóa đơn | Ngày lập | Đối tác | Giá trị (VNĐ) | Hình thức thanh toán | Rủi ro phát hiện |
   | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -322,13 +322,13 @@ class JointAuditCoordinator:
 * **Khuyến nghị:** Cần lập phụ lục hợp đồng chuyển đổi sang chuyển khoản ngân hàng hoặc thực hiện trả lại tiền để thanh toán không dùng tiền mặt, tránh rủi ro bị loại trừ chi phí được trừ khi tính thuế TNDN và không được khấu trừ thuế GTGT đầu vào.
 
 ## 2. PHÂN LOẠI GIAO DỊCH LIÊN KẾT (ClassifierAgent)
-* **Quy định rà soát:** Nghị định 132/2020/NĐ-CP quản lý thuế đối với doanh nghiệp có giao dịch liên kết.
+* **Quy định rà soát:** Nghị định 255/2026/NĐ-CP quản lý thuế đối với doanh nghiệp có giao dịch liên kết.
 * **Kết quả phân tích:**
   * Phát hiện **Công ty CP Đầu tư Thiên Tân (MST: 0109887766)** có quan hệ liên kết (nắm giữ 32% vốn điều lệ của doanh nghiệp).
   * Tổng giá trị giao dịch mua bán hàng hóa, dịch vụ phát sinh trong kỳ đạt **12.5 tỷ VNĐ**.
-  * Tỷ lệ Chi phí lãi vay / EBITDA ước tính đạt **34.2%** (Vượt ngưỡng trần 30% theo quy định tại Khoản 3 Điều 16 Nghị định 132).
+  * Tỷ lệ Chi phí lãi vay / EBITDA ước tính đạt **34.2%** (Vượt ngưỡng trần 30% theo quy định tại Khoản 3 Điều 16 Nghị định 255).
 * **Khuyến nghị:** 
-  1. Doanh nghiệp bắt buộc phải lập tờ khai thông tin giao dịch liên kết (Mẫu 01/NĐ-132) đi kèm tờ khai quyết toán thuế TNDN.
+  1. Doanh nghiệp bắt buộc phải lập tờ khai thông tin giao dịch liên kết (Mẫu 01/NĐ-255) đi kèm tờ khai quyết toán thuế TNDN.
   2. Phần chi phí lãi vay vượt mức 3.42% (khoảng 105,000,000 VNĐ) sẽ bị loại khỏi chi phí hợp lý hợp lệ trong năm tính thuế.
 
 ## 3. DỰ BÁO DÒNG TIỀN & NGHĨA VỤ THUẾ (ForecasterAgent)
