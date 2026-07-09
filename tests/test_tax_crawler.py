@@ -76,6 +76,10 @@ def mock_app():
     app.register_blueprint(auth_blueprint)
     app.register_blueprint(invoices_blueprint)
 
+    @app.route("/")
+    def index():
+        return "index"
+
     with app.app_context():
         db.create_all()
         yield app
@@ -190,3 +194,62 @@ def test_api_crawl_endpoints(mock_app):
         data_ingest = json.loads(res_ingest.data)
         assert data_ingest["success"] is True
         assert data_ingest["chunks_count"] == 1
+
+
+def test_new_crawler_portal_endpoints(mock_app):
+    """Verify that new crawler portal and document management endpoints function correctly."""
+    client = mock_app.test_client()
+    with client.session_transaction() as sess:
+        sess["logged_in"] = True
+
+    with patch("invoices.tax_crawler_service.DB_PATH", temp_db_path), \
+         patch("invoices.tax_advisor_service.DB_PATH", temp_db_path):
+        
+        # 1. Test Portal view route
+        res_view = client.get("/tax-advisor/crawler")
+        assert res_view.status_code == 200
+
+        # Ingest a sample doc first to test documents, search, stats and delete
+        payload = {
+            "url": "https://example.com/cit-law",
+            "title": "Nghị quyết 30/2026/NQ-QH",
+            "text": "Nội dung luật thuế TNDN và các quy định khấu trừ thuế GTGT mới nhất năm 2026.",
+            "effective_date": "2026-01-01"
+        }
+        res_ingest = client.post("/api/tax/crawl/ingest", json=payload)
+        assert res_ingest.status_code == 200
+        
+        # 2. Test GET documents
+        res_docs = client.get("/api/tax/documents")
+        assert res_docs.status_code == 200
+        docs_data = json.loads(res_docs.data)
+        assert len(docs_data) > 0
+        assert docs_data[0]["document_source"] == "Nghị quyết 30/2026/NQ-QH (Web)"
+        
+        # 3. Test Search Test
+        res_search = client.get("/api/tax/search-test?query=TNDN")
+        assert res_search.status_code == 200
+        search_data = json.loads(res_search.data)
+        assert len(search_data) > 0
+        assert "TNDN" in search_data[0]["highlighted_content"] or "tndn" in search_data[0]["highlighted_content"].lower()
+
+        # 4. Test Stats
+        res_stats = client.get("/api/tax/crawler/stats")
+        assert res_stats.status_code == 200
+        stats_data = json.loads(res_stats.data)
+        assert stats_data["total_documents"] >= 1
+        assert stats_data["total_chunks"] >= 1
+        assert "TNDN" in stats_data["categories"]
+        
+        # 5. Test DELETE document
+        res_delete = client.delete("/api/tax/documents", json={"document_source": "Nghị quyết 30/2026/NQ-QH (Web)"})
+        assert res_delete.status_code == 200
+        delete_data = json.loads(res_delete.data)
+        assert delete_data["success"] is True
+        
+        # Check documents are gone
+        res_docs_after = client.get("/api/tax/documents")
+        assert res_docs_after.status_code == 200
+        docs_data_after = json.loads(res_docs_after.data)
+        assert not any(d["document_source"] == "Nghị quyết 30/2026/NQ-QH (Web)" for d in docs_data_after)
+

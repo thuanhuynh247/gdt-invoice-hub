@@ -5,11 +5,11 @@
 
 ### 📊 1. THÔNG TIN HỆ THỐNG & ĐIỀU HÀNH (Operating System & telemetry)
 - **Tên Agent chịu trách nhiệm**: `Antigravity`
-- **Thời gian nghiệm thu (UAT Time)**: `2026-07-08 15:14:26`
+- **Thời gian nghiệm thu (UAT Time)**: `2026-07-09 08:02:28`
 - **Trạng thái cổng kết nối (Unified Gate)**: `✅ PASSED (Hoàn thành kiểm toán toàn diện)`
-- **Thời gian chạy thử nghiệm (Quality Gate Duration)**: `26 giây`
-- **Phiên bản mã nguồn (Git Commit)**: `72ff2d88ddc8e6a4bfe36d28e138001ba2239a73 (dirty)`
-- **Ước tính tài nguyên tiêu thụ (Token Usage Estimate)**: `37,600 tokens`
+- **Thời gian chạy thử nghiệm (Quality Gate Duration)**: `19 giây`
+- **Phiên bản mã nguồn (Git Commit)**: `c2f298082db0fbe71bb7107d762acfd6c6bf0662 (dirty)`
+- **Ước tính tài nguyên tiêu thụ (Token Usage Estimate)**: `41,800 tokens`
 - **Độ rủi ro kiểm thử (Risk Lane)**: `NORMAL`
 
 ---
@@ -31,16 +31,19 @@
 
 ### 📋 4. CHI TIẾT TÁC VỤ ĐÃ THỰC THI (Execution Trace Detail)
 - **Hành động đã làm (Actions Taken)**:
-  - `Implemented PIT and Penalty calculators`
-  - `added collapsible debate accordion`
-  - `verified chatbot RAG tests`
+  - `Added new routes to invoices/routes/core.py`
+  - `added templates/tax_crawler_portal.html`
+  - `edited templates/tax_advisor.html to link the new page`
+  - `and added tests in tests/test_tax_crawler.py`
 - **Tệp tin đã đọc (Files Read)**:
-  - `invoices/tax_advisor_service.py`
+  - `invoices/routes/core.py`
   - `templates/tax_advisor.html`
+  - `tests/test_tax_crawler.py`
 - **Tệp tin đã thay đổi (Files Changed)**:
   - `invoices/routes/core.py`
-  - `invoices/tax_advisor_service.py`
+  - `templates/tax_crawler_portal.html`
   - `templates/tax_advisor.html`
+  - `tests/test_tax_crawler.py`
 
 - **Ghi chú bổ sung (Notes)**: `Không có ghi chú thêm.`
 

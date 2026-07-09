@@ -7470,6 +7470,217 @@ def api_tax_crawl_ingest():
         return jsonify({"error": f"Failed to ingest content: {str(e)}"}), 500
 
 
+@invoices_blueprint.get("/tax-advisor/crawler")
+def tax_crawler_portal_page():
+    """Render the advanced Tax Crawler & RAG Document Manager Portal."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("tax_crawler_portal.html")
+
+
+@invoices_blueprint.get("/api/tax/documents")
+def api_tax_get_documents():
+    """Get all crawled documents stored in the RAG database."""
+    if not session.get("logged_in"):
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    from invoices.tax_crawler_service import get_db_connection
+    conn = get_db_connection()
+    if not conn:
+        return jsonify([])
+    try:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT document_source, MIN(effective_date), COUNT(*), MIN(created_at)
+            FROM tax_regulation_chunk
+            GROUP BY document_source
+            ORDER BY MIN(created_at) DESC
+        """)
+        rows = cursor.fetchall()
+        docs = []
+        for r in rows:
+            docs.append({
+                "document_source": r[0],
+                "effective_date": r[1],
+                "chunks_count": r[2],
+                "created_at": r[3]
+            })
+        return jsonify(docs)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        conn.close()
+
+
+@invoices_blueprint.delete("/api/tax/documents")
+def api_tax_delete_document():
+    """Delete a crawled document and its chunks from the database."""
+    if not session.get("logged_in"):
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    data = request.get_json() or {}
+    doc_source = data.get("document_source", "").strip()
+    if not doc_source:
+        return jsonify({"error": "Document source is required"}), 400
+        
+    from invoices.tax_crawler_service import get_db_connection
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({"error": "Database connection failed"}), 500
+    try:
+        cursor = conn.cursor()
+        # Delete from FTS5 table
+        cursor.execute("DELETE FROM tax_regulation_fts WHERE document_source = ?", (doc_source,))
+        # Delete from chunks table
+        cursor.execute("DELETE FROM tax_regulation_chunk WHERE document_source = ?", (doc_source,))
+        conn.commit()
+        return jsonify({"success": True})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"error": str(e)}), 500
+    finally:
+        conn.close()
+
+
+@invoices_blueprint.get("/api/tax/search-test")
+def api_tax_search_test():
+    """Test searching terms against the FTS5 virtual table with highlight."""
+    if not session.get("logged_in"):
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    query = request.args.get("query", "").strip()
+    if not query:
+        return jsonify([])
+        
+    from invoices.tax_crawler_service import get_db_connection
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({"error": "Database connection failed"}), 500
+    try:
+        cursor = conn.cursor()
+        # Secure search query against FTS syntax errors
+        clean_query = re.sub(r'[^\w\s]', ' ', query).strip()
+        if not clean_query:
+            return jsonify([])
+            
+        cursor.execute("""
+            SELECT chunk_id, highlight(tax_regulation_fts, 1, '<mark class="bg-yellow-200 text-black px-1 rounded font-bold">', '</mark>') as highlighted,
+                   document_source, page_number
+            FROM tax_regulation_fts
+            WHERE tax_regulation_fts MATCH ?
+            LIMIT 15
+        """, (clean_query,))
+        rows = cursor.fetchall()
+        results = []
+        for r in rows:
+            results.append({
+                "chunk_id": r[0],
+                "highlighted_content": r[1],
+                "document_source": r[2],
+                "page_number": r[3]
+            })
+        return jsonify(results)
+    except Exception as e:
+        # Fallback to simple LIKE search if MATCH fails
+        try:
+            cursor.execute("""
+                SELECT chunk_id, chunk_content, document_source, page_number
+                FROM tax_regulation_fts
+                WHERE chunk_content LIKE ?
+                LIMIT 15
+            """, (f"%{query}%",))
+            rows = cursor.fetchall()
+            results = []
+            for r in rows:
+                content = r[1]
+                # Manual highlighting
+                highlighted = content.replace(query, f'<mark class="bg-yellow-200 text-black px-1 rounded font-bold">{query}</mark>')
+                results.append({
+                    "chunk_id": r[0],
+                    "highlighted_content": highlighted,
+                    "document_source": r[2],
+                    "page_number": r[3]
+                })
+            return jsonify(results)
+        except Exception as e2:
+            return jsonify({"error": str(e2)}), 500
+    finally:
+        conn.close()
+
+
+@invoices_blueprint.get("/api/tax/crawler/stats")
+def api_tax_crawler_stats():
+    """Retrieve statistics about the crawled documents and Ollama status."""
+    if not session.get("logged_in"):
+        return jsonify({"error": "Unauthorized"}), 401
+        
+    from invoices.tax_crawler_service import get_db_connection
+    from invoices.tax_advisor_service import load_settings
+    import requests
+    
+    conn = get_db_connection()
+    stats = {
+        "categories": {
+            "GTGT": 0,
+            "TNDN": 0,
+            "TNCN": 0,
+            "HoaDon": 0,
+            "Khac": 0
+        },
+        "total_documents": 0,
+        "total_chunks": 0,
+        "ollama_status": "disconnected",
+        "ollama_model": "None"
+    }
+    
+    if conn:
+        try:
+            cursor = conn.cursor()
+            cursor.execute("SELECT document_source, chunk_content FROM tax_regulation_chunk")
+            rows = cursor.fetchall()
+            
+            seen_docs = set()
+            for r in rows:
+                doc_name, content = r[0], r[1]
+                stats["total_chunks"] += 1
+                seen_docs.add(doc_name)
+                
+                # Simple heuristic categorization
+                combined = (doc_name + " " + content).lower()
+                if "tndn" in combined or "thu nhập doanh nghiệp" in combined:
+                    stats["categories"]["TNDN"] += 1
+                elif "gtgt" in combined or "giá trị gia tăng" in combined or "vat" in combined:
+                    stats["categories"]["GTGT"] += 1
+                elif "tncn" in combined or "thu nhập cá nhân" in combined:
+                    stats["categories"]["TNCN"] += 1
+                elif "hóa đơn" in combined or "chứng từ" in combined or "123/2020" in combined:
+                    stats["categories"]["HoaDon"] += 1
+                else:
+                    stats["categories"]["Khac"] += 1
+                    
+            stats["total_documents"] = len(seen_docs)
+        except Exception:
+            pass
+        finally:
+            conn.close()
+            
+    # Check Ollama status
+    settings = load_settings()
+    stats["ollama_model"] = settings.get("ai_model_name", "None")
+    if settings.get("ai_provider") == "ollama":
+        endpoint = settings.get("ai_ollama_endpoint", "http://localhost:11434")
+        try:
+            resp = requests.get(f"{endpoint}/api/tags", timeout=2)
+            if resp.status_code == 200:
+                stats["ollama_status"] = "connected"
+        except Exception:
+            stats["ollama_status"] = "disconnected"
+    elif settings.get("ai_provider") == "gemini":
+        stats["ollama_status"] = "gemini_active"
+        
+    return jsonify(stats)
+
+
 @invoices_blueprint.route("/tax-health-score")
 def tax_health_score_page():
     """Render the corporate tax health score dashboard page."""

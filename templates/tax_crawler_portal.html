@@ -1,0 +1,662 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid py-4" style="max-width: 1400px; min-height: 90vh;">
+    <!-- Header Area -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+        <div>
+            <h1 class="h3 font-weight-bold mb-1 text-primary-accent d-flex align-items-center">
+                <i class="bi bi-diagram-3-fill me-2 text-primary"></i>
+                Cổng Quản Lý & Cào Luật Thuế RAG Portal Nâng Cao
+            </h1>
+            <p class="text-secondary mb-0">Quản trị cơ sở dữ liệu tri thức luật thuế phục vụ RAG Chatbot của meInvoice Intelligence</p>
+        </div>
+        <div>
+            <a href="/tax-advisor" class="btn btn-outline-secondary d-inline-flex align-items-center px-3 py-2 rounded-pill hover-scale transition-all">
+                <i class="bi bi-arrow-left me-2"></i> Trở lại AI Advisor
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats & Overview Grid -->
+    <div class="row g-4 mb-4">
+        <!-- Stats Card 1: Total Docs -->
+        <div class="col-12 col-md-6 col-lg-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden position-relative stats-card hover-glow" style="background: var(--bg-card); border: 1px solid var(--border-card) !important;">
+                <div class="card-body p-4 d-flex align-items-center">
+                    <div class="rounded-3 bg-opacity-10 bg-primary p-3 me-3 text-primary d-flex align-items-center justify-content-center" style="width: 56px; height: 56px; background-color: rgba(59, 130, 246, 0.1);">
+                        <i class="bi bi-file-earmark-text-fill fs-3 text-primary"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-secondary font-weight-normal mb-1">Tài Liệu Nguồn</h6>
+                        <h3 class="mb-0 font-weight-bold" id="stat-total-docs" style="color: var(--text-primary);">0</h3>
+                    </div>
+                </div>
+                <div class="progress-bar-glow" style="position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #3b82f6, #60a5fa);"></div>
+            </div>
+        </div>
+
+        <!-- Stats Card 2: Total Chunks -->
+        <div class="col-12 col-md-6 col-lg-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden position-relative stats-card hover-glow" style="background: var(--bg-card); border: 1px solid var(--border-card) !important;">
+                <div class="card-body p-4 d-flex align-items-center">
+                    <div class="rounded-3 bg-opacity-10 bg-info p-3 me-3 text-info d-flex align-items-center justify-content-center" style="width: 56px; height: 56px; background-color: rgba(6, 182, 212, 0.1);">
+                        <i class="bi bi-segmented-nav fs-3 text-info"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-secondary font-weight-normal mb-1">Số Chunks (RAG)</h6>
+                        <h3 class="mb-0 font-weight-bold" id="stat-total-chunks" style="color: var(--text-primary);">0</h3>
+                    </div>
+                </div>
+                <div class="progress-bar-glow" style="position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #06b6d4, #22d3ee);"></div>
+            </div>
+        </div>
+
+        <!-- Stats Card 3: Ollama Status -->
+        <div class="col-12 col-md-6 col-lg-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden position-relative stats-card hover-glow" style="background: var(--bg-card); border: 1px solid var(--border-card) !important;">
+                <div class="card-body p-4 d-flex align-items-center">
+                    <div class="rounded-3 bg-opacity-10 bg-success p-3 me-3 d-flex align-items-center justify-content-center position-relative" id="ollama-status-container" style="width: 56px; height: 56px; background-color: rgba(16, 185, 129, 0.1);">
+                        <i class="bi bi-cpu-fill fs-3 text-success" id="ollama-icon"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle p-1.5 bg-success border border-light rounded-circle pulse-green" id="ollama-badge"></span>
+                    </div>
+                    <div>
+                        <h6 class="text-secondary font-weight-normal mb-1">Kết Nối Ollama / AI</h6>
+                        <h4 class="mb-0 font-weight-bold text-truncate" id="stat-ollama-status" style="color: var(--text-primary); font-size: 1.1rem;">Kiểm tra...</h4>
+                        <span class="text-secondary font-size-sm text-truncate d-block" id="stat-ollama-model" style="font-size: 0.8rem;">Model: None</span>
+                    </div>
+                </div>
+                <div class="progress-bar-glow" id="ollama-bar" style="position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #10b981, #34d399);"></div>
+            </div>
+        </div>
+
+        <!-- Stats Card 4: Category Distribution SVG Chart -->
+        <div class="col-12 col-md-6 col-lg-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden stats-card" style="background: var(--bg-card); border: 1px solid var(--border-card) !important; min-height: 105px;">
+                <div class="card-body p-3 d-flex align-items-center justify-content-between">
+                    <div style="max-width: 50%;">
+                        <h6 class="text-secondary font-weight-normal mb-1" style="font-size: 0.85rem;">Phân Bổ Tri Thức</h6>
+                        <div id="chart-legend" style="font-size: 0.75rem; line-height: 1.2;">
+                            <span class="d-block"><i class="bi bi-circle-fill text-primary font-size-xs me-1"></i> GTGT: <span id="leg-gtgt" class="font-weight-bold">0</span></span>
+                            <span class="d-block"><i class="bi bi-circle-fill text-purple font-size-xs me-1" style="color: #a855f7;"></i> TNDN: <span id="leg-tndn" class="font-weight-bold">0</span></span>
+                            <span class="d-block"><i class="bi bi-circle-fill text-success font-size-xs me-1"></i> TNCN: <span id="leg-tncn" class="font-weight-bold">0</span></span>
+                            <span class="d-block"><i class="bi bi-circle-fill text-warning font-size-xs me-1"></i> Hóa đơn: <span id="leg-hd" class="font-weight-bold">0</span></span>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-center align-items-center" style="width: 80px; height: 80px;">
+                        <!-- SVG Semi-Donut or Bar Chart -->
+                        <svg width="80" height="80" viewBox="0 0 36 36" class="donut-chart">
+                            <circle class="donut-ring" cx="18" cy="18" r="15.915" fill="transparent" stroke="var(--border-card)" stroke-width="3"></circle>
+                            <circle class="donut-segment text-primary" id="segment-gtgt" cx="18" cy="18" r="15.915" fill="transparent" stroke="#3b82f6" stroke-width="4.5" stroke-dasharray="0 100" stroke-dashoffset="100"></circle>
+                            <circle class="donut-segment" id="segment-tndn" cx="18" cy="18" r="15.915" fill="transparent" stroke="#a855f7" stroke-width="4.5" stroke-dasharray="0 100" stroke-dashoffset="100"></circle>
+                            <circle class="donut-segment text-success" id="segment-tncn" cx="18" cy="18" r="15.915" fill="transparent" stroke="#10b981" stroke-width="4.5" stroke-dasharray="0 100" stroke-dashoffset="100"></circle>
+                            <circle class="donut-segment text-warning" id="segment-hd" cx="18" cy="18" r="15.915" fill="transparent" stroke="#f59e0b" stroke-width="4.5" stroke-dasharray="0 100" stroke-dashoffset="100"></circle>
+                            <circle class="donut-segment" id="segment-khac" cx="18" cy="18" r="15.915" fill="transparent" stroke="#6b7280" stroke-width="4.5" stroke-dasharray="0 100" stroke-dashoffset="100"></circle>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Area: Crawler & Search-Test -->
+    <div class="row g-4 mb-4">
+        <!-- Left: URL Crawler Form -->
+        <div class="col-12 col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4 h-100" style="background: var(--bg-card); border: 1px solid var(--border-card) !important;">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 font-weight-bold d-flex align-items-center text-primary-accent">
+                        <i class="bi bi-cloud-arrow-down-fill me-2 text-primary"></i>
+                        Cào & Nạp Tài Liệu Thuế Tự Động
+                    </h5>
+                    <span class="badge rounded-pill bg-light text-dark px-3 py-2 border">RAG Pipeline</span>
+                </div>
+                <div class="card-body px-4 pb-4 pt-2">
+                    <!-- URL Input Group -->
+                    <div class="mb-3">
+                        <label for="crawler-url" class="form-label font-weight-semibold text-secondary">Đường dẫn trang web luật thuế (Vietnamese Tax URL)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0"><i class="bi bi-link-45deg"></i></span>
+                            <input type="url" class="form-control border-start-0 ps-0" id="crawler-url" placeholder="Ví dụ: https://thuvienphapluat.vn/van-ban/Thue-Phi-Le-phi/...html" required>
+                            <button class="btn btn-primary px-4 d-flex align-items-center" type="button" id="btn-fetch" onclick="fetchUrlPreview()">
+                                <span class="spinner-border spinner-border-sm me-2 d-none" id="fetch-spinner" role="status" aria-hidden="true"></span>
+                                <i class="bi bi-search me-1" id="fetch-icon"></i> Tải Xem Trước
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Preview / Metadata Form Panel -->
+                    <div class="d-none" id="crawler-preview-panel">
+                        <div class="row g-3 mb-3">
+                            <div class="col-12 col-md-8">
+                                <label for="crawler-title" class="form-label font-weight-semibold text-secondary">Tiêu đề tài liệu nguồn</label>
+                                <input type="text" class="form-control" id="crawler-title" placeholder="Tiêu đề hiển thị trong trích dẫn">
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label for="crawler-date" class="form-label font-weight-semibold text-secondary">Ngày hiệu lực (YYYY-MM-DD)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
+                                    <input type="text" class="form-control" id="crawler-date" placeholder="2026-07-01">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="crawler-text-preview" class="form-label font-weight-semibold text-secondary">Nội dung văn bản cào được (Xem trước / Hiệu chỉnh)</label>
+                            <textarea class="form-control font-monospace" id="crawler-text-preview" rows="8" style="font-size: 0.85rem; line-height: 1.5; background: var(--bg-app); border: 1px solid var(--border-card);"></textarea>
+                            <div class="form-text mt-1 text-secondary">Hệ thống sẽ tự động chia đoạn văn này thành các chunks ~200 từ để lập chỉ mục FTS5.</div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <button class="btn btn-outline-secondary px-4" type="button" onclick="cancelIngestion()">Hủy Bỏ</button>
+                            <button class="btn btn-success px-4 d-flex align-items-center" type="button" id="btn-ingest" onclick="ingestUrl()">
+                                <span class="spinner-border spinner-border-sm me-2 d-none" id="ingest-spinner" role="status" aria-hidden="true"></span>
+                                <i class="bi bi-database-fill-add me-1" id="ingest-icon"></i> Xác Nhận Nạp Vào RAG
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: FTS5 Search-Test Tool -->
+        <div class="col-12 col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 h-100" style="background: var(--bg-card); border: 1px solid var(--border-card) !important;">
+                <div class="card-header bg-transparent border-0 pt-4 px-4">
+                    <h5 class="mb-0 font-weight-bold d-flex align-items-center text-primary-accent">
+                        <i class="bi bi-search-heart-fill me-2 text-warning"></i>
+                        Thử Nghiệm Tìm Kiếm FTS5 (RAG Search-Test)
+                    </h5>
+                </div>
+                <div class="card-body px-4 pb-4 pt-2 d-flex flex-column h-100">
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" id="search-test-query" placeholder="Nhập từ khóa cần kiểm tra (Ví dụ: hoàn thuế GTGT, phạt hóa đơn)..." onkeydown="if(event.key === 'Enter') runSearchTest()">
+                        <button class="btn btn-warning text-black font-weight-semibold px-3" type="button" onclick="runSearchTest()">Tìm Kiếm</button>
+                    </div>
+
+                    <!-- Search Results Area -->
+                    <div class="flex-grow-1 overflow-auto rounded-3 border p-3" id="search-results-container" style="background: var(--bg-app); border-color: var(--border-card) !important; min-height: 250px; max-height: 320px;">
+                        <div class="text-center text-secondary py-5" id="search-placeholder">
+                            <i class="bi bi-search fs-1 mb-2 d-block opacity-50"></i>
+                            <p class="mb-0">Nhập từ khóa và ấn Tìm Kiếm để xem phân đoạn (chunks) và kết quả highlight từ SQLite FTS5 index.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom: Document List Table -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4" style="background: var(--bg-card); border: 1px solid var(--border-card) !important;">
+        <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <h5 class="mb-0 font-weight-bold d-flex align-items-center text-primary-accent">
+                <i class="bi bi-folder-fill me-2 text-primary"></i>
+                Danh Sách Tài Liệu Nguồn Đã Lập Chỉ Mục
+            </h5>
+            <div class="d-flex gap-2">
+                <input type="text" class="form-control form-control-sm" id="table-filter-input" placeholder="Lọc theo tên..." onkeyup="filterDocsTable()" style="max-width: 220px;">
+                <button class="btn btn-sm btn-outline-primary" onclick="fetchDocuments()"><i class="bi bi-arrow-clockwise"></i> Tải lại</button>
+            </div>
+        </div>
+        <div class="card-body px-4 pb-4 pt-2">
+            <div class="table-responsive rounded-3 border" style="border-color: var(--border-card) !important;">
+                <table class="table align-middle mb-0" style="color: var(--text-primary);">
+                    <thead class="bg-light" style="background-color: var(--bg-app) !important;">
+                        <tr>
+                            <th class="py-3 px-4" style="border-bottom: 1px solid var(--border-card);">Tài Liệu Nguồn</th>
+                            <th class="py-3 px-3 text-center" style="border-bottom: 1px solid var(--border-card); width: 120px;">Số Chunks</th>
+                            <th class="py-3 px-3 text-center" style="border-bottom: 1px solid var(--border-card); width: 150px;">Ngày Hiệu Lực</th>
+                            <th class="py-3 px-3 text-center" style="border-bottom: 1px solid var(--border-card); width: 180px;">Thời Gian Nạp</th>
+                            <th class="py-3 px-4 text-center" style="border-bottom: 1px solid var(--border-card); width: 100px;">Hành Động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="documents-table-body">
+                        <tr>
+                            <td colspan="5" class="text-center py-4 text-secondary">
+                                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Đang tải danh sách tài liệu...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal confirm delete -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-card);">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title font-weight-bold text-danger" id="deleteConfirmModalLabel">Xác nhận xóa tài liệu</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-3">
+                Bạn có chắc chắn muốn xóa tài liệu nguồn <strong id="delete-doc-name" class="text-primary-accent"></strong> và toàn bộ các phân đoạn (chunks) liên quan ra khỏi chỉ mục tìm kiếm FTS5 RAG không?
+                <div class="alert alert-warning mt-3 mb-0 d-flex align-items-start" style="font-size: 0.85rem; background-color: rgba(245, 158, 11, 0.1); border-color: rgba(245, 158, 11, 0.2); color: #b45309;">
+                    <i class="bi bi-exclamation-triangle-fill me-2 fs-5 mt-0.5"></i>
+                    <span><strong>Lưu ý:</strong> Hành động này không thể hoàn tác. Các câu hỏi tư vấn thuế sau này sẽ không thể tìm thấy dữ liệu từ tài liệu này nữa.</span>
+                </div>
+            </div>
+            <div class="modal-header border-top-0 pt-0 d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-secondary px-3" data-bs-dismiss="modal">Hủy bỏ</button>
+                <button type="button" class="btn btn-danger px-3" id="btn-confirm-delete" onclick="executeDeleteDocument()">Xác nhận xóa</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Extra styles for micro-animations and themes -->
+<style>
+    /* Wise Fintech micro-animations & transitions */
+    .hover-scale {
+        transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+    }
+    .hover-scale:hover {
+        transform: translateY(-2px);
+    }
+    .stats-card {
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        border: 1px solid var(--border-card);
+    }
+    .hover-glow:hover {
+        box-shadow: 0 10px 20px rgba(59, 130, 246, 0.05) !important;
+        transform: translateY(-3px);
+    }
+    [data-theme="dark"] .hover-glow:hover {
+        box-shadow: 0 10px 25px rgba(59, 130, 246, 0.15) !important;
+    }
+    .pulse-green {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+        animation: pulseGreenAnim 1.6s infinite;
+    }
+    @keyframes pulseGreenAnim {
+        0% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+        }
+        70% {
+            transform: scale(1);
+            box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+        }
+        100% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+        }
+    }
+    /* Donut chart classes */
+    .donut-chart {
+        transform: rotate(-90deg);
+    }
+    .donut-ring {
+        stroke: var(--border-card);
+    }
+    .donut-segment {
+        transition: stroke-dasharray 0.5s ease-out;
+    }
+</style>
+
+<script>
+    let documentToDelete = '';
+    let bootstrapDeleteModal = null;
+
+    document.addEventListener("DOMContentLoaded", function() {
+        // Initialize documents list and stats
+        fetchDocuments();
+        fetchStats();
+    });
+
+    // 1. Fetch Stats and Render SVG Donut Chart
+    async function fetchStats() {
+        try {
+            const res = await fetch("/api/tax/crawler/stats");
+            const data = await res.json();
+            
+            // Set text stats
+            document.getElementById("stat-total-docs").innerText = data.total_documents;
+            document.getElementById("stat-total-chunks").innerText = data.total_chunks;
+            
+            // Ollama connection status visual
+            const statusEl = document.getElementById("stat-ollama-status");
+            const modelEl = document.getElementById("stat-ollama-model");
+            const badgeEl = document.getElementById("ollama-badge");
+            const iconEl = document.getElementById("ollama-icon");
+            const containerEl = document.getElementById("ollama-status-container");
+            const barEl = document.getElementById("ollama-bar");
+            
+            modelEl.innerText = "Model: " + (data.ollama_model || "None");
+            
+            if (data.ollama_status === "connected") {
+                statusEl.innerText = "Đã kết nối";
+                statusEl.className = "mb-0 font-weight-bold text-success";
+                badgeEl.className = "position-absolute top-0 start-100 translate-middle p-1.5 bg-success border border-light rounded-circle pulse-green";
+                iconEl.className = "bi bi-cpu-fill fs-3 text-success";
+                containerEl.style.backgroundColor = "rgba(16, 185, 129, 0.1)";
+                barEl.style.background = "linear-gradient(90deg, #10b981, #34d399)";
+            } else if (data.ollama_status === "gemini_active") {
+                statusEl.innerText = "Sử dụng Gemini";
+                statusEl.className = "mb-0 font-weight-bold text-primary";
+                badgeEl.className = "position-absolute top-0 start-100 translate-middle p-1.5 bg-primary border border-light rounded-circle pulse-green";
+                iconEl.className = "bi bi-stars fs-3 text-primary";
+                containerEl.style.backgroundColor = "rgba(59, 130, 246, 0.1)";
+                barEl.style.background = "linear-gradient(90deg, #3b82f6, #60a5fa)";
+            } else {
+                statusEl.innerText = "Mất kết nối";
+                statusEl.className = "mb-0 font-weight-bold text-danger";
+                badgeEl.className = "position-absolute top-0 start-100 translate-middle p-1.5 bg-danger border border-light rounded-circle";
+                iconEl.className = "bi bi-cpu fs-3 text-secondary";
+                containerEl.style.backgroundColor = "rgba(239, 68, 68, 0.1)";
+                barEl.style.background = "linear-gradient(90deg, #ef4444, #f87171)";
+            }
+
+            // Legend indicators
+            document.getElementById("leg-gtgt").innerText = data.categories.GTGT;
+            document.getElementById("leg-tndn").innerText = data.categories.TNDN;
+            document.getElementById("leg-tncn").innerText = data.categories.TNCN;
+            document.getElementById("leg-hd").innerText = data.categories.HoaDon;
+
+            // Render SVG Donut
+            const total = data.total_chunks || 1; // avoid divide by zero
+            const percents = {
+                gtgt: (data.categories.GTGT / total) * 100,
+                tndn: (data.categories.TNDN / total) * 100,
+                tncn: (data.categories.TNCN / total) * 100,
+                hd: (data.categories.HoaDon / total) * 100,
+                khac: (data.categories.Khac / total) * 100
+            };
+            
+            let offset = 0;
+            updateSegment("segment-gtgt", percents.gtgt, offset);
+            offset += percents.gtgt;
+            
+            updateSegment("segment-tndn", percents.tndn, offset);
+            offset += percents.tndn;
+            
+            updateSegment("segment-tncn", percents.tncn, offset);
+            offset += percents.tncn;
+            
+            updateSegment("segment-hd", percents.hd, offset);
+            offset += percents.hd;
+            
+            updateSegment("segment-khac", percents.khac, offset);
+            
+        } catch (e) {
+            console.error("Error fetching stats:", e);
+        }
+    }
+
+    function updateSegment(id, percent, offset) {
+        const el = document.getElementById(id);
+        if (el) {
+            // stroke-dasharray = percent (remaining)
+            el.setAttribute("stroke-dasharray", `${percent} ${100 - percent}`);
+            // stroke-dashoffset = 100 - offset (since SVG circles count backwards)
+            el.setAttribute("stroke-dashoffset", 100 - offset);
+        }
+    }
+
+    // 2. Fetch and render document list
+    async function fetchDocuments() {
+        const body = document.getElementById("documents-table-body");
+        try {
+            const res = await fetch("/api/tax/documents");
+            const data = await res.json();
+            
+            if (data.length === 0) {
+                body.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-secondary"><i class="bi bi-info-circle me-1"></i> Chưa có tài liệu nào được lập chỉ mục. Vui lòng nhập link để cào luật thuế.</td></tr>`;
+                return;
+            }
+            
+            let html = "";
+            data.forEach(doc => {
+                const safeName = doc.document_source.replace(/"/g, '&quot;');
+                html += `
+                    <tr>
+                        <td class="px-4 font-weight-semibold">
+                            <i class="bi bi-file-text text-primary me-2"></i> ${doc.document_source}
+                        </td>
+                        <td class="text-center"><span class="badge bg-light text-dark border px-2 py-1">${doc.chunks_count} chunks</span></td>
+                        <td class="text-center"><code class="text-primary-accent">${doc.effective_date}</code></td>
+                        <td class="text-center text-secondary" style="font-size: 0.85rem;">${doc.created_at}</td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-outline-danger px-2.5 py-1 hover-scale" onclick="confirmDeleteDocument('${safeName}')">
+                                <i class="bi bi-trash-fill"></i> Xóa
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            body.innerHTML = html;
+        } catch (e) {
+            body.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i> Lỗi khi tải dữ liệu: ${e.message}</td></tr>`;
+        }
+    }
+
+    // 3. Filter Table Client-Side
+    function filterDocsTable() {
+        const filter = document.getElementById("table-filter-input").value.toLowerCase();
+        const rows = document.querySelectorAll("#documents-table-body tr");
+        
+        rows.forEach(row => {
+            const docCell = row.cells[0];
+            if (docCell) {
+                const text = docCell.innerText.toLowerCase();
+                row.style.display = text.indexOf(filter) > -1 ? "" : "none";
+            }
+        });
+    }
+
+    // 4. Fetch url preview
+    async function fetchUrlPreview() {
+        const urlInput = document.getElementById("crawler-url");
+        const url = urlInput.value.trim();
+        if (!url) {
+            alert("Vui lòng nhập đường dẫn URL!");
+            return;
+        }
+        
+        const fetchBtn = document.getElementById("btn-fetch");
+        const spinner = document.getElementById("fetch-spinner");
+        const icon = document.getElementById("fetch-icon");
+        
+        fetchBtn.disabled = true;
+        spinner.classList.remove("d-none");
+        icon.classList.add("d-none");
+        
+        try {
+            const response = await fetch("/api/tax/crawl/fetch", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ url: url })
+            });
+            
+            const data = await response.json();
+            if (data.error) {
+                alert("Lỗi cào URL: " + data.error);
+                return;
+            }
+            
+            // Show preview panel
+            document.getElementById("crawler-title").value = data.title;
+            document.getElementById("crawler-date").value = data.effective_date;
+            document.getElementById("crawler-text-preview").value = data.full_text;
+            
+            document.getElementById("crawler-preview-panel").classList.remove("d-none");
+            // Smooth scroll to preview panel
+            document.getElementById("crawler-preview-panel").scrollIntoView({ behavior: 'smooth' });
+            
+        } catch (e) {
+            alert("Lỗi kết nối: " + e.message);
+        } finally {
+            fetchBtn.disabled = false;
+            spinner.classList.add("d-none");
+            icon.classList.remove("d-none");
+        }
+    }
+
+    // 5. Ingest Url to RAG DB
+    async function ingestUrl() {
+        const url = document.getElementById("crawler-url").value.trim();
+        const title = document.getElementById("crawler-title").value.trim();
+        const date = document.getElementById("crawler-date").value.trim();
+        const text = document.getElementById("crawler-text-preview").value.trim();
+        
+        if (!url || !text) {
+            alert("Vui lòng điền đủ thông tin URL và nội dung tài liệu!");
+            return;
+        }
+        
+        const ingestBtn = document.getElementById("btn-ingest");
+        const spinner = document.getElementById("ingest-spinner");
+        const icon = document.getElementById("ingest-icon");
+        
+        ingestBtn.disabled = true;
+        spinner.classList.remove("d-none");
+        icon.classList.add("d-none");
+        
+        try {
+            const response = await fetch("/api/tax/crawl/ingest", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    url: url,
+                    title: title,
+                    text: text,
+                    effective_date: date
+                })
+            });
+            
+            const data = await response.json();
+            if (data.success) {
+                alert(`Nạp thành công tài liệu: "${data.document_source}" với ${data.chunks_count} chunks vào FTS5 index.`);
+                cancelIngestion();
+                
+                // Refresh list and stats
+                fetchDocuments();
+                fetchStats();
+            } else {
+                alert("Lỗi khi nạp RAG: " + data.error);
+            }
+        } catch (e) {
+            alert("Lỗi kết nối: " + e.message);
+        } finally {
+            ingestBtn.disabled = false;
+            spinner.classList.add("d-none");
+            icon.classList.remove("d-none");
+        }
+    }
+
+    function cancelIngestion() {
+        document.getElementById("crawler-preview-panel").classList.add("d-none");
+        document.getElementById("crawler-url").value = "";
+    }
+
+    // 6. FTS5 Search-Test
+    async function runSearchTest() {
+        const query = document.getElementById("search-test-query").value.trim();
+        const container = document.getElementById("search-results-container");
+        
+        if (!query) {
+            container.innerHTML = `
+                <div class="text-center text-secondary py-5">
+                    <i class="bi bi-exclamation-circle fs-1 mb-2 d-block opacity-50"></i>
+                    <p class="mb-0">Vui lòng nhập từ khóa tìm kiếm!</p>
+                </div>`;
+            return;
+        }
+        
+        container.innerHTML = `
+            <div class="text-center py-5 text-secondary">
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Đang truy vấn SQLite FTS5...
+            </div>`;
+            
+        try {
+            const res = await fetch(`/api/tax/search-test?query=${encodeURIComponent(query)}`);
+            const data = await res.json();
+            
+            if (data.error) {
+                container.innerHTML = `<div class="alert alert-danger mb-0"><i class="bi bi-x-circle-fill me-1"></i> Lỗi: ${data.error}</div>`;
+                return;
+            }
+            
+            if (data.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-secondary py-5">
+                        <i class="bi bi-emoji-frown fs-1 mb-2 d-block opacity-50"></i>
+                        <p class="mb-0">Không tìm thấy kết quả nào khớp với từ khóa "${query}".</p>
+                    </div>`;
+                return;
+            }
+            
+            let html = `<div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="text-secondary font-size-sm" style="font-size: 0.8rem;">Tìm thấy <strong>${data.length}</strong> kết quả</span>
+                <span class="badge bg-warning text-black font-weight-normal px-2 py-1">FTS5 Match</span>
+            </div>`;
+            
+            data.forEach(result => {
+                html += `
+                    <div class="mb-3 p-3 rounded border" style="background: var(--bg-card); border-color: var(--border-card) !important; font-size: 0.85rem;">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-primary font-weight-semibold text-truncate me-2" style="max-width: 75%;" title="${result.document_source}">
+                                <i class="bi bi-file-earmark-text"></i> ${result.document_source}
+                            </span>
+                            <span class="badge bg-light text-secondary border">Trang ${result.page_number}</span>
+                        </div>
+                        <div class="text-secondary font-monospace" style="line-height: 1.5; white-space: pre-line;">
+                            ${result.highlighted_content}
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        } catch (e) {
+            container.innerHTML = `<div class="alert alert-danger mb-0"><i class="bi bi-x-circle-fill me-1"></i> Lỗi kết nối: ${e.message}</div>`;
+        }
+    }
+
+    // 7. Delete document flow
+    function confirmDeleteDocument(docName) {
+        documentToDelete = docName;
+        document.getElementById("delete-doc-name").innerText = docName;
+        
+        if (!bootstrapDeleteModal) {
+            bootstrapDeleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+        }
+        bootstrapDeleteModal.show();
+    }
+
+    async function executeDeleteDocument() {
+        if (!documentToDelete) return;
+        
+        const deleteBtn = document.getElementById("btn-confirm-delete");
+        deleteBtn.disabled = true;
+        deleteBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Đang xóa...`;
+        
+        try {
+            const res = await fetch("/api/tax/documents", {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ document_source: documentToDelete })
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+                bootstrapDeleteModal.hide();
+                alert(`Đã xóa thành công tài liệu: "${documentToDelete}" và toàn bộ chunks liên quan.`);
+                
+                // Refresh list and stats
+                fetchDocuments();
+                fetchStats();
+            } else {
+                alert("Lỗi khi xóa tài liệu: " + data.error);
+            }
+        } catch (e) {
+            alert("Lỗi kết nối: " + e.message);
+        } finally {
+            deleteBtn.disabled = false;
+            deleteBtn.innerHTML = `Xác nhận xóa`;
+            documentToDelete = '';
+        }
+    }
+</script>
+{% endblock %}
