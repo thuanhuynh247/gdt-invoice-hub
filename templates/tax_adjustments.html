@@ -334,7 +334,7 @@
                                     <div class="border-top border-secondary-subtle pt-2 mt-2">
                                         {% for warn in warnings %}
                                             <div class="text-warning small d-flex align-items-start gap-1 mb-1">
-                                                <i class="bi bi-info-circle-fill flex-shrink-0 mt-0.5" style="font-size: 0.75rem;"></i>
+                                                <i class="bi bi-info-circle-fill flex-shrink-0 mt-0.5" style="font-size: 0.75rem;" aria-hidden="true"></i>
                                                 <span style="font-size: 0.75rem;">{{ warn.detail }}</span>
                                             </div>
                                         {% endfor %}
@@ -361,23 +361,23 @@
                     
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
-                            <label class="form-label text-muted small fw-semibold">Đại diện Bên Bán (Bên A)</label>
-                            <input type="text" class="form-control input-glass" id="form_rep_a" value="Nguyễn Văn A" oninput="updatePreview()">
+                            <label for="form_rep_a" class="form-label text-muted small fw-semibold">Đại diện Bên Bán (Bên A)</label>
+                            <input type="text" class="form-control input-glass" id="form_rep_a" value="Nguyễn Văn A" oninput="updatePreview()" autocomplete="name">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label text-muted small fw-semibold">Chức vụ Bên A</label>
-                            <input type="text" class="form-control input-glass" id="form_pos_a" value="Giám đốc" oninput="updatePreview()">
+                            <label for="form_pos_a" class="form-label text-muted small fw-semibold">Chức vụ Bên A</label>
+                            <input type="text" class="form-control input-glass" id="form_pos_a" value="Giám đốc" oninput="updatePreview()" autocomplete="organization-title">
                         </div>
                     </div>
 
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
-                            <label class="form-label text-muted small fw-semibold">Đại diện Bên Mua (Bên B)</label>
-                            <input type="text" class="form-control input-glass" id="form_rep_b" value="Trần Thị B" oninput="updatePreview()">
+                            <label for="form_rep_b" class="form-label text-muted small fw-semibold">Đại diện Bên Mua (Bên B)</label>
+                            <input type="text" class="form-control input-glass" id="form_rep_b" value="Trần Thị B" oninput="updatePreview()" autocomplete="name">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label text-muted small fw-semibold">Chức vụ Bên B</label>
-                            <input type="text" class="form-control input-glass" id="form_pos_b" value="Kế toán trưởng" oninput="updatePreview()">
+                            <label for="form_pos_b" class="form-label text-muted small fw-semibold">Chức vụ Bên B</label>
+                            <input type="text" class="form-control input-glass" id="form_pos_b" value="Kế toán trưởng" oninput="updatePreview()" autocomplete="organization-title">
                         </div>
                     </div>
 
@@ -406,7 +406,7 @@
             <!-- Document Viewer Panel -->
             <div class="glass-panel p-4 mb-4 no-print" id="documentViewerPlaceholder">
                 <div class="text-center py-5 text-muted">
-                    <i class="bi bi-file-earmark-ruled fs-1 mb-3 text-secondary" style="opacity: 0.5;"></i>
+                    <i class="bi bi-file-earmark-ruled fs-1 mb-3 text-secondary" style="opacity: 0.5;" aria-hidden="true"></i>
                     <h5>Chưa chọn hóa đơn xử lý</h5>
                     <p class="small mb-0">Chọn một hóa đơn từ danh sách bên trái để sinh biểu mẫu pháp lý tự động.</p>
                 </div>
@@ -439,7 +439,7 @@
                             <div class="timeline-label">GDT Tiếp Nhận</div>
                         </div>
                         <div class="timeline-step" id="step-4">
-                            <div class="timeline-badge"><i class="bi bi-check-lg d-none" id="step-4-check"></i><span id="step-4-num">4</span></div>
+                            <div class="timeline-badge"><i class="bi bi-check-lg d-none" id="step-4-check" aria-hidden="true"></i><span id="step-4-num">4</span></div>
                             <div class="timeline-label">CQT Phê Duyệt</div>
                         </div>
                     </div>

@@ -438,7 +438,7 @@
                         <div class="glass-card h-100">
                             <h4 class="h6 mb-3 fw-bold uppercase tracking-wider text-secondary"><i class="bi bi-search me-2" aria-hidden="true"></i>Search Symbols</h4>
                             <div class="input-group mb-3">
-                                <input type="text" id="cgSearchQuery" class="form-control custom-input" placeholder="Search function, class, file..." onkeyup="if(event.key==='Enter') searchCodeGraph()" autocomplete="off" aria-label="Search CodeGraph">
+                                <input type="text" id="cgSearchQuery" class="form-control custom-input" placeholder="Search function, class, file…" onkeyup="if(event.key==='Enter') searchCodeGraph()" autocomplete="off" aria-label="Search CodeGraph">
                                 <button class="btn btn-primary-accent" type="button" onclick="searchCodeGraph()"><i class="bi bi-search" aria-hidden="true"></i></button>
                             </div>
                             <div class="list-group bg-dark bg-opacity-25 border border-secondary border-opacity-25 rounded" id="cgSearchResults" style="max-height: 400px; overflow-y: auto;">
@@ -1782,8 +1782,8 @@
             .then(data => {
                 if (!data.nodes || data.nodes.length === 0) return;
                 
-                const nodes = data.nodes.map(d => ({ ...d }));
-                const links = data.links.map(d => ({ ...d }));
+                const nodes = data.nodes.map(d => Object.assign({}, d));
+                const links = data.links.map(d => Object.assign({}, d));
                 
                 if (currentD3Simulation) currentD3Simulation.stop();
                 

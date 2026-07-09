@@ -158,7 +158,7 @@
                             <div class="color-swatch" style="background-color: #f59e0b;" onclick="setAccentColor('#f59e0b', this)"></div>
                             <div class="color-swatch" style="background-color: #ef4444;" onclick="setAccentColor('#ef4444', this)"></div>
                             <div class="color-swatch" style="background-color: #111827;" onclick="setAccentColor('#111827', this)"></div>
-                            <input type="color" id="customColorPicker" class="form-control-color border-0 p-0" style="width: 32px; height: 32px; border-radius: 50%;" onchange="setAccentColor(this.value, null)">
+                            <input type="color" id="customColorPicker" class="form-control-color border-0 p-0" style="width: 32px; height: 32px; border-radius: 50%;" onchange="setAccentColor(this.value, null)" autocomplete="off" aria-label="Chọn màu chủ đạo tùy chỉnh">
                         </div>
                     </div>
 
@@ -187,7 +187,7 @@
                     <div class="mb-4">
                         <label class="form-label fw-bold small text-secondary">Ảnh Logo Công ty (URL):</label>
                         <div class="input-group">
-                            <input type="text" class="form-control" id="logoUrlInput" placeholder="Dán link ảnh logo…" value="https://via.placeholder.com/150x50/ffffff/000000?text=COMPANY+LOGO">
+                            <input type="text" class="form-control" id="logoUrlInput" placeholder="Dán link ảnh logo…" value="https://via.placeholder.com/150x50/ffffff/000000?text=COMPANY+LOGO" autocomplete="off" aria-label="Đường dẫn logo công ty">
                             <button class="btn btn-primary" onclick="setCompanyLogo()">Lưu</button>
                         </div>
                     </div>

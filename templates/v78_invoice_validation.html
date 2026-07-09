@@ -277,16 +277,16 @@
             <div class="bg-light p-3 rounded mb-4 border">
                 <div class="row g-3">
                     <div class="col-md-3">
-                        <label class="form-label small fw-semibold text-secondary mb-1">Từ ngày</label>
-                        <input type="date" id="filterStartDate" class="form-control rounded-pill px-3" onchange="applyFilters()">
+                        <label for="filterStartDate" class="form-label small fw-semibold text-secondary mb-1">Từ ngày</label>
+                        <input type="date" id="filterStartDate" class="form-control rounded-pill px-3" autocomplete="off" onchange="applyFilters()">
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label small fw-semibold text-secondary mb-1">Đến ngày</label>
-                        <input type="date" id="filterEndDate" class="form-control rounded-pill px-3" onchange="applyFilters()">
+                        <label for="filterEndDate" class="form-label small fw-semibold text-secondary mb-1">Đến ngày</label>
+                        <input type="date" id="filterEndDate" class="form-control rounded-pill px-3" autocomplete="off" onchange="applyFilters()">
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label small fw-semibold text-secondary mb-1">Đối tác (Tên / MST)</label>
-                        <input type="text" id="filterPartner" class="form-control rounded-pill px-3" placeholder="Nhập tên hoặc MST..." oninput="applyFilters()">
+                        <label for="filterPartner" class="form-label small fw-semibold text-secondary mb-1">Đối tác (Tên / MST)</label>
+                        <input type="text" id="filterPartner" class="form-control rounded-pill px-3" placeholder="Nhập tên hoặc MST…" autocomplete="off" oninput="applyFilters()">
                     </div>
                     <div class="col-md-3">
                         <label class="form-label small fw-semibold text-secondary mb-1">Loại kiểm tra</label>

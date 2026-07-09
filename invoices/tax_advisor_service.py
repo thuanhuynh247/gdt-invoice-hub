@@ -368,6 +368,10 @@ def detect_and_run_tools(query: str) -> dict | None:
             res = calculate_fct_tax(val, contract_type, industry_type)
             res["estimated_value"] = has_defaulted_val
             
+            import time
+            import random
+            uniq = f"{int(time.time())}_{random.randint(1000, 9999)}"
+            
             html_output = f"""
 <div class="card border-success border-2 shadow-sm my-3 tool-calc-card" style="animation: fadeInUp 0.3s ease-in-out;">
   <div class="card-header bg-success text-white d-flex align-items-center justify-content-between py-2">
@@ -376,42 +380,77 @@ def detect_and_run_tools(query: str) -> dict | None:
   </div>
   <div class="card-body bg-light text-dark p-3" style="font-size: 0.9rem;">
     {f'<div class="alert alert-warning py-1 px-2 mb-2" style="font-size: 0.8rem;"><i class="bi bi-info-circle-fill me-1"></i> Không tìm thấy số tiền cụ thể trong câu hỏi, hệ thống đang mô phỏng với mức <strong>100.000.000 VND</strong></div>' if has_defaulted_val else ''}
+    
+    <!-- Interactive Inputs Section -->
+    <div class="bg-white p-3 rounded border border-light-subtle mb-3">
+      <h6 class="fw-bold text-success border-bottom pb-2 mb-2" style="font-size: 0.85rem;"><i class="bi bi-sliders me-1"></i> Điều chỉnh thông số tính toán</h6>
+      <div class="row g-2">
+        <div class="col-sm-6">
+          <label class="form-label mb-1 text-muted small">Giá trị hợp đồng (VND)</label>
+          <input type="number" class="form-control form-control-sm border-success fw-semibold" id="fct_val_{uniq}" value="{res['contract_value']}" oninput="updateFCT('{uniq}')">
+          <input type="range" class="form-range mt-2" id="fct_range_{uniq}" min="10000000" max="5000000000" step="10000000" value="{res['contract_value']}" oninput="updateFCTFromRange('{uniq}')">
+        </div>
+        <div class="col-sm-3">
+          <label class="form-label mb-1 text-muted small">Loại hợp đồng</label>
+          <select class="form-select form-select-sm border-success fw-semibold" id="fct_type_{uniq}" onchange="updateFCT('{uniq}')">
+            <option value="gross" {"selected" if res['contract_type'] == "gross" else ""}>GROSS (Bao gồm thuế)</option>
+            <option value="net" {"selected" if res['contract_type'] == "net" else ""}>NET (Chưa gồm thuế)</option>
+          </select>
+        </div>
+        <div class="col-sm-3">
+          <label class="form-label mb-1 text-muted small">Loại hình dịch vụ</label>
+          <select class="form-select form-select-sm border-success fw-semibold" id="fct_ind_{uniq}" onchange="updateFCT('{uniq}')">
+            <option value="services" {"selected" if res['industry_type'] == "services" else ""}>Dịch vụ</option>
+            <option value="goods_with_services" {"selected" if res['industry_type'] == "goods_with_services" else ""}>Hàng hóa kèm dịch vụ</option>
+            <option value="construction_with_materials" {"selected" if res['industry_type'] == "construction_with_materials" else ""}>Xây dựng có bao thầu</option>
+            <option value="construction_no_materials" {"selected" if res['industry_type'] == "construction_no_materials" else ""}>Xây dựng không bao thầu</option>
+            <option value="transport_other" {"selected" if res['industry_type'] == "transport_other" else ""}>Kinh doanh vận tải</option>
+            <option value="royalties" {"selected" if res['industry_type'] == "royalties" else ""}>Bản quyền</option>
+            <option value="loan_interest" {"selected" if res['industry_type'] == "loan_interest" else ""}>Lãi tiền vay</option>
+            <option value="securities_transfer" {"selected" if res['industry_type'] == "securities_transfer" else ""}>Chuyển nhượng CK</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
     <div class="row g-3">
       <div class="col-md-6 border-end">
-        <p class="mb-1 text-muted">Giá trị hợp đồng đầu vào:</p>
-        <h5 class="fw-bold text-success mb-2">{res['contract_value']:,.0f} VND ({res['contract_type'].upper()})</h5>
-        <p class="mb-1 text-muted">Loại hình kinh doanh nhà thầu:</p>
-        <span class="badge bg-secondary mb-3 text-wrap text-start">{res['industry_description']}</span>
+        <p class="mb-1 text-muted">Giá trị hợp đồng:</p>
+        <h5 class="fw-bold text-success mb-2" id="fct_res_val_{uniq}">{res['contract_value']:,.0f} VND</h5>
         <div class="d-flex justify-content-between mb-1">
           <span>Thuế suất GTGT nhà thầu:</span>
-          <strong class="text-success">{res['vat_rate'] * 100:.1f}%</strong>
+          <strong class="text-success" id="fct_res_vat_rate_{uniq}">{res['vat_rate'] * 100:.1f}%</strong>
         </div>
         <div class="d-flex justify-content-between">
           <span>Thuế suất TNDN nhà thầu:</span>
-          <strong class="text-success">{res['cit_rate'] * 100:.1f}%</strong>
+          <strong class="text-success" id="fct_res_cit_rate_{uniq}">{res['cit_rate'] * 100:.1f}%</strong>
         </div>
       </div>
       <div class="col-md-6">
         <p class="mb-2 fw-semibold text-secondary">Kết quả phân bổ nghĩa vụ thuế:</p>
         <div class="d-flex justify-content-between mb-2 pb-1 border-bottom">
           <span>Doanh thu tính thuế GTGT:</span>
-          <strong>{res['gross_revenue']:,.0f} VND</strong>
+          <strong id="fct_res_gross_{uniq}">{res['gross_revenue']:,.0f} VND</strong>
         </div>
         <div class="d-flex justify-content-between mb-2 pb-1 border-bottom">
           <span>Doanh thu tính thuế TNDN:</span>
-          <strong>{res['cit_revenue']:,.0f} VND</strong>
+          <strong id="fct_res_cit_rev_{uniq}">{res['cit_revenue']:,.0f} VND</strong>
         </div>
         <div class="d-flex justify-content-between text-danger fw-bold mb-2 pb-1 border-bottom">
           <span>1. Thuế GTGT phải nộp:</span>
-          <span>{res['fct_vat']:,.0f} VND</span>
+          <span id="fct_res_vat_{uniq}">{res['fct_vat']:,.0f} VND</span>
         </div>
         <div class="d-flex justify-content-between text-danger fw-bold mb-2 pb-1 border-bottom">
           <span>2. Thuế TNDN phải nộp:</span>
-          <span>{res['fct_cit']:,.0f} VND</span>
+          <span id="fct_res_cit_{uniq}">{res['fct_cit']:,.0f} VND</span>
         </div>
         <div class="d-flex justify-content-between text-success fw-bold py-1 bg-white px-2 rounded border border-success">
           <span>TỔNG THUẾ NHÀ THẦU (FCT):</span>
-          <span>{res['total_fct']:,.0f} VND</span>
+          <span id="fct_res_total_{uniq}">{res['total_fct']:,.0f} VND</span>
+        </div>
+        <div class="d-flex justify-content-between text-muted small mt-2">
+          <span>Thực nhận nhà thầu (Net):</span>
+          <span id="fct_res_net_{uniq}">{res['net_value']:,.0f} VND</span>
         </div>
       </div>
     </div>
@@ -463,6 +502,10 @@ def detect_and_run_tools(query: str) -> dict | None:
             res["estimated_value"] = has_defaulted_val
             res["estimated_days"] = has_defaulted_days
             
+            import time
+            import random
+            uniq = f"{int(time.time())}_{random.randint(1000, 9999)}"
+            
             html_output = f"""
 <div class="card border-danger border-2 shadow-sm my-3 tool-calc-card" style="animation: fadeInUp 0.3s ease-in-out;">
   <div class="card-header bg-danger text-white d-flex align-items-center justify-content-between py-2">
@@ -471,42 +514,75 @@ def detect_and_run_tools(query: str) -> dict | None:
   </div>
   <div class="card-body bg-light text-dark p-3" style="font-size: 0.9rem;">
     {f'<div class="alert alert-warning py-1 px-2 mb-2" style="font-size: 0.8rem;"><i class="bi bi-info-circle-fill me-1"></i> Thiếu thông tin số tiền hoặc số ngày. Đang giả lập với: <strong>{val:,.0f} VND</strong> và <strong>{late_days} ngày</strong> chậm nộp.</div>' if (has_defaulted_val or has_defaulted_days) else ''}
+    
+    <!-- Interactive Inputs Section -->
+    <div class="bg-white p-3 rounded border border-light-subtle mb-3">
+      <h6 class="fw-bold text-danger border-bottom pb-2 mb-2" style="font-size: 0.85rem;"><i class="bi bi-sliders me-1"></i> Điều chỉnh thông số vi phạm</h6>
+      <div class="row g-2 align-items-center">
+        <div class="col-sm-4">
+          <label class="form-label mb-1 text-muted small">Thuế thiếu/chậm nộp (VND)</label>
+          <input type="number" class="form-control form-control-sm border-danger fw-semibold" id="pen_val_{uniq}" value="{res['underpaid_tax']}" oninput="updatePenalty('{uniq}')">
+        </div>
+        <div class="col-sm-4">
+          <label class="form-label mb-1 text-muted small">Số ngày chậm nộp: <span class="badge bg-danger" id="pen_days_badge_text_{uniq}">{res['late_days']} ngày</span></label>
+          <input type="number" class="form-control form-control-sm border-danger fw-semibold mb-1" id="pen_days_{uniq}" value="{res['late_days']}" oninput="updatePenalty('{uniq}')">
+          <input type="range" class="form-range" id="pen_days_range_{uniq}" min="1" max="365" value="{res['late_days']}" oninput="updatePenaltyFromRange('{uniq}')">
+        </div>
+        <div class="col-sm-4">
+          <label class="form-label mb-1 text-muted small">Hành vi vi phạm</label>
+          <select class="form-select form-select-sm border-danger fw-semibold" id="pen_evasion_{uniq}" onchange="updatePenalty('{uniq}')">
+            <option value="0" {"selected" if evasion_multiplier == 0.0 else ""}>Kê khai sai (Phạt 20%)</option>
+            <option value="1.0" {"selected" if evasion_multiplier == 1.0 else ""}>Trốn thuế 1 lần (Phạt 100%)</option>
+            <option value="1.5">Trốn thuế + 1 tăng nặng (Phạt 150%)</option>
+            <option value="2.0">Trốn thuế + 2 tăng nặng (Phạt 200%)</option>
+            <option value="3.0">Trốn thuế đặc biệt (Phạt 300%)</option>
+          </select>
+        </div>
+        <div class="col-12 mt-2">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" role="switch" id="pen_mitigating_{uniq}" onchange="updatePenalty('{uniq}')">
+            <label class="form-check-label text-muted small" for="pen_mitigating_{uniq}" style="cursor: pointer;">Có tình tiết giảm nhẹ (Giảm 20% mức xử phạt hành chính)</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="row g-3">
       <div class="col-md-6 border-end">
         <p class="mb-1 text-muted">Số thuế khai thiếu/chậm nộp:</p>
-        <h5 class="fw-bold text-danger mb-2">{res['underpaid_tax']:,.0f} VND</h5>
-        <p class="mb-1 text-muted">Số ngày chậm nộp tờ khai/tiền thuế:</p>
-        <h5 class="fw-bold text-dark mb-3">{res['late_days']} ngày</h5>
+        <h5 class="fw-bold text-danger mb-2" id="pen_res_tax_{uniq}">{res['underpaid_tax']:,.0f} VND</h5>
+        <p class="mb-1 text-muted">Số ngày chậm nộp:</p>
+        <h5 class="fw-bold text-dark mb-3" id="pen_res_days_{uniq}">{res['late_days']} ngày</h5>
         <div class="d-flex justify-content-between mb-1">
-          <span>Phạt chậm nộp tờ khai (20%):</span>
-          <strong class="text-danger">{res['under_declaration_fine']:,.0f} VND</strong>
+          <span>Phạt hành chính (Kê khai sai/Trốn thuế):</span>
+          <strong class="text-danger" id="pen_res_under_decl_{uniq}">{(res['under_declaration_fine'] + res['evasion_fine']):,.0f} VND</strong>
         </div>
         <div class="d-flex justify-content-between">
           <span>Tiền lãi chậm nộp (0.03%/ngày):</span>
-          <strong class="text-danger">{res['late_interest']:,.0f} VND</strong>
+          <strong class="text-danger" id="pen_res_interest_{uniq}">{res['late_interest']:,.0f} VND</strong>
         </div>
       </div>
       <div class="col-md-6">
         <p class="mb-2 fw-semibold text-secondary">Tổng nghĩa vụ thuế bổ sung:</p>
         <div class="d-flex justify-content-between mb-2 pb-1 border-bottom">
           <span>Số thuế gốc nộp bổ sung:</span>
-          <strong>{res['underpaid_tax']:,.0f} VND</strong>
+          <strong id="pen_res_tax_add_{uniq}">{res['underpaid_tax']:,.0f} VND</strong>
         </div>
         <div class="d-flex justify-content-between text-danger fw-bold mb-2 pb-1 border-bottom">
           <span>Tổng mức phạt xử phạt hành chính:</span>
-          <span>{(res['under_declaration_fine'] + res['evasion_fine']):,.0f} VND</span>
+          <span id="pen_res_fine_hcth_{uniq}">{(res['under_declaration_fine'] + res['evasion_fine']):,.0f} VND</span>
         </div>
         <div class="d-flex justify-content-between text-danger fw-bold mb-2 pb-1 border-bottom">
           <span>Tiền lãi chậm nộp (0.03%/ngày):</span>
-          <span>{res['late_interest']:,.0f} VND</span>
+          <span id="pen_res_interest_add_{uniq}">{res['late_interest']:,.0f} VND</span>
         </div>
         <div class="d-flex justify-content-between text-danger fw-bold mb-2 pb-1 border-bottom">
           <span>Tổng số tiền phạt phát sinh thêm:</span>
-          <span>{res['total_penalties']:,.0f} VND</span>
+          <span id="pen_res_total_pen_{uniq}">{res['total_penalties']:,.0f} VND</span>
         </div>
         <div class="d-flex justify-content-between text-danger fw-bold py-1 bg-white px-2 rounded border border-danger">
           <span>TỔNG SỐ PHẢI NỘP SAU PHẠT:</span>
-          <span>{res['total_liability']:,.0f} VND</span>
+          <span id="pen_res_liability_{uniq}">{res['total_liability']:,.0f} VND</span>
         </div>
       </div>
     </div>
@@ -553,6 +629,10 @@ def detect_and_run_tools(query: str) -> dict | None:
             res["estimated_value"] = has_defaulted_val
             res["estimated_dep"] = has_defaulted_dep
             
+            import time
+            import random
+            uniq = f"{int(time.time())}_{random.randint(1000, 9999)}"
+            
             html_output = f"""
 <div class="card border-primary border-2 shadow-sm my-3 tool-calc-card" style="animation: fadeInUp 0.3s ease-in-out;">
   <div class="card-header bg-primary text-white d-flex align-items-center justify-content-between py-2">
@@ -561,42 +641,60 @@ def detect_and_run_tools(query: str) -> dict | None:
   </div>
   <div class="card-body bg-light text-dark p-3" style="font-size: 0.9rem;">
     {f'<div class="alert alert-warning py-1 px-2 mb-2" style="font-size: 0.8rem;"><i class="bi bi-info-circle-fill me-1"></i> Không tìm thấy mức thu nhập hoặc người phụ thuộc. Đang giả lập với: <strong>{val:,.0f} VND</strong> thu nhập và <strong>{dependents} người phụ thuộc</strong>.</div>' if (has_defaulted_val) else ''}
+    
+    <!-- Interactive Inputs Section -->
+    <div class="bg-white p-3 rounded border border-light-subtle mb-3">
+      <h6 class="fw-bold text-primary border-bottom pb-2 mb-2" style="font-size: 0.85rem;"><i class="bi bi-sliders me-1"></i> Điều chỉnh thu nhập & Giảm trừ</h6>
+      <div class="row g-2">
+        <div class="col-sm-6">
+          <label class="form-label mb-1 text-muted small">Thu nhập chịu thuế/tháng (VND)</label>
+          <input type="number" class="form-control form-control-sm border-primary fw-semibold" id="pit_income_{uniq}" value="{res['monthly_income']}" oninput="updatePIT('{uniq}')">
+          <input type="range" class="form-range mt-2" id="pit_income_range_{uniq}" min="11000000" max="250000000" step="1000000" value="{res['monthly_income']}" oninput="updatePITFromRange('{uniq}')">
+        </div>
+        <div class="col-sm-6">
+          <label class="form-label mb-1 text-muted small">Số người phụ thuộc: <span class="badge bg-primary" id="pit_dep_badge_text_{uniq}">{res['dependents']} người</span></label>
+          <input type="number" class="form-control form-control-sm border-primary fw-semibold mb-1" id="pit_dep_{uniq}" value="{res['dependents']}" oninput="updatePIT('{uniq}')">
+          <input type="range" class="form-range" id="pit_dep_range_{uniq}" min="0" max="10" step="1" value="{res['dependents']}" oninput="updatePITFromRange('{uniq}')">
+        </div>
+      </div>
+    </div>
+
     <div class="row g-3">
       <div class="col-md-6 border-end">
         <p class="mb-1 text-muted">Tổng thu nhập chịu thuế hàng tháng:</p>
-        <h5 class="fw-bold text-primary mb-2">{res['monthly_income']:,.0f} VND</h5>
+        <h5 class="fw-bold text-primary mb-2" id="pit_res_inc_{uniq}">{res['monthly_income']:,.0f} VND</h5>
         <p class="mb-1 text-muted">Số người phụ thuộc kê khai:</p>
-        <h5 class="fw-bold text-dark mb-3">{res['dependents']} người</h5>
+        <h5 class="fw-bold text-dark mb-3" id="pit_res_dep_count_{uniq}">{res['dependents']} người</h5>
         <div class="d-flex justify-content-between mb-1">
           <span>Giảm trừ bản thân:</span>
           <strong class="text-muted">{res['personal_deduction']:,.0f} VND</strong>
         </div>
         <div class="d-flex justify-content-between mb-1">
           <span>Giảm trừ người phụ thuộc:</span>
-          <strong class="text-muted">{res['dependent_deduction']:,.0f} VND</strong>
+          <strong class="text-muted" id="pit_res_dep_deduct_{uniq}">{res['dependent_deduction']:,.0f} VND</strong>
         </div>
         <div class="d-flex justify-content-between pt-1 border-top fw-semibold text-secondary">
           <span>Tổng mức giảm trừ gia cảnh:</span>
-          <span>{res['total_deductions']:,.0f} VND</span>
+          <span id="pit_res_total_deduct_{uniq}">{res['total_deductions']:,.0f} VND</span>
         </div>
       </div>
       <div class="col-md-6">
         <p class="mb-2 fw-semibold text-secondary">Kết quả tính thuế TNCN lũy tiến:</p>
         <div class="d-flex justify-content-between mb-2 pb-1 border-bottom">
           <span>Thu nhập tính thuế (sau giảm trừ):</span>
-          <strong>{res['taxable_income']:,.0f} VND</strong>
+          <strong id="pit_res_taxable_{uniq}">{res['taxable_income']:,.0f} VND</strong>
         </div>
         <div class="d-flex justify-content-between mb-2 pb-1 border-bottom">
           <span>Bậc thuế lũy tiến cao nhất:</span>
-          <span class="badge bg-primary">Bậc {res['active_tier']} ({res['tax_rate'] * 100:.0f}%)</span>
+          <span class="badge bg-primary" id="pit_res_tier_{uniq}">Bậc {res['active_tier']} ({res['tax_rate'] * 100:.0f}%)</span>
         </div>
         <div class="d-flex justify-content-between text-danger fw-bold mb-2 pb-1 border-bottom">
           <span>Thuế TNCN phải nộp:</span>
-          <span>{res['pit_tax']:,.0f} VND</span>
+          <span id="pit_res_tax_{uniq}">{res['pit_tax']:,.0f} VND</span>
         </div>
         <div class="d-flex justify-content-between text-success fw-bold py-1 bg-white px-2 rounded border border-primary">
           <span>THU NHẬP THỰC NHẬN (NET):</span>
-          <span>{res['net_income']:,.0f} VND</span>
+          <span id="pit_res_net_{uniq}">{res['net_income']:,.0f} VND</span>
         </div>
       </div>
     </div>

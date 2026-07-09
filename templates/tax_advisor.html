@@ -541,6 +541,14 @@
         color: var(--text-primary);
         line-height: 1.5;
     }
+
+    /* Taxpayer Info Tooltip styling */
+    .taxpayer-tooltip-card {
+        background: var(--bg-card) !important;
+        border: 1px solid var(--border-card) !important;
+        box-shadow: var(--shadow-premium) !important;
+        color: var(--text-primary) !important;
+    }
 </style>
 
 <div class="container-fluid py-4">
@@ -596,7 +604,7 @@
                 
                 <!-- Persona Selector Ribbon (WISE Fintech Style) -->
                 <div class="persona-ribbon px-4 py-2 border-bottom border-light-subtle d-flex gap-2 align-items-center overflow-x-auto" style="scrollbar-width: none; white-space: nowrap; -webkit-overflow-scrolling: touch;">
-                    <small class="text-muted fw-bold me-1 text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.05em;"><i class="bi bi-person-badge"></i> Vai trò:</small>
+                    <small class="text-muted fw-bold me-1 text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.05em;"><i class="bi bi-person-badge" aria-hidden="true"></i> Vai trò:</small>
                     <button class="btn btn-sm rounded-pill btn-persona active" data-agent="" onclick="selectPersona(this, null)">
                         🤖 Tự động
                     </button>
@@ -626,38 +634,52 @@
                 <div class="card-body p-4 d-flex flex-column justify-content-between flex-grow-1 overflow-hidden">
                     <!-- Dynamic Metrics Status Bar (Wise Style Glassmorphism) -->
                     <div id="metricsStatusBar" class="metrics-status-bar d-flex flex-wrap align-items-center gap-3 px-3 py-2 mb-3 rounded-3">
-                        <div class="metric-item d-flex align-items-center">
-                            <i class="bi bi-building me-2 text-secondary"></i>
+                        <div class="metric-item d-flex align-items-center position-relative taxpayer-pill-container" style="cursor: pointer;" onclick="toggleTaxpayerTooltip(event)">
+                            <i class="bi bi-building me-2 text-secondary animate-pulse" aria-hidden="true"></i>
                             <span>Taxpayer: </span>
-                            <strong class="ms-1 text-secondary" id="metricTaxpayer">
-                                {% if session.get('active_taxpayer_mst') %}
-                                    {{ session.get('active_taxpayer_mst') }}
+                            <strong class="ms-1 text-secondary text-decoration-underline" id="metricTaxpayer" style="transition: color 0.2s;">
+                                {% if active_profile %}
+                                    {{ active_profile.mst }}
                                 {% else %}
                                     Chưa chọn MST
                                 {% endif %}
                             </strong>
+                            {% if active_profile %}
+                            <div id="taxpayerTooltipCard" class="taxpayer-tooltip-card d-none shadow-lg rounded-3 p-3 text-dark position-absolute border" style="top: 35px; left: 0; width: 300px; z-index: 1050; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(15px); border-color: rgba(0, 0, 0, 0.1); animation: fadeInUp 0.2s ease-out;">
+                                <h6 class="fw-bold text-primary border-bottom pb-1.5 mb-2" style="font-size: 0.85rem;"><i class="bi bi-building-fill me-1" aria-hidden="true"></i> Thông tin Người nộp thuế</h6>
+                                <div class="small mb-1"><strong>MST:</strong> <span class="text-secondary fw-semibold">{{ active_profile.mst }}</span></div>
+                                <div class="small mb-1"><strong>Doanh nghiệp:</strong> <span class="text-secondary fw-semibold">{{ active_profile.company_name }}</span></div>
+                                <div class="small mb-1"><strong>Tài khoản GDT:</strong> <span class="text-secondary fw-semibold">{{ active_profile.gdt_username }}</span></div>
+                                <div class="small mb-0"><strong>Ngày kết nối:</strong> <span class="text-secondary fw-semibold">{{ active_profile.created_at }}</span></div>
+                            </div>
+                            {% else %}
+                            <div id="taxpayerTooltipCard" class="taxpayer-tooltip-card d-none shadow-lg rounded-3 p-3 text-dark position-absolute border" style="top: 35px; left: 0; width: 300px; z-index: 1050; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(15px); border-color: rgba(0, 0, 0, 0.1); animation: fadeInUp 0.2s ease-out;">
+                                <h6 class="fw-bold text-warning border-bottom pb-1.5 mb-2" style="font-size: 0.85rem;"><i class="bi bi-exclamation-triangle-fill me-1" aria-hidden="true"></i> Chưa chọn doanh nghiệp</h6>
+                                <p class="small text-muted mb-0">Vui lòng chọn Mã số thuế hoạt động trong phần cấu hình hoặc danh sách hóa đơn để cá nhân hóa kết quả tư vấn.</p>
+                            </div>
+                            {% endif %}
                         </div>
                         <div class="metric-divider"></div>
                         <div class="metric-item d-flex align-items-center">
-                            <i class="bi bi-cpu me-2 text-primary"></i>
+                            <i class="bi bi-cpu me-2 text-primary" aria-hidden="true"></i>
                             <span>Specialist: </span>
                             <strong class="ms-1 text-primary" id="metricModelName">Cố vấn Thuế Tổng hợp</strong>
                         </div>
                         <div class="metric-divider"></div>
                         <div class="metric-item d-flex align-items-center">
-                            <i class="bi bi-lightning-charge me-2 text-warning"></i>
+                            <i class="bi bi-lightning-charge me-2 text-warning" aria-hidden="true"></i>
                             <span>Latency: </span>
                             <strong class="ms-1 text-warning" id="metricLatency">- ms</strong>
                         </div>
                         <div class="metric-divider"></div>
                         <div class="metric-item d-flex align-items-center">
-                            <i class="bi bi-ticket-detailed me-2 text-success"></i>
+                            <i class="bi bi-ticket-detailed me-2 text-success" aria-hidden="true"></i>
                             <span>Tokens: </span>
                             <strong class="ms-1 text-success" id="metricTokens">-</strong>
                         </div>
                         <div class="metric-divider"></div>
                         <div class="metric-item d-flex align-items-center">
-                            <i class="bi bi-layers me-2 text-info"></i>
+                            <i class="bi bi-layers me-2 text-info" aria-hidden="true"></i>
                             <span>RAG Sources: </span>
                             <strong class="ms-1 text-info" id="metricRagCount">- chunks</strong>
                         </div>
@@ -692,7 +714,7 @@
                     <!-- Input Form -->
                     <form id="chatForm" onsubmit="submitMessage(event)">
                         <div class="input-group shadow-sm rounded-pill overflow-hidden border" style="border-color: var(--border-card) !important;">
-                            <input type="text" id="userInput" class="form-control border-0 px-4 py-3" placeholder="Nhập câu hỏi thuế của bạn tại đây…" style="background: var(--bg-card); color: var(--text-primary);" required>
+                            <input type="text" id="userInput" class="form-control border-0 px-4 py-3" placeholder="Nhập câu hỏi thuế của bạn tại đây…" style="background: var(--bg-card); color: var(--text-primary);" required autocomplete="off" aria-label="Nội dung câu hỏi tư vấn thuế">
                             <button class="btn btn-success border-0 px-4" type="submit" id="sendBtn" style="background: var(--primary-accent);">
                                 <i class="bi bi-send-fill" aria-hidden="true"></i>
                             </button>
@@ -835,6 +857,216 @@
 </div>
 
 <script>
+    function formatVND(num) {
+        return new Intl.NumberFormat('vi-VN').format(Math.round(num));
+    }
+
+    function toggleTaxpayerTooltip(event) {
+        event.stopPropagation();
+        const card = document.getElementById("taxpayerTooltipCard");
+        if (card) {
+            card.classList.toggle("d-none");
+        }
+    }
+
+    // Close taxpayer tooltip when clicking outside
+    document.addEventListener("click", (e) => {
+        const container = document.querySelector(".taxpayer-pill-container");
+        const card = document.getElementById("taxpayerTooltipCard");
+        if (card && container && !container.contains(e.target)) {
+            card.classList.add("d-none");
+        }
+    });
+
+    // FCT Client-Side Calculator
+    function updateFCTFromRange(uniq) {
+        const range = document.getElementById('fct_range_' + uniq);
+        const numInput = document.getElementById('fct_val_' + uniq);
+        numInput.value = range.value;
+        updateFCT(uniq);
+    }
+
+    function updateFCT(uniq) {
+        const numInput = document.getElementById('fct_val_' + uniq);
+        const range = document.getElementById('fct_range_' + uniq);
+        const typeSelect = document.getElementById('fct_type_' + uniq);
+        const indSelect = document.getElementById('fct_ind_' + uniq);
+        
+        let val = parseFloat(numInput.value) || 0;
+        range.value = val;
+        let type = typeSelect.value;
+        let ind = indSelect.value;
+        
+        // Rates mapping
+        const rates = {
+            "services": [0.05, 0.05],
+            "goods_with_services": [0.03, 0.01],
+            "construction_with_materials": [0.03, 0.02],
+            "construction_no_materials": [0.05, 0.02],
+            "transport_other": [0.02, 0.02],
+            "royalties": [0.0, 0.10],
+            "loan_interest": [0.0, 0.05],
+            "securities_transfer": [0.0, 0.001]
+        };
+        
+        let [vat_rate, cit_rate] = rates[ind] || [0.05, 0.05];
+        
+        let gross_revenue = 0;
+        let cit_revenue = 0;
+        let fct_vat = 0;
+        let fct_cit = 0;
+        let total_fct = 0;
+        let net_value = 0;
+        
+        if (type === "net") {
+            cit_revenue = Math.round(val / (1.0 - cit_rate));
+            gross_revenue = Math.round(cit_revenue / (1.0 - vat_rate));
+            fct_cit = Math.round(cit_revenue * cit_rate);
+            fct_vat = Math.round(gross_revenue * vat_rate);
+            total_fct = fct_cit + fct_vat;
+            net_value = val;
+        } else {
+            gross_revenue = val;
+            fct_vat = Math.round(gross_revenue * vat_rate);
+            cit_revenue = gross_revenue - fct_vat;
+            fct_cit = Math.round(cit_revenue * cit_rate);
+            total_fct = fct_vat + fct_cit;
+            net_value = gross_revenue - total_fct;
+        }
+        
+        // Update DOM elements
+        document.getElementById('fct_res_val_' + uniq).innerText = formatVND(val) + ' VND';
+        document.getElementById('fct_res_vat_rate_' + uniq).innerText = (vat_rate * 100).toFixed(1) + '%';
+        document.getElementById('fct_res_cit_rate_' + uniq).innerText = (cit_rate * 100).toFixed(1) + '%';
+        
+        document.getElementById('fct_res_gross_' + uniq).innerText = formatVND(gross_revenue) + ' VND';
+        document.getElementById('fct_res_cit_rev_' + uniq).innerText = formatVND(cit_revenue) + ' VND';
+        document.getElementById('fct_res_vat_' + uniq).innerText = formatVND(fct_vat) + ' VND';
+        document.getElementById('fct_res_cit_' + uniq).innerText = formatVND(fct_cit) + ' VND';
+        document.getElementById('fct_res_total_' + uniq).innerText = formatVND(total_fct) + ' VND';
+        document.getElementById('fct_res_net_' + uniq).innerText = formatVND(net_value) + ' VND';
+    }
+
+    // Penalty Client-Side Predictor
+    function updatePenaltyFromRange(uniq) {
+        const range = document.getElementById('pen_days_range_' + uniq);
+        const numInput = document.getElementById('pen_days_' + uniq);
+        numInput.value = range.value;
+        updatePenalty(uniq);
+    }
+
+    function updatePenalty(uniq) {
+        const taxInput = document.getElementById('pen_val_' + uniq);
+        const daysInput = document.getElementById('pen_days_' + uniq);
+        const daysRange = document.getElementById('pen_days_range_' + uniq);
+        const evasionSelect = document.getElementById('pen_evasion_' + uniq);
+        const mitigatingCheck = document.getElementById('pen_mitigating_' + uniq);
+        
+        let underpaid_tax = parseFloat(taxInput.value) || 0;
+        let late_days = parseInt(daysInput.value) || 0;
+        daysRange.value = late_days;
+        let evasion_multiplier = parseFloat(evasionSelect.value) || 0;
+        let has_mitigating = mitigatingCheck.checked;
+        
+        let under_declaration_fine = 0;
+        let evasion_fine = 0;
+        
+        if (evasion_multiplier === 0) {
+            under_declaration_fine = Math.round(underpaid_tax * 0.20);
+        } else {
+            evasion_fine = Math.round(underpaid_tax * evasion_multiplier);
+        }
+        
+        let late_interest = Math.round(underpaid_tax * 0.0003 * late_days);
+        
+        if (has_mitigating) {
+            under_declaration_fine = Math.round(under_declaration_fine * 0.8);
+            evasion_fine = Math.round(evasion_fine * 0.8);
+        }
+        
+        let total_penalties = under_declaration_fine + evasion_fine + late_interest;
+        let total_liability = underpaid_tax + total_penalties;
+        
+        // Update DOM
+        document.getElementById('pen_days_badge_text_' + uniq).innerText = late_days + ' ngày';
+        document.getElementById('pen_res_tax_' + uniq).innerText = formatVND(underpaid_tax) + ' VND';
+        document.getElementById('pen_res_days_' + uniq).innerText = late_days + ' ngày';
+        document.getElementById('pen_res_under_decl_' + uniq).innerText = formatVND(under_declaration_fine + evasion_fine) + ' VND';
+        document.getElementById('pen_res_interest_' + uniq).innerText = formatVND(late_interest) + ' VND';
+        
+        document.getElementById('pen_res_tax_add_' + uniq).innerText = formatVND(underpaid_tax) + ' VND';
+        document.getElementById('pen_res_fine_hcth_' + uniq).innerText = formatVND(under_declaration_fine + evasion_fine) + ' VND';
+        document.getElementById('pen_res_interest_add_' + uniq).innerText = formatVND(late_interest) + ' VND';
+        document.getElementById('pen_res_total_pen_' + uniq).innerText = formatVND(total_penalties) + ' VND';
+        document.getElementById('pen_res_liability_' + uniq).innerText = formatVND(total_liability) + ' VND';
+    }
+
+    // PIT Client-Side Calculator
+    function updatePITFromRange(uniq) {
+        const incRange = document.getElementById('pit_income_range_' + uniq);
+        const incInput = document.getElementById('pit_income_' + uniq);
+        incInput.value = incRange.value;
+        
+        const depRange = document.getElementById('pit_dep_range_' + uniq);
+        const depInput = document.getElementById('pit_dep_' + uniq);
+        depInput.value = depRange.value;
+        
+        updatePIT(uniq);
+    }
+
+    // Progressive PIT calculation helper
+    function updatePIT(uniq) {
+        const incInput = document.getElementById('pit_income_' + uniq);
+        const incRange = document.getElementById('pit_income_range_' + uniq);
+        const depInput = document.getElementById('pit_dep_' + uniq);
+        const depRange = document.getElementById('pit_dep_range_' + uniq);
+        
+        let monthly_income = parseFloat(incInput.value) || 0;
+        incRange.value = monthly_income;
+        let dependents = parseInt(depInput.value) || 0;
+        depRange.value = dependents;
+        
+        const personal_deduction = 11000000;
+        const dependent_deduction = dependents * 4400000;
+        const total_deductions = personal_deduction + dependent_deduction;
+        
+        let taxable_income = Math.max(0, monthly_income - total_deductions);
+        
+        const brackets = [
+            [5000000, 0.05, 0],
+            [10000000, 0.10, 250000],
+            [18000000, 0.15, 750000],
+            [32000000, 0.20, 1650000],
+            [52000000, 0.25, 3250000],
+            [80000000, 0.30, 5850000],
+            [Infinity, 0.35, 9850000]
+        ];
+        
+        let active_tier = 0;
+        for (let i = 0; i < brackets.length; i++) {
+            let prev_limit = i > 0 ? brackets[i-1][0] : 0;
+            if (taxable_income > prev_limit) {
+                active_tier = i;
+            }
+        }
+        
+        let [limit, rate, subtract] = brackets[active_tier];
+        let tax = Math.max(0, Math.round(taxable_income * rate - subtract));
+        let net_income = monthly_income - tax;
+        
+        // Update DOM
+        document.getElementById('pit_dep_badge_text_' + uniq).innerText = dependents + ' người';
+        document.getElementById('pit_res_inc_' + uniq).innerText = formatVND(monthly_income) + ' VND';
+        document.getElementById('pit_res_dep_count_' + uniq).innerText = dependents + ' người';
+        document.getElementById('pit_res_dep_deduct_' + uniq).innerText = formatVND(dependent_deduction) + ' VND';
+        document.getElementById('pit_res_total_deduct_' + uniq).innerText = formatVND(total_deductions) + ' VND';
+        
+        document.getElementById('pit_res_taxable_' + uniq).innerText = formatVND(taxable_income) + ' VND';
+        document.getElementById('pit_res_tier_' + uniq).innerText = 'Bậc ' + (active_tier + 1) + ' (' + (rate * 100) + '%)';
+        document.getElementById('pit_res_tax_' + uniq).innerText = formatVND(tax) + ' VND';
+        document.getElementById('pit_res_net_' + uniq).innerText = formatVND(net_income) + ' VND';
+    }
+
     let currentSessionId = null;
     let forcedAgentVal = null;
 
@@ -1181,19 +1413,28 @@
 
             if (parsedContent && parsedContent.response) {
                 let html = "";
+                const uniq = 'deb_' + Math.floor(Math.random() * 1000000);
                 
-                // 1. Render Debate Timeline
+                // 1. Render Debate Timeline using a collapsible Accordion
                 if (parsedContent.debate && parsedContent.debate.length > 0) {
                     html += `
-                        <div class="mb-3 small text-muted fw-semibold">
-                            <i class="bi bi-people-fill text-primary me-1" aria-hidden="true"></i> MÔ PHỎNG TRANH LUẬN HỘI ĐỒNG TÁC TỬ AI:
-                        </div>
-                        <div class="debate-timeline">
+                        <div class="accordion mb-3 shadow-sm rounded-3 overflow-hidden border border-light-subtle" id="accordion_${uniq}">
+                            <div class="accordion-item border-0">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed fw-semibold text-secondary py-2.5 px-3 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_${uniq}" aria-expanded="false" aria-controls="collapse_${uniq}" style="font-size: 0.8rem; box-shadow: none;">
+                                        <i class="bi bi-people-fill text-primary me-2 animate-pulse" aria-hidden="true"></i> 
+                                        ĐỐI THOẠI HỘI ĐỒNG TÁC TỬ AI (Click để xem chi tiết lập luận)
+                                    </button>
+                                </h2>
+                                <div id="collapse_${uniq}" class="accordion-collapse collapse" data-bs-parent="#accordion_${uniq}">
+                                    <div class="accordion-body p-3 bg-light bg-opacity-25">
+                                        <div class="debate-timeline">
                     `;
                     parsedContent.debate.forEach(step => {
                         const isInspector = step.speaker.includes("Thanh tra");
                         const speakerClass = isInspector ? "inspector" : "auditor";
                         const speakerRole = isInspector ? "Ủy viên Bộ Tài chính" : "Kiểm toán viên độc lập";
+                        const speechText = step.argument || step.text || "";
                         html += `
                             <div class="debate-item ${speakerClass}">
                                 <div class="debate-speaker-header">
@@ -1201,12 +1442,18 @@
                                     <span class="debate-speaker-role">${speakerRole}</span>
                                 </div>
                                 <div class="debate-speech-bubble shadow-sm">
-                                    ${step.argument}
+                                    ${speechText}
                                 </div>
                             </div>
                         `;
                     });
-                    html += `</div>`;
+                    html += `
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
                 }
 
                 // 2. Render Consensus Summary

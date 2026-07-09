@@ -5,11 +5,11 @@
 
 ### 📊 1. THÔNG TIN HỆ THỐNG & ĐIỀU HÀNH (Operating System & telemetry)
 - **Tên Agent chịu trách nhiệm**: `Antigravity`
-- **Thời gian nghiệm thu (UAT Time)**: `2026-06-29 15:56:39`
+- **Thời gian nghiệm thu (UAT Time)**: `2026-07-08 15:39:35`
 - **Trạng thái cổng kết nối (Unified Gate)**: `✅ PASSED (Hoàn thành kiểm toán toàn diện)`
-- **Thời gian chạy thử nghiệm (Quality Gate Duration)**: `15 giây`
-- **Phiên bản mã nguồn (Git Commit)**: `8eaf45a7e919a0549e9d7c7508d351535f2d5365 (dirty)`
-- **Ước tính tài nguyên tiêu thụ (Token Usage Estimate)**: `41,200 tokens`
+- **Thời gian chạy thử nghiệm (Quality Gate Duration)**: `26 giây`
+- **Phiên bản mã nguồn (Git Commit)**: `72ff2d88ddc8e6a4bfe36d28e138001ba2239a73 (dirty)`
+- **Ước tính tài nguyên tiêu thụ (Token Usage Estimate)**: `33,400 tokens`
 - **Độ rủi ro kiểm thử (Risk Lane)**: `NORMAL`
 
 ---
@@ -31,17 +31,14 @@
 
 ### 📋 4. CHI TIẾT TÁC VỤ ĐÃ THỰC THI (Execution Trace Detail)
 - **Hành động đã làm (Actions Taken)**:
-  - `Refactored invoices/reconciliation_service.py and invoices/customs_service.py; updated templates/v78_invoice_validation.html; added tests in tests/test_reconciliation.py and tests/test_customs_reconciler.py`
+  - `Fuzzy/split reconciliation`
+  - `customs declaration audit checks`
 - **Tệp tin đã đọc (Files Read)**:
-  - `invoices/reconciliation_service.py`
+  - `invoices/bank_reconcile_service.py`
   - `invoices/customs_service.py`
-  - `templates/v78_invoice_validation.html`
 - **Tệp tin đã thay đổi (Files Changed)**:
-  - `invoices/reconciliation_service.py`
+  - `invoices/bank_reconcile_service.py`
   - `invoices/customs_service.py`
-  - `templates/v78_invoice_validation.html`
-  - `tests/test_reconciliation.py`
-  - `tests/test_customs_reconciler.py`
 
 - **Ghi chú bổ sung (Notes)**: `Không có ghi chú thêm.`
 

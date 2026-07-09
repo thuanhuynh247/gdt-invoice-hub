@@ -430,7 +430,7 @@
             
             <div class="history-list d-flex flex-column gap-2" id="historyList">
                 <div class="text-center text-secondary py-4 small">
-                    <i class="bi bi-hourglass-split me-1 spinner-border spinner-border-sm border-0" aria-hidden="true"></i> Đang tải danh sách lịch sử...
+                    <i class="bi bi-hourglass-split me-1 spinner-border spinner-border-sm border-0" aria-hidden="true"></i> Đang tải danh sách lịch sử…
                 </div>
             </div>
         </div>
@@ -544,14 +544,14 @@
                                 <h6 class="fw-bold text-dark mb-3"><i class="bi bi-pencil-fill me-1 text-success" aria-hidden="true"></i>Thông tin tùy chỉnh thư</h6>
                                 <div class="mb-2">
                                     <label for="defDirectorName" class="form-label small text-secondary">Tên Giám đốc / Đại diện pháp luật</label>
-                                    <input type="text" class="form-control form-control-sm" id="defDirectorName" value="Nguyễn Văn A">
+                                    <input type="text" class="form-control form-control-sm" id="defDirectorName" value="Nguyễn Văn A" autocomplete="name">
                                 </div>
                                 <div class="mb-2">
-                                    <label for="defDepartment" class="form-label small text-secondary">Cục/Chi cục Thuế quản lý</label>
-                                    <input type="text" class="form-control form-control-sm" id="defTaxDepartment" value="Chi cục Thuế Quận 1, TP. HCM">
+                                    <label for="defTaxDepartment" class="form-label small text-secondary">Cục/Chi cục Thuế quản lý</label>
+                                    <input type="text" class="form-control form-control-sm" id="defTaxDepartment" value="Chi cục Thuế Quận 1, TP. HCM" autocomplete="organization">
                                 </div>
                                 <div class="mb-2">
-                                    <label for="defDetails" class="form-label small text-secondary">Thông tin số liệu giải trình</label>
+                                    <label for="defDetailsInput" class="form-label small text-secondary">Thông tin số liệu giải trình</label>
                                     <textarea class="form-control form-control-sm" id="defDetailsInput" rows="3" placeholder="Điền chi tiết số tiền bị loại, số hóa đơn lỗi để AI điền vào mẫu…"></textarea>
                                 </div>
                                 <button class="btn btn-success btn-sm w-100 fw-bold mt-2" id="btnGenerateLetter"><i class="bi bi-file-earmark-diff me-1" aria-hidden="true"></i>Cập nhật thư giải trình</button>

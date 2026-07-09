@@ -7096,7 +7096,14 @@ def tax_advisor_page():
     """Render the AI Tax Advisor chat interface."""
     if not session.get("logged_in"):
         return redirect(url_for("auth.login_page"))
-    return render_template("tax_advisor.html")
+        
+    mst = session.get("active_taxpayer_mst") or session.get("taxpayer_mst")
+    active_profile = None
+    if mst:
+        from invoices.models import TaxpayerProfile
+        active_profile = TaxpayerProfile.query.filter_by(mst=mst).first()
+        
+    return render_template("tax_advisor.html", active_profile=active_profile)
 
 @invoices_blueprint.post("/api/tax/chat")
 def api_tax_chat():
