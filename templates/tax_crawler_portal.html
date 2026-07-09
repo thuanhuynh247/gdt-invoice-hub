@@ -6,14 +6,14 @@
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
         <div>
             <h1 class="h3 font-weight-bold mb-1 text-primary-accent d-flex align-items-center">
-                <i class="bi bi-diagram-3-fill me-2 text-primary"></i>
+                <i class="bi bi-diagram-3-fill me-2 text-primary" aria-hidden="true"></i>
                 Cổng Quản Lý & Cào Luật Thuế RAG Portal Nâng Cao
             </h1>
             <p class="text-secondary mb-0">Quản trị cơ sở dữ liệu tri thức luật thuế phục vụ RAG Chatbot của meInvoice Intelligence</p>
         </div>
         <div>
             <a href="/tax-advisor" class="btn btn-outline-secondary d-inline-flex align-items-center px-3 py-2 rounded-pill hover-scale transition-all">
-                <i class="bi bi-arrow-left me-2"></i> Trở lại AI Advisor
+                <i class="bi bi-arrow-left me-2" aria-hidden="true"></i> Trở lại AI Advisor
             </a>
         </div>
     </div>
@@ -25,7 +25,7 @@
             <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden position-relative stats-card hover-glow" style="background: var(--bg-card); border: 1px solid var(--border-card) !important;">
                 <div class="card-body p-4 d-flex align-items-center">
                     <div class="rounded-3 bg-opacity-10 bg-primary p-3 me-3 text-primary d-flex align-items-center justify-content-center" style="width: 56px; height: 56px; background-color: rgba(59, 130, 246, 0.1);">
-                        <i class="bi bi-file-earmark-text-fill fs-3 text-primary"></i>
+                        <i class="bi bi-file-earmark-text-fill fs-3 text-primary" aria-hidden="true"></i>
                     </div>
                     <div>
                         <h6 class="text-secondary font-weight-normal mb-1">Tài Liệu Nguồn</h6>
@@ -41,7 +41,7 @@
             <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden position-relative stats-card hover-glow" style="background: var(--bg-card); border: 1px solid var(--border-card) !important;">
                 <div class="card-body p-4 d-flex align-items-center">
                     <div class="rounded-3 bg-opacity-10 bg-info p-3 me-3 text-info d-flex align-items-center justify-content-center" style="width: 56px; height: 56px; background-color: rgba(6, 182, 212, 0.1);">
-                        <i class="bi bi-segmented-nav fs-3 text-info"></i>
+                        <i class="bi bi-segmented-nav fs-3 text-info" aria-hidden="true"></i>
                     </div>
                     <div>
                         <h6 class="text-secondary font-weight-normal mb-1">Số Chunks (RAG)</h6>
@@ -57,12 +57,12 @@
             <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden position-relative stats-card hover-glow" style="background: var(--bg-card); border: 1px solid var(--border-card) !important;">
                 <div class="card-body p-4 d-flex align-items-center">
                     <div class="rounded-3 bg-opacity-10 bg-success p-3 me-3 d-flex align-items-center justify-content-center position-relative" id="ollama-status-container" style="width: 56px; height: 56px; background-color: rgba(16, 185, 129, 0.1);">
-                        <i class="bi bi-cpu-fill fs-3 text-success" id="ollama-icon"></i>
+                        <i class="bi bi-cpu-fill fs-3 text-success" id="ollama-icon" aria-hidden="true"></i>
                         <span class="position-absolute top-0 start-100 translate-middle p-1.5 bg-success border border-light rounded-circle pulse-green" id="ollama-badge"></span>
                     </div>
                     <div>
                         <h6 class="text-secondary font-weight-normal mb-1">Kết Nối Ollama / AI</h6>
-                        <h4 class="mb-0 font-weight-bold text-truncate" id="stat-ollama-status" style="color: var(--text-primary); font-size: 1.1rem;">Kiểm tra...</h4>
+                        <h4 class="mb-0 font-weight-bold text-truncate" id="stat-ollama-status" style="color: var(--text-primary); font-size: 1.1rem;">Kiểm tra…</h4>
                         <span class="text-secondary font-size-sm text-truncate d-block" id="stat-ollama-model" style="font-size: 0.8rem;">Model: None</span>
                     </div>
                 </div>
@@ -77,10 +77,10 @@
                     <div style="max-width: 50%;">
                         <h6 class="text-secondary font-weight-normal mb-1" style="font-size: 0.85rem;">Phân Bổ Tri Thức</h6>
                         <div id="chart-legend" style="font-size: 0.75rem; line-height: 1.2;">
-                            <span class="d-block"><i class="bi bi-circle-fill text-primary font-size-xs me-1"></i> GTGT: <span id="leg-gtgt" class="font-weight-bold">0</span></span>
-                            <span class="d-block"><i class="bi bi-circle-fill text-purple font-size-xs me-1" style="color: #a855f7;"></i> TNDN: <span id="leg-tndn" class="font-weight-bold">0</span></span>
-                            <span class="d-block"><i class="bi bi-circle-fill text-success font-size-xs me-1"></i> TNCN: <span id="leg-tncn" class="font-weight-bold">0</span></span>
-                            <span class="d-block"><i class="bi bi-circle-fill text-warning font-size-xs me-1"></i> Hóa đơn: <span id="leg-hd" class="font-weight-bold">0</span></span>
+                            <span class="d-block"><i class="bi bi-circle-fill text-primary font-size-xs me-1" aria-hidden="true"></i> GTGT: <span id="leg-gtgt" class="font-weight-bold">0</span></span>
+                            <span class="d-block"><i class="bi bi-circle-fill text-purple font-size-xs me-1" style="color: #a855f7;" aria-hidden="true"></i> TNDN: <span id="leg-tndn" class="font-weight-bold">0</span></span>
+                            <span class="d-block"><i class="bi bi-circle-fill text-success font-size-xs me-1" aria-hidden="true"></i> TNCN: <span id="leg-tncn" class="font-weight-bold">0</span></span>
+                            <span class="d-block"><i class="bi bi-circle-fill text-warning font-size-xs me-1" aria-hidden="true"></i> Hóa đơn: <span id="leg-hd" class="font-weight-bold">0</span></span>
                         </div>
                     </div>
                     <div class="d-flex justify-content-center align-items-center" style="width: 80px; height: 80px;">
@@ -106,7 +106,7 @@
             <div class="card border-0 shadow-sm rounded-4 h-100" style="background: var(--bg-card); border: 1px solid var(--border-card) !important;">
                 <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
                     <h5 class="mb-0 font-weight-bold d-flex align-items-center text-primary-accent">
-                        <i class="bi bi-cloud-arrow-down-fill me-2 text-primary"></i>
+                        <i class="bi bi-cloud-arrow-down-fill me-2 text-primary" aria-hidden="true"></i>
                         Cào & Nạp Tài Liệu Thuế Tự Động
                     </h5>
                     <span class="badge rounded-pill bg-light text-dark px-3 py-2 border">RAG Pipeline</span>
@@ -116,11 +116,11 @@
                     <div class="mb-3">
                         <label for="crawler-url" class="form-label font-weight-semibold text-secondary">Đường dẫn trang web luật thuế (Vietnamese Tax URL)</label>
                         <div class="input-group">
-                            <span class="input-group-text bg-light border-end-0"><i class="bi bi-link-45deg"></i></span>
-                            <input type="url" class="form-control border-start-0 ps-0" id="crawler-url" placeholder="Ví dụ: https://thuvienphapluat.vn/van-ban/Thue-Phi-Le-phi/...html" required>
+                            <span class="input-group-text bg-light border-end-0"><i class="bi bi-link-45deg" aria-hidden="true"></i></span>
+                            <input type="url" class="form-control border-start-0 ps-0" id="crawler-url" placeholder="Ví dụ: https://thuvienphapluat.vn/van-ban/Thue-Phi-Le-phi/…html" autocomplete="url" required>
                             <button class="btn btn-primary px-4 d-flex align-items-center" type="button" id="btn-fetch" onclick="fetchUrlPreview()">
                                 <span class="spinner-border spinner-border-sm me-2 d-none" id="fetch-spinner" role="status" aria-hidden="true"></span>
-                                <i class="bi bi-search me-1" id="fetch-icon"></i> Tải Xem Trước
+                                <i class="bi bi-search me-1" id="fetch-icon" aria-hidden="true"></i> Tải Xem Trước
                             </button>
                         </div>
                     </div>
@@ -130,13 +130,13 @@
                         <div class="row g-3 mb-3">
                             <div class="col-12 col-md-8">
                                 <label for="crawler-title" class="form-label font-weight-semibold text-secondary">Tiêu đề tài liệu nguồn</label>
-                                <input type="text" class="form-control" id="crawler-title" placeholder="Tiêu đề hiển thị trong trích dẫn">
+                                <input type="text" class="form-control" id="crawler-title" placeholder="Tiêu đề hiển thị trong trích dẫn" autocomplete="off">
                             </div>
                             <div class="col-12 col-md-4">
                                 <label for="crawler-date" class="form-label font-weight-semibold text-secondary">Ngày hiệu lực (YYYY-MM-DD)</label>
                                 <div class="input-group">
-                                    <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
-                                    <input type="text" class="form-control" id="crawler-date" placeholder="2026-07-01">
+                                    <span class="input-group-text"><i class="bi bi-calendar-event" aria-hidden="true"></i></span>
+                                    <input type="text" class="form-control" id="crawler-date" placeholder="2026-07-01" autocomplete="off">
                                 </div>
                             </div>
                         </div>
@@ -151,7 +151,7 @@
                             <button class="btn btn-outline-secondary px-4" type="button" onclick="cancelIngestion()">Hủy Bỏ</button>
                             <button class="btn btn-success px-4 d-flex align-items-center" type="button" id="btn-ingest" onclick="ingestUrl()">
                                 <span class="spinner-border spinner-border-sm me-2 d-none" id="ingest-spinner" role="status" aria-hidden="true"></span>
-                                <i class="bi bi-database-fill-add me-1" id="ingest-icon"></i> Xác Nhận Nạp Vào RAG
+                                <i class="bi bi-database-fill-add me-1" id="ingest-icon" aria-hidden="true"></i> Xác Nhận Nạp Vào RAG
                             </button>
                         </div>
                     </div>
@@ -164,20 +164,20 @@
             <div class="card border-0 shadow-sm rounded-4 h-100" style="background: var(--bg-card); border: 1px solid var(--border-card) !important;">
                 <div class="card-header bg-transparent border-0 pt-4 px-4">
                     <h5 class="mb-0 font-weight-bold d-flex align-items-center text-primary-accent">
-                        <i class="bi bi-search-heart-fill me-2 text-warning"></i>
+                        <i class="bi bi-search-heart-fill me-2 text-warning" aria-hidden="true"></i>
                         Thử Nghiệm Tìm Kiếm FTS5 (RAG Search-Test)
                     </h5>
                 </div>
                 <div class="card-body px-4 pb-4 pt-2 d-flex flex-column h-100">
                     <div class="input-group mb-3">
-                        <input type="text" class="form-control" id="search-test-query" placeholder="Nhập từ khóa cần kiểm tra (Ví dụ: hoàn thuế GTGT, phạt hóa đơn)..." onkeydown="if(event.key === 'Enter') runSearchTest()">
+                        <input type="text" class="form-control" id="search-test-query" placeholder="Nhập từ khóa cần kiểm tra (Ví dụ: hoàn thuế GTGT, phạt hóa đơn)…" onkeydown="if(event.key === 'Enter') runSearchTest()" autocomplete="off" aria-label="Từ khóa tìm kiếm FTS5">
                         <button class="btn btn-warning text-black font-weight-semibold px-3" type="button" onclick="runSearchTest()">Tìm Kiếm</button>
                     </div>
 
                     <!-- Search Results Area -->
                     <div class="flex-grow-1 overflow-auto rounded-3 border p-3" id="search-results-container" style="background: var(--bg-app); border-color: var(--border-card) !important; min-height: 250px; max-height: 320px;">
                         <div class="text-center text-secondary py-5" id="search-placeholder">
-                            <i class="bi bi-search fs-1 mb-2 d-block opacity-50"></i>
+                            <i class="bi bi-search fs-1 mb-2 d-block opacity-50" aria-hidden="true"></i>
                             <p class="mb-0">Nhập từ khóa và ấn Tìm Kiếm để xem phân đoạn (chunks) và kết quả highlight từ SQLite FTS5 index.</p>
                         </div>
                     </div>
@@ -190,12 +190,12 @@
     <div class="card border-0 shadow-sm rounded-4 mb-4" style="background: var(--bg-card); border: 1px solid var(--border-card) !important;">
         <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex flex-wrap justify-content-between align-items-center gap-2">
             <h5 class="mb-0 font-weight-bold d-flex align-items-center text-primary-accent">
-                <i class="bi bi-folder-fill me-2 text-primary"></i>
+                <i class="bi bi-folder-fill me-2 text-primary" aria-hidden="true"></i>
                 Danh Sách Tài Liệu Nguồn Đã Lập Chỉ Mục
             </h5>
             <div class="d-flex gap-2">
-                <input type="text" class="form-control form-control-sm" id="table-filter-input" placeholder="Lọc theo tên..." onkeyup="filterDocsTable()" style="max-width: 220px;">
-                <button class="btn btn-sm btn-outline-primary" onclick="fetchDocuments()"><i class="bi bi-arrow-clockwise"></i> Tải lại</button>
+                <input type="text" class="form-control form-control-sm" id="table-filter-input" placeholder="Lọc theo tên…" onkeyup="filterDocsTable()" style="max-width: 220px;" autocomplete="off" aria-label="Lọc theo tên">
+                <button class="btn btn-sm btn-outline-primary" onclick="fetchDocuments()"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Tải lại</button>
             </div>
         </div>
         <div class="card-body px-4 pb-4 pt-2">
@@ -213,7 +213,7 @@
                     <tbody id="documents-table-body">
                         <tr>
                             <td colspan="5" class="text-center py-4 text-secondary">
-                                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Đang tải danh sách tài liệu...
+                                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Đang tải danh sách tài liệu…
                             </td>
                         </tr>
                     </tbody>
@@ -234,7 +234,7 @@
             <div class="modal-body py-3">
                 Bạn có chắc chắn muốn xóa tài liệu nguồn <strong id="delete-doc-name" class="text-primary-accent"></strong> và toàn bộ các phân đoạn (chunks) liên quan ra khỏi chỉ mục tìm kiếm FTS5 RAG không?
                 <div class="alert alert-warning mt-3 mb-0 d-flex align-items-start" style="font-size: 0.85rem; background-color: rgba(245, 158, 11, 0.1); border-color: rgba(245, 158, 11, 0.2); color: #b45309;">
-                    <i class="bi bi-exclamation-triangle-fill me-2 fs-5 mt-0.5"></i>
+                    <i class="bi bi-exclamation-triangle-fill me-2 fs-5 mt-0.5" aria-hidden="true"></i>
                     <span><strong>Lưu ý:</strong> Hành động này không thể hoàn tác. Các câu hỏi tư vấn thuế sau này sẽ không thể tìm thấy dữ liệu từ tài liệu này nữa.</span>
                 </div>
             </div>
@@ -559,7 +559,7 @@
         if (!query) {
             container.innerHTML = `
                 <div class="text-center text-secondary py-5">
-                    <i class="bi bi-exclamation-circle fs-1 mb-2 d-block opacity-50"></i>
+                    <i class="bi bi-exclamation-circle fs-1 mb-2 d-block opacity-50" aria-hidden="true"></i>
                     <p class="mb-0">Vui lòng nhập từ khóa tìm kiếm!</p>
                 </div>`;
             return;
@@ -567,7 +567,7 @@
         
         container.innerHTML = `
             <div class="text-center py-5 text-secondary">
-                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Đang truy vấn SQLite FTS5...
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Đang truy vấn SQLite FTS5…
             </div>`;
             
         try {
@@ -582,7 +582,7 @@
             if (data.length === 0) {
                 container.innerHTML = `
                     <div class="text-center text-secondary py-5">
-                        <i class="bi bi-emoji-frown fs-1 mb-2 d-block opacity-50"></i>
+                        <i class="bi bi-emoji-frown fs-1 mb-2 d-block opacity-50" aria-hidden="true"></i>
                         <p class="mb-0">Không tìm thấy kết quả nào khớp với từ khóa "${query}".</p>
                     </div>`;
                 return;
@@ -598,7 +598,7 @@
                     <div class="mb-3 p-3 rounded border" style="background: var(--bg-card); border-color: var(--border-card) !important; font-size: 0.85rem;">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <span class="text-primary font-weight-semibold text-truncate me-2" style="max-width: 75%;" title="${result.document_source}">
-                                <i class="bi bi-file-earmark-text"></i> ${result.document_source}
+                                <i class="bi bi-file-earmark-text" aria-hidden="true"></i> ${result.document_source}
                             </span>
                             <span class="badge bg-light text-secondary border">Trang ${result.page_number}</span>
                         </div>
@@ -610,7 +610,7 @@
             });
             container.innerHTML = html;
         } catch (e) {
-            container.innerHTML = `<div class="alert alert-danger mb-0"><i class="bi bi-x-circle-fill me-1"></i> Lỗi kết nối: ${e.message}</div>`;
+            container.innerHTML = `<div class="alert alert-danger mb-0"><i class="bi bi-x-circle-fill me-1" aria-hidden="true"></i> Lỗi kết nối: ${e.message}</div>`;
         }
     }
 
@@ -630,7 +630,7 @@
         
         const deleteBtn = document.getElementById("btn-confirm-delete");
         deleteBtn.disabled = true;
-        deleteBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Đang xóa...`;
+        deleteBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Đang xóa…`;
         
         try {
             const res = await fetch("/api/tax/documents", {

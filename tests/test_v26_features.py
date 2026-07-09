@@ -102,10 +102,10 @@ def test_tax_knowledge_graph_traversal():
     # Keyword search for signing time
     res = kg.keyword_search("ký số")
     assert len(res) > 0
-    assert any("Decree 123" in doc["document"] for doc in res)
+    assert any("Decree 254" in doc["document"] for doc in res)
     
     # Query citations
-    citations = kg.get_related_citations("D123-A15")
+    citations = kg.get_related_citations("D254-A15")
     assert len(citations) > 0
     assert citations[0]["id"] == "C80-A8"
 
@@ -130,7 +130,7 @@ def test_audit_defense_letter_composer():
     assert "Công ty TNHH Ánh Sáng" in letter
     assert "30%" in letter
     assert "EBITDA" in letter
-    assert "Decree 132/2020" in letter
+    assert "255/2026" in letter
 
 
 def test_v26_endpoints(logged_in_client):

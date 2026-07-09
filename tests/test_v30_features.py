@@ -75,7 +75,7 @@ def test_tp_audit_dossier_generation():
     )
     
     assert "HỒ SƠ CHUẨN BỊ THANH TRA GIÁ GIAO DỊCH LIÊN KẾT" in dossier
-    assert "132/2020/NĐ-CP" in dossier
+    assert "255/2026/NĐ-CP" in dossier
     assert "0108924810" in dossier
     assert "Thành Công" in dossier
     assert "Trung vị" in dossier

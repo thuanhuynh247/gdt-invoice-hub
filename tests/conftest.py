@@ -41,6 +41,20 @@ from app import create_app
 @pytest.fixture
 def app():
     """Create a Flask app configured for tests."""
+    db_path = PROJECT_ROOT / "data" / "test_invoices.db"
+    if db_path.exists():
+        try:
+            db_path.unlink()
+        except Exception:
+            pass
+    for suffix in [".db-wal", ".db-shm"]:
+        p = db_path.with_name(db_path.name + suffix)
+        if p.exists():
+            try:
+                p.unlink()
+            except Exception:
+                pass
+
     flask_app = create_app()
     flask_app.config.update(
         TESTING=True,
@@ -57,8 +71,8 @@ def app():
             pass
         try:
             db.drop_all()
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"\nDEBUG: db.drop_all() failed: {e}\n")
         db.create_all()
             
         yield flask_app
@@ -76,6 +90,26 @@ def app():
         except Exception:
             pass
 
+        try:
+            from invoices.sync_queue import ResilientSyncQueue
+            queue = ResilientSyncQueue()
+            if queue:
+                queue.emergency_stop()
+                if hasattr(queue, "executor") and queue.executor:
+                    queue.executor.shutdown(wait=False, cancel_futures=True)
+                ResilientSyncQueue._instance = None
+        except Exception:
+            pass
+
+        try:
+            from invoices.event_streamer import EventStreamer
+            streamer = EventStreamer()
+            if streamer:
+                streamer.stop_daemon()
+                EventStreamer._instance = None
+        except Exception:
+            pass
+
         import threading
         for t in threading.enumerate():
             if t.name.startswith("BatchDownloadThread-"):
@@ -83,6 +117,15 @@ def app():
                     t.join(timeout=1.0)
                 except Exception:
                     pass
+
+        # Dispose tenant engines if any
+        if hasattr(flask_app, "_tenant_engines"):
+            for eng in flask_app._tenant_engines.values():
+                try:
+                    eng.dispose()
+                except Exception:
+                    pass
+            flask_app._tenant_engines.clear()
 
         # Teardown database session and clean tables
         db.session.remove()
@@ -98,12 +141,25 @@ def app():
             pass
         try:
             db.drop_all()
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"\nDEBUG TEARDOWN: db.drop_all() failed: {e}\n")
         try:
             db.engine.dispose()
         except Exception:
             pass
+
+        if db_path.exists():
+            try:
+                db_path.unlink()
+            except Exception:
+                pass
+        for suffix in [".db-wal", ".db-shm"]:
+            p = db_path.with_name(db_path.name + suffix)
+            if p.exists():
+                try:
+                    p.unlink()
+                except Exception:
+                    pass
 
 
 

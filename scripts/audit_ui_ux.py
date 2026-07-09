@@ -82,12 +82,14 @@ def main():
         print(f"Error: Directory '{templates_dir}' not found.")
         sys.exit(1)
         
-    for filename in os.listdir(templates_dir):
-        if filename.endswith('.html'):
-            filepath = os.path.join(templates_dir, filename)
-            errors = audit_file(filepath)
-            if errors:
-                all_errors[filename] = errors
+    for root, dirs, files in os.walk(templates_dir):
+        for filename in files:
+            if filename.endswith('.html'):
+                filepath = os.path.join(root, filename)
+                rel_path = os.path.relpath(filepath, templates_dir)
+                errors = audit_file(filepath)
+                if errors:
+                    all_errors[rel_path] = errors
                 
     if all_errors:
         print("\n=== UI/UX ACCESSIBILITY AUDIT REPORT ===")

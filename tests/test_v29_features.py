@@ -49,7 +49,7 @@ def test_tax_knowledge_graph_structure():
     assert len(graph["edges"]) > 0
     # Confirm major tax nodes are present
     node_ids = [n["id"] for n in graph["nodes"]]
-    assert "ND123" in node_ids
+    assert "ND254" in node_ids
     assert "TT80" in node_ids
     assert "LQLT38" in node_ids
 

@@ -78,10 +78,12 @@ def test_hsm_cryptographic_signing():
 def test_gdt_transmission_sandbox_success_and_failures():
     """US-363: Verify responses from mock GDT receiving gateway sandbox."""
     # 1. Success case (Correct signature)
+    import datetime
+    today_str = datetime.date.today().isoformat()
     xml_draft = scaffold_xml_from_ocr_data({
         "seller_name": "Cong Ty ABC",
         "seller_mst": "0100112233",
-        "date": "2026-06-05"
+        "date": today_str
     })
     cert_der, priv_key = generate_hsm_mock_certificate("Cong Ty ABC", "0100112233")
     signed_xml = sign_xml_invoice(xml_draft, cert_der, priv_key)

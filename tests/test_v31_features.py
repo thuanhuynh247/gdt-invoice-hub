@@ -70,7 +70,7 @@ def test_run_vat_anomaly_swarm():
     assert "chat_steps" in res
     assert len(res["chat_steps"]) > 0
     assert "report_markdown" in res
-    assert "123/2020/NĐ-CP" in res["report_markdown"]
+    assert "254/2026/NĐ-CP" in res["report_markdown"]
     assert "0109999999" in res["report_markdown"]
 
 def test_v31_compliance_page(client):
