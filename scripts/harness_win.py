@@ -535,8 +535,8 @@ def cmd_backlog_add(title, discovered_while=None, current_pain=None, suggested_i
     conn = get_db()
     cur = conn.cursor()
     cur.execute("""
-        INSERT INTO backlog (title, discovered_while, current_pain, suggested_improvement, risk, predicted_impact, notes)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO backlog (title, discovered_while, current_pain, suggested_improvement, risk, predicted_impact, notes, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, 'open')
     """, (title, discovered_while, current_pain, suggested_improvement, risk, predicted_impact, notes))
     conn.commit()
     last_id = cur.lastrowid

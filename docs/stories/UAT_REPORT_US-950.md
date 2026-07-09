@@ -5,11 +5,11 @@
 
 ### 📊 1. THÔNG TIN HỆ THỐNG & ĐIỀU HÀNH (Operating System & telemetry)
 - **Tên Agent chịu trách nhiệm**: `Antigravity`
-- **Thời gian nghiệm thu (UAT Time)**: `2026-07-09 08:16:06`
+- **Thời gian nghiệm thu (UAT Time)**: `2026-07-09 13:45:42`
 - **Trạng thái cổng kết nối (Unified Gate)**: `✅ PASSED (Hoàn thành kiểm toán toàn diện)`
-- **Thời gian chạy thử nghiệm (Quality Gate Duration)**: `15 giây`
-- **Phiên bản mã nguồn (Git Commit)**: `781aadc8d6355f6d2ce6dd857e5aed18ee722cce (dirty)`
-- **Ước tính tài nguyên tiêu thụ (Token Usage Estimate)**: `35,200 tokens`
+- **Thời gian chạy thử nghiệm (Quality Gate Duration)**: `18 giây`
+- **Phiên bản mã nguồn (Git Commit)**: `87f30cdd94c7b7553847fa9aedcae60f6e330857 (dirty)`
+- **Ước tính tài nguyên tiêu thụ (Token Usage Estimate)**: `59,800 tokens`
 - **Độ rủi ro kiểm thử (Risk Lane)**: `NORMAL`
 
 ---
@@ -31,14 +31,25 @@
 
 ### 📋 4. CHI TIẾT TÁC VỤ ĐÃ THỰC THI (Execution Trace Detail)
 - **Hành động đã làm (Actions Taken)**:
-  - `Created generate_2026_decree_pdfs.py to compile high-quality PDFs; updated ingest_pdfs.py and invoices/ai_service.py; ran ingestions; ran UAT smoke tests.`
+  - `Updated ai_tax_advisor.py decree references`
+  - `core.py chatbot system prompts`
+  - `compliance_pages_data.py concept maps`
+  - `and all v26-v35 service modules with new 2026 decree citations`
 - **Tệp tin đã đọc (Files Read)**:
-  - `invoices/ai_service.py`
-  - `scripts/ingest_pdfs.py`
+  - `invoices/ai_tax_advisor.py`
+  - `invoices/routes/core.py`
+  - `invoices/routes/compliance_pages_data.py`
 - **Tệp tin đã thay đổi (Files Changed)**:
-  - `invoices/ai_service.py`
-  - `scripts/ingest_pdfs.py`
-  - `scripts/generate_2026_decree_pdfs.py`
+  - `invoices/ai_tax_advisor.py`
+  - `invoices/routes/core.py`
+  - `invoices/routes/compliance_pages_data.py`
+  - `invoices/v26_service.py`
+  - `invoices/v27_service.py`
+  - `invoices/v28_service.py`
+  - `invoices/v29_service.py`
+  - `invoices/v30_service.py`
+  - `invoices/v31_service.py`
+  - `invoices/v35_service.py`
 
 - **Ghi chú bổ sung (Notes)**: `Không có ghi chú thêm.`
 
