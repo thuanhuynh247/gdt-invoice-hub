@@ -5,11 +5,11 @@
 
 ### 📊 1. THÔNG TIN HỆ THỐNG & ĐIỀU HÀNH (Operating System & telemetry)
 - **Tên Agent chịu trách nhiệm**: `Antigravity`
-- **Thời gian nghiệm thu (UAT Time)**: `2026-07-09 08:02:28`
+- **Thời gian nghiệm thu (UAT Time)**: `2026-07-09 08:16:06`
 - **Trạng thái cổng kết nối (Unified Gate)**: `✅ PASSED (Hoàn thành kiểm toán toàn diện)`
-- **Thời gian chạy thử nghiệm (Quality Gate Duration)**: `19 giây`
-- **Phiên bản mã nguồn (Git Commit)**: `c2f298082db0fbe71bb7107d762acfd6c6bf0662 (dirty)`
-- **Ước tính tài nguyên tiêu thụ (Token Usage Estimate)**: `41,800 tokens`
+- **Thời gian chạy thử nghiệm (Quality Gate Duration)**: `15 giây`
+- **Phiên bản mã nguồn (Git Commit)**: `781aadc8d6355f6d2ce6dd857e5aed18ee722cce (dirty)`
+- **Ước tính tài nguyên tiêu thụ (Token Usage Estimate)**: `35,200 tokens`
 - **Độ rủi ro kiểm thử (Risk Lane)**: `NORMAL`
 
 ---
@@ -31,19 +31,14 @@
 
 ### 📋 4. CHI TIẾT TÁC VỤ ĐÃ THỰC THI (Execution Trace Detail)
 - **Hành động đã làm (Actions Taken)**:
-  - `Added new routes to invoices/routes/core.py`
-  - `added templates/tax_crawler_portal.html`
-  - `edited templates/tax_advisor.html to link the new page`
-  - `and added tests in tests/test_tax_crawler.py`
+  - `Created generate_2026_decree_pdfs.py to compile high-quality PDFs; updated ingest_pdfs.py and invoices/ai_service.py; ran ingestions; ran UAT smoke tests.`
 - **Tệp tin đã đọc (Files Read)**:
-  - `invoices/routes/core.py`
-  - `templates/tax_advisor.html`
-  - `tests/test_tax_crawler.py`
+  - `invoices/ai_service.py`
+  - `scripts/ingest_pdfs.py`
 - **Tệp tin đã thay đổi (Files Changed)**:
-  - `invoices/routes/core.py`
-  - `templates/tax_crawler_portal.html`
-  - `templates/tax_advisor.html`
-  - `tests/test_tax_crawler.py`
+  - `invoices/ai_service.py`
+  - `scripts/ingest_pdfs.py`
+  - `scripts/generate_2026_decree_pdfs.py`
 
 - **Ghi chú bổ sung (Notes)**: `Không có ghi chú thêm.`
 

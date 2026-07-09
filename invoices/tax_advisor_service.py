@@ -90,12 +90,12 @@ def get_specialized_agent(query: str, forced_agent: str = None) -> tuple[str, st
         if "tp" in fa or "transfer pricing" in fa or "auditor" in fa or "giao dịch liên kết" in fa:
             return "Chuyên gia Giao dịch liên kết (Transfer Pricing Auditor)", (
                 "Bạn là Chuyên gia Giao dịch liên kết (Transfer Pricing Auditor) cao cấp của meInvoice Intelligence.\n"
-                "Tập trung sâu vào: các quy định xác định giá giao dịch liên kết theo Nghị định 132/2020/NĐ-CP, tỷ lệ chi phí lãi vay được trừ (trần 30% EBITDA), nghĩa vụ kê khai mẫu biểu giao dịch liên kết (Mẫu 01, 02, 03, 04), nguyên tắc giao dịch độc lập (arm's length principle), và các rủi ro thanh tra chuyển giá của cơ quan thuế."
+                "Tập trung sâu vào: các quy định xác định giá giao dịch liên kết theo Nghị định 255/2026/NĐ-CP (thay thế Nghị định 132/2020/NĐ-CP và Nghị định 20/2025/NĐ-CP) áp dụng từ ngày 01/07/2026. Bao gồm tỷ lệ chi phí lãi vay được trừ (trần 30% EBITDA), nghĩa vụ kê khai mẫu biểu giao dịch liên kết, nguyên tắc giao dịch độc lập (arm's length principle), điều chỉnh giá không được làm giảm nghĩa vụ thuế, và các rủi ro thanh tra chuyển giá của cơ quan thuế."
             )
         elif "pen" in fa or "penalties" in fa or "xử phạt" in fa or "phạt" in fa:
             return "Chuyên gia Xử phạt hành chính Thuế (Tax Penalties Specialist)", (
                 "Bạn là Chuyên gia Xử phạt hành chính Thuế (Tax Penalties Specialist) cao cấp của meInvoice Intelligence.\n"
-                "Tập trung sâu vào: các mức xử phạt hành chính về thuế và hóa đơn theo Nghị định 125/2020/NĐ-CP. Hướng dẫn các hành vi vi phạm thời hạn nộp hồ sơ khai thuế, lập hóa đơn sai thời điểm, chậm nộp thuế (tính tiền chậm nộp 0.03%/ngày), và các tình tiết giảm nhẹ hoặc miễn xử phạt hành chính thuế."
+                "Tập trung sâu vào: các mức xử phạt hành chính về thuế và hóa đơn theo Nghị định 125/2020/NĐ-CP và các biện pháp cưỡng chế thuế mới theo Nghị định 252/2026/NĐ-CP. Hướng dẫn các hành vi vi phạm thời hạn nộp hồ sơ khai thuế, lập hóa đơn sai thời điểm, chậm nộp thuế (tính tiền chậm nộp 0.03%/ngày), tạm hoãn xuất cảnh do nợ thuế, và các tình tiết giảm nhẹ hoặc miễn xử phạt hành chính thuế."
             )
         elif "fct" in fa or "contractor" in fa or "nhà thầu" in fa:
             return "Chuyên gia Thuế Nhà Thầu Nước Ngoài (FCT Consultant)", (
@@ -105,44 +105,44 @@ def get_specialized_agent(query: str, forced_agent: str = None) -> tuple[str, st
         elif "vat" in fa or "gtgt" in fa or "giá trị gia tăng" in fa:
             return "Chuyên gia Thuế GTGT (VAT Consultant)", (
                 "Bạn là Chuyên gia Thuế GTGT (VAT Consultant) cao cấp.\n"
-                "Tập trung sâu vào: điều kiện khấu trừ thuế GTGT đầu vào, thủ tục hoàn thuế GTGT, các trường hợp chịu thuế suất 0%, 5%, 8%, 10%, KKKNT (không phải kê khai tính thuế), KCT (không chịu thuế), và các quy định mới nhất theo Luật Thuế GTGT số 48/2024/QH15 hoặc Luật số 149/2025/QH15.\n"
+                "Tập trung sâu vào: điều kiện khấu trừ thuế GTGT đầu vào, thủ tục hoàn thuế GTGT, quy định kê khai và hoàn thuế mới từ 01/07/2026 theo Nghị định 252/2026/NĐ-CP (thay thế Nghị định 126/2020/NĐ-CP), các trường hợp chịu thuế suất 0%, 5%, 8%, 10%, và các quy định theo Luật Thuế GTGT số 48/2024/QH15 hoặc Luật số 149/2025/QH15.\n"
                 "Hãy hướng dẫn chi tiết cách kê khai bổ sung thuế GTGT và xử lý các lỗi thường gặp."
             )
         elif "cit" in fa or "tndn" in fa or "thu nhập doanh nghiệp" in fa:
             return "Chuyên gia Thuế TNDN (CIT Consultant)", (
                 "Bạn là Chuyên gia Thuế TNDN (CIT Consultant) cao cấp.\n"
-                "Tập trung sâu vào: chi phí được trừ và không được trừ khi xác định thu nhập chịu thuế TNDN, ưu đãi thuế CIT, miễn giảm thuế, trích lập các quỹ, chuyển lỗ, các điều kiện về chứng từ không dùng tiền mặt đối với giao dịch từ 20 triệu VND trở lên, và các quy định theo Luật Thuế Thu nhập doanh nghiệp."
+                "Tập trung sâu vào: chi phí được trừ và không được trừ khi xác định thu nhập chịu thuế TNDN, ưu đãi thuế CIT, miễn giảm thuế, trích lập các quỹ, chuyển lỗ, các điều kiện về chứng từ không dùng tiền mặt, quy định tạm nộp thuế TNDN 4 quý không thấp hơn 80% quyết toán năm theo Nghị định 252/2026/NĐ-CP (thay thế Nghị định 91/2022/NĐ-CP), và các quy định theo Luật Thuế Thu nhập doanh nghiệp."
             )
         elif "pit" in fa or "tncn" in fa or "thu nhập cá nhân" in fa:
             return "Chuyên gia Thuế TNCN (PIT Consultant)", (
                 "Bạn là Chuyên gia Thuế TNCN (PIT Consultant) cao cấp.\n"
-                "Tập trung sâu vào: xác định đối tượng nộp thuế cư trú và không cư trú, các khoản thu nhập chịu thuế và được miễn thuế TNCN, mức giảm trừ gia cảnh cho bản thân và người phụ thuộc, cách tính thuế theo biểu thuế lũy tiến từng phần, và quyết toán thuế TNCN cuối năm cho người lao động."
+                "Tập trung sâu vào: các quy định mới từ ngày 01/07/2026 theo Nghị định 253/2026/NĐ-CP (thay thế Nghị định 65/2013/NĐ-CP) về xác định đối tượng nộp thuế cư trú/không cư trú, thu nhập từ lương/tiền công, mức khống chế các khoản thu nhập không chịu thuế (khoán chi, tiền ăn giữa ca, tiền thuê nhà), các khoản giảm trừ gia cảnh cho bản thân và người phụ thuộc, thuế suất đối với chuyển nhượng vốn, chuyển nhượng chứng khoán (0.1%), chuyển nhượng bất động sản (2%), quy định cổ phiếu thưởng, và quyết toán thuế TNCN."
             )
         elif "inv" in fa or "invoice" in fa or "hóa đơn" in fa or "chứng từ" in fa:
             return "Chuyên gia Hóa đơn & Chứng từ (Invoice Specialist)", (
                 "Bạn là Chuyên gia Hóa đơn & Chứng từ (Invoice Specialist) cao cấp.\n"
-                "Tập trung sâu vào: quy định lập, quản lý và sử dụng hóa đơn điện tử theo Nghị định 123/2020/NĐ-CP and Thông tư 78/2021/TT-BTC. Hướng dẫn chi tiết cách xử lý hóa đơn sai sót (điều chỉnh, thay thế, hủy, giải trình Mẫu 04/SS-HĐĐT), kiểm tra tính hợp lệ của chữ ký số (nky), mã cơ quan thuế (mccqt), và thời hạn hóa đơn."
+                "Tập trung sâu vào: quy định lập, quản lý và sử dụng hóa đơn điện tử và chứng từ điện tử theo Nghị định 254/2026/NĐ-CP (thay thế Nghị định 123/2020/NĐ-CP và Nghị định 70/2025/NĐ-CP) áp dụng từ ngày 01/07/2026. Hướng dẫn chi tiết về hóa đơn khởi tạo từ máy tính tiền, hóa đơn thương mại điện tử, xử lý hóa đơn sai sót, thời điểm lập hóa đơn xuất khẩu và casino."
             )
         elif "gen" in fa or "general" in fa or "tổng hợp" in fa:
             return "Cố vấn Thuế Tổng hợp (General Tax Advisor)", (
                 "Bạn là Cố vấn Thuế Tổng hợp (General Tax Advisor) cao cấp.\n"
-                "Tập trung giải đáp các vấn đề thuế tích hợp, mối liên quan giữa hóa đơn chứng từ, thuế GTGT, TNDN và kế toán tài chính doanh nghiệp."
+                "Tập trung giải đáp các vấn đề thuế tích hợp, mối liên quan giữa hóa đơn chứng từ, thuế GTGT, TNDN, TNCN theo các nghị định mới áp dụng từ 01/07/2026 (NĐ 252, 253, 254, 255) và kế toán tài chính doanh nghiệp."
             )
 
     q = query.lower()
     
     # 1. VAT (Value Added Tax)
-    vat_keywords = ["gtgt", "giá trị gia tăng", "khấu trừ", "hoàn thuế", "vat", "suất", "8%", "10%", "đầu vào", "đầu ra"]
+    vat_keywords = ["gtgt", "giá trị gia tăng", "khấu trừ", "hoàn thuế", "vat", "suất", "8%", "10%", "đầu vào", "đầu ra", "252/2026", "252"]
     # 2. CIT (Corporate Income Tax)
-    cit_keywords = ["tndn", "thu nhập doanh nghiệp", "chi phí được trừ", "chi phí hợp lý", "miễn thuế", "cit", "lỗ", "kết chuyển"]
+    cit_keywords = ["tndn", "thu nhập doanh nghiệp", "chi phí được trừ", "chi phí hợp lý", "miễn thuế", "cit", "lỗ", "kết chuyển", "tạm nộp", "91/2022"]
     # 3. PIT (Personal Income Tax)
-    pit_keywords = ["tncn", "thu nhập cá nhân", "giảm trừ gia cảnh", "lương", "pit", "nhân sự", "lao động", "hợp đồng"]
+    pit_keywords = ["tncn", "thu nhập cá nhân", "giảm trừ gia cảnh", "lương", "pit", "nhân sự", "lao động", "hợp đồng", "253/2026", "253", "người phụ thuộc"]
     # 4. Invoicing & Documents
-    inv_keywords = ["hóa đơn", "biên bản", "sai sót", "điều chỉnh", "thay thế", "hủy hóa đơn", "ký hiệu", "mẫu số", "nghị định 123", "thông tư 78", "nky", "tthai", "mccqt"]
+    inv_keywords = ["hóa đơn", "biên bản", "sai sót", "điều chỉnh", "thay thế", "hủy hóa đơn", "ký hiệu", "mẫu số", "254/2026", "254", "nky", "tthai", "mccqt", "máy tính tiền"]
     # 5. Transfer Pricing
-    tp_keywords = ["liên kết", "chuyển giá", "132/2020", "chỉ số giao dịch", "báo cáo lợi nhuận", "liên kết kinh doanh", "arm's length", "arms length"]
+    tp_keywords = ["liên kết", "chuyển giá", "132/2020", "255/2026", "255", "chỉ số giao dịch", "báo cáo lợi nhuận", "liên kết kinh doanh", "arm's length", "arms length"]
     # 6. Tax Penalties
-    pen_keywords = ["xử phạt", "phạt hành chính", "vi phạm", "nộp chậm", "trễ hạn", "125/2020", "tiền phạt", "mức phạt", "phạt tiền", "chậm nộp"]
+    pen_keywords = ["xử phạt", "phạt hành chính", "vi phạm", "nộp chậm", "trễ hạn", "125/2020", "tiền phạt", "mức phạt", "phạt tiền", "chậm nộp", "hoãn xuất cảnh"]
     # 7. Foreign Contractor Tax (FCT)
     fct_keywords = ["nhà thầu nước ngoài", "nhà thầu phụ", "fct", "103/2014", "circular 103", "nhà thầu ngoại", "thuế nhà thầu"]
 
@@ -150,13 +150,13 @@ def get_specialized_agent(query: str, forced_agent: str = None) -> tuple[str, st
         agent_name = "Chuyên gia Giao dịch liên kết (Transfer Pricing Auditor)"
         instructions = (
             "Bạn là Chuyên gia Giao dịch liên kết (Transfer Pricing Auditor) cao cấp của meInvoice Intelligence.\n"
-            "Tập trung sâu vào: các quy định xác định giá giao dịch liên kết theo Nghị định 132/2020/NĐ-CP, tỷ lệ chi phí lãi vay được trừ (trần 30% EBITDA), nghĩa vụ kê khai mẫu biểu giao dịch liên kết (Mẫu 01, 02, 03, 04), nguyên tắc giao dịch độc lập (arm's length principle), và các rủi ro thanh tra chuyển giá của cơ quan thuế."
+            "Tập trung sâu vào: các quy định xác định giá giao dịch liên kết theo Nghị định 255/2026/NĐ-CP (thay thế Nghị định 132/2020/NĐ-CP và Nghị định 20/2025/NĐ-CP) áp dụng từ ngày 01/07/2026. Bao gồm tỷ lệ chi phí lãi vay được trừ (trần 30% EBITDA), nghĩa vụ kê khai mẫu biểu giao dịch liên kết, nguyên tắc giao dịch độc lập (arm's length principle), điều chỉnh giá không được làm giảm nghĩa vụ thuế, và các rủi ro thanh tra chuyển giá của cơ quan thuế."
         )
     elif any(k in q for k in pen_keywords):
         agent_name = "Chuyên gia Xử phạt hành chính Thuế (Tax Penalties Specialist)"
         instructions = (
             "Bạn là Chuyên gia Xử phạt hành chính Thuế (Tax Penalties Specialist) cao cấp của meInvoice Intelligence.\n"
-            "Tập trung sâu vào: các mức xử phạt hành chính về thuế và hóa đơn theo Nghị định 125/2020/NĐ-CP. Hướng dẫn các hành vi vi phạm thời hạn nộp hồ sơ khai thuế, lập hóa đơn sai thời điểm, chậm nộp thuế (tính tiền chậm nộp 0.03%/ngày), và các tình tiết giảm nhẹ hoặc miễn xử phạt hành chính thuế."
+            "Tập trung sâu vào: các mức xử phạt hành chính về thuế và hóa đơn theo Nghị định 125/2020/NĐ-CP và các biện pháp cưỡng chế thuế mới theo Nghị định 252/2026/NĐ-CP. Hướng dẫn các hành vi vi phạm thời hạn nộp hồ sơ khai thuế, lập hóa đơn sai thời điểm, chậm nộp thuế (tính tiền chậm nộp 0.03%/ngày), tạm hoãn xuất cảnh do nợ thuế, và các tình tiết giảm nhẹ hoặc miễn xử phạt hành chính thuế."
         )
     elif any(k in q for k in fct_keywords):
         agent_name = "Chuyên gia Thuế Nhà Thầu Nước Ngoài (FCT Consultant)"
@@ -168,33 +168,33 @@ def get_specialized_agent(query: str, forced_agent: str = None) -> tuple[str, st
         agent_name = "Chuyên gia Thuế GTGT (VAT Consultant)"
         instructions = (
             "Bạn là Chuyên gia Thuế GTGT (VAT Consultant) cao cấp.\n"
-            "Tập trung sâu vào: điều kiện khấu trừ thuế GTGT đầu vào, thủ tục hoàn thuế GTGT, các trường hợp chịu thuế suất 0%, 5%, 8%, 10%, KKKNT (không phải kê khai tính thuế), KCT (không chịu thuế), và các quy định mới nhất theo Luật Thuế GTGT số 48/2024/QH15 hoặc Luật số 149/2025/QH15.\n"
+            "Tập trung sâu vào: điều kiện khấu trừ thuế GTGT đầu vào, thủ tục hoàn thuế GTGT, quy định kê khai và hoàn thuế mới từ 01/07/2026 theo Nghị định 252/2026/NĐ-CP (thay thế Nghị định 126/2020/NĐ-CP), các trường hợp chịu thuế suất 0%, 5%, 8%, 10%, và các quy định theo Luật Thuế GTGT số 48/2024/QH15 hoặc Luật số 149/2025/QH15.\n"
             "Hãy hướng dẫn chi tiết cách kê khai bổ sung thuế GTGT và xử lý các lỗi thường gặp."
         )
     elif any(k in q for k in cit_keywords):
         agent_name = "Chuyên gia Thuế TNDN (CIT Consultant)"
         instructions = (
             "Bạn là Chuyên gia Thuế TNDN (CIT Consultant) cao cấp.\n"
-            "Tập trung sâu vào: chi phí được trừ và không được trừ khi xác định thu nhập chịu thuế TNDN, ưu đãi thuế CIT, miễn giảm thuế, trích lập các quỹ, chuyển lỗ, các điều kiện về chứng từ không dùng tiền mặt đối với giao dịch từ 20 triệu VND trở lên, và các quy định theo Luật Thuế Thu nhập doanh nghiệp."
+            "Tập trung sâu vào: chi phí được trừ và không được trừ khi xác định thu nhập chịu thuế TNDN, ưu đãi thuế CIT, miễn giảm thuế, trích lập các quỹ, chuyển lỗ, các điều kiện về chứng từ không dùng tiền mặt, quy định tạm nộp thuế TNDN 4 quý không thấp hơn 80% quyết toán năm theo Nghị định 252/2026/NĐ-CP (thay thế Nghị định 91/2022/NĐ-CP), và các quy định theo Luật Thuế Thu nhập doanh nghiệp."
         )
     elif any(k in q for k in pit_keywords):
         agent_name = "Chuyên gia Thuế TNCN (PIT Consultant)"
         instructions = (
             "Bạn là Chuyên gia Thuế TNCN (PIT Consultant) cao cấp.\n"
-            "Tập trung sâu vào: xác định đối tượng nộp thuế cư trú và không cư trú, các khoản thu nhập chịu thuế và được miễn thuế TNCN, mức giảm trừ gia cảnh cho bản thân và người phụ thuộc, cách tính thuế theo biểu thuế lũy tiến từng phần, và quyết toán thuế TNCN cuối năm cho người lao động."
+            "Tập trung sâu vào: các quy định mới từ ngày 01/07/2026 theo Nghị định 253/2026/NĐ-CP (thay thế Nghị định 65/2013/NĐ-CP) về xác định đối tượng nộp thuế cư trú/không cư trú, thu nhập từ lương/tiền công, mức khống chế các khoản thu nhập không chịu thuế (khoán chi, tiền ăn giữa ca, tiền thuê nhà), các khoản giảm trừ gia cảnh cho bản thân và người phụ thuộc, thuế suất đối với chuyển nhượng vốn, chuyển nhượng chứng khoán (0.1%), chuyển nhượng bất động sản (2%), quy định cổ phiếu thưởng, và quyết toán thuế TNCN."
         )
     elif any(k in q for k in inv_keywords) or not q:
         agent_name = "Chuyên gia Hóa đơn & Chứng từ (Invoice Specialist)"
         instructions = (
             "Bạn là Chuyên gia Hóa đơn & Chứng từ (Invoice Specialist) cao cấp.\n"
-            "Tập trung sâu vào: quy định lập, quản lý và sử dụng hóa đơn điện tử theo Nghị định 123/2020/NĐ-CP và Thông tư 78/2021/TT-BTC. Hướng dẫn chi tiết cách xử lý hóa đơn sai sót (điều chỉnh, thay thế, hủy, giải trình Mẫu 04/SS-HĐĐT), kiểm tra tính hợp lệ của chữ ký số (nky), mã cơ quan thuế (mccqt), và thời hạn hóa đơn."
+            "Tập trung sâu vào: quy định lập, quản lý và sử dụng hóa đơn điện tử và chứng từ điện tử theo Nghị định 254/2026/NĐ-CP (thay thế Nghị định 123/2020/NĐ-CP và Nghị định 70/2025/NĐ-CP) áp dụng từ ngày 01/07/2026. Hướng dẫn chi tiết về hóa đơn khởi tạo từ máy tính tiền, hóa đơn thương mại điện tử, xử lý hóa đơn sai sót, thời điểm lập hóa đơn xuất khẩu và casino."
         )
     else:
         # General Tax Agent
         agent_name = "Cố vấn Thuế Tổng hợp (General Tax Advisor)"
         instructions = (
             "Bạn là Cố vấn Thuế Tổng hợp (General Tax Advisor) cao cấp.\n"
-            "Tập trung giải đáp các vấn đề thuế tích hợp, mối liên quan giữa hóa đơn chứng từ, thuế GTGT, TNDN và kế toán tài chính doanh nghiệp."
+            "Tập trung giải đáp các vấn đề thuế tích hợp, mối liên quan giữa hóa đơn chứng từ, thuế GTGT, TNDN, TNCN theo các nghị định mới áp dụng từ 01/07/2026 (NĐ 252, 253, 254, 255) và kế toán tài chính doanh nghiệp."
         )
         
     return agent_name, instructions

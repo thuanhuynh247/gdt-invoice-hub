@@ -66,6 +66,8 @@ def parse_and_chunk_pdf(filename: str) -> list[dict]:
             effective_date = "2026-03-12"
         elif "144" in filename:
             effective_date = "2026-06-20"
+        elif any(dec in filename for dec in ["252", "253", "254", "255"]):
+            effective_date = "2026-07-01"
         else:
             effective_date = "2026-01-01"
         
@@ -139,7 +141,19 @@ def main():
     """)
     conn.commit()
     
-    pdf_files = ["luat48.pdf", "luat149.signed.pdf", "20-btc.pdf", "thongtu69_2025.pdf", "thongtu18_2026.pdf", "nghidinh144_2026.pdf", "vanbanhopnhat61_2026_cit.pdf"]
+    pdf_files = [
+        "luat48.pdf", 
+        "luat149.signed.pdf", 
+        "20-btc.pdf", 
+        "thongtu69_2025.pdf", 
+        "thongtu18_2026.pdf", 
+        "nghidinh144_2026.pdf", 
+        "vanbanhopnhat61_2026_cit.pdf",
+        "nghidinh252_2026.pdf",
+        "nghidinh253_2026.pdf",
+        "nghidinh254_2026.pdf",
+        "nghidinh255_2026.pdf"
+    ]
     
     for filename in pdf_files:
         base_name = os.path.basename(filename)

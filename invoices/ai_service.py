@@ -112,6 +112,62 @@ TAX_REGULATIONS = [
             "5. Mở rộng chi phí được trừ: Chi phí chuyển đổi số, chuyển đổi xanh (giảm phát thải khí nhà kính Net Zero), đào tạo nâng cao trình độ nhân sự và đổi mới sáng tạo được ghi nhận chi phí hợp lệ khi quyết toán thuế."
         ),
         "keywords": ["văn bản hợp nhất 61", "van ban hop nhat 61", "thuế suất 15%", "thuế suất 17%", "doanh thu dưới 3 tỷ", "dưới 50 tỷ", "thuế tndn mới", "thuế thu nhập doanh nghiệp mới", "quy mô doanh thu", "phân tầng", "giảm phát thải", "net zero", "chuyển đổi xanh", "chuyển đổi số"]
+    },
+    {
+        "id": "tax_dec_252_2026",
+        "title": "Nghị định số 252/2026/NĐ-CP về kê khai thuế và hoàn thuế (Hiệu lực từ 01/07/2026)",
+        "content": (
+            "Nghị định số 252/2026/NĐ-CP về kê khai thuế và hoàn thuế có hiệu lực từ ngày 01/07/2026, thay thế Nghị định 373/2025/NĐ-CP, Nghị định 117/2025/NĐ-CP, Nghị định 49/2025/NĐ-CP, Nghị định 91/2022/NĐ-CP và Nghị định 126/2020/NĐ-CP.\n"
+            "Các điểm thay đổi cốt lõi gồm:\n"
+            "1. Tạm nộp thuế TNDN hàng quý: Tổng số thuế TNDN hoặc lợi nhuận sau thuế đã tạm nộp của 4 quý không được thấp hơn 80% số phải nộp theo quyết toán năm (thay vì 80% của 3 quý đầu năm).\n"
+            "2. Quản lý thuế TMĐT: Chủ sàn thương mại điện tử chịu trách nhiệm khai nộp thay, khấu trừ thuế trực tiếp cho các shop kinh doanh trên sàn.\n"
+            "3. Chế độ ưu tiên đối với người nộp thuế có giao dịch liên kết (APA) được đơn giản hóa; gỡ bỏ hoàn toàn quy định về doanh nghiệp ưu tiên hải quan và cơ chế ủy nhiệm thu thuế trước đây.\n"
+            "4. Quy định rõ trình tự, thủ tục tạm hoãn xuất cảnh do nợ thuế để tránh lạm dụng."
+        ),
+        "keywords": ["nghị định 252", "nghidinh252", "252/2026", "252/2026/nđ-cp", "hoàn thuế", "kê khai thuế", "tạm nộp thuế tndn", "80%", "sàn thương mại điện tử", "tạm hoãn xuất cảnh", "nợ thuế", "126/2020", "91/2022", "373/2025", "117/2025", "49/2025"]
+    },
+    {
+        "id": "tax_dec_253_2026",
+        "title": "Nghị định số 253/2026/NĐ-CP về kê khai và tính thuế TNCN mới (Hiệu lực từ 01/07/2026)",
+        "content": (
+            "Nghị định số 253/2026/NĐ-CP về thuế TNCN có hiệu lực từ ngày 01/07/2026, thay thế hoàn toàn Nghị định số 65/2013/NĐ-CP. Các thay đổi chính gồm:\n"
+            "1. Tiêu chí xác định cá nhân cư trú dựa trên số ngày có mặt thực tế và nơi ở tại Việt Nam.\n"
+            "2. Đơn giản hóa thủ tục chứng từ điện tử khấu trừ thuế TNCN và hồ sơ chứng minh giảm trừ gia cảnh.\n"
+            "3. Điều chỉnh tăng ngưỡng thu nhập vãng lai không phải quyết toán thuế và ngưỡng khấu trừ 10% để giảm thủ tục hành chính.\n"
+            "4. Thuế suất chuyển nhượng: Bất động sản áp dụng thuế suất duy nhất 2% trên giá bán (gỡ bỏ phương pháp 25% trên thu nhập); chứng khoán áp dụng thuế suất duy nhất 0.1% trên giá bán (gỡ bỏ phương pháp 20% trên thu nhập); chuyển nhượng vốn khác áp dụng 20% trên thu nhập tính thuế.\n"
+            "5. Khoản chi phúc lợi: Tiền ăn giữa ca, ăn trưa, công tác phí, trang phục, điện thoại được trừ theo định mức. Tiền thuê nhà trả thay tối đa 15% tổng thu nhập chịu thuế (chưa gồm tiền thuê nhà).\n"
+            "6. Bổ sung giảm trừ chi phí y tế và giáo dục thực tế có chứng từ hợp pháp cho bản thân người nộp thuế."
+        ),
+        "keywords": ["nghị định 253", "nghidinh253", "253/2026", "253/2026/nđ-cp", "thuế tncn", "thu nhập cá nhân", "giảm trừ gia cảnh", "cá nhân cư trú", "chuyển nhượng vốn", "chuyển nhượng chứng khoán", "chuyển nhượng bất động sản", "thu nhập vãng lai", "ăn trưa", "thuê nhà trả thay", "giảm trừ y tế", "giảm trừ giáo dục"]
+    },
+    {
+        "id": "tax_dec_254_2026",
+        "title": "Nghị định số 254/2026/NĐ-CP về hóa đơn và chứng từ điện tử (Hiệu lực từ 01/07/2026)",
+        "content": (
+            "Nghị định số 254/2026/NĐ-CP về hóa đơn điện tử có hiệu lực từ ngày 01/07/2026, thay thế Nghị định 123/2020/NĐ-CP và Nghị định 70/2025/NĐ-CP.\n"
+            "Các nội dung quan trọng:\n"
+            "1. Lập hóa đơn từng lần bán: Bắt buộc lập hóa đơn điện tử cho từng lần bán đối với người mua lẻ (không được gộp doanh thu cuối ngày đối với ăn uống, bán lẻ, xăng dầu).\n"
+            "2. Hóa đơn từ máy tính tiền: Quy định rõ định nghĩa và hình thức truyền dữ liệu đối với hóa đơn khởi tạo từ máy tính tiền.\n"
+            "3. Quyền người bán: Người bán có quyền yêu cầu sàn thương mại điện tử cung cấp dữ liệu định danh người mua để lập hóa đơn chính xác.\n"
+            "4. Xử lý sai sót và hóa đơn không hợp pháp: Định nghĩa rõ hành vi sử dụng hóa đơn giả, hóa đơn không hợp pháp. Hóa đơn thiếu thông tin bắt buộc vẫn có thể hợp lệ nếu có mã xác thực của cơ quan thuế.\n"
+            "5. Bản giấy chuyển đổi: Chỉ có giá trị lưu giữ đối chiếu, không có giá trị thanh toán hay kê khai khấu trừ thuế.\n"
+            "6. Nghiêm cấm lạm dụng dữ liệu hóa đơn được ủy nhiệm ngoài phạm vi thỏa thuận."
+        ),
+        "keywords": ["nghị định 254", "nghidinh254", "254/2026", "254/2026/nđ-cp", "hóa đơn điện tử", "chứng từ điện tử", "máy tính tiền", "xuất hóa đơn từng lần", "ủy nhiệm lập hóa đơn", "hóa đơn giả", "sử dụng hóa đơn không hợp pháp", "giấy chuyển đổi", "123/2020", "70/2025"]
+    },
+    {
+        "id": "tax_dec_255_2026",
+        "title": "Nghị định số 255/2026/NĐ-CP về quản lý giao dịch liên kết (Hiệu lực từ 01/07/2026)",
+        "content": (
+            "Nghị định số 255/2026/NĐ-CP về quản lý thuế đối với doanh nghiệp có giao dịch liên kết (GDLK) có hiệu lực từ ngày 01/07/2026, thay thế Nghị định 132/2020/NĐ-CP và Nghị định 20/2025/NĐ-CP.\n"
+            "Các thay đổi chính bao gồm:\n"
+            "1. Trần chi phí lãi vay (trần EBITDA): Chi phí lãi vay ròng sau khi bù trừ lãi tiền gửi và lãi cho vay được trừ không vượt quá 30% của tổng chỉ số EBITDA trong kỳ tính thuế.\n"
+            "2. Bỏ định nghĩa 'Cơ sở dữ liệu của Cơ quan thuế' nhằm tăng tính minh bạch, khuyến khích sử dụng các nguồn dữ liệu độc lập để so sánh giá.\n"
+            "3. Khoản vay ngân hàng thương mại độc lập: Không còn bị coi là có giao dịch liên kết nếu không thuộc trường hợp chỉ định điều hành hoặc chi phối vốn.\n"
+            "4. Báo cáo lợi nhuận liên quốc gia (CbCR): Điều chỉnh ngưỡng doanh thu nộp báo cáo phù hợp chuẩn BEPS của OECD.\n"
+            "5. Kê khai theo bản chất giao dịch thực tế thay vì hình thức pháp lý."
+        ),
+        "keywords": ["nghị định 255", "nghidinh255", "255/2026", "255/2026/nđ-cp", "giao dịch liên kết", "gdlk", "chi phí lãi vay", "trần ebitda", "lãi vay 30%", "so sánh giá", "báo cáo lợi nhuận liên quốc gia", "cbcr", "132/2020", "20/2025"]
     }
 ]
 
@@ -273,6 +329,8 @@ def parse_and_chunk_pdf(filename: str) -> list[dict]:
             effective_date = "2026-03-12"
         elif "144" in filename:
             effective_date = "2026-06-20"
+        elif any(dec in filename for dec in ["252", "253", "254", "255"]):
+            effective_date = "2026-07-01"
         else:
             effective_date = "2026-01-01"
         
@@ -339,7 +397,11 @@ def run_dynamic_pdf_ingestion(app):
             "vanbanhopnhat61_2026_cit.pdf",
             "nghidinh132_2020.pdf",
             "nghidinh125_2020.pdf",
-            "thongtu103_2014.pdf"
+            "thongtu103_2014.pdf",
+            "nghidinh252_2026.pdf",
+            "nghidinh253_2026.pdf",
+            "nghidinh254_2026.pdf",
+            "nghidinh255_2026.pdf"
         ]
         ingested_any = False
         

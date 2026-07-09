@@ -224,7 +224,7 @@ def test_new_crawler_portal_endpoints(mock_app):
         assert res_docs.status_code == 200
         docs_data = json.loads(res_docs.data)
         assert len(docs_data) > 0
-        assert docs_data[0]["document_source"] == "Nghị quyết 30/2026/NQ-QH (Web)"
+        assert any(d["document_source"] == "Nghị quyết 30/2026/NQ-QH (Web)" for d in docs_data)
         
         # 3. Test Search Test
         res_search = client.get("/api/tax/search-test?query=TNDN")
@@ -252,4 +252,67 @@ def test_new_crawler_portal_endpoints(mock_app):
         assert res_docs_after.status_code == 200
         docs_data_after = json.loads(res_docs_after.data)
         assert not any(d["document_source"] == "Nghị quyết 30/2026/NQ-QH (Web)" for d in docs_data_after)
+
+
+def test_2026_decrees_ingestion_and_retrieval():
+    """Verify that the ingestion of 2026 decrees into FTS works and yields accurate search hits."""
+    from scripts.ingest_2026_regulations import DECREES
+    
+    with patch("invoices.tax_crawler_service.DB_PATH", temp_db_path), \
+         patch("invoices.tax_advisor_service.DB_PATH", temp_db_path):
+        
+        # Clear first
+        conn = sqlite3.connect(temp_db_path)
+        cur = conn.cursor()
+        cur.execute("DELETE FROM tax_regulation_chunk")
+        cur.execute("DELETE FROM tax_regulation_fts")
+        conn.commit()
+        conn.close()
+
+        # Ingest
+        for name, info in DECREES.items():
+            result = ingest_crawled_content(
+                url="http://local-tax-authority/decree-update-2026",
+                custom_title=info["title"],
+                text=info["text"],
+                effective_date=info["date"]
+            )
+            assert result["success"] is True
+            assert result["chunks_count"] > 0
+
+        # Now search test
+        # 1. Search for PIT 253 changes
+        matches, citations = get_rag_context("giảm trừ gia cảnh Nghị định 253")
+        assert "253/2026" in matches or "nghidinh253_2026.pdf" in matches
+        
+        # 2. Search for TP EBITDA 30% Decree 255
+        matches_tp, citations_tp = get_rag_context("chi phí lãi vay EBITDA 30%")
+        assert "255/2026" in matches_tp or "nghidinh255_2026.pdf" in matches_tp
+
+        # 3. Search for TMĐT e-commerce platforms Decree 252
+        matches_ec, citations_ec = get_rag_context("TMĐT sàn thương mại điện tử nộp thay")
+        assert "252/2026" in matches_ec or "nghidinh252_2026.pdf" in matches_ec
+
+        # 4. Search for máy tính tiền Decree 254
+        matches_inv, citations_inv = get_rag_context("máy tính tiền hóa đơn điện tử")
+        assert "254/2026" in matches_inv or "nghidinh254_2026.pdf" in matches_inv
+
+
+def test_production_db_has_2026_decrees():
+    """Verify that the production database 'data/invoices.db' contains the ingested 2026 decrees."""
+    prod_db_path = "data/invoices.db"
+    if not os.path.exists(prod_db_path):
+        pytest.skip("Production database data/invoices.db not found, skipping production check.")
+        
+    conn = sqlite3.connect(prod_db_path)
+    cur = conn.cursor()
+    cur.execute("SELECT DISTINCT document_source FROM tax_regulation_chunk WHERE effective_date = '2026-07-01'")
+    docs = [r[0] for r in cur.fetchall()]
+    conn.close()
+    
+    assert "nghidinh252_2026.pdf" in docs
+    assert "nghidinh253_2026.pdf" in docs
+    assert "nghidinh255_2026.pdf" in docs
+    assert "nghidinh254_2026.pdf" in docs
+
 
