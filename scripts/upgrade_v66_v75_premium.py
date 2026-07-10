@@ -191,14 +191,14 @@ SPEAKER_COLORS = {
         "VEPF Deposit Custodian": "bg-info-subtle text-info border border-info",
     },
     "v68": {
-        "Land Administration Officer": "bg-success-subtle text-success border border-success",
-        "Land Rental Policy Analyst": "bg-warning-subtle text-warning border border-warning",
-        "MoF Budget Inspector": "bg-info-subtle text-info border border-info",
+        "Biodiversity Inspector": "bg-success-subtle text-success border border-success",
+        "Project Engineer": "bg-warning-subtle text-warning border border-warning",
+        "Defense Command Representative": "bg-info-subtle text-info border border-info",
     },
     "v69": {
-        "Forest Ranger Inspector": "bg-success-subtle text-success border border-success",
-        "Timber Industry Representative": "bg-warning-subtle text-warning border border-warning",
-        "Forestry Policy Advisor": "bg-info-subtle text-info border border-info",
+        "Maritime Safety Inspector": "bg-success-subtle text-success border border-success",
+        "Marine Logistics Manager": "bg-warning-subtle text-warning border border-warning",
+        "Military Logistics Quartermaster": "bg-info-subtle text-info border border-info",
     },
     "v71": {
         "E-Waste Recycling Inspector": "bg-success-subtle text-success border border-success",
@@ -206,24 +206,24 @@ SPEAKER_COLORS = {
         "Customs Compliance Specialist": "bg-info-subtle text-info border border-info",
     },
     "v72": {
-        "Wastewater Treatment Inspector": "bg-success-subtle text-success border border-success",
-        "Industrial Zone Manager": "bg-warning-subtle text-warning border border-warning",
-        "MoNRE Environmental Counsel": "bg-info-subtle text-info border border-info",
+        "Wastewater Quality Inspector": "bg-success-subtle text-success border border-success",
+        "Plant Operations Engineer": "bg-warning-subtle text-warning border border-warning",
+        "Central Sewer Authority": "bg-info-subtle text-info border border-info",
     },
     "v73": {
-        "Hazardous Waste Inspector": "bg-success-subtle text-success border border-success",
-        "Licensed Transport Operator": "bg-warning-subtle text-warning border border-warning",
-        "MoNRE Waste Policy Advisor": "bg-info-subtle text-info border border-info",
+        "Hazardous Waste Auditor": "bg-success-subtle text-success border border-success",
+        "R&D Lab Manager": "bg-warning-subtle text-warning border border-warning",
+        "Small Workshop Owner": "bg-info-subtle text-info border border-info",
     },
     "v74": {
-        "Noise Pollution Inspector": "bg-success-subtle text-success border border-success",
-        "Industrial Facility Manager": "bg-warning-subtle text-warning border border-warning",
-        "MoNRE Acoustic Advisor": "bg-info-subtle text-info border border-info",
+        "Acoustic Monitoring Officer": "bg-success-subtle text-success border border-success",
+        "Shift Supervisor": "bg-warning-subtle text-warning border border-warning",
+        "Civil Project Lead": "bg-info-subtle text-info border border-info",
     },
     "v75": {
-        "Plastics Pollution Inspector": "bg-success-subtle text-success border border-success",
-        "Packaging Industry Director": "bg-warning-subtle text-warning border border-warning",
-        "MoNRE Ocean Policy Counsel": "bg-info-subtle text-info border border-info",
+        "Marine Conservation Inspector": "bg-success-subtle text-success border border-success",
+        "Packaging Standards Auditor": "bg-warning-subtle text-warning border border-warning",
+        "Hospital Sanitary Inspector": "bg-info-subtle text-info border border-info",
     },
 }
 

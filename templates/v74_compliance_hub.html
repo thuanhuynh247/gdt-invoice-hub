@@ -483,9 +483,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const c = document.getElementById("debate-container-v74");
         c.innerHTML = "";
         const cl = {
-            "Noise Pollution Inspector": "bg-success-subtle text-success border border-success",
-            "Industrial Facility Manager": "bg-warning-subtle text-warning border border-warning",
-            "MoNRE Acoustic Advisor": "bg-info-subtle text-info border border-info"
+            "Acoustic Monitoring Officer": "bg-success-subtle text-success border border-success",
+            "Shift Supervisor": "bg-warning-subtle text-warning border border-warning",
+            "Civil Project Lead": "bg-info-subtle text-info border border-info"
         };
         debate.forEach((m, idx) => {
             const div = document.createElement("div");
@@ -494,8 +494,8 @@ document.addEventListener("DOMContentLoaded", () => {
             div.style.opacity = "0";
             div.innerHTML = `
                 <div class="d-flex flex-column align-items-center text-center" style="min-width: 140px;">
-                    <div class="rounded-circle bg-premium-light d-flex align-items-center justify-content-center mb-2" style="width: 40px; height: 40px;">
-                        <i class="bi bi-robot text-secondary fs-5" aria-hidden="true"></i>
+                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mb-2" style="width: 40px; height: 40px;">
+                        <i class="bi bi-robot text-secondary fs-5"></i>
                     </div>
                     <span class="badge ${cl[m.speaker] || "bg-secondary"} text-wrap py-1 px-2 small">${m.speaker}</span>
                 </div>
