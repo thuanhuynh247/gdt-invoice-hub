@@ -201,6 +201,24 @@
             box-shadow: 0 0 0 0 rgba(2, 195, 154, 0);
         }
     }
+
+    /* Button Customization */
+    .btn-success {
+        background: linear-gradient(135deg, var(--wise-accent) 0%, #00a896 100%) !important;
+        border: none !important;
+        color: #fff !important;
+        transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+    }
+
+    .btn-success:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(2, 195, 154, 0.3) !important;
+    }
+
+    .btn-success:active {
+        transform: translateY(0) scale(0.98) !important;
+        box-shadow: 0 2px 6px rgba(2, 195, 154, 0.2) !important;
+    }
 </style>
 {% endblock %}
 

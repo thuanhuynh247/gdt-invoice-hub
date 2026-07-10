@@ -257,7 +257,7 @@
                     </div>
 
                     <!-- baseline 3 -->
-                    {{ baseline_card('First Year StartUp Exemption (100%)', 'Exempt', 'bg-success text-white',
+                    {{ baseline_card('First Year StartUp Exemption (100%)', 'Exempt', 'bg-success-subtle text-success border border-success-subtle',
                         'Newly established enterprise starting business this year.',
                         'Startup Capital: <strong id="base3-cap">-</strong>'|safe,
                         'Reason', 'base3-reason') }}
@@ -281,7 +281,7 @@
         <div class="col-12">
             {% call data_table('Historical Audit Log', 'bi bi-clock-history', 'history-table-v56',
                 default_msg='No audit logs found. Run calculator to write records.', col_count=10) %}
-                <thead class="table-dark">
+                <thead>
                     <tr>
                         <th>ID</th>
                         <th>Entity Name</th>

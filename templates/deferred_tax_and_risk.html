@@ -94,7 +94,7 @@
                         <h4 class="fw-bold mb-3" style="font-family: 'Outfit', sans-serif;"><i class="bi bi-calculator text-primary" aria-hidden="true"></i> Chi Tiết Chênh Lệch Tạm Thời (Temporary Differences)</h4>
                         <div class="table-responsive">
                             <table class="table table-hover align-middle border">
-                                <thead class="table-dark">
+                                <thead>
                                     <tr>
                                         <th>Loại Chênh Lệch</th>
                                         <th>Mô Tả / Mã tài sản</th>
@@ -112,7 +112,7 @@
                         <h4 class="fw-bold mt-4 mb-3" style="font-family: 'Outfit', sans-serif;"><i class="bi bi-exclamation-triangle text-warning" aria-hidden="true"></i> Chênh Lệch Vĩnh Viễn (Disallowed Expenses)</h4>
                         <div class="table-responsive">
                             <table class="table table-hover align-middle border">
-                                <thead class="table-dark">
+                                <thead>
                                     <tr>
                                         <th>Loại Chi Phí Không Được Trừ</th>
                                         <th class="text-end">Giá Trị</th>
@@ -284,7 +284,7 @@
                         <h4 class="fw-bold mb-3" style="font-family: 'Outfit', sans-serif;"><i class="bi bi-file-earmark-ruled text-info" aria-hidden="true"></i> Danh Sách Xếp Hạng Rủi Ro Đối Tác</h4>
                         <div class="table-responsive" style="max-height: 250px;">
                             <table class="table table-hover align-middle border text-center">
-                                <thead class="table-dark">
+                                <thead>
                                     <tr>
                                         <th>Tên / MST</th>
                                         <th>Hạng rủi ro</th>
@@ -729,6 +729,38 @@ function exportJournalJSON() {
 }
 .offcanvas.glass-card {
     background: rgba(255, 255, 255, 0.85);
+}
+
+/* Premium Table Styles */
+.table-responsive {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(13, 110, 253, 0.08);
+}
+.table thead {
+    background-color: rgba(13, 110, 253, 0.05) !important;
+    color: #0d6efd !important;
+}
+.table th {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    padding: 12px 16px !important;
+    border-bottom: none !important;
+}
+.table td {
+    padding: 14px 16px !important;
+    font-size: 0.875rem;
+    vertical-align: middle;
+    border-bottom: 1px solid rgba(13, 110, 253, 0.05) !important;
+}
+.table tbody tr {
+    transition: background-color 0.15s ease;
+}
+.table tbody tr:hover {
+    background-color: rgba(13, 110, 253, 0.02) !important;
 }
 </style>
 {% endblock %}

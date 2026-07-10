@@ -212,7 +212,7 @@
                             </div>
                             <div class="table-responsive">
                                 <table class="table table-hover align-middle" id="tblFCTDeclaration">
-                                    <thead class="table-dark">
+                                    <thead>
                                         <tr>
                                             <th>STT</th>
                                             <th>Tên nhà thầu nước ngoài</th>
@@ -526,6 +526,38 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+}
+
+/* Premium Table Styles */
+.table-responsive {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 153, 0, 0.08);
+}
+.table thead {
+    background-color: rgba(255, 153, 0, 0.05) !important;
+    color: #FF9900 !important;
+}
+.table th {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    padding: 12px 16px !important;
+    border-bottom: none !important;
+}
+.table td {
+    padding: 14px 16px !important;
+    font-size: 0.875rem;
+    vertical-align: middle;
+    border-bottom: 1px solid rgba(255, 153, 0, 0.05) !important;
+}
+.table tbody tr {
+    transition: background-color 0.15s ease;
+}
+.table tbody tr:hover {
+    background-color: rgba(255, 153, 0, 0.02) !important;
 }
 </style>
 

@@ -84,6 +84,11 @@
         box-shadow: 0 4px 12px rgba(2, 195, 154, 0.3) !important;
     }
 
+    .btn-info:active {
+        transform: translateY(0) scale(0.98) !important;
+        box-shadow: 0 2px 6px rgba(2, 195, 154, 0.2) !important;
+    }
+
     /* Result Panel Animation & Aesthetics */
     @keyframes calcPulse {
         0% {
@@ -145,8 +150,8 @@
     }
 
     .table thead {
-        background-color: var(--wise-primary) !important;
-        color: #fff !important;
+        background-color: rgba(0, 45, 4, 0.05) !important;
+        color: var(--wise-primary) !important;
     }
 
     .table th {
@@ -236,17 +241,17 @@
             {% call glass_card('ODS Licensing Baselines', 'bi bi-shield-check', 'text-success',
                 'Pre-computed target ledgers verifying ozone-depleting substance import liabilities under Decree 06/2022.') %}
                 <div class="d-flex flex-column gap-3">
-                    {{ baseline_card('Freon R-12', 'CFC Group', 'bg-danger text-white',
+                    {{ baseline_card('Freon R-12', 'CFC Group', 'bg-danger-subtle text-danger border border-danger-subtle',
                         'CFC: 800 kg. ODP equivalent: 800 kg. Rate: 250k VND/kg.',
                         'ODP Factor: 1.0',
                         'Fee', 'base1-eff') }}
 
-                    {{ baseline_card('Refrigerant R-22', 'HCFC Group', 'bg-warning text-dark',
+                    {{ baseline_card('Refrigerant R-22', 'HCFC Group', 'bg-warning-subtle text-warning border border-warning-subtle',
                         'HCFC: 1,200 kg. ODP equivalent: 66 kg. Rate: 15k VND/kg.',
                         'ODP Factor: 0.055',
                         'Fee', 'base2-eff') }}
 
-                    {{ baseline_card('Propellant CFC-11 Medical (Exempt)', 'Exempt', 'bg-success text-white',
+                    {{ baseline_card('Propellant CFC-11 Medical (Exempt)', 'Exempt', 'bg-success-subtle text-success border border-success-subtle',
                         'CFC: 150 kg for metered-dose inhalers. Exemption: Medical.',
                         'ODP equivalent: 150 kg',
                         'Reason', 'base3-reason') }}
@@ -521,7 +526,7 @@
                 </a>
             </div>
             {% call data_table('ODS Compliance History Log', 'bi bi-clock-history', 'history-table-v70', 'No logs available.', 12) %}
-                <thead class="table-dark">
+                <thead>
                     <tr>
                         <th>ID</th>
                         <th>Chemical Name</th>
@@ -744,9 +749,9 @@ document.addEventListener("DOMContentLoaded", () => {
         c.innerHTML = "";
         const data = DEBATE_DATABASE[topic] || DEBATE_DATABASE.general;
         const cl = {
-            "Ozone Layer Inspector": "bg-success text-white",
-            "Pharma Production Director": "bg-warning text-dark",
-            "Customs Licensing Specialist": "bg-info text-dark"
+            "Ozone Layer Inspector": "bg-success-subtle text-success border border-success",
+            "Pharma Production Director": "bg-warning-subtle text-warning border border-warning",
+            "Customs Licensing Specialist": "bg-info-subtle text-info border border-info"
         };
         data.transcript.forEach(m => {
             const div = document.createElement("div");

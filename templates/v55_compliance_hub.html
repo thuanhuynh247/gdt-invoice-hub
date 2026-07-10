@@ -245,17 +245,17 @@
                         'Taxable Value: <strong id="base1-val">-</strong>'|safe,
                         'Duty', 'base1-duty') }}
 
-                    {{ baseline_card('Processing Exemption (100%)', 'Exempt', 'bg-success text-white',
+                    {{ baseline_card('Processing Exemption (100%)', 'Exempt', 'bg-success-subtle text-success border border-success-subtle',
                         'Polyester Yarn imported for processing contracts.',
                         'Taxable Value: <strong id="base2-val">-</strong>'|safe,
                         'Reason', 'base2-reason') }}
 
-                    {{ baseline_card('Export Minerals (10%)', 'Resource Rate', 'bg-danger text-white',
+                    {{ baseline_card('Export Minerals (10%)', 'Resource Rate', 'bg-danger-subtle text-danger border border-danger-subtle',
                         'Raw Copper Ore export duty ledger.',
                         'Taxable Value: <strong id="base3-val">-</strong>'|safe,
                         'Duty', 'base3-duty') }}
 
-                    {{ baseline_card('Low-Value Courier Gift Exemption', 'Exempt', 'bg-success text-white',
+                    {{ baseline_card('Low-Value Courier Gift Exemption', 'Exempt', 'bg-success-subtle text-success border border-success-subtle',
                         'Gift sample machinery spare part valued <= 2,000,000 VND.',
                         'Gift Value: <strong id="base4-val">-</strong>'|safe,
                         'Reason', 'base4-reason') }}
@@ -273,7 +273,7 @@
         <div class="col-lg-12">
             {% call data_table('Historical Audit Log', 'bi bi-clock-history', 'history-table-v55',
                 'No audit logs found. Run calculator to write records.', 10) %}
-                <thead class="table-dark">
+                <thead>
                     <tr>
                         <th>ID</th>
                         <th>Cargo Name</th>

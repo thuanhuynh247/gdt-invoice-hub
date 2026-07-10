@@ -73,17 +73,20 @@ class V66ComplianceService:
             is_exempt = True
             taxable_co2e = 0.0
             fee_amount = 0.0
+            applied_credits = 0.0
+            exemption_reason = f"Emissions ({total_co2e:.2f} tCO2e) are below the 3,000 tCO2e threshold."
             notes_list.append(f"Exempt: Total emissions ({total_co2e:.2f} tCO2e) are below the 3,000 tCO2e small-emitter threshold under Decree 06/2022/NĐ-CP.")
         else:
             # Maximum carbon credit offset is capped at 10% of total emissions under Article 22
             max_offset = total_co2e * 0.10
-            actual_offset = min(carbon_credits_offset, max_offset)
-            taxable_co2e = total_co2e - actual_offset
+            applied_credits = min(carbon_credits_offset, max_offset)
+            taxable_co2e = total_co2e - applied_credits
             fee_amount = taxable_co2e * carbon_unit_price
+            exemption_reason = "None"
             
             notes_list.append(f"Emissions calculated: {total_co2e:.2f} tCO2e (CO2={co2_tonnes:.1f}t, CH4={ch4_tonnes:.1f}t, N2O={n2o_tonnes:.1f}t).")
-            if actual_offset > 0:
-                notes_list.append(f"Carbon credit offset applied: {actual_offset:.2f} tCO2e (requested: {carbon_credits_offset:.2f} tCO2e, capped at 10% limit of {max_offset:.2f} tCO2e).")
+            if applied_credits > 0:
+                notes_list.append(f"Carbon credit offset applied: {applied_credits:.2f} tCO2e (requested: {carbon_credits_offset:.2f} tCO2e, capped at 10% limit of {max_offset:.2f} tCO2e).")
             notes_list.append(f"Taxable CO2e: {taxable_co2e:.2f} tCO2e at {carbon_unit_price:,.0f} VND/tCO2e. Total fee: {fee_amount:,.0f} VND.")
 
         notes = " ".join(notes_list)
@@ -109,7 +112,16 @@ class V66ComplianceService:
             "taxable_co2e": taxable_co2e,
             "fee_amount": fee_amount,
             "is_exempt": is_exempt,
-            "notes": notes
+            "notes": notes,
+            
+            # Frontend expected keys:
+            "total_co2e_tonnes": total_co2e,
+            "applied_credits_tonnes": applied_credits,
+            "net_co2e_chargeable": taxable_co2e,
+            "base_rate": carbon_unit_price,
+            "total_fee_vnd": total_co2e * carbon_unit_price if not is_exempt else 0.0,
+            "effective_fee_vnd": fee_amount,
+            "exemption_reason": exemption_reason
         }
 
     def get_history(self, mst: str, limit: int = 10) -> List[Dict[str, Any]]:
@@ -119,4 +131,40 @@ class V66ComplianceService:
         cur.execute("SELECT * FROM ghg_emissions_logs ORDER BY id DESC LIMIT ?", (limit,))
         rows = cur.fetchall()
         conn.close()
-        return [dict(r) for r in rows]
+        
+        result_list = []
+        for r in rows:
+            row_dict = dict(r)
+            total_co2e = row_dict["total_co2e"]
+            taxable_co2e = row_dict["taxable_co2e"]
+            fee_amount = row_dict["fee_amount"]
+            is_exempt = bool(row_dict["is_exempt"])
+            
+            applied_credits = total_co2e - taxable_co2e
+            base_rate = 150000.0
+            
+            result_list.append({
+                "id": row_dict["id"],
+                "emission_description": row_dict["emission_description"],
+                "facility_category": row_dict["facility_category"],
+                "co2_tonnes": row_dict["co2_tonnes"],
+                "ch4_tonnes": row_dict["ch4_tonnes"],
+                "n2o_tonnes": row_dict["n2o_tonnes"],
+                "carbon_credits_offset": row_dict["carbon_credits_offset"],
+                "total_co2e": total_co2e,
+                "taxable_co2e": taxable_co2e,
+                "fee_amount": fee_amount,
+                "is_exempt": is_exempt,
+                "notes": row_dict["notes"],
+                "created_at": row_dict["created_at"],
+                
+                # Frontend expected keys:
+                "total_co2e_tonnes": total_co2e,
+                "applied_credits_tonnes": applied_credits,
+                "net_co2e_chargeable": taxable_co2e,
+                "base_rate": base_rate,
+                "total_fee_vnd": total_co2e * base_rate if not is_exempt else 0.0,
+                "effective_fee_vnd": fee_amount,
+                "exemption_reason": "Exempt" if is_exempt else "None"
+            })
+        return result_list

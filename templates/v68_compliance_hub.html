@@ -84,6 +84,10 @@
         box-shadow: 0 4px 12px rgba(2, 195, 154, 0.3) !important;
     }
 
+    .btn-info:active, .btn-success:active, .btn-primary:active {
+        transform: scale(0.98) !important;
+    }
+
     /* Result Panel Animation & Aesthetics */
     @keyframes calcPulse {
         0% {
@@ -145,11 +149,11 @@
     }
 
     .table thead {
-        background-color: var(--wise-primary) !important;
-        color: #fff !important;
+        background-color: rgba(0, 45, 4, 0.05) !important;
     }
 
-    .table th {
+    .table thead th {
+        color: var(--wise-primary) !important;
         font-family: 'Outfit', sans-serif;
         font-weight: 600;
         text-transform: uppercase;
@@ -212,7 +216,7 @@
                     ], col='col-md-6') }}
                     {{ switch_input('input-offset-plan', 'Has Approved 1:1 Biodiversity Offset Plan (40% discount)', checked=true, col='col-12') }}
                     
-                    {{ calc_button('btn-calc-biodiversity', 'Run Ecological Assessment', 'btn-success', col='col-12 text-end') }}
+                    {{ calc_button('btn-calc-biodiversity', 'Run Ecological Assessment', 'btn-info text-white', col='col-12 text-end') }}
                 </div>
                 {% call result_panel('Assessment Result', 'text-success', 'res-exemption-reason') %}
                     {{ result_field('Ecosystem Rate per Ha:', 'res-base-rate') }}
@@ -232,17 +236,17 @@
             {% call glass_card('Ecological Baselines', 'bi bi-shield-check', 'text-success',
                 'Pre-computed target ledgers verifying biodiversity offsets and conservation fees under Law on Biodiversity 2008.') %}
                 <div class="d-flex flex-column gap-3">
-                    {{ baseline_card('Khu nghỉ dưỡng Cát Bà', 'National Park', 'bg-danger text-white',
+                    {{ baseline_card('Khu nghỉ dưỡng Cát Bà', 'National Park', 'bg-danger-subtle text-danger border border-danger-subtle',
                         'Park: 12.0 hectares. Severity: High (1.5x). Offset: No.',
                         'Base Rate: 250M VND/ha',
                         'Fee', 'base1-eff') }}
 
-                    {{ baseline_card('Cáp treo sinh thái Phú Quốc', 'Reserve Offset', 'bg-warning text-dark',
+                    {{ baseline_card('Cáp treo sinh thái Phú Quốc', 'Reserve Offset', 'bg-warning-subtle text-warning border border-warning-subtle',
                         'Reserve: 8.0 hectares. Severity: Medium (1.2x). Offset: Yes (40% off).',
                         'Base Rate: 180M VND/ha',
                         'Fee', 'base2-eff') }}
 
-                    {{ baseline_card('Trạm radar Sơn Trà (Exempt)', 'Exempt', 'bg-success text-white',
+                    {{ baseline_card('Trạm radar Sơn Trà (Exempt)', 'Exempt', 'bg-success-subtle text-success border border-success-subtle',
                         'Landscape: 1.5 hectares. Exemption: National Defense.',
                         'Area: 1.5 ha',
                         'Reason', 'base3-reason') }}
@@ -259,7 +263,7 @@
         {# ── Bảng lịch sử Đa dạng sinh học ── #}
         <div class="col-lg-12">
             {% call data_table('Biodiversity Assessments History Log', 'bi bi-clock-history', 'history-table-v68', 'No logs available.', 10) %}
-                <thead class="table-dark">
+                <thead>
                     <tr>
                         <th>ID</th>
                         <th>Project Name</th>

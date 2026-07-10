@@ -99,6 +99,11 @@
         box-shadow: 0 4px 12px rgba(2, 195, 154, 0.3) !important;
     }
 
+    .btn-info:active {
+        transform: translateY(0) scale(0.98) !important;
+        box-shadow: 0 2px 6px rgba(2, 195, 154, 0.2) !important;
+    }
+
     /* Result Panel Animation & Aesthetics */
     @keyframes calcPulse {
         0% {
@@ -160,8 +165,8 @@
     }
 
     .table thead {
-        background-color: var(--wise-primary) !important;
-        color: #fff !important;
+        background-color: rgba(0, 45, 4, 0.05) !important;
+        color: var(--wise-primary) !important;
     }
 
     .table th {
@@ -223,7 +228,7 @@
                     </div>
                     {{ number_input('input-revenue', 'Preceding Year Revenue (VND):', 45000000000) }}
                     {{ number_input('input-import-val', 'Preceding Year Import Value (VND):', 5000000000) }}
-                    {{ calc_button('btn-calc-epr', 'Calculate EPR Fee') }}
+                    {{ calc_button('btn-calc-epr', 'Calculate EPR Fee', 'btn-info text-white') }}
                 </div>
                 {% call result_panel('Calculation Result', 'text-success', 'res-notes') %}
                     {{ result_field('Charge Rate:', 'res-rate') }}
@@ -243,13 +248,13 @@
         <div class="col-lg-6">
             {% call glass_card('EPR Compliance Baselines', 'bi bi-shield-check', 'text-success') %}
                 <div class="d-flex flex-column gap-3">
-                    {{ baseline_card('Laptops standard batch', '500 units', 'bg-success',
+                    {{ baseline_card('Laptops standard batch', '500 units', 'bg-success-subtle text-success border border-success-subtle',
                         'Rate: 20k VND/unit. Standard charge applies.',
                         'Exempt: No', 'Fee', 'base1-eff') }}
-                    {{ baseline_card('Batteries batch', '1,200 kg', 'bg-success',
+                    {{ baseline_card('Batteries batch', '1,200 kg', 'bg-success-subtle text-success border border-success-subtle',
                         'Rate: 50k VND/kg. Standard charge applies.',
                         'Exempt: No', 'Fee', 'base2-eff') }}
-                    {{ baseline_card('Exported Solar Panels (Exempt)', 'Export Exempt', 'bg-danger',
+                    {{ baseline_card('Exported Solar Panels (Exempt)', 'Export Exempt', 'bg-danger-subtle text-danger border border-danger-subtle',
                         'Solar panel: 1,500 units. Exemption: Designated for Export.',
                         'Exempt: Yes', 'Notes', 'base3-notes') }}
                 </div>
@@ -310,7 +315,7 @@
         {# ── Bảng lịch sử tuân thủ EPR ── #}
         <div class="col-lg-12">
             {% call data_table('EPR Compliance History Log', 'bi bi-clock-history', 'history-table-v71', 'No logs available.', 12) %}
-            <thead class="table-dark">
+            <thead>
                 <tr>
                     <th>ID</th><th>Category</th><th>Quantity</th><th>Export</th>
                     <th>Rev Threshold</th><th>Imp Threshold</th><th>Rate</th>

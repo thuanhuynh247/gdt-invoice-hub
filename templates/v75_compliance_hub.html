@@ -84,6 +84,11 @@
         box-shadow: 0 4px 12px rgba(2, 195, 154, 0.3) !important;
     }
 
+    .btn-info:active {
+        transform: translateY(0) scale(0.98) !important;
+        box-shadow: 0 2px 6px rgba(2, 195, 154, 0.2) !important;
+    }
+
     /* Result Panel Animation & Aesthetics */
     @keyframes calcPulse {
         0% {
@@ -145,8 +150,8 @@
     }
 
     .table thead {
-        background-color: var(--wise-primary) !important;
-        color: #fff !important;
+        background-color: rgba(0, 45, 4, 0.05) !important;
+        color: var(--wise-primary) !important;
     }
 
     .table th {
@@ -202,7 +207,7 @@
                     {{ switch_input('input-medical', 'Medical Containment Packaging (Exempt)', col='col-md-6') }}
                     
                     <div class="col-12 text-end">
-                        <button id="btn-calc-levy" class="btn btn-success btn-sm text-white fw-bold">
+                        <button id="btn-calc-levy" class="btn btn-info btn-sm text-white fw-bold">
                             <i class="bi bi-play-fill me-1" aria-hidden="true"></i> Calculate Plastics Levy
                         </button>
                     </div>
@@ -232,15 +237,15 @@
         <div class="col-lg-6">
             {% call glass_card('Ocean Pollution Levy Baselines', 'bi bi-shield-check', 'text-success') %}
                 <div class="d-flex flex-column gap-3">
-                    {{ baseline_card('Microbeads in cosmetic creams batch', '15 kg', 'bg-success',
+                    {{ baseline_card('Microbeads in cosmetic creams batch', '15 kg', 'bg-success-subtle text-success border border-success-subtle',
                         'Rate: 150,000 VND/kg. Standard charge applies.',
                         'Exempt: No', 'Fee', 'base1-eff') }}
                     
-                    {{ baseline_card('Single-use plastic bags batch', '250 kg', 'bg-success',
+                    {{ baseline_card('Single-use plastic bags batch', '250 kg', 'bg-success-subtle text-success border border-success-subtle',
                         'Rate: 50,000 VND/kg. Standard charge applies.',
                         'Exempt: No', 'Fee', 'base2-eff') }}
                     
-                    {{ baseline_card('Eco-certified biodegradable cups batch', 'Bio-Exempt', 'bg-danger',
+                    {{ baseline_card('Eco-certified biodegradable cups batch', 'Bio-Exempt', 'bg-danger-subtle text-danger border border-danger-subtle',
                         'Weight: 500 kg. Exemption: Certified biodegradable materials waiver.',
                         'Exempt: Yes', 'Notes', 'base3-notes') }}
                 </div>
@@ -315,7 +320,7 @@
         {# ── Nhật ký lịch sử tuân thủ ── #}
         <div class="col-lg-12">
             {% call data_table('Plastics Levy History Log', 'bi bi-clock-history', 'history-table-v75', 'No logs available.', 11) %}
-                <thead class="table-dark">
+                <thead>
                     <tr>
                         <th>ID</th>
                         <th>Plastic Category</th>

@@ -79,11 +79,12 @@
 
     .btn-success:hover {
         transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(22, 51, 0, 0.2) !important;
+        box-shadow: 0 4px 12px rgba(2, 195, 154, 0.3) !important;
     }
 
     .btn-success:active {
-        transform: translateY(1px);
+        transform: translateY(0) scale(0.98) !important;
+        box-shadow: 0 2px 6px rgba(2, 195, 154, 0.2) !important;
     }
 
     /* Result Panel Animation & Aesthetics */
@@ -147,8 +148,8 @@
     }
 
     .table thead {
-        background-color: var(--wise-primary) !important;
-        color: #fff !important;
+        background-color: rgba(22, 51, 0, 0.05) !important;
+        color: var(--wise-primary) !important;
     }
 
     .table th {
@@ -242,22 +243,22 @@
             {% call glass_card('ALUT Baseline Verification', 'bi bi-shield-check', 'text-success',
                 'Pre-computed target ledgers verifying calculations under core agricultural structures.') %}
                 <div class="d-flex flex-column gap-3">
-                    {{ baseline_card('Household Farmer (100% Exempt)', 'Resolution 117', 'bg-success text-white',
+                    {{ baseline_card('Household Farmer (100% Exempt)', 'Resolution 117', 'bg-success-subtle text-success border border-success-subtle',
                         'Paddy land Grade 1, 5.0 ha. Fully waived.',
                         'Standard Tax: <strong id="base1-std">-</strong>'|safe,
                         'Effective Tax', 'base1-eff') }}
 
-                    {{ baseline_card('Agricultural Cooperative (100% Exempt)', 'Resolution 117', 'bg-success text-white',
+                    {{ baseline_card('Agricultural Cooperative (100% Exempt)', 'Resolution 117', 'bg-success-subtle text-success border border-success-subtle',
                         'Tea plantation Grade 2, 12.0 ha. Fully waived.',
                         'Standard Tax: <strong id="base2-std">-</strong>'|safe,
                         'Effective Tax', 'base2-eff') }}
 
-                    {{ baseline_card('State Rubber Farm (50% Reduced)', '50% Waiver', 'bg-warning text-dark',
+                    {{ baseline_card('State Rubber Farm (50% Reduced)', '50% Waiver', 'bg-warning-subtle text-warning border border-warning-subtle',
                         'Perennial trees Grade 1, 50.0 ha. Subject to half tax.',
                         'Standard Tax: <strong id="base3-std">-</strong>'|safe,
                         'Effective Tax', 'base3-eff') }}
 
-                    {{ baseline_card('Commercial Producer (No Waiver)', 'Taxable', 'bg-danger text-white',
+                    {{ baseline_card('Commercial Producer (No Waiver)', 'Taxable', 'bg-danger-subtle text-danger border border-danger-subtle',
                         'Annual crop Grade 3, 10.0 ha. Standard rate applies.',
                         'Standard Tax: <strong id="base4-std">-</strong>'|safe,
                         'Effective Tax', 'base4-eff') }}
@@ -274,7 +275,7 @@
         {# ── Bảng lịch sử tuân thủ ALUT ── #}
         <div class="col-lg-12">
             {% call data_table('Historical Audit Log', 'bi bi-clock-history', 'history-table-v60', 'No logs.', 11) %}
-                <thead class="table-dark">
+                <thead>
                     <tr>
                         <th>ID</th>
                         <th>Description</th>

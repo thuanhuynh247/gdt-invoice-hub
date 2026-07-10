@@ -83,6 +83,11 @@
         box-shadow: 0 4px 12px rgba(2, 195, 154, 0.3) !important;
     }
 
+    .btn-primary:active {
+        transform: translateY(0) scale(0.98) !important;
+        box-shadow: 0 2px 6px rgba(2, 195, 154, 0.2) !important;
+    }
+
     /* Result Panel Animation & Aesthetics */
     @keyframes calcPulse {
         0% { 
@@ -144,8 +149,8 @@
     }
 
     .table thead {
-        background-color: var(--wise-primary) !important;
-        color: #fff !important;
+        background-color: rgba(0, 45, 4, 0.05) !important;
+        color: var(--wise-primary) !important;
     }
 
     .table th {
@@ -231,22 +236,22 @@
             {% call glass_card('EPR Baseline Verification', 'bi bi-shield-check', 'text-primary',
                 'Pre-computed target ledgers verifying EPR contributions under regulatory rules.') %}
                 <div class="d-flex flex-column gap-3">
-                    {{ baseline_card('Plastic Packaging Standard (No exemption)', 'Plastic Packaging', 'bg-danger text-white',
+                    {{ baseline_card('Plastic Packaging Standard (No exemption)', 'Plastic Packaging', 'bg-danger-subtle text-danger border border-danger-subtle',
                         '100,000 kg plastic packaging. R=22%, Fs=8,000 VND/kg. Enterprise above thresholds.',
                         'Total Contribution: <strong id="base1-tot">-</strong>'|safe,
                         'Effective', 'base1-eff') }}
 
-                    {{ baseline_card('Paper Carton Packaging Standard', 'Paper Carton', 'bg-secondary text-white',
+                    {{ baseline_card('Paper Carton Packaging Standard', 'Paper Carton', 'bg-secondary-subtle text-secondary border border-secondary-subtle',
                         '250,000 kg paper packaging. R=15%, Fs=2,500 VND/kg. Enterprise above thresholds.',
                         'Total Contribution: <strong id="base2-tot">-</strong>'|safe,
                         'Effective', 'base2-eff') }}
 
-                    {{ baseline_card('Small Business Revenue Exemption (100% Exempt)', 'Exempt', 'bg-success text-white',
+                    {{ baseline_card('Small Business Revenue Exemption (100% Exempt)', 'Exempt', 'bg-success-subtle text-success border border-success-subtle',
                         '15,000 kg plastic. Annual revenue: 25B VND (< 30B VND threshold).',
                         'Total Contribution: <strong id="base3-tot">-</strong>'|safe,
                         'Reason', 'base3-reason') }}
 
-                    {{ baseline_card('Certified Closed-Loop Recycling (100% Exempt)', 'Exempt', 'bg-success text-white',
+                    {{ baseline_card('Certified Closed-Loop Recycling (100% Exempt)', 'Exempt', 'bg-success-subtle text-success border border-success-subtle',
                         'Lead-acid batteries. Certified recycling facility meets 18% mandatory rate.',
                         'Total Contribution: <strong id="base4-tot">-</strong>'|safe,
                         'Reason', 'base4-reason') }}
@@ -263,7 +268,7 @@
         {# ── Bảng lịch sử tuân thủ EPR ── #}
         <div class="col-lg-12">
             {% call data_table('Historical Audit Log', 'bi bi-clock-history', 'history-table-v65', 'No logs.', 11) %}
-                <thead class="table-dark">
+                <thead>
                     <tr>
                         <th>ID</th>
                         <th>Description</th>

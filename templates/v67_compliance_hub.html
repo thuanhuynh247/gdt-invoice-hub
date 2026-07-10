@@ -84,6 +84,10 @@
         box-shadow: 0 4px 12px rgba(2, 195, 154, 0.3) !important;
     }
 
+    .btn-info:active, .btn-success:active, .btn-primary:active {
+        transform: scale(0.98) !important;
+    }
+
     /* Result Panel Animation & Aesthetics */
     @keyframes calcPulse {
         0% {
@@ -145,11 +149,11 @@
     }
 
     .table thead {
-        background-color: var(--wise-primary) !important;
-        color: #fff !important;
+        background-color: rgba(0, 45, 4, 0.05) !important;
     }
 
-    .table th {
+    .table thead th {
+        color: var(--wise-primary) !important;
         font-family: 'Outfit', sans-serif;
         font-weight: 600;
         text-transform: uppercase;
@@ -206,7 +210,7 @@
                     {{ number_input('input-volume', 'Volume (Tonnes):', 650.0, step='0.1', col='col-md-6') }}
                     {{ number_input('input-value', 'Cargo Value (VND):', 4800000000, col='col-md-6') }}
                     
-                    {{ calc_button('btn-calc-scrap', 'Run Compliance Calculation', 'btn-success', col='col-12 text-end') }}
+                    {{ calc_button('btn-calc-scrap', 'Run Compliance Calculation', 'btn-info text-white', col='col-12 text-end') }}
                 </div>
                 {% call result_panel('Calculation Result', 'text-success', 'res-exemption-reason') %}
                     {{ result_field('Applied Deposit Rate (%):', 'res-rate') }}
@@ -225,17 +229,17 @@
             {% call glass_card('Scrap Deposit Baselines', 'bi bi-shield-check', 'text-success',
                 'Pre-computed target ledgers verifying scrap import environmental deposit liabilities under Decree 08/2022.') %}
                 <div class="d-flex flex-column gap-3">
-                    {{ baseline_card('Lô phế liệu sắt thép HP', 'Steel', 'bg-secondary text-white',
+                    {{ baseline_card('Lô phế liệu sắt thép HP', 'Steel', 'bg-secondary-subtle text-secondary border border-secondary-subtle',
                         'Steel: 600 tonnes. Value: 5.0B VND. Rate: 15% (bracket: 500-1000t).',
                         'Valuation: <strong id="base1-val">-</strong>'|safe,
                         'Deposit', 'base1-eff') }}
 
-                    {{ baseline_card('Lô nhựa PET tái chế', 'Plastic', 'bg-secondary text-white',
+                    {{ baseline_card('Lô nhựa PET tái chế', 'Plastic', 'bg-secondary-subtle text-secondary border border-secondary-subtle',
                         'Plastic: 80 tonnes. Value: 1.5B VND. Rate: 18% (bracket: < 100t).',
                         'Valuation: <strong id="base2-val">-</strong>'|safe,
                         'Deposit', 'base2-eff') }}
 
-                    {{ baseline_card('Mẫu thử nghiệm nhựa sinh học (Exempt)', 'Exempt', 'bg-success text-white',
+                    {{ baseline_card('Mẫu thử nghiệm nhựa sinh học (Exempt)', 'Exempt', 'bg-success-subtle text-success border border-success-subtle',
                         'Plastic: 3 tonnes for scientific analysis. Under 5t research limit.',
                         'Weight: <strong>3 tonnes</strong>'|safe,
                         'Reason', 'base3-reason') }}
@@ -252,7 +256,7 @@
         {# ── Bảng lịch sử Ký Quỹ ── #}
         <div class="col-lg-12">
             {% call data_table('Deposit Compliance History Log', 'bi bi-clock-history', 'history-table-v67', 'No logs available.', 10) %}
-                <thead class="table-dark">
+                <thead>
                     <tr>
                         <th>ID</th>
                         <th>Description / BL</th>

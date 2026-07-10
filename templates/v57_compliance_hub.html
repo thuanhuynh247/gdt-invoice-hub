@@ -251,7 +251,7 @@
                         'Value: <strong id="base2-value">-</strong>'|safe,
                         'Fee', 'base2-fee') }}
 
-                    {{ baseline_card('Diplomatic Exempt', 'Exempt', 'bg-success text-white',
+                    {{ baseline_card('Diplomatic Exempt', 'Exempt', 'bg-success-subtle text-success border border-success-subtle',
                         'Embassy vehicle - fully exempt.',
                         'Value: <strong id="base3-value">-</strong>'|safe,
                         'Reason', 'base3-reason') }}
@@ -274,7 +274,7 @@
         <div class="col-12">
             {% call data_table('Historical Audit Log', 'bi bi-clock-history', 'history-table-v57',
                 default_msg='No logs. Run calculator.', col_count=10) %}
-                <thead class="table-dark">
+                <thead>
                     <tr>
                         <th>ID</th>
                         <th>Asset</th>

@@ -75,12 +75,17 @@
         border-radius: 8px !important;
         padding: 0.6rem 1.25rem !important;
         font-weight: 600 !important;
-        transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+        transition: transform 0.15s ease, box-shadow 0.15s ease !important;
     }
 
     .btn-info:hover {
         transform: translateY(-1px);
         box-shadow: 0 4px 12px rgba(2, 195, 154, 0.3) !important;
+    }
+
+    .btn-info:active {
+        transform: translateY(0) scale(0.98) !important;
+        box-shadow: 0 2px 6px rgba(2, 195, 154, 0.2) !important;
     }
 
     /* Result Panel Animation & Aesthetics */
@@ -144,8 +149,8 @@
     }
 
     .table thead {
-        background-color: var(--wise-primary) !important;
-        color: #fff !important;
+        background-color: rgba(0, 45, 4, 0.05) !important;
+        color: var(--wise-primary) !important;
     }
 
     .table th {
@@ -225,7 +230,7 @@
                         </div>
                     </div>
                     
-                    {{ calc_button('btn-calc-epfe', 'Run Calculation', 'btn-info text-dark', col='col-12 text-end') }}
+                    {{ calc_button('btn-calc-epfe', 'Run Calculation', 'btn-info text-white', col='col-12 text-end') }}
                 </div>
                 {% call result_panel('Calculation Result', 'text-info', 'res-exemption-reason') %}
                     {{ result_field('Base Fixed Fee:', 'res-base-fee') }}
@@ -245,22 +250,22 @@
             {% call glass_card('EPFE Baseline Verification', 'bi bi-shield-check', 'text-info',
                 'Pre-computed target ledgers verifying emissions charges under regulatory rules.') %}
                 <div class="d-flex flex-column gap-3">
-                    {{ baseline_card('Cement Factory Emission (Subject to monitoring)', 'Quarterly', 'bg-secondary',
+                    {{ baseline_card('Cement Factory Emission (Subject to monitoring)', 'Quarterly', 'bg-secondary-subtle text-secondary border border-secondary-subtle',
                         'Dust: 1,200kg, NOx: 800kg, SOx: 1,500kg, CO: 2,000kg. Quarterly period.',
                         'Total Fee: <strong id="base1-tot">-</strong>'|safe,
                         'Effective', 'base1-eff') }}
 
-                    {{ baseline_card('Small General Industrial Workshop (No monitoring)', 'Fixed only', 'bg-warning text-dark',
+                    {{ baseline_card('Small General Industrial Workshop (No monitoring)', 'Fixed only', 'bg-warning-subtle text-warning border border-warning-subtle',
                         'Not subject to mandatory continuous emissions monitoring. Annual period.',
                         'Total Fee: <strong id="base2-tot">-</strong>'|safe,
                         'Effective', 'base2-eff') }}
 
-                    {{ baseline_card('Solar Power Plant Clean Tech (100% Exempt)', 'Exempt', 'bg-success text-white',
+                    {{ baseline_card('Solar Power Plant Clean Tech (100% Exempt)', 'Exempt', 'bg-success-subtle text-success border border-success-subtle',
                         'Certified zero-emission technology stack. Annual period.',
                         'Total Fee: <strong id="base3-tot">-</strong>'|safe,
                         'Reason', 'base3-reason') }}
 
-                    {{ baseline_card('Small Household Business (100% Exempt)', 'Exempt', 'bg-success text-white',
+                    {{ baseline_card('Small Household Business (100% Exempt)', 'Exempt', 'bg-success-subtle text-success border border-success-subtle',
                         'Household business out of scope of environmental permit. Annual period.',
                         'Total Fee: <strong id="base4-tot">-</strong>'|safe,
                         'Reason', 'base4-reason') }}
@@ -277,7 +282,7 @@
         {# ── Bảng lịch sử tuân thủ EPFE ── #}
         <div class="col-lg-12">
             {% call data_table('Historical Audit Log', 'bi bi-clock-history', 'history-table-v62', 'No logs.', 14) %}
-                <thead class="table-dark">
+                <thead>
                     <tr>
                         <th>ID</th>
                         <th>Description</th>

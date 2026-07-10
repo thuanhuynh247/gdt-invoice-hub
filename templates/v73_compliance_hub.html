@@ -84,6 +84,11 @@
         box-shadow: 0 4px 12px rgba(2, 195, 154, 0.3) !important;
     }
 
+    .btn-info:active {
+        transform: translateY(0) scale(0.98) !important;
+        box-shadow: 0 2px 6px rgba(2, 195, 154, 0.2) !important;
+    }
+
     /* Result Panel Animation & Aesthetics */
     @keyframes calcPulse {
         0% {
@@ -145,8 +150,8 @@
     }
 
     .table thead {
-        background-color: var(--wise-primary) !important;
-        color: #fff !important;
+        background-color: rgba(0, 45, 4, 0.05) !important;
+        color: var(--wise-primary) !important;
     }
 
     .table th {
@@ -203,7 +208,7 @@
                     {{ switch_input('input-research', 'Certified Academic Research Lab', col='col-md-6') }}
                     
                     <div class="col-12 text-end">
-                        <button id="btn-calc-waste" class="btn btn-success btn-sm text-white fw-bold">
+                        <button id="btn-calc-waste" class="btn btn-info btn-sm text-white fw-bold">
                             <i class="bi bi-play-fill me-1" aria-hidden="true"></i> Calculate Waste Fee
                         </button>
                     </div>
@@ -233,15 +238,15 @@
         <div class="col-lg-6">
             {% call glass_card('Hazardous Waste Baselines', 'bi bi-shield-check', 'text-success') %}
                 <div class="d-flex flex-column gap-3">
-                    {{ baseline_card('Category A (Standard waste batch)', 'Category A', 'bg-success',
+                    {{ baseline_card('Category A (Standard waste batch)', 'Category A', 'bg-success-subtle text-success border border-success-subtle',
                         'Weight: 450 kg. License application included. Rate: 2,000 VND/kg.',
                         'Exempt: No', 'Fee', 'base1-eff') }}
                     
-                    {{ baseline_card('Category B (Heavy metal/clinical)', 'Category B', 'bg-success',
+                    {{ baseline_card('Category B (Heavy metal/clinical)', 'Category B', 'bg-success-subtle text-success border border-success-subtle',
                         'Weight: 200 kg. License application included. Rate: 5,000 VND/kg.',
                         'Exempt: No', 'Fee', 'base2-eff') }}
                     
-                    {{ baseline_card('Research Lab Infectious Sample Batch', 'Lab Exempt', 'bg-danger',
+                    {{ baseline_card('Research Lab Infectious Sample Batch', 'Lab Exempt', 'bg-danger-subtle text-danger border border-danger-subtle',
                         'Weight: 100 kg. Exemption: Certified research laboratory waiver.',
                         'Exempt: Yes', 'Fee', 'base3-eff') }}
                 </div>
@@ -316,7 +321,7 @@
         {# ── Nhật ký lịch sử tuân thủ ── #}
         <div class="col-lg-12">
             {% call data_table('Hazardous Waste History Log', 'bi bi-clock-history', 'history-table-v73', 'No logs available.', 12) %}
-                <thead class="table-dark">
+                <thead>
                     <tr>
                         <th>ID</th>
                         <th>Waste Category</th>

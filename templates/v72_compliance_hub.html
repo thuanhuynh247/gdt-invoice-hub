@@ -84,6 +84,11 @@
         box-shadow: 0 4px 12px rgba(2, 195, 154, 0.3) !important;
     }
 
+    .btn-info:active {
+        transform: translateY(0) scale(0.98) !important;
+        box-shadow: 0 2px 6px rgba(2, 195, 154, 0.2) !important;
+    }
+
     /* Result Panel Animation & Aesthetics */
     @keyframes calcPulse {
         0% {
@@ -145,8 +150,8 @@
     }
 
     .table thead {
-        background-color: var(--wise-primary) !important;
-        color: #fff !important;
+        background-color: rgba(0, 45, 4, 0.05) !important;
+        color: var(--wise-primary) !important;
     }
 
     .table th {
@@ -202,7 +207,7 @@
                     {{ switch_input('input-municipal', 'Central Sewer Inflow (Exempt)', col='col-md-6') }}
                     
                     <div class="col-12 text-end">
-                        <button id="btn-calc-surcharge" class="btn btn-success btn-sm text-white fw-bold">
+                        <button id="btn-calc-surcharge" class="btn btn-info btn-sm text-white fw-bold">
                             <i class="bi bi-play-fill me-1" aria-hidden="true"></i> Calculate Surcharge
                         </button>
                     </div>
@@ -236,15 +241,15 @@
         <div class="col-lg-6">
             {% call glass_card('Wastewater Baselines', 'bi bi-shield-check', 'text-success') %}
                 <div class="d-flex flex-column gap-3">
-                    {{ baseline_card('Low-discharge Flat Rate Facility', '1,000 m³ / quarter', 'bg-success',
+                    {{ baseline_card('Low-discharge Flat Rate Facility', '1,000 m³ / quarter', 'bg-success-subtle text-success border border-success-subtle',
                         'Average: 11.1 m³/day (< 20 m³/day limit). Subtotal: Flat rate 375,000 VND.',
                         'Exempt: No', 'Fee', 'base1-eff') }}
                     
-                    {{ baseline_card('High-discharge Process Facility', '5,000 m³ / quarter', 'bg-success',
+                    {{ baseline_card('High-discharge Process Facility', '5,000 m³ / quarter', 'bg-success-subtle text-success border border-success-subtle',
                         'Average: 55.5 m³/day (> 20 m³/day limit). Pollutant load-based fees applied.',
                         'Exempt: No', 'Fee', 'base2-eff') }}
                     
-                    {{ baseline_card('Cooling Water Discharge Loop', 'Cooling Exempt', 'bg-danger',
+                    {{ baseline_card('Cooling Water Discharge Loop', 'Cooling Exempt', 'bg-danger-subtle text-danger border border-danger-subtle',
                         'Process loop closed, certified non-contact cooling. Volume: 10,000 m³.',
                         'Exempt: Yes', 'Notes', 'base3-notes') }}
                 </div>
@@ -305,7 +310,7 @@
         {# ── Nhật ký lịch sử tuân thủ ── #}
         <div class="col-lg-12">
             {% call data_table('Wastewater Compliance History Log', 'bi bi-clock-history', 'history-table-v72', 'No logs available.', 13) %}
-                <thead class="table-dark">
+                <thead>
                     <tr>
                         <th>ID</th>
                         <th>Volume (m³)</th>
@@ -388,10 +393,10 @@ document.addEventListener("DOMContentLoaded", () => {
         // Fee type badge
         const ftEl = document.getElementById("res-fee-type");
         if (r.fee_type === "pollutant_load") {
-            ftEl.className = "badge bg-warning text-dark";
+            ftEl.className = "badge bg-warning-subtle text-warning border border-warning-subtle";
             ftEl.textContent = "Pollutant Load";
         } else {
-            ftEl.className = "badge bg-info text-dark";
+            ftEl.className = "badge bg-info-subtle text-info border border-info-subtle";
             ftEl.textContent = "Flat Rate";
         }
         

@@ -75,12 +75,17 @@
         border-radius: 8px !important;
         padding: 0.6rem 1.25rem !important;
         font-weight: 600 !important;
-        transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+        transition: transform 0.15s ease, box-shadow 0.15s ease !important;
     }
 
     .btn-info:hover {
         transform: translateY(-1px);
         box-shadow: 0 4px 12px rgba(2, 195, 154, 0.3) !important;
+    }
+
+    .btn-info:active {
+        transform: translateY(0) scale(0.98) !important;
+        box-shadow: 0 2px 6px rgba(2, 195, 154, 0.2) !important;
     }
 
     /* Result Panel Animation & Aesthetics */
@@ -144,8 +149,8 @@
     }
 
     .table thead {
-        background-color: var(--wise-primary) !important;
-        color: #fff !important;
+        background-color: rgba(0, 45, 4, 0.05) !important;
+        color: var(--wise-primary) !important;
     }
 
     .table th {
@@ -223,7 +228,7 @@
                         </div>
                     </div>
                     
-                    {{ calc_button('btn-calc-epfw', 'Run Calculation', 'btn-info text-dark', col='col-12 text-end') }}
+                    {{ calc_button('btn-calc-epfw', 'Run Calculation', 'btn-info text-white', col='col-12 text-end') }}
                 </div>
                 {% call result_panel('Calculation Result', 'text-info', 'res-exemption-reason') %}
                     {{ result_field('Base Fixed Fee:', 'res-base-fee') }}
@@ -243,22 +248,22 @@
             {% call glass_card('EPFW Baseline Verification', 'bi bi-shield-check', 'text-info',
                 'Pre-computed target ledgers verifying wastewater charges under regulatory rules.') %}
                 <div class="d-flex flex-column gap-3">
-                    {{ baseline_card('Urban Domestic Wastewater (10% water price)', 'Domestic', 'bg-secondary',
+                    {{ baseline_card('Urban Domestic Wastewater (10% water price)', 'Domestic', 'bg-secondary-subtle text-secondary border border-secondary-subtle',
                         '150 m³ discharge. Clean water price: 12k/m³.',
                         'Total Fee: <strong id="base1-tot">-</strong>'|safe,
                         'Effective', 'base1-eff') }}
 
-                    {{ baseline_card('Industrial Dyeing Wastewater (Surcharged)', 'Heavy Metal', 'bg-danger text-white',
+                    {{ baseline_card('Industrial Dyeing Wastewater (Surcharged)', 'Heavy Metal', 'bg-danger-subtle text-danger border border-danger-subtle',
                         '500 m³ discharge. COD, TSS, and Lead pollution charges.',
                         'Total Fee: <strong id="base2-tot">-</strong>'|safe,
                         'Effective', 'base2-eff') }}
 
-                    {{ baseline_card('Cooling Water Recycling (100% Exempt)', 'Exempt', 'bg-success text-white',
+                    {{ baseline_card('Cooling Water Recycling (100% Exempt)', 'Exempt', 'bg-success-subtle text-success border border-success-subtle',
                         '1,000 m³ discharge. Clean cooling water, closed system.',
                         'Total Fee: <strong id="base3-tot">-</strong>'|safe,
                         'Reason', 'base3-reason') }}
 
-                    {{ baseline_card('Natural Runoff Rainwater (100% Exempt)', 'Exempt', 'bg-success text-white',
+                    {{ baseline_card('Natural Runoff Rainwater (100% Exempt)', 'Exempt', 'bg-success-subtle text-success border border-success-subtle',
                         '2,000 m³ discharge. Storm rainwater drainage.',
                         'Total Fee: <strong id="base4-tot">-</strong>'|safe,
                         'Reason', 'base4-reason') }}
@@ -275,7 +280,7 @@
         {# ── Bảng lịch sử tuân thủ EPFW ── #}
         <div class="col-lg-12">
             {% call data_table('Historical Audit Log', 'bi bi-clock-history', 'history-table-v61', 'No logs.', 11) %}
-                <thead class="table-dark">
+                <thead>
                     <tr>
                         <th>ID</th>
                         <th>Description</th>

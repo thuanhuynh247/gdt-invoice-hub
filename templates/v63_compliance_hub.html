@@ -83,6 +83,11 @@
         box-shadow: 0 4px 12px rgba(2, 195, 154, 0.3) !important;
     }
 
+    .btn-info:active {
+        transform: translateY(0) scale(0.98) !important;
+        box-shadow: 0 2px 6px rgba(2, 195, 154, 0.2) !important;
+    }
+
     /* Result Panel Animation & Aesthetics */
     @keyframes calcPulse {
         0% { 
@@ -144,8 +149,8 @@
     }
 
     .table thead {
-        background-color: var(--wise-primary) !important;
-        color: #fff !important;
+        background-color: rgba(0, 45, 4, 0.05) !important;
+        color: var(--wise-primary) !important;
     }
 
     .table th {
@@ -229,22 +234,22 @@
             {% call glass_card('EPFME Baseline Verification', 'bi bi-shield-check', 'text-info',
                 'Pre-computed target ledgers verifying mineral extraction charges under regulatory rules.') %}
                 <div class="d-flex flex-column gap-3">
-                    {{ baseline_card('Standard Crude Oil Exploitation', 'Crude Oil', 'bg-secondary',
+                    {{ baseline_card('Standard Crude Oil Exploitation', 'Crude Oil', 'bg-secondary-subtle text-secondary border border-secondary-subtle',
                         '5,000 tonnes extracted. Standard rate: 100,000 VND / tonne.',
                         'Total Fee: <strong id="base1-tot">-</strong>'|safe,
                         'Effective', 'base1-eff') }}
 
-                    {{ baseline_card('Building Stone Salvage Exploitation', 'Salvage (60%)', 'bg-warning text-dark',
+                    {{ baseline_card('Building Stone Salvage Exploitation', 'Salvage (60%)', 'bg-warning-subtle text-warning border border-warning-subtle',
                         '10,000 m³ stone. Salvage discount applied (4,500 VND/m³).',
                         'Total Fee: <strong id="base2-tot">-</strong>'|safe,
                         'Effective', 'base2-eff') }}
 
-                    {{ baseline_card('Household Residential Construction (100% Exempt)', 'Exempt', 'bg-success text-white',
+                    {{ baseline_card('Household Residential Construction (100% Exempt)', 'Exempt', 'bg-success-subtle text-success border border-success-subtle',
                         '200 m³ brick clay for personal house building. Exempted.',
                         'Total Fee: <strong id="base3-tot">-</strong>'|safe,
                         'Reason', 'base3-reason') }}
 
-                    {{ baseline_card('Disaster Relief Dyke Building (100% Exempt)', 'Exempt', 'bg-success text-white',
+                    {{ baseline_card('Disaster Relief Dyke Building (100% Exempt)', 'Exempt', 'bg-success-subtle text-success border border-success-subtle',
                         '15,000 m³ building stone extracted for flood relief dam fortification.',
                         'Total Fee: <strong id="base4-tot">-</strong>'|safe,
                         'Reason', 'base4-reason') }}
@@ -261,7 +266,7 @@
         {# ── Bảng lịch sử tuân thủ EPFME ── #}
         <div class="col-lg-12">
             {% call data_table('Historical Audit Log', 'bi bi-clock-history', 'history-table-v63', 'No logs.', 12) %}
-                <thead class="table-dark">
+                <thead>
                     <tr>
                         <th>ID</th>
                         <th>Description</th>

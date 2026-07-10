@@ -84,6 +84,11 @@
         box-shadow: 0 4px 12px rgba(2, 195, 154, 0.3) !important;
     }
 
+    .btn-info:active {
+        transform: translateY(0) scale(0.98) !important;
+        box-shadow: 0 2px 6px rgba(2, 195, 154, 0.2) !important;
+    }
+
     /* Result Panel Animation & Aesthetics */
     @keyframes calcPulse {
         0% {
@@ -145,8 +150,8 @@
     }
 
     .table thead {
-        background-color: var(--wise-primary) !important;
-        color: #fff !important;
+        background-color: rgba(0, 45, 4, 0.05) !important;
+        color: var(--wise-primary) !important;
     }
 
     .table th {
@@ -204,7 +209,7 @@
                     {{ switch_input('input-festival', 'Traditional Festival', col='col-md-4') }}
                     
                     <div class="col-12 text-end">
-                        <button id="btn-calc-surcharge" class="btn btn-success btn-sm text-white fw-bold">
+                        <button id="btn-calc-surcharge" class="btn btn-info btn-sm text-white fw-bold">
                             <i class="bi bi-play-fill me-1" aria-hidden="true"></i> Calculate Surcharge
                         </button>
                     </div>
@@ -235,15 +240,15 @@
         <div class="col-lg-6">
             {% call glass_card('Noise & Vibration Baselines', 'bi bi-shield-check', 'text-success') %}
                 <div class="d-flex flex-column gap-3">
-                    {{ baseline_card('Day Shift Construction Hub', 'Day Shift', 'bg-success',
+                    {{ baseline_card('Day Shift Construction Hub', 'Day Shift', 'bg-success-subtle text-success border border-success-subtle',
                         'Noise: 75.0 dBA. Vibration: 0.065 m/s². Surcharges apply.',
                         'Exempt: No', 'Fee', 'base1-eff') }}
                     
-                    {{ baseline_card('Night Shift Transport Hub', 'Night Shift', 'bg-success',
+                    {{ baseline_card('Night Shift Transport Hub', 'Night Shift', 'bg-success-subtle text-success border border-success-subtle',
                         'Noise: 58.0 dBA. Vibration: 0.045 m/s². 1.5x night multiplier applies.',
                         'Exempt: No', 'Fee', 'base2-eff') }}
                     
-                    {{ baseline_card('Traditional Festival Loudspeaker Event', 'Festival Exempt', 'bg-danger',
+                    {{ baseline_card('Traditional Festival Loudspeaker Event', 'Festival Exempt', 'bg-danger-subtle text-danger border border-danger-subtle',
                         'Noise: 85.0 dBA. Vibration: 0.090 m/s². Exemption: traditional cultural festival.',
                         'Exempt: Yes', 'Notes', 'base3-notes') }}
                 </div>
@@ -316,7 +321,7 @@
         {# ── Nhật ký lịch sử tuân thủ ── #}
         <div class="col-lg-12">
             {% call data_table('Acoustic & Vibration Compliance History Log', 'bi bi-clock-history', 'history-table-v74', 'No logs available.', 13) %}
-                <thead class="table-dark">
+                <thead>
                     <tr>
                         <th>ID</th>
                         <th>Noise Level (dBA)</th>

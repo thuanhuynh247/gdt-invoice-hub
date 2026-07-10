@@ -68,7 +68,7 @@
     }
 
     /* Button Enhancements */
-    .btn-success {
+    .btn-info {
         background: linear-gradient(135deg, var(--wise-accent) 0%, #00a896 100%) !important;
         border: none !important;
         color: #fff !important;
@@ -78,9 +78,13 @@
         transition: transform 0.2s ease, box-shadow 0.2s ease !important;
     }
 
-    .btn-success:hover {
+    .btn-info:hover {
         transform: translateY(-1px);
         box-shadow: 0 4px 12px rgba(2, 195, 154, 0.3) !important;
+    }
+
+    .btn-info:active, .btn-success:active, .btn-primary:active {
+        transform: scale(0.98) !important;
     }
 
     /* Result Panel Animation & Aesthetics */
@@ -144,11 +148,11 @@
     }
 
     .table thead {
-        background-color: var(--wise-primary) !important;
-        color: #fff !important;
+        background-color: rgba(0, 45, 4, 0.05) !important;
     }
 
-    .table th {
+    .table thead th {
+        color: var(--wise-primary) !important;
         font-family: 'Outfit', sans-serif;
         font-weight: 600;
         text-transform: uppercase;
@@ -206,7 +210,7 @@
                         {'value':'domestic_rural','label':'Domestic Rural Waste (Sinh hoạt nông thôn)'}
                     ], col='col-md-6') }}
                     
-                    {{ calc_button('btn-calc-epfsw', 'Run Calculation', 'btn-success', col='col-12 text-end') }}
+                    {{ calc_button('btn-calc-epfsw', 'Run Calculation', 'btn-info text-white', col='col-12 text-end') }}
                 </div>
                 {% call result_panel('Calculation Result', 'text-success', 'res-exemption-reason') %}
                     {{ result_field('Base Standard Rate:', 'res-base-rate') }}
@@ -225,22 +229,22 @@
             {% call glass_card('EPFSW Baseline Verification', 'bi bi-shield-check', 'text-success',
                 'Pre-computed target ledgers verifying solid waste charges under regulatory rules.') %}
                 <div class="d-flex flex-column gap-3">
-                    {{ baseline_card('Hazardous Waste Disposal', 'Hazardous', 'bg-danger text-white',
+                    {{ baseline_card('Hazardous Waste Disposal', 'Hazardous', 'bg-danger-subtle text-danger border border-danger-subtle',
                         '15 tonnes of toxic battery slag disposed. Standard rate: 100,000 VND / tonne.',
                         'Total Fee: <strong id="base1-tot">-</strong>'|safe,
                         'Effective', 'base1-eff') }}
 
-                    {{ baseline_card('Industrial Waste (No exemption)', 'Industrial', 'bg-secondary text-white',
+                    {{ baseline_card('Industrial Waste (No exemption)', 'Industrial', 'bg-secondary-subtle text-secondary border border-secondary-subtle',
                         '120 tonnes of steel mill dust. Standard rate: 40,000 VND / tonne.',
                         'Total Fee: <strong id="base2-tot">-</strong>'|safe,
                         'Effective', 'base2-eff') }}
 
-                    {{ baseline_card('On-Site Coal Ash Self-Recycling (100% Exempt)', 'Exempt', 'bg-success text-white',
+                    {{ baseline_card('On-Site Coal Ash Self-Recycling (100% Exempt)', 'Exempt', 'bg-success-subtle text-success border border-success-subtle',
                         '80 tonnes coal ash recycled to make building bricks. Exempted.',
                         'Total Fee: <strong id="base3-tot">-</strong>'|safe,
                         'Reason', 'base3-reason') }}
 
-                    {{ baseline_card('Straw and Husk Composting (100% Exempt)', 'Exempt', 'bg-success text-white',
+                    {{ baseline_card('Straw and Husk Composting (100% Exempt)', 'Exempt', 'bg-success-subtle text-success border border-success-subtle',
                         '45 tonnes straw composted for organic fertilizer production.',
                         'Total Fee: <strong id="base4-tot">-</strong>'|safe,
                         'Reason', 'base4-reason') }}
@@ -257,7 +261,7 @@
         {# ── Bảng lịch sử tuân thủ EPFSW ── #}
         <div class="col-lg-12">
             {% call data_table('Historical Audit Log', 'bi bi-clock-history', 'history-table-v64', 'No logs.', 10) %}
-                <thead class="table-dark">
+                <thead>
                     <tr>
                         <th>ID</th>
                         <th>Description</th>

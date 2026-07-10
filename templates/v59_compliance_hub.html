@@ -243,12 +243,12 @@
                         'Value: <strong id="base2-val">-</strong>'|safe,
                         'Tax', 'base2-tax') }}
 
-                    {{ baseline_card('Idle Land 5 Years Surcharge', 'Surcharge', 'bg-warning text-dark',
+                    {{ baseline_card('Idle Land 5 Years Surcharge', 'Surcharge', 'bg-warning-subtle text-warning border border-warning-subtle',
                         'Unused land with idle surcharge.',
                         'Value: <strong id="base3-val">-</strong>'|safe,
                         'Tax', 'base3-tax') }}
 
-                    {{ baseline_card('Religious Land Exempt', 'Exempt', 'bg-success text-white',
+                    {{ baseline_card('Religious Land Exempt', 'Exempt', 'bg-success-subtle text-success border border-success-subtle',
                         'Pagoda land - fully exempt.',
                         'Value: <strong id="base4-val">-</strong>'|safe,
                         'Reason', 'base4-reason') }}
@@ -266,7 +266,7 @@
         <div class="col-12">
             {% call data_table('Historical Audit Log', 'bi bi-clock-history', 'history-table-v59',
                 default_msg='No logs.', col_count=10) %}
-                <thead class="table-dark">
+                <thead>
                     <tr>
                         <th>ID</th>
                         <th>Land</th>

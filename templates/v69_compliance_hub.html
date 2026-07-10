@@ -84,6 +84,10 @@
         box-shadow: 0 4px 12px rgba(2, 195, 154, 0.3) !important;
     }
 
+    .btn-info:active, .btn-success:active, .btn-primary:active {
+        transform: scale(0.98) !important;
+    }
+
     /* Result Panel Animation & Aesthetics */
     @keyframes calcPulse {
         0% {
@@ -145,11 +149,11 @@
     }
 
     .table thead {
-        background-color: var(--wise-primary) !important;
-        color: #fff !important;
+        background-color: rgba(0, 45, 4, 0.05) !important;
     }
 
-    .table th {
+    .table thead th {
+        color: var(--wise-primary) !important;
         font-family: 'Outfit', sans-serif;
         font-weight: 600;
         text-transform: uppercase;
@@ -211,7 +215,7 @@
                     </div>
                     {{ switch_input('input-double-hull', 'Double-Hull Vessels or Double-Walled Storage Tanks (30% discount)', checked=true, col='col-12') }}
                     
-                    {{ calc_button('btn-calc-spill', 'Run Spill Risk Assessment', 'btn-success', col='col-12 text-end') }}
+                    {{ calc_button('btn-calc-spill', 'Run Spill Risk Assessment', 'btn-info text-white', col='col-12 text-end') }}
                 </div>
                 {% call result_panel('Assessment Result', 'text-success', 'res-exemption-reason') %}
                     {{ result_field('Quarterly Base Fee:', 'res-base') }}
@@ -231,17 +235,17 @@
             {% call glass_card('Spill Fee Baselines', 'bi bi-shield-check', 'text-success',
                 'Pre-computed target ledgers verifying oil spill response liabilities under Decision 12/2021/QĐ-TTg.') %}
                 <div class="d-flex flex-column gap-3">
-                    {{ baseline_card('Kho cảng xăng dầu Nhà Bè', 'Terminal', 'bg-danger text-white',
+                    {{ baseline_card('Kho cảng xăng dầu Nhà Bè', 'Terminal', 'bg-danger-subtle text-danger border border-danger-subtle',
                         'Terminal: 25,000 m³. Base: 30M. Surcharge: 12.5M. Double-hull: No.',
                         'Surcharge Rate: 500 VND/m³',
                         'Fee', 'base1-eff') }}
 
-                    {{ baseline_card('Đội tàu dầu Petrolimex V', 'Transport Fleet', 'bg-warning text-dark',
+                    {{ baseline_card('Đội tàu dầu Petrolimex V', 'Transport Fleet', 'bg-warning-subtle text-warning border border-warning-subtle',
                         'Fleet: 15,000 m³. Base: 20M. Surcharge: 7.5M. Double-hull: Yes (30% off).',
                         'Surcharge: 7.5M VND',
                         'Fee', 'base2-eff') }}
 
-                    {{ baseline_card('Kho xăng dầu quân đội K52 (Exempt)', 'Exempt', 'bg-success text-white',
+                    {{ baseline_card('Kho xăng dầu quân đội K52 (Exempt)', 'Exempt', 'bg-success-subtle text-success border border-success-subtle',
                         'Capacity: 8,000 m³. Exemption: Military Petroleum Reserves.',
                         'Base: 30M VND',
                         'Reason', 'base3-reason') }}
@@ -258,7 +262,7 @@
         {# ── Bảng lịch sử Phí Sự Cố Dầu ── #}
         <div class="col-lg-12">
             {% call data_table('Spill Fee Environmental History Log', 'bi bi-clock-history', 'history-table-v69', 'No logs available.', 11) %}
-                <thead class="table-dark">
+                <thead>
                     <tr>
                         <th>ID</th>
                         <th>Facility Name</th>

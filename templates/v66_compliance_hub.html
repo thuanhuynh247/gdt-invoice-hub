@@ -84,6 +84,11 @@
         box-shadow: 0 4px 12px rgba(2, 195, 154, 0.3) !important;
     }
 
+    .btn-info:active {
+        transform: translateY(0) scale(0.98) !important;
+        box-shadow: 0 2px 6px rgba(2, 195, 154, 0.2) !important;
+    }
+
     /* Result Panel Animation & Aesthetics */
     @keyframes calcPulse {
         0% {
@@ -145,8 +150,8 @@
     }
 
     .table thead {
-        background-color: var(--wise-primary) !important;
-        color: #fff !important;
+        background-color: rgba(0, 45, 4, 0.05) !important;
+        color: var(--wise-primary) !important;
     }
 
     .table th {
@@ -212,7 +217,7 @@
                         <div class="form-text small text-muted">Decree 06/2022/NĐ-CP caps offset contribution at 10% of total emissions.</div>
                     </div>
                     
-                    {{ calc_button('btn-calc-ghg', 'Run Compliance Audit', 'btn-success', col='col-12 text-end') }}
+                    {{ calc_button('btn-calc-ghg', 'Run Compliance Audit', 'btn-info text-white', col='col-12 text-end') }}
                 </div>
                 {% call result_panel('Calculation Result', 'text-success', 'res-exemption-reason') %}
                     {{ result_field('Total CO2e (IPCC GWP):', 'res-co2e') }}
@@ -232,17 +237,17 @@
             {% call glass_card('GHG Compliance Baselines', 'bi bi-shield-check', 'text-success',
                 'Pre-computed target ledgers verifying greenhouse gas emission liabilities under Decree 06/2022.') %}
                 <div class="d-flex flex-column gap-3">
-                    {{ baseline_card('Nhà máy nhiệt điện Phả Lại', 'Energy Sector', 'bg-danger text-white',
+                    {{ baseline_card('Nhà máy nhiệt điện Phả Lại', 'Energy Sector', 'bg-danger-subtle text-danger border border-danger-subtle',
                         'CO2: 4500t, CH4: 12t, N2O: 3.5t. Standard rate: 150,000 VND / tCO2e.',
                         'CO2e: <strong id="base1-co2e">-</strong>'|safe,
                         'Fee', 'base1-eff') }}
 
-                    {{ baseline_card('Nhà máy xi măng Hà Tiên (Offset)', 'Industrial Offset', 'bg-warning text-dark',
+                    {{ baseline_card('Nhà máy xi măng Hà Tiên (Offset)', 'Industrial Offset', 'bg-warning-subtle text-warning border border-warning-subtle',
                         'CO2: 5000t, CH4: 5t, N2O: 1t. Credits: 350t (Limited to 10% cap).',
                         'Credits Used: <strong id="base2-credits">-</strong>'|safe,
                         'Fee', 'base2-eff') }}
 
-                    {{ baseline_card('Cơ sở may mặc nhỏ (Exempt)', 'Exempt', 'bg-success text-white',
+                    {{ baseline_card('Cơ sở may mặc nhỏ (Exempt)', 'Exempt', 'bg-success-subtle text-success border border-success-subtle',
                         'CO2: 200t, CH4: 0.5t, N2O: 0.1t. Under 3,000 tCO2e threshold.',
                         'CO2e: <strong id="base3-co2e">-</strong>'|safe,
                         'Reason', 'base3-reason') }}
@@ -259,7 +264,7 @@
         {# ── Bảng lịch sử tuân thủ GHG ── #}
         <div class="col-lg-12">
             {% call data_table('GHG Emissions Compliance Audit Log', 'bi bi-clock-history', 'history-table-v66', 'No logs available.', 11) %}
-                <thead class="table-dark">
+                <thead>
                     <tr>
                         <th>ID</th>
                         <th>Facility / Batch</th>
