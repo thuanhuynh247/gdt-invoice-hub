@@ -139,6 +139,20 @@ To split massive route monolithic files and ensure safe test execution and OS co
 
 **Full entry:** [20260618-webapp-routes-refactor.md](file:///d:/LearnAnyThing/Webapp%20XML/history/learnings/20260618-webapp-routes-refactor.md)
 
+---
+
+## [20260710] API-to-Frontend Configuration Contract Verification & Pre-flight Testing
+**Category:** pattern
+**Feature:** tax_chatbot_awesome_apps
+**Tags:** [testing, api-contract, template-compilation, web-ui]
+
+To ensure correct rendering of color-coded components and avoid UI styling failures on dynamically compiled pages:
+- Enforce strict structural key matching between response payloads returned by Python backend route engines and JavaScript styling/class dictionaries embedded inside template files.
+- Integrate automated python compilation, database integrity checks, and route rendering tests into a single pre-flight gate running before starting local servers or manual UAT.
+
+**Full entry:** [20260710-tax-chatbot-awesome-apps.md](file:///d:/LearnAnyThing/Webapp%20XML/history/learnings/20260710-tax-chatbot-awesome-apps.md)
+
+
 
 
 
