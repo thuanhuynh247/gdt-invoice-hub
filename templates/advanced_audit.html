@@ -1592,7 +1592,7 @@ function generateAndPreviewPitXml() {
     .then(res => res.json())
     .then(data => {
         if (data.status === "success") {
-            generatedXmlString = data.xml_content;
+            generatedXmlString = data.xml || data.xml_content;
             document.getElementById("xml-preview-area").classList.remove("d-none");
             
             const safeXml = generatedXmlString
