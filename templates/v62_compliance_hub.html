@@ -33,6 +33,12 @@
         font-family: 'Inter', sans-serif;
     }
 
+    .text-gradient {
+        background: linear-gradient(135deg, var(--wise-primary) 0%, var(--wise-accent) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
     /* Premium Glass Card Adjustments */
     .glass-card {
         background: var(--glass-bg) !important;
@@ -83,9 +89,25 @@
         box-shadow: 0 4px 12px rgba(2, 195, 154, 0.3) !important;
     }
 
-    .btn-info:active {
+    .btn-success {
+        background: linear-gradient(135deg, var(--wise-primary) 0%, #122115 100%) !important;
+        border: 1px solid var(--wise-border) !important;
+        color: #fff !important;
+        border-radius: 8px !important;
+        padding: 0.6rem 1.25rem !important;
+        font-weight: 600 !important;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease !important;
+    }
+
+    .btn-success:hover {
+        background: linear-gradient(135deg, #122115 0%, var(--wise-primary) 100%) !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 45, 4, 0.15) !important;
+    }
+
+    .btn-info:active, .btn-success:active,     .btn-info:active, .btn-success:active, .btn-primary:active, .btn-warning:active {
         transform: translateY(0) scale(0.98) !important;
-        box-shadow: 0 2px 6px rgba(2, 195, 154, 0.2) !important;
+        box-shadow: 0 2px 6px rgba(0, 45, 4, 0.1) !important;
     }
 
     /* Result Panel Animation & Aesthetics */
@@ -148,12 +170,12 @@
         border: 1px solid rgba(0, 45, 4, 0.08);
     }
 
-    .table thead {
-        background-color: rgba(0, 45, 4, 0.05) !important;
-        color: var(--wise-primary) !important;
+        .table thead {
+        background-color: var(--wise-primary-light) !important;
     }
 
-    .table th {
+        .table thead th {
+        color: var(--wise-primary) !important;
         font-family: 'Outfit', sans-serif;
         font-weight: 600;
         text-transform: uppercase;

@@ -33,6 +33,12 @@
         font-family: 'Inter', sans-serif;
     }
 
+    .text-gradient {
+        background: linear-gradient(135deg, var(--wise-primary) 0%, var(--wise-accent) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
     /* Premium Glass Card Adjustments */
     .glass-card {
         background: var(--glass-bg) !important;
@@ -68,23 +74,40 @@
     }
 
     /* Button Enhancements */
-    .btn-success, .btn-primary, .btn-warning {
-        background: linear-gradient(135deg, var(--wise-primary) 0%, #264d13 100%) !important;
+    .btn-info {
+        background: linear-gradient(135deg, var(--wise-accent) 0%, #00a896 100%) !important;
         border: none !important;
-        border-radius: 8px !important;
         color: #fff !important;
+        border-radius: 8px !important;
         padding: 0.6rem 1.25rem !important;
         font-weight: 600 !important;
         transition: transform 0.2s ease, box-shadow 0.2s ease !important;
     }
 
+    .btn-info:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(2, 195, 154, 0.3) !important;
+    }
+
+    .btn-success, .btn-primary, .btn-warning {
+        background: linear-gradient(135deg, var(--wise-primary) 0%, #264d13 100%) !important;
+        border: 1px solid var(--wise-border) !important;
+        border-radius: 8px !important;
+        color: #fff !important;
+        padding: 0.6rem 1.25rem !important;
+        font-weight: 600 !important;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease !important;
+    }
+
     .btn-success:hover, .btn-primary:hover, .btn-warning:hover {
+        background: linear-gradient(135deg, #264d13 0%, var(--wise-primary) 100%) !important;
         transform: translateY(-1px);
         box-shadow: 0 4px 12px rgba(22, 51, 0, 0.2) !important;
     }
 
-    .btn-success:active, .btn-primary:active, .btn-warning:active {
-        transform: translateY(1px);
+    .btn-info:active, .btn-success:active, .btn-primary:active,     .btn-info:active, .btn-success:active, .btn-primary:active, .btn-warning:active {
+        transform: translateY(0) scale(0.98) !important;
+        box-shadow: 0 2px 6px rgba(0, 45, 4, 0.1) !important;
     }
 
     /* Result Panel Animation & Aesthetics */
@@ -147,12 +170,12 @@
         border: 1px solid rgba(22, 51, 0, 0.08);
     }
 
-    .table thead {
-        background-color: var(--wise-primary) !important;
-        color: #fff !important;
+        .table thead {
+        background-color: var(--wise-primary-light) !important;
     }
 
-    .table th {
+        .table thead th {
+        color: var(--wise-primary) !important;
         font-family: 'Outfit', sans-serif;
         font-weight: 600;
         text-transform: uppercase;
@@ -220,7 +243,7 @@
                     ], col='col-md-6') }}
                     {{ number_input('input-quantity', 'Quantity:', 10, col='col-md-6') }}
                     {{ number_input('input-unit-price', 'Unit Price (VND):', 10000000, col='col-md-6') }}
-                    {{ calc_button('btn-calculate-iet', 'Run Calculation', 'btn-warning text-dark') }}
+                    {{ calc_button('btn-calculate-iet', 'Run Calculation', 'btn-info text-white') }}
                 </div>
 
                 {% call result_panel('Calculation Result', 'text-warning', 'res-notes') %}
