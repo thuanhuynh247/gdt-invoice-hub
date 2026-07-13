@@ -2100,3 +2100,66 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
     border-radius: 3px;
 }
 
+/* ===== Premium Baseline Card Variants (Light & Dark Theme Compliant) ===== */
+.baseline-card-premium {
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    border-radius: 14px !important;
+    border-width: 1px !important;
+    border-style: solid !important;
+    padding: 1rem !important;
+    margin-bottom: 0.75rem;
+}
+
+.baseline-card-premium .text-dark {
+    color: var(--text-primary) !important;
+}
+
+/* Success / Exempt / Low-Risk Variant */
+.baseline-card-success {
+    background-color: rgba(16, 185, 129, 0.02) !important;
+    border-color: rgba(16, 185, 129, 0.1) !important;
+}
+.baseline-card-success:hover {
+    background-color: rgba(16, 185, 129, 0.05) !important;
+    border-color: rgba(16, 185, 129, 0.3) !important;
+    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.08) !important;
+    transform: translateY(-2px);
+}
+
+/* Danger / Non-Exempt / High-Risk Variant */
+.baseline-card-danger {
+    background-color: rgba(239, 68, 68, 0.02) !important;
+    border-color: rgba(239, 68, 68, 0.1) !important;
+}
+.baseline-card-danger:hover {
+    background-color: rgba(239, 68, 68, 0.05) !important;
+    border-color: rgba(239, 68, 68, 0.3) !important;
+    box-shadow: 0 6px 16px rgba(239, 68, 68, 0.08) !important;
+    transform: translateY(-2px);
+}
+
+/* Warning / Offset / Mid-Risk Variant */
+.baseline-card-warning {
+    background-color: rgba(245, 158, 11, 0.02) !important;
+    border-color: rgba(245, 158, 11, 0.1) !important;
+}
+.baseline-card-warning:hover {
+    background-color: rgba(245, 158, 11, 0.05) !important;
+    border-color: rgba(245, 158, 11, 0.3) !important;
+    box-shadow: 0 6px 16px rgba(245, 158, 11, 0.08) !important;
+    transform: translateY(-2px);
+}
+
+/* Default / Secondary Variant */
+.baseline-card-default {
+    background-color: var(--primary-accent-soft) !important;
+    border-color: var(--border-card) !important;
+}
+.baseline-card-default:hover {
+    background-color: rgba(106, 108, 106, 0.05) !important;
+    border-color: rgba(106, 108, 106, 0.3) !important;
+    box-shadow: 0 6px 16px rgba(106, 108, 106, 0.08) !important;
+    transform: translateY(-2px);
+}
+
+

@@ -8,10 +8,35 @@ from typing import List, Dict
 from extensions import db
 from invoices.models import Invoice, BankTransaction, AIAuditResult
 
+def remove_accents(s: str) -> str:
+    if not s:
+        return ""
+    accents_map = {
+        'a': 'áàảãạăắằẳẵặâấầẩẫậ',
+        'A': 'ÁÀẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬ',
+        'd': 'đ',
+        'D': 'Đ',
+        'e': 'éèẻẽẹêếềểễệ',
+        'E': 'ÉÈẺẼẸÊẾỀỂỄỆ',
+        'i': 'íìỉĩị',
+        'I': 'ÍÌỈĨỊ',
+        'o': 'óòỏõọôốồổỗộơớờởỡợ',
+        'O': 'ÓÒỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢ',
+        'u': 'úùủũụưứừửữự',
+        'U': 'ÚÙỦŨỤƯỨỪỬỮỰ',
+        'y': 'ýỳỷỹỵ',
+        'Y': 'ÝỲỶỸỴ'
+    }
+    char_map = {}
+    for k, v in accents_map.items():
+        for char in v:
+            char_map[char] = k
+    return "".join(char_map.get(c, c) for c in s)
+
 def clean_text(text: str) -> str:
     if not text:
         return ""
-    text = text.lower()
+    text = remove_accents(text.lower())
     suffixes = [
         "công ty", "cong ty", "tnhh", "cổ phần", "co phan", "cp", 
         "một thành viên", "1 thành viên", "1 tv", "mtv", "group", "jsc",
@@ -22,6 +47,7 @@ def clean_text(text: str) -> str:
     # Remove non-alphanumeric chars but keep spaces
     text = "".join(c if c.isalnum() or c.isspace() else " " for c in text)
     return " ".join(text.split())
+
 
 def calculate_fuzzy_score(name1: str, name2: str) -> float:
     c1 = clean_text(name1)
@@ -258,8 +284,15 @@ class ReconciliationEngine:
                     for j in range(i + 1, n_invs):
                         i1, i2 = invs[i], invs[j]
                         if abs((i1.total_amount + i2.total_amount) - txn.amount) < 2.0:
-                            found_split = [i1, i2]
-                            break
+                            txn_d = parse_date(txn.transaction_date)
+                            i1_d = parse_date(i1.date)
+                            i2_d = parse_date(i2.date)
+                            if txn_d and i1_d and i2_d:
+                                diff1 = (txn_d - i1_d).days
+                                diff2 = (txn_d - i2_d).days
+                                if -15 <= diff1 <= 60 and -15 <= diff2 <= 60:
+                                    found_split = [i1, i2]
+                                    break
                 
                 if not found_split:
                     for i in range(n_invs):
@@ -271,8 +304,18 @@ class ReconciliationEngine:
                             for k in range(j + 1, n_invs):
                                 i1, i2, i3 = invs[i], invs[j], invs[k]
                                 if abs((i1.total_amount + i2.total_amount + i3.total_amount) - txn.amount) < 2.0:
-                                    found_split = [i1, i2, i3]
-                                    break
+                                    txn_d = parse_date(txn.transaction_date)
+                                    i1_d = parse_date(i1.date)
+                                    i2_d = parse_date(i2.date)
+                                    i3_d = parse_date(i3.date)
+                                    if txn_d and i1_d and i2_d and i3_d:
+                                        diff1 = (txn_d - i1_d).days
+                                        diff2 = (txn_d - i2_d).days
+                                        diff3 = (txn_d - i3_d).days
+                                        if -15 <= diff1 <= 60 and -15 <= diff2 <= 60 and -15 <= diff3 <= 60:
+                                            found_split = [i1, i2, i3]
+                                            break
+
 
             if found_split:
                 # Split the transaction

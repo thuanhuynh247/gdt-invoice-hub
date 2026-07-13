@@ -279,5 +279,97 @@ def test_reconciliation_1_to_many_split(app):
         assert t_child.status == "matched"
         assert "(Tách đối chiếu)" in t_child.description
 
+def test_reconciliation_vietnamese_accents(app):
+    from extensions import db
+    
+    with app.app_context():
+        Invoice.query.delete()
+        BankTransaction.query.delete()
+        db.session.commit()
+
+        inv = Invoice(
+            id=str(uuid.uuid4()),
+            taxpayer_mst="0123456789",
+            number="0005555",
+            invoice_type="purchase",
+            seller_name="CÔNG TY TNHH BÁCH HÓA XANH",
+            total_amount=15000000,
+            date="2026-05-10",
+            imported_at=datetime.now().isoformat()
+        )
+        db.session.add(inv)
+        
+        txn = BankTransaction(
+            id=str(uuid.uuid4()),
+            taxpayer_mst="0123456789",
+            bank_name="Vietcombank",
+            transaction_date="2026-05-11",
+            description="Thanh toan hoa don cho Cty Bach Hoa Xanh",
+            amount=15000000,
+            status="unreconciled",
+            imported_at=datetime.now().isoformat()
+        )
+        db.session.add(txn)
+        db.session.commit()
+
+        engine = ReconciliationEngine()
+        results = engine.run_matching("0123456789")
+        
+        assert results["matches_found"] == 1
+        
+        updated_txn = BankTransaction.query.get(txn.id)
+        assert updated_txn.matched_invoice_id == inv.id
+        assert updated_txn.status == "matched"
+
+def test_reconciliation_1_to_many_date_proximity(app):
+    from extensions import db
+    
+    with app.app_context():
+        Invoice.query.delete()
+        BankTransaction.query.delete()
+        db.session.commit()
+
+        inv1 = Invoice(
+            id=str(uuid.uuid4()),
+            taxpayer_mst="0123456789",
+            number="0006661",
+            invoice_type="purchase",
+            seller_name="Nha Cung Cap C",
+            total_amount=12000000,
+            date="2026-01-10",
+            imported_at=datetime.now().isoformat()
+        )
+        inv2 = Invoice(
+            id=str(uuid.uuid4()),
+            taxpayer_mst="0123456789",
+            number="0006662",
+            invoice_type="purchase",
+            seller_name="Nha Cung Cap C",
+            total_amount=8000000,
+            date="2026-01-10",
+            imported_at=datetime.now().isoformat()
+        )
+        db.session.add(inv1)
+        db.session.add(inv2)
+
+        txn = BankTransaction(
+            id=str(uuid.uuid4()),
+            taxpayer_mst="0123456789",
+            bank_name="Vietcombank",
+            transaction_date="2026-05-12",
+            description="Thanh toan gop hai hoa don 0006661 va 0006662",
+            amount=20000000,
+            status="unreconciled",
+            imported_at=datetime.now().isoformat()
+        )
+        db.session.add(txn)
+        db.session.commit()
+
+        engine = ReconciliationEngine()
+        results = engine.run_matching("0123456789")
+        
+        assert results["matches_found"] == 0
+
+
 
 
