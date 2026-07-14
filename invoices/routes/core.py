@@ -10542,7 +10542,7 @@ def api_create_group_fund():
     if not group_id:
         # Resolve group
         group = TenantGroup.query.filter_by(admin_username=username).first()
-        if not group and username == "admin":
+        if not group:
             group = TenantGroup.query.first()
         if not group:
             return jsonify({"error": "Không tìm thấy nhóm tương ứng để tạo quỹ."}), 400
@@ -10591,7 +10591,7 @@ def api_get_group_fund():
     if not group_id:
         # Resolve default group
         group = TenantGroup.query.filter_by(admin_username=username).first()
-        if not group and username == "admin":
+        if not group:
             group = TenantGroup.query.first()
         if not group:
             return jsonify({"error": "Không tìm thấy nhóm tương ứng."}), 404
