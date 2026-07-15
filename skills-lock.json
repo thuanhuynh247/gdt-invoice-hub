@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "design-thinking": {
+      "source": "tronghieu/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/design-thinking/SKILL.md",
+      "computedHash": "a36549c19505babe71d1aa1db8b2d9dce5428085b5dd09fc33fcddce5dfbe173"
+    }
+  }
+}
