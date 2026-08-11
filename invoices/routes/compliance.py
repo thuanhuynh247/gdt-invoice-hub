@@ -4388,6 +4388,197 @@ def api_v80_delete_log():
         return jsonify({"error": str(e)}), 400
 
 
+# --- VERSION 81 ROUTES (PIT COMPLIANCE & FORM 08/CK-TNCN AUDIT) ---
+@invoices_blueprint.get("/v81-compliance-hub")
+def v81_compliance_hub_page():
+    """Render the Version 81 Personal Income Tax (PIT) & Form 08 Compliance Hub."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("v81_compliance_hub.html")
+
+
+@invoices_blueprint.post("/api/v81/audit-pit")
+def api_v81_audit_pit():
+    """Run an individual PIT payment audit against Circular 111/2013, Circular 25/2018 & Circular 78/2021."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v81_service import V81PITComplianceService
+    from invoices.telemetry_stream import telemetry_bus
+    try:
+        service = V81PITComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.audit_pit_transaction(
+            mst=mst,
+            person_name=str(data.get("person_name", "Nguyễn Văn A")),
+            payment_amount=float(data.get("payment_amount", 0.0)),
+            personal_id_or_mst=str(data.get("personal_id_or_mst", "")),
+            contract_type=str(data.get("contract_type", "freelance")),
+            num_dependents=int(data.get("num_dependents", 0)),
+            insurance_deduction=float(data.get("insurance_deduction", 0.0)),
+            has_form_08=bool(data.get("has_form_08", False)),
+            estimated_annual_income=float(data.get("estimated_annual_income", 0.0)),
+            is_sole_income_source=bool(data.get("is_sole_income_source", True)),
+            has_elec_cert=bool(data.get("has_elec_cert", False)),
+            cert_number=str(data.get("cert_number", "")),
+        )
+
+        # Broadcast telemetry event
+        telemetry_bus.publish(
+            event_type="PIT_AUDIT",
+            message=f"PIT Audit [{res['risk_level']}]: {res['person_name']} - {res['payment_amount']:,.0f} VND ({res['contract_type']}). Withholding: {res['withholding_tax']:,.0f} VND.",
+            level="WARNING" if res["risk_level"] == "CRITICAL" else "SUCCESS",
+            source="V81_PIT_ENGINE",
+            metadata={"risk_level": res["risk_level"], "score": res["compliance_score"], "withholding": res["withholding_tax"]}
+        )
+
+        return jsonify({"status": "success", "results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.get("/api/v81/compliance-data")
+def api_v81_compliance_data():
+    """Get overview data, sample calculations, advisory debate and history for V81."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v81_service import V81PITComplianceService
+    service = V81PITComplianceService(current_app.config["BASE_DATA_DIR"])
+
+    sample_freelance_valid = service.audit_pit_transaction(
+        mst=mst,
+        person_name="Lê Văn Hùng (Chuyên gia tư vấn)",
+        payment_amount=15_000_000.0,
+        personal_id_or_mst="8012345678",
+        contract_type="freelance",
+        has_form_08=True,
+        estimated_annual_income=90_000_000.0,
+        is_sole_income_source=True,
+        has_elec_cert=False
+    )
+
+    sample_form08_invalid = service.audit_pit_transaction(
+        mst=mst,
+        person_name="Trần Thị Mai (Cộng tác viên)",
+        payment_amount=8_000_000.0,
+        personal_id_or_mst="",  # Missing MST
+        contract_type="freelance",
+        has_form_08=True,
+        estimated_annual_income=50_000_000.0,
+        is_sole_income_source=True,
+        has_elec_cert=False
+    )
+
+    debate_transcript = [
+        {
+            "speaker": "PIT Tax Inspector (Cán bộ Thuế TNCN)",
+            "text": "Thông tư 111/2013/TT-BTC Điều 25 quy định chi trả thu nhập từ 2 triệu đồng trở lên cho cá nhân không ký HĐLĐ bắt buộc phải khấu trừ thuế 10% tại nguồn trước khi trả."
+        },
+        {
+            "speaker": "HR & Payroll Director (Trưởng phòng Nhân sự & Tiền lương)",
+            "text": "Cá nhân có thể lập Cam kết mẫu 08/CK-TNCN để tạm thời chưa bị khấu trừ 10% nếu có MST tại thời điểm cam kết và ước tính tổng thu nhập cả năm chưa đến mức phải nộp thuế."
+        },
+        {
+            "speaker": "Chief Internal Auditor (Trưởng ban Kiểm toán Nội bộ)",
+            "text": "Doanh nghiệp bắt buộc phải cấp Chứng từ khấu trừ thuế TNCN điện tử theo Thông tư 78/2021/TT-BTC khi có yêu cầu và lưu trữ hồ sơ phục vụ thanh tra quyết toán thuế 05/KK-TNCN."
+        }
+    ]
+    consensus_summary = "V81 PIT Compliance Engine: Kiểm soát khấu trừ thuế TNCN 10% vãng lai, kiểm định tính pháp lý Cam kết 08/CK-TNCN và quản lý Chứng từ khấu trừ thuế TNCN điện tử theo TT 78/2021/TT-BTC."
+
+    return jsonify({
+        "status": "success",
+        "sample_freelance_valid": sample_freelance_valid,
+        "sample_form08_invalid": sample_form08_invalid,
+        "debate": debate_transcript,
+        "consensus_summary": consensus_summary,
+        "history": service.get_history(mst, 20)
+    })
+
+
+@invoices_blueprint.post("/api/v81/delete-log")
+def api_v81_delete_log():
+    """Delete a V81 audit log by ID."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    log_id = data.get("log_id")
+    if not log_id:
+        return jsonify({"error": "Missing log_id"}), 400
+
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    from invoices.v81_service import V81PITComplianceService
+    try:
+        service = V81PITComplianceService(current_app.config["BASE_DATA_DIR"])
+        success = service.delete_log(mst, int(log_id))
+        return jsonify({"status": "success", "deleted": success})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.get("/api/v81/export-05kk-xml")
+def api_v81_export_05kk_xml():
+    """Export Form 05/KK-TNCN XML document for HTKK import."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    tax_period = request.args.get("period") or "Q1/2026"
+    org_name = request.args.get("org_name") or "CONG TY TNHH DOANH NGHIEP MAU"
+
+    from invoices.v81_service import V81PITComplianceService
+    try:
+        service = V81PITComplianceService(current_app.config["BASE_DATA_DIR"])
+        xml_content = service.generate_05kk_xml(mst, tax_period, org_name)
+        
+        mem = io.BytesIO(xml_content.encode("utf-8"))
+        mem.seek(0)
+        return send_file(
+            mem,
+            mimetype="application/xml",
+            as_attachment=True,
+            download_name=f"TKhai_05_KK_TNCN_{mst}_{tax_period.replace('/', '_')}.xml"
+        )
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+# --- REAL-TIME SERVER-SENT EVENTS (SSE) TELEMETRY STREAM ROUTES ---
+@invoices_blueprint.get("/api/telemetry/stream")
+def api_telemetry_stream():
+    """Server-Sent Events (SSE) live telemetry stream endpoint."""
+    from invoices.telemetry_stream import sse_event_generator
+    return Response(
+        sse_event_generator(),
+        mimetype="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+            "Connection": "keep-alive"
+        }
+    )
+
+
+@invoices_blueprint.get("/api/telemetry/history")
+def api_telemetry_history():
+    """Get recent telemetry event history for live telemetry stream."""
+    from invoices.telemetry_stream import telemetry_bus
+    limit = int(request.args.get("limit", 25))
+    return jsonify({
+        "status": "success",
+        "events": telemetry_bus.get_recent_history(limit)
+    })
+
+
 
 
 

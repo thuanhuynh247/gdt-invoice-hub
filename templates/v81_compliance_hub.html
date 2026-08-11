@@ -1,0 +1,498 @@
+{% extends "base.html" %}
+
+{% from "components/_hub_header.html" import hub_header %}
+{% from "components/_glass_card.html" import glass_card %}
+{% from "components/_calc_input.html" import number_input, switch_input, calc_button, text_input %}
+{% from "components/_result_panel.html" import result_panel, result_field %}
+{% from "components/_baseline_card.html" import baseline_card %}
+{% from "components/_debate_panel.html" import debate_panel %}
+{% from "components/_data_table.html" import data_table %}
+{% from "components/_entry_animations.html" import entry_animations %}
+{% from "components/_premium_controls.html" import premium_controls_css %}
+{% from "components/_audit_badge.html" import audit_badge %}
+{% from "components/_live_telemetry_stream.html" import live_telemetry_stream, live_telemetry_stream_js %}
+
+{% block title %}V81 Compliance Hub - Personal Income Tax (PIT) & Form 08/CK-TNCN Audit{% endblock %}
+
+{% block head_extra %}
+<style>
+    /* Wise Fintech Design Tokens for V81 Hub */
+    :root {
+        --wise-primary: var(--primary-accent, #0f172a);
+        --wise-primary-light: var(--primary-accent-soft, rgba(15, 23, 42, 0.05));
+        --wise-emerald: #059669;
+        --wise-emerald-light: rgba(5, 150, 105, 0.1);
+        --wise-accent: var(--teal-accent, #0d9488);
+        --wise-accent-hover: #0f766e;
+        --wise-gold: #d97706;
+        --wise-dark: #090d16;
+        --wise-light: #f8fafc;
+        --wise-border: var(--border-card, rgba(15, 23, 42, 0.1));
+        --glass-bg: var(--bg-card, rgba(255, 255, 255, 0.88));
+        --glass-border: var(--border-card, rgba(255, 255, 255, 0.6));
+        --glass-shadow: var(--shadow-premium, 0 8px 32px 0 rgba(15, 23, 42, 0.08));
+    }
+
+    .text-gradient {
+        background: linear-gradient(135deg, var(--wise-accent) 0%, var(--wise-emerald) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    body {
+        background-color: var(--bg-app, var(--wise-light));
+        color: var(--text-primary, #0f172a);
+        font-family: var(--font-body, 'Inter', sans-serif);
+    }
+
+    .glass-card {
+        background: var(--glass-bg) !important;
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--glass-border) !important;
+        box-shadow: var(--glass-shadow) !important;
+        border-radius: 16px !important;
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+        margin-bottom: 24px;
+        overflow: hidden;
+    }
+
+    .glass-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 40px 0 rgba(15, 23, 42, 0.12) !important;
+    }
+
+    .form-control, .form-select {
+        border-radius: 8px !important;
+        border: 1px solid var(--wise-border) !important;
+        padding: 0.6rem 0.75rem !important;
+        font-size: 0.9rem !important;
+        background-color: var(--input-bg, rgba(255, 255, 255, 0.9)) !important;
+        color: var(--text-primary, #0f172a) !important;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--wise-accent) !important;
+        box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.15) !important;
+        background-color: #fff !important;
+    }
+
+    .btn-teal {
+        background: linear-gradient(135deg, var(--wise-accent) 0%, var(--wise-accent-hover) 100%) !important;
+        border: none !important;
+        color: #fff !important;
+        border-radius: 8px !important;
+        padding: 0.6rem 1.25rem !important;
+        font-weight: 600 !important;
+        transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+    }
+
+    .btn-teal:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3) !important;
+    }
+
+    @keyframes calcPulse {
+        0% {
+            box-shadow: 0 0 0 0 rgba(13, 148, 136, 0.4);
+            background-color: rgba(13, 148, 136, 0.15) !important;
+        }
+        100% {
+            box-shadow: 0 0 0 12px rgba(13, 148, 136, 0);
+        }
+    }
+
+    .calc-pulse-effect {
+        animation: calcPulse 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .debate-message-bubble {
+        transition: all 0.3s ease;
+        border-radius: 14px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    }
+
+    .debate-message-bubble:hover {
+        transform: translateX(4px);
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+        border-color: rgba(13, 148, 136, 0.2) !important;
+    }
+
+    .table-responsive {
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid rgba(15, 23, 42, 0.08);
+    }
+
+    .table thead {
+        background-color: var(--wise-primary-light) !important;
+    }
+
+    .table thead th {
+        color: var(--wise-primary) !important;
+        font-family: 'Outfit', sans-serif;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        padding: 12px 16px !important;
+        border-bottom: none !important;
+    }
+
+    .table td {
+        padding: 14px 16px !important;
+        font-size: 0.875rem;
+        vertical-align: middle;
+        border-bottom: 1px solid rgba(15, 23, 42, 0.05) !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    {# ── Hub Header ── #}
+    {{ hub_header('81.0.0',
+        'Personal Income Tax (PIT) Withholding & Form 08/CK-TNCN Audit Hub',
+        'Audit Circular 111/2013/TT-BTC, Circular 25/2018/TT-BTC & Circular 78/2021/TT-BTC for freelance withholding (10%), Form 08/CK-TNCN commitment validation, and electronic withholding certificate management.',
+        'btn-refresh-v81', 'Load Data', 'Circular 111/2013/TT-BTC & TT 78/2021/TT-BTC') }}
+
+    <div class="row g-4">
+        {# ── PIT Audit & Withholding Engine ── #}
+        <div class="col-lg-7">
+            {% call glass_card('PIT Withholding & Form 08/CK-TNCN Audit Engine', 'bi bi-person-lines-fill', 'text-teal',
+                description='Audit individual remuneration, freelance service contracts, progressive vs. 10% flat withholding rates, and validate electronic certificates.') %}
+                <div class="row g-3">
+                    <div class="col-12"><h6 class="fw-bold text-primary border-bottom pb-1 mb-2"><i class="bi bi-person-badge me-1" aria-hidden="true"></i>Individual & Remuneration Details</h6></div>
+                    
+                    {{ text_input('input-person-name', 'Payee Full Name:', 'Lê Văn Hùng (Chuyên gia IT)', col='col-md-6') }}
+                    {{ text_input('input-id-or-mst', 'Tax ID (MST) or Citizen ID (CCCD):', '8012345678', col='col-md-6') }}
+
+                    <div class="col-md-6">
+                        <label for="input-contract-type" class="form-label small fw-semibold text-secondary">Contract / Labor Type:</label>
+                        <select id="input-contract-type" class="form-select">
+                            <option value="freelance" selected>Freelance / Non-Labor Contract (Dịch vụ vãng lai / Khoán việc)</option>
+                            <option value="resident_contract">Labor Contract >= 3 Months (HĐLĐ từ 3 tháng trở lên)</option>
+                            <option value="non_resident">Non-Resident Individual (Cá nhân không cư trú - 20%)</option>
+                        </select>
+                    </div>
+
+                    {{ number_input('input-payment-amount', 'Gross Payment Amount (VND):', 15000000, step='500000', col='col-md-6') }}
+
+                    <div class="col-12"><h6 class="fw-bold text-primary border-bottom pb-1 mb-2 mt-2"><i class="bi bi-file-earmark-check me-1" aria-hidden="true"></i>Form 08/CK-TNCN & Deductions (Circular 111/2013)</h6></div>
+
+                    {{ number_input('input-dependents', 'Number of Dependents (Người phụ thuộc):', 0, step='1', col='col-md-6') }}
+                    {{ number_input('input-insurance', 'Insurance Deduction (BHXH/BHYT/BHTN):', 0, step='100000', col='col-md-6') }}
+
+                    <div class="col-md-6">
+                        <div class="form-check form-switch pt-2">
+                            <input class="form-check-input" type="checkbox" id="switch-has-form08" checked>
+                            <label class="form-check-label small fw-semibold" for="switch-has-form08">Has Signed Form 08/CK-TNCN (Cam kết mẫu 08)</label>
+                        </div>
+                    </div>
+
+                    {{ number_input('input-est-income', 'Estimated Total Annual Income (VND):', 90000000, step='5000000', col='col-md-6') }}
+
+                    <div class="col-md-6">
+                        <div class="form-check form-switch pt-2">
+                            <input class="form-check-input" type="checkbox" id="switch-sole-source" checked>
+                            <label class="form-check-label small fw-semibold" for="switch-sole-source">Sole Income Source in Year (Chỉ duy nhất thu nhập tại đây)</label>
+                        </div>
+                    </div>
+
+                    <div class="col-12"><h6 class="fw-bold text-primary border-bottom pb-1 mb-2 mt-2"><i class="bi bi-shield-lock me-1" aria-hidden="true"></i>Electronic Withholding Certificate (Circular 78/2021)</h6></div>
+
+                    <div class="col-md-6">
+                        <div class="form-check form-switch pt-2">
+                            <input class="form-check-input" type="checkbox" id="switch-has-cert">
+                            <label class="form-check-label small fw-semibold" for="switch-has-cert">Issued Electronic Certificate (Chứng từ điện tử TT 78)</label>
+                        </div>
+                    </div>
+
+                    {{ text_input('input-cert-number', 'Certificate Number / Serial:', 'CT-2026-000189', col='col-md-6') }}
+                    
+                    <div class="col-12 text-end mt-3 d-flex justify-content-between align-items-center">
+                        <a id="btn-export-05kk" href="/api/v81/export-05kk-xml" class="btn btn-outline-secondary fw-semibold">
+                            <i class="bi bi-file-earmark-code me-1" aria-hidden="true"></i> Export Form 05/KK-TNCN (XML)
+                        </a>
+                        <button id="btn-calc-v81" class="btn btn-teal text-white fw-bold">
+                            <i class="bi bi-play-fill me-1" aria-hidden="true"></i> Execute V81 Audit Engine
+                        </button>
+                    </div>
+                </div>
+
+                <div id="v81-result-panel" class="mt-4">
+                {% call result_panel('V81 Audit Results', 'text-teal', note_id='res-notes-v81') %}
+                    <div class="d-flex justify-content-between small mb-2">
+                        <span class="fw-semibold">Compliance Risk Status:</span>
+                        <span id="res-risk-badge" class="fw-bold">-</span>
+                    </div>
+                    {{ result_field('Compliance Score (100 Max):', 'res-score') }}
+                    {{ result_field('Applicable Tax Rate:', 'res-tax-rate') }}
+                    {{ result_field('Taxable Income (Thu nhập tính thuế):', 'res-taxable-income', 'text-primary fw-bold') }}
+                    {{ result_field('PIT Withholding Tax (Thuế TNCN khấu trừ):', 'res-withholding-tax', 'text-danger fw-bold') }}
+                    {{ result_field('Form 08 Commitment Status:', 'res-form08-status') }}
+                    {{ result_field('Electronic Certificate Status (TT 78):', 'res-cert-status') }}
+                    <hr class="my-2" />
+                    <div class="small mb-1">
+                        <span class="fw-bold text-danger"><i class="bi bi-exclamation-triangle-fill me-1" aria-hidden="true"></i>Identified Violations:</span>
+                        <ul id="res-violations-list" class="text-danger ps-3 my-1"><li>None</li></ul>
+                    </div>
+                    <div class="small mb-1">
+                        <span class="fw-bold text-success"><i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i>Actionable Recommendations:</span>
+                        <ul id="res-recommendations-list" class="text-secondary ps-3 my-1"><li>Hồ sơ đạt chuẩn.</li></ul>
+                    </div>
+                {% endcall %}
+                </div>
+            {% endcall %}
+        </div>
+
+        {# ── Baselines Card & Live Telemetry Stream ── #}
+        <div class="col-lg-5">
+            {% call glass_card('Compliance Baselines & Validation Rules', 'bi bi-shield-check', 'text-teal') %}
+                <div class="d-flex flex-column gap-3">
+                    {{ baseline_card('Valid Form 08 Freelance Consultant', '15,000,000 VND', 'bg-success-subtle text-success border border-success-subtle',
+                        'Cá nhân có MST, cam kết thu nhập cả năm dưới 132 triệu VNĐ và là nguồn duy nhất. Tạm thời không khấu trừ 10%.',
+                        'Status: Compliant', 'Withholding Tax', 'base1-tax') }}
+                    
+                    {{ baseline_card('Missing MST Form 08 Violation', '8,000,000 VND', 'bg-danger-subtle text-danger border border-danger-subtle',
+                        'Cá nhân lập cam kết 08 nhưng chưa đăng ký MST tại thời điểm ký kết. Cam kết vô hiệu, bắt buộc khấu trừ 10% (800,000 VND).',
+                        'Status: Violation', 'Withholding Tax', 'base2-tax') }}
+                </div>
+            {% endcall %}
+
+            {# Live Telemetry Stream Component #}
+            {{ live_telemetry_stream('v81-telemetry', 'Live Audit & Telemetry Stream (SSE)', 'Real-time telemetry heartbeat, GDT sync pulse, and PIT audit events via Server-Sent Events.') }}
+        </div>
+
+        {# ── Advisory Board Debate Panel ── #}
+        <div class="col-lg-12">
+            {{ debate_panel('debate-container-v81', 'consensus-text-v81',
+                'Multi-Agent Personal Income Tax (PIT) Advisory Board Debate', 'Circular 111/2013/TT-BTC & Circular 78/2021/TT-BTC Consensus') }}
+        </div>
+
+        {# ── Compliance History Table ── #}
+        <div class="col-lg-12">
+            {% call data_table('V81 Audit History Log', 'bi bi-clock-history', 'history-table-v81', 'No audit logs recorded yet.', 12) %}
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Payee Name</th>
+                        <th>Tax ID / CCCD</th>
+                        <th>Gross Payment</th>
+                        <th>Contract Type</th>
+                        <th>Form 08</th>
+                        <th>Elec Cert</th>
+                        <th>Withholding Tax</th>
+                        <th>Risk</th>
+                        <th>Timestamp</th>
+                        <th class="text-center">Action</th>
+                    </tr>
+                </thead>
+            {% endcall %}
+        </div>
+    </div>
+</div>
+
+{{ live_telemetry_stream_js('v81-telemetry', '/api/telemetry/stream', '/api/telemetry/history') }}
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const fVND = n => new Intl.NumberFormat("vi-VN").format(Math.round(n)) + " VND";
+    const fPct = n => (n).toFixed(1) + " %";
+
+    const getMst = () => {
+        return document.getElementById("tenant-mst") ? document.getElementById("tenant-mst").value : (sessionStorage.getItem("taxpayer_mst") || "0102030405");
+    };
+
+    const load = () => {
+        const mst = getMst();
+        fetch(`/api/v81/compliance-data?mst=${mst}`).then(r=>r.json()).then(d=>{
+            if(d.status==="success"){
+                rB(d);
+                rD(d.debate, d.consensus_summary);
+                rH(d.history);
+            }
+        }).catch(e=>console.error(e));
+    };
+
+    const calc = () => {
+        const p = {
+            mst: getMst(),
+            person_name: document.getElementById("input-person-name").value || "Nguyễn Văn A",
+            personal_id_or_mst: document.getElementById("input-id-or-mst").value || "",
+            contract_type: document.getElementById("input-contract-type").value || "freelance",
+            payment_amount: parseFloat(document.getElementById("input-payment-amount").value || 0),
+            num_dependents: parseInt(document.getElementById("input-dependents").value || 0),
+            insurance_deduction: parseFloat(document.getElementById("input-insurance").value || 0),
+            has_form_08: document.getElementById("switch-has-form08").checked,
+            estimated_annual_income: parseFloat(document.getElementById("input-est-income").value || 0),
+            is_sole_income_source: document.getElementById("switch-sole-source").checked,
+            has_elec_cert: document.getElementById("switch-has-cert").checked,
+            cert_number: document.getElementById("input-cert-number").value || ""
+        };
+        fetch('/api/v81/audit-pit', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(p)
+        }).then(r=>r.json()).then(d=>{
+            if(d.status==="success"){
+                rR(d.results);
+                load();
+            } else {
+                alert(d.error || "Audit failed");
+            }
+        }).catch(e=>console.error(e));
+    };
+
+    const rR = r => {
+        document.getElementById("res-score").textContent = (r.compliance_score || 0) + " / 100";
+        document.getElementById("res-tax-rate").textContent = (r.applicable_tax_rate || 0) + "%";
+        document.getElementById("res-taxable-income").textContent = fVND(r.taxable_income || 0);
+        document.getElementById("res-withholding-tax").textContent = fVND(r.withholding_tax || 0);
+        document.getElementById("res-form08-status").textContent = r.form_08_status || "N/A";
+        document.getElementById("res-cert-status").textContent = r.elec_cert_status || "N/A";
+
+        const riskBadge = document.getElementById("res-risk-badge");
+        const level = r.risk_level || "SAFE";
+        if(level === "CRITICAL") {
+            riskBadge.innerHTML = '<span class="badge bg-danger-subtle text-danger border border-danger">CRITICAL RISK</span>';
+        } else if(level === "WARNING") {
+            riskBadge.innerHTML = '<span class="badge bg-warning-subtle text-warning border border-warning">WARNING RISK</span>';
+        } else {
+            riskBadge.innerHTML = '<span class="badge bg-success-subtle text-success border border-success">SAFE / COMPLIANT</span>';
+        }
+
+        // Violations list
+        const vList = document.getElementById("res-violations-list");
+        vList.innerHTML = "";
+        if (r.violations && r.violations.length > 0) {
+            r.violations.forEach(v => {
+                const li = document.createElement("li");
+                li.textContent = v;
+                vList.appendChild(li);
+            });
+        } else {
+            vList.innerHTML = "<li>Không phát hiện vi phạm quy định khấu trừ thuế.</li>";
+        }
+
+        // Recommendations list
+        const rList = document.getElementById("res-recommendations-list");
+        rList.innerHTML = "";
+        if (r.recommendations && r.recommendations.length > 0) {
+            r.recommendations.forEach(rec => {
+                const li = document.createElement("li");
+                li.textContent = rec;
+                rList.appendChild(li);
+            });
+        } else {
+            rList.innerHTML = "<li>Hồ sơ hoàn chỉnh, khấu trừ đúng quy định pháp luật.</li>";
+        }
+
+        document.getElementById("res-notes-v81").textContent = r.audit_notes || "V81 PIT Audit complete.";
+
+        // Pulse effect on result panel
+        const resCard = document.getElementById("v81-result-panel");
+        if (resCard) {
+            resCard.classList.remove("calc-pulse-effect");
+            void resCard.offsetWidth;
+            resCard.classList.add("calc-pulse-effect");
+        }
+    };
+
+    const rB = d => {
+        if(d.sample_freelance_valid) {
+            document.getElementById("base1-tax").textContent = fVND(d.sample_freelance_valid.withholding_tax || 0);
+        }
+        if(d.sample_form08_invalid) {
+            document.getElementById("base2-tax").textContent = fVND(d.sample_form08_invalid.withholding_tax || 0);
+        }
+    };
+
+    const rD = (debate, summary) => {
+        const c = document.getElementById("debate-container-v81");
+        c.innerHTML = "";
+        const cl = {
+            "PIT Tax Inspector (Cán bộ Thuế TNCN)": "bg-danger-subtle text-danger border border-danger",
+            "HR & Payroll Director (Trưởng phòng Nhân sự & Tiền lương)": "bg-primary-subtle text-primary border border-primary",
+            "Chief Internal Auditor (Trưởng ban Kiểm toán Nội bộ)": "bg-info-subtle text-info border border-info"
+        };
+        debate.forEach((m, idx) => {
+            const div = document.createElement("div");
+            div.className = "d-flex gap-3 align-items-start p-3 bg-white rounded border border-light-subtle debate-message-bubble";
+            div.style.animation = `fadeInUp 0.3s ease forwards ${idx * 0.1}s`;
+            div.style.opacity = "0";
+            div.innerHTML = `
+                <div class="d-flex flex-column align-items-center text-center" style="min-width: 160px;">
+                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mb-2" style="width: 40px; height: 40px;">
+                        <i class="bi bi-robot text-secondary fs-5" aria-hidden="true"></i>
+                    </div>
+                    <span class="badge ${cl[m.speaker] || "bg-secondary"} text-wrap py-1 px-2 small">${m.speaker}</span>
+                </div>
+                <div class="text-dark small flex-grow-1 pt-1 leading-relaxed">${m.text}</div>
+            `;
+            c.appendChild(div);
+        });
+        document.getElementById("consensus-text-v81").textContent = summary;
+    };
+
+    const rH = h => {
+        const tb = document.getElementById("history-table-v81");
+        if (!h || !h.length) {
+            tb.innerHTML = '<tr><td colspan="11" class="text-center text-muted py-4">No audit logs available.</td></tr>';
+            return;
+        }
+        tb.innerHTML = "";
+        h.forEach(l => {
+            const tr = document.createElement("tr");
+            let badgeClass = l.risk_level === 'CRITICAL' ? 'bg-danger-subtle text-danger border border-danger' : (l.risk_level === 'WARNING' ? 'bg-warning-subtle text-warning border border-warning' : 'bg-success-subtle text-success border border-success');
+            tr.innerHTML = `
+                <td><span class="text-secondary small fw-bold">#${l.id}</span></td>
+                <td class="fw-bold">${l.person_name}</td>
+                <td class="font-monospace">${l.personal_id_or_mst || '-'}</td>
+                <td class="fw-bold font-monospace">${fVND(l.payment_amount)}</td>
+                <td><span class="badge bg-light text-dark border">${l.contract_type}</span></td>
+                <td>${l.has_form_08 ? '<i class="bi bi-check-circle-fill text-success" aria-hidden="true"></i>' : '<i class="bi bi-dash-circle text-muted" aria-hidden="true"></i>'}</td>
+                <td>${l.has_elec_cert ? '<i class="bi bi-check-circle-fill text-success" aria-hidden="true"></i>' : '<i class="bi bi-dash-circle text-muted" aria-hidden="true"></i>'}</td>
+                <td class="text-danger fw-bold font-monospace">${fVND(l.withholding_tax)}</td>
+                <td><span class="badge ${badgeClass}">${l.risk_level}</span></td>
+                <td class="text-muted small">${l.created_at}</td>
+                <td class="text-center">
+                    <button class="btn btn-outline-danger btn-sm py-0 px-2 btn-delete-log" data-id="${l.id}">
+                        <i class="bi bi-trash" aria-hidden="true"></i>
+                    </button>
+                </td>
+            `;
+            tb.appendChild(tr);
+        });
+
+        tb.querySelectorAll(".btn-delete-log").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const logId = btn.dataset.id;
+                if (confirm(`Delete V81 audit log #${logId}?`)) {
+                    const mst = getMst();
+                    fetch('/api/v81/delete-log', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ mst, log_id: logId })
+                    }).then(r=>r.json()).then(d=>{
+                        if (d.status === "success") {
+                            load();
+                        } else {
+                            alert(d.error || "Failed to delete log");
+                        }
+                    }).catch(e=>console.error(e));
+                }
+            });
+        });
+    };
+
+    document.getElementById("btn-calc-v81").addEventListener("click", calc);
+    document.getElementById("btn-refresh-v81").addEventListener("click", load);
+    load();
+});
+</script>
+
+{{ entry_animations() }}
+{{ premium_controls_css() }}
+{% endblock %}
