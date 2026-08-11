@@ -1,0 +1,588 @@
+{% extends "base.html" %}
+
+{% from "components/_hub_header.html" import hub_header %}
+{% from "components/_glass_card.html" import glass_card %}
+{% from "components/_calc_input.html" import number_input, switch_input, calc_button, text_input %}
+{% from "components/_result_panel.html" import result_panel, result_field %}
+{% from "components/_baseline_card.html" import baseline_card %}
+{% from "components/_debate_panel.html" import debate_panel %}
+{% from "components/_data_table.html" import data_table %}
+{% from "components/_entry_animations.html" import entry_animations %}
+{% from "components/_premium_controls.html" import premium_controls_css %}
+
+{% block title %}V80 Compliance Hub - Employee Authorized Expense & Non-Cash Settlement Audit{% endblock %}
+
+{% block head_extra %}
+<style>
+    /* Wise Fintech Design Tokens for V80 Hub */
+    :root {
+        --wise-primary: var(--primary-accent, #0f172a);
+        --wise-primary-light: var(--primary-accent-soft, rgba(15, 23, 42, 0.05));
+        --wise-emerald: #059669;
+        --wise-emerald-light: rgba(5, 150, 105, 0.1);
+        --wise-accent: var(--teal-accent, #0d9488);
+        --wise-accent-hover: #0f766e;
+        --wise-gold: #d97706;
+        --wise-dark: #090d16;
+        --wise-light: #f8fafc;
+        --wise-border: var(--border-card, rgba(15, 23, 42, 0.1));
+        --glass-bg: var(--bg-card, rgba(255, 255, 255, 0.88));
+        --glass-border: var(--border-card, rgba(255, 255, 255, 0.6));
+        --glass-shadow: var(--shadow-premium, 0 8px 32px 0 rgba(15, 23, 42, 0.08));
+    }
+
+    .text-gradient {
+        background: linear-gradient(135deg, var(--wise-accent) 0%, var(--wise-emerald) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    body {
+        background-color: var(--bg-app, var(--wise-light));
+        color: var(--text-primary, #0f172a);
+        font-family: var(--font-body, 'Inter', sans-serif);
+    }
+
+    /* Premium Glass Card Adjustments */
+    .glass-card {
+        background: var(--glass-bg) !important;
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--glass-border) !important;
+        box-shadow: var(--glass-shadow) !important;
+        border-radius: 16px !important;
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+        margin-bottom: 24px;
+        overflow: hidden;
+    }
+
+    .glass-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 40px 0 rgba(15, 23, 42, 0.12) !important;
+    }
+
+    /* Form Controls Optimization */
+    .form-control, .form-select {
+        border-radius: 8px !important;
+        border: 1px solid var(--wise-border) !important;
+        padding: 0.6rem 0.75rem !important;
+        font-size: 0.9rem !important;
+        background-color: var(--input-bg, rgba(255, 255, 255, 0.9)) !important;
+        color: var(--text-primary, #0f172a) !important;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--wise-accent) !important;
+        box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.15) !important;
+        background-color: #fff !important;
+    }
+
+    /* Button Enhancements */
+    .btn-teal {
+        background: linear-gradient(135deg, var(--wise-accent) 0%, var(--wise-accent-hover) 100%) !important;
+        border: none !important;
+        color: #fff !important;
+        border-radius: 8px !important;
+        padding: 0.6rem 1.25rem !important;
+        font-weight: 600 !important;
+        transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+    }
+
+    .btn-teal:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3) !important;
+    }
+
+    /* Result Panel Animation & Aesthetics */
+    @keyframes calcPulse {
+        0% {
+            box-shadow: 0 0 0 0 rgba(13, 148, 136, 0.4);
+            background-color: rgba(13, 148, 136, 0.15) !important;
+        }
+        100% {
+            box-shadow: 0 0 0 12px rgba(13, 148, 136, 0);
+        }
+    }
+
+    .calc-pulse-effect {
+        animation: calcPulse 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* Baseline Cards Hover Glow */
+    .bg-premium-light {
+        transition: all 0.25s ease-in-out;
+        border-radius: 12px !important;
+        border: 1px solid rgba(15, 23, 42, 0.05) !important;
+    }
+
+    .bg-premium-light:hover {
+        background-color: rgba(255, 255, 255, 0.95) !important;
+        border-color: rgba(13, 148, 136, 0.3) !important;
+        box-shadow: 0 6px 16px rgba(15, 23, 42, 0.04);
+        transform: translateY(-2px);
+    }
+
+    /* Agent Debate Bubble Styling */
+    .debate-message-bubble {
+        transition: all 0.3s ease;
+        border-radius: 14px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    }
+
+    .debate-message-bubble:hover {
+        transform: translateX(4px);
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+        border-color: rgba(13, 148, 136, 0.2) !important;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Table Adjustments */
+    .table-responsive {
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid rgba(15, 23, 42, 0.08);
+    }
+
+    .table thead {
+        background-color: var(--wise-primary-light) !important;
+    }
+
+    .table thead th {
+        color: var(--wise-primary) !important;
+        font-family: 'Outfit', sans-serif;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        padding: 12px 16px !important;
+        border-bottom: none !important;
+    }
+
+    .table td {
+        padding: 14px 16px !important;
+        font-size: 0.875rem;
+        vertical-align: middle;
+        border-bottom: 1px solid rgba(15, 23, 42, 0.05) !important;
+    }
+
+    .table tbody tr {
+        transition: background-color 0.15s ease;
+    }
+
+    .table tbody tr:hover {
+        background-color: rgba(13, 148, 136, 0.03) !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    {# ── Hub Header ── #}
+    {{ hub_header('80.0.0',
+        'Employee Authorized Expense & Non-Cash Settlement Audit Hub',
+        'Audit Circular 20/2026/TT-BTC (>= 5M VND threshold) & Decree 70/2025/NĐ-CP rules for employee-authorized corporate expenses and non-cash tax deductions.',
+        'btn-refresh-v80', 'Load Data', 'Circular 20/2026/TT-BTC & Decree 70/2025/NĐ-CP') }}
+
+    <div class="row g-4">
+        {# ── Authorized Expense Audit Engine ── #}
+        <div class="col-lg-7">
+            {% call glass_card('Circular 20/2026/TT-BTC Expense Audit Engine', 'bi bi-credit-card-2-front-fill', 'text-teal',
+                description='Evaluate transactions >= 5,000,000 VND paid via authorized personal cards, bank transfers, or cash for CIT/VAT deduction compliance.') %}
+                <div class="row g-3">
+                    <div class="col-12"><h6 class="fw-bold text-primary border-bottom pb-1 mb-2"><i class="bi bi-receipt me-1" aria-hidden="true"></i>Transaction & Invoice Details</h6></div>
+                    
+                    {{ text_input('input-inv-num', 'Invoice Number:', 'INV-2026-V80', col='col-md-6') }}
+                    {{ text_input('input-inv-date', 'Invoice Date:', '2026-03-15', col='col-md-6') }}
+
+                    {{ number_input('input-total-amount', 'Total Payment Amount (VND):', 12500000, step='100000', col='col-md-6') }}
+                    {{ number_input('input-vat-amount', 'VAT Amount (VND):', 1250000, step='10000', col='col-md-6') }}
+
+                    {{ text_input('input-seller-mst', 'Seller Tax Code (MST):', '0100109106', col='col-md-6') }}
+                    {{ text_input('input-seller-name', 'Seller Name:', 'Tập đoàn Viễn thông Quân đội Viettel', col='col-md-6') }}
+
+                    <div class="col-12"><h6 class="fw-bold text-primary border-bottom pb-1 mb-2 mt-2"><i class="bi bi-person-badge me-1" aria-hidden="true"></i>Payment & Authorization Controls</h6></div>
+
+                    <div class="col-md-6">
+                        <label for="input-payment-method" class="form-label small fw-semibold text-secondary">Payment Method:</label>
+                        <select id="input-payment-method" class="form-select">
+                            <option value="authorized_card" selected>Authorized Personal Card (Thẻ cá nhân ủy quyền)</option>
+                            <option value="bank_transfer">Direct Company Bank Transfer (Chuyển khoản cty)</option>
+                            <option value="cash">Cash (Tiền mặt)</option>
+                            <option value="personal_card_unauthorized">Personal Card (No Authorization)</option>
+                        </select>
+                    </div>
+
+                    {{ text_input('input-auth-person', 'Authorized Employee Name / Title:', 'Nguyễn Văn A (Trưởng phòng IT)', col='col-md-6') }}
+
+                    <div class="col-md-4">
+                        <div class="form-check form-switch pt-2">
+                            <input class="form-check-input" type="checkbox" id="switch-auth-doc" checked>
+                            <label class="form-check-label small fw-semibold" for="switch-auth-doc">Has Written Authorization Doc / Financial Policy</label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="form-check form-switch pt-2">
+                            <input class="form-check-input" type="checkbox" id="switch-bank-proof" checked>
+                            <label class="form-check-label small fw-semibold" for="switch-bank-proof">Has 2-Way Bank Proof (Statement + Reimbursement)</label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="form-check form-switch pt-2">
+                            <input class="form-check-input" type="checkbox" id="switch-split-suspect">
+                            <label class="form-check-label small fw-semibold text-danger" for="switch-split-suspect">Suspicious Invoice Splitting (< 5M)</label>
+                        </div>
+                    </div>
+                    
+                    <div class="col-12 text-end mt-3">
+                        <button id="btn-calc-v80" class="btn btn-teal text-white fw-bold">
+                            <i class="bi bi-play-fill me-1" aria-hidden="true"></i> Execute V80 Audit Engine
+                        </button>
+                    </div>
+                </div>
+
+                <div id="v80-result-panel">
+                {% call result_panel('V80 Audit Results', 'text-teal', note_id='res-notes-v80') %}
+                    <div class="d-flex justify-content-between small mb-2">
+                        <span class="fw-semibold">Compliance Risk Status:</span>
+                        <span id="res-risk-badge" class="fw-bold">-</span>
+                    </div>
+                    {{ result_field('Compliance Score (100 Max):', 'res-score') }}
+                    {{ result_field('Threshold Status (>= 5M VND):', 'res-threshold-status') }}
+                    {{ result_field('Nondeductible CIT Expense:', 'res-nondeductible-cit', 'text-danger fw-bold') }}
+                    {{ result_field('Noncreditable VAT Amount:', 'res-noncreditable-vat', 'text-warning fw-bold') }}
+                    <hr class="my-2" />
+                    <div class="small mb-1">
+                        <span class="fw-bold text-danger"><i class="bi bi-exclamation-triangle-fill me-1" aria-hidden="true"></i>Identified Violations:</span>
+                        <ul id="res-violations-list" class="text-danger ps-3 my-1"><li>None</li></ul>
+                    </div>
+                    <div class="small mb-1">
+                        <span class="fw-bold text-success"><i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i>Actionable Recommendations:</span>
+                        <ul id="res-recommendations-list" class="text-secondary ps-3 my-1"><li>Hồ sơ đạt chuẩn.</li></ul>
+                    </div>
+                {% endcall %}
+                </div>
+            {% endcall %}
+        </div>
+
+        {# ── Baselines Card & Batch Scanner ── #}
+        <div class="col-lg-5">
+            {% call glass_card('Compliance Baselines & Benchmark', 'bi bi-shield-check', 'text-teal') %}
+                <div class="d-flex flex-column gap-3">
+                    {{ baseline_card('Compliant Card Payment (Circular 20)', '12,500,000 VND', 'bg-success-subtle text-success border border-success-subtle',
+                        'Thanh toán thẻ cá nhân kèm đầy đủ Văn bản ủy quyền và Sao kê 2 chiều ngân hàng. 100% khấu trừ CIT & VAT.',
+                        'Status: Compliant', 'CIT Disallowed', 'base1-cit') }}
+                    
+                    {{ baseline_card('Cash Payment Violation (Decree 70)', '8,800,000 VND', 'bg-danger-subtle text-danger border border-danger-subtle',
+                        'Thanh toán tiền mặt từ 5 triệu VNĐ trở lên vi phạm Thông tư 20 & Nghị định 70. Xuất toán toàn bộ chi phí và VAT.',
+                        'Status: Violation', 'CIT Disallowed', 'base2-cit') }}
+                </div>
+            {% endcall %}
+
+            {% call glass_card('Tenant Batch Scanner (Circular 20)', 'bi bi-search', 'text-teal',
+                description='Scan all stored invoices in the current tenant database for Circular 20 & Decree 70 non-cash compliance.') %}
+                <div class="p-3 bg-light rounded-3 border mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="small fw-semibold text-secondary">Total Invoices Scanned:</span>
+                        <span id="batch-scanned-total" class="fw-bold font-monospace">0</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="small fw-semibold text-secondary">Invoices >= 5M VND:</span>
+                        <span id="batch-above-count" class="fw-bold text-primary font-monospace">0</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="small fw-semibold text-secondary">Critical Violations (Cash >= 5M):</span>
+                        <span id="batch-critical-count" class="fw-bold text-danger font-monospace">0</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="small fw-semibold text-secondary">Total Disallowed CIT Expense:</span>
+                        <span id="batch-nondeductible-cit" class="fw-bold text-danger font-monospace">0 VND</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="small fw-semibold text-secondary">Tenant Compliance Score:</span>
+                        <span id="batch-score" class="fw-bold text-success font-monospace">100%</span>
+                    </div>
+                </div>
+
+                <div class="text-end">
+                    <button id="btn-batch-scan-v80" class="btn btn-outline-teal w-100 fw-bold">
+                        <i class="bi bi-lightning-charge-fill me-1" aria-hidden="true"></i> Scan Tenant Database
+                    </button>
+                </div>
+            {% endcall %}
+        </div>
+
+        {# ── Advisory Board Debate Panel ── #}
+        <div class="col-lg-12">
+            {{ debate_panel('debate-container-v80', 'consensus-text-v80',
+                'Multi-Agent Circular 20 & Decree 70 Advisory Board Debate', 'Circular 20/2026/TT-BTC & Decree 70/2025/NĐ-CP Consensus') }}
+        </div>
+
+        {# ── Compliance History Table ── #}
+        <div class="col-lg-12">
+            {% call data_table('V80 Audit History Log', 'bi bi-clock-history', 'history-table-v80', 'No audit logs recorded yet.', 12) %}
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Invoice No</th>
+                        <th>Date</th>
+                        <th>Seller MST</th>
+                        <th>Total Amount (VND)</th>
+                        <th>Payment Method</th>
+                        <th>Authorized Person</th>
+                        <th>Auth Doc</th>
+                        <th>Bank Proof</th>
+                        <th>Disallowed CIT</th>
+                        <th>Risk</th>
+                        <th>Timestamp</th>
+                        <th class="text-center">Action</th>
+                    </tr>
+                </thead>
+            {% endcall %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const fVND = n => new Intl.NumberFormat("vi-VN").format(Math.round(n)) + " VND";
+    const fPct = n => (n).toFixed(1) + " %";
+
+    const getMst = () => {
+        return document.getElementById("tenant-mst") ? document.getElementById("tenant-mst").value : (sessionStorage.getItem("taxpayer_mst") || "0102030405");
+    };
+
+    const load = () => {
+        const mst = getMst();
+        fetch(`/api/v80/compliance-data?mst=${mst}`).then(r=>r.json()).then(d=>{
+            if(d.status==="success"){
+                rB(d);
+                rD(d.debate, d.consensus_summary);
+                rH(d.history);
+            }
+        }).catch(e=>console.error(e));
+    };
+
+    const calc = () => {
+        const p = {
+            mst: getMst(),
+            invoice_number: document.getElementById("input-inv-num").value || "INV-V80",
+            invoice_date: document.getElementById("input-inv-date").value || "",
+            total_amount: parseFloat(document.getElementById("input-total-amount").value || 0),
+            vat_amount: parseFloat(document.getElementById("input-vat-amount").value || 0),
+            seller_mst: document.getElementById("input-seller-mst").value || "",
+            seller_name: document.getElementById("input-seller-name").value || "",
+            payment_method: document.getElementById("input-payment-method").value || "authorized_card",
+            authorized_person: document.getElementById("input-auth-person").value || "",
+            has_authorization_doc: document.getElementById("switch-auth-doc").checked,
+            has_bank_proof: document.getElementById("switch-bank-proof").checked,
+            is_split_suspicious: document.getElementById("switch-split-suspect").checked
+        };
+        fetch('/api/v80/audit-expense', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(p)
+        }).then(r=>r.json()).then(d=>{
+            if(d.status==="success"){
+                rR(d.results);
+                load();
+            } else {
+                alert(d.error || "Audit failed");
+            }
+        }).catch(e=>console.error(e));
+    };
+
+    const runBatchScan = () => {
+        const mst = getMst();
+        const btn = document.getElementById("btn-batch-scan-v80");
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Scanning...';
+
+        fetch('/api/v80/batch-scan', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ mst })
+        }).then(r=>r.json()).then(d=>{
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-lightning-charge-fill me-1" aria-hidden="true"></i> Scan Tenant Database';
+            if (d.status === "success" && d.results) {
+                const res = d.results;
+                document.getElementById("batch-scanned-total").textContent = res.total_scanned;
+                document.getElementById("batch-above-count").textContent = res.above_threshold_count;
+                document.getElementById("batch-critical-count").textContent = res.critical_count;
+                document.getElementById("batch-nondeductible-cit").textContent = fVND(res.total_nondeductible_cit);
+                document.getElementById("batch-score").textContent = fPct(res.compliance_score);
+            } else {
+                alert(d.error || "Batch scan failed");
+            }
+        }).catch(e=>{
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-lightning-charge-fill me-1" aria-hidden="true"></i> Scan Tenant Database';
+            console.error(e);
+        });
+    };
+
+    const rR = r => {
+        document.getElementById("res-score").textContent = (r.compliance_score || 0) + " / 100";
+        document.getElementById("res-threshold-status").textContent = (r.total_amount >= 5000000) ? "Above Threshold (>= 5,000,000 VND)" : "Below Threshold (< 5,000,000 VND)";
+        document.getElementById("res-nondeductible-cit").textContent = fVND(r.nondeductible_cit || 0);
+        document.getElementById("res-noncreditable-vat").textContent = fVND(r.noncreditable_vat || 0);
+
+        const riskBadge = document.getElementById("res-risk-badge");
+        const level = r.risk_level || "SAFE";
+        if(level === "CRITICAL") {
+            riskBadge.innerHTML = '<span class="badge bg-danger-subtle text-danger border border-danger">CRITICAL RISK</span>';
+        } else if(level === "WARNING") {
+            riskBadge.innerHTML = '<span class="badge bg-warning-subtle text-warning border border-warning">WARNING RISK</span>';
+        } else {
+            riskBadge.innerHTML = '<span class="badge bg-success-subtle text-success border border-success">SAFE / COMPLIANT</span>';
+        }
+
+        // Violations list
+        const vList = document.getElementById("res-violations-list");
+        vList.innerHTML = "";
+        if (r.violations && r.violations.length > 0) {
+            r.violations.forEach(v => {
+                const li = document.createElement("li");
+                li.textContent = v;
+                vList.appendChild(li);
+            });
+        } else {
+            vList.innerHTML = "<li>Không phát hiện vi phạm quy định.</li>";
+        }
+
+        // Recommendations list
+        const rList = document.getElementById("res-recommendations-list");
+        rList.innerHTML = "";
+        if (r.recommendations && r.recommendations.length > 0) {
+            r.recommendations.forEach(rec => {
+                const li = document.createElement("li");
+                li.textContent = rec;
+                rList.appendChild(li);
+            });
+        } else {
+            rList.innerHTML = "<li>Hồ sơ hoàn chỉnh, đủ điều kiện khấu trừ thuế.</li>";
+        }
+
+        document.getElementById("res-notes-v80").textContent = r.audit_notes || "V80 Audit complete.";
+
+        // Micro-interaction: Pulse effect on result panel
+        const resCard = document.getElementById("v80-result-panel");
+        if (resCard) {
+            resCard.classList.remove("calc-pulse-effect");
+            void resCard.offsetWidth; // Trigger reflow
+            resCard.classList.add("calc-pulse-effect");
+        }
+    };
+
+    const rB = d => {
+        if(d.sample_card_compliant) {
+            document.getElementById("base1-cit").textContent = fVND(d.sample_card_compliant.nondeductible_cit || 0);
+        }
+        if(d.sample_cash_violation) {
+            document.getElementById("base2-cit").textContent = fVND(d.sample_cash_violation.nondeductible_cit || 0);
+        }
+    };
+
+    const rD = (debate, summary) => {
+        const c = document.getElementById("debate-container-v80");
+        c.innerHTML = "";
+        const cl = {
+            "GDT Tax Inspector (Tổng cục Thuế)": "bg-danger-subtle text-danger border border-danger",
+            "Chief Financial Officer (CFO)": "bg-primary-subtle text-primary border border-primary",
+            "Legal & Internal Audit Expert": "bg-info-subtle text-info border border-info"
+        };
+        debate.forEach((m, idx) => {
+            const div = document.createElement("div");
+            div.className = "d-flex gap-3 align-items-start p-3 bg-white rounded border border-light-subtle debate-message-bubble";
+            div.style.animation = `fadeInUp 0.3s ease forwards ${idx * 0.1}s`;
+            div.style.opacity = "0";
+            div.innerHTML = `
+                <div class="d-flex flex-column align-items-center text-center" style="min-width: 160px;">
+                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mb-2" style="width: 40px; height: 40px;">
+                        <i class="bi bi-robot text-secondary fs-5" aria-hidden="true"></i>
+                    </div>
+                    <span class="badge ${cl[m.speaker] || "bg-secondary"} text-wrap py-1 px-2 small">${m.speaker}</span>
+                </div>
+                <div class="text-dark small flex-grow-1 pt-1 leading-relaxed">${m.text}</div>
+            `;
+            c.appendChild(div);
+        });
+        document.getElementById("consensus-text-v80").textContent = summary;
+    };
+
+    const rH = h => {
+        const tb = document.getElementById("history-table-v80");
+        if (!h || !h.length) {
+            tb.innerHTML = '<tr><td colspan="13" class="text-center text-muted py-4">No audit logs available.</td></tr>';
+            return;
+        }
+        tb.innerHTML = "";
+        h.forEach(l => {
+            const tr = document.createElement("tr");
+            let badgeClass = l.risk_level === 'CRITICAL' ? 'bg-danger-subtle text-danger border border-danger' : (l.risk_level === 'WARNING' ? 'bg-warning-subtle text-warning border border-warning' : 'bg-success-subtle text-success border border-success');
+            tr.innerHTML = `
+                <td><span class="text-secondary small fw-bold">#${l.id}</span></td>
+                <td class="fw-bold">${l.invoice_number}</td>
+                <td>${l.invoice_date || '-'}</td>
+                <td class="font-monospace">${l.seller_mst || '-'}</td>
+                <td class="fw-bold font-monospace">${fVND(l.total_amount)}</td>
+                <td><span class="badge bg-light text-dark border">${l.payment_method}</span></td>
+                <td>${l.authorized_person || '-'}</td>
+                <td>${l.has_authorization_doc ? '<i class="bi bi-check-circle-fill text-success" aria-hidden="true"></i>' : '<i class="bi bi-x-circle-fill text-danger" aria-hidden="true"></i>'}</td>
+                <td>${l.has_bank_proof ? '<i class="bi bi-check-circle-fill text-success" aria-hidden="true"></i>' : '<i class="bi bi-x-circle-fill text-danger" aria-hidden="true"></i>'}</td>
+                <td class="text-danger fw-bold font-monospace">${fVND(l.nondeductible_cit)}</td>
+                <td><span class="badge ${badgeClass}">${l.risk_level}</span></td>
+                <td class="text-muted small">${l.created_at}</td>
+                <td class="text-center">
+                    <button class="btn btn-outline-danger btn-sm py-0 px-2 btn-delete-log" data-id="${l.id}">
+                        <i class="bi bi-trash" aria-hidden="true"></i>
+                    </button>
+                </td>
+            `;
+            tb.appendChild(tr);
+        });
+
+        tb.querySelectorAll(".btn-delete-log").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const logId = btn.dataset.id;
+                if (confirm(`Delete V80 audit log #${logId}?`)) {
+                    const mst = getMst();
+                    fetch('/api/v80/delete-log', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ mst, log_id: logId })
+                    }).then(r=>r.json()).then(d=>{
+                        if (d.status === "success") {
+                            load();
+                        } else {
+                            alert(d.error || "Failed to delete log");
+                        }
+                    }).catch(e=>console.error(e));
+                }
+            });
+        });
+    };
+
+    document.getElementById("btn-calc-v80").addEventListener("click", calc);
+    document.getElementById("btn-refresh-v80").addEventListener("click", load);
+    document.getElementById("btn-batch-scan-v80").addEventListener("click", runBatchScan);
+    load();
+});
+</script>
+
+{{ entry_animations() }}
+{{ premium_controls_css() }}
+{% endblock %}

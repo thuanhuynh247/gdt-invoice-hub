@@ -302,11 +302,39 @@ class ResilientSyncQueue:
             lookup = build_invoice_lookup(raw_invoices)
             set_current_thread_lookup(lookup)
 
-            # Map fetched invoices into local database objects (upsert)
+            from extensions import db
+            from invoices.models import Invoice
+
+            # Map fetched invoices into local database objects (upsert with deduplication)
             normalized_list = []
             for raw_inv in raw_invoices:
                 invoice_id = raw_inv["id"]
-                
+                seller_mst = "0101234567" if direction == "purchase" else job.mst
+                symbol = raw_inv.get("description", "1C26TBA")
+                number = invoice_id.split("-")[-1] if "-" in invoice_id else "0000001"
+                canonical_id = f"{seller_mst}-{symbol}-{number}" if (seller_mst and symbol and number) else invoice_id
+
+                existing_invoice = db.session.get(Invoice, canonical_id) or db.session.get(Invoice, invoice_id)
+                gdt_cancelled = raw_inv.get("is_cancelled", False)
+                gdt_amount = raw_inv.get("amount", 0.0)
+
+                if existing_invoice:
+                    if existing_invoice.is_cancelled == gdt_cancelled and abs((existing_invoice.total_amount or 0.0) - gdt_amount) < 0.01:
+                        logger.debug(f"Sync Queue: Invoice {invoice_id} already exists and is unchanged. Skipping XML download.")
+                        continue
+                    else:
+                        logger.info(f"Sync Queue: Invoice {invoice_id} status/amount changed. Updating record.")
+                        existing_invoice.is_cancelled = gdt_cancelled
+                        if raw_inv.get("cancellation_date"):
+                            existing_invoice.cancellation_date = raw_inv.get("cancellation_date")
+                        if raw_inv.get("cancellation_reason"):
+                            existing_invoice.cancellation_reason = raw_inv.get("cancellation_reason")
+                        existing_invoice.total_amount = gdt_amount
+                        existing_invoice.updated_at = datetime.now().isoformat()
+                        db.session.commit()
+                        total_imported += 1
+                        continue
+
                 # Fetch XML payload for live mode or generate for mock
                 try:
                     xml_data = download_invoice_xml(invoice_id)
@@ -320,12 +348,12 @@ class ResilientSyncQueue:
                     "filename": f"invoice_{invoice_id}.xml",
                     "invoice_type": "Hóa đơn giá trị gia tăng" if direction == "purchase" else "Hóa đơn bán hàng",
                     "template_code": "1",
-                    "symbol": raw_inv.get("description", "1C26TBA"),
-                    "number": invoice_id.split("-")[-1] if "-" in invoice_id else "0000001",
+                    "symbol": symbol,
+                    "number": number,
                     "date": raw_inv["date"],
                     "currency": "VND",
                     "seller_name": raw_inv["issuer"] if direction == "purchase" else "My Enterprise",
-                    "seller_mst": "0101234567" if direction == "purchase" else job.mst,
+                    "seller_mst": seller_mst,
                     "buyer_name": "My Enterprise" if direction == "purchase" else raw_inv["issuer"],
                     "buyer_mst": job.mst if direction == "purchase" else "0101234567",
                     "amount_before_tax": raw_inv["amount"] * 0.9,
@@ -334,14 +362,14 @@ class ResilientSyncQueue:
                     "has_signature": True,
                     "signing_date": raw_inv["date"],
                     "payment_method": "CK",
-                    "is_cancelled": raw_inv.get("is_cancelled", False),
+                    "is_cancelled": gdt_cancelled,
                     "cancellation_date": raw_inv.get("cancellation_date"),
                     "cancellation_reason": raw_inv.get("cancellation_reason"),
                     "warnings": [],
                     "notes": raw_inv.get("description", ""),
                     "imported_at": datetime.now().isoformat(),
                     "import_status": "imported",
-                    "taxpayer_mst": job.mst,  # Route ownership
+                    "taxpayer_mst": job.mst,
                     "items": [
                         {
                             "item_name": "Hàng hóa/Dịch vụ tổng hợp",
@@ -354,12 +382,12 @@ class ResilientSyncQueue:
                         }
                     ]
                 }
-                
+
                 # Check audits
                 from invoices.service import _run_smart_audits
                 other_db = [item for item in local_db if item.get("id") != invoice_id]
                 normalized_inv["warnings"] = _run_smart_audits(normalized_inv, other_db)
-                
+
                 normalized_list.append(normalized_inv)
                 total_imported += 1
 

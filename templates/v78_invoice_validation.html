@@ -2,28 +2,28 @@
 {% from "components/_hub_header.html" import hub_header %}
 {% from "components/_glass_card.html" import glass_card %}
 {% from "components/_metric_kpi.html" import metric_kpi %}
+{% from "components/_entry_animations.html" import entry_animations %}
 
 {% block head_extra %}
 <!-- Include Chart.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-    /* Wise Fintech Design Tokens */
+    /* Wise Fintech Design Tokens & Theme Support */
     :root {
-        --wise-primary: #163300;
-        --wise-primary-light: rgba(22, 51, 0, 0.05);
-        --wise-accent: #02c39a;
-        --wise-accent-hover: #00a896;
-        --wise-dark: #1d2d1f;
-        --wise-light: #f7f9f7;
-        --wise-border: rgba(22, 51, 0, 0.1);
-        --glass-bg: rgba(255, 255, 255, 0.7);
-        --glass-border: rgba(255, 255, 255, 0.4);
-        --glass-shadow: 0 8px 32px 0 rgba(22, 51, 0, 0.06);
+        --wise-primary: var(--primary-accent, #163300);
+        --wise-primary-light: var(--primary-accent-soft, rgba(22, 51, 0, 0.05));
+        --wise-accent: var(--lime-accent, #9fe870);
+        --wise-accent-hover: var(--lime-accent-hover, #8dd460);
+        --wise-border: var(--border-card, rgba(22, 51, 0, 0.1));
+        --glass-bg: var(--bg-card, #ffffff);
+        --glass-border: var(--border-card, rgba(14, 15, 12, 0.08));
+        --glass-shadow: var(--shadow-premium);
     }
 
     body {
-        background-color: var(--wise-light);
-        font-family: 'Inter', sans-serif;
+        background-color: var(--bg-app);
+        color: var(--text-primary);
+        font-family: var(--font-body, 'Inter', sans-serif);
     }
 
     .text-gradient {
@@ -34,12 +34,12 @@
 
     /* Glass Card Style Overrides */
     .glass-card {
-        background: var(--glass-bg);
+        background: var(--bg-card) !important;
         backdrop-filter: blur(16px);
         -webkit-backdrop-filter: blur(16px);
-        border: 1px solid var(--glass-border);
-        box-shadow: var(--glass-shadow);
-        border-radius: 16px;
+        border: 1px solid var(--border-card) !important;
+        box-shadow: var(--shadow-premium) !important;
+        border-radius: 20px !important;
         transition: transform 0.3s ease, box-shadow 0.3s ease;
         margin-bottom: 24px;
         overflow: hidden;
@@ -47,7 +47,8 @@
 
     .glass-card:hover {
         transform: translateY(-2px);
-        box-shadow: 0 12px 40px 0 rgba(22, 51, 0, 0.1);
+        box-shadow: var(--shadow-card-hover) !important;
+        border-color: var(--primary-accent) !important;
     }
 
     /* Custom Benford Charts Styles */
@@ -292,23 +293,23 @@
             {% call glass_card('Danh Sách Chi Tiết Cảnh Báo Tuân Thủ', 'bi bi-list-stars', 'text-success', 'Danh sách lỗi được lọc để kế khai thuế theo Nghị định 123/2020/NĐ-CP', '', '', 'w-100') %}
             
             <!-- Advanced Filters Panel -->
-            <div class="bg-light p-3 rounded mb-4 border">
+            <div class="p-3 rounded-4 mb-4 border" style="background: var(--stat-card-spend-bg, #ecf9f9); border-color: var(--border-card) !important;">
                 <div class="row g-3">
                     <div class="col-md-3">
-                        <label for="filterStartDate" class="form-label small fw-semibold text-secondary mb-1">Từ ngày</label>
-                        <input type="date" id="filterStartDate" class="form-control rounded-pill px-3" autocomplete="off" onchange="applyFilters()">
+                        <label for="filterStartDate" class="form-label mb-1">Từ ngày</label>
+                        <input type="date" id="filterStartDate" class="form-control custom-input px-3" autocomplete="off" onchange="applyFilters()">
                     </div>
                     <div class="col-md-3">
-                        <label for="filterEndDate" class="form-label small fw-semibold text-secondary mb-1">Đến ngày</label>
-                        <input type="date" id="filterEndDate" class="form-control rounded-pill px-3" autocomplete="off" onchange="applyFilters()">
+                        <label for="filterEndDate" class="form-label mb-1">Đến ngày</label>
+                        <input type="date" id="filterEndDate" class="form-control custom-input px-3" autocomplete="off" onchange="applyFilters()">
                     </div>
                     <div class="col-md-3">
-                        <label for="filterPartner" class="form-label small fw-semibold text-secondary mb-1">Đối tác (Tên / MST)</label>
-                        <input type="text" id="filterPartner" class="form-control rounded-pill px-3" placeholder="Nhập tên hoặc MST…" autocomplete="off" oninput="applyFilters()">
+                        <label for="filterPartner" class="form-label mb-1">Đối tác (Tên / MST)</label>
+                        <input type="text" id="filterPartner" class="form-control custom-input px-3" placeholder="Nhập tên hoặc MST…" autocomplete="off" oninput="applyFilters()">
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label small fw-semibold text-secondary mb-1">Loại kiểm tra</label>
-                        <select id="filterCategory" class="form-select rounded-pill px-3" onchange="applyFilters()">
+                        <label for="filterCategory" class="form-label mb-1">Loại kiểm tra</label>
+                        <select id="filterCategory" class="form-select custom-select px-3" onchange="applyFilters()">
                             <option value="">Tất cả loại kiểm tra</option>
                             <option value="Trạng thái">Trạng thái bất thường</option>
                             <option value="KQ Xử lý">Kết quả xử lý</option>
@@ -686,4 +687,5 @@ function renderBenford(benford) {
     }
 }
 </script>
+{{ entry_animations('.glass-card') }}
 {% endblock %}

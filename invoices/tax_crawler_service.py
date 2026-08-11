@@ -14,21 +14,45 @@ def get_db_connection():
         return None
     return sqlite3.connect(DB_PATH)
 
+def extract_legal_document_id(text: str) -> str | None:
+    """
+    Extract Vietnamese legal document identifier such as:
+    - Thông tư 20/2026/TT-BTC
+    - Nghị định 70/2025/NĐ-CP
+    - Nghị định 123/2020/NĐ-CP
+    - Luật 48/2024/QH15
+    """
+    if not text:
+        return None
+    match = re.search(r'(?:Thông tư|Nghị định|Luật|Nghị quyết|Quyết định)\s+số?\s*([0-9]+/[0-9]+/[a-zA-Z0-9\-_Đđ]+|[0-9]+/[a-zA-Z0-9\-_Đđ]+)', text, re.IGNORECASE)
+    if match:
+        return match.group(0).strip()
+    return None
+
 def extract_effective_date(text: str) -> str:
     """
     Search for common Vietnamese patterns describing the effective date of a law/regulation.
     e.g., 'hiệu lực thi hành từ ngày 01/01/2026', 'có hiệu lực từ ngày 01 tháng 07 năm 2025'.
     """
-    # Pattern 1: ngày DD/MM/YYYY
-    pattern1 = re.search(r'(?:hiệu lực|áp dụng)(?: thi hành)?(?: kể)? từ ngày\s+(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{4})', text, re.IGNORECASE)
+    if not text:
+        return datetime.now().strftime("%Y-%m-%d")
+
+    # Pattern 1: ngày DD/MM/YYYY or DD-MM-YYYY
+    pattern1 = re.search(r'(?:hiệu lực|áp dụng)(?: thi hành)?(?: kể)?(?: từ)?(?: ngày)?\s+(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{4})', text, re.IGNORECASE)
     if pattern1:
         d, m, y = pattern1.groups()
         return f"{y}-{int(m):02d}-{int(d):02d}"
 
     # Pattern 2: ngày DD tháng MM năm YYYY
-    pattern2 = re.search(r'(?:hiệu lực|áp dụng)(?: thi hành)?(?: kể)? từ ngày\s+(\d{1,2})\s+tháng\s+(\d{1,2})\s+năm\s+(\d{4})', text, re.IGNORECASE)
+    pattern2 = re.search(r'(?:hiệu lực|áp dụng)(?: thi hành)?(?: kể)?(?: từ)?(?: ngày)?\s+(\d{1,2})\s+tháng\s+(\d{1,2})\s+năm\s+(\d{4})', text, re.IGNORECASE)
     if pattern2:
         d, m, y = pattern2.groups()
+        return f"{y}-{int(m):02d}-{int(d):02d}"
+
+    # Pattern 3: từ ngày DD/MM/YYYY
+    pattern3 = re.search(r'từ ngày\s+(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{4})', text, re.IGNORECASE)
+    if pattern3:
+        d, m, y = pattern3.groups()
         return f"{y}-{int(m):02d}-{int(d):02d}"
 
     # Default to current date if not found
@@ -175,6 +199,15 @@ def ingest_crawled_content(url: str, custom_title: str, text: str, effective_dat
         """)
         conn.commit()
         
+        # Deduplicate: Clean up existing entries for this document_source
+        cursor.execute("SELECT id FROM tax_regulation_chunk WHERE document_source = ?", (doc_source,))
+        existing_ids = [row[0] for row in cursor.fetchall()]
+        if existing_ids:
+            cursor.execute("DELETE FROM tax_regulation_chunk WHERE document_source = ?", (doc_source,))
+            for eid in existing_ids:
+                cursor.execute("DELETE FROM tax_regulation_fts WHERE chunk_id = ?", (eid,))
+            conn.commit()
+
         now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         inserted_count = 0
         

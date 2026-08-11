@@ -52,9 +52,13 @@ scripts/bin/harness-cli
 
 # Scratch and nested workspace copies
 scratch/
+artifacts/
+_Delete/
+_Archive/
 gdt-invoice-hub/
 open-design/
 
 # Local databases and temp files
 harness_temp.db
 tests/tenant_*.db
+

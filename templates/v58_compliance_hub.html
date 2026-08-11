@@ -7,6 +7,8 @@
 {% from "components/_debate_panel.html" import debate_panel %}
 {% from "components/_baseline_card.html" import baseline_card %}
 {% from "components/_data_table.html" import data_table %}
+{% from "components/_entry_animations.html" import entry_animations %}
+{% from "components/_premium_controls.html" import premium_controls_css %}
 
 {% block title %}Natural Resources Tax Law 45/2009 - NRT Hub (v58){% endblock %}
 
@@ -441,4 +443,7 @@ document.addEventListener("DOMContentLoaded", () => {
     load();
 });
 </script>
+
+{{ entry_animations() }}
+{{ premium_controls_css() }}
 {% endblock %}

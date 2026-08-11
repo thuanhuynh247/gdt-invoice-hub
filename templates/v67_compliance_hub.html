@@ -17,27 +17,26 @@
 <style>
     /* Wise Fintech Design Tokens for v67 Hub */
     :root {
-        --wise-primary: #002d04;
-        --wise-primary-light: rgba(0, 45, 4, 0.05);
-        --wise-accent: #02c39a;
-        --wise-accent-hover: #00a896;
-        --wise-dark: #122115;
-        --wise-light: #f4f7f4;
-        --wise-border: rgba(0, 45, 4, 0.1);
-        --glass-bg: rgba(255, 255, 255, 0.75);
-        --glass-border: rgba(255, 255, 255, 0.5);
-        --glass-shadow: 0 8px 32px 0 rgba(0, 45, 4, 0.06);
+        --wise-primary: var(--primary-accent, #163300);
+        --wise-primary-light: var(--primary-accent-soft, rgba(22, 51, 0, 0.05));
+        --wise-accent: var(--lime-accent, #9fe870);
+        --wise-accent-hover: var(--lime-accent-hover, #8dd460);
+        --wise-border: var(--border-card, rgba(22, 51, 0, 0.1));
+        --glass-bg: var(--bg-card, #ffffff);
+        --glass-border: var(--border-card, rgba(14, 15, 12, 0.08));
+        --glass-shadow: var(--shadow-premium);
+    }
+
+    body {
+        background-color: var(--bg-app);
+        color: var(--text-primary);
+        font-family: var(--font-body, 'Inter', sans-serif);
     }
 
     .text-gradient {
         background: linear-gradient(135deg, var(--wise-primary) 0%, var(--wise-accent) 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-    }
-
-    body {
-        background-color: var(--wise-light);
-        font-family: 'Inter', sans-serif;
     }
 
     /* Premium Glass Card Adjustments */
@@ -352,17 +351,19 @@ document.addEventListener("DOMContentLoaded", () => {
         };
         debate.forEach((m, idx) => {
             const div = document.createElement("div");
-            div.className = "d-flex gap-3 align-items-start p-3 bg-white rounded border border-light-subtle debate-message-bubble";
+            div.className = "d-flex gap-3 align-items-start p-3 rounded border debate-message-bubble";
+            div.style.background = "var(--bg-card, #ffffff)";
+            div.style.borderColor = "var(--border-card, rgba(0,0,0,0.08))";
             div.style.animation = `fadeInUp 0.3s ease forwards ${idx * 0.1}s`;
             div.style.opacity = "0";
             div.innerHTML = `
                 <div class="d-flex flex-column align-items-center text-center" style="min-width: 140px;">
-                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mb-2" style="width: 40px; height: 40px;">
-                        <i class="bi bi-robot text-secondary fs-5"></i>
+                    <div class="rounded-circle bg-premium-light d-flex align-items-center justify-content-center mb-2" style="width: 40px; height: 40px;">
+                        <i class="bi bi-robot text-secondary fs-5" aria-hidden="true"></i>
                     </div>
                     <span class="badge ${cl[m.speaker] || "bg-secondary"} text-wrap py-1 px-2 small">${m.speaker}</span>
                 </div>
-                <div class="text-dark small flex-grow-1 pt-1 leading-relaxed">${m.text}</div>
+                <div class="small flex-grow-1 pt-1 leading-relaxed" style="color: var(--text-primary);">${m.text}</div>
             `;
             c.appendChild(div);
         });
@@ -387,7 +388,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td class="fw-bold">${l.scrap_description}</td>
                 <td><span class="badge bg-premium-light text-dark border">${l.scrap_type.replace("scrap_", "").toUpperCase()}</span></td>
                 <td>${l.volume_tonnes.toFixed(1)}</td>
-                <td>${fVND(l.cargo_value_vnd)}</td>
+                <td class="font-monospace">${fVND(l.cargo_value_vnd)}</td>
                 <td>${(l.deposit_rate * 100).toFixed(0)}%</td>
                 <td class="fw-bold text-primary font-monospace">${fVND(l.required_deposit_vnd)}</td>
                 <td><span class="badge bg-premium-light text-dark">${l.exemption_category.toUpperCase()}</span></td>

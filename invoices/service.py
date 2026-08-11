@@ -759,69 +759,86 @@ def get_local_invoices(taxpayer_mst: str | None = None) -> list[dict]:
 
 
 def _save_local_invoices(invoices: list[dict]) -> None:
-    """Save the list of invoices to the local database (upsert)."""
+    """Save the list of invoices to the local database (upsert with deduplication and atomicity)."""
     from extensions import db
     from invoices.models import Invoice, LineItem
     try:
-        for inv_data in invoices:
-            invoice = db.session.get(Invoice, inv_data["id"])
-            if not invoice:
-                invoice = Invoice(id=inv_data["id"])
-                db.session.add(invoice)
-            
-            invoice.filename = inv_data.get("filename")
-            invoice.invoice_type = inv_data.get("invoice_type")
-            invoice.template_code = inv_data.get("template_code")
-            invoice.symbol = inv_data.get("symbol")
-            invoice.number = inv_data.get("number")
-            invoice.date = inv_data.get("date")
-            invoice.currency = inv_data.get("currency")
-            invoice.seller_name = inv_data.get("seller_name")
-            invoice.seller_mst = inv_data.get("seller_mst")
-            invoice.seller_address = inv_data.get("seller_address")
-            invoice.seller_phone = inv_data.get("seller_phone")
-            invoice.buyer_name = inv_data.get("buyer_name")
-            invoice.buyer_mst = inv_data.get("buyer_mst")
-            invoice.buyer_address = inv_data.get("buyer_address")
-            invoice.amount_before_tax = inv_data.get("amount_before_tax", 0.0)
-            invoice.tax_amount = inv_data.get("tax_amount", 0.0)
-            invoice.total_amount = inv_data.get("total_amount", 0.0)
-            invoice.has_signature = inv_data.get("has_signature", False)
-            invoice.signing_date = inv_data.get("signing_date")
-            invoice.payment_method = inv_data.get("payment_method")
-            invoice.is_cancelled = inv_data.get("is_cancelled", False)
-            invoice.cancellation_date = inv_data.get("cancellation_date")
-            invoice.cancellation_reason = inv_data.get("cancellation_reason")
-            invoice.warnings = inv_data.get("warnings", [])
-            invoice.notes = inv_data.get("notes")
-            invoice.imported_at = inv_data.get("imported_at") or datetime.now().isoformat()
-            invoice.updated_at = inv_data.get("updated_at")
-            invoice.import_status = inv_data.get("import_status", "imported")
-            
-            # Recreate items
-            LineItem.query.filter_by(invoice_id=invoice.id).delete()
-            for item_data in inv_data.get("items", []):
-                item = LineItem(
-                    invoice_id=invoice.id,
-                    item_name=item_data["item_name"],
-                    unit=item_data.get("unit"),
-                    quantity=item_data.get("quantity", 0.0),
-                    unit_price=item_data.get("unit_price", 0.0),
-                    amount_before_tax=item_data.get("amount_before_tax", 0.0),
-                    tax_rate=item_data.get("tax_rate", "0%"),
-                    tax_amount=item_data.get("tax_amount", 0.0)
-                )
-                db.session.add(item)
+        seen = set()
+        deduped = []
+        for inv in invoices:
+            inv_id = inv.get("id")
+            if inv_id and inv_id not in seen:
+                seen.add(inv_id)
+                deduped.append(inv)
+
+        with db.session.begin_nested():
+            for inv_data in deduped:
+                invoice = db.session.get(Invoice, inv_data["id"])
+                is_existing = invoice is not None
+                if not invoice:
+                    invoice = Invoice(id=inv_data["id"])
+                    db.session.add(invoice)
+
+                invoice.filename = inv_data.get("filename") or getattr(invoice, "filename", None)
+                invoice.invoice_type = inv_data.get("invoice_type") or getattr(invoice, "invoice_type", None)
+                invoice.template_code = inv_data.get("template_code") or getattr(invoice, "template_code", None)
+                invoice.symbol = inv_data.get("symbol") or getattr(invoice, "symbol", None)
+                invoice.number = inv_data.get("number") or getattr(invoice, "number", None)
+                invoice.date = inv_data.get("date") or getattr(invoice, "date", None)
+                invoice.currency = inv_data.get("currency") or getattr(invoice, "currency", None)
+                invoice.seller_name = inv_data.get("seller_name") or getattr(invoice, "seller_name", None)
+                invoice.seller_mst = inv_data.get("seller_mst") or getattr(invoice, "seller_mst", None)
+                invoice.seller_address = inv_data.get("seller_address") or getattr(invoice, "seller_address", None)
+                invoice.seller_phone = inv_data.get("seller_phone") or getattr(invoice, "seller_phone", None)
+                invoice.buyer_name = inv_data.get("buyer_name") or getattr(invoice, "buyer_name", None)
+                invoice.buyer_mst = inv_data.get("buyer_mst") or getattr(invoice, "buyer_mst", None)
+                invoice.buyer_address = inv_data.get("buyer_address") or getattr(invoice, "buyer_address", None)
+                invoice.amount_before_tax = inv_data.get("amount_before_tax", getattr(invoice, "amount_before_tax", 0.0))
+                invoice.tax_amount = inv_data.get("tax_amount", getattr(invoice, "tax_amount", 0.0))
+                invoice.total_amount = inv_data.get("total_amount", getattr(invoice, "total_amount", 0.0))
+                invoice.has_signature = inv_data.get("has_signature", getattr(invoice, "has_signature", False))
+                invoice.signing_date = inv_data.get("signing_date") or getattr(invoice, "signing_date", None)
+                invoice.payment_method = inv_data.get("payment_method") or getattr(invoice, "payment_method", None)
+                invoice.is_cancelled = inv_data.get("is_cancelled", False)
+                invoice.cancellation_date = inv_data.get("cancellation_date")
+                invoice.cancellation_reason = inv_data.get("cancellation_reason")
+                invoice.warnings = inv_data.get("warnings", getattr(invoice, "warnings", []))
+                invoice.notes = inv_data.get("notes") or getattr(invoice, "notes", None)
+                if not getattr(invoice, "imported_at", None):
+                    invoice.imported_at = inv_data.get("imported_at") or datetime.now().isoformat()
+                if is_existing:
+                    invoice.updated_at = datetime.now().isoformat()
+                invoice.import_status = inv_data.get("import_status", "imported")
+                if inv_data.get("taxpayer_mst"):
+                    invoice.taxpayer_mst = inv_data["taxpayer_mst"]
+
+                items_data = inv_data.get("items")
+                if items_data is not None:
+                    LineItem.query.filter_by(invoice_id=invoice.id).delete()
+                    for item_data in items_data:
+                        item = LineItem(
+                            invoice_id=invoice.id,
+                            item_name=item_data["item_name"],
+                            unit=item_data.get("unit"),
+                            quantity=item_data.get("quantity", 0.0),
+                            unit_price=item_data.get("unit_price", 0.0),
+                            amount_before_tax=item_data.get("amount_before_tax", 0.0),
+                            tax_rate=item_data.get("tax_rate", "0%"),
+                            tax_amount=item_data.get("tax_amount", 0.0)
+                        )
+                        db.session.add(item)
         db.session.commit()
+
         # Invalidate stats cache on successful invoice storage (US-124)
         from invoices.stats_cache import invalidate_stats_cache
-        invalidate_stats_cache(None)  # Invalidate global cache
-        for inv_data in invoices:
+        invalidate_stats_cache(None)
+        for inv_data in deduped:
             invalidate_stats_cache(inv_data.get("buyer_mst"))
             invalidate_stats_cache(inv_data.get("seller_mst"))
             invalidate_stats_cache(inv_data.get("taxpayer_mst"))
-    except Exception:
+    except Exception as e:
         db.session.rollback()
+        raise e
 
 
 
@@ -1151,7 +1168,6 @@ def import_xml_invoice(xml_bytes: bytes, filename: str, duplicate_strategy: str 
     # If it exists and strategy is overwrite, delete it first to ensure clean state (cascade deletes old items)
     if existing_record:
         db.session.delete(existing_record)
-        db.session.commit()
 
     # Determine taxpayer_mst
     if not taxpayer_mst:

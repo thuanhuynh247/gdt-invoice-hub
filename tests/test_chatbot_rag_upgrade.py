@@ -37,17 +37,19 @@ def test_pdf_text_extraction(app):
 def test_text_splitter_paragraphs():
     """Test parse_and_chunk_pdf splitting logic with standard text chunk structures."""
     # Since parse_and_chunk_pdf reads from file, let's mock the PdfReader and verify paragraph splitter
-    with patch("pypdf.PdfReader") as mock_reader:
-        mock_page = MagicMock()
-        # Create a page content with more than 180 words to trigger split
-        words_paragraph1 = " ".join([f"word{i}" for i in range(190)]) + "."
-        words_paragraph2 = " " + " ".join([f"extra{i}" for i in range(50)]) + "."
-        mock_page.extract_text.return_value = words_paragraph1 + words_paragraph2
-        
-        mock_pdf = MagicMock()
-        mock_pdf.pages = [mock_page]
-        mock_reader.return_value = mock_pdf
+    import sys
+    mock_pypdf = MagicMock()
+    mock_page = MagicMock()
+    # Create a page content with more than 180 words to trigger split
+    words_paragraph1 = " ".join([f"word{i}" for i in range(190)]) + "."
+    words_paragraph2 = " " + " ".join([f"extra{i}" for i in range(50)]) + "."
+    mock_page.extract_text.return_value = words_paragraph1 + words_paragraph2
+    
+    mock_pdf = MagicMock()
+    mock_pdf.pages = [mock_page]
+    mock_pypdf.PdfReader.return_value = mock_pdf
 
+    with patch.dict(sys.modules, {"pypdf": mock_pypdf}):
         # We pass a fake existing filename path
         with patch("os.path.exists", return_value=True):
             chunks = parse_and_chunk_pdf("mock_document.pdf")

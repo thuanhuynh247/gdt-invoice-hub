@@ -4096,3 +4096,298 @@ def api_v75_delete_log():
         return jsonify({"error": str(e)}), 400
 
 
+# --- VERSION 79 ROUTES ---
+@invoices_blueprint.get("/v79-compliance-hub")
+def v79_compliance_hub_page():
+    """Render the Version 79 Global Minimum Tax (Pillar 2) & Transfer Pricing compliance hub."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("v79_compliance_hub.html")
+
+
+@invoices_blueprint.post("/api/v79/calculate")
+def api_v79_calculate():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v79_service import V79ComplianceService
+    try:
+        service = V79ComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.calculate_pillar2_and_transfer_pricing(
+            mst,
+            float(data.get("consolidated_revenue", 0.0)),
+            float(data.get("globe_income", 0.0)),
+            float(data.get("covered_taxes", 0.0)),
+            float(data.get("ebitda", 0.0)),
+            float(data.get("net_interest_expense", 0.0)),
+            float(data.get("related_party_revenue", 0.0)),
+            float(data.get("payroll_costs", 0.0)),
+            float(data.get("tangible_assets", 0.0))
+        )
+        return jsonify({"status": "success", "results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.get("/api/v79/compliance-data")
+def api_v79_compliance_data():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v79_service import V79ComplianceService
+    service = V79ComplianceService(current_app.config["BASE_DATA_DIR"])
+
+    # Baseline calculations
+    sample_mne = service.calculate_pillar2_and_transfer_pricing(
+        mst, 25_000_000_000_000.0, 1_500_000_000_000.0, 150_000_000_000.0,
+        500_000_000_000.0, 180_000_000_000.0, 5_000_000_000_000.0,
+        100_000_000_000.0, 200_000_000_000.0
+    )
+    sample_local = service.calculate_pillar2_and_transfer_pricing(
+        mst, 500_000_000_000.0, 40_000_000_000.0, 8_000_000_000.0,
+        15_000_000_000.0, 3_000_000_000.0, 0.0
+    )
+
+    debate_transcript = [
+        {
+            "speaker": "OECD GloBE Tax Specialist",
+            "text": "Nghị quyết 107/2023/QH15 quy định thuế TNDN bổ sung tối thiểu 15% áp dụng cho các Tập đoàn đa quốc gia có doanh thu hợp nhất đạt từ 750 triệu EUR (~20,000 tỷ VNĐ)."
+        },
+        {
+            "speaker": "GDT Transfer Pricing Inspector",
+            "text": "Nghị định 132/2020/NĐ-CP khống chế tổng chi phí lãi vay ròng không vượt quá 30% EBITDA đối với doanh nghiệp có phát sinh giao dịch liên kết."
+        },
+        {
+            "speaker": "CFO Tax Advisor",
+            "text": "Được phép khấu trừ giá trị tài sản hữu hình (5%) và chi phí tiền lương (5%) theo cơ chế SBIE trước khi tính số thuế TNDN nộp bổ sung QDMTT."
+        }
+    ]
+    consensus_summary = "Global Minimum Tax & Transfer Pricing Compliance Engine: Verified OECD Pillar 2 15% ETR threshold, QDMTT top-up tax formula, SBIE substance deductions, and Decree 132 30% EBITDA interest cap."
+
+    return jsonify({
+        "status": "success",
+        "sample_mne": sample_mne,
+        "sample_local": sample_local,
+        "debate": debate_transcript,
+        "consensus_summary": consensus_summary,
+        "history": service.get_history(mst, 20)
+    })
+
+
+@invoices_blueprint.post("/api/v79/delete-log")
+def api_v79_delete_log():
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    log_id = data.get("log_id")
+    if not log_id:
+        return jsonify({"error": "Missing log_id"}), 400
+
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    from invoices.v79_service import V79ComplianceService
+    try:
+        service = V79ComplianceService(current_app.config["BASE_DATA_DIR"])
+        success = service.delete_log(mst, int(log_id))
+        return jsonify({"status": "success", "deleted": success})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.post("/api/v79/sync")
+def api_v79_sync():
+    """Option B: Bidirectional sync trigger between Webapp XML & VBA Excel."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v79_service import V79ComplianceService
+    try:
+        service = V79ComplianceService(current_app.config["BASE_DATA_DIR"])
+        sync_res = service.sync_vba_webapp_data(mst, data)
+        return jsonify({"status": "success", "results": sync_res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.post("/api/v79/batch-verify")
+def api_v79_batch_verify():
+    """Option C: Automated XML Invoice Risk & Benford's Law Verification Engine."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v79_service import V79ComplianceService
+    try:
+        service = V79ComplianceService(current_app.config["BASE_DATA_DIR"])
+        verify_res = service.run_batch_verification_audit(mst)
+        return jsonify({"status": "success", "results": verify_res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+# --- VERSION 80 ROUTES ---
+@invoices_blueprint.get("/v80-compliance-hub")
+def v80_compliance_hub_page():
+    """Render the Version 80 Circular 20/2026/TT-BTC & Decree 70/2025/NĐ-CP Compliance Hub."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("v80_compliance_hub.html")
+
+
+@invoices_blueprint.post("/api/v80/audit-expense")
+def api_v80_audit_expense():
+    """Run an individual expense audit against Circular 20 & Decree 70."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v80_service import V80ComplianceService
+    try:
+        service = V80ComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.audit_authorized_expense(
+            mst=mst,
+            total_amount=float(data.get("total_amount", 0.0)),
+            vat_amount=float(data.get("vat_amount", 0.0)),
+            invoice_number=str(data.get("invoice_number", "INV-V80")),
+            invoice_date=str(data.get("invoice_date", "")),
+            seller_mst=str(data.get("seller_mst", "")),
+            seller_name=str(data.get("seller_name", "")),
+            payment_method=str(data.get("payment_method", "authorized_card")),
+            authorized_person=str(data.get("authorized_person", "")),
+            has_authorization_doc=bool(data.get("has_authorization_doc", False)),
+            has_bank_proof=bool(data.get("has_bank_proof", False)),
+            is_split_suspicious=bool(data.get("is_split_suspicious", False)),
+        )
+        return jsonify({"status": "success", "results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.get("/api/v80/compliance-data")
+def api_v80_compliance_data():
+    """Get overview data, sample calculations, advisory debate and history for V80."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v80_service import V80ComplianceService
+    service = V80ComplianceService(current_app.config["BASE_DATA_DIR"])
+
+    # Baseline calculations
+    sample_card_compliant = service.audit_authorized_expense(
+        mst=mst,
+        total_amount=12_500_000.0,
+        vat_amount=1_250_000.0,
+        invoice_number="INV-2026-089",
+        invoice_date="2026-03-15",
+        seller_mst="0100109106",
+        seller_name="Tập đoàn Viễn thông Quân đội Viettel",
+        payment_method="authorized_card",
+        authorized_person="Nguyễn Văn A (Trưởng phòng IT)",
+        has_authorization_doc=True,
+        has_bank_proof=True
+    )
+    sample_cash_violation = service.audit_authorized_expense(
+        mst=mst,
+        total_amount=8_800_000.0,
+        vat_amount=880_000.0,
+        invoice_number="INV-2026-112",
+        invoice_date="2026-03-18",
+        seller_mst="0101234567",
+        seller_name="Công ty TNHH Thiết bị Văn phòng Á Châu",
+        payment_method="cash",
+        authorized_person="Trần Thị B (Kế toán mua sắm)",
+        has_authorization_doc=False,
+        has_bank_proof=False
+    )
+
+    debate_transcript = [
+        {
+            "speaker": "GDT Tax Inspector (Tổng cục Thuế)",
+            "text": "Thông tư 20/2026/TT-BTC (hiệu lực 12/03/2026) quy định các khoản mua hàng từ 5 triệu VNĐ ủy quyền qua cá nhân bắt buộc phải có văn bản ủy quyền, hóa đơn mang MST doanh nghiệp và chứng từ ngân hàng hợp lệ."
+        },
+        {
+            "speaker": "Chief Financial Officer (CFO)",
+            "text": "Doanh nghiệp cần ban hành Quy chế chi tiêu nội bộ quy định danh mục chi phí được phép ủy quyền thanh toán thẻ cá nhân và hạn mức hoàn ứng qua tài khoản ngân hàng."
+        },
+        {
+            "speaker": "Legal & Internal Audit Expert",
+            "text": "Các trường hợp thanh toán tiền mặt từ 5 triệu đồng trở lên sẽ bị loại toàn bộ chi phí hợp lý tính thuế TNDN và không được khấu trừ thuế GTGT đầu vào theo Nghị định 70/2025/NĐ-CP."
+        }
+    ]
+    consensus_summary = "V80 Compliance Engine: Quản lý rủi ro chi phí ủy quyền cá nhân theo Thông tư 20/2026/TT-BTC & Nghị định 70/2025/NĐ-CP (Ngưỡng 5M VNĐ, Ủy quyền bằng văn bản, Chứng từ chuyển khoản ngân hàng 2 chiều)."
+
+    return jsonify({
+        "status": "success",
+        "sample_card_compliant": sample_card_compliant,
+        "sample_cash_violation": sample_cash_violation,
+        "debate": debate_transcript,
+        "consensus_summary": consensus_summary,
+        "history": service.get_history(mst, 20)
+    })
+
+
+@invoices_blueprint.post("/api/v80/batch-scan")
+def api_v80_batch_scan():
+    """Scan all invoices in tenant DB for Circular 20 compliance."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v80_service import V80ComplianceService
+    try:
+        service = V80ComplianceService(current_app.config["BASE_DATA_DIR"])
+        scan_res = service.scan_tenant_invoices_for_circular20(mst)
+        return jsonify({"status": "success", "results": scan_res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.post("/api/v80/delete-log")
+def api_v80_delete_log():
+    """Delete an audit log by ID."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    log_id = data.get("log_id")
+    if not log_id:
+        return jsonify({"error": "Missing log_id"}), 400
+
+    mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    from invoices.v80_service import V80ComplianceService
+    try:
+        service = V80ComplianceService(current_app.config["BASE_DATA_DIR"])
+        success = service.delete_log(mst, int(log_id))
+        return jsonify({"status": "success", "deleted": success})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+
+
+

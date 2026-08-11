@@ -313,10 +313,22 @@ def parse_and_chunk_pdf(filename: str) -> list[dict]:
         logger.warning(f"PDF document for dynamic ingestion not found: {filename}")
         return []
 
-    from pypdf import PdfReader
     chunks = []
     try:
-        reader = PdfReader(filename)
+        pages = []
+        try:
+            from pypdf import PdfReader
+            reader = PdfReader(filename)
+            pages = reader.pages
+        except Exception:
+            try:
+                import pdfplumber
+                with pdfplumber.open(filename) as pdf:
+                    pages = [type('MockPage', (), {'extract_text': (lambda text=p.extract_text(): text)})() for p in pdf.pages]
+            except Exception as pdf_err:
+                logger.warning(f"PDF extraction library fallback: {pdf_err}")
+                pages = []
+
         if "20-btc" in filename:
             effective_date = "2026-03-12"
         elif "vanbanhopnhat61" in filename:
@@ -334,7 +346,7 @@ def parse_and_chunk_pdf(filename: str) -> list[dict]:
         else:
             effective_date = "2026-01-01"
         
-        for page_idx, page in enumerate(reader.pages):
+        for page_idx, page in enumerate(pages):
             text = page.extract_text()
             if not text:
                 continue

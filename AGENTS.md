@@ -262,3 +262,37 @@ NEVER DO THAT. The answer is ALWAYS the same: those are changes created by other
 ## Note on Built-in TODO Functionality
 
 If asked to explicitly use built-in TODO functionality, do so without complaining.
+
+---
+
+## Dedicated Agent: Webapp Improvement Loop Agent (`.codex/agents/webapp-improvement-agent.toml`)
+
+- **Role**: Autonomous continuous refinement, bug fixing, UI/UX polishing, test verification, and telemetry sync for Webapp XML.
+- **Associated Skills**:
+  - `webapp-improvement-loop` (`.agents/skills/webapp-improvement-loop/SKILL.md`)
+  - `webapp-refinement` (`.agents/skills/webapp-refinement/SKILL.md`)
+  - `code-review` (`.agents/skills/code-review/SKILL.md`)
+- **Execution Loop**:
+  1. Pre-check disk space and database lock state.
+  2. Plan UI/UX and logic improvements.
+  3. Execute code edits (preserving docstrings and comments).
+  4. Run targeted and global `pytest` suite (3-iteration auto-fix loop).
+  5. Sync telemetry to `harness.db` via `unified-gate` and `trace`.
+
+---
+
+## Agent skills
+
+### Issue tracker
+
+Issues and specs are tracked via Local Markdown under `.scratch/` and synced with `harness.db`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Canonical triage roles mapped to 5 standard labels (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context layout using root `CONTEXT.md` and `docs/decisions/` ADRs. See `docs/agents/domain.md`.
+
+

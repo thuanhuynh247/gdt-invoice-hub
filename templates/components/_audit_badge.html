@@ -1,0 +1,41 @@
+{# ═══════════════════════════════════════════════════════════════════
+   LEGO COMPONENT: Audit Status Badge - Huy hiệu trạng thái tuân thủ
+   ────────────────────────────────────────────────────────────────
+   Hiển thị huy hiệu trạng thái chuẩn hóa Wise Fintech cho các
+   mức độ rủi ro tuân thủ (SAFE, WARNING, CRITICAL, PENDING, INFO).
+
+   Tham số:
+     status      - 'safe'/'pass', 'warning'/'medium', 'danger'/'critical'/'high', 'pending', 'info'
+     text        - nhãn hiển thị (nếu None sẽ tự suy từ status)
+     extra_class - class CSS bổ sung
+   ═══════════════════════════════════════════════════════════════════ #}
+
+{% macro audit_badge(status, text=None, extra_class="") %}
+{% set s = status|lower %}
+{% if s in ['safe', 'pass', 'success', 'compliant', 'low'] %}
+    {% set label = text if text else 'SAFE / COMPLIANT' %}
+    {% set badge_cls = 'bg-success-subtle text-success border border-success-subtle' %}
+    {% set icon = 'bi-check-circle-fill' %}
+{% elif s in ['warning', 'medium', 'caution'] %}
+    {% set label = text if text else 'WARNING RISK' %}
+    {% set badge_cls = 'bg-warning-subtle text-warning border border-warning-subtle' %}
+    {% set icon = 'bi-exclamation-triangle-fill' %}
+{% elif s in ['danger', 'critical', 'high', 'violation', 'failed'] %}
+    {% set label = text if text else 'CRITICAL RISK' %}
+    {% set badge_cls = 'bg-danger-subtle text-danger border border-danger-subtle' %}
+    {% set icon = 'bi-x-octagon-fill' %}
+{% elif s in ['pending', 'queued', 'processing'] %}
+    {% set label = text if text else 'PENDING' %}
+    {% set badge_cls = 'bg-info-subtle text-info border border-info-subtle' %}
+    {% set icon = 'bi-clock-fill' %}
+{% else %}
+    {% set label = text if text else status|upper %}
+    {% set badge_cls = 'bg-secondary-subtle text-secondary border border-secondary-subtle' %}
+    {% set icon = 'bi-info-circle-fill' %}
+{% endif %}
+
+<span class="badge {{ badge_cls }} px-2 py-1 d-inline-flex align-items-center gap-1 font-monospace fw-semibold {{ extra_class }}">
+    <i class="bi {{ icon }}" aria-hidden="true"></i>
+    <span>{{ label }}</span>
+</span>
+{% endmacro %}

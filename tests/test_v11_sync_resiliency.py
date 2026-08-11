@@ -9,7 +9,7 @@ import pytest
 
 from flask import Flask
 from extensions import db
-from invoices.models import TaxpayerProfile, GDTSyncLog, Invoice
+from invoices.models import TaxpayerProfile, GDTSyncLog, Invoice, LineItem
 from invoices.sync_queue import ResilientSyncQueue, SyncJob
 from auth.crypto import encrypt_password
 
@@ -43,6 +43,8 @@ def test_sync_queue_parallel_execution_and_isolation(sync_app):
         for mst in ["0101234567", "9999999999"]:
             set_current_thread_mst(mst)
             GDTSyncLog.query.delete()
+            LineItem.query.delete()
+            Invoice.query.delete()
             db.session.commit()
             db.session.remove()
 
@@ -161,3 +163,83 @@ def test_sync_queue_emergency_stop(sync_app):
     # Ensure queue is clean and running jobs are terminated/executor recreated
     assert queue._shutdown_requested is False
     assert queue.executor is not None
+
+
+def test_deduplication_and_status_update(sync_app):
+    """Test intra-batch deduplication, idempotent sync, and atomic status updates."""
+    app = sync_app
+    with app.app_context():
+        from invoices.thread_local import set_current_thread_mst, clear_thread_local_context
+        set_current_thread_mst("0101234567")
+        try:
+            from invoices.models import Invoice, LineItem
+            from invoices.service import _save_local_invoices, import_xml_invoice
+
+            # Clear existing invoices
+            LineItem.query.delete()
+            Invoice.query.delete()
+            db.session.commit()
+
+            # 1. Test intra-batch deduplication in _save_local_invoices
+            duplicate_batch = [
+                {
+                    "id": "0101234567-1C26TBA-00000001",
+                    "filename": "inv_1.xml",
+                    "invoice_type": "Hóa đơn giá trị gia tăng",
+                    "date": "2026-07-30",
+                    "total_amount": 1000.0,
+                    "is_cancelled": False,
+                    "buyer_mst": "0101234567",
+                    "seller_mst": "0109999999",
+                    "items": [{"item_name": "Item A", "quantity": 1, "unit_price": 1000.0, "amount_before_tax": 1000.0}]
+                },
+                {
+                    "id": "0101234567-1C26TBA-00000001",  # Duplicate ID in same batch
+                    "filename": "inv_1_dup.xml",
+                    "invoice_type": "Hóa đơn giá trị gia tăng",
+                    "date": "2026-07-30",
+                    "total_amount": 1000.0,
+                    "is_cancelled": False,
+                    "buyer_mst": "0101234567",
+                    "seller_mst": "0109999999",
+                    "items": [{"item_name": "Item A Dup", "quantity": 1, "unit_price": 1000.0, "amount_before_tax": 1000.0}]
+                }
+            ]
+
+            _save_local_invoices(duplicate_batch)
+
+            invoices = Invoice.query.all()
+            assert len(invoices) == 1
+            assert invoices[0].id == "0101234567-1C26TBA-00000001"
+
+            # 2. Test status update idempotency
+            updated_batch = [
+                {
+                    "id": "0101234567-1C26TBA-00000001",
+                    "filename": "inv_1.xml",
+                    "invoice_type": "Hóa đơn giá trị gia tăng",
+                    "date": "2026-07-30",
+                    "total_amount": 1000.0,
+                    "is_cancelled": True,  # Status changed to cancelled
+                    "cancellation_date": "2026-07-30T10:00:00Z",
+                    "cancellation_reason": "Sai thông tin",
+                    "buyer_mst": "0101234567",
+                    "seller_mst": "0109999999"
+                }
+            ]
+
+            _save_local_invoices(updated_batch)
+
+            invoices_after_update = Invoice.query.all()
+            assert len(invoices_after_update) == 1
+            assert invoices_after_update[0].is_cancelled is True
+            assert invoices_after_update[0].cancellation_reason == "Sai thông tin"
+            assert invoices_after_update[0].updated_at is not None
+
+            # Clean up
+            LineItem.query.delete()
+            Invoice.query.delete()
+            db.session.commit()
+        finally:
+            clear_thread_local_context()
+

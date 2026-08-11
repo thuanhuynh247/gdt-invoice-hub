@@ -292,6 +292,8 @@ def api_compliance_concept_map():
         {"id": "v74", "label": "Noise & Vibration Hub (v74)", "group": "environmental", "risk": "medium", "url": "/v74-compliance-hub", "status": "active"},
         {"id": "v75", "label": "Plastics Levy Hub (v75)", "group": "environmental", "risk": "high", "url": "/v75-compliance-hub", "status": "active"},
         {"id": "v76", "label": "Headroom AI Hub (v76)", "group": "core", "risk": "medium", "url": "/v76-headroom-hub", "status": "active"},
+        {"id": "v79", "label": "Global Minimum Tax & TP Hub (v79)", "group": "income", "risk": "high", "url": "/v79-compliance-hub", "status": "active"},
+        {"id": "v80", "label": "Circular 20 Authorized Expenses Hub (v80)", "group": "income", "risk": "high", "url": "/v80-compliance-hub", "status": "active"},
     ]
     
     links = [
@@ -299,6 +301,9 @@ def api_compliance_concept_map():
         {"source": "v47", "target": "v41", "type": "dependency", "label": "Export Eligibility"},
         {"source": "v26", "target": "v45", "type": "dependency", "label": "CIT Base"},
         {"source": "v45", "target": "v49", "type": "dependency", "label": "Transfer Pricing Limit"},
+        {"source": "v45", "target": "v79", "type": "subset", "label": "Pillar 2 & Transfer Pricing Audit"},
+        {"source": "v26", "target": "v80", "type": "subset", "label": "Authorized Expense & Circular 20 Audit"},
+
         {"source": "v53", "target": "v31", "type": "dependency", "label": "EP Tax Baseline"},
         {"source": "v53", "target": "v61", "type": "subset", "label": "Wastewater Regulation"},
         {"source": "v53", "target": "v62", "type": "subset", "label": "Emissions Regulation"},
@@ -540,7 +545,7 @@ def api_compliance_concept_map_expand(version_id):
         "v26", "v27", "v28", "v29", "v30", "v31", "v44", "v45", "v46", "v47", "v48", "v49",
         "v50", "v51", "v52", "v53", "v54", "v55", "v56", "v57", "v58", "v59", "v60", "v61",
         "v62", "v63", "v64", "v65", "v66", "v67", "v68", "v69", "v70", "v71", "v72", "v73",
-        "v74", "v75", "v76"
+        "v74", "v75", "v76", "v79", "v80"
     }
     
     if v_clean not in valid_nodes:

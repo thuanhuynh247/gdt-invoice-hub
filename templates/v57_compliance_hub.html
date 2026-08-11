@@ -7,6 +7,8 @@
 {% from "components/_debate_panel.html" import debate_panel %}
 {% from "components/_baseline_card.html" import baseline_card %}
 {% from "components/_data_table.html" import data_table %}
+{% from "components/_entry_animations.html" import entry_animations %}
+{% from "components/_premium_controls.html" import premium_controls_css %}
 
 {% block title %}Registration Fee Decree 10/2022 - RF Hub (v57){% endblock %}
 
@@ -14,27 +16,26 @@
 <style>
     /* Wise Fintech Design Tokens for v57 Registration Fee Hub */
     :root {
-        --wise-primary: #163300;
-        --wise-primary-light: rgba(22, 51, 0, 0.05);
-        --wise-accent: #02c39a;
-        --wise-accent-hover: #00a896;
-        --wise-dark: #1d2d1f;
-        --wise-light: #f7f9f7;
-        --wise-border: rgba(22, 51, 0, 0.1);
-        --glass-bg: rgba(255, 255, 255, 0.75);
-        --glass-border: rgba(255, 255, 255, 0.5);
-        --glass-shadow: 0 8px 32px 0 rgba(22, 51, 0, 0.06);
+        --wise-primary: var(--primary-accent, #163300);
+        --wise-primary-light: var(--primary-accent-soft, rgba(22, 51, 0, 0.05));
+        --wise-accent: var(--lime-accent, #9fe870);
+        --wise-accent-hover: var(--lime-accent-hover, #8dd460);
+        --wise-border: var(--border-card, rgba(22, 51, 0, 0.1));
+        --glass-bg: var(--bg-card, #ffffff);
+        --glass-border: var(--border-card, rgba(14, 15, 12, 0.08));
+        --glass-shadow: var(--shadow-premium);
+    }
+
+    body {
+        background-color: var(--bg-app);
+        color: var(--text-primary);
+        font-family: var(--font-body, 'Inter', sans-serif);
     }
 
     .text-gradient {
         background: linear-gradient(135deg, var(--wise-primary) 0%, var(--wise-accent) 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-    }
-
-    body {
-        background-color: var(--wise-light);
-        font-family: 'Inter', sans-serif;
     }
 
     /* Premium Glass Card Adjustments */
@@ -52,7 +53,7 @@
 
     .glass-card:hover {
         transform: translateY(-3px);
-        box-shadow: 0 12px 40px 0 rgba(22, 51, 0, 0.12) !important;
+        box-shadow: 0 12px 40px 0 rgba(0, 45, 4, 0.12) !important;
     }
 
     /* Form Controls Optimization */
@@ -75,10 +76,11 @@
     .btn-primary {
         background: linear-gradient(135deg, var(--wise-primary) 0%, #264d13 100%) !important;
         border: none !important;
+        color: #fff !important;
         border-radius: 8px !important;
         padding: 0.6rem 1.25rem !important;
         font-weight: 600 !important;
-        transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+        transition: transform 0.15s ease, box-shadow 0.15s ease !important;
     }
 
     .btn-primary:hover {
@@ -86,7 +88,7 @@
         box-shadow: 0 4px 12px rgba(22, 51, 0, 0.2) !important;
     }
 
-        .btn-info:active, .btn-success:active, .btn-primary:active, .btn-warning:active {
+    .btn-info:active, .btn-success:active, .btn-primary:active, .btn-warning:active {
         transform: translateY(0) scale(0.98) !important;
         box-shadow: 0 2px 6px rgba(0, 45, 4, 0.1) !important;
     }
@@ -151,11 +153,11 @@
         border: 1px solid rgba(22, 51, 0, 0.08);
     }
 
-        .table thead {
+    .table thead {
         background-color: var(--wise-primary-light) !important;
     }
 
-        .table thead th {
+    .table thead th {
         color: var(--wise-primary) !important;
         font-family: 'Outfit', sans-serif;
         font-weight: 600;
@@ -227,11 +229,7 @@
                     {{ switch_input('check-diplomatic', 'Diplomatic?', col='col-md-4') }}
                     {{ switch_input('check-merit-housing', 'Merit Housing?', col='col-md-4') }}
                     {{ switch_input('check-family-transfer', 'Family Transfer?', col='col-md-4') }}
-                    <div class="col-12 text-end">
-                        <button id="btn-calculate-rf" class="btn btn-primary btn-sm text-white fw-bold">
-                            <i class="bi bi-play-fill me-1" aria-hidden="true"></i> Run Calculation
-                        </button>
-                    </div>
+                    {{ calc_button('btn-calculate-rf', 'Run Calculation', 'btn-primary text-white', col='col-12 text-end') }}
                 </div>
 
                 {% call result_panel('Calculation Result', 'text-primary', note_id='res-notes') %}
@@ -386,7 +384,9 @@ document.addEventListener("DOMContentLoaded", () => {
         };
         debate.forEach((m, idx) => {
             const div = document.createElement("div");
-            div.className = "d-flex gap-3 align-items-start p-3 bg-white rounded border border-light-subtle debate-message-bubble";
+            div.className = "d-flex gap-3 align-items-start p-3 rounded border debate-message-bubble";
+            div.style.background = "var(--bg-card, #ffffff)";
+            div.style.borderColor = "var(--border-card, rgba(0,0,0,0.08))";
             div.style.animation = `fadeInUp 0.3s ease forwards ${idx * 0.1}s`;
             div.style.opacity = "0";
             div.innerHTML = `
@@ -396,7 +396,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                     <span class="badge ${cl[m.speaker] || "bg-secondary"} text-wrap py-1 px-2 small">${m.speaker}</span>
                 </div>
-                <div class="text-dark small flex-grow-1 pt-1 leading-relaxed">${m.text}</div>
+                <div class="small flex-grow-1 pt-1 leading-relaxed" style="color: var(--text-primary);">${m.text}</div>
             `;
             c.appendChild(div);
         });
@@ -434,4 +434,7 @@ document.addEventListener("DOMContentLoaded", () => {
     load();
 });
 </script>
+
+{{ entry_animations() }}
+{{ premium_controls_css() }}
 {% endblock %}

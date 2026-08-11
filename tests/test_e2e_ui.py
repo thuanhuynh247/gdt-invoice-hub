@@ -13,19 +13,23 @@ if str(PROJECT_ROOT) not in sys.path:
 # Set cache path for Selenium Manager inside workspace to avoid permission issues
 os.environ["SE_CACHE_PATH"] = os.path.join(str(PROJECT_ROOT), ".cache")
 
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options as ChromeOptions
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+try:
+    from selenium import webdriver
+    from selenium.webdriver.chrome.options import Options as ChromeOptions
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.support.ui import WebDriverWait
+    from selenium.webdriver.support import expected_conditions as EC
+    HAS_SELENIUM = True
+except ImportError:
+    HAS_SELENIUM = False
 
 from app import create_app
 from auth.captcha import stop_captcha_prefetch_worker
 
 # Skip E2E UI tests by default to prevent hanging in headless or non-UI environments
 pytestmark = pytest.mark.skipif(
-    os.environ.get("RUN_E2E") != "1",
-    reason="E2E UI tests are skipped by default. Set RUN_E2E=1 to run them."
+    not HAS_SELENIUM or os.environ.get("RUN_E2E") != "1",
+    reason="E2E UI tests are skipped by default or selenium is missing. Set RUN_E2E=1 to run them."
 )
 
 @pytest.fixture(scope="session")

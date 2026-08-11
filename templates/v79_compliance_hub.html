@@ -1,0 +1,461 @@
+{% extends "base.html" %}
+
+{% from "components/_hub_header.html" import hub_header %}
+{% from "components/_glass_card.html" import glass_card %}
+{% from "components/_calc_input.html" import number_input, switch_input, calc_button, text_input %}
+{% from "components/_result_panel.html" import result_panel, result_field %}
+{% from "components/_baseline_card.html" import baseline_card %}
+{% from "components/_debate_panel.html" import debate_panel %}
+{% from "components/_data_table.html" import data_table %}
+{% from "components/_entry_animations.html" import entry_animations %}
+{% from "components/_premium_controls.html" import premium_controls_css %}
+
+{% block title %}V79 Compliance Hub - Global Minimum Tax & Transfer Pricing Audit{% endblock %}
+
+{% block head_extra %}
+<style>
+    /* Wise Fintech Design Tokens for v79 Hub */
+    :root {
+        --wise-primary: var(--primary-accent, #0f172a);
+        --wise-primary-light: var(--primary-accent-soft, rgba(15, 23, 42, 0.05));
+        --wise-accent: var(--indigo-accent, #6366f1);
+        --wise-accent-hover: #4f46e5;
+        --wise-gold: #d97706;
+        --wise-dark: #090d16;
+        --wise-light: #f8fafc;
+        --wise-border: var(--border-card, rgba(15, 23, 42, 0.1));
+        --glass-bg: var(--bg-card, rgba(255, 255, 255, 0.85));
+        --glass-border: var(--border-card, rgba(255, 255, 255, 0.6));
+        --glass-shadow: var(--shadow-premium, 0 8px 32px 0 rgba(15, 23, 42, 0.08));
+    }
+
+    .text-gradient {
+        background: linear-gradient(135deg, var(--wise-primary) 0%, var(--wise-accent) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    body {
+        background-color: var(--bg-app, var(--wise-light));
+        color: var(--text-primary, #0f172a);
+        font-family: var(--font-body, 'Inter', sans-serif);
+    }
+
+    /* Premium Glass Card Adjustments */
+    .glass-card {
+        background: var(--glass-bg) !important;
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--glass-border) !important;
+        box-shadow: var(--glass-shadow) !important;
+        border-radius: 16px !important;
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+        margin-bottom: 24px;
+        overflow: hidden;
+    }
+
+    .glass-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 40px 0 rgba(15, 23, 42, 0.12) !important;
+    }
+
+    /* Form Controls Optimization */
+    .form-control, .form-select {
+        border-radius: 8px !important;
+        border: 1px solid var(--wise-border) !important;
+        padding: 0.6rem 0.75rem !important;
+        font-size: 0.9rem !important;
+        background-color: var(--input-bg, rgba(255, 255, 255, 0.9)) !important;
+        color: var(--text-primary, #0f172a) !important;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--wise-accent) !important;
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15) !important;
+        background-color: #fff !important;
+    }
+
+    /* Button Enhancements */
+    .btn-indigo {
+        background: linear-gradient(135deg, var(--wise-accent) 0%, var(--wise-accent-hover) 100%) !important;
+        border: none !important;
+        color: #fff !important;
+        border-radius: 8px !important;
+        padding: 0.6rem 1.25rem !important;
+        font-weight: 600 !important;
+        transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+    }
+
+    .btn-indigo:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3) !important;
+    }
+
+    /* Result Panel Animation & Aesthetics */
+    @keyframes calcPulse {
+        0% {
+            box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4);
+            background-color: rgba(99, 102, 241, 0.15) !important;
+        }
+        100% {
+            box-shadow: 0 0 0 12px rgba(99, 102, 241, 0);
+        }
+    }
+
+    .calc-pulse-effect {
+        animation: calcPulse 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* Baseline Cards Hover Glow */
+    .bg-premium-light {
+        transition: all 0.25s ease-in-out;
+        border-radius: 12px !important;
+        border: 1px solid rgba(15, 23, 42, 0.05) !important;
+    }
+
+    .bg-premium-light:hover {
+        background-color: rgba(255, 255, 255, 0.95) !important;
+        border-color: rgba(99, 102, 241, 0.3) !important;
+        box-shadow: 0 6px 16px rgba(15, 23, 42, 0.04);
+        transform: translateY(-2px);
+    }
+
+    /* Agent Debate Bubble Styling */
+    .debate-message-bubble {
+        transition: all 0.3s ease;
+        border-radius: 14px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    }
+
+    .debate-message-bubble:hover {
+        transform: translateX(4px);
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+        border-color: rgba(99, 102, 241, 0.2) !important;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Table Adjustments */
+    .table-responsive {
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid rgba(15, 23, 42, 0.08);
+    }
+
+    .table thead {
+        background-color: var(--wise-primary-light) !important;
+    }
+
+    .table thead th {
+        color: var(--wise-primary) !important;
+        font-family: 'Outfit', sans-serif;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        padding: 12px 16px !important;
+        border-bottom: none !important;
+    }
+
+    .table td {
+        padding: 14px 16px !important;
+        font-size: 0.875rem;
+        vertical-align: middle;
+        border-bottom: 1px solid rgba(15, 23, 42, 0.05) !important;
+    }
+
+    .table tbody tr {
+        transition: background-color 0.15s ease;
+    }
+
+    .table tbody tr:hover {
+        background-color: rgba(99, 102, 241, 0.03) !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    {# ── Hub Header ── #}
+    {{ hub_header('79.0.0',
+        'Global Minimum Tax (Pillar 2) & Transfer Pricing Hub',
+        'Audit MNE Pillar 2 (QDMTT 15% ETR) under Resolution 107/2023/QH15 and Transfer Pricing Interest Cap (30% EBITDA) under Decree 132/2020/NĐ-CP.',
+        'btn-refresh-v79', 'Load Data', 'Res 107/2023 & Dec 132/2020') }}
+
+    <div class="row g-4">
+        {# ── Pillar 2 & Transfer Pricing Calculator ── #}
+        <div class="col-lg-7">
+            {% call glass_card('Global Minimum Tax & TP Audit Engine', 'bi bi-calculator-fill', 'text-indigo',
+                description='Calculate statutory QDMTT 15% top-up tax liabilities, SBIE substance carve-outs, and Decree 132 interest caps.') %}
+                <div class="row g-3">
+                    <div class="col-12"><h6 class="fw-bold text-primary border-bottom pb-1 mb-2"><i class="bi bi-globe me-1" aria-hidden="true"></i>OECD GloBE Pillar 2 Inputs</h6></div>
+                    {{ number_input('input-rev', 'Global Consolidated Revenue (VND):', 25000000000000, step='100000000', col='col-md-6') }}
+                    {{ number_input('input-globe-inc', 'GloBE Net Income (VND):', 1500000000000, step='10000000', col='col-md-6') }}
+                    {{ number_input('input-covered-tax', 'Covered Taxes Paid (VND):', 150000000000, step='10000000', col='col-md-6') }}
+                    {{ number_input('input-payroll', 'Eligible Payroll Costs (SBIE) (VND):', 100000000000, step='10000000', col='col-md-3') }}
+                    {{ number_input('input-tangible', 'Tangible Asset Value (SBIE) (VND):', 200000000000, step='10000000', col='col-md-3') }}
+
+                    <div class="col-12"><h6 class="fw-bold text-primary border-bottom pb-1 mb-2 mt-2"><i class="bi bi-diagram-3 me-1" aria-hidden="true"></i>Decree 132 Transfer Pricing Inputs</h6></div>
+                    {{ number_input('input-ebitda', 'EBITDA (VND):', 500000000000, step='10000000', col='col-md-4') }}
+                    {{ number_input('input-interest', 'Net Interest Expense (VND):', 180000000000, step='10000000', col='col-md-4') }}
+                    {{ number_input('input-related-rev', 'Related Party Revenue (VND):', 5000000000000, step='10000000', col='col-md-4') }}
+                    
+                    <div class="col-12 text-end mt-3">
+                        <button id="btn-calc-v79" class="btn btn-indigo text-white fw-bold">
+                            <i class="bi bi-play-fill me-1" aria-hidden="true"></i> Execute V79 Audit Engine
+                        </button>
+                    </div>
+                </div>
+
+                <div id="v79-result-panel">
+                {% call result_panel('Audit Engine Results', 'text-indigo', note_id='res-notes-v79') %}
+                    {{ result_field('Pillar 2 In-Scope Status:', 'res-pillar2-scope') }}
+                    {{ result_field('Effective Tax Rate (ETR):', 'res-etr') }}
+                    {{ result_field('Top-Up Tax Rate:', 'res-topup-rate') }}
+                    {{ result_field('SBIE Substance Allowance:', 'res-sbie') }}
+                    {{ result_field('QDMTT Top-Up Tax Payable:', 'res-qdmtt', 'text-danger fs-6 fw-bold') }}
+                    <hr class="my-2" />
+                    {{ result_field('Decree 132 Interest Cap (30% EBITDA):', 'res-interest-cap') }}
+                    {{ result_field('Nondeductible Interest Exceedance:', 'res-interest-exceedance', 'text-warning fw-bold') }}
+                    {{ result_field('Transfer Pricing Risk Score:', 'res-tp-score') }}
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span>Overall Risk Level:</span>
+                        <span id="res-risk-badge" class="fw-bold">-</span>
+                    </div>
+                {% endcall %}
+                </div>
+            {% endcall %}
+        </div>
+
+        {# ── Baselines Card ── #}
+        <div class="col-lg-5">
+            {% call glass_card('Compliance Baselines & Benchmark', 'bi bi-shield-check', 'text-indigo') %}
+                <div class="d-flex flex-column gap-3">
+                    {{ baseline_card('Multinational Enterprise (MNE) Group', 'Rev: 25,000 Billion VND', 'bg-warning-subtle text-warning border border-warning-subtle',
+                        'In-Scope Pillar 2 (>750M EUR). ETR: 10.0%. QDMTT Top-up Tax applies.',
+                        'In-Scope: Yes', 'Top-Up Tax', 'base1-qdmtt') }}
+                    
+                    {{ baseline_card('Domestic Local Entity Benchmark', 'Rev: 500 Billion VND', 'bg-success-subtle text-success border border-success-subtle',
+                        'Out of Scope for Pillar 2. Transfer Pricing audited under Decree 132.',
+                        'In-Scope: No', 'TP Risk', 'base2-tprisk') }}
+                </div>
+            {% endcall %}
+        </div>
+
+        {# ── Advisory Board Debate Panel ── #}
+        <div class="col-lg-12">
+            {{ debate_panel('debate-container-v79', 'consensus-text-v79',
+                'Multi-Agent Global Minimum Tax & TP Audit Debate', 'Resolution 107/2023 & Decree 132/2020 Statutory Consensus') }}
+        </div>
+
+        {# ── Compliance History Table ── #}
+        <div class="col-lg-12">
+            {% call data_table('V79 Audit History Log', 'bi bi-clock-history', 'history-table-v79', 'No audit logs recorded yet.', 12) %}
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>GloBE Rev (VND)</th>
+                        <th>ETR (%)</th>
+                        <th>Pillar 2 Scope</th>
+                        <th>QDMTT Tax (VND)</th>
+                        <th>EBITDA (VND)</th>
+                        <th>Net Interest</th>
+                        <th>Nondeductible Interest</th>
+                        <th>TP Risk Score</th>
+                        <th>Risk Level</th>
+                        <th>Timestamp</th>
+                        <th class="text-center">Action</th>
+                    </tr>
+                </thead>
+            {% endcall %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const fVND = n => new Intl.NumberFormat("vi-VN").format(Math.round(n)) + " VND";
+    const fPct = n => (n * 100).toFixed(2) + " %";
+
+    const getMst = () => {
+        return document.getElementById("tenant-mst") ? document.getElementById("tenant-mst").value : (sessionStorage.getItem("taxpayer_mst") || "0102030405");
+    };
+
+    const load = () => {
+        const mst = getMst();
+        fetch(`/api/v79/compliance-data?mst=${mst}`).then(r=>r.json()).then(d=>{
+            if(d.status==="success"){
+                rB(d);
+                rD(d.debate, d.consensus_summary);
+                rH(d.history);
+            }
+        }).catch(e=>console.error(e));
+    };
+
+    const calc = () => {
+        const p = {
+            mst: getMst(),
+            consolidated_revenue: parseFloat(document.getElementById("input-rev").value || 0),
+            globe_income: parseFloat(document.getElementById("input-globe-inc").value || 0),
+            covered_taxes: parseFloat(document.getElementById("input-covered-tax").value || 0),
+            payroll_costs: parseFloat(document.getElementById("input-payroll").value || 0),
+            tangible_assets: parseFloat(document.getElementById("input-tangible").value || 0),
+            ebitda: parseFloat(document.getElementById("input-ebitda").value || 0),
+            net_interest_expense: parseFloat(document.getElementById("input-interest").value || 0),
+            related_party_revenue: parseFloat(document.getElementById("input-related-rev").value || 0)
+        };
+        fetch('/api/v79/calculate', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(p)
+        }).then(r=>r.json()).then(d=>{
+            if(d.status==="success"){
+                rR(d.results);
+                load();
+            } else {
+                alert(d.error || "Calculation failed");
+            }
+        }).catch(e=>console.error(e));
+    };
+
+    const rR = r => {
+        const p2 = r.pillar2_result || {};
+        const tp = r.transfer_pricing_result || {};
+
+        document.getElementById("res-pillar2-scope").textContent = p2.in_scope_pillar2 ? "In-Scope (Res 107/2023)" : "Out-of-Scope (< 750M EUR)";
+        document.getElementById("res-etr").textContent = fPct(p2.effective_tax_rate || 0);
+        document.getElementById("res-topup-rate").textContent = fPct(p2.topup_tax_rate || 0);
+        document.getElementById("res-sbie").textContent = fVND(p2.substance_carveout || 0);
+        document.getElementById("res-qdmtt").textContent = fVND(p2.qdmtt_topup_tax_vnd || 0);
+
+        document.getElementById("res-interest-cap").textContent = fVND(tp.max_deductible_interest || 0);
+        document.getElementById("res-interest-exceedance").textContent = fVND(tp.nondeductible_interest || 0);
+        document.getElementById("res-tp-score").textContent = (tp.risk_score || 0) + " / 100";
+
+        const riskBadge = document.getElementById("res-risk-badge");
+        const level = tp.risk_level || "low";
+        if(level === "high") {
+            riskBadge.innerHTML = '<span class="badge bg-danger-subtle text-danger border border-danger">HIGH RISK</span>';
+        } else if(level === "medium") {
+            riskBadge.innerHTML = '<span class="badge bg-warning-subtle text-warning border border-warning">MEDIUM RISK</span>';
+        } else {
+            riskBadge.innerHTML = '<span class="badge bg-success-subtle text-success border border-success">LOW RISK</span>';
+        }
+        document.getElementById("res-notes-v79").textContent = p2.notes || "Audit calculations complete.";
+
+        // Micro-interaction: Pulse effect on result panel
+        const resCard = document.getElementById("v79-result-panel");
+        if (resCard) {
+            resCard.classList.remove("calc-pulse-effect");
+            void resCard.offsetWidth; // Trigger reflow
+            resCard.classList.add("calc-pulse-effect");
+        }
+    };
+
+    const rB = d => {
+        if(d.sample_mne && d.sample_mne.pillar2_result) {
+            document.getElementById("base1-qdmtt").textContent = fVND(d.sample_mne.pillar2_result.qdmtt_topup_tax_vnd || 0);
+        }
+        if(d.sample_local && d.sample_local.transfer_pricing_result) {
+            document.getElementById("base2-tprisk").textContent = (d.sample_local.transfer_pricing_result.risk_score || 0) + " / 100";
+        }
+    };
+
+    const rD = (debate, summary) => {
+        const c = document.getElementById("debate-container-v79");
+        c.innerHTML = "";
+        const cl = {
+            "OECD GloBE Tax Specialist": "bg-primary-subtle text-primary border border-primary",
+            "GDT Transfer Pricing Inspector": "bg-warning-subtle text-warning border border-warning",
+            "CFO Tax Advisor": "bg-info-subtle text-info border border-info"
+        };
+        debate.forEach((m, idx) => {
+            const div = document.createElement("div");
+            div.className = "d-flex gap-3 align-items-start p-3 bg-white rounded border border-light-subtle debate-message-bubble";
+            div.style.animation = `fadeInUp 0.3s ease forwards ${idx * 0.1}s`;
+            div.style.opacity = "0";
+            div.innerHTML = `
+                <div class="d-flex flex-column align-items-center text-center" style="min-width: 150px;">
+                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mb-2" style="width: 40px; height: 40px;">
+                        <i class="bi bi-robot text-secondary fs-5" aria-hidden="true"></i>
+                    </div>
+                    <span class="badge ${cl[m.speaker] || "bg-secondary"} text-wrap py-1 px-2 small">${m.speaker}</span>
+                </div>
+                <div class="text-dark small flex-grow-1 pt-1 leading-relaxed">${m.text}</div>
+            `;
+            c.appendChild(div);
+        });
+        document.getElementById("consensus-text-v79").textContent = summary;
+    };
+
+    const rH = h => {
+        const tb = document.getElementById("history-table-v79");
+        if (!h || !h.length) {
+            tb.innerHTML = '<tr><td colspan="12" class="text-center text-muted py-4">No audit logs available.</td></tr>';
+            return;
+        }
+        tb.innerHTML = "";
+        h.forEach(l => {
+            const tr = document.createElement("tr");
+            let badgeClass = l.risk_level === 'high' ? 'bg-danger-subtle text-danger border border-danger' : (l.risk_level === 'medium' ? 'bg-warning-subtle text-warning border border-warning' : 'bg-success-subtle text-success border border-success');
+            tr.innerHTML = `
+                <td><span class="text-secondary small fw-bold">#${l.id}</span></td>
+                <td class="fw-bold font-monospace">${fVND(l.consolidated_revenue)}</td>
+                <td>${(l.effective_tax_rate * 100).toFixed(2)}%</td>
+                <td>${l.in_scope_pillar2 ? '<span class="badge bg-warning-subtle text-warning border border-warning">Yes</span>' : '<span class="badge bg-success-subtle text-success border border-success">No</span>'}</td>
+                <td class="fw-bold text-danger font-monospace">${fVND(l.qdmtt_topup_tax_vnd)}</td>
+                <td class="font-monospace">${fVND(l.ebitda)}</td>
+                <td class="font-monospace">${fVND(l.net_interest_expense)}</td>
+                <td class="text-warning fw-bold font-monospace">${fVND(l.nondeductible_interest)}</td>
+                <td>${l.tp_risk_score}/100</td>
+                <td><span class="badge ${badgeClass}">${l.risk_level.toUpperCase()}</span></td>
+                <td class="text-muted">${l.created_at}</td>
+                <td class="text-center">
+                    <button class="btn btn-outline-danger btn-sm py-0 px-2 btn-delete-log" data-id="${l.id}">
+                        <i class="bi bi-trash" aria-hidden="true"></i>
+                    </button>
+                </td>
+            `;
+            tb.appendChild(tr);
+        });
+
+        tb.querySelectorAll(".btn-delete-log").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const logId = btn.dataset.id;
+                if (confirm(`Delete V79 audit log #${logId}?`)) {
+                    const mst = getMst();
+                    fetch('/api/v79/delete-log', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ mst, log_id: logId })
+                    }).then(r=>r.json()).then(d=>{
+                        if (d.status === "success") {
+                            load();
+                        } else {
+                            alert(d.error || "Failed to delete log");
+                        }
+                    }).catch(e=>console.error(e));
+                }
+            });
+        });
+    };
+
+    document.getElementById("btn-calc-v79").addEventListener("click", calc);
+    document.getElementById("btn-refresh-v79").addEventListener("click", load);
+    load();
+});
+</script>
+
+{{ entry_animations() }}
+{{ premium_controls_css() }}
+{% endblock %}

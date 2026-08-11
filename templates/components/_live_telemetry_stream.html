@@ -1,0 +1,31 @@
+{# ═══════════════════════════════════════════════════════════════════
+   LEGO COMPONENT: Live Telemetry Stream - Luồng quan sát thực thi
+   ────────────────────────────────────────────────────────────────
+   Hiển thị hộp console log trực tiếp cho các sự kiện audit, 
+   telemetry traces, đồng bộ hóa GDT và các cảnh báo tuân thủ.
+
+   Tham số:
+     stream_id   - ID của container (để JavaScript append logs)
+     title       - tiêu đề khối telemetry
+     max_height  - chiều cao tối đa của vùng console (mặc định 220px)
+     badge_text  - nhãn trạng thái góc phải (mặc định 'LIVE')
+   ═══════════════════════════════════════════════════════════════════ #}
+
+{% macro live_telemetry_stream(stream_id="telemetry-feed", title="Live Telemetry & Compliance Stream", max_height="220px", badge_text="LIVE STREAM") %}
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4" style="background: var(--bg-card, rgba(15, 23, 42, 0.95)); border: 1px solid var(--border-card, rgba(255, 255, 255, 0.1)) !important;">
+    <div class="card-header d-flex justify-content-between align-items-center py-2 px-3 bg-dark border-bottom border-secondary-subtle">
+        <div class="d-flex align-items-center gap-2">
+            <span class="spinner-grow spinner-grow-sm text-success" role="status" aria-hidden="true" style="width: 8px; height: 8px;"></span>
+            <span class="fw-bold text-light small font-monospace"><i class="bi bi-terminal me-1 text-info" aria-hidden="true"></i>{{ title }}</span>
+        </div>
+        <span class="badge bg-success-subtle text-success border border-success-subtle font-monospace px-2 py-0" style="font-size: 0.7rem;">{{ badge_text }}</span>
+    </div>
+    <div class="card-body p-2" style="background: #090d16; font-family: 'JetBrains Mono', 'Fira Code', monospace;">
+        <div id="{{ stream_id }}" class="overflow-auto px-2 py-1 small text-light" style="max-height: {{ max_height }}; font-size: 0.8rem; line-height: 1.5;">
+            <div class="text-secondary opacity-75">
+                <span class="text-info">[*]</span> Telemetry stream initialized. Listening for compliance & sync telemetry traces...
+            </div>
+        </div>
+    </div>
+</div>
+{% endmacro %}

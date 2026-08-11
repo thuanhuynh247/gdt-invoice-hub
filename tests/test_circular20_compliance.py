@@ -13,13 +13,15 @@ from invoices.ai_tax_advisor import TaxAdvisoryAgent, create_tax_regulation_inde
 
 def test_circular_20_effective_date_mapping():
     """Verify that parse_and_chunk_pdf correctly maps 20-btc.pdf to effective date 2026-03-12."""
-    with patch("pypdf.PdfReader") as mock_reader:
-        mock_page = MagicMock()
-        mock_page.extract_text.return_value = "Điều 13. Chi phí mua hàng ủy quyền qua cá nhân từ 5 triệu đồng trở lên phải có chứng từ thanh toán không dùng tiền mặt."
-        mock_pdf = MagicMock()
-        mock_pdf.pages = [mock_page]
-        mock_reader.return_value = mock_pdf
+    import sys
+    mock_pypdf = MagicMock()
+    mock_page = MagicMock()
+    mock_page.extract_text.return_value = "Điều 13. Chi phí mua hàng ủy quyền qua cá nhân từ 5 triệu đồng trở lên phải có chứng từ thanh toán không dùng tiền mặt."
+    mock_pdf = MagicMock()
+    mock_pdf.pages = [mock_page]
+    mock_pypdf.PdfReader.return_value = mock_pdf
 
+    with patch.dict(sys.modules, {"pypdf": mock_pypdf}):
         with patch("os.path.exists", return_value=True):
             chunks = parse_and_chunk_pdf("20-btc.pdf")
             assert len(chunks) > 0

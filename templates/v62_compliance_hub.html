@@ -14,23 +14,22 @@
 
 {% block head_extra %}
 <style>
-    /* Wise Fintech Design Tokens for v62 EPFE Hub */
+    /* Wise Fintech Design Tokens & Dark Mode Compatibility for v62 EPFE Hub */
     :root {
-        --wise-primary: #002d04;
-        --wise-primary-light: rgba(0, 45, 4, 0.05);
-        --wise-accent: #02c39a;
-        --wise-accent-hover: #00a896;
-        --wise-dark: #122115;
-        --wise-light: #f4f7f4;
-        --wise-border: rgba(0, 45, 4, 0.1);
-        --glass-bg: rgba(255, 255, 255, 0.75);
-        --glass-border: rgba(255, 255, 255, 0.5);
-        --glass-shadow: 0 8px 32px 0 rgba(0, 45, 4, 0.06);
+        --wise-primary: var(--primary-accent, #163300);
+        --wise-primary-light: var(--primary-accent-soft, rgba(22, 51, 0, 0.05));
+        --wise-accent: var(--lime-accent, #9fe870);
+        --wise-accent-hover: var(--lime-accent-hover, #8dd460);
+        --wise-border: var(--border-card, rgba(22, 51, 0, 0.1));
+        --glass-bg: var(--bg-card, #ffffff);
+        --glass-border: var(--border-card, rgba(14, 15, 12, 0.08));
+        --glass-shadow: var(--shadow-premium);
     }
 
     body {
-        background-color: var(--wise-light);
-        font-family: 'Inter', sans-serif;
+        background-color: var(--bg-app);
+        color: var(--text-primary);
+        font-family: var(--font-body, 'Inter', sans-serif);
     }
 
     .text-gradient {
@@ -41,11 +40,11 @@
 
     /* Premium Glass Card Adjustments */
     .glass-card {
-        background: var(--glass-bg) !important;
+        background: var(--bg-card) !important;
         backdrop-filter: blur(16px);
         -webkit-backdrop-filter: blur(16px);
-        border: 1px solid var(--glass-border) !important;
-        box-shadow: var(--glass-shadow) !important;
+        border: 1px solid var(--border-card) !important;
+        box-shadow: var(--shadow-premium) !important;
         border-radius: 16px !important;
         transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
         margin-bottom: 24px;
@@ -54,23 +53,25 @@
 
     .glass-card:hover {
         transform: translateY(-3px);
-        box-shadow: 0 12px 40px 0 rgba(0, 45, 4, 0.12) !important;
+        box-shadow: var(--shadow-card-hover) !important;
+        border-color: var(--primary-accent) !important;
     }
 
     /* Form Controls Optimization */
     .form-control, .form-select {
-        border-radius: 8px !important;
-        border: 1px solid var(--wise-border) !important;
+        border-radius: 10px !important;
+        border: 1px solid var(--border-card) !important;
         padding: 0.6rem 0.75rem !important;
         font-size: 0.9rem !important;
-        background-color: rgba(255, 255, 255, 0.8) !important;
+        background-color: var(--input-bg, rgba(255, 255, 255, 0.8)) !important;
+        color: var(--text-primary) !important;
         transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
     }
 
     .form-control:focus, .form-select:focus {
-        border-color: var(--wise-accent) !important;
-        box-shadow: 0 0 0 4px rgba(2, 195, 154, 0.15) !important;
-        background-color: #fff !important;
+        border-color: var(--primary-accent) !important;
+        box-shadow: 0 0 0 4px rgba(159, 232, 112, 0.2) !important;
+        background-color: var(--input-bg, #fff) !important;
     }
 
     /* Button Enhancements */
@@ -421,7 +422,9 @@ document.addEventListener("DOMContentLoaded",()=>{
         };
         debate.forEach((m, idx) => {
             const div = document.createElement("div");
-            div.className = "d-flex gap-3 align-items-start p-3 bg-white rounded border border-light-subtle debate-message-bubble";
+            div.className = "d-flex gap-3 align-items-start p-3 rounded border debate-message-bubble";
+            div.style.background = "var(--bg-card, #ffffff)";
+            div.style.borderColor = "var(--border-card, rgba(0,0,0,0.08))";
             div.style.animation = `fadeInUp 0.3s ease forwards ${idx * 0.1}s`;
             div.style.opacity = "0";
             div.innerHTML = `
@@ -431,7 +434,7 @@ document.addEventListener("DOMContentLoaded",()=>{
                     </div>
                     <span class="badge ${cl[m.speaker] || "bg-secondary"} text-wrap py-1 px-2 small">${m.speaker}</span>
                 </div>
-                <div class="text-dark small flex-grow-1 pt-1 leading-relaxed">${m.text}</div>
+                <div class="small flex-grow-1 pt-1 leading-relaxed" style="color: var(--text-primary);">${m.text}</div>
             `;
             c.appendChild(div);
         });

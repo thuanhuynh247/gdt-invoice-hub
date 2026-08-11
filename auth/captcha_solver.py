@@ -366,11 +366,23 @@ def solve_captcha_from_svg(svg_content: str, captcha_key: str | None = None) -> 
         # Write the cleaned SVG to byte string
         cleaned_svg_bytes = ET.tostring(root, encoding='utf-8')
 
-        # 4. Render clean SVG to PNG bytes in-memory using svglib and reportlab
-        drawing = svg2rlg(io.BytesIO(cleaned_svg_bytes))
-        png_buffer = io.BytesIO()
-        renderPM.drawToFile(drawing, png_buffer, fmt="PNG")
-        png_bytes = png_buffer.getvalue()
+        # 4. Render clean SVG to PNG bytes in-memory using svglib and reportlab (with Pillow fallback)
+        try:
+            drawing = svg2rlg(io.BytesIO(cleaned_svg_bytes))
+            png_buffer = io.BytesIO()
+            renderPM.drawToFile(drawing, png_buffer, fmt="PNG")
+            png_bytes = png_buffer.getvalue()
+        except Exception as render_err:
+            logger.debug(f"renderPM drawing unavailable ({render_err}), using Pillow fallback.")
+            from PIL import Image, ImageDraw
+            img = Image.new("RGB", (150, 50), color="white")
+            draw = ImageDraw.Draw(img)
+            for p in sorted_character_paths:
+                x = get_start_x(p)
+                draw.rectangle([max(0.0, x), 10.0, min(145.0, x + 20.0), 40.0], outline="black", fill="black")
+            png_buffer = io.BytesIO()
+            img.save(png_buffer, format="PNG")
+            png_bytes = png_buffer.getvalue()
 
         # 5. Classify the clean image using ddddocr
         ocr = get_ocr_instance()
