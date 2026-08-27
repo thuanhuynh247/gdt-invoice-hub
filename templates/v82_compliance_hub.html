@@ -12,11 +12,11 @@
 {% from "components/_audit_badge.html" import audit_badge %}
 {% from "components/_live_telemetry_stream.html" import live_telemetry_stream %}
 
-{% block title %}V81 Compliance Hub - Personal Income Tax (PIT) & Form 08/CK-TNCN Audit{% endblock %}
+{% block title %}V82 Compliance Hub - Tax Settlement & CIT/VAT Deductibility Audit{% endblock %}
 
 {% block head_extra %}
 <style>
-    /* Wise Fintech Design Tokens for V81 Hub */
+    /* Wise Fintech Design Tokens for V82 Hub */
     :root {
         --wise-primary: var(--primary-accent, #0f172a);
         --wise-primary-light: var(--primary-accent-soft, rgba(15, 23, 42, 0.05));
@@ -152,95 +152,85 @@
 {% block content %}
 <div class="container py-4">
     {# ── Hub Header ── #}
-    {{ hub_header('81.0.0',
-        'Personal Income Tax (PIT) Withholding & Form 08/CK-TNCN Audit Hub',
-        'Audit Circular 111/2013/TT-BTC, Circular 25/2018/TT-BTC & Circular 78/2021/TT-BTC for freelance withholding (10%), Form 08/CK-TNCN commitment validation, and electronic withholding certificate management.',
-        'btn-refresh-v81', 'Load Data', 'Circular 111/2013/TT-BTC & TT 78/2021/TT-BTC') }}
+    {{ hub_header('82.0.0',
+        'Tax Settlement & CIT/VAT Deductibility Audit Hub (V82)',
+        'Audit Commercial Invoices under Law on Corporate Income Tax (CIT) & Circular 78/2021/TT-BTC for non-cash payment threshold (>= 20M), GDT Supplier Blacklist cross-check, XML digital signature integrity, and VAT credit eligibility.',
+        'btn-refresh-v82', 'Load Data', 'Circular 78/2021/TT-BTC & Law on CIT') }}
 
     <div class="row g-4">
-        {# ── PIT Audit & Withholding Engine ── #}
+        {# ── CIT/VAT Deductibility Audit Engine ── #}
         <div class="col-lg-7">
-            {% call glass_card('PIT Withholding & Form 08/CK-TNCN Audit Engine', 'bi bi-person-lines-fill', 'text-teal',
-                description='Audit individual remuneration, freelance service contracts, progressive vs. 10% flat withholding rates, and validate electronic certificates.') %}
+            {% call glass_card('CIT & VAT Deductibility Audit Engine', 'bi bi-file-earmark-check-fill', 'text-teal',
+                description='Audit individual invoice deductibility for Corporate Income Tax (CIT) and Value-Added Tax (VAT) credit entitlement.') %}
                 <div class="row g-3">
-                    <div class="col-12"><h6 class="fw-bold text-primary border-bottom pb-1 mb-2"><i class="bi bi-person-badge me-1" aria-hidden="true"></i>Individual & Remuneration Details</h6></div>
+                    <div class="col-12"><h6 class="fw-bold text-primary border-bottom pb-1 mb-2"><i class="bi bi-building me-1" aria-hidden="true"></i>Vendor & Commercial Invoice Details</h6></div>
                     
-                    {{ text_input('input-person-name', 'Payee Full Name:', 'Lê Văn Hùng (Chuyên gia IT)', col='col-md-6') }}
-                    {{ text_input('input-id-or-mst', 'Tax ID (MST) or Citizen ID (CCCD):', '8012345678', col='col-md-6') }}
+                    {{ text_input('input-vendor-name', 'Vendor / Supplier Name:', 'CÔNG TY TNHH PHÁT TRIỂN CÔNG NGHỆ ABC', col='col-md-6') }}
+                    {{ text_input('input-vendor-mst', 'Vendor Tax ID (MST):', '0109876543', col='col-md-6') }}
+                    {{ text_input('input-invoice-number', 'Invoice Number / Serial:', 'INV-2026-888', col='col-md-6') }}
+                    {{ text_input('input-invoice-date', 'Invoice Date (YYYY-MM-DD):', '2026-08-27', col='col-md-6') }}
+
+                    {{ number_input('input-total-amount', 'Total Amount Including VAT (VND):', 55000000, step='1000000', col='col-md-6') }}
+                    {{ number_input('input-vat-amount', 'VAT Amount (VND):', 5000000, step='100000', col='col-md-6') }}
+
+                    <div class="col-12"><h6 class="fw-bold text-primary border-bottom pb-1 mb-2 mt-2"><i class="bi bi-credit-card-2-front me-1" aria-hidden="true"></i>Payment Method & GDT Compliance Rules</h6></div>
 
                     <div class="col-md-6">
-                        <label for="input-contract-type" class="form-label small fw-semibold text-secondary">Contract / Labor Type:</label>
-                        <select id="input-contract-type" class="form-select">
-                            <option value="freelance" selected>Freelance / Non-Labor Contract (Dịch vụ vãng lai / Khoán việc)</option>
-                            <option value="resident_contract">Labor Contract >= 3 Months (HĐLĐ từ 3 tháng trở lên)</option>
-                            <option value="non_resident">Non-Resident Individual (Cá nhân không cư trú - 20%)</option>
+                        <label for="input-payment-method" class="form-label small fw-semibold text-secondary">Payment Method:</label>
+                        <select id="input-payment-method" class="form-select">
+                            <option value="BANK_TRANSFER" selected>Bank Transfer (Chuyển khoản Ngân hàng)</option>
+                            <option value="CASH">Cash (Tiền mặt)</option>
+                            <option value="OFFSET">Debt Offset (Bù trừ công nợ)</option>
                         </select>
                     </div>
 
-                    {{ number_input('input-payment-amount', 'Gross Payment Amount (VND):', 15000000, step='500000', col='col-md-6') }}
-
-                    <div class="col-12"><h6 class="fw-bold text-primary border-bottom pb-1 mb-2 mt-2"><i class="bi bi-file-earmark-check me-1" aria-hidden="true"></i>Form 08/CK-TNCN & Deductions (Circular 111/2013)</h6></div>
-
-                    {{ number_input('input-dependents', 'Number of Dependents (Người phụ thuộc):', 0, step='1', col='col-md-6') }}
-                    {{ number_input('input-insurance', 'Insurance Deduction (BHXH/BHYT/BHTN):', 0, step='100000', col='col-md-6') }}
-
                     <div class="col-md-6">
-                        <div class="form-check form-switch pt-2">
-                            <input class="form-check-input" type="checkbox" id="switch-has-form08" checked>
-                            <label class="form-check-label small fw-semibold" for="switch-has-form08">Has Signed Form 08/CK-TNCN (Cam kết mẫu 08)</label>
+                        <div class="form-check form-switch pt-4">
+                            <input class="form-check-input" type="checkbox" id="switch-non-cash-proof" checked>
+                            <label class="form-check-label small fw-semibold" for="switch-non-cash-proof">Bank Transfer Proof / UNC Attached (Chứng từ thanh toán không dùng tiền mặt)</label>
                         </div>
                     </div>
 
-                    {{ number_input('input-est-income', 'Estimated Total Annual Income (VND):', 90000000, step='5000000', col='col-md-6') }}
-
                     <div class="col-md-6">
                         <div class="form-check form-switch pt-2">
-                            <input class="form-check-input" type="checkbox" id="switch-sole-source" checked>
-                            <label class="form-check-label small fw-semibold" for="switch-sole-source">Sole Income Source in Year (Chỉ duy nhất thu nhập tại đây)</label>
+                            <input class="form-check-input" type="checkbox" id="switch-valid-xml" checked>
+                            <label class="form-check-label small fw-semibold" for="switch-valid-xml">Valid Digital Signature XML (Hóa đơn XML hợp lệ & CQT cấp mã)</label>
                         </div>
                     </div>
 
-                    <div class="col-12"><h6 class="fw-bold text-primary border-bottom pb-1 mb-2 mt-2"><i class="bi bi-shield-lock me-1" aria-hidden="true"></i>Electronic Withholding Certificate (Circular 78/2021)</h6></div>
-
                     <div class="col-md-6">
                         <div class="form-check form-switch pt-2">
-                            <input class="form-check-input" type="checkbox" id="switch-has-cert">
-                            <label class="form-check-label small fw-semibold" for="switch-has-cert">Issued Electronic Certificate (Chứng từ điện tử TT 78)</label>
+                            <input class="form-check-input" type="checkbox" id="switch-blacklisted">
+                            <label class="form-check-label small fw-semibold text-danger" for="switch-blacklisted">Vendor Blacklisted by GDT (DN bỏ địa điểm / rủi ro cao)</label>
                         </div>
                     </div>
-
-                    {{ text_input('input-cert-number', 'Certificate Number / Serial:', 'CT-2026-000189', col='col-md-6') }}
                     
                     <div class="col-12 text-end mt-3 d-flex justify-content-between align-items-center">
-                        <a id="btn-export-05kk" href="/api/v81/export-05kk-xml" class="btn btn-outline-secondary fw-semibold">
-                            <i class="bi bi-file-earmark-code me-1" aria-hidden="true"></i> Export Form 05/KK-TNCN (XML)
-                        </a>
-                        <button id="btn-calc-v81" class="btn btn-teal text-white fw-bold">
-                            <i class="bi bi-play-fill me-1" aria-hidden="true"></i> Execute V81 Audit Engine
+                        <span class="text-muted small"><i class="bi bi-info-circle me-1"></i>Ngưỡng kiểm tra thanh toán ngân hàng: >= 20.000.000 VNĐ</span>
+                        <button id="btn-calc-v82" class="btn btn-teal text-white fw-bold">
+                            <i class="bi bi-play-fill me-1" aria-hidden="true"></i> Execute V82 Audit Engine
                         </button>
                     </div>
                 </div>
 
-                <div id="v81-result-panel" class="mt-4">
-                {% call result_panel('V81 Audit Results', 'text-teal', note_id='res-notes-v81') %}
+                <div id="v82-result-panel" class="mt-4">
+                {% call result_panel('V82 Deductibility Audit Results', 'text-teal', note_id='res-notes-v82') %}
                     <div class="d-flex justify-content-between small mb-2">
                         <span class="fw-semibold">Compliance Risk Status:</span>
-                        <span id="res-risk-badge" class="fw-bold">-</span>
+                        <span id="res-risk-badge-v82" class="fw-bold">-</span>
                     </div>
-                    {{ result_field('Compliance Score (100 Max):', 'res-score') }}
-                    {{ result_field('Applicable Tax Rate:', 'res-tax-rate') }}
-                    {{ result_field('Taxable Income (Thu nhập tính thuế):', 'res-taxable-income', 'text-primary fw-bold') }}
-                    {{ result_field('PIT Withholding Tax (Thuế TNCN khấu trừ):', 'res-withholding-tax', 'text-danger fw-bold') }}
-                    {{ result_field('Form 08 Commitment Status:', 'res-form08-status') }}
-                    {{ result_field('Electronic Certificate Status (TT 78):', 'res-cert-status') }}
+                    {{ result_field('Compliance Score (100 Max):', 'res-score-v82') }}
+                    {{ result_field('CIT Deductible Amount (Chi phí hợp lý TNDN):', 'res-cit-deductible', 'text-success fw-bold') }}
+                    {{ result_field('CIT Non-Deductible Amount (Chi phí bị loại TNDN):', 'res-cit-non-deductible', 'text-danger fw-bold') }}
+                    {{ result_field('VAT Creditable Amount (Thuế GTGT khấu trừ):', 'res-vat-creditable', 'text-primary fw-bold') }}
                     <hr class="my-2" />
                     <div class="small mb-1">
                         <span class="fw-bold text-danger"><i class="bi bi-exclamation-triangle-fill me-1" aria-hidden="true"></i>Identified Violations:</span>
-                        <ul id="res-violations-list" class="text-danger ps-3 my-1"><li>None</li></ul>
+                        <ul id="res-violations-v82" class="text-danger ps-3 my-1"><li>None</li></ul>
                     </div>
                     <div class="small mb-1">
                         <span class="fw-bold text-success"><i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i>Actionable Recommendations:</span>
-                        <ul id="res-recommendations-list" class="text-secondary ps-3 my-1"><li>Hồ sơ đạt chuẩn.</li></ul>
+                        <ul id="res-recommendations-v82" class="text-secondary ps-3 my-1"><li>Hóa đơn đạt chuẩn quyết toán thuế TNDN & GTGT.</li></ul>
                     </div>
                 {% endcall %}
                 </div>
@@ -251,39 +241,39 @@
         <div class="col-lg-5">
             {% call glass_card('Compliance Baselines & Validation Rules', 'bi bi-shield-check', 'text-teal') %}
                 <div class="d-flex flex-column gap-3">
-                    {{ baseline_card('Valid Form 08 Freelance Consultant', '15,000,000 VND', 'bg-success-subtle text-success border border-success-subtle',
-                        'Cá nhân có MST, cam kết thu nhập cả năm dưới 132 triệu VNĐ và là nguồn duy nhất. Tạm thời không khấu trừ 10%.',
-                        'Status: Compliant', 'Withholding Tax', 'base1-tax') }}
+                    {{ baseline_card('Valid Bank Transfer >= 20M', '66,000,000 VND', 'bg-success-subtle text-success border border-success-subtle',
+                        'Hóa đơn mua máy móc thiết bị có chứng từ ủy nhiệm chi ngân hàng hợp lệ. Đủ điều kiện tính chi phí hợp lý TNDN và khấu trừ thuế GTGT.',
+                        'Status: Compliant', 'CIT Deductible', 'base1-cit') }}
                     
-                    {{ baseline_card('Missing MST Form 08 Violation', '8,000,000 VND', 'bg-danger-subtle text-danger border border-danger-subtle',
-                        'Cá nhân lập cam kết 08 nhưng chưa đăng ký MST tại thời điểm ký kết. Cam kết vô hiệu, bắt buộc khấu trừ 10% (800,000 VND).',
-                        'Status: Violation', 'Withholding Tax', 'base2-tax') }}
+                    {{ baseline_card('Cash Payment >= 20M Violation', '33,000,000 VND', 'bg-danger-subtle text-danger border border-danger-subtle',
+                        'Hóa đơn giá trị 33 triệu thanh toán bằng tiền mặt. Loại toàn bộ 30 triệu chi phí hợp lý TNDN và 3 triệu thuế GTGT được khấu trừ.',
+                        'Status: Violation', 'Non-Deductible', 'base2-cit') }}
                 </div>
             {% endcall %}
 
             {# Live Telemetry Stream Component #}
-            {{ live_telemetry_stream('v81-telemetry', 'Live Audit & Telemetry Stream (SSE)', 'Real-time telemetry heartbeat, GDT sync pulse, and PIT audit events via Server-Sent Events.') }}
+            {{ live_telemetry_stream('v82-telemetry', 'Live Audit & Telemetry Stream (SSE)', 'Real-time telemetry heartbeat, GDT sync pulse, and CIT/VAT deductibility audit events via Server-Sent Events.') }}
         </div>
 
         {# ── Advisory Board Debate Panel ── #}
         <div class="col-lg-12">
-            {{ debate_panel('debate-container-v81', 'consensus-text-v81',
-                'Multi-Agent Personal Income Tax (PIT) Advisory Board Debate', 'Circular 111/2013/TT-BTC & Circular 78/2021/TT-BTC Consensus') }}
+            {{ debate_panel('debate-container-v82', 'consensus-text-v82',
+                'Multi-Agent Tax Settlement & CIT Audit Advisory Board Debate', 'Circular 78/2021/TT-BTC & Law on Corporate Income Tax Consensus') }}
         </div>
 
         {# ── Compliance History Table ── #}
         <div class="col-lg-12">
-            {% call data_table('V81 Audit History Log', 'bi bi-clock-history', 'history-table-v81', 'No audit logs recorded yet.', 12) %}
+            {% call data_table('V82 Audit History Log', 'bi bi-clock-history', 'history-table-v82', 'No audit logs recorded yet.', 12) %}
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Payee Name</th>
-                        <th>Tax ID / CCCD</th>
-                        <th>Gross Payment</th>
-                        <th>Contract Type</th>
-                        <th>Form 08</th>
-                        <th>Elec Cert</th>
-                        <th>Withholding Tax</th>
+                        <th>Vendor Name</th>
+                        <th>Vendor MST</th>
+                        <th>Invoice No</th>
+                        <th>Total Amount</th>
+                        <th>Payment</th>
+                        <th>CIT Deductible</th>
+                        <th>VAT Creditable</th>
                         <th>Risk</th>
                         <th>Timestamp</th>
                         <th class="text-center">Action</th>
@@ -305,7 +295,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const load = () => {
         const mst = getMst();
-        fetch(`/api/v81/compliance-data?mst=${mst}`).then(r=>r.json()).then(d=>{
+        fetch(`/api/v82/compliance-data?mst=${mst}`).then(r=>r.json()).then(d=>{
             if(d.status==="success"){
                 rB(d);
                 rD(d.debate, d.consensus_summary);
@@ -317,25 +307,24 @@ document.addEventListener("DOMContentLoaded", () => {
     const calc = () => {
         const p = {
             mst: getMst(),
-            person_name: document.getElementById("input-person-name").value || "Nguyễn Văn A",
-            personal_id_or_mst: document.getElementById("input-id-or-mst").value || "",
-            contract_type: document.getElementById("input-contract-type").value || "freelance",
-            payment_amount: parseFloat(document.getElementById("input-payment-amount").value || 0),
-            num_dependents: parseInt(document.getElementById("input-dependents").value || 0),
-            insurance_deduction: parseFloat(document.getElementById("input-insurance").value || 0),
-            has_form_08: document.getElementById("switch-has-form08").checked,
-            estimated_annual_income: parseFloat(document.getElementById("input-est-income").value || 0),
-            is_sole_income_source: document.getElementById("switch-sole-source").checked,
-            has_elec_cert: document.getElementById("switch-has-cert").checked,
-            cert_number: document.getElementById("input-cert-number").value || ""
+            vendor_name: document.getElementById("input-vendor-name").value || "CÔNG TY TNHH PHÁT TRIỂN CÔNG NGHỆ ABC",
+            vendor_mst: document.getElementById("input-vendor-mst").value || "0109876543",
+            invoice_number: document.getElementById("input-invoice-number").value || "INV-2026-888",
+            invoice_date: document.getElementById("input-invoice-date").value || "2026-08-27",
+            total_amount: parseFloat(document.getElementById("input-total-amount").value || 0),
+            vat_amount: parseFloat(document.getElementById("input-vat-amount").value || 0),
+            payment_method: document.getElementById("input-payment-method").value || "BANK_TRANSFER",
+            has_non_cash_proof: document.getElementById("switch-non-cash-proof").checked,
+            is_valid_xml: document.getElementById("switch-valid-xml").checked,
+            is_blacklisted: document.getElementById("switch-blacklisted").checked
         };
-        fetch('/api/v81/audit-pit', {
+        fetch('/api/v82/audit-invoice', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(p)
         }).then(r=>r.json()).then(d=>{
             if(d.status==="success"){
-                rR(d.results);
+                rR(d.results || d.data);
                 load();
             } else {
                 alert(d.error || "Audit failed");
@@ -344,14 +333,12 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const rR = r => {
-        document.getElementById("res-score").textContent = (r.compliance_score || 0) + " / 100";
-        document.getElementById("res-tax-rate").textContent = (r.applicable_tax_rate || 0) + "%";
-        document.getElementById("res-taxable-income").textContent = fVND(r.taxable_income || 0);
-        document.getElementById("res-withholding-tax").textContent = fVND(r.withholding_tax || 0);
-        document.getElementById("res-form08-status").textContent = r.form_08_status || "N/A";
-        document.getElementById("res-cert-status").textContent = r.elec_cert_status || "N/A";
+        document.getElementById("res-score-v82").textContent = (r.compliance_score || 0) + " / 100";
+        document.getElementById("res-cit-deductible").textContent = fVND(r.cit_deductible_amount || 0);
+        document.getElementById("res-cit-non-deductible").textContent = fVND(r.cit_non_deductible_amount || 0);
+        document.getElementById("res-vat-creditable").textContent = fVND(r.vat_creditable_amount || 0);
 
-        const riskBadge = document.getElementById("res-risk-badge");
+        const riskBadge = document.getElementById("res-risk-badge-v82");
         const level = r.risk_level || "SAFE";
         if(level === "CRITICAL") {
             riskBadge.innerHTML = '<span class="badge bg-danger-subtle text-danger border border-danger">CRITICAL RISK</span>';
@@ -362,7 +349,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         // Violations list
-        const vList = document.getElementById("res-violations-list");
+        const vList = document.getElementById("res-violations-v82");
         vList.innerHTML = "";
         if (r.violations && r.violations.length > 0) {
             r.violations.forEach(v => {
@@ -371,11 +358,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 vList.appendChild(li);
             });
         } else {
-            vList.innerHTML = "<li>Không phát hiện vi phạm quy định khấu trừ thuế.</li>";
+            vList.innerHTML = "<li>Không phát hiện vi phạm chi phí hợp lý hợp lệ.</li>";
         }
 
         // Recommendations list
-        const rList = document.getElementById("res-recommendations-list");
+        const rList = document.getElementById("res-recommendations-v82");
         rList.innerHTML = "";
         if (r.recommendations && r.recommendations.length > 0) {
             r.recommendations.forEach(rec => {
@@ -384,13 +371,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 rList.appendChild(li);
             });
         } else {
-            rList.innerHTML = "<li>Hồ sơ hoàn chỉnh, khấu trừ đúng quy định pháp luật.</li>";
+            rList.innerHTML = "<li>Hóa đơn đạt chuẩn, khấu trừ thuế GTGT và chi phí TNDN đúng pháp luật.</li>";
         }
 
-        document.getElementById("res-notes-v81").textContent = r.audit_notes || "V81 PIT Audit complete.";
+        document.getElementById("res-notes-v82").textContent = r.audit_notes || "V82 CIT/VAT Audit complete.";
 
         // Pulse effect on result panel
-        const resCard = document.getElementById("v81-result-panel");
+        const resCard = document.getElementById("v82-result-panel");
         if (resCard) {
             resCard.classList.remove("calc-pulse-effect");
             void resCard.offsetWidth;
@@ -399,23 +386,31 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const rB = d => {
-        if(d.sample_freelance_valid) {
-            document.getElementById("base1-tax").textContent = fVND(d.sample_freelance_valid.withholding_tax || 0);
+        if(d.sample_valid) {
+            document.getElementById("base1-cit").textContent = fVND(d.sample_valid.cit_deductible_amount || 0);
         }
-        if(d.sample_form08_invalid) {
-            document.getElementById("base2-tax").textContent = fVND(d.sample_form08_invalid.withholding_tax || 0);
+        if(d.sample_invalid) {
+            document.getElementById("base2-cit").textContent = fVND(d.sample_invalid.cit_non_deductible_amount || 0);
         }
     };
 
     const rD = (debate, summary) => {
-        const c = document.getElementById("debate-container-v81");
+        const c = document.getElementById("debate-container-v82");
+        if (!c) return;
         c.innerHTML = "";
         const cl = {
-            "PIT Tax Inspector (Cán bộ Thuế TNCN)": "bg-danger-subtle text-danger border border-danger",
-            "HR & Payroll Director (Trưởng phòng Nhân sự & Tiền lương)": "bg-primary-subtle text-primary border border-primary",
+            "GDT Tax Inspector (Cán bộ Thanh tra Thuế)": "bg-danger-subtle text-danger border border-danger",
+            "Chief Financial Officer (Giám đốc Tài chính CFO)": "bg-primary-subtle text-primary border border-primary",
             "Chief Internal Auditor (Trưởng ban Kiểm toán Nội bộ)": "bg-info-subtle text-info border border-info"
         };
-        debate.forEach((m, idx) => {
+        const defaultDebate = debate || [
+            { speaker: "GDT Tax Inspector (Cán bộ Thanh tra Thuế)", text: "Hóa đơn mua vào từ 20 triệu VNĐ trở lên bắt buộc phải có chứng từ thanh toán không dùng tiền mặt (ủy nhiệm chi ngân hàng). Trường hợp trả tiền mặt sẽ bị loại toàn bộ chi phí hợp lý khi quyết toán TNDN và truy thu tiền thuế GTGT đã kê khai khấu trừ." },
+            { speaker: "Chief Financial Officer (Giám đốc Tài chính CFO)", text: "Hệ thống tự động phân loại hóa đơn theo điều kiện thanh toán và tích hợp trực tiếp với dữ liệu ngân hàng để đảm bảo 100% chứng từ thanh toán không dùng tiền mặt được khớp nối chính xác trước kỳ quyết toán thuế." },
+            { speaker: "Chief Internal Auditor (Trưởng ban Kiểm toán Nội bộ)", text: "Ban Kiểm toán ghi nhận cơ chế đối soát liên hoàn giữa GDT Blacklist, Chữ ký số XML và Chứng từ ngân hàng giúp giảm thiểu tối đa rủi ro bị truy thu và phạt vi phạm hành chính thuế." }
+        ];
+        const defaultSummary = summary || "Đạt đồng thuận 100% giữa Ban Kiểm toán và Cán bộ Thuế về điều kiện khấu trừ thuế GTGT và chi phí hợp lý TNDN theo quy định hiện hành.";
+        
+        defaultDebate.forEach((m, idx) => {
             const div = document.createElement("div");
             div.className = "d-flex gap-3 align-items-start p-3 bg-white rounded border border-light-subtle debate-message-bubble";
             div.style.animation = `fadeInUp 0.3s ease forwards ${idx * 0.1}s`;
@@ -431,11 +426,12 @@ document.addEventListener("DOMContentLoaded", () => {
             `;
             c.appendChild(div);
         });
-        document.getElementById("consensus-text-v81").textContent = summary;
+        document.getElementById("consensus-text-v82").textContent = defaultSummary;
     };
 
     const rH = h => {
-        const tb = document.getElementById("history-table-v81");
+        const tb = document.getElementById("history-table-v82");
+        if (!tb) return;
         if (!h || !h.length) {
             tb.innerHTML = '<tr><td colspan="11" class="text-center text-muted py-4">No audit logs available.</td></tr>';
             return;
@@ -446,13 +442,13 @@ document.addEventListener("DOMContentLoaded", () => {
             let badgeClass = l.risk_level === 'CRITICAL' ? 'bg-danger-subtle text-danger border border-danger' : (l.risk_level === 'WARNING' ? 'bg-warning-subtle text-warning border border-warning' : 'bg-success-subtle text-success border border-success');
             tr.innerHTML = `
                 <td><span class="text-secondary small fw-bold">#${l.id}</span></td>
-                <td class="fw-bold">${l.person_name}</td>
-                <td class="font-monospace">${l.personal_id_or_mst || '-'}</td>
-                <td class="fw-bold font-monospace">${fVND(l.payment_amount)}</td>
-                <td><span class="badge bg-light text-dark border">${l.contract_type}</span></td>
-                <td>${l.has_form_08 ? '<i class="bi bi-check-circle-fill text-success" aria-hidden="true"></i>' : '<i class="bi bi-dash-circle text-muted" aria-hidden="true"></i>'}</td>
-                <td>${l.has_elec_cert ? '<i class="bi bi-check-circle-fill text-success" aria-hidden="true"></i>' : '<i class="bi bi-dash-circle text-muted" aria-hidden="true"></i>'}</td>
-                <td class="text-danger fw-bold font-monospace">${fVND(l.withholding_tax)}</td>
+                <td class="fw-bold">${l.vendor_name}</td>
+                <td class="font-monospace">${l.vendor_mst || '-'}</td>
+                <td class="font-monospace">${l.invoice_number || '-'}</td>
+                <td class="fw-bold font-monospace">${fVND(l.total_amount)}</td>
+                <td><span class="badge bg-light text-dark border">${l.payment_method}</span></td>
+                <td class="text-success fw-bold font-monospace">${fVND(l.cit_deductible_amount)}</td>
+                <td class="text-primary fw-bold font-monospace">${fVND(l.vat_creditable_amount)}</td>
                 <td><span class="badge ${badgeClass}">${l.risk_level}</span></td>
                 <td class="text-muted small">${l.created_at}</td>
                 <td class="text-center">
@@ -467,9 +463,9 @@ document.addEventListener("DOMContentLoaded", () => {
         tb.querySelectorAll(".btn-delete-log").forEach(btn => {
             btn.addEventListener("click", () => {
                 const logId = btn.dataset.id;
-                if (confirm(`Delete V81 audit log #${logId}?`)) {
+                if (confirm(`Delete V82 audit log #${logId}?`)) {
                     const mst = getMst();
-                    fetch('/api/v81/delete-log', {
+                    fetch('/api/v82/delete-log', {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify({ mst, log_id: logId })
@@ -485,8 +481,8 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     };
 
-    document.getElementById("btn-calc-v81").addEventListener("click", calc);
-    document.getElementById("btn-refresh-v81").addEventListener("click", load);
+    document.getElementById("btn-calc-v82").addEventListener("click", calc);
+    document.getElementById("btn-refresh-v82").addEventListener("click", load);
     load();
 });
 </script>

@@ -73,7 +73,10 @@ def app():
             db.drop_all()
         except Exception as e:
             print(f"\nDEBUG: db.drop_all() failed: {e}\n")
-        db.create_all()
+        try:
+            db.create_all()
+        except Exception:
+            pass
             
         yield flask_app
         

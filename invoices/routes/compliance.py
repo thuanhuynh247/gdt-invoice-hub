@@ -4552,6 +4552,128 @@ def api_v81_export_05kk_xml():
         return jsonify({"error": str(e)}), 400
 
 
+# --- VERSION 82 ROUTES (TAX SETTLEMENT & CIT/VAT DEDUCTIBILITY AUDIT) ---
+@invoices_blueprint.get("/v82-compliance-hub")
+def v82_compliance_hub_page():
+    """Render the Version 82 Tax Settlement & CIT/VAT Deductibility Hub."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("v82_compliance_hub.html")
+
+
+@invoices_blueprint.post("/api/v82/audit-invoice")
+def api_v82_audit_invoice():
+    """Run an individual commercial invoice CIT/VAT deductibility audit."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    tenant_mst = data.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v82_service import V82ComplianceService
+    from invoices.telemetry_stream import telemetry_bus
+    try:
+        service = V82ComplianceService(current_app.config["BASE_DATA_DIR"])
+        res = service.audit_invoice_deductibility(
+            tenant_mst=tenant_mst,
+            vendor_name=str(data.get("vendor_name", "CÔNG TY TNHH VẬT TƯ CHẾ TẠO ABC")),
+            vendor_mst=str(data.get("vendor_mst", "0101234567")),
+            invoice_number=str(data.get("invoice_number", "INV-2026-888")),
+            invoice_date=str(data.get("invoice_date", "2026-08-27")),
+            total_amount=float(data.get("total_amount", 0.0)),
+            vat_amount=float(data.get("vat_amount", 0.0)),
+            payment_method=str(data.get("payment_method", "BANK_TRANSFER")),
+            has_non_cash_proof=bool(data.get("has_non_cash_proof", True)),
+            is_valid_xml=bool(data.get("is_valid_xml", True)),
+            is_blacklisted=bool(data.get("is_blacklisted", False)),
+        )
+
+        # Broadcast telemetry event
+        telemetry_bus.publish(
+            event_type="V82_CIT_AUDIT",
+            message=f"V82 CIT Audit [{res['risk_level']}]: HD {res['invoice_number']} ({res['vendor_name']}) - {res['total_amount']:,.0f} VND. Deductible: {res['cit_deductible_amount']:,.0f} VND.",
+            level="WARNING" if res["risk_level"] == "CRITICAL" else "SUCCESS",
+            source="V82_CIT_ENGINE",
+            metadata={"risk_level": res["risk_level"], "score": res["compliance_score"], "deductible": res["cit_deductible_amount"]}
+        )
+
+        return jsonify({"status": "success", "results": res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@invoices_blueprint.get("/api/v82/compliance-data")
+def api_v82_compliance_data():
+    """Get aggregated analytics, sample audits, and history for V82 Hub."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    tenant_mst = request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+
+    from invoices.v82_service import V82ComplianceService
+    service = V82ComplianceService(current_app.config["BASE_DATA_DIR"])
+
+    sample_valid = service.audit_invoice_deductibility(
+        tenant_mst=tenant_mst,
+        vendor_name="CÔNG TY CỔ PHẦN THIẾT BỊ CÔNG NGHIỆP SÀI GÒN",
+        vendor_mst="0301234567",
+        invoice_number="INV-2026-101",
+        invoice_date="2026-08-20",
+        total_amount=66_000_000.0,
+        vat_amount=6_000_000.0,
+        payment_method="BANK_TRANSFER",
+        has_non_cash_proof=True,
+        is_valid_xml=True,
+        is_blacklisted=False,
+    )
+
+    sample_invalid = service.audit_invoice_deductibility(
+        tenant_mst=tenant_mst,
+        vendor_name="CÔNG TY TNHH PHÁT TRIỂN THƯƠNG MẠI VIỆT HỒNG",
+        vendor_mst="0109999999",
+        invoice_number="INV-2026-102",
+        invoice_date="2026-08-22",
+        total_amount=33_000_000.0,
+        vat_amount=3_000_000.0,
+        payment_method="CASH",
+        has_non_cash_proof=False,
+        is_valid_xml=True,
+        is_blacklisted=False,
+    )
+
+    return jsonify({
+        "status": "success",
+        "analytics": service.get_summary_analytics(tenant_mst),
+        "sample_valid": sample_valid,
+        "sample_invalid": sample_invalid,
+        "history": service.get_history(tenant_mst, 20)
+    })
+
+
+@invoices_blueprint.route("/api/v82/delete-log", methods=["POST", "DELETE"])
+def api_v82_delete_log():
+    """Delete a V82 audit log entry."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    data = request.json or {}
+    log_id = data.get("log_id") or request.args.get("log_id")
+    if not log_id:
+        return jsonify({"error": "Missing log_id"}), 400
+
+    tenant_mst = data.get("mst") or request.args.get("mst") or session.get("taxpayer_mst") or "0102030405"
+    from invoices.v82_service import V82ComplianceService
+    try:
+        service = V82ComplianceService(current_app.config["BASE_DATA_DIR"])
+        success = service.delete_log(tenant_mst, int(log_id))
+        return jsonify({"status": "success", "deleted": success})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
 # --- REAL-TIME SERVER-SENT EVENTS (SSE) TELEMETRY STREAM ROUTES ---
 @invoices_blueprint.get("/api/telemetry/stream")
 def api_telemetry_stream():

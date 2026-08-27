@@ -421,6 +421,7 @@ class TaxChatSession(db.Model):
     """Conversational session for the AI General Tax Advisor."""
 
     __tablename__ = "tax_chat_session"
+    __table_args__ = {"extend_existing": True}
 
     id = db.Column(db.String(36), primary_key=True)
     title = db.Column(db.String(255), nullable=False)
@@ -446,6 +447,7 @@ class TaxChatMessage(db.Model):
     """An individual message within a Tax Advisor chat session."""
 
     __tablename__ = "tax_chat_message"
+    __table_args__ = {"extend_existing": True}
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     session_id = db.Column(

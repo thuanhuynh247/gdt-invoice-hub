@@ -71,11 +71,24 @@ def auth_captcha():
         session["auth_captcha_cookies"] = captcha_payload.get("cookies", {})
         session.pop("auth_captcha_solved", None)
 
+    solved_text = session.get("auth_captcha_solved", "")
+    if not solved_text and current_app.config.get("AUTO_SOLVE_CAPTCHA"):
+        try:
+            solved_text = solve_captcha_from_svg(
+                captcha_payload["content"],
+                captcha_key=captcha_payload["key"]
+            )
+            session["auth_captcha_solved"] = solved_text
+        except Exception:
+            solved_text = ""
+
     return jsonify(
         {
             "image_svg": captcha_payload["content"],
             "mode": "mock" if current_app.config["GDT_USE_MOCK"] else "live",
             "auto_solve": current_app.config["AUTO_SOLVE_CAPTCHA"],
+            "solved_text": solved_text,
+            "key": captcha_payload.get("key", ""),
         }
     )
 
@@ -85,6 +98,39 @@ def api_captcha_stats():
     """Expose real-time CAPTCHA solver statistics (US-143 / health dashboard)."""
     from auth.captcha_solver import captcha_analytics
     return jsonify(captcha_analytics.get_stats())
+
+
+@auth_blueprint.post("/api/auth/solve-captcha")
+@rate_limit(limit=20, window=60)
+def api_solve_captcha():
+    """Decode and solve current session or provided SVG CAPTCHA on demand."""
+    payload = request.get_json(silent=True) or {}
+    svg_content = payload.get("svg_content") or session.get("auth_captcha_svg", "")
+    captcha_key = payload.get("captcha_key") or session.get("auth_captcha_key", "")
+
+    if not svg_content:
+        try:
+            payload_data = fetch_captcha_payload()
+            svg_content = payload_data["content"]
+            captcha_key = payload_data["key"]
+            session["auth_captcha_key"] = captcha_key
+            session["auth_captcha_svg"] = svg_content
+            session["auth_captcha_cookies"] = payload_data.get("cookies", {})
+        except Exception as err:
+            return jsonify({"error": f"Khởi tạo CAPTCHA thất bại: {err}"}), 400
+
+    try:
+        solved_text = solve_captcha_from_svg(svg_content, captcha_key=captcha_key)
+        session["auth_captcha_solved"] = solved_text
+        return jsonify({
+            "status": "success",
+            "solved_text": solved_text,
+            "captcha_key": captcha_key,
+            "auto_solve": current_app.config.get("AUTO_SOLVE_CAPTCHA", True)
+        })
+    except Exception as err:
+        return jsonify({"error": f"Lỗi giải captcha: {err}"}), 500
+
 
 
 @auth_blueprint.post("/api/auth/login")

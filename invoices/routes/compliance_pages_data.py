@@ -1269,6 +1269,39 @@ def get_compliance_pages(version_id: str, mst: str, db_stats: dict) -> list[dict
             }
         ]
     
+    elif v_clean == "v82":
+        # Version 82: CIT/VAT Deductibility & Tax Settlement Audit Hub
+        pages = [
+            {
+                "title": "1. Định Hướng & Mục Tiêu Nghiệp Vụ v82 (Orientation & Purpose)",
+                "content": "### Mục tiêu cốt lõi\nPhân hệ **V82 (CIT & VAT Deductibility & Tax Settlement Audit Hub)** được thiết kế nhằm tự động hóa quy trình rà soát chi phí hợp lý hợp lệ khi tính thuế TNDN (CIT) và khấu trừ thuế GTGT (VAT) theo Thông tư 78/2021/TT-BTC, Luật Thuế TNDN và các quy định quản lý rủi ro hóa đơn của Tổng cục Thuế.\n\n### Cảnh báo trọng tâm\n*Làm thế nào để phát hiện sớm các hóa đơn bị loại chi phí TNDN hoặc không đủ điều kiện khấu trừ GTGT trước khi cơ quan thuế thực hiện quyết toán thuế năm?*\n\n### Lợi ích chính\n1. Kiểm tra tự động thanh toán không dùng tiền mặt (ngưỡng 20 triệu đồng).\n2. Đối soát tình trạng doanh nghiệp rủi ro cao / bỏ trốn (Blacklist GDT).\n3. Đánh giá tính hợp lệ của chữ ký số XML & mã của cơ quan thuế."
+            },
+            {
+                "title": "2. Mô Hình Lõi & Quy Tắc Kiểm Toán Chi Phí v82 (Core Model & Audit Rules)",
+                "content": "### Các Quy Tắc Kiểm Toán Lõi (Core Audit Rules)\n\n| Mã Luật | Tên Quy Tắc | Tiêu Chí Kiểm Tra | Xử Lý Rủi Ro |\n|---|---|---|---|\n| **R82-01** | Thanh toán không dùng tiền mặt | Giá trị thanh toán >= 20 triệu VNĐ bắt buộc dùng Ngân hàng | Loại chi phí CIT & Khấu trừ VAT nếu trả tiền mặt |\n| **R82-02** | Blacklist Nhà Cung Cấp | Tra cứu MST bán trong danh sách DN rủi ro / ngừng hoạt động | Cảnh báo CRITICAL - Nguy cơ phạt truy thu 20% |\n| **R82-03** | Chữ Ký Số & Mã GDT | Kiểm tra tính nguyên vẹn XML & mã CQT cấp | Cảnh báo HIGH - Hóa đơn không hợp lệ |\n| **R82-04** | Sai lệch Tiền Thuế | Đối soát Thuế suất x Doanh số so với Tiền thuế trên XML | Cảnh báo MEDIUM - Lỗi làm tròn hoặc kê khai sai |"
+            },
+            {
+                "title": "3. Phân Vùng Phạm Vi Nghiệp Vụ (Scope Rings)",
+                "content": "### Phân Lớp Phạm Vi v82\n*   **Vùng Lõi (Core)**: Kiểm tra tính hợp lệ XML, đối soát thanh toán ngân hàng >= 20tr, tra cứu trạng thái nhà cung cấp.\n*   **Vùng Cận Biên (Adjacent)**: Tích hợp dữ liệu với phân hệ Quyết toán Thuế TNDN (v26) và Khấu trừ Thuế GTGT (v60).\n*   **Vùng Biên Giới (Frontier)**: Dự báo rủi ro quyết toán thuế sử dụng máy học và phân tích xu hướng chi phí.\n*   **Ngoài Phạm Vi (Out-of-Scope)**: Kê khai các khoản thuế TNCN hoặc thuế nhà thầu độc lập."
+            },
+            {
+                "title": "4. Ngữ Pháp Liên Kết Phân Hệ (Relation Grammar)",
+                "content": "### Mối Quan Hệ Phụ Thuộc & Ràng Buộc\n*   **Phụ thuộc (Dependency)**: V82 phụ thuộc vào V26 (Cơ sở dữ liệu Thuế TNDN) và V60 (Kiểm toán Khấu trừ GTGT).\n*   **Ràng buộc (Constraint)**: Mọi hóa đơn có giá trị từ 20.000.000 VNĐ trở lên không có xác nhận thanh toán ngân hàng hợp lệ sẽ bị tự động đánh dấu 'Loại chi phí được trừ khi quyết toán TNDN'."
+            },
+            {
+                "title": "5. Luồng Vận Hành Tự Động (Mechanism & Sequence Diagram)",
+                "content": "### Biểu Đồ Luồng Xử Lý Audit V82\n\n```mermaid\nsequenceDiagram\n    autonumber\n    participant User as Kế toán / Auditor\n    participant API as /api/v82/audit-invoice\n    participant Engine as V82ComplianceService\n    participant Bus as TelemetryBus\n    \n    User->>API: Gửi Invoice ID + Phương thức thanh toán\n    API->>Engine: audit_invoice_deductibility()\n    Engine->>Engine: 1. Kiểm tra giá trị >= 20M & CASH\n    Engine->>Engine: 2. Kiểm tra XML Signature & GDT Status\n    Engine->>Engine: 3. Tra cứu Supplier Blacklist\n    Engine->>Bus: publish('cit_audit_event')\n    Engine-->>API: Trả về kết quả Audit (cit_deductible, vat_deductible, risk_level)\n    API-->>User: Hiển thị Bento Grid Dashboard V82\n```"
+            },
+            {
+                "title": "6. Giới Hạn & Cảnh Báo Lỗi Thường Gặp (Boundaries & Failures)",
+                "content": f"### Thống Kê Giám Sát v82\n*   Mã số thuế tổ chức: **{mst}**\n*   Số lượng vi phạm phát hiện: **{total_violations} lỗi**\n\n### Top 3 Lỗi Thường Gặp Khi Quyết Toán Thuế\n1. **Thanh toán tiền mặt cho hóa đơn >= 20 triệu**: Kế toán quên ghi nhận chứng từ chuyển khoản ngân hàng.\n2. **Hóa đơn từ DN đã thông báo bỏ trốn**: Không đối soát kịp thời danh sách cảnh báo của Tổng cục Thuế.\n3. **Hóa đơn sai thời điểm**: Ngày lập và ngày ký chữ ký số chênh lệch xa vượt quy định."
+            },
+            {
+                "title": "7. Lộ Trình Triển Khai & Ứng Dụng (Application & Roadmap)",
+                "content": "### Lộ Trình Triển Khai Quyết Toán V82\n*   **Bước 1**: Truy cập Trung tâm Kiểm toán Tuân thủ V82 (`/v82-compliance-hub`).\n*   **Bước 2**: Thực hiện audit toàn bộ hóa đơn đầu vào trong kỳ quyết toán.\n*   **Bước 3**: Xuất báo cáo danh sách chi phí bị loại để điều chỉnh trên Tờ khai Quyết toán Thuế TNDN (Mẫu 03/TNDN - Chỉ tiêu E1).\n*   **Bước 4**: Giám sát chỉ số Telemetry và cấu hình cảnh báo tự động."
+            }
+        ]
+    
     # 2. Add fallback detailed pages for the remaining nodes (v32-v43, and environmental ones)
     elif v_clean in ["v32", "v33", "v34", "v35", "v36", "v37", "v38", "v39", "v40", "v41", "v42", "v43"]:
         # Add detailed content for intermediate nodes

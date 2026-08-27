@@ -28,7 +28,7 @@ venv/
 .code-review-graphignore
 
 # Exports and Excel spreadsheets
-export/
+export_output/
 *.xlsx
 *.xls
 *.zip
