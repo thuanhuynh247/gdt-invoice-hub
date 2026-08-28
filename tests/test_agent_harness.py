@@ -252,3 +252,11 @@ def test_harness_plugins_ponytail_audit(logged_in_client):
     assert "total_lines_scanned" in data
     assert isinstance(data["findings"], list)
 
+
+def test_tax_compliance_hub_page(logged_in_client):
+    """Test rendering the unified Tax & E-Invoice Compliance Hub (v85+)."""
+    response = logged_in_client.get("/tax-compliance-hub")
+    assert response.status_code == 200
+    assert "Trung tâm Thuế &amp; Hóa đơn Điện tử Hợp nhất".encode("utf-8") in response.data or "Trung tâm Thuế" .encode("utf-8") in response.data
+
+
