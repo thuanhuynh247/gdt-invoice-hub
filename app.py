@@ -38,7 +38,10 @@ def create_app() -> Flask:
         import os
         os.makedirs(os.path.join(app.root_path, "data"), exist_ok=True)
         import invoices.models
-        db.create_all()
+        try:
+            db.create_all()
+        except Exception:
+            pass
         try:
             db.session.execute(db.text("CREATE INDEX IF NOT EXISTS idx_invoice_lookup ON invoice (taxpayer_mst, invoice_type, date, total_amount);"))
             db.session.execute(db.text("CREATE INDEX IF NOT EXISTS idx_line_item_invoice ON line_item (invoice_id, expense_category);"))

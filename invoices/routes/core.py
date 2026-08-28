@@ -6109,20 +6109,26 @@ def api_harness_plugins_install():
         import json
 
         # ponytail: Invoke scripts/agy.py directly using local venv python execution
-        workspace_dir = "d:/LearnAnyThing/Webapp XML"
-        python_exe = os.path.join(workspace_dir, "venv", "Scripts", "python.exe")
+        import sys
+        workspace_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+        python_exe = sys.executable
         agy_script = os.path.join(workspace_dir, "scripts", "agy.py")
         
         cmd = [python_exe, agy_script, "plugin", "install", repo_url]
 
-        proc = subprocess.Popen(
-            cmd,
-            cwd=workspace_dir,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            bufsize=1
-        )
+        try:
+            proc = subprocess.Popen(
+                cmd,
+                cwd=workspace_dir,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                bufsize=1
+            )
+        except Exception as spawn_err:
+            yield f"data: {json.dumps({'type': 'status', 'message': f'Execution error: {spawn_err}'})}\n\n"
+            yield f"data: {json.dumps({'type': 'done', 'success': False})}\n\n"
+            return
 
         yield f"data: {json.dumps({'type': 'status', 'message': f'Starting plugin installation from {repo_url}...'})}\n\n"
 
