@@ -4701,6 +4701,16 @@ def api_telemetry_history():
     })
 
 
+# --- UNIFIED TAX & E-INVOICE COMPLIANCE HUB (v85+) ---
+@invoices_blueprint.get("/tax-compliance-hub")
+def tax_compliance_hub_page():
+    """Render the Consolidated Unified Tax & E-Invoice Compliance Hub (v85+)."""
+    if not session.get("logged_in"):
+        return redirect(url_for("auth.login_page"))
+    return render_template("tax_compliance_hub.html")
+
+
+
 
 
 
