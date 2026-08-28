@@ -12,7 +12,7 @@
         <div class="col-xl-5 col-lg-6 col-md-8 col-11">
 
             <!-- Brand Header -->
-            <div class="text-center mb-4 login-card-stagger" style="animation-delay: 0s;">
+            <header class="text-center mb-4 login-card-stagger" style="animation-delay: 0s;">
                 <div class="d-inline-flex align-items-center gap-2 mb-3">
                     <span class="login-logo-icon">
                         <i class="bi bi-lightning-charge-fill" aria-hidden="true"></i>
@@ -21,7 +21,7 @@
                 </div>
                 <h1 class="h3 fw-bold text-gradient mb-1 tracking-tight">Đăng nhập Admin Portal</h1>
                 <p class="text-secondary small mb-0"><span class="badge bg-dark border border-light border-opacity-10 text-info me-1">GDT SECURE GATEWAY</span> Cổng quản trị hóa đơn điện tử</p>
-            </div>
+            </header>
 
             <!-- Main Login Card -->
             <section class="card border-0 glass-card login-card-stagger" style="animation-delay: 0.1s;">
@@ -31,23 +31,23 @@
                     <div class="d-flex align-items-center justify-content-between mb-3 pb-3 border-bottom border-light border-opacity-10">
                         <span class="text-secondary extra-small text-uppercase fw-semibold tracking-wider">Đăng nhập nhanh</span>
                         <div class="d-flex gap-2">
-                            <button type="button" class="btn btn-sm role-chip btn-outline-primary" data-user="admin" data-pass="admin" data-role="Admin" id="roleChipAdmin">
+                            <button type="button" class="btn btn-sm role-chip btn-outline-primary" data-user="admin" data-pass="admin" data-role="Admin" id="roleChipAdmin" aria-label="Đăng nhập tài khoản Admin">
                                 <i class="bi bi-shield-lock-fill me-1" aria-hidden="true"></i>Admin
                             </button>
-                            <button type="button" class="btn btn-sm role-chip btn-outline-info" data-user="auditor_tax" data-pass="auditor123" data-role="Auditor" id="roleChipAuditor">
+                            <button type="button" class="btn btn-sm role-chip btn-outline-info" data-user="auditor_tax" data-pass="auditor123" data-role="Auditor" id="roleChipAuditor" aria-label="Đăng nhập tài khoản Auditor">
                                 <i class="bi bi-search me-1" aria-hidden="true"></i>Auditor
                             </button>
                         </div>
                     </div>
 
                     <!-- Login Form -->
-                    <form id="loginForm" class="vstack gap-3">
+                    <form id="loginForm" class="vstack gap-3" novalidate>
                         <!-- Username -->
                         <div>
-                            <label class="form-label text-light fw-medium small mb-1" for="username">Tên đăng nhập</label>
+                            <label class="form-label text-light fw-medium small mb-1" for="username">Tên đăng nhập / Mã số thuế</label>
                             <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-person"></i></span>
-                                <input class="form-control custom-input" id="username" name="username" autocomplete="username" placeholder="Nhập tên tài khoản…" required autofocus>
+                                <span class="input-group-text"><i class="bi bi-person" aria-hidden="true"></i></span>
+                                <input class="form-control custom-input" id="username" name="username" autocomplete="username" placeholder="Nhập tên tài khoản hoặc MST…" required autofocus aria-required="true">
                             </div>
                         </div>
 
@@ -55,16 +55,16 @@
                         <div>
                             <label class="form-label text-light fw-medium small mb-1" for="password">Mật khẩu</label>
                             <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                                <input class="form-control custom-input" id="password" name="password" type="password" autocomplete="current-password" placeholder="Nhập mật khẩu…" required>
-                                <button class="btn btn-password-toggle" type="button" id="togglePassword" title="Hiện/Ẩn mật khẩu" aria-label="Hiện/Ẩn mật khẩu">
+                                <span class="input-group-text"><i class="bi bi-lock" aria-hidden="true"></i></span>
+                                <input class="form-control custom-input" id="password" name="password" type="password" autocomplete="current-password" placeholder="Nhập mật khẩu…" required aria-required="true">
+                                <button class="btn btn-password-toggle" type="button" id="togglePassword" title="Hiện hoặc ẩn mật khẩu" aria-label="Hiện hoặc ẩn mật khẩu" aria-expanded="false">
                                     <i class="bi bi-eye" id="togglePasswordIcon" aria-hidden="true"></i>
                                 </button>
                             </div>
                         </div>
 
                         <!-- Real-time CAPTCHA Section -->
-                        <div class="captcha-section p-3 rounded-3 border border-light border-opacity-10" style="background: rgba(0,0,0,0.2);">
+                        <div class="captcha-section p-3 rounded-3 border border-light border-opacity-10" style="background: rgba(0,0,0,0.25);">
                             <!-- Header Row -->
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <div class="d-flex align-items-center gap-2">
@@ -73,8 +73,8 @@
                                 </div>
                                 <div class="d-flex align-items-center gap-2">
                                     <div class="form-check form-switch mb-0">
-                                        <input class="form-check-input" type="checkbox" role="switch" id="autoSolveToggle" checked>
-                                        <label class="form-check-label text-info extra-small fw-bold" for="autoSolveToggle">AI Auto</label>
+                                        <input class="form-check-input cursor-pointer" type="checkbox" role="switch" id="autoSolveToggle" checked aria-label="Bật hoặc tắt tự động giải CAPTCHA bằng AI">
+                                        <label class="form-check-label text-info extra-small fw-bold cursor-pointer" for="autoSolveToggle">AI Auto</label>
                                     </div>
                                 </div>
                             </div>
@@ -82,100 +82,103 @@
                             <!-- CAPTCHA Display & AI Result -->
                             <div class="captcha-display-grid mb-2">
                                 <!-- Live SVG Preview -->
-                                <div class="captcha-live-preview" id="captchaBox">
-                                    <span class="spinner-border spinner-border-sm text-primary" role="status"></span>
+                                <div class="captcha-live-preview" id="captchaBox" title="Hình ảnh CAPTCHA SVG Cục Thuế">
+                                    <span class="spinner-border spinner-border-sm text-primary" role="status" aria-label="Đang tải CAPTCHA..."></span>
                                 </div>
                                 <!-- AI Prediction Result -->
-                                <div class="captcha-ai-result" id="captchaAiPanel">
+                                <div class="captcha-ai-result" id="captchaAiPanel" title="Kết quả giải AI Vector+OCR">
                                     <span class="extra-small text-secondary d-block mb-1">AI đã giải:</span>
                                     <span class="captcha-solved-text font-monospace" id="aiPredictionBadge">…</span>
                                 </div>
                                 <!-- Actions -->
                                 <div class="captcha-actions">
-                                    <button class="btn btn-sm captcha-action-btn" id="refreshCaptchaButton" type="button" title="Tải CAPTCHA mới">
+                                    <button class="btn btn-sm captcha-action-btn" id="refreshCaptchaButton" type="button" title="Tải CAPTCHA mới từ Cục Thuế" aria-label="Tải CAPTCHA mới từ Cục Thuế">
                                         <i class="bi bi-arrow-clockwise" aria-hidden="true"></i>
                                     </button>
-                                    <button class="btn btn-sm captcha-action-btn" id="solveCaptchaButton" type="button" title="Giải AI lại">
+                                    <button class="btn btn-sm captcha-action-btn" id="solveCaptchaButton" type="button" title="Giải AI lại" aria-label="Giải lại CAPTCHA bằng AI">
                                         <i class="bi bi-magic" aria-hidden="true"></i>
                                     </button>
                                 </div>
                             </div>
 
-                            <!-- Auto-refresh countdown -->
+                            <!-- Auto-refresh countdown & Mode Badge -->
                             <div class="d-flex justify-content-between align-items-center">
                                 <span class="extra-small text-secondary" id="captchaTimerText">
-                                    <i class="bi bi-clock-history me-1" aria-hidden="true"></i>Tự động làm mới: <span id="captchaCountdown">120</span>s
+                                    <i class="bi bi-clock-history me-1" aria-hidden="true"></i>Làm mới sau: <span id="captchaCountdown">120</span>s
                                 </span>
                                 <span class="extra-small font-monospace" id="captchaModeBadge">
-                                    <i class="bi bi-cpu me-1 text-info" aria-hidden="true"></i><span class="text-info">Vector+OCR</span>
+                                    <i class="bi bi-cpu me-1 text-info" aria-hidden="true"></i><span class="text-info">Vector+OCR Engine</span>
                                 </span>
                             </div>
 
                             <!-- Manual Input (shown when auto-solve is off) -->
                             <div class="mt-2" id="manualCaptchaRow" style="display: none;">
-                                <input class="form-control form-control-sm custom-input text-center font-monospace tracking-wider text-uppercase" id="captcha" name="captcha" autocomplete="off" placeholder="Nhập mã CAPTCHA…" required>
+                                <label for="captcha" class="visually-hidden">Nhập mã CAPTCHA thủ công</label>
+                                <input class="form-control form-control-sm custom-input text-center font-monospace tracking-wider text-uppercase" id="captcha" autocomplete="off" placeholder="Nhập mã CAPTCHA…" aria-label="Mã CAPTCHA thủ công">
                             </div>
                             <input type="hidden" id="captchaHidden" name="captcha" value="AUTO">
                         </div>
 
-                        <!-- Alert -->
+                        <!-- Alert Container -->
                         <div class="alert alert-danger d-none py-2 px-3 small border-0 mb-0" role="alert" id="loginAlert">
                             <i class="bi bi-exclamation-triangle-fill me-1" aria-hidden="true"></i> <span id="loginAlertText"></span>
                         </div>
 
-                        <!-- Submit -->
-                        <button class="btn btn-primary-accent btn-lg w-100 py-3 fw-bold tracking-wide" id="loginSubmitButton" type="submit">
+                        <!-- Submit Button -->
+                        <button class="btn btn-primary-accent btn-lg w-100 py-3 fw-bold tracking-wide cursor-pointer" id="loginSubmitButton" type="submit" aria-label="Đăng nhập vào hệ thống Admin">
                             <span class="button-label d-flex align-items-center justify-content-center gap-2">
                                 <i class="bi bi-box-arrow-in-right fs-5" aria-hidden="true"></i> Đăng nhập
                             </span>
-                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-label="Đang đăng nhập..."></span>
                         </button>
                     </form>
                 </div>
             </section>
 
             <!-- Compact Telemetry Stats Bar -->
-            <div class="text-center mb-1 login-card-stagger" style="animation-delay: 0.2s;">
-                <span class="extra-small text-uppercase tracking-wider text-secondary fw-semibold">
-                    <i class="bi bi-activity text-info me-1" aria-hidden="true"></i>Telemetry Giải mã CAPTCHA AI
-                </span>
-            </div>
-            <div class="captcha-stats-bar login-card-stagger" style="animation-delay: 0.25s;">
-                <div class="captcha-stat-item">
-                    <span class="captcha-stat-value text-success" id="statAccuracy">100%</span>
-                    <span class="captcha-stat-label">Chính xác</span>
+            <aside aria-label="Telemetry thống kê AI CAPTCHA">
+                <div class="text-center mt-3 mb-1 login-card-stagger" style="animation-delay: 0.2s;">
+                    <span class="extra-small text-uppercase tracking-wider text-secondary fw-semibold">
+                        <i class="bi bi-activity text-info me-1" aria-hidden="true"></i>Telemetry Giải mã CAPTCHA AI
+                    </span>
                 </div>
-                <div class="captcha-stat-divider"></div>
-                <div class="captcha-stat-item">
-                    <span class="captcha-stat-value text-primary" id="statTotalSolved">0</span>
-                    <span class="captcha-stat-label">Đã giải</span>
+                <div class="captcha-stats-bar login-card-stagger" style="animation-delay: 0.25s;">
+                    <div class="captcha-stat-item">
+                        <span class="captcha-stat-value text-success" id="statAccuracy">100%</span>
+                        <span class="captcha-stat-label">Chính xác</span>
+                    </div>
+                    <div class="captcha-stat-divider" aria-hidden="true"></div>
+                    <div class="captcha-stat-item">
+                        <span class="captcha-stat-value text-primary" id="statTotalSolved">0</span>
+                        <span class="captcha-stat-label">Đã giải</span>
+                    </div>
+                    <div class="captcha-stat-divider" aria-hidden="true"></div>
+                    <div class="captcha-stat-item">
+                        <span class="captcha-stat-value text-info" id="statVectorCount">0</span>
+                        <span class="captcha-stat-label">Vector</span>
+                    </div>
+                    <div class="captcha-stat-divider" aria-hidden="true"></div>
+                    <div class="captcha-stat-item">
+                        <span class="captcha-stat-value text-warning" id="statOcrCount">0</span>
+                        <span class="captcha-stat-label">OCR</span>
+                    </div>
+                    <div class="captcha-stat-divider" aria-hidden="true"></div>
+                    <div class="captcha-stat-item">
+                        <span class="captcha-stat-value text-light font-monospace" id="solverLatencyBadge">0.04s</span>
+                        <span class="captcha-stat-label">Latency</span>
+                    </div>
                 </div>
-                <div class="captcha-stat-divider"></div>
-                <div class="captcha-stat-item">
-                    <span class="captcha-stat-value text-info" id="statVectorCount">0</span>
-                    <span class="captcha-stat-label">Vector</span>
-                </div>
-                <div class="captcha-stat-divider"></div>
-                <div class="captcha-stat-item">
-                    <span class="captcha-stat-value text-warning" id="statOcrCount">0</span>
-                    <span class="captcha-stat-label">OCR</span>
-                </div>
-                <div class="captcha-stat-divider"></div>
-                <div class="captcha-stat-item">
-                    <span class="captcha-stat-value text-light font-monospace" id="solverLatencyBadge">0.04s</span>
-                    <span class="captcha-stat-label">Latency</span>
-                </div>
-            </div>
+            </aside>
 
-            <!-- Footer -->
-            <div class="text-center mt-3 login-card-stagger" style="animation-delay: 0.35s;">
+            <!-- Footer Links -->
+            <footer class="text-center mt-3 login-card-stagger" style="animation-delay: 0.35s;">
                 <span class="text-secondary small">Chưa có tài khoản? </span>
-                <a href="{{ url_for('auth.signup_page') }}" class="text-primary fw-semibold text-decoration-none small">Đăng ký</a>
+                <a href="{{ url_for('auth.signup_page') }}" class="text-primary fw-semibold text-decoration-none small">Đăng ký ngay</a>
                 <span class="mx-2 text-secondary small">•</span>
                 <a href="/v82-compliance-hub" class="text-info fw-semibold text-decoration-none small">
                     <i class="bi bi-shield-check me-1" aria-hidden="true"></i>V82 Hub
                 </a>
-            </div>
+            </footer>
         </div>
     </div>
 </div>
@@ -204,7 +207,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let countdownTimer = null;
     let countdownValue = 120;
 
-    // Initialize
+    // Initialize CAPTCHA & Telemetry
     loadCaptcha();
     fetchTelemetryStats();
     setInterval(fetchTelemetryStats, 10000);
@@ -214,10 +217,10 @@ document.addEventListener("DOMContentLoaded", function () {
         chip.addEventListener("click", function() {
             usernameInput.value = this.getAttribute("data-user");
             passwordInput.value = this.getAttribute("data-pass");
-            // Visual feedback
+            
             document.querySelectorAll(".role-chip").forEach(c => c.classList.remove("active"));
             this.classList.add("active");
-            // Focus captcha or submit area
+            
             if (autoSolveToggle.checked) {
                 submitBtn.focus();
             } else {
@@ -231,6 +234,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const isPassword = passwordInput.type === "password";
         passwordInput.type = isPassword ? "text" : "password";
         togglePasswordIcon.className = isPassword ? "bi bi-eye-slash" : "bi bi-eye";
+        togglePasswordBtn.setAttribute("aria-expanded", isPassword ? "true" : "false");
     });
 
     // Auto-solve toggle switch
@@ -239,7 +243,7 @@ document.addEventListener("DOMContentLoaded", function () {
             manualCaptchaRow.style.display = "none";
             captchaHidden.disabled = false;
             captchaManualInput.removeAttribute("name");
-            captchaHidden.value = aiPredictionBadge.textContent !== "…" && aiPredictionBadge.textContent !== "Lỗi" ? aiPredictionBadge.textContent : "AUTO";
+            captchaHidden.value = (aiPredictionBadge.textContent !== "…" && aiPredictionBadge.textContent !== "Lỗi") ? aiPredictionBadge.textContent : "AUTO";
         } else {
             manualCaptchaRow.style.display = "block";
             captchaHidden.disabled = true;
@@ -263,31 +267,33 @@ document.addEventListener("DOMContentLoaded", function () {
         }, 1000);
     }
 
-    // Fetch fresh CAPTCHA from GDT API
+    // Fetch fresh CAPTCHA from API (supports both image_svg & content, key & ckey)
     function loadCaptcha() {
         captchaBox.innerHTML = '<div class="captcha-loading"><span class="spinner-border spinner-border-sm text-primary" role="status"></span></div>';
         aiPredictionBadge.textContent = "…";
-        captchaLiveDot.classList.add("loading");
+        captchaLiveDot.className = "captcha-live-dot loading";
 
         fetch("/api/auth/captcha")
             .then(res => res.json())
             .then(data => {
-                captchaLiveDot.classList.remove("loading");
-                if (data.image_svg) {
-                    captchaBox.innerHTML = data.image_svg;
-                    captchaLiveDot.classList.add("connected");
+                const svgContent = data.image_svg || data.content;
+                if (svgContent) {
+                    captchaBox.innerHTML = svgContent;
+                    captchaLiveDot.className = "captcha-live-dot connected";
 
-                    // Show mode badge
                     const modeBadge = document.getElementById("captchaModeBadge");
                     if (data.mode === "mock") {
-                        modeBadge.innerHTML = '<i class="bi bi-bug me-1 text-warning" aria-hidden="true"></i><span class="text-warning">Mock</span>';
+                        modeBadge.innerHTML = '<i class="bi bi-bug me-1 text-warning" aria-hidden="true"></i><span class="text-warning">Mock GDT</span>';
+                    } else {
+                        modeBadge.innerHTML = '<i class="bi bi-cpu me-1 text-info" aria-hidden="true"></i><span class="text-info">Vector+OCR Engine</span>';
                     }
 
-                    if (data.solved_text) {
-                        aiPredictionBadge.textContent = data.solved_text;
+                    const solvedText = data.solved_text || data.solution;
+                    if (solvedText) {
+                        aiPredictionBadge.textContent = solvedText;
                         aiPredictionBadge.classList.add("solved");
                         if (autoSolveToggle.checked) {
-                            captchaHidden.value = data.solved_text;
+                            captchaHidden.value = solvedText;
                         }
                     } else {
                         aiPredictionBadge.textContent = "AUTO";
@@ -299,12 +305,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 } else {
                     captchaBox.innerHTML = '<span class="text-danger small">Lỗi nạp</span>';
                     aiPredictionBadge.textContent = "Lỗi";
-                    captchaLiveDot.classList.add("error");
+                    captchaLiveDot.className = "captcha-live-dot error";
                 }
             })
             .catch(() => {
-                captchaLiveDot.classList.remove("loading");
-                captchaLiveDot.classList.add("error");
+                captchaLiveDot.className = "captcha-live-dot error";
                 captchaBox.innerHTML = '<span class="text-danger small">Mất kết nối</span>';
                 aiPredictionBadge.textContent = "Lỗi";
             });
@@ -322,11 +327,12 @@ document.addEventListener("DOMContentLoaded", function () {
         })
         .then(res => res.json())
         .then(data => {
-            if (data.solved_text) {
-                aiPredictionBadge.textContent = data.solved_text;
+            const solvedText = data.solved_text || data.solution;
+            if (solvedText) {
+                aiPredictionBadge.textContent = solvedText;
                 aiPredictionBadge.classList.add("solved");
                 if (autoSolveToggle.checked) {
-                    captchaHidden.value = data.solved_text;
+                    captchaHidden.value = solvedText;
                 }
             } else {
                 aiPredictionBadge.textContent = "N/A";
@@ -339,7 +345,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     refreshCaptchaBtn.addEventListener("click", loadCaptcha);
 
-    // Telemetry stats
+    // Fetch telemetry statistics
     function fetchTelemetryStats() {
         fetch("/api/auth/captcha/stats")
             .then(res => res.json())
@@ -366,13 +372,13 @@ document.addEventListener("DOMContentLoaded", function () {
         spinner.classList.remove("d-none");
         submitBtn.disabled = true;
 
-        // Determine captcha value
         const captchaValue = autoSolveToggle.checked ? captchaHidden.value : captchaManualInput.value.trim();
 
         const payload = {
             username: usernameInput.value.trim(),
             password: passwordInput.value.trim(),
-            captcha: captchaValue
+            captcha: captchaValue,
+            cvalue: captchaValue
         };
 
         fetch("/api/auth/login", {

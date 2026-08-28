@@ -44,15 +44,23 @@ def _build_mock_session_payload(username: str) -> dict:
     now = datetime.now(timezone.utc)
     expires_at = now + timedelta(minutes=30)
     
+    clean_username = username.strip()
+    mst_val = None
+    import re
+    if re.match(r"^\d{10}(-\d{3})?$", clean_username):
+        mst_val = clean_username
+
     try:
         from invoices.models import TaxpayerProfile
-        profile = TaxpayerProfile.query.filter_by(gdt_username=username).first()
+        profile = TaxpayerProfile.query.filter(
+            (TaxpayerProfile.gdt_username == clean_username) | (TaxpayerProfile.mst == clean_username)
+        ).first()
         if profile:
             return {
-                "username": username,
+                "username": clean_username,
                 "login_time": now.isoformat(),
                 "expires_at": expires_at.isoformat(),
-                "session_token": f"mock-session-{username.lower()}",
+                "session_token": f"mock-session-{clean_username.lower()}",
                 "jwt": None,
                 "profile": {"display_name": profile.company_name, "mst": profile.mst},
             }
@@ -60,12 +68,12 @@ def _build_mock_session_payload(username: str) -> dict:
         pass
 
     return {
-        "username": username,
+        "username": clean_username,
         "login_time": now.isoformat(),
         "expires_at": expires_at.isoformat(),
-        "session_token": f"mock-session-{username.lower()}",
+        "session_token": f"mock-session-{clean_username.lower()}",
         "jwt": None,
-        "profile": {"display_name": username, "mst": None},
+        "profile": {"display_name": clean_username, "mst": mst_val},
     }
 
 

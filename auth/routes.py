@@ -85,10 +85,12 @@ def auth_captcha():
     return jsonify(
         {
             "image_svg": captcha_payload["content"],
+            "content": captcha_payload["content"],
             "mode": "mock" if current_app.config["GDT_USE_MOCK"] else "live",
             "auto_solve": current_app.config["AUTO_SOLVE_CAPTCHA"],
             "solved_text": solved_text,
             "key": captcha_payload.get("key", ""),
+            "ckey": captcha_payload.get("key", ""),
         }
     )
 
@@ -105,8 +107,8 @@ def api_captcha_stats():
 def api_solve_captcha():
     """Decode and solve current session or provided SVG CAPTCHA on demand."""
     payload = request.get_json(silent=True) or {}
-    svg_content = payload.get("svg_content") or session.get("auth_captcha_svg", "")
-    captcha_key = payload.get("captcha_key") or session.get("auth_captcha_key", "")
+    svg_content = payload.get("svg_content") or payload.get("content") or session.get("auth_captcha_svg", "")
+    captcha_key = payload.get("captcha_key") or payload.get("ckey") or payload.get("key") or session.get("auth_captcha_key", "")
 
     if not svg_content:
         try:
@@ -125,7 +127,9 @@ def api_solve_captcha():
         return jsonify({
             "status": "success",
             "solved_text": solved_text,
+            "solution": solved_text,
             "captcha_key": captcha_key,
+            "ckey": captcha_key,
             "auto_solve": current_app.config.get("AUTO_SOLVE_CAPTCHA", True)
         })
     except Exception as err:
@@ -141,7 +145,7 @@ def api_login():
     payload = request.get_json(silent=True) or {}
     username = payload.get("username", "").strip()
     password = payload.get("password", "").strip()
-    captcha = payload.get("captcha", "").strip()
+    captcha = (payload.get("captcha") or payload.get("cvalue") or "").strip()
     auto_solve_enabled = current_app.config["AUTO_SOLVE_CAPTCHA"]
     auth_data = None
 

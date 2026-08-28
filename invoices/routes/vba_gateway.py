@@ -78,8 +78,8 @@ def api_vba_solve_captcha():
         return jsonify({"error": "Unauthorized VBA Token"}), 401
         
     data = request.json or {}
-    svg_content = data.get("svg_content")
-    captcha_key = data.get("captcha_key")
+    svg_content = data.get("svg_content") or data.get("content")
+    captcha_key = data.get("captcha_key") or data.get("ckey") or data.get("key")
     
     if not svg_content:
         return jsonify({"error": "Missing svg_content in payload"}), 400
@@ -92,6 +92,7 @@ def api_vba_solve_captcha():
         return jsonify({
             "success": True,
             "solution": solution,
+            "solved_text": solution,
             "latency_ms": latency
         })
     except Exception as e:
