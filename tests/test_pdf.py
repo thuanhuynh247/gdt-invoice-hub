@@ -57,8 +57,9 @@ def test_invoice_pdf_view_accounting_standards(logged_in_client, app):
     assert response.status_code == 200
     html_content = response.data.decode("utf-8")
     
-    # Assert key accounting standards present
-    assert "Bút Toán Nợ/Có (TT 200)" in html_content
+    # Assert key accounting standards present (Circular 99/2025/TT-BTC & IFRS)
+    assert "Bút Toán Nợ/Có (TT 99/2025)" in html_content
+    assert "Thông tư 99/2025/TT-BTC" in html_content
     assert "Chuẩn Quốc Tế (IFRS)" in html_content
     assert "XML Inspector &amp; CA" in html_content or "XML Inspector & CA" in html_content
     assert "Chữ Ký Số CA" in html_content

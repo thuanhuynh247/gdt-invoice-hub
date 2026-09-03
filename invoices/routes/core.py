@@ -1086,20 +1086,20 @@ def api_invoice_pdf_view(invoice_id):
             seller = user_company
             buyer = partner
 
-    # --- VAS & IFRS ACCOUNTING ENHANCEMENTS ---
+    # --- VAS & IFRS ACCOUNTING ENHANCEMENTS (Circular 99/2025/TT-BTC replacing Circular 200/2014/TT-BTC) ---
     is_purchase = invoice.get("direction", "purchase") == "purchase"
     
-    # 1. Automatic Debit/Credit Journal Vouchers (Circular 200/133)
+    # 1. Automatic Debit/Credit Journal Vouchers (Circular 99/2025/TT-BTC & Circular 133/2016/TT-BTC)
     if is_purchase:
         journal_entries = [
-            {"account_code": "1561", "account_name": "Hàng hóa (Chi phí mua hàng/vật tư)", "debit": sum_before_tax, "credit": 0.0, "note": "Giá mua chưa thuế GTGT"},
-            {"account_code": "1331", "account_name": "Thuế GTGT được khấu trừ của hàng hóa, dịch vụ", "debit": sum_tax, "credit": 0.0, "note": "Thuế GTGT đầu vào (TT78/ND123)"},
+            {"account_code": "1561", "account_name": "Hàng hóa (Chi phí mua hàng/vật tư)", "debit": sum_before_tax, "credit": 0.0, "note": "Giá mua chưa thuế GTGT (TT99/2025/TT-BTC)"},
+            {"account_code": "1331", "account_name": "Thuế GTGT được khấu trừ của hàng hóa, dịch vụ", "debit": sum_tax, "credit": 0.0, "note": "Thuế GTGT đầu vào (TT78/ND123/TT99)"},
             {"account_code": "331", "account_name": "Phải trả cho người bán", "debit": 0.0, "credit": total_payable, "note": f"Tổng thanh toán cho {seller.get('name', '')}"}
         ]
     else:
         journal_entries = [
             {"account_code": "131", "account_name": "Phải thu của khách hàng", "debit": total_payable, "credit": 0.0, "note": f"Phải thu khách hàng {buyer.get('name', '')}"},
-            {"account_code": "5111", "account_name": "Doanh thu bán hàng hóa", "debit": 0.0, "credit": sum_before_tax, "note": "Doanh thu trước thuế GTGT"},
+            {"account_code": "5111", "account_name": "Doanh thu bán hàng hóa", "debit": 0.0, "credit": sum_before_tax, "note": "Doanh thu trước thuế GTGT (TT99/2025/TT-BTC)"},
             {"account_code": "33311", "account_name": "Thuế GTGT phải nộp (Đầu ra)", "debit": 0.0, "credit": sum_tax, "note": "Thuế GTGT bán ra nộp ngân sách nhà nước"}
         ]
 
@@ -1140,7 +1140,8 @@ def api_invoice_pdf_view(invoice_id):
         "vat_deductible": True,
         "blacklisted_vendor": False,
         "non_cash_warning": "BẮT BUỘC Thanh toán qua Ngân hàng (HĐ ≥ 20.000.000đ theo TT 219/2013)" if requires_bank_transfer else "Hợp lệ thanh toán tiền mặt/chuyển khoản",
-        "tax_rating": "A+ (Chỉ số Tuân thủ Cao)"
+        "tax_rating": "A+ (Chỉ số Tuân thủ Cao)",
+        "accounting_standard": "Thông tư 99/2025/TT-BTC (Thay thế TT 200/2014/TT-BTC từ 01/01/2026)"
     }
 
     return render_template(
