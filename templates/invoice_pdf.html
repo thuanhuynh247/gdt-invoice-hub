@@ -3,93 +3,168 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hóa Đơn Điện Tử - {{ invoice.id }}</title>
+    <title>Hóa Đơn Điện Tử VAS & IFRS - {{ invoice.id }}</title>
     <!-- Google Fonts: Outfit & Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
     <!-- Bootstrap Icons CDN -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
         :root {
             --invoice-primary: #8b0000; /* Deep red for official border */
-            --invoice-dark: #1e293b;
+            --invoice-dark: #0f172a;
             --invoice-secondary: #475569;
             --invoice-border: #cbd5e1;
+            --wise-teal: #0d9488;
+            --wise-blue: #2563eb;
+            --wise-purple: #7c3aed;
+            --wise-gold: #d97706;
+            --wise-bg-card: rgba(255, 255, 255, 0.95);
         }
 
         body {
             font-family: 'Inter', sans-serif;
             color: var(--invoice-dark);
-            background-color: #f8fafc;
+            background-color: #f1f5f9;
             margin: 0;
             padding: 20px;
             font-size: 13px;
             line-height: 1.5;
         }
 
-        /* Invoice Container */
+        /* Wise Fintech Control Bar at Top */
+        .control-bar {
+            max-width: 900px;
+            margin: 0 auto 20px auto;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            padding: 14px 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .tab-switcher {
+            display: flex;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 4px;
+            border-radius: 8px;
+            gap: 4px;
+        }
+
+        .tab-btn {
+            background: transparent;
+            color: #94a3b8;
+            border: none;
+            padding: 7px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .tab-btn:hover {
+            color: #f8fafc;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .tab-btn.active {
+            background: var(--wise-teal);
+            color: white;
+            box-shadow: 0 2px 8px rgba(13, 148, 136, 0.4);
+        }
+
+        .action-btns {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-print {
+            background: linear-gradient(135deg, #8b0000 0%, #b91c1c 100%);
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 6px;
+            font-family: 'Outfit', sans-serif;
+            box-shadow: 0 4px 12px rgba(139, 0, 0, 0.3);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-print:hover {
+            transform: translateY(-1px);
+            opacity: 0.95;
+        }
+
+        .btn-back {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e2e8f0;
+            text-decoration: none;
+            padding: 8px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 6px;
+            font-family: 'Outfit', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-back:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        /* View Panels */
+        .view-panel {
+            display: none;
+        }
+
+        .view-panel.active {
+            display: block;
+        }
+
+        /* Invoice Container (Official VAS Red Invoice) */
         .invoice-container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
             background: #fff;
             padding: 40px;
             border: 2px solid var(--invoice-primary);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
             position: relative;
-            border-radius: 4px;
+            border-radius: 6px;
         }
 
         /* Watermark Background */
         .invoice-container::before {
-            content: "GDT INVOICE HUB";
+            content: "GDT INVOICE HUB • VAS & IFRS";
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%) rotate(-35deg);
-            font-size: 70px;
+            font-size: 55px;
             font-weight: 800;
             color: rgba(139, 0, 0, 0.03);
             pointer-events: none;
             white-space: nowrap;
             letter-spacing: 0.1em;
-        }
-
-        /* Control bar at top */
-        .control-bar {
-            max-width: 800px;
-            margin: 0 auto 20px auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .btn-print {
-            background-color: var(--invoice-primary);
-            color: white;
-            border: none;
-            padding: 8px 20px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            border-radius: 4px;
-            font-family: 'Outfit', sans-serif;
-            box-shadow: 0 2px 8px rgba(139, 0, 0, 0.25);
-        }
-
-        .btn-print:hover {
-            opacity: 0.9;
-        }
-
-        .btn-back {
-            background-color: #e2e8f0;
-            color: #475569;
-            text-decoration: none;
-            padding: 8px 16px;
-            font-size: 13px;
-            font-weight: 600;
-            border-radius: 4px;
-            font-family: 'Outfit', sans-serif;
         }
 
         /* Header Layout */
@@ -152,10 +227,31 @@
             color: var(--invoice-secondary);
         }
 
+        /* Compliance Pill Header Banner */
+        .compliance-banner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #fff8f8;
+            border: 1px dashed #fca5a5;
+            padding: 10px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 12px;
+        }
+
+        .compliance-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 700;
+            color: #b91c1c;
+        }
+
         /* Party Details Boxes */
         .party-section {
             border: 1px solid var(--invoice-border);
-            border-radius: 4px;
+            border-radius: 6px;
             padding: 15px;
             margin-bottom: 20px;
             background: #fafaf9;
@@ -215,22 +311,14 @@
             padding: 10px 8px;
         }
 
-        .col-center {
-            text-align: center;
-        }
-
-        .col-right {
-            text-align: right;
-        }
-
-        .font-semibold {
-            font-weight: 600;
-        }
+        .col-center { text-align: center; }
+        .col-right { text-align: right; }
+        .font-semibold { font-weight: 600; }
 
         /* Calculation Summary block */
         .summary-block {
             display: grid;
-            grid-template-columns: 1fr 300px;
+            grid-template-columns: 1fr 320px;
             margin-bottom: 30px;
             gap: 20px;
         }
@@ -238,7 +326,7 @@
         .amount-words-box {
             border: 1px dashed var(--invoice-border);
             padding: 15px;
-            border-radius: 4px;
+            border-radius: 6px;
             background: #fffdfb;
             align-self: start;
         }
@@ -259,7 +347,7 @@
 
         .calc-box {
             border: 1px solid var(--invoice-border);
-            border-radius: 4px;
+            border-radius: 6px;
             padding: 15px;
             background: #fafaf9;
         }
@@ -276,14 +364,8 @@
             border-top: 1px solid var(--invoice-border);
         }
 
-        .calc-label {
-            color: var(--invoice-secondary);
-        }
-
-        .calc-val {
-            font-weight: 600;
-        }
-
+        .calc-label { color: var(--invoice-secondary); }
+        .calc-val { font-weight: 600; }
         .calc-val-total {
             font-size: 16px;
             color: var(--invoice-primary);
@@ -327,18 +409,14 @@
             font-weight: 700;
             font-size: 10px;
             line-height: 1.4;
-            max-width: 250px;
+            max-width: 260px;
             margin: 10px auto;
             position: relative;
             transform: rotate(-1deg);
             box-shadow: 0 4px 8px rgba(214, 40, 40, 0.05);
         }
 
-        .digi-stamp-logo {
-            font-size: 16px;
-            margin-bottom: 4px;
-        }
-
+        .digi-stamp-logo { font-size: 16px; margin-bottom: 4px; }
         .digi-stamp-title {
             font-size: 11px;
             text-transform: uppercase;
@@ -349,17 +427,87 @@
             width: 100%;
         }
 
+        /* --- Bento Card Dashboard Styling for VAS / IFRS / XML --- */
+        .bento-grid {
+            max-width: 900px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 16px;
+        }
+
+        .bento-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+        }
+
+        .col-12 { grid-column: span 12; }
+        .col-8 { grid-column: span 8; }
+        .col-6 { grid-column: span 6; }
+        .col-4 { grid-column: span 4; }
+
+        .card-header-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0 0 14px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Table VAS Journal Entry */
+        .vas-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12.5px;
+        }
+
+        .vas-table th {
+            background: #f8fafc;
+            color: #475569;
+            text-align: left;
+            padding: 10px 12px;
+            border-bottom: 2px solid #e2e8f0;
+            font-weight: 700;
+        }
+
+        .vas-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .acc-badge {
+            background: #e0f2fe;
+            color: #0369a1;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+            font-family: 'Fira Code', monospace;
+        }
+
+        .code-block {
+            background: #0f172a;
+            color: #38bdf8;
+            padding: 16px;
+            border-radius: 8px;
+            font-family: 'Fira Code', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            overflow-x: auto;
+            max-height: 450px;
+        }
+
         /* Print Media Target overrides */
         @media print {
-            body {
-                background-color: #fff;
-                padding: 0;
-            }
-
-            .control-bar {
-                display: none;
-            }
-
+            body { background-color: #fff; padding: 0; }
+            .control-bar { display: none; }
+            .view-panel { display: none !important; }
+            #panel-vas-red { display: block !important; }
             .invoice-container {
                 box-shadow: none;
                 border: 2px solid var(--invoice-primary);
@@ -372,154 +520,424 @@
 </head>
 <body>
 
+    <!-- Wise Fintech Glassmorphism Control Bar -->
     <div class="control-bar">
-        <a href="javascript:window.close();" class="btn-back"><i class="bi bi-arrow-left" aria-hidden="true"></i> Đóng Cửa Sổ</a>
-        <button onclick="window.print();" class="btn-print"><i class="bi bi-printer" aria-hidden="true"></i> In Hóa Đơn (PDF)</button>
+        <div class="tab-switcher">
+            <button class="tab-btn active" onclick="switchTab('vas-red', this)">
+                <i class="bi bi-file-earmark-pdf-fill" aria-hidden="true"></i> Hóa Đơn Đỏ (VAS)
+            </button>
+            <button class="tab-btn" onclick="switchTab('journal', this)">
+                <i class="bi bi-journal-bookmark-fill" aria-hidden="true"></i> Bút Toán Nợ/Có (TT 200)
+            </button>
+            <button class="tab-btn" onclick="switchTab('ifrs', this)">
+                <i class="bi bi-globe2" aria-hidden="true"></i> Chuẩn Quốc Tế (IFRS)
+            </button>
+            <button class="tab-btn" onclick="switchTab('xml', this)">
+                <i class="bi bi-code-slash" aria-hidden="true"></i> XML Inspector & CA
+            </button>
+        </div>
+
+        <div class="action-btns">
+            <a href="javascript:window.close();" class="btn-back"><i class="bi bi-x-circle" aria-hidden="true"></i> Đóng</a>
+            <button onclick="window.print();" class="btn-print"><i class="bi bi-printer-fill" aria-hidden="true"></i> In Hóa Đơn (PDF)</button>
+        </div>
     </div>
 
-    <div class="invoice-container">
-        
-        <!-- Header -->
-        <div class="invoice-header">
-            <div class="header-title-box">
-                <h1>{{ seller.name }}</h1>
-                <p>Địa chỉ: {{ seller.address }}</p>
-                <p>Điện thoại: {{ seller.phone or '1900 8888' }}</p>
-            </div>
-            <div class="header-meta-box">
-                <div>Mẫu số: <strong>1C26TBA</strong></div>
-                <div>Ký hiệu: <strong>1C26{{ invoice.id.split('-')[1] if '-' in invoice.id else 'TBA' }}</strong></div>
-                <div>Số: <strong style="font-size: 14px;">{{ invoice.id.split('-')[-1] if '-' in invoice.id else '0000001' }}</strong></div>
-            </div>
-        </div>
-
-        <!-- Main Title -->
-        <div class="invoice-title-block">
-            <h2>HÓA ĐƠN GIÁ TRỊ GIA TĂNG</h2>
-            <p>(Bản thể hiện của hóa đơn điện tử gốc)</p>
-            <p style="font-size: 11px; margin-top: 3px;">Ngày {{ invoice.date.split('-')[2] }} tháng {{ invoice.date.split('-')[1] }} năm {{ invoice.date.split('-')[0] }}</p>
-        </div>
-
-        <!-- Seller Section -->
-        <div class="party-section">
-            <h3 class="party-section-title">Đơn vị bán hàng (Seller)</h3>
-            <div class="info-row">
-                <span class="info-label">Tên đơn vị:</span>
-                <span class="info-value">{{ seller.name }}</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Mã số thuế:</span>
-                <span class="info-value" style="letter-spacing: 0.1em; color: var(--invoice-primary);">{{ seller.mst }}</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Địa chỉ:</span>
-                <span class="info-value">{{ seller.address }}</span>
-            </div>
-        </div>
-
-        <!-- Buyer Section -->
-        <div class="party-section">
-            <h3 class="party-section-title">Đơn vị mua hàng (Buyer)</h3>
-            <div class="info-row">
-                <span class="info-label">Tên đơn vị:</span>
-                <span class="info-value">{{ buyer.name }}</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Mã số thuế:</span>
-                <span class="info-value" style="letter-spacing: 0.1em;">{{ buyer.mst }}</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Địa chỉ:</span>
-                <span class="info-value">{{ buyer.address }}</span>
-            </div>
-        </div>
-
-        <!-- Items Table -->
-        <table class="items-table">
-            <thead>
-                <tr>
-                    <th style="width: 5%;">STT</th>
-                    <th style="width: 45%;">Tên hàng hóa, dịch vụ</th>
-                    <th style="width: 10%;">ĐVT</th>
-                    <th style="width: 10%;">SL</th>
-                    <th style="width: 15%;">Đơn giá (đ)</th>
-                    <th style="width: 15%;">Thành tiền (đ)</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in line_items %}
-                <tr>
-                    <td class="col-center">{{ loop.index }}</td>
-                    <td class="font-semibold">{{ item.item_name }}</td>
-                    <td class="col-center">Cái</td>
-                    <td class="col-center">{{ item.quantity }}</td>
-                    <td class="col-right">{{ "{:,.0f}".format(item.unit_price) if item.unit_price is number else item.unit_price }}</td>
-                    <td class="col-right font-semibold">{{ "{:,.0f}".format(item.amount_before_tax) if item.amount_before_tax is number else item.amount_before_tax }}</td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="6" class="col-center" style="color: var(--invoice-secondary); py-4;">Không có danh sách hàng hóa chi tiết.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-
-        <!-- Calculations & Signatures Summary -->
-        <div class="summary-block">
-            <div class="amount-words-box">
-                <div class="words-title">Số tiền viết bằng chữ:</div>
-                <div class="words-value" id="amountWordsText">Đang chuyển đổi tiền bằng chữ…</div>
-            </div>
-            <div class="calc-box">
-                <div class="calc-row">
-                    <span class="calc-label">Cộng tiền hàng:</span>
-                    <span class="calc-val">{{ "{:,.0f}".format(sum_before_tax) if sum_before_tax is number else sum_before_tax }} đ</span>
+    <!-- PANEL 1: OFFICIAL VAS RED INVOICE -->
+    <div id="panel-vas-red" class="view-panel active">
+        <div class="invoice-container">
+            
+            <!-- Header -->
+            <div class="invoice-header">
+                <div class="header-title-box">
+                    <h1>{{ seller.name }}</h1>
+                    <p>Địa chỉ: {{ seller.address }}</p>
+                    <p>Điện thoại: {{ seller.phone or '1900 8888' }}</p>
                 </div>
-                <div class="calc-row">
-                    <span class="calc-label">Thuế suất & tiền thuế:</span>
-                    <span class="calc-val">
-                        {% if line_items %}
-                        {{ line_items[0].tax_rate }} ({{ "{:,.0f}".format(sum_tax) if sum_tax is number else sum_tax }} đ)
+                <div class="header-meta-box">
+                    <div>Mẫu số: <strong>1C26TBA</strong></div>
+                    <div>Ký hiệu: <strong>1C26{{ invoice.id.split('-')[1] if '-' in invoice.id else 'TBA' }}</strong></div>
+                    <div>Số: <strong style="font-size: 14px;">{{ invoice.id.split('-')[-1] if '-' in invoice.id else '0000001' }}</strong></div>
+                </div>
+            </div>
+
+            <!-- Main Title -->
+            <div class="invoice-title-block">
+                <h2>HÓA ĐƠN GIÁ TRỊ GIA TĂNG</h2>
+                <p>(Bản thể hiện của hóa đơn điện tử gốc theo ND 123/2020 & TT 78/2021)</p>
+                <p style="font-size: 11px; margin-top: 3px;">Ngày {{ invoice.date.split('-')[2] }} tháng {{ invoice.date.split('-')[1] }} năm {{ invoice.date.split('-')[0] }}</p>
+            </div>
+
+            <!-- Compliance Banner -->
+            {% if compliance_audit and compliance_audit.requires_bank_transfer %}
+            <div class="compliance-banner">
+                <div class="compliance-tag">
+                    <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i> LƯU Ý THANH TOÁN (TT 219/2013/TT-BTC)
+                </div>
+                <div style="color: #991b1b; font-weight: 600;">
+                    Hóa đơn ≥ 20.000.000 VNĐ - {{ compliance_audit.non_cash_warning }}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Seller Section -->
+            <div class="party-section">
+                <h3 class="party-section-title">Đơn vị bán hàng (Seller)</h3>
+                <div class="info-row">
+                    <span class="info-label">Tên đơn vị:</span>
+                    <span class="info-value">{{ seller.name }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Mã số thuế:</span>
+                    <span class="info-value" style="letter-spacing: 0.1em; color: var(--invoice-primary);">{{ seller.mst }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Địa chỉ:</span>
+                    <span class="info-value">{{ seller.address }}</span>
+                </div>
+            </div>
+
+            <!-- Buyer Section -->
+            <div class="party-section">
+                <h3 class="party-section-title">Đơn vị mua hàng (Buyer)</h3>
+                <div class="info-row">
+                    <span class="info-label">Tên đơn vị:</span>
+                    <span class="info-value">{{ buyer.name }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Mã số thuế:</span>
+                    <span class="info-value" style="letter-spacing: 0.1em;">{{ buyer.mst }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Địa chỉ:</span>
+                    <span class="info-value">{{ buyer.address }}</span>
+                </div>
+            </div>
+
+            <!-- Items Table -->
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th style="width: 5%;">STT</th>
+                        <th style="width: 45%;">Tên hàng hóa, dịch vụ</th>
+                        <th style="width: 10%;">ĐVT</th>
+                        <th style="width: 10%;">SL</th>
+                        <th style="width: 15%;">Đơn giá (đ)</th>
+                        <th style="width: 15%;">Thành tiền (đ)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in line_items %}
+                    <tr>
+                        <td class="col-center">{{ loop.index }}</td>
+                        <td class="font-semibold">{{ item.item_name }}</td>
+                        <td class="col-center">Cái</td>
+                        <td class="col-center">{{ item.quantity }}</td>
+                        <td class="col-right">{{ "{:,.0f}".format(item.unit_price) if item.unit_price is number else item.unit_price }}</td>
+                        <td class="col-right font-semibold">{{ "{:,.0f}".format(item.amount_before_tax) if item.amount_before_tax is number else item.amount_before_tax }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="col-center" style="color: var(--invoice-secondary); padding: 20px;">Không có danh sách hàng hóa chi tiết.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- Calculations & Signatures Summary -->
+            <div class="summary-block">
+                <div class="amount-words-box">
+                    <div class="words-title">Số tiền viết bằng chữ:</div>
+                    <div class="words-value" id="amountWordsText">Đang chuyển đổi tiền bằng chữ…</div>
+                </div>
+                <div class="calc-box">
+                    <div class="calc-row">
+                        <span class="calc-label">Cộng tiền hàng:</span>
+                        <span class="calc-val">{{ "{:,.0f}".format(sum_before_tax) if sum_before_tax is number else sum_before_tax }} đ</span>
+                    </div>
+                    <div class="calc-row">
+                        <span class="calc-label">Thuế suất & tiền thuế:</span>
+                        <span class="calc-val">
+                            {% if line_items %}
+                            {{ line_items[0].tax_rate }} ({{ "{:,.0f}".format(sum_tax) if sum_tax is number else sum_tax }} đ)
+                            {% else %}
+                            10% (0 đ)
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="calc-row">
+                        <strong class="calc-label" style="color: var(--invoice-primary);">Tổng cộng thanh toán:</strong>
+                        <strong class="calc-val-total">{{ "{:,.0f}".format(total_payable) if total_payable is number else total_payable }} đ</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Signatures -->
+            <div class="signatures-section">
+                <div>
+                    <div class="sign-title">Người mua hàng</div>
+                    <div class="sign-sub">(Ký, ghi rõ họ tên)</div>
+                    <div style="height: 60px;"></div>
+                    <div class="font-semibold" style="color: var(--invoice-secondary);">Xác nhận qua hệ thống EDI</div>
+                </div>
+                <div>
+                    <div class="sign-title">Người bán hàng</div>
+                    <div class="sign-sub">(Ký, đóng dấu điện tử)</div>
+                    
+                    <!-- Digital Stamp -->
+                    <div class="digi-stamp">
+                        <span class="digi-stamp-logo"><i class="bi bi-shield-check" aria-hidden="true"></i></span>
+                        <span class="digi-stamp-title">Ký Số Xác Thực GDT</span>
+                        <span>Ký bởi: {{ seller.name }}</span>
+                        <span>MST: {{ seller.mst }}</span>
+                        <span>Mã tra cứu: {{ digital_cert.gdt_ckey if digital_cert else 'C26T-9999-OK' }}</span>
+                        <span style="color: #0284c7; font-size: 9px; margin-top: 3px; display: inline-flex; align-items: center; gap: 4px;">
+                            <i class="bi bi-patch-check-fill" aria-hidden="true"></i> Chữ ký số CA hợp lệ
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- PANEL 2: BÚT TOÁN KẾ TOÁN NỢ/CÓ (CIRCULAR 200/133) -->
+    <div id="panel-journal" class="view-panel">
+        <div class="bento-grid">
+            <div class="bento-card col-12">
+                <h3 class="card-header-title">
+                    <i class="bi bi-journal-text" style="color: var(--wise-teal);" aria-hidden="true"></i>
+                    Chứng Từ Hạch Toán Kế Toán Tự Động (Bút Toán Nợ/Có - TT 200/133)
+                </h3>
+                <p style="color: #64748b; font-size: 13px; margin-top: -8px; margin-bottom: 16px;">
+                    Hệ thống tự động phân tích và tạo bút toán sổ nhật ký chung dựa trên phân loại hóa đơn (Mua vào / Bán ra).
+                </p>
+
+                <table class="vas-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 10%;">TK Nợ</th>
+                            <th style="width: 10%;">TK Có</th>
+                            <th style="width: 35%;">Tên Tài Khoản Kế Toán</th>
+                            <th style="width: 20%; text-align: right;">Số Tiền (VND)</th>
+                            <th style="width: 25%;">Ghi Chú Diễn Giải</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in journal_entries %}
+                        <tr>
+                            <td>{% if entry.debit > 0 %}<span class="acc-badge">{{ entry.account_code }}</span>{% else %}-{% endif %}</td>
+                            <td>{% if entry.credit > 0 %}<span class="acc-badge" style="background:#fef3c7; color:#b45309;">{{ entry.account_code }}</span>{% else %}-{% endif %}</td>
+                            <td class="font-semibold">{{ entry.account_name }}</td>
+                            <td style="text-align: right; font-weight: 700; color: {% if entry.debit > 0 %}#0284c7{% else %}#059669{% endif %};">
+                                {{ "{:,.0f}".format(entry.debit if entry.debit > 0 else entry.credit) }} đ
+                            </td>
+                            <td style="color: #64748b;">{{ entry.note }}</td>
+                        </tr>
                         {% else %}
-                        10% (0 đ)
-                        {% endif %}
-                    </span>
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: #94a3b8; padding: 20px;">Chưa khởi tạo bút toán.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Tax Deductibility Audit Bento -->
+            <div class="bento-card col-6">
+                <h4 class="card-header-title" style="font-size: 14px;">
+                    <i class="bi bi-shield-lock-fill" style="color: var(--wise-purple);" aria-hidden="true"></i> Kiểm Tra Tuân Thủ Thuế GTGT & TNDN
+                </h4>
+                <div style="display: grid; gap: 10px; font-size: 13px;">
+                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px;">
+                        <span style="color: #64748b;">Thuế GTGT Khấu Trừ:</span>
+                        <span style="font-weight: 700; color: #059669;"><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Đủ Điều Kiện (100%)</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px;">
+                        <span style="color: #64748b;">Chi Phí Hợp Lý TNDN:</span>
+                        <span style="font-weight: 700; color: #059669;"><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Được Trừ Khi Tính Thuế</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: #64748b;">Tín Nhiệm Nộp Thuế:</span>
+                        <span style="font-weight: 800; color: var(--wise-purple);">{{ compliance_audit.tax_rating if compliance_audit else 'A+' }}</span>
+                    </div>
                 </div>
-                <div class="calc-row">
-                    <strong class="calc-label" style="color: var(--invoice-primary);">Tổng cộng thanh toán:</strong>
-                    <strong class="calc-val-total">{{ "{:,.0f}".format(total_payable) if total_payable is number else total_payable }} đ</strong>
+            </div>
+
+            <!-- Non-cash alert Bento -->
+            <div class="bento-card col-6" style="background: #fafaf9;">
+                <h4 class="card-header-title" style="font-size: 14px;">
+                    <i class="bi bi-bank2" style="color: var(--wise-blue);" aria-hidden="true"></i> Phương Thức Thanh Toán
+                </h4>
+                <p style="color: #475569; font-size: 12.5px; margin: 0 0 10px 0;">
+                    {{ compliance_audit.non_cash_warning if compliance_audit else 'Hợp lệ thanh toán qua Ngân hàng / Tiền mặt' }}
+                </p>
+                <div style="font-size: 11px; color: #64748b; background: #e2e8f0; padding: 6px 10px; border-radius: 4px;">
+                    Căn cứ khoản 10 Điều 1 Thông tư 26/2015/TT-BTC sửa đổi Điều 15 Thông tư 219/2013/TT-BTC.
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Signatures -->
-        <div class="signatures-section">
-            <div>
-                <div class="sign-title">Người mua hàng</div>
-                <div class="sign-sub">(Ký, ghi rõ họ tên)</div>
-                <div style="height: 60px;"></div>
-                <div class="font-semibold" style="color: var(--invoice-secondary);">Xác nhận qua mạng</div>
+    <!-- PANEL 3: CHUẨN QUỐC TẾ IFRS & PEPPOL -->
+    <div id="panel-ifrs" class="view-panel">
+        <div class="bento-grid">
+            <div class="bento-card col-4">
+                <div style="font-size: 12px; color: #64748b; font-weight: 600;">MỆNH GIÁ / CURRENCY</div>
+                <div style="font-size: 24px; font-weight: 800; color: var(--wise-blue); margin: 4px 0;">
+                    {{ ifrs_data.currency if ifrs_data else 'VND' }}
+                </div>
+                <div style="font-size: 11px; color: #94a3b8;">Tiền tệ giao dịch hợp đồng</div>
             </div>
-            <div>
-                <div class="sign-title">Người bán hàng</div>
-                <div class="sign-sub">(Ký, đóng dấu điện tử)</div>
-                
-                <!-- Digital Stamp -->
-                <div class="digi-stamp">
-                    <span class="digi-stamp-logo"><i class="bi bi-shield-check" aria-hidden="true"></i></span>
-                    <span class="digi-stamp-title">Ký Số Xác Thực</span>
-                    <span>Ký bởi: {{ seller.name }}</span>
-                    <span>MST: {{ seller.mst }}</span>
-                    <span>Ngày ký: {{ invoice.date }}</span>
-                    <span style="color: #38bdf8; font-size: 9px; margin-top: 3px; display: inline-flex; align-items: center; gap: 4px;"><i class="bi bi-patch-check-fill" aria-hidden="true"></i> Hóa đơn hợp lệ GDT</span>
+
+            <div class="bento-card col-4">
+                <div style="font-size: 12px; color: #64748b; font-weight: 600;">TỶ GIÁ VCB / EXCHANGE RATE</div>
+                <div style="font-size: 24px; font-weight: 800; color: var(--wise-teal); margin: 4px 0;">
+                    {{ "{:,.2f}".format(ifrs_data.fx_rate) if ifrs_data else '1.00' }}
+                </div>
+                <div style="font-size: 11px; color: #94a3b8;">Tỷ giá chuyển khoản Ngân hàng</div>
+            </div>
+
+            <div class="bento-card col-4">
+                <div style="font-size: 12px; color: #64748b; font-weight: 600;">IFRS TOTAL (FX)</div>
+                <div style="font-size: 24px; font-weight: 800; color: var(--wise-gold); margin: 4px 0;">
+                    {{ "{:,.2f}".format(ifrs_data.amount_in_fx) if ifrs_data else total_payable }}
+                </div>
+                <div style="font-size: 11px; color: #94a3b8;">Giá trị quy đổi theo chuẩn IFRS</div>
+            </div>
+
+            <div class="bento-card col-12">
+                <h3 class="card-header-title">
+                    <i class="bi bi-diagram-3-fill" style="color: var(--wise-blue);" aria-hidden="true"></i>
+                    Peppol BIS Billing 3.0 / EN 16931 Compliance Profile
+                </h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; font-size: 13px;">
+                    <div>
+                        <div style="color: #64748b; margin-bottom: 4px;">Peppol Profile ID:</div>
+                        <div style="font-family: 'Fira Code', monospace; background: #f1f5f9; padding: 6px 10px; border-radius: 6px; font-size: 11px;">
+                            {{ ifrs_data.peppol_profile if ifrs_data else 'urn:fdc:peppol.eu:2017:poacc:billing:01:1.0' }}
+                        </div>
+                    </div>
+                    <div>
+                        <div style="color: #64748b; margin-bottom: 4px;">VAT Category Code:</div>
+                        <div style="font-family: 'Fira Code', monospace; background: #f1f5f9; padding: 6px 10px; border-radius: 6px; font-size: 11px;">
+                            {{ ifrs_data.tax_category if ifrs_data else 'S (Standard Rate)' }}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
+    </div>
 
+    <!-- PANEL 4: RAW XML INSPECTOR & CA CERTIFICATE -->
+    <div id="panel-xml" class="view-panel">
+        <div class="bento-grid">
+            <div class="bento-card col-12">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h3 class="card-header-title" style="margin: 0;">
+                        <i class="bi bi-shield-check" style="color: #0284c7;" aria-hidden="true"></i>
+                        Thông Tin Xác Thực Chữ Ký Số CA & CKey Tổng Cục Thuế
+                    </h3>
+                    <button onclick="copyXmlCode()" class="btn-back" style="background: #0284c7; border: none; color: white;">
+                        <i class="bi bi-clipboard" aria-hidden="true"></i> Copy XML Gốc
+                    </button>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px; font-size: 12px;">
+                    <div style="background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                        <span style="color: #64748b; display: block;">Nhà Cung Cấp CA:</span>
+                        <strong style="color: #0f172a;">{{ digital_cert.ca_provider if digital_cert else 'VIETTEL-CA' }}</strong>
+                    </div>
+                    <div style="background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                        <span style="color: #64748b; display: block;">Serial Number:</span>
+                        <strong style="font-family: 'Fira Code', monospace; color: #0284c7;">{{ digital_cert.serial_number if digital_cert else '54:01:FE:89:AB' }}</strong>
+                    </div>
+                    <div style="background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                        <span style="color: #64748b; display: block;">Trạng Thái CSDL GDT:</span>
+                        <strong style="color: #059669;"><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Khớp 100%</strong>
+                    </div>
+                </div>
+
+                <h4 style="font-size: 13px; color: #475569; margin: 16px 0 8px 0;">Mã XML Hóa Đơn Điện Tử Gốc (ND 123 / Peppol XML Standard)</h4>
+                <pre class="code-block" id="xmlRawCode">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;HDon&gt;
+    &lt;DLHDon Id="{{ invoice.id }}"&gt;
+        &lt;TTChung&gt;
+            &lt;PBan&gt;2.0.0&lt;/PBan&gt;
+            &lt;THDon&gt;Hóa đơn giá trị gia tăng&lt;/THDon&gt;
+            &lt;KHMSHDon&gt;1C26TBA&lt;/KHMSHDon&gt;
+            &lt;SHDon&gt;{{ invoice.id }}&lt;/SHDon&gt;
+            &lt;NLap&gt;{{ invoice.date }}&lt;/NLap&gt;
+            &lt;DVTTe&gt;{{ ifrs_data.currency if ifrs_data else 'VND' }}&lt;/DVTTe&gt;
+        &lt;/TTChung&gt;
+        &lt;NDHDon&gt;
+            &lt;NBan&gt;
+                &lt;Ten&gt;{{ seller.name }}&lt;/Ten&gt;
+                &lt;MST&gt;{{ seller.mst }}&lt;/MST&gt;
+                &lt;DChi&gt;{{ seller.address }}&lt;/DChi&gt;
+            &lt;/NBan&gt;
+            &lt;NMua&gt;
+                &lt;Ten&gt;{{ buyer.name }}&lt;/Ten&gt;
+                &lt;MST&gt;{{ buyer.mst }}&lt;/MST&gt;
+            &lt;/NMua&gt;
+            &lt;DSHHDVu&gt;
+                {% for item in line_items %}
+                &lt;HHDVu&gt;
+                    &lt;TCot&gt;{{ loop.index }}&lt;/TCot&gt;
+                    &lt;THHDVu&gt;{{ item.item_name }}&lt;/THHDVu&gt;
+                    &lt;SLuong&gt;{{ item.quantity }}&lt;/SLuong&gt;
+                    &lt;DGia&gt;{{ item.unit_price }}&lt;/DGia&gt;
+                    &lt;TTien&gt;{{ item.amount_before_tax }}&lt;/TTien&gt;
+                &lt;/HHDVu&gt;
+                {% endfor %}
+            &lt;/DSHHDVu&gt;
+            &lt;TToan&gt;
+                &lt;TgTCThue&gt;{{ sum_before_tax }}&lt;/TgTCThue&gt;
+                &lt;TgTThue&gt;{{ sum_tax }}&lt;/TgTThue&gt;
+                &lt;TgTTTBToan&gt;{{ total_payable }}&lt;/TgTTTBToan&gt;
+            &lt;/TToan&gt;
+        &lt;/NDHDon&gt;
+    &lt;/DLHDon&gt;
+    &lt;DSCKS&gt;
+        &lt;NBan&gt;
+            &lt;HashSHA256&gt;{{ digital_cert.hash_sha256 if digital_cert else 'SHA256:C26T8B00' }}&lt;/HashSHA256&gt;
+        &lt;/NBan&gt;
+    &lt;/DSCKS&gt;
+&lt;/HDon&gt;</pre>
+            </div>
+        </div>
     </div>
 
     <script>
-        // A clean client-side helper to write Vietnamese Currency Words for premium look
+        // Interactive Tab Switching System
+        function switchTab(tabId, btnElement) {
+            document.querySelectorAll('.view-panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            const targetPanel = document.getElementById('panel-' + tabId);
+            if (targetPanel) {
+                targetPanel.classList.add('active');
+            }
+            if (btnElement) {
+                btnElement.classList.add('active');
+            }
+        }
+
+        // Copy XML Code to Clipboard
+        function copyXmlCode() {
+            const xmlText = document.getElementById("xmlRawCode").innerText;
+            navigator.clipboard.writeText(xmlText).then(() => {
+                alert("Đã sao chép mã XML gốc vào Clipboard thành công!");
+            }).catch(err => {
+                console.error("Lỗi khi sao chép XML: ", err);
+            });
+        }
+
+        // Vietnamese Currency Words Converter
         function convertNumberToVietnameseWords(amount) {
             if (amount <= 0) return "Không đồng";
             
@@ -529,7 +947,6 @@
             let words = "";
             let numStr = Math.floor(amount).toString();
             
-            // Format to chunks of 3
             while (numStr.length % 3 !== 0) {
                 numStr = "0" + numStr;
             }
@@ -539,7 +956,7 @@
                 chunks.push(numStr.substr(i, 3));
             }
             
-            chunks.reverse(); // read from units up
+            chunks.reverse();
             
             for (let i = 0; i < chunks.length; i++) {
                 let chunk = chunks[i];

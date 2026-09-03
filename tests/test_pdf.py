@@ -46,3 +46,22 @@ def test_reports_usage_pdf_success(logged_in_client):
     assert response.status_code == 200
     assert response.mimetype == "application/pdf"
     assert len(response.data) > 0
+
+def test_invoice_pdf_view_accounting_standards(logged_in_client, app):
+    """Verify that invoice HTML view portal includes VAS (TT200), IFRS, CA Cert, and XML Inspector."""
+    with app.test_request_context():
+        with logged_in_client.session_transaction() as sess:
+            sess["invoice_lookup"] = build_invoice_lookup(MOCK_INVOICES)
+
+    response = logged_in_client.get("/api/invoices/INV-2026-0501/pdf-view")
+    assert response.status_code == 200
+    html_content = response.data.decode("utf-8")
+    
+    # Assert key accounting standards present
+    assert "Bút Toán Nợ/Có (TT 200)" in html_content
+    assert "Chuẩn Quốc Tế (IFRS)" in html_content
+    assert "XML Inspector &amp; CA" in html_content or "XML Inspector & CA" in html_content
+    assert "Chữ Ký Số CA" in html_content
+    assert "TK Nợ" in html_content
+    assert "Peppol BIS Billing" in html_content
+
