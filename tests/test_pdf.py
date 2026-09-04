@@ -66,3 +66,26 @@ def test_invoice_pdf_view_accounting_standards(logged_in_client, app):
     assert "TK Nợ" in html_content
     assert "Peppol BIS Billing" in html_content
 
+def test_invoice_export_misa_requires_login(client):
+    """Verify that calling MISA export endpoint without login returns 401."""
+    response = client.get("/api/invoices/INV-2026-0501/export-misa")
+    assert response.status_code == 401
+
+def test_invoice_export_misa_success(logged_in_client, app):
+    """Verify that MISA AMIS export endpoint returns valid TT 99/2025 JSON payload."""
+    with app.test_request_context():
+        with logged_in_client.session_transaction() as sess:
+            sess["invoice_lookup"] = build_invoice_lookup(MOCK_INVOICES)
+
+    response = logged_in_client.get("/api/invoices/INV-2026-0501/export-misa")
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["misa_version"] == "AMIS-v2026"
+    assert data["circular"] == "TT99/2025/TT-BTC"
+    assert data["voucher_type"] == "GL_BUY_INVOICE"
+    assert len(data["journal_entries"]) >= 2
+    assert data["journal_entries"][0]["debit_account"] == "1561"
+    assert data["journal_entries"][1]["debit_account"] == "1331"
+    assert data["status"] == "ready_for_misa_import"
+
+

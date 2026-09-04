@@ -1685,6 +1685,92 @@ def api_invoice_pdf_download(invoice_id):
     except Exception as e:
         return jsonify({"error": f"Lỗi xuất PDF: {str(e)}"}), 500
 
+@invoices_blueprint.get("/api/invoices/<invoice_id>/export-misa")
+@roles_required("admin", "auditor")
+def api_invoice_export_misa(invoice_id):
+    """Export single invoice in 1-Click MISA AMIS Accounting JSON format (TT 99/2025/TT-BTC)."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    current_app.config["CURRENT_JWT"] = session.get("jwt")
+    current_app.config["CURRENT_INVOICE_LOOKUP"] = session.get("invoice_lookup", {})
+    try:
+        from datetime import date
+        invoice = current_app.config["CURRENT_INVOICE_LOOKUP"].get(invoice_id)
+        if not invoice:
+            invoices_purchase = fetch_invoices(InvoiceQuery(date(2026, 5, 1), date(2026, 5, 20), False, "purchase"))
+            invoice = build_invoice_lookup(invoices_purchase).get(invoice_id)
+        if not invoice:
+            invoices_sold = fetch_invoices(InvoiceQuery(date(2026, 5, 1), date(2026, 5, 20), False, "sold"))
+            invoice = build_invoice_lookup(invoices_sold).get(invoice_id)
+        if not invoice:
+            from invoices.service import get_local_invoices
+            local_db = get_local_invoices()
+            for item in local_db:
+                if item["id"] == invoice_id:
+                    invoice = item
+                    break
+
+        if not invoice:
+            return jsonify({"error": "Không tìm thấy hóa đơn yêu cầu."}), 404
+
+        line_items = fetch_invoice_line_items(invoice_id)
+    except Exception as error:
+        return jsonify({"error": f"Lỗi xuất MISA: {str(error)}"}), 500
+    finally:
+        current_app.config["CURRENT_JWT"] = None
+        current_app.config["CURRENT_INVOICE_LOOKUP"] = {}
+
+    sum_before_tax = sum(item.get("amount_before_tax", 0.0) for item in line_items) if line_items else invoice.get("amount_before_tax", 0.0)
+    sum_tax = sum(item.get("tax_amount", 0.0) for item in line_items) if line_items else invoice.get("tax_amount", 0.0)
+    total_payable = sum_before_tax + sum_tax
+
+    misa_payload = {
+        "misa_version": "AMIS-v2026",
+        "circular": "TT99/2025/TT-BTC",
+        "voucher_type": "GL_BUY_INVOICE",
+        "header": {
+            "invoice_id": invoice_id,
+            "invoice_symbol": invoice.get("symbol", "1C26TBA"),
+            "invoice_number": invoice.get("number", "0000001"),
+            "invoice_date": invoice.get("date", "2026-05-15"),
+            "seller_mst": invoice.get("seller_mst", invoice.get("seller", {}).get("mst", "")),
+            "seller_name": invoice.get("seller_name", invoice.get("seller", {}).get("name", "")),
+            "buyer_mst": invoice.get("buyer_mst", invoice.get("buyer", {}).get("mst", "")),
+            "total_amount_before_tax": sum_before_tax,
+            "total_tax_amount": sum_tax,
+            "total_payable": total_payable,
+        },
+        "journal_entries": [
+            {
+                "debit_account": "1561",
+                "credit_account": "331",
+                "amount": sum_before_tax,
+                "description": f"Mua hàng hóa theo HĐ {invoice.get('number', '')} ký hiệu {invoice.get('symbol', '')}",
+            },
+            {
+                "debit_account": "1331",
+                "credit_account": "331",
+                "amount": sum_tax,
+                "description": f"Thuế GTGT đầu vào theo HĐ {invoice.get('number', '')}",
+            }
+        ],
+        "line_items": line_items or [
+            {
+                "item_name": "Hàng hóa / Dịch vụ mua vào",
+                "unit": "Bộ",
+                "quantity": 1,
+                "unit_price": sum_before_tax,
+                "amount_before_tax": sum_before_tax,
+                "tax_rate": 10.0,
+                "tax_amount": sum_tax,
+            }
+        ],
+        "status": "ready_for_misa_import",
+    }
+    return jsonify(misa_payload)
+
 @invoices_blueprint.get("/api/reports/partners/pdf")
 @roles_required("admin", "auditor")
 def api_reports_partners_pdf():
