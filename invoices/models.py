@@ -37,6 +37,10 @@ class TaxpayerProfile(db.Model):
         passive_deletes=False,
     )
 
+    @property
+    def encrypted_password(self) -> str:
+        return self.gdt_password_encrypted
+
     def to_dict(self) -> dict:
         return {
             "mst": self.mst,

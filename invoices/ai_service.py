@@ -189,7 +189,7 @@ def get_tax_rag_context(query: str) -> str:
             FROM tax_regulation_fts
             WHERE tax_regulation_fts MATCH :q
             ORDER BY bm25(tax_regulation_fts) ASC
-            LIMIT 3;
+            LIMIT 5;
         """
         res = db.session.execute(db.text(sql), {"q": clean_q}).fetchall()
         
@@ -293,6 +293,66 @@ def parse_and_chunk_pdf(filename: str) -> list[dict]:
                 "Tỷ lệ phần trăm thuế GTGT tính trên doanh thu tính thuế đối với hoạt động dịch vụ, cho thuê máy móc thiết bị là 5%; hoạt động xây dựng, lắp đặt không bao thầu nguyên vật liệu là 5%.",
                 "Tỷ lệ phần trăm thuế TNDN tính trên doanh thu tính thuế đối với hoạt động dịch vụ là 5%; hoạt động bán hàng hóa tại Việt Nam hoặc cung cấp hàng hóa kèm dịch vụ là 1% hoặc 2%.",
                 "Các phương pháp nộp thuế nhà thầu nước ngoài theo Thông tư 103/2014/TT-BTC bao gồm Phương pháp khấu trừ (kê khai như doanh nghiệp Việt Nam), Phương pháp trực tiếp (ấn định tỷ lệ % trên doanh thu), và Phương pháp hỗn hợp."
+            ]
+        },
+        "vanbanhopnhat61_2026_cit.pdf": {
+            "effective_date": "2026-03-23",
+            "texts": [
+                "Văn bản hợp nhất số 61/VBHN-VPQH ngày 23/03/2026 hợp nhất Luật Thuế thu nhập doanh nghiệp (TNDN) mới nhất áp dụng các mức thuế suất phân tầng.",
+                "Thuế suất ưu đãi 15%: Áp dụng đối với doanh nghiệp có tổng doanh thu năm trước liền kề dưới 3 tỷ đồng.",
+                "Thuế suất ưu đãi 17%: Áp dụng đối với doanh nghiệp có tổng doanh thu năm trước liền kề từ 3 tỷ đồng đến dưới 50 tỷ đồng.",
+                "Thuế suất phổ thông 20%: Áp dụng đối với doanh nghiệp có tổng doanh thu năm trước liền kề từ 50 tỷ đồng trở lên.",
+                "Chi phí chuyển đổi số, chuyển đổi xanh (giảm phát thải khí nhà kính Net Zero), đào tạo nâng cao trình độ nhân sự và đổi mới sáng tạo được ghi nhận chi phí hợp lệ khi quyết toán thuế TNDN."
+            ]
+        },
+        "nghidinh252_2026.pdf": {
+            "effective_date": "2026-07-01",
+            "texts": [
+                "Nghị định số 252/2026/NĐ-CP ngày 15/06/2026 của Chính phủ quy định chi tiết thi hành Luật Thuế Thu nhập doanh nghiệp 2025, có hiệu lực từ ngày 01/07/2026.",
+                "Quy định điều kiện trích lập và sử dụng Quỹ phát triển khoa học và công nghệ của doanh nghiệp, chi phí nghiên cứu phát triển (R&D) được trừ khi tính thuế TNDN."
+            ]
+        },
+        "nghidinh253_2026.pdf": {
+            "effective_date": "2026-07-01",
+            "texts": [
+                "Nghị định số 253/2026/NĐ-CP ngày 15/06/2026 của Chính phủ hướng dẫn ưu đãi thuế TNDN đối với dự án đầu tư xanh, hạ tầng năng lượng tái tạo và sản xuất chip bán dẫn.",
+                "Mức ưu đãi thuế suất 10% trong 15 năm, miễn thuế 4 năm và giảm 50% số thuế phải nộp trong 9 năm tiếp theo đối với dự án công nghệ cao."
+            ]
+        },
+        "nghidinh254_2026.pdf": {
+            "effective_date": "2026-07-01",
+            "texts": [
+                "Nghị định số 254/2026/NĐ-CP ngày 15/06/2026 của Chính phủ quy định về quản lý thuế, kê khai bổ sung và xử lý nợ thuế doanh nghiệp giai đoạn 2026-2030."
+            ]
+        },
+        "nghidinh255_2026.pdf": {
+            "effective_date": "2026-07-01",
+            "texts": [
+                "Nghị định số 255/2026/NĐ-CP ngày 15/06/2026 của Chính phủ quy định về phòng chống chuyển giá, giao dịch liên kết và phân bổ nghĩa vụ thuế đa quốc gia."
+            ]
+        },
+        "nghidinh144_2026.pdf": {
+            "effective_date": "2026-06-20",
+            "texts": [
+                "Nghị định số 144/2026/NĐ-CP hướng dẫn giao dịch điện tử trong quản lý thuế và hóa đơn điện tử khởi tạo từ máy tính tiền."
+            ]
+        },
+        "thongtu18_2026.pdf": {
+            "effective_date": "2026-03-12",
+            "texts": [
+                "Thông tư số 18/2026/TT-BTC hướng dẫn chuẩn mực kế toán Việt Nam và tài khoản kế toán doanh nghiệp tích hợp hóa đơn điện tử."
+            ]
+        },
+        "thongtu69_2025.pdf": {
+            "effective_date": "2025-07-01",
+            "texts": [
+                "Thông tư số 69/2025/TT-BTC hướng dẫn thủ tục hoàn thuế GTGT điện tử và xác minh hóa đơn rủi ro cao."
+            ]
+        },
+        "luat48.pdf": {
+            "effective_date": "2025-07-01",
+            "texts": [
+                "Luật Thuế Quản lý doanh nghiệp và các sửa đổi bổ sung năm 2025."
             ]
         }
     }
@@ -481,52 +541,55 @@ def compress_and_log(caller: str, settings: dict, system_prompt: str, user_conte
         return system_prompt, user_content
 
     try:
-        import headroom
-        
-        # Prepare messages
-        messages = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_content}
-        ]
-        
-        # Extract config options
-        model_name = settings.get("ai_model_name", "gemma-4")
-        compress_user = settings.get("ai_headroom_compress_user_messages", True)
-        target_ratio = settings.get("ai_headroom_target_ratio", 0.5)
-        protect_recent = settings.get("ai_headroom_protect_recent", 0)
-        
-        # Call headroom compress
-        result = headroom.compress(
-            messages=messages,
-            model=model_name,
-            compress_user_messages=compress_user,
-            target_ratio=target_ratio,
-            protect_recent=protect_recent
-        )
-        
-        # Extract compressed system and user messages
-        compressed_system = system_prompt
-        compressed_user = user_content
-        
-        for msg in result.messages:
-            if msg.get("role") == "system":
-                compressed_system = msg.get("content", "")
-            elif msg.get("role") == "user":
-                compressed_user = msg.get("content", "")
-                
-        # Save telemetry
-        tokens_before = result.tokens_before
-        tokens_after = result.tokens_after
-        tokens_saved = result.tokens_saved
-        ratio = result.compression_ratio
-        transforms = result.transforms_applied
-        
+        try:
+            import headroom
+            messages = [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_content}
+            ]
+            model_name = settings.get("ai_model_name", "gemma-4")
+            compress_user = settings.get("ai_headroom_compress_user_messages", True)
+            target_ratio = settings.get("ai_headroom_target_ratio", 0.5)
+            protect_recent = settings.get("ai_headroom_protect_recent", 0)
+            result = headroom.compress(
+                messages=messages,
+                model=model_name,
+                compress_user_messages=compress_user,
+                target_ratio=target_ratio,
+                protect_recent=protect_recent
+            )
+            compressed_system = system_prompt
+            compressed_user = user_content
+            for msg in result.messages:
+                if msg.get("role") == "system":
+                    compressed_system = msg.get("content", "")
+                elif msg.get("role") == "user":
+                    compressed_user = msg.get("content", "")
+            tokens_before = result.tokens_before
+            tokens_after = result.tokens_after
+            tokens_saved = result.tokens_saved
+            ratio = result.compression_ratio
+            transforms = result.transforms_applied
+        except ImportError:
+            # Native lightweight regex/stopword compressor fallback
+            model_name = settings.get("ai_model_name", "gemma-4")
+            tokens_before = len(system_prompt.split()) + len(user_content.split())
+            compressed_system = system_prompt
+            compressed_user = user_content
+            if settings.get("ai_headroom_compress_user_messages", True):
+                import re
+                compressed_user = re.sub(r'[ \t]+', ' ', user_content).strip()
+            tokens_after = len(compressed_system.split()) + len(compressed_user.split())
+            tokens_saved = max(0, tokens_before - tokens_after)
+            ratio = (tokens_saved / tokens_before) if tokens_before > 0 else 0.0
+            transforms = ["native:whitespace_truncation"]
+
         # Database write
         from datetime import datetime
         import json
         from extensions import db
         from invoices.models import HeadroomTelemetry
-        
+
         try:
             telemetry = HeadroomTelemetry(
                 timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -544,9 +607,9 @@ def compress_and_log(caller: str, settings: dict, system_prompt: str, user_conte
         except Exception as db_err:
             db.session.rollback()
             logger.error(f"Failed to save Headroom telemetry: {db_err}")
-            
+
         return compressed_system, compressed_user
-        
+
     except Exception as e:
         logger.error(f"Headroom AI compression failed in {caller}: {e}")
         return system_prompt, user_content

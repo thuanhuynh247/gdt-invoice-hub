@@ -275,12 +275,41 @@ def api_login():
 
     # Assign role based on username
     username_lower = auth_data["username"].lower()
+    clean_user = username_lower.replace("-", "").strip()
     if username_lower == "admin":
         session["user_role"] = "admin"
     elif "auditor" in username_lower:
         session["user_role"] = "auditor"
+    elif clean_user.isdigit():
+        session["user_role"] = "taxpayer"
     else:
         session["user_role"] = "viewer"
+
+    # Auto-sync/upsert TaxpayerProfile in DB if logging in with an MST
+    tax_code = auth_data["profile"].get("mst") or auth_data["username"]
+    if clean_user.isdigit() or tax_code:
+        try:
+            from datetime import datetime, timezone
+            from invoices.models import TaxpayerProfile
+            from extensions import db
+            profile = TaxpayerProfile.query.filter_by(mst=tax_code).first()
+            now_iso = datetime.now(timezone.utc).isoformat()
+            if not profile:
+                profile = TaxpayerProfile(
+                    mst=tax_code,
+                    company_name=auth_data["profile"].get("display_name") or f"Doanh nghiep {tax_code}",
+                    gdt_username=auth_data["username"],
+                    gdt_password_encrypted=encrypt_password(password),
+                    is_active=True,
+                    created_at=now_iso,
+                )
+                db.session.add(profile)
+            else:
+                profile.gdt_username = auth_data["username"]
+                profile.gdt_password_encrypted = encrypt_password(password)
+            db.session.commit()
+        except Exception as profile_err:
+            current_app.logger.warning(f"Failed to auto-sync TaxpayerProfile: {profile_err}")
 
     from invoices.security_audit_service import log_security_event
     log_security_event(
