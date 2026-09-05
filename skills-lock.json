@@ -85,6 +85,12 @@
       "skillPath": "skills/engineering/improve-codebase-architecture/SKILL.md",
       "computedHash": "3929c6892605b67b60503ced451876e9b313d1a909ab7066fbcd9967c56ed226"
     },
+    "lieflat-charts": {
+      "source": "larashero3-dotcom/lieflat-charts",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "2452e0c4f79e7279be9b686e9b3fea79941ab6f726ab917dd3579a39a85832ac"
+    },
     "loop-me": {
       "source": "mattpocock/skills",
       "sourceType": "github",
