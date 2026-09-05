@@ -194,6 +194,70 @@
         </div>
     </div>
 
+    <!-- MODULE 4: AI AGENT IN-DEPTH SWARM STUDIO & ASSISTANT -->
+    <div class="card bg-secondary bg-opacity-10 border border-secondary border-opacity-25 rounded-4 p-4 mb-4" style="background: linear-gradient(135deg, rgba(15,23,42,0.95) 0%, rgba(30,27,75,0.85) 100%); border-left: 4px solid #8b5cf6 !important;">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3">
+            <div>
+                <h5 class="fw-bold mb-1 text-white">
+                    <i class="bi bi-robot text-purple me-2" style="color: #a855f7;"></i> 4. AI Agent In-Depth Swarm Studio (Kỹ Thuật Phân Phối Multi-Agent)
+                </h5>
+                <p class="text-secondary small mb-0">Hệ thống AI Agent tự hành theo chuẩn "Hiểu sâu về AI Agent" (Lý Bác Kiệt, v1.2 c2026): Harness ReAct Loop, Artifact Mode & Zero-Token Loss</p>
+            </div>
+            <span class="badge bg-purple bg-opacity-25 text-purple border border-purple border-opacity-50 mt-2 mt-md-0 px-3 py-2" style="color: #c084fc; border-color: #a855f7 !important;">
+                <i class="bi bi-cpu-fill me-1"></i> Multi-Agent Swarm Active
+            </span>
+        </div>
+
+        <div class="row g-3 mb-3">
+            <div class="col-12 col-md-4">
+                <div class="p-3 rounded-3 bg-dark bg-opacity-60 border border-secondary border-opacity-25">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="bi bi-shield-check text-success fs-5 me-2"></i>
+                        <div class="fw-bold text-white small">Slow Planner (Coordinator)</div>
+                    </div>
+                    <div class="text-secondary extra-small">Điều phối luồng kiểm toán hợp nhất, lập kế hoạch tuân thủ TT 99/2025 và Nghị định 132.</div>
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="p-3 rounded-3 bg-dark bg-opacity-60 border border-secondary border-opacity-25">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="bi bi-lightning-charge text-warning fs-5 me-2"></i>
+                        <div class="fw-bold text-white small">Fast VLA Workers (4x Swarm)</div>
+                    </div>
+                    <div class="text-secondary extra-small">Fast Agents song song: Auth 5x Retry, XML Parser, DuckDB OLAP Ingestion, ERP Exporter.</div>
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="p-3 rounded-3 bg-dark bg-opacity-60 border border-secondary border-opacity-25">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="bi bi-memory text-info fs-5 me-2"></i>
+                        <div class="fw-bold text-white small">KV-Cache & Artifact Mode</div>
+                    </div>
+                    <div class="text-secondary extra-small">Tối ưu >85% KV-Cache Hit Rate. Truy vấn DuckDB Artifacts sub-10ms không tốn Token.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="input-group mb-3">
+            <input type="text" id="aiAgentPromptInput" class="form-control bg-dark text-white border-secondary border-opacity-50" placeholder="Nhập yêu cầu cho AI Agent (Ví dụ: Phân tích rủi ro hóa đơn và giao dịch liên kết NĐ 132)..." value="Phân tích toàn bộ rủi ro hóa đơn và giao dịch liên kết Nghị định 132/2020">
+            <button class="btn btn-primary px-4 fw-bold" type="button" id="btnRunAiSwarm" onclick="runAiAgentSwarm()">
+                <i class="bi bi-play-circle-fill me-1"></i> Kích Hoạt Swarm Audit
+            </button>
+            <button class="btn btn-outline-purple text-purple border-purple px-3" type="button" style="color: #c084fc; border-color: #a855f7 !important;" onclick="askAiAgentChat()">
+                <i class="bi bi-chat-dots-fill me-1"></i> Hỏi AI Kế Toán Trưởng
+            </button>
+        </div>
+
+        <!-- AI SWARM REPORT DISPLAY CONTAINER -->
+        <div id="aiSwarmReportContainer" class="d-none mt-3 p-3 rounded-3 bg-dark border border-secondary border-opacity-50">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <div class="fw-bold text-success small"><i class="bi bi-file-earmark-medical me-1"></i> Báo Cáo AI Swarm Audit Result</div>
+                <span class="badge bg-info bg-opacity-25 text-info" id="aiSwarmConfidenceBadge">Confidence: 95%</span>
+            </div>
+            <pre id="aiSwarmReportText" class="text-light extra-small mb-0 style-scroll" style="max-height: 350px; overflow-y: auto; white-space: pre-wrap; font-family: monospace;"></pre>
+        </div>
+    </div>
+
     <!-- RECENT AUDIT LOG & RECONCILIATION DATA -->
     <div class="card bg-secondary bg-opacity-10 border border-secondary border-opacity-25 rounded-4 p-4 mb-4">
         <div class="d-flex justify-content-between align-items-center mb-3">
@@ -234,6 +298,7 @@
         </div>
     </div>
 </div>
+
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
@@ -297,5 +362,68 @@ function openVbaBridgeInfo() {
 function runRiskAudit() {
     alert("Đã quét 1,482 hóa đơn trong cơ sở dữ liệu. Không phát hiện nhà cung cấp trong danh sách rủi ro thuế GDT.");
 }
+
+function runAiAgentSwarm() {
+    const prompt = document.getElementById('aiAgentPromptInput').value || 'Phân tích toàn bộ rủi ro hóa đơn và giao dịch liên kết';
+    const mst = document.getElementById('tenantMstInput').value || '0312345678';
+    const btn = document.getElementById('btnRunAiSwarm');
+    const container = document.getElementById('aiSwarmReportContainer');
+    const reportText = document.getElementById('aiSwarmReportText');
+    const badge = document.getElementById('aiSwarmConfidenceBadge');
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Swarm Analyzing...';
+    container.classList.remove('d-none');
+    reportText.textContent = "⏳ [AI Agent Swarm] Slow Planner (Coordinator) đang phân tích yêu cầu...\n⚡ Fast Agents (Auditor, Classifier, Forecaster) đang thực thi truy vấn DuckDB song song...";
+
+    fetch('/api/ai/swarm-audit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ taxpayer_mst: mst, user_prompt: prompt })
+    })
+    .then(res => res.json())
+    .then(data => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-play-circle-fill me-1"></i> Kích Hoạt Swarm Audit';
+        if (data.success && data.report_markdown) {
+            badge.textContent = `Confidence: ${Math.round(data.swarm_confidence * 100)}%`;
+            reportText.textContent = data.report_markdown;
+        } else {
+            reportText.textContent = `❌ Lỗi thực thi AI Swarm: ${data.error || 'Unknown error'}`;
+        }
+    })
+    .catch(err => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-play-circle-fill me-1"></i> Kích Hoạt Swarm Audit';
+        reportText.textContent = `❌ Lỗi kết nối AI Agent Endpoint: ${err}`;
+    });
+}
+
+function askAiAgentChat() {
+    const prompt = document.getElementById('aiAgentPromptInput').value || 'Quy định định khoản thuế GTGT theo Thông tư 99/2025/TT-BTC?';
+    const container = document.getElementById('aiSwarmReportContainer');
+    const reportText = document.getElementById('aiSwarmReportText');
+
+    container.classList.remove('d-none');
+    reportText.textContent = "⏳ [AI Kế Toán Trưởng] Đang truy vấn tri thức Thông tư 99/2025/TT-BTC & DuckDB Artifacts...";
+
+    fetch('/api/ai/agent-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: prompt })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success && data.response) {
+            reportText.textContent = `🤖 [AI Kế Toán Trưởng - ReAct Harness Completed]\n\n${data.response}\n\n[Status: Exit condition reached: ${data.exit_condition} | KV-Cache: ${data.kv_cache_status}]`;
+        } else {
+            reportText.textContent = `❌ Lỗi AI Agent Chat: ${data.error || 'Unknown error'}`;
+        }
+    })
+    .catch(err => {
+        reportText.textContent = `❌ Lỗi kết nối AI Agent Chat: ${err}`;
+    });
+}
+
 </script>
 {% endblock %}

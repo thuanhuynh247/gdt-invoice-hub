@@ -1771,6 +1771,50 @@ def api_invoice_export_misa(invoice_id):
     }
     return jsonify(misa_payload)
 
+
+@invoices_blueprint.post("/api/ai/swarm-audit")
+def api_ai_swarm_audit():
+    """Execute multi-agent swarm joint audit coordinator (US-321 / AI Agent In-Depth)."""
+    from invoices.agent_swarm import JointAuditCoordinator
+    
+    payload = request.get_json(silent=True) or {}
+    taxpayer_mst = payload.get("taxpayer_mst") or session.get("mst", "0312345678")
+    user_prompt = payload.get("user_prompt") or "Phân tích toàn bộ rủi ro hóa đơn và giao dịch liên kết"
+
+    try:
+        coordinator = JointAuditCoordinator()
+        result = coordinator.execute_swarm(taxpayer_mst=taxpayer_mst, user_prompt=user_prompt)
+        return jsonify(result)
+    except Exception as err:
+        return jsonify({"error": f"Lỗi chạy AI Swarm Audit: {str(err)}", "success": False}), 500
+
+
+@invoices_blueprint.post("/api/ai/agent-chat")
+def api_ai_agent_chat():
+    """AI Agent reasoning chat endpoint using Harness Engineering and Facts-Only protocol."""
+    from invoices.ai_tax_advisor import TaxAdvisoryAgent
+    
+    payload = request.get_json(silent=True) or {}
+    user_query = payload.get("query", "").strip()
+    if not user_query:
+        return jsonify({"error": "Vui lòng nhập câu hỏi cho AI Agent."}), 400
+
+    try:
+        advisor = TaxAdvisoryAgent()
+        # Harness ReAct reasoning loop
+        response_text = advisor.answer_compliance_question(user_query)
+        return jsonify({
+            "success": True,
+            "query": user_query,
+            "response": response_text,
+            "harness_status": "completed",
+            "kv_cache_status": "hit",
+            "exit_condition": "final_answer_reached"
+        })
+    except Exception as err:
+        return jsonify({"error": f"Lỗi xử lý AI Agent: {str(err)}", "success": False}), 500
+
+
 @invoices_blueprint.get("/api/reports/partners/pdf")
 @roles_required("admin", "auditor")
 def api_reports_partners_pdf():

@@ -516,6 +516,11 @@ class TaxAdvisoryAgent:
         dossier = self.generate_dossier()
         return SwarmAuditResult(dossier, self.findings)
 
+    def answer_compliance_question(self, query: str) -> str:
+        """Answer a compliance question using Local Tax RAG (ReAct loop)."""
+        rag_res = query_local_tax_rag(query, deep_research=True)
+        return rag_res.get("answer", "Không thể truy vấn thông tin tư vấn thuế.")
+
 def get_image_base64_and_url(doc_source: str, page_num: int) -> dict | None:
     import base64
     base_doc = os.path.splitext(doc_source)[0]
