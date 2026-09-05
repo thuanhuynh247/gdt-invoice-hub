@@ -11291,3 +11291,142 @@ def api_invoice_trends():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
+
+@invoices_blueprint.get("/api/ai/timesfm/suppliers")
+def api_timesfm_suppliers():
+    """List suppliers with TimesFM tax risk indices and historical invoice metrics."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    taxpayer_mst = session.get("active_taxpayer_mst") or request.args.get("taxpayer_mst")
+    if not taxpayer_mst:
+        return jsonify({"error": "taxpayer_mst is required."}), 400
+
+    from invoices.models import Invoice
+    from invoices.timesfm_engine import evaluate_supplier_risk_index
+    from collections import defaultdict
+
+    try:
+        invoices = Invoice.query.filter_by(buyer_mst=taxpayer_mst, is_cancelled=False).all()
+        supplier_map = defaultdict(lambda: {"mst": "", "name": "", "total_amount": 0.0, "vat_amount": 0.0, "invoice_count": 0, "history": []})
+
+        for inv in invoices:
+            smst = inv.seller_mst or "UNKNOWN"
+            sname = inv.seller_name or "Chưa xác định"
+            supplier_map[smst]["mst"] = smst
+            supplier_map[smst]["name"] = sname
+            supplier_map[smst]["total_amount"] += float(inv.total_amount or 0.0)
+            supplier_map[smst]["vat_amount"] += float(inv.vat_amount or 0.0)
+            supplier_map[smst]["invoice_count"] += 1
+            supplier_map[smst]["history"].append(float(inv.vat_amount or 0.0))
+
+        results = []
+        for smst, data in supplier_map.items():
+            risk_info = evaluate_supplier_risk_index(smst, data["history"])
+            results.append({
+                "seller_mst": smst,
+                "seller_name": data["name"],
+                "total_amount": round(data["total_amount"], 2),
+                "vat_amount": round(data["vat_amount"], 2),
+                "invoice_count": data["invoice_count"],
+                "risk_score": risk_info["risk_score"],
+                "risk_level": risk_info["risk_level"],
+                "flags": risk_info["flags"],
+                "anomalies": risk_info["anomalies"]
+            })
+
+        results.sort(key=lambda x: x["risk_score"], reverse=True)
+        return jsonify({"status": "success", "suppliers": results})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/ai/timesfm/forecast")
+def api_timesfm_forecast():
+    """Run Google TimesFM-inspired zero-shot tax forecast for a specific supplier or aggregate."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    taxpayer_mst = session.get("active_taxpayer_mst") or body.get("taxpayer_mst")
+    seller_mst = body.get("seller_mst")
+    horizon = int(body.get("horizon", 12))
+
+    if not taxpayer_mst:
+        return jsonify({"error": "taxpayer_mst is required."}), 400
+
+    from invoices.timesfm_engine import forecast_supplier_taxes_timesfm
+    try:
+        res = forecast_supplier_taxes_timesfm(buyer_mst=taxpayer_mst, seller_mst=seller_mst, horizon=horizon)
+        return jsonify(res)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@invoices_blueprint.post("/api/ai/timesfm/scenario")
+def api_timesfm_scenario():
+    """Simulate counterfactual scenarios (price, volume, tax rate adjustments) via TimesFM PatchDecoder."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    body = request.get_json(silent=True) or {}
+    taxpayer_mst = session.get("active_taxpayer_mst") or body.get("taxpayer_mst")
+    seller_mst = body.get("seller_mst")
+    horizon = int(body.get("horizon", 6))
+    price_shift = float(body.get("price_shift", 0.0))
+    volume_shift = float(body.get("volume_shift", 0.0))
+    tax_rate_delta = float(body.get("tax_rate_delta", 0.0))
+
+    if not taxpayer_mst:
+        return jsonify({"error": "taxpayer_mst is required."}), 400
+
+    from invoices.timesfm_engine import forecast_supplier_taxes_timesfm
+    try:
+        base_forecast = forecast_supplier_taxes_timesfm(buyer_mst=taxpayer_mst, seller_mst=seller_mst, horizon=horizon)
+        if base_forecast.get("status") == "error":
+            return jsonify(base_forecast), 400
+
+        forecast_points = base_forecast.get("forecast", [])
+        simulated_points = []
+
+        multiplier = (1.0 + price_shift / 100.0) * (1.0 + volume_shift / 100.0)
+        tax_mult = 1.0 + tax_rate_delta / 100.0
+
+        for pt in forecast_points:
+            base_p50 = pt["p50"]
+            base_p10 = pt["p10"]
+            base_p90 = pt["p90"]
+
+            sim_p50 = round(base_p50 * multiplier * tax_mult, 2)
+            sim_p10 = round(base_p10 * multiplier * tax_mult, 2)
+            sim_p90 = round(base_p90 * multiplier * tax_mult, 2)
+
+            simulated_points.append({
+                "horizon_month": pt["horizon_month"],
+                "base_p50": base_p50,
+                "simulated_p50": sim_p50,
+                "simulated_p10": sim_p10,
+                "simulated_p90": sim_p90,
+                "delta_val": round(sim_p50 - base_p50, 2),
+                "delta_pct": round(((sim_p50 - base_p50) / base_p50 * 100.0) if base_p50 != 0 else 0.0, 2)
+            })
+
+        return jsonify({
+            "status": "success",
+            "supplier": base_forecast.get("supplier"),
+            "scenarios": {
+                "price_shift_pct": price_shift,
+                "volume_shift_pct": volume_shift,
+                "tax_rate_delta_pct": tax_rate_delta,
+                "total_multiplier": round(multiplier * tax_mult, 4)
+            },
+            "simulation": simulated_points,
+            "risk_index": base_forecast.get("risk_index")
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
