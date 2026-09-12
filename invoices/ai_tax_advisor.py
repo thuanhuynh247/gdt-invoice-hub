@@ -519,7 +519,27 @@ class TaxAdvisoryAgent:
     def answer_compliance_question(self, query: str) -> str:
         """Answer a compliance question using Local Tax RAG (ReAct loop)."""
         rag_res = query_local_tax_rag(query, deep_research=True)
-        return rag_res.get("answer", "Không thể truy vấn thông tin tư vấn thuế.")
+        raw_ans = rag_res.get("answer", "Không thể truy vấn thông tin tư vấn thuế.")
+        return compress_rag_context(raw_ans, max_tokens=800)
+
+
+def compress_rag_context(context_text: str, max_tokens: int = 1000) -> str:
+    """Streamline RAG decree context by removing repetitive headers and fluff."""
+    if not context_text:
+        return ""
+
+    import re
+    # Remove repetitive administrative headers
+    cleaned = re.sub(r"CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM\s*Độc lập - Tự do - Hạnh phúc", "", context_text)
+    cleaned = re.sub(r"----+\s*", "", cleaned)
+    cleaned = re.sub(r"\n{3,}", "\n\n", cleaned).strip()
+
+    # Estimate tokens (~4 characters per token)
+    max_chars = max_tokens * 4
+    if len(cleaned) > max_chars:
+        return cleaned[:max_chars] + "\n... [Ngữ cảnh đã được tinh gọn bởi Lean RAG Engine]"
+    return cleaned
+
 
 def get_image_base64_and_url(doc_source: str, page_num: int) -> dict | None:
     import base64

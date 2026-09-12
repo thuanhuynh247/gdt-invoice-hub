@@ -1632,4 +1632,50 @@ def doc_so_tien_vietnam(number: float) -> str:
     return text
 
 
+def get_lean_invoice_stats(taxpayer_mst: str) -> dict:
+    """Fast single-pass aggregation query for taxpayer invoices."""
+    from invoices.models import Invoice
+    from extensions import db
+    from sqlalchemy import func
+
+    if not taxpayer_mst:
+        return {
+            "total_count": 0,
+            "total_revenue": 0.0,
+            "total_vat": 0.0,
+            "cancelled_count": 0,
+            "avg_t_score": 100.0,
+        }
+
+    res = (
+        db.session.query(
+            func.count(Invoice.id).label("cnt"),
+            func.sum(Invoice.amount_before_tax).label("rev"),
+            func.sum(Invoice.tax_amount).label("vat"),
+            func.sum(func.cast(Invoice.is_cancelled, db.Integer)).label("cancelled_cnt"),
+            func.avg(Invoice.t_score).label("avg_t"),
+        )
+        .filter(Invoice.taxpayer_mst == taxpayer_mst)
+        .first()
+    )
+
+    if not res or res.cnt is None or res.cnt == 0:
+        return {
+            "total_count": 0,
+            "total_revenue": 0.0,
+            "total_vat": 0.0,
+            "cancelled_count": 0,
+            "avg_t_score": 100.0,
+        }
+
+    return {
+        "total_count": int(res.cnt or 0),
+        "total_revenue": round(float(res.rev or 0.0), 2),
+        "total_vat": round(float(res.vat or 0.0), 2),
+        "cancelled_count": int(res.cancelled_cnt or 0),
+        "avg_t_score": round(float(res.avg_t or 100.0), 1),
+    }
+
+
+
 

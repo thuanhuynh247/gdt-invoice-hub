@@ -111,7 +111,27 @@ class TimesFMPatchDecoder:
         horizon: int = 6,
         patch_size: Optional[int] = None,
     ) -> Dict[str, Any]:
-        """Autoregressive Multi-Horizon Patch Decoding."""
+        """Autoregressive Multi-Horizon Patch Decoding with LRU caching."""
+        P = patch_size or self.patch_size
+        cache_key = (tuple(historical_series), horizon, P)
+        if hasattr(self, "_cache") and cache_key in self._cache:
+            return self._cache[cache_key]
+
+        res = self._exec_decode_multi_horizon(historical_series, horizon=horizon, patch_size=P)
+        if not hasattr(self, "_cache"):
+            self._cache = {}
+        if len(self._cache) > 128:
+            self._cache.clear()
+        self._cache[cache_key] = res
+        return res
+
+    def _exec_decode_multi_horizon(
+        self,
+        historical_series: List[float],
+        horizon: int = 6,
+        patch_size: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        """Core decoding calculation engine."""
         P = patch_size or self.patch_size
         N = len(historical_series)
         

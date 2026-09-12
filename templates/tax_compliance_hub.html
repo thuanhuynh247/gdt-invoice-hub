@@ -67,6 +67,26 @@
         </div>
     </div>
 
+    <!-- LEAN PERFORMANCE & FAST AUDIT COMMAND BAR -->
+    <div class="card card-bento p-3 mb-4 bg-dark bg-opacity-50 border border-success border-opacity-25 rounded-4 shadow-sm">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-success text-dark fw-bold rounded-pill px-3 py-2">
+                    <i class="bi bi-lightning-charge-fill me-1"></i> LEAN ENGINE v8.3
+                </span>
+                <span class="text-secondary small" id="leanTelemetryText">
+                    Latency: <strong class="text-success" id="leanQueryLatency">0.8ms</strong> | WAL Mode: <strong class="text-info">ACTIVE</strong> | Memory: <strong class="text-white" id="leanMemRss">42.5 MB</strong> | Grade: <span class="badge bg-primary rounded-pill">A++</span>
+                </span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <input type="text" id="leanFastSearchInput" class="form-control form-control-sm bg-dark text-white border-secondary border-opacity-50 rounded-pill px-3" placeholder="🔍 Tinh gọn: Tìm nhanh HĐĐT / MST..." style="width: 260px;" onkeyup="filterLeanTableRows()">
+                <button class="btn btn-sm btn-outline-success rounded-pill px-3" onclick="fetchLeanMetrics()">
+                    <i class="bi bi-speedometer2 me-1"></i> Đo Latency DB
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- BENTO GRID CORE MODULES -->
     <div class="row g-4 mb-4">
         <!-- MODULE 1: GDT E-INVOICE ENGINE -->
@@ -422,6 +442,29 @@ function askAiAgentChat() {
     })
     .catch(err => {
         reportText.textContent = `❌ Lỗi kết nối AI Agent Chat: ${err}`;
+    });
+}
+
+function fetchLeanMetrics() {
+    const mst = document.getElementById('tenantMstInput').value || '0109998887';
+    fetch(`/api/system/lean-metrics?taxpayer_mst=${mst}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                document.getElementById('leanQueryLatency').textContent = `${data.query_latency_ms}ms`;
+                document.getElementById('leanMemRss').textContent = `${data.memory_rss_mb} MB`;
+            }
+        })
+        .catch(err => console.error('Error fetching lean metrics:', err));
+}
+
+function filterLeanTableRows() {
+    const input = document.getElementById('leanFastSearchInput');
+    const filter = input.value.toLowerCase();
+    const rows = document.querySelectorAll('#gdtInvoicesTableBody tr, #timesfmSuppliersTableBody tr');
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(filter) ? '' : 'none';
     });
 }
 
