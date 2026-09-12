@@ -1677,5 +1677,87 @@ def get_lean_invoice_stats(taxpayer_mst: str) -> dict:
     }
 
 
+def get_accounting_compliance_summary(taxpayer_mst: str) -> dict:
+    """Accounting-grade single-pass summary validating Decree 123/2020 & Law 149/2024 compliance."""
+    from invoices.models import Invoice
+    from extensions import db
+    from datetime import datetime
+
+    if not taxpayer_mst:
+        return {
+            "sales_revenue": 0.0,
+            "sales_vat": 0.0,
+            "purchase_expense": 0.0,
+            "purchase_vat": 0.0,
+            "deductible_input_vat": 0.0,
+            "non_deductible_cash_vat": 0.0,
+            "estimated_net_vat_payable": 0.0,
+            "aging": {"1_30": 0.0, "31_60": 0.0, "61_90": 0.0, "over_90": 0.0},
+        }
+
+    invoices = Invoice.query.filter(Invoice.taxpayer_mst == taxpayer_mst, Invoice.is_cancelled == False).all()
+
+    sales_rev = 0.0
+    sales_vat = 0.0
+    purchase_exp = 0.0
+    purchase_vat = 0.0
+    deductible_vat = 0.0
+    non_deductible_cash_vat = 0.0
+
+    aging = {"1_30": 0.0, "31_60": 0.0, "61_90": 0.0, "over_90": 0.0}
+    today = datetime.now()
+
+    for inv in invoices:
+        is_sales = (inv.seller_mst == taxpayer_mst)
+        amt_before = float(inv.amount_before_tax or 0.0)
+        vat_amt = float(inv.tax_amount or 0.0)
+        tot_amt = float(inv.total_amount or 0.0)
+        pmt_method = (inv.payment_method or "").upper()
+
+        if is_sales:
+            sales_rev += amt_before
+            sales_vat += vat_amt
+        else:
+            purchase_exp += amt_before
+            purchase_vat += vat_amt
+
+            # Circular 78 & Law 149 cash threshold rule: >= 20M VND paid in cash is non-deductible
+            is_cash = ("TM" in pmt_method or "TIEN MAT" in pmt_method or "CASH" in pmt_method)
+            if is_cash and tot_amt >= 20_000_000.0:
+                non_deductible_cash_vat += vat_amt
+            else:
+                deductible_vat += vat_amt
+
+        # Compute aging if due_date is set
+        if inv.due_date and not inv.paid_date:
+            try:
+                due_dt = datetime.strptime(inv.due_date, "%Y-%m-%d")
+                days_overdue = (today - due_dt).days
+                if 1 <= days_overdue <= 30:
+                    aging["1_30"] += tot_amt
+                elif 31 <= days_overdue <= 60:
+                    aging["31_60"] += tot_amt
+                elif 61 <= days_overdue <= 90:
+                    aging["61_90"] += tot_amt
+                elif days_overdue > 90:
+                    aging["over_90"] += tot_amt
+            except Exception:
+                pass
+
+    net_vat_payable = max(0.0, round(sales_vat - deductible_vat, 2))
+
+    return {
+        "sales_revenue": round(sales_rev, 2),
+        "sales_vat": round(sales_vat, 2),
+        "purchase_expense": round(purchase_exp, 2),
+        "purchase_vat": round(purchase_vat, 2),
+        "deductible_input_vat": round(deductible_vat, 2),
+        "non_deductible_cash_vat": round(non_deductible_cash_vat, 2),
+        "estimated_net_vat_payable": net_vat_payable,
+        "aging": {k: round(v, 2) for k, v in aging.items()},
+    }
+
+
+
 
 

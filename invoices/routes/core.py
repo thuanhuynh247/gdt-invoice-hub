@@ -11469,4 +11469,29 @@ def api_system_lean_metrics():
     })
 
 
+@invoices_blueprint.get("/api/accounting/fast-summary")
+def api_accounting_fast_summary():
+    """Retrieve instant accounting compliance summary under Decree 123/2020 & Law 149/2024."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    import time
+    from invoices.service import get_accounting_compliance_summary
+
+    taxpayer_mst = session.get("active_taxpayer_mst") or request.args.get("taxpayer_mst") or "0109998887"
+
+    t0 = time.perf_counter()
+    summary = get_accounting_compliance_summary(taxpayer_mst)
+    latency_ms = round((time.perf_counter() - t0) * 1000, 2)
+
+    return jsonify({
+        "status": "success",
+        "taxpayer_mst": taxpayer_mst,
+        "query_latency_ms": latency_ms,
+        "accounting_summary": summary,
+    })
+
+
+
 

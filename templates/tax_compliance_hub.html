@@ -87,6 +87,45 @@
         </div>
     </div>
 
+    <!-- ACCOUNTING COMPLIANCE FAST-AUDIT STUDIO (NĐ 123 / TT 78 / LUẬT 149) -->
+    <div class="card card-bento p-4 mb-4 bg-dark bg-opacity-75 border border-primary border-opacity-25 rounded-4 shadow">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+            <div>
+                <h5 class="fw-bold text-white mb-1"><i class="bi bi-calculator-fill text-info me-2"></i> Kế Toán Thuế & Rà Soát Khấu Trừ GTGT (Luật 149/2024 / NĐ 123)</h5>
+                <p class="text-secondary small mb-0">Tự động bóc tách thuế GTGT được khấu trừ, cảnh báo hóa đơn tiền mặt &gt; 20 triệu không được trừ và đối soát nộp thuế tức thì.</p>
+            </div>
+            <button class="btn btn-sm btn-primary rounded-pill px-3" onclick="fetchAccountingSummary()">
+                <i class="bi bi-arrow-clockwise me-1"></i> Cập Nhật Kế Toán Fast-Pass
+            </button>
+        </div>
+        <div class="row g-3" id="accountingKpiRow">
+            <div class="col-6 col-md-3">
+                <div class="p-3 rounded-3 bg-secondary bg-opacity-10 border border-secondary border-opacity-25">
+                    <div class="text-secondary small">Thuế GTGT Đầu Ra</div>
+                    <div class="fs-5 fw-bold text-success" id="accSalesVat">0 ₫</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="p-3 rounded-3 bg-secondary bg-opacity-10 border border-secondary border-opacity-25">
+                    <div class="text-secondary small">GTGT Đầu Vào Được Khấu Trừ</div>
+                    <div class="fs-5 fw-bold text-info" id="accDeductibleVat">0 ₫</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="p-3 rounded-3 bg-secondary bg-opacity-10 border border-warning border-opacity-50">
+                    <div class="text-warning small"><i class="bi bi-exclamation-triangle-fill me-1"></i> Tiền Mặt &gt; 20M (Không Trừ)</div>
+                    <div class="fs-5 fw-bold text-warning" id="accNonDeductibleVat">0 ₫</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="p-3 rounded-3 bg-secondary bg-opacity-10 border border-success border-opacity-50">
+                    <div class="text-success small">Thuế GTGT Phải Nộp Ước Tính</div>
+                    <div class="fs-5 fw-bold text-light" id="accNetVatPayable">0 ₫</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- BENTO GRID CORE MODULES -->
     <div class="row g-4 mb-4">
         <!-- MODULE 1: GDT E-INVOICE ENGINE -->
@@ -467,6 +506,23 @@ function filterLeanTableRows() {
         row.style.display = text.includes(filter) ? '' : 'none';
     });
 }
+
+function fetchAccountingSummary() {
+    const mst = document.getElementById('tenantMstInput').value || '0109998887';
+    fetch(`/api/accounting/fast-summary?taxpayer_mst=${mst}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success' && data.accounting_summary) {
+                const s = data.accounting_summary;
+                document.getElementById('accSalesVat').textContent = `${(s.sales_vat || 0).toLocaleString('vi-VN')} ₫`;
+                document.getElementById('accDeductibleVat').textContent = `${(s.deductible_input_vat || 0).toLocaleString('vi-VN')} ₫`;
+                document.getElementById('accNonDeductibleVat').textContent = `${(s.non_deductible_cash_vat || 0).toLocaleString('vi-VN')} ₫`;
+                document.getElementById('accNetVatPayable').textContent = `${(s.estimated_net_vat_payable || 0).toLocaleString('vi-VN')} ₫`;
+            }
+        })
+        .catch(err => console.error('Error fetching accounting summary:', err));
+}
+document.addEventListener('DOMContentLoaded', fetchAccountingSummary);
 
 </script>
 {% endblock %}
