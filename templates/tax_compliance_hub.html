@@ -91,14 +91,19 @@
     <div class="card card-bento p-4 mb-4 bg-dark bg-opacity-75 border border-primary border-opacity-25 rounded-4 shadow">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
             <div>
-                <h5 class="fw-bold text-white mb-1"><i class="bi bi-calculator-fill text-info me-2"></i> Kế Toán Thuế & Rà Soát Khấu Trừ GTGT (Luật 149/2024 / NĐ 123)</h5>
-                <p class="text-secondary small mb-0">Tự động bóc tách thuế GTGT được khấu trừ, cảnh báo hóa đơn tiền mặt &gt; 20 triệu không được trừ và đối soát nộp thuế tức thì.</p>
+                <h5 class="fw-bold text-white mb-1"><i class="bi bi-calculator-fill text-info me-2"></i> Bàn Làm Việc Kế Toán Thuế & Rà Soát Khấu Trừ GTGT (Luật 149/2024 / NĐ 123)</h5>
+                <p class="text-secondary small mb-0">Bóc tách thuế GTGT khấu trừ, cảnh báo HĐ tiền mặt &gt; 20M, loại trừ MST rủi ro & kiểm tra sẵn sàng nộp HTKK.</p>
             </div>
-            <button class="btn btn-sm btn-primary rounded-pill px-3" onclick="fetchAccountingSummary()">
-                <i class="bi bi-arrow-clockwise me-1"></i> Cập Nhật Kế Toán Fast-Pass
-            </button>
+            <div class="d-flex align-items-center gap-2">
+                <a href="/api/v81/export-05kk-xml" class="btn btn-sm btn-success rounded-pill px-3" id="accHtkkBtn">
+                    <i class="bi bi-file-earmark-code me-1"></i> Xuất Tờ Khai 01/GTGT HTKK
+                </a>
+                <button class="btn btn-sm btn-primary rounded-pill px-3" onclick="fetchAccountingCockpit()">
+                    <i class="bi bi-arrow-clockwise me-1"></i> Cập Nhật Cockpit
+                </button>
+            </div>
         </div>
-        <div class="row g-3" id="accountingKpiRow">
+        <div class="row g-3 mb-3" id="accountingKpiRow">
             <div class="col-6 col-md-3">
                 <div class="p-3 rounded-3 bg-secondary bg-opacity-10 border border-secondary border-opacity-25">
                     <div class="text-secondary small">Thuế GTGT Đầu Ra</div>
@@ -123,6 +128,18 @@
                     <div class="fs-5 fw-bold text-light" id="accNetVatPayable">0 ₫</div>
                 </div>
             </div>
+        </div>
+        <!-- LEAN ACCOUNTING COCKPIT EXTRA DETAIL -->
+        <div class="p-3 rounded-3 bg-black bg-opacity-30 border border-secondary border-opacity-25 d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <span class="text-secondary small" id="accBlacklistAlert">
+                <i class="bi bi-shield-x text-danger me-1"></i> MST Rủi ro/Hủy: <strong class="text-danger" id="accBlacklistedVat">0 ₫</strong>
+            </span>
+            <span class="text-secondary small" id="accAgingAlert">
+                <i class="bi bi-hourglass-split text-info me-1"></i> Phải trả quá hạn (&gt;90d): <strong class="text-white" id="accPayableOver90">0 ₫</strong>
+            </span>
+            <span class="badge bg-success bg-opacity-25 text-success rounded-pill px-3 py-2" id="accHtkkBadge">
+                <i class="bi bi-check-circle-fill me-1"></i> HTKK XML Ready: YES
+            </span>
         </div>
     </div>
 
@@ -522,7 +539,40 @@ function fetchAccountingSummary() {
         })
         .catch(err => console.error('Error fetching accounting summary:', err));
 }
-document.addEventListener('DOMContentLoaded', fetchAccountingSummary);
+
+function fetchAccountingCockpit() {
+    const mst = document.getElementById('tenantMstInput').value || '0109998887';
+    fetch(`/api/accounting/cockpit?taxpayer_mst=${mst}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success' && data.cockpit) {
+                const c = data.cockpit;
+                document.getElementById('accSalesVat').textContent = `${(c.output_vat || 0).toLocaleString('vi-VN')} ₫`;
+                document.getElementById('accDeductibleVat').textContent = `${(c.input_vat_deductible || 0).toLocaleString('vi-VN')} ₫`;
+                document.getElementById('accNonDeductibleVat').textContent = `${(c.input_vat_disallowed_cash || 0).toLocaleString('vi-VN')} ₫`;
+                document.getElementById('accNetVatPayable').textContent = `${(c.net_vat_payable || 0).toLocaleString('vi-VN')} ₫`;
+                document.getElementById('accBlacklistedVat').textContent = `${(c.input_vat_disallowed_blacklisted || 0).toLocaleString('vi-VN')} ₫`;
+                const payOver90 = (c.aging_payables && c.aging_payables.over_90) || 0;
+                document.getElementById('accPayableOver90').textContent = `${payOver90.toLocaleString('vi-VN')} ₫`;
+
+                const htkkBadge = document.getElementById('accHtkkBadge');
+                if (c.htkk_ready) {
+                    htkkBadge.className = 'badge bg-success bg-opacity-25 text-success rounded-pill px-3 py-2';
+                    htkkBadge.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> HTKK XML Ready: YES';
+                } else {
+                    htkkBadge.className = 'badge bg-danger bg-opacity-25 text-danger rounded-pill px-3 py-2';
+                    htkkBadge.innerHTML = '<i class="bi bi-x-circle-fill me-1"></i> HTKK XML Alert: Cần rà soát';
+                }
+            }
+        })
+        .catch(err => console.error('Error fetching accounting cockpit:', err));
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    fetchAccountingSummary();
+    fetchAccountingCockpit();
+});
+
 
 </script>
 {% endblock %}

@@ -1758,6 +1758,98 @@ def get_accounting_compliance_summary(taxpayer_mst: str) -> dict:
     }
 
 
+def get_lean_accounting_cockpit(taxpayer_mst: str) -> dict:
+    """Single-pass ultra-lean Accounting Cockpit calculation under Law 149/2024 & Decree 123/2020."""
+    from invoices.models import Invoice, BlacklistedMST
+    from datetime import datetime
+
+    if not taxpayer_mst:
+        return {
+            "output_vat": 0.0,
+            "input_vat_total": 0.0,
+            "input_vat_deductible": 0.0,
+            "input_vat_disallowed_cash": 0.0,
+            "input_vat_disallowed_blacklisted": 0.0,
+            "net_vat_payable": 0.0,
+            "aging_receivables": {"1_30": 0.0, "31_60": 0.0, "61_90": 0.0, "over_90": 0.0},
+            "aging_payables": {"1_30": 0.0, "31_60": 0.0, "61_90": 0.0, "over_90": 0.0},
+            "htkk_ready": True,
+        }
+
+    blacklisted = set()
+    try:
+        blacklisted = {b.mst for b in BlacklistedMST.query.all()}
+    except Exception:
+        pass
+
+    invoices = Invoice.query.filter(Invoice.taxpayer_mst == taxpayer_mst, Invoice.is_cancelled == False).all()
+
+    output_vat = 0.0
+    input_vat_total = 0.0
+    input_vat_deductible = 0.0
+    input_vat_disallowed_cash = 0.0
+    input_vat_disallowed_blacklisted = 0.0
+
+    aging_rec = {"1_30": 0.0, "31_60": 0.0, "61_90": 0.0, "over_90": 0.0}
+    aging_pay = {"1_30": 0.0, "31_60": 0.0, "61_90": 0.0, "over_90": 0.0}
+    today = datetime.now()
+
+    for inv in invoices:
+        is_sales = (inv.seller_mst == taxpayer_mst)
+        vat_amt = float(inv.tax_amount or 0.0)
+        tot_amt = float(inv.total_amount or 0.0)
+        pmt_method = (inv.payment_method or "").upper()
+        seller = inv.seller_mst or ""
+
+        if is_sales:
+            output_vat += vat_amt
+            if inv.due_date and not inv.paid_date:
+                try:
+                    due_dt = datetime.strptime(inv.due_date, "%Y-%m-%d")
+                    days = (today - due_dt).days
+                    if 1 <= days <= 30: aging_rec["1_30"] += tot_amt
+                    elif 31 <= days <= 60: aging_rec["31_60"] += tot_amt
+                    elif 61 <= days <= 90: aging_rec["61_90"] += tot_amt
+                    elif days > 90: aging_rec["over_90"] += tot_amt
+                except Exception: pass
+        else:
+            input_vat_total += vat_amt
+            is_cash = ("TM" in pmt_method or "TIEN MAT" in pmt_method or "CASH" in pmt_method)
+            is_blacklisted = seller in blacklisted
+
+            if is_blacklisted:
+                input_vat_disallowed_blacklisted += vat_amt
+            elif is_cash and tot_amt >= 20_000_000.0:
+                input_vat_disallowed_cash += vat_amt
+            else:
+                input_vat_deductible += vat_amt
+
+            if inv.due_date and not inv.paid_date:
+                try:
+                    due_dt = datetime.strptime(inv.due_date, "%Y-%m-%d")
+                    days = (today - due_dt).days
+                    if 1 <= days <= 30: aging_pay["1_30"] += tot_amt
+                    elif 31 <= days <= 60: aging_pay["31_60"] += tot_amt
+                    elif 61 <= days <= 90: aging_pay["61_90"] += tot_amt
+                    elif days > 90: aging_pay["over_90"] += tot_amt
+                except Exception: pass
+
+    net_vat_payable = max(0.0, round(output_vat - input_vat_deductible, 2))
+
+    return {
+        "output_vat": round(output_vat, 2),
+        "input_vat_total": round(input_vat_total, 2),
+        "input_vat_deductible": round(input_vat_deductible, 2),
+        "input_vat_disallowed_cash": round(input_vat_disallowed_cash, 2),
+        "input_vat_disallowed_blacklisted": round(input_vat_disallowed_blacklisted, 2),
+        "net_vat_payable": net_vat_payable,
+        "aging_receivables": {k: round(v, 2) for k, v in aging_rec.items()},
+        "aging_payables": {k: round(v, 2) for k, v in aging_pay.items()},
+        "htkk_ready": (input_vat_disallowed_blacklisted == 0.0),
+    }
+
+
+
 
 
 

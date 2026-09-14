@@ -11493,5 +11493,31 @@ def api_accounting_fast_summary():
     })
 
 
+@invoices_blueprint.get("/api/accounting/cockpit")
+def api_accounting_cockpit():
+    """Retrieve instant single-pass Accounting Cockpit JSON metrics."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    import time
+    from invoices.service import get_lean_accounting_cockpit
+
+    taxpayer_mst = session.get("active_taxpayer_mst") or request.args.get("taxpayer_mst") or "0109998887"
+
+    t0 = time.perf_counter()
+    cockpit_data = get_lean_accounting_cockpit(taxpayer_mst)
+    latency_ms = round((time.perf_counter() - t0) * 1000, 2)
+
+    return jsonify({
+        "status": "success",
+        "taxpayer_mst": taxpayer_mst,
+        "query_latency_ms": latency_ms,
+        "cockpit": cockpit_data,
+    })
+
+
+
+
 
 
