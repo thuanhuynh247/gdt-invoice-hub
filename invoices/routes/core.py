@@ -11517,6 +11517,107 @@ def api_accounting_cockpit():
     })
 
 
+@invoices_blueprint.post("/api/accounting/tp-audit")
+def api_accounting_tp_audit():
+    """Audit Transfer Pricing EBITDA 30% interest cap & GloBE top-up tax under Decree 132/2020."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    from invoices.v79_service import V79ComplianceService
+    payload = request.get_json(silent=True) or {}
+
+    taxpayer_mst = payload.get("taxpayer_mst") or session.get("active_taxpayer_mst") or "0109998887"
+    consolidated_rev = float(payload.get("consolidated_revenue") or 50_000_000_000.0)
+    ebitda = float(payload.get("ebitda") or 10_000_000_000.0)
+    net_interest = float(payload.get("net_interest_expense") or 2_500_000_000.0)
+    related_rev = float(payload.get("related_party_revenue") or 15_000_000_000.0)
+
+    service = V79ComplianceService()
+    res = service.calculate_pillar2_and_transfer_pricing(
+        mst=taxpayer_mst,
+        consolidated_revenue=consolidated_rev,
+        globe_income=ebitda * 0.8,
+        covered_taxes=ebitda * 0.16,
+        ebitda=ebitda,
+        net_interest_expense=net_interest,
+        related_party_revenue=related_rev
+    )
+
+    return jsonify({
+        "status": "success",
+        "taxpayer_mst": taxpayer_mst,
+        "tp_audit": res
+    })
+
+
+@invoices_blueprint.get("/api/accounting/report-html")
+def api_accounting_report_html():
+    """Generate standalone Lieflat Report R04 single-file HTML tax compliance report."""
+    unauthorized = _ensure_logged_in()
+    if unauthorized:
+        return unauthorized
+
+    from invoices.service import get_lean_accounting_cockpit
+    taxpayer_mst = session.get("active_taxpayer_mst") or request.args.get("taxpayer_mst") or "0109998887"
+    cockpit = get_lean_accounting_cockpit(taxpayer_mst)
+
+    html_content = f"""<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Lieflat R04 — Báo Cáo Tuân Thủ Thuế GTGT & TNDN</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@600;800&display=swap" rel="stylesheet">
+<style>
+  body {{ font-family: 'Inter', sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 2rem; }}
+  .container {{ max-width: 900px; margin: 0 auto; background: rgba(30, 41, 59, 0.9); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 2.5rem; }}
+  .badge {{ background: #10b981; color: #064e3b; font-weight: 800; padding: 0.3rem 0.8rem; border-radius: 9999px; font-size: 0.8rem; }}
+  h1 {{ font-size: 1.8rem; margin-top: 0.5rem; background: linear-gradient(135deg, #fff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }}
+  .grid {{ display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; margin-top: 2rem; }}
+  .card {{ background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; padding: 1.5rem; }}
+  .val {{ font-family: 'JetBrains Mono', monospace; font-size: 1.5rem; font-weight: 800; margin-top: 0.5rem; }}
+  .text-success {{ color: #34d399; }}
+  .text-info {{ color: #38bdf8; }}
+  .text-warning {{ color: #fbbf24; }}
+  .footer {{ margin-top: 2.5rem; font-size: 0.8rem; color: #64748b; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 1rem; text-align: center; }}
+</style>
+</head>
+<body>
+<div class="container">
+  <span class="badge">LIEFLAT REPORT R04 — AUDIT EXECUTIVE BRIEF</span>
+  <h1>Báo Cáo Kiểm Toán Nhanh Thuế GTGT & TNDN</h1>
+  <p style="color: #94a3b8; font-size: 0.9rem;">Mã số thuế: <strong>{taxpayer_mst}</strong> · Căn cứ: Nghị định 123/2020/NĐ-CP & Luật 149/2024/QH15</p>
+  
+  <div class="grid">
+    <div class="card">
+      <div style="font-size: 0.85rem; color: #94a3b8;">Thuế GTGT Đầu Ra</div>
+      <div class="val text-success">{cockpit['output_vat']:,.0f} ₫</div>
+    </div>
+    <div class="card">
+      <div style="font-size: 0.85rem; color: #94a3b8;">GTGT Đầu Vào Được Khấu Trừ</div>
+      <div class="val text-info">{cockpit['input_vat_deductible']:,.0f} ₫</div>
+    </div>
+    <div class="card">
+      <div style="font-size: 0.85rem; color: #fbbf24;">Tiền Mặt &gt; 20M (Không Trừ)</div>
+      <div class="val text-warning">{cockpit['input_vat_disallowed_cash']:,.0f} ₫</div>
+    </div>
+    <div class="card">
+      <div style="font-size: 0.85rem; color: #94a3b8;">Thuế GTGT Phải Nộp Ước Tính</div>
+      <div class="val text-success">{cockpit['net_vat_payable']:,.0f} ₫</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Báo cáo này được tự động tạo bởi <strong>Antigravity Smart Webapp Optimizer (Lieflat Engine R04)</strong> · Bản quyền GDT Invoice Hub 2026.
+  </div>
+</div>
+</body>
+</html>"""
+    return html_content, 200, {"Content-Type": "text/html; charset=utf-8"}
+
+
+
 
 
 
