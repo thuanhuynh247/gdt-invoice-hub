@@ -16,15 +16,13 @@ if not exist "app.py" (
     exit /b 1
 )
 
-:: Check if virtual environment exists
-if not exist "venv\Scripts\activate.bat" (
-    echo [ERROR] Virtual environment not found at 'venv'.
-    echo Please run 'SETUP.bat' first.
-    exit /b 1
+:: Check if virtual environment exists and activate if available
+if exist "venv\Scripts\activate.bat" (
+    echo [1/3] Activating virtual environment...
+    call venv\Scripts\activate.bat
+) else (
+    echo [1/3] Using system Python environment...
 )
-
-echo [1/3] Activating virtual environment...
-call venv\Scripts\activate.bat
 
 echo [2/3] Checking python syntax in codebase...
 python -m compileall -q app.py config.py run_local.py auth invoices export tests
@@ -34,12 +32,14 @@ if !errorlevel! neq 0 (
 )
 echo [SUCCESS] Python syntax is valid.
 
-echo [3/3] Running pytest suite...
-if "%DISABLE_COVERAGE%"=="1" (
-    echo [INFO] Running pytest without coverage to prevent Python 3.14 interpreter crashes...
-    python -m pytest tests/test_v71_v75_features.py -v
+python -c "import pytest_cov" >nul 2>&1
+if !errorlevel! neq 0 set DISABLE_COVERAGE=1
+
+if "!DISABLE_COVERAGE!"=="1" (
+    echo [INFO] Running pytest without coverage...
+    python -m pytest tests/test_v71_v75_features.py tests/test_lean_webapp_optimizer.py tests/test_v84_accounting_lean.py tests/test_v85_accounting_cockpit.py tests/test_v86_accounting_advanced.py -v
 ) else (
-    python -m pytest tests/test_v71_v75_features.py -v --cov=auth --cov=invoices --cov=export --cov=app --cov-report=term-missing
+    python -m pytest tests/test_v71_v75_features.py tests/test_lean_webapp_optimizer.py tests/test_v84_accounting_lean.py tests/test_v85_accounting_cockpit.py tests/test_v86_accounting_advanced.py -v --cov=auth --cov=invoices --cov=export --cov=app --cov-report=term-missing
 )
 if !errorlevel! neq 0 (
     echo [ERROR] Pytest execution failed!

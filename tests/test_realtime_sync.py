@@ -69,8 +69,9 @@ def test_sync_daemon_cycle(app):
         # Instantiate and run cycle directly to avoid threading issues in test
         daemon = GDTSyncDaemon(app, interval_minutes=1)
         
-        # Mock time.sleep to run instantly
-        with patch('time.sleep', return_value=None):
+        # Mock time.sleep and heartbeat reauth to run instantly with success
+        with patch('time.sleep', return_value=None), \
+             patch.object(daemon, '_perform_heartbeat_and_auto_reauth', return_value={"status": "success", "attempts": 1, "captcha_failures": 0}):
             daemon._execute_sync_cycle()
         
         # Assert log was created

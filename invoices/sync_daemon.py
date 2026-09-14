@@ -74,7 +74,7 @@ class GDTSyncDaemon:
         """Perform Heartbeat Ping and 5x Auto-Retry CAPTCHA login if session expired."""
         from auth.captcha import pop_prefetched_captcha, fetch_captcha_payload
         from auth.captcha_solver import solve_captcha_from_svg, captcha_analytics
-        from auth.services import authenticate_user, AuthenticationError
+        from auth.service import authenticate_user, AuthenticationError
         from auth.crypto import decrypt_password
 
         attempts = 5
